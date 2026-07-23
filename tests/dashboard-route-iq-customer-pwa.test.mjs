@@ -94,6 +94,15 @@ test("the browser harness uses governed Northstar Intelligence provenance withou
   assert.doesNotMatch(runtimeWorkflowHarness, /customerPwaSessionFixture[\s\S]{0,1800}business-hours-v1\/business-hours\.json/u);
 });
 
+test("the browser harness treats Founder cross-profile previews as governed fail-closed cases", () => {
+  assert.match(runtimeWorkflowHarness, /runGovernedProfileMismatchScenario/u);
+  assert.match(runtimeWorkflowHarness, /Route replenishment operating profile is not authorized:/u);
+  assert.match(runtimeWorkflowHarness, /initial\.debug\.startupCompleted === false/u);
+  assert.match(runtimeWorkflowHarness, /initial\.debug\.rendererReceived === false/u);
+  assert.match(runtimeWorkflowHarness, /boundary\.authorizedOperatingProfileId === "fitness"/u);
+  assert.doesNotMatch(runtimeWorkflowHarness, /for \(const expected of \[\s*\{ profileId: "general_outside_sales"/u);
+});
+
 test("generated Dashboard Intelligence modules retain source parity and resolvable imports", () => {
   const governedScopeSource = readFileSync(resolve(root, "intelligence/route-iq-governed-runtime-scope.mjs"));
   const governedScopeDeploy = readFileSync(resolve(generatedIntelligenceRoot, "route-iq-governed-runtime-scope.mjs"));

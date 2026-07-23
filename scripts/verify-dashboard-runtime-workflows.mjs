@@ -2772,6 +2772,72 @@ async function runPageScenario(chrome, server, path, name, options = {}) {
   }
 }
 
+async function waitForGovernedProfileMismatch(cdp, expectedReason, timeoutMs = 10000) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const status = await cdp.evaluate(`(() => {
+      const debug = window.prometheusDebugState || {};
+      return {
+        startupCompleted: debug.startupCompleted === true,
+        lastError: debug.lastError || "",
+        lastUnhandledRejection: debug.lastUnhandledRejection || ""
+      };
+    })()`);
+    if (status.startupCompleted) {
+      throw new Error(`Dashboard unexpectedly completed startup for governed profile mismatch: ${JSON.stringify(status)}`);
+    }
+    if (status.lastError === expectedReason && status.lastUnhandledRejection === expectedReason) {
+      return Date.now() - startedAt;
+    }
+    await wait(100);
+  }
+  const diagnostic = await cdp.evaluate(`(() => ({
+    href: location.href,
+    debug: window.prometheusDebugState || null,
+    routeCards: document.querySelectorAll("#routeList .route-card").length,
+    dailyRouteCards: document.querySelectorAll("#dailyRoute .route-card").length
+  }))()`).catch(error => ({ diagnosticError: error.message }));
+  throw new Error(`Dashboard did not record the governed profile mismatch before timeout: ${JSON.stringify(diagnostic)}`);
+}
+
+async function runGovernedProfileMismatchScenario(chrome, server, profileId) {
+  const name = `operating-profile-${profileId}-mismatch`;
+  const expectedReason = `Route replenishment operating profile is not authorized: ${profileId}`;
+  const eventLog = { runtimeExceptions: [], consoleErrors: [], logErrors: [], network: [] };
+  const cdp = await attachPage(chrome, eventLog);
+  try {
+    const path = `/?role=founder&debug=1&operatingProfile=${profileId}&harness=${name}`;
+    await navigateAndWait(cdp, `${server.origin}${path}`);
+    const mismatchMs = await waitForGovernedProfileMismatch(cdp, expectedReason);
+    const initial = await snapshot(cdp);
+    const boundary = await cdp.evaluate(`(() => {
+      const workspaceId = currentRouteWorkspaceId();
+      const queueEntries = state?.repProfiles?.[activeRepId]?.activeRouteQueue?.entries;
+      return {
+        selectedOperatingProfileId: activeOperatingProfile?.profileId || "",
+        workspaceId,
+        authorizedOperatingProfileId: dashboardWorkspaces[workspaceId]?.operatingProfileId || "",
+        businessHoursWorkspaceId: routeBusinessHoursIndex?.workspaceId || "",
+        businessHoursOperatingProfileId: routeBusinessHoursIndex?.operatingProfileId || "",
+        activeQueueCount: Array.isArray(queueEntries) ? queueEntries.length : 0
+      };
+    })()`);
+    return { name, cdp, eventLog, mismatchMs, expectedReason, initial, boundary };
+  } catch (error) {
+    const scenarioError = new Error(`${error.message}; events=${JSON.stringify(eventLog)}`, { cause: error });
+    try {
+      await cdp.close();
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [scenarioError, cleanupError],
+        `${scenarioError.message}; target cleanup failed: ${errorCauseDiagnostic(cleanupError)}`,
+        { cause: scenarioError }
+      );
+    }
+    throw scenarioError;
+  }
+}
+
 async function navigateExistingScenario(cdp, server, path) {
   await navigateAndWait(cdp, `${server.origin}${path}`);
   await waitForDashboardReady(cdp, 60000);
@@ -3388,15 +3454,50 @@ async function runHarness() {
       prospectiveFailure
     ].map(scenario => scenario.cdp.close()));
 
-    for (const expected of [
-      { profileId: "general_outside_sales", terms: ["Opportunities Today", "Appointments", "Leads", "Outside Sales Route", "Verified Opportunities"] },
-      { profileId: "roofing", terms: ["Contracts Today", "Inspections", "Leads", "Roofing Route", "Verified Contracts"] },
-      { profileId: "security", terms: ["Contracts Today", "Site Surveys", "Security Prospects", "Security Route", "Verified Contracts"] },
-      { profileId: "medical", terms: ["Partnerships Today", "Meetings", "Referrals", "Medical Route", "Verified Partnerships"] }
-    ]) {
-      const profileScenario = await runPageScenario(chrome, server, `/?role=founder&debug=1&operatingProfile=${expected.profileId}&harness=operating-profile-${expected.profileId}`, `operating-profile-${expected.profileId}`);
-      verifyOperatingProfileVocabulary(`Operating Profile ${expected.profileId} vocabulary`, profileScenario.initial, expected);
-      verifyNoErrors(`Operating Profile ${expected.profileId}`, profileScenario.eventLog, profileScenario.initial);
+    for (const profileId of ["general_outside_sales", "roofing", "security", "medical"]) {
+      const profileScenario = await runGovernedProfileMismatchScenario(chrome, server, profileId);
+      const { initial, boundary, eventLog, expectedReason } = profileScenario;
+      assertWorkflow(
+        `Operating Profile ${profileId} governed mismatch fails closed`,
+        initial.operatingProfileId === profileId
+          && initial.workspaceId === "fitness_connection"
+          && initial.workspaceOperatingProfileId === "fitness"
+          && initial.debug.startupCompleted === false
+          && initial.debug.lastError === expectedReason
+          && initial.debug.lastUnhandledRejection === expectedReason
+          && initial.debug.rendererReceived === false
+          && initial.debug.routeRecommendation === null
+          && initial.routeCards === 0
+          && initial.dailyRouteCards === 0
+          && initial.routeCountLabel === "0 active stops"
+          && initial.dailyRouteCountLabel.startsWith("0 active")
+          && initial.bestNextMove === "Route pool exhausted"
+          && initial.bestMoveAddress === "No verified address available"
+          && initial.bestMoveDirections.endsWith("#"),
+        `${profileId} rejected before route or recommendation rendering`,
+        JSON.stringify({ initial, expectedReason, mismatchMs: profileScenario.mismatchMs })
+      );
+      const runtimeExceptionsExpected = eventLog.runtimeExceptions.every(error => error === "Uncaught (in promise)" || error.includes(expectedReason));
+      const failedRequests = eventLog.network.filter(event => event.event === "failed");
+      assertWorkflow(
+        `Operating Profile ${profileId} cross-profile state isolation`,
+        boundary.selectedOperatingProfileId === profileId
+          && boundary.workspaceId === "fitness_connection"
+          && boundary.authorizedOperatingProfileId === "fitness"
+          && boundary.businessHoursWorkspaceId === "fitness_connection"
+          && boundary.businessHoursOperatingProfileId === "fitness"
+          && boundary.activeQueueCount === initial.routeQueueIds.length
+          && boundary.activeQueueCount > 0
+          && initial.routeCards === 0
+          && initial.dailyRouteCards === 0
+          && initial.debug.rendererReceived === false
+          && runtimeExceptionsExpected
+          && eventLog.consoleErrors.length === 0
+          && eventLog.logErrors.length === 0
+          && failedRequests.length === 0,
+        `${profileId} created no usable cross-profile route state`,
+        JSON.stringify({ boundary, eventLog })
+      );
       await profileScenario.cdp.close();
     }
 
