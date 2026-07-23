@@ -1,0 +1,62 @@
+{
+  "evidenceVersion": "prometheus-integrations-owner-adoption-v1",
+  "status": "LEGACY_LOCAL_COMMIT_ADOPTED_UNCHANGED",
+  "legacyCommit": "cae2d9705a36291b5404dd0820ff15933c8b503d",
+  "legacyCommitAuthor": "PrometheusRouteIQ <prometheusrouteiq@gmail.com>",
+  "canonicalOwner": "Prometheus Integrations",
+  "canonicalOwnerEmail": "integrations@prometheus.local",
+  "ownershipStatement": "This evidence names a legacy local commit with a non-authoritative author identity. It does not claim retroactive Integrations ownership, does not rewrite history, and records that the current Integrations-owned files are adopted unchanged.",
+  "historyRewriteAllowed": false,
+  "currentFilesAdoptedUnchanged": true,
+  "behaviorAudit": {
+    "integrationsReadme": "Documents the governed shared workspace lead intake contract and the default-OFF business-hours provider boundary.",
+    "businessHoursProviderAdapter": [
+      "Defaults to OFF and performs zero transport calls while disabled.",
+      "Allows GET only, rejects redirects, and requires a fixed HTTPS endpoint.",
+      "Accepts strict opaque business and provider identities.",
+      "Enforces a response allowlist and complete identity-matched results.",
+      "Returns only Data normalization input records and never emits recommendation or eligibility output."
+    ],
+    "sharedWorkspaceLeadIntakeContract": [
+      "Requires a runtime workspace registry.",
+      "Embeds no customer-specific workspace routes.",
+      "Fails closed for unknown or invalid workspaces."
+    ],
+    "tests": [
+      "Business-hours adapter contract and fail-closed transport behavior.",
+      "Shared workspace lead intake contract isolation and fail-closed routing."
+    ]
+  },
+  "paths": [
+    {
+      "path": "integrations/README.md",
+      "legacyCommitRawSha256": "ed1a1bd5103e54d8885ed5a5af908d3b8d0e0a65967b6ec199da5a10116f3be9",
+      "currentRawSha256": "ed1a1bd5103e54d8885ed5a5af908d3b8d0e0a65967b6ec199da5a10116f3be9",
+      "adoptedUnchanged": true
+    },
+    {
+      "path": "integrations/business-hours-provider-adapter.js",
+      "legacyCommitRawSha256": "329cbede4d12cc7e9e6592a95202ff5253d813fa5d51aceb369260f1d3a3688e",
+      "currentRawSha256": "329cbede4d12cc7e9e6592a95202ff5253d813fa5d51aceb369260f1d3a3688e",
+      "adoptedUnchanged": true
+    },
+    {
+      "path": "integrations/shared-workspace-lead-intake-contract.js",
+      "legacyCommitRawSha256": "a39bf1b3f0988a932fc2f77d563bdaf483bd252cbe4260c53bc73564bf277d75",
+      "currentRawSha256": "a39bf1b3f0988a932fc2f77d563bdaf483bd252cbe4260c53bc73564bf277d75",
+      "adoptedUnchanged": true
+    },
+    {
+      "path": "tests/business-hours-provider-adapter.test.mjs",
+      "legacyCommitRawSha256": "e50a3d7f6e1090b18b5024ed66a00fbfa6db2f9c30721a02664dd018aaaf0781",
+      "currentRawSha256": "e50a3d7f6e1090b18b5024ed66a00fbfa6db2f9c30721a02664dd018aaaf0781",
+      "adoptedUnchanged": true
+    },
+    {
+      "path": "tests/shared-workspace-lead-intake-contract.test.mjs",
+      "legacyCommitRawSha256": "18c74be8201998e9cf11b3387a890cad7e2f12f3476086f1c502c6b1bc7736ed",
+      "currentRawSha256": "18c74be8201998e9cf11b3387a890cad7e2f12f3476086f1c502c6b1bc7736ed",
+      "adoptedUnchanged": true
+    }
+  ]
+}
