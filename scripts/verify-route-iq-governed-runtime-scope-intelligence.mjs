@@ -5,6 +5,7 @@ import { createEmptyRouteQueue } from "../intelligence/continuous-adaptive-route
 import { buildRouteBusinessHoursIndex } from "../intelligence/route-business-hours-eligibility.mjs";
 import {
   routeIqGovernedRuntimeAuthorizations,
+  routeIqGovernedBusinessAdmissionVersion,
   routeIqGovernedRuntimeScopeVersion
 } from "../intelligence/route-iq-governed-runtime-scope.mjs";
 
@@ -14,7 +15,9 @@ const hoursContract = readJson("intelligence/contracts/route-business-hours-elig
 const replenishmentContract = readJson("intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json");
 
 assert.equal(hoursContract.governedRuntimeScope.version, routeIqGovernedRuntimeScopeVersion);
+assert.equal(hoursContract.governedRuntimeScope.requiredAdmissionVersion, routeIqGovernedBusinessAdmissionVersion);
 assert.equal(replenishmentContract.workspacePolicy.runtimeScopeVersion, routeIqGovernedRuntimeScopeVersion);
+assert.equal(replenishmentContract.workspacePolicy.businessAdmissionVersion, routeIqGovernedBusinessAdmissionVersion);
 assert.deepEqual(
   [...hoursContract.governedRuntimeScope.requiredAuthorizations].sort(),
   Object.values(routeIqGovernedRuntimeAuthorizations).sort()
@@ -25,11 +28,12 @@ assert.equal(replenishmentContract.workspacePolicy.callerAuthorizationClaimsAcce
 const index = buildRouteBusinessHoursIndex(fixture);
 assert.equal(index.workspaceId, fixture.workspaceId);
 assert.equal(index.operatingProfileId, fixture.operatingProfileId);
-assert.doesNotThrow(() => createEmptyRouteQueue({
+assert.throws(() => createEmptyRouteQueue({
   workspaceId: fixture.workspaceId,
   operatingProfileId: fixture.operatingProfileId,
-  representativeId: "northstar_rep_001"
-}));
+  representativeId: "northstar_rep_001",
+  governedRuntimeScope: index.governedRuntimeScope
+}), /canonical approved-business manifest/);
 assert.throws(() => createEmptyRouteQueue({
   workspaceId: "unregistered_workspace",
   operatingProfileId: "unregistered_profile",

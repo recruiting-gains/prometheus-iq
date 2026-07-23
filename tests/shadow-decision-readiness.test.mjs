@@ -324,7 +324,7 @@ test("prospective generator is deterministic, internal, normalized, and leakage-
 test("scope contamination and incomplete opportunities fail closed", () => {
   const timestamp = "2026-07-02T12:00:00.000Z";
   for (const contaminated of [
-    { ...scope, workspaceId: "smoothie_depot" },
+    { ...scope, workspaceId: "unauthorized_workspace_fixture" },
     { ...scope, representativeId: "anthony" },
     { ...scope, territoryId: "unknown", representativeId: "unknown" },
   ])

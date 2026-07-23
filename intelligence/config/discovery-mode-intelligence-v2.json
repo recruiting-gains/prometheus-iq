@@ -21,6 +21,7 @@
     "canonicalEligibilityVersion": "route-iq-closed-now-eligibility-v1",
     "preserveEligibilitySelectionTier": true,
     "closedVerifiedBehavior": "exclude_never_balance",
+    "uncertainHoursBehavior": "coverage_only_never_select",
     "requiresWorkspaceMatch": true,
     "requiresOperatingProfileMatch": true,
     "requiresStableBusinessIdentity": true,

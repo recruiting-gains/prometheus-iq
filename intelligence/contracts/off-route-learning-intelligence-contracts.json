@@ -8,7 +8,7 @@
   "purpose": "Project explicit representative visit-decision sources and outcomes into read-only Intelligence observations without changing Data, Dashboard, route generation, recommendation scoring, or recommendation influence.",
   "upstreamReadOnlyLearning": {
     "contractPath": "intelligence/contracts/read-only-field-session-learning-contracts.json",
-    "contractSha256": "ac657404febe6a23f4a317779bce94d79305c07a626f307ebd2c2b525d29a795",
+    "contractSha256": "7019fa94e1a125957a76f567ccade04cae1ca6ccc6517fb43c80bd1e420b0823",
     "policyPath": "intelligence/config/read-only-field-session-learning-policy-v1.json",
     "policySha256": "d483fca51b5285c70ec5ca519d2a73692aa98218b0a9a1096fae6570a8d8c981",
     "canonicalArchiveReader": "intelligence/read-only-field-session-learning.mjs",
@@ -127,7 +127,7 @@
   "workspaceIsolation": {
     "requiredWorkspaceId": "fitness_connection",
     "requiredOperatingProfileId": "fitness",
-    "protectedWorkspaceIds": ["smoothie_depot"],
+    "allOtherWorkspaceIdsDenied": true,
     "unknownWorkspaceFailsClosed": true,
     "crossWorkspaceAggregationAllowed": false,
     "globalRepresentativeLearningAllowed": false

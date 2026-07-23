@@ -1,6 +1,9 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import {
+  validateRouteIqWorkspaceConfigurationRegistry
+} from "../administration/contracts/route-iq-workspace-configuration-v2.mjs";
 
 export const operatingProfileEngineVersion = "operating-profile-engine-v1";
 
@@ -281,4 +284,58 @@ export function buildProfileConsumerContract(profileId, consumer, options = {}) 
   }
 
   throw new Error(`Unsupported operating profile consumer: ${consumer}`);
+}
+
+export function resolveConfiguredIntelligenceProfile(input, options = {}) {
+  const workspaceRegistry = validateRouteIqWorkspaceConfigurationRegistry(input?.workspaceRegistry);
+  const workspaceId = String(input?.workspaceId || "").trim();
+  const operatingProfileId = String(input?.operatingProfileId || "").trim();
+  const territoryId = String(input?.territoryId || "").trim();
+  const workspace = workspaceRegistry.workspaces.find(item => item.workspaceId === workspaceId);
+  if (!workspace) throw new Error("Unknown governed Route IQ workspace configuration.");
+  if (workspace.operatingProfile.profileId !== operatingProfileId) {
+    throw new Error("Governed Route IQ operating profile does not match the workspace configuration.");
+  }
+  if (!workspace.territories.some(territory => territory.active && territory.territoryId === territoryId)) {
+    throw new Error("Governed Route IQ territory does not match the workspace configuration.");
+  }
+  if (workspace.lifecycle === "founder_research" && input.allowFounderResearch !== true) {
+    throw new Error("Founder-research Intelligence profile requires explicit non-production admission.");
+  }
+  if (workspace.lifecycle === "synthetic_validation_only" && input.allowSynthetic !== true) {
+    throw new Error("Synthetic Intelligence profile is unavailable outside validation.");
+  }
+  if (workspace.lifecycle === "active_customer" && workspace.admission.productionAuthorized !== true) {
+    throw new Error("Customer Intelligence profile is not production authorized.");
+  }
+  const profileRegistry = options.registry || loadOperatingProfiles();
+  const profile = getOperatingProfile(operatingProfileId, profileRegistry);
+  const failures = validateOperatingProfile(profile, profileRegistry, options.contracts || loadOperatingProfileContracts());
+  if (failures.length) {
+    throw new Error(`Governed Route IQ operating profile is invalid: ${failures.join(" | ")}`);
+  }
+  return Object.freeze({
+    engineVersion: operatingProfileEngineVersion,
+    configurationSchemaVersion: workspaceRegistry.schemaVersion,
+    configurationRegistryVersion: workspaceRegistry.registryVersion,
+    configurationVersion: workspace.provenance.configurationVersion,
+    workspaceId,
+    companyId: workspace.companyId,
+    lifecycle: workspace.lifecycle,
+    operatingProfileId,
+    operatingProfileVersion: workspace.operatingProfile.profileVersion,
+    industryId: workspace.operatingProfile.industryId,
+    territoryId,
+    profile: clone(profile),
+    dashboard: clone(workspace.dashboard),
+    availabilityPolicy: clone(workspace.availabilityPolicy),
+    opportunitySources: clone(workspace.opportunitySources),
+    fallbackPolicy: clone(workspace.fallbackPolicy),
+    safety: Object.freeze({
+      collection: workspaceRegistry.safety.collection,
+      activeCohorts: workspaceRegistry.safety.activeCohorts,
+      recommendationInfluence: workspaceRegistry.safety.recommendationInfluence,
+      representativeFacingShadowOutput: false
+    })
+  });
 }

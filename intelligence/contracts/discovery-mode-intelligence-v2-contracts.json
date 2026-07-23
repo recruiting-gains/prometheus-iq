@@ -19,7 +19,7 @@
     "unknownWorkspaceBehavior": "fail_closed",
     "operatingProfileMismatchBehavior": "fail_closed",
     "crossWorkspaceLearning": false,
-    "smoothieDepotInfluence": false
+    "crossWorkspaceInfluence": false
   },
   "existingSystemReuse": {
     "runtimeData": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
@@ -55,10 +55,13 @@
       "HOURS_STALE",
       "SPECIAL_HOURS_UNVERIFIED"
     ],
-    "uncertainStatusPolicy": "canonical_conservative_coverage_tier",
+    "uncertainStatusPolicy": "coverage_only_never_select",
+    "uncertainImmediateRecommendationEligible": false,
     "requiredPreservedFields": [
       "status",
       "eligible",
+      "coverageEligible",
+      "immediateRecommendationEligible",
       "coverageOnly",
       "selectionTier",
       "internalMarker",

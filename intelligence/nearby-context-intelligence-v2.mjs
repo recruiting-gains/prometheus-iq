@@ -166,7 +166,8 @@ export function applyCanonicalBusinessHoursEligibilityToNearbyCandidates({
       ...clone(candidate),
       sourceOrder: Number.isInteger(candidate?.sourceOrder) ? candidate.sourceOrder : sourceOrder,
       eligibilitySnapshot,
-      nearbyRouteEligible: candidate?.routeEligible === true && eligibilitySnapshot.eligible === true
+      nearbyRouteEligible: candidate?.routeEligible === true
+        && eligibilitySnapshot.immediateRecommendationEligible === true
     };
   });
   return deepFreeze({
@@ -215,6 +216,7 @@ export function validateNearbyContextConfig(config) {
   ]), "identity_execution_order_mismatch");
   fail(config?.businessHoursPolicy?.canonicalVersion === routeBusinessHoursEligibilityVersion, "canonical_hours_version_mismatch");
   fail(config?.businessHoursPolicy?.closedVerifiedBehavior === "exclude_never_classify", "closed_verified_must_be_excluded_before_relationships");
+  fail(config?.businessHoursPolicy?.uncertainStatusBehavior === "coverage_only_never_select", "uncertain_hours_selection_prohibited");
   fail(JSON.stringify(relationship.priorityOrder) === JSON.stringify([
     "same_building",
     "same_shopping_center",
@@ -382,8 +384,7 @@ function governanceStage(candidate) {
   const open = candidate.eligibilitySnapshot?.status === "OPEN_VERIFIED";
   if (open && candidate.sourcePool === "active") return { rank: 0, id: "active_verified_open" };
   if (open && candidate.sourcePool === "full") return { rank: 1, id: "full_pool_verified_open_fallback" };
-  if (candidate.sourcePool === "active") return { rank: 2, id: "active_hours_unverified_coverage" };
-  return { rank: 3, id: "full_pool_hours_unverified_coverage" };
+  return { rank: 99, id: "ineligible_non_immediate" };
 }
 
 function canonicalIdentityCandidateOrder(left, right) {
@@ -589,7 +590,8 @@ export function buildNearbyContextAdvisory({
       exclusions.push(exclusion(candidate, "closed_verified", distanceFeet));
       continue;
     }
-    if (candidate.eligibilitySnapshot.eligible !== true || candidate.eligibilitySnapshot.failClosed === true) {
+    if (candidate.eligibilitySnapshot.immediateRecommendationEligible !== true
+      || candidate.eligibilitySnapshot.failClosed === true) {
       exclusions.push(exclusion(candidate, "canonical_hours_ineligible", distanceFeet));
       continue;
     }
@@ -805,7 +807,7 @@ export function validateNearbyContextAdvisory(plan, config = loadNearbyContextCo
   fail(entries.every(entry => config.candidatePolicy.allowedSourcePools.includes(entry.sourcePool)), "plan_contains_forbidden_source_pool");
   fail(entries.every(entry => entry.eligibilitySnapshot?.version === routeBusinessHoursEligibilityVersion), "plan_contains_noncanonical_hours_eligibility");
   fail(entries.every(entry => entry.eligibilitySnapshot?.status !== "CLOSED_VERIFIED"), "plan_contains_closed_verified_business");
-  fail(entries.every(entry => entry.eligibilitySnapshot?.eligible === true), "plan_contains_hours_ineligible_business");
+  fail(entries.every(entry => entry.eligibilitySnapshot?.immediateRecommendationEligible === true), "plan_contains_hours_ineligible_business");
   fail(entries.every(entry => config.relationshipPolicy.priorityOrder.includes(entry.relationship?.type)), "plan_contains_unknown_relationship");
   fail(outputOrderingPreserved(entries, config), "plan_relationship_or_governance_order_regressed");
   fail(entries.every(entry => config.explainability.requiredQuestions.every(field => Boolean(entry.explanation?.[field]))), "plan_explanation_incomplete");

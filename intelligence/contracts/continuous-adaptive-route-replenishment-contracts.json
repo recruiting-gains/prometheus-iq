@@ -3,15 +3,21 @@
   "subsystem": "prometheus-intelligence-engine",
   "domain": "route-intelligence",
   "workspacePolicy": {
-    "authorizedWorkspaceId": "fitness_connection",
-    "legacyAuthorizedOperatingProfileId": "fitness",
-    "additionalWorkspaceAuthorization": "governed_business_hours_asset_scope_v1",
+    "configurationSchemaVersion": "route-iq-workspace-configuration-v2",
+    "canonicalWorkspaceIds": [
+      "fitness_connection",
+      "northstar_outside_sales_synthetic"
+    ],
+    "configurationDriven": true,
+    "companyNameBranchingAllowed": false,
     "runtimeScopeVersion": "route-iq-governed-runtime-scope-v1",
+    "businessAdmissionVersion": "route-iq-governed-business-admission-v2",
+    "canonicalManifestAdmissionRequired": true,
     "callerAuthorizationClaimsAccepted": false,
     "serializedScopeReuse": "rejected",
     "unknownWorkspaceBehavior": "fail_closed",
     "crossWorkspaceLearning": false,
-    "smoothieDepotRouteInfluence": false
+    "crossWorkspaceRouteInfluence": false
   },
   "queuePolicy": {
     "targetSize": 15,
@@ -20,35 +26,42 @@
     "preserveRemainingOrder": true,
     "appendReplacement": true,
     "completedStopExclusion": "current_route_date",
-    "duplicateIdentity": "google_place_id_then_normalized_name_address",
+    "duplicateIdentity": "manifest_identity_then_stable_route_identity",
     "concurrency": "single_flight",
     "candidateScan": "bounded",
-    "emptyPoolBehavior": "explicit_exhausted_state"
+    "emptyPoolBehavior": "explicit_safe_exhausted_state",
+    "persistedEntriesReevaluatedAtAuthoritativeTime": true
   },
   "candidatePolicy": {
-    "primaryPool": "active",
-    "fallbackPool": "full",
-    "fallbackActivation": "only_after_no_eligible_active_candidate_can_fill_queue",
-    "liveGoogleCalls": false,
-    "requiredEligibility": [
+    "primaryPool": "approved_active",
+    "fallbackPool": "approved_full",
+    "fallbackActivation": "only_after_no_immediate_eligible_active_candidate_can_fill_queue",
+    "liveProviderCalls": false,
+    "requiredAdmission": [
       "workspace_match",
-      "representative_visibility",
-      "route_eligible",
-      "business_hours_eligibility",
-      "inside_assigned_territory",
-      "valid_google_place_identity",
+      "operating_profile_match",
+      "territory_match",
+      "manifest_id_and_version_match",
+      "manifest_artifact_hash_match",
+      "administration_configuration_version_match",
+      "manifest_configuration_version_match",
+      "classification_match",
+      "approved_candidate_identity"
+    ],
+    "requiredImmediateEligibility": [
+      "fresh",
+      "open_verified_or_verified_current_access_window",
+      "route_rules_pass",
       "not_quarantined",
       "not_completed_current_route",
       "not_already_active"
     ],
-    "businessHoursSelectionOrder": [
-      "active_verified_open",
-      "full_pool_verified_open_fallback",
-      "active_hours_unverified_coverage",
-      "full_pool_hours_unverified_coverage"
+    "selectionOrder": [
+      "approved_active_fresh_verified_open",
+      "approved_full_fresh_verified_open"
     ],
-    "verifiedClosedNeverSelected": true,
-    "hoursUnverifiedMarker": "HOURS_NOT_VERIFIED"
+    "closedStaleMissingInvalidOrProviderFailureSelectable": false,
+    "appointmentOnlyRequiresVerifiedCurrentAccessWindow": true
   },
   "latestEvidenceInputs": [
     "representative_strengths_weaknesses",
@@ -72,13 +85,21 @@
       "operating_profile_id"
     ],
     "completedHistoryPreserved": true,
-    "separateRuntimeOperationsSupported": true
+    "separateRuntimeOperationsSupported": true,
+    "availabilityReevaluatedOnRestore": true
   },
   "consumerCompatibility": {
     "dashboard": "active_queue_projection",
     "mobile": "active_queue_projection",
     "recommendationExplanations": "existing_route_intelligence_contract",
     "manualRouteRebuildRequired": false,
-    "fullApplicationRestartRequired": false
+    "fullApplicationRestartRequired": false,
+    "downstreamManifestContextRequired": true
+  },
+  "safety": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "representativeFacingShadowOutput": false
   }
 }

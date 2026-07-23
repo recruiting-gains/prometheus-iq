@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
   buildAdaptiveIntelligenceSnapshot,
@@ -12,9 +13,84 @@ import {
   scoreAdaptiveCandidate,
   serializeRouteQueue
 } from "../intelligence/continuous-adaptive-route-replenishment.mjs";
+import {
+  createGovernedRouteRuntimeScopeFromConfiguration
+} from "../intelligence/route-iq-governed-runtime-scope.mjs";
 
 const workspaceId = "fitness_connection";
+const operatingProfileId = "fitness";
 const representativeId = "anthony";
+const evaluationTime = "2026-07-11T12:00:00.000Z";
+const sourceArtifactSha256 = "b".repeat(64);
+const workspaceRegistry = JSON.parse(readFileSync(
+  new URL("../administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json", import.meta.url),
+  "utf8"
+));
+const governedRegistry = structuredClone(workspaceRegistry);
+const governedWorkspace = governedRegistry.workspaces.find(item => item.workspaceId === workspaceId);
+governedWorkspace.opportunitySources[0].manifestApprovalState = "APPROVED";
+const approvedIds = Array.from({ length: 80 }, (_, index) => `place-${index}`);
+const manifest = {
+  manifestId: governedWorkspace.opportunitySources[0].manifestId,
+  manifestVersion: "route-iq-workspace-business-artifact-manifest-v1",
+  workspaceId,
+  operatingProfileId,
+  configurationVersion: "route-iq-commercial-workspace-registry-v1",
+  artifactType: "approved_business_opportunity_roster",
+  artifactPath: governedWorkspace.opportunitySources[0].artifactPath,
+  artifactSha256: sourceArtifactSha256,
+  recordIdentityField: "google_place_id",
+  recordCount: approvedIds.length,
+  approvedRecordCount: approvedIds.length,
+  approvedRecordIds: approvedIds,
+  approvalState: "APPROVED",
+  classification: "FOUNDER_FIELD_RESEARCH",
+  sourceProvenance: {
+    producer: "Prometheus Data",
+    producerVersion: "queue-test-v1",
+    sourceSystem: "deterministic_fixture",
+    sourceRetrievedAt: evaluationTime
+  },
+  freshness: {
+    maximumAgeHours: 24,
+    evaluatedAt: evaluationTime,
+    expiresAt: "2026-07-12T12:00:00.000Z",
+    state: "FRESH"
+  },
+  productionUseAuthorized: false,
+  demoFallbackAllowed: false,
+  crossWorkspaceFallbackAllowed: false
+};
+const businessHoursArtifact = {
+  schemaVersion: "prometheus-data-business-hours-v1",
+  artifactVersion: "queue-test-hours-v1",
+  sourceDatasetVersion: "queue-test-v1",
+  workspaceId,
+  operatingProfileId,
+  recordCount: approvedIds.length,
+  freshnessPolicy: { freshnessThresholdHours: 24 },
+  records: approvedIds.map(googlePlaceId => ({
+    workspaceId,
+    operatingProfileId,
+    googlePlaceId,
+    hoursConfidence: "HIGH"
+  }))
+};
+const governedRuntimeScope = createGovernedRouteRuntimeScopeFromConfiguration({
+  workspaceRegistry: governedRegistry,
+  manifestRegistry: {
+    schemaVersion: "route-iq-workspace-business-artifact-manifest-v1",
+    registryVersion: "route-iq-workspace-business-artifact-manifest-registry-v1",
+    generatedAt: evaluationTime,
+    fallbackPolicy: "FAIL_CLOSED_NO_DEMO_OR_CROSS_WORKSPACE_FALLBACK",
+    manifests: [manifest]
+  },
+  workspaceId,
+  operatingProfileId,
+  sourceArtifactSha256,
+  businessHoursArtifact,
+  allowFounderResearch: true
+});
 
 function candidate(index, overrides = {}) {
   return {
@@ -26,7 +102,44 @@ function candidate(index, overrides = {}) {
     window: "Midday",
     score: 100 - index,
     eligible: true,
+    workspaceId,
+    operatingProfileId,
+    territoryId: governedWorkspace.territories[0].territoryId,
+    sourceManifestId: manifest.manifestId,
+    sourceManifestVersion: manifest.manifestVersion,
+    sourceArtifactSha256,
+    sourceConfigurationVersion: governedWorkspace.provenance.configurationVersion,
+    sourceManifestConfigurationVersion: manifest.configurationVersion,
+    sourceClassification: manifest.classification,
     ...overrides
+  };
+}
+
+function scoreWithEligibility(place, _sourcePool, now = evaluationTime) {
+  const immediate = place.eligible === true;
+  return {
+    score: place.score,
+    signals: ["test evidence"],
+    selectionTier: immediate ? 0 : 99,
+    eligibility: {
+      version: "route-iq-closed-now-eligibility-v1",
+      workspaceId,
+      operatingProfileId,
+      googlePlaceId: place.googlePlaceId,
+      status: immediate ? "OPEN_VERIFIED" : "HOURS_STALE",
+      eligible: immediate,
+      coverageEligible: true,
+      immediateRecommendationEligible: immediate,
+      coverageOnly: !immediate,
+      selectionTier: immediate ? 0 : 99,
+      hoursConfidence: immediate ? "HIGH" : "LOW",
+      hoursFreshness: immediate ? "FRESH" : "STALE",
+      sourceState: immediate ? "VERIFIED" : "STALE",
+      reasonCode: immediate ? "OPEN_INSIDE_VERIFIED_PERIOD" : "BUSINESS_HOURS_STALE",
+      reason: immediate ? "Fresh verified hours are open." : "Hours are stale.",
+      evaluatedAt: new Date(now).toISOString(),
+      scoringChanged: false
+    }
   };
 }
 
@@ -34,6 +147,7 @@ function maintain(queue, options = {}) {
   return maintainRouteQueue({
     queue,
     workspaceId,
+    operatingProfileId,
     representativeId,
     routeDate: "2026-07-11",
     primaryCandidates: options.primaryCandidates || [],
@@ -42,8 +156,9 @@ function maintain(queue, options = {}) {
     force: options.force === true,
     trigger: options.trigger || "test",
     isEligible: place => place.eligible === true,
-    scoreCandidate: place => ({ score: place.score, signals: ["test evidence"] }),
-    now: "2026-07-11T12:00:00.000Z"
+    scoreCandidate: scoreWithEligibility,
+    now: evaluationTime,
+    governedRuntimeScope
   });
 }
 
@@ -93,9 +208,11 @@ test("low-water recovery starts below five but does not mutate a healthy queue w
 
 test("latest outcome changes adaptive candidate scoring", () => {
   const places = [candidate(1, { category: "Auto" }), candidate(2, { category: "Salon" })];
-  const before = buildAdaptiveIntelligenceSnapshot({ workspaceId, representativeId, visits: [], places });
+  const before = buildAdaptiveIntelligenceSnapshot({ workspaceId, operatingProfileId, governedRuntimeScope, representativeId, visits: [], places });
   const after = buildAdaptiveIntelligenceSnapshot({
     workspaceId,
+    operatingProfileId,
+    governedRuntimeScope,
     representativeId,
     places,
     visits: [{
@@ -112,8 +229,8 @@ test("latest outcome changes adaptive candidate scoring", () => {
     }],
     territoryResolver: () => "Ring 1"
   });
-  const beforeScore = scoreAdaptiveCandidate({ candidate: places[0], baseScore: 80, intelligence: before, currentTimeWindow: "Midday", territoryLabel: "Ring 1" });
-  const afterScore = scoreAdaptiveCandidate({ candidate: places[0], baseScore: 80, intelligence: after, currentTimeWindow: "Midday", territoryLabel: "Ring 1" });
+  const beforeScore = scoreAdaptiveCandidate({ candidate: places[0], baseScore: 80, intelligence: before, currentTimeWindow: "Midday", territoryLabel: "Ring 1", governedRuntimeScope });
+  const afterScore = scoreAdaptiveCandidate({ candidate: places[0], baseScore: 80, intelligence: after, currentTimeWindow: "Midday", territoryLabel: "Ring 1", governedRuntimeScope });
   assert.ok(afterScore.score > beforeScore.score);
   assert.ok(afterScore.signals.includes("latest category evidence"));
   assert.ok(afterScore.signals.includes("territory evidence"));
@@ -140,17 +257,20 @@ test("duplicates, completed locations, and invalid candidates are excluded", () 
 test("Active Pool is consumed before governed Full Pool fallback", () => {
   const primaryCandidates = [candidate(1), candidate(2)];
   const fallbackCandidates = [candidate(3, { id: "full-3" }), candidate(4, { id: "full-4" })];
-  const queue = createEmptyRouteQueue({ workspaceId, representativeId, routeDate: "2026-07-11", targetSize: 4, threshold: 2 });
+  const queue = createEmptyRouteQueue({ workspaceId, operatingProfileId, representativeId, routeDate: "2026-07-11", targetSize: 4, threshold: 2, governedRuntimeScope });
   const result = maintainRouteQueue({
     queue,
     workspaceId,
+    operatingProfileId,
     representativeId,
     routeDate: "2026-07-11",
     primaryCandidates,
     fallbackCandidates,
     force: true,
     isEligible: place => place.eligible,
-    scoreCandidate: place => place.score
+    scoreCandidate: scoreWithEligibility,
+    now: evaluationTime,
+    governedRuntimeScope
   });
   assert.deepEqual(result.queue.entries.map(entry => entry.sourcePool), ["active", "active", "full", "full"]);
   assert.equal(result.usedFallback, true);
@@ -168,7 +288,7 @@ test("empty eligible pool returns an explicit exhausted state", () => {
 });
 
 test("unknown workspaces fail closed without creating a route queue", () => {
-  assert.throws(() => createEmptyRouteQueue({ workspaceId: "smoothie_depot", representativeId }), /not authorized/);
+  assert.throws(() => createEmptyRouteQueue({ workspaceId: "unauthorized_workspace_fixture", representativeId }), /not authorized/);
   assert.throws(() => buildAdaptiveIntelligenceSnapshot({ workspaceId: "unknown", representativeId }), /not authorized/);
 });
 
@@ -197,8 +317,10 @@ test("serialized queue survives a separate runtime operation", () => {
   const persisted = JSON.parse(JSON.stringify(serializeRouteQueue(initial)));
   const restored = normalizeRouteQueue(persisted, {
     workspaceId,
+    operatingProfileId,
     representativeId,
-    routeDate: "2026-07-11"
+    routeDate: "2026-07-11",
+    governedRuntimeScope
   });
   const nextOperation = maintain(restored, { primaryCandidates, force: false });
   assert.deepEqual(nextOperation.queue.entries, initial.entries);

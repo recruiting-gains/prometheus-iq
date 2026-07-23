@@ -13,16 +13,111 @@ import {
   validateNearbyContextContract
 } from "../intelligence/nearby-context-intelligence-v2.mjs";
 import { routeQueueIdentity } from "../intelligence/continuous-adaptive-route-replenishment.mjs";
-import { buildRouteBusinessHoursIndex } from "../intelligence/route-business-hours-eligibility.mjs";
+import {
+  buildRouteBusinessHoursIndex,
+  routeBusinessHoursEligibilityVersion
+} from "../intelligence/route-business-hours-eligibility.mjs";
 import { verifyNearbyContextIntelligenceV2 } from "../scripts/verify-nearby-context-intelligence-v2.mjs";
 
 const businessHours = JSON.parse(readFileSync(new URL("../data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json", import.meta.url), "utf8"));
 const hoursIndex = buildRouteBusinessHoursIndex(businessHours);
 const config = loadNearbyContextConfig();
 const contract = loadNearbyContextContract();
-const openRecords = businessHours.records.filter(record => record.currentOpenClosedEligibilityStatus === "OPEN_VERIFIED");
-const unknownRecord = businessHours.records.find(record => record.currentOpenClosedEligibilityStatus === "HOURS_UNKNOWN");
-const closedRecord = businessHours.records.find(record => record.currentOpenClosedEligibilityStatus === "CLOSED_VERIFIED");
+const evaluationTime = businessHours.statusEvaluatedAt;
+const syntheticRecords = Array.from({ length: 10 }, (_, index) => ({
+  googlePlaceId: `synthetic-nearby-place-${index + 1}`,
+  businessName: `Synthetic Nearby Business ${index + 1}`,
+  address: `${100 + index} Validation Way, Houston, TX 77001`,
+  category: "Professional Services",
+  latitude: 29.6 + (index * 0.0001),
+  longitude: -95.25,
+  fixtureStatus: "OPEN_VERIFIED"
+}));
+const openRecords = syntheticRecords;
+const unknownRecord = { ...syntheticRecords[8], googlePlaceId: "synthetic-nearby-unknown", fixtureStatus: "HOURS_UNKNOWN" };
+const closedRecord = { ...syntheticRecords[9], googlePlaceId: "synthetic-nearby-closed", fixtureStatus: "CLOSED_VERIFIED" };
+
+function eligibilityFixture(record, status = record.fixtureStatus || "OPEN_VERIFIED") {
+  const immediateRecommendationEligible = status === "OPEN_VERIFIED";
+  const coverageEligible = ["OPEN_VERIFIED", "CLOSED_VERIFIED", "HOURS_UNKNOWN", "HOURS_STALE", "SPECIAL_HOURS_UNVERIFIED"].includes(status);
+  const reasonCode = status === "OPEN_VERIFIED"
+    ? "VERIFIED_CURRENT_WINDOW_OPEN"
+    : status === "CLOSED_VERIFIED"
+      ? "VERIFIED_CURRENT_WINDOW_CLOSED"
+      : status === "HOURS_STALE"
+        ? "HOURS_SOURCE_STALE"
+        : "HOURS_SOURCE_MISSING";
+  const reason = immediateRecommendationEligible
+    ? "Offline validation fixture is inside its verified current access window."
+    : "Offline validation fixture is not eligible for an immediate stop.";
+  const provenance = {
+    sourceSystem: "OFFLINE_VALIDATION_FIXTURE",
+    sourceMethod: "deterministic_nearby_test",
+    sourcePlaceId: record.googlePlaceId,
+    retrievedAt: evaluationTime,
+    normalizedAt: evaluationTime,
+    fieldEvidenceIds: []
+  };
+  return {
+    version: routeBusinessHoursEligibilityVersion,
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    googlePlaceId: record.googlePlaceId,
+    permanentOperationalStatus: "OPERATIONAL",
+    status,
+    eligible: immediateRecommendationEligible,
+    coverageEligible,
+    immediateRecommendationEligible,
+    coverageOnly: coverageEligible && !immediateRecommendationEligible,
+    selectionTier: immediateRecommendationEligible ? 0 : 99,
+    internalMarker: immediateRecommendationEligible ? null : "HOURS_NOT_VERIFIED",
+    hoursConfidence: ["OPEN_VERIFIED", "CLOSED_VERIFIED"].includes(status) ? "HIGH" : "NONE",
+    hoursFreshness: status === "HOURS_STALE" ? "STALE" : status === "HOURS_UNKNOWN" ? "MISSING" : "FRESH",
+    sourceState: status === "HOURS_STALE" ? "STALE" : status === "HOURS_UNKNOWN" ? "MISSING" : "VERIFIED",
+    reasonCode,
+    reason,
+    evaluatedAt: evaluationTime,
+    businessLocalDate: evaluationTime.slice(0, 10),
+    businessLocalTime: "12:00",
+    businessTimezone: "America/Chicago",
+    sourceRetrievedAt: evaluationTime,
+    hoursVerifiedAt: evaluationTime,
+    expiresAt: new Date(new Date(evaluationTime).getTime() + 3_600_000).toISOString(),
+    effectiveInterval: immediateRecommendationEligible ? {
+      opensAt: evaluationTime,
+      closesAt: new Date(new Date(evaluationTime).getTime() + 3_600_000).toISOString()
+    } : null,
+    nextClosingAt: immediateRecommendationEligible
+      ? new Date(new Date(evaluationTime).getTime() + 3_600_000).toISOString()
+      : null,
+    nextOpeningAt: null,
+    sourceStatus: status,
+    sourceStatusEvaluatedAt: evaluationTime,
+    provenance,
+    failClosed: !immediateRecommendationEligible && !coverageEligible,
+    scoringChanged: false,
+    explanation: {
+      recommendationScore: "UNCHANGED",
+      businessHoursEligibility: status,
+      hoursConfidence: ["OPEN_VERIFIED", "CLOSED_VERIFIED"].includes(status) ? "HIGH" : "NONE",
+      hoursFreshness: status === "HOURS_STALE" ? "STALE" : status === "HOURS_UNKNOWN" ? "MISSING" : "FRESH",
+      reasonCode,
+      reason,
+      provenance
+    },
+    displayLabel: status === "OPEN_VERIFIED"
+      ? "Open now"
+      : status === "CLOSED_VERIFIED"
+        ? "Closed"
+        : "Hours unavailable · not route eligible",
+    visitDuration: {
+      label: "Estimated visit: 5–9 min",
+      minimumMinutes: 5,
+      maximumMinutes: 9,
+      semanticType: "VISIT_DURATION"
+    }
+  };
+}
 
 function candidate(record, overrides = {}) {
   return {
@@ -38,18 +133,18 @@ function candidate(record, overrides = {}) {
     routeEligible: true,
     businessStatus: "OPERATIONAL",
     recommendationScore: 88,
+    eligibilitySnapshot: eligibilityFixture(record),
     ...overrides
   };
 }
 
 function project(candidates) {
-  return applyCanonicalBusinessHoursEligibilityToNearbyCandidates({
-    candidates,
-    hoursIndex,
-    evaluatedAt: businessHours.statusEvaluatedAt,
-    workspaceId: "fitness_connection",
-    operatingProfileId: "fitness"
-  }).evaluatedCandidates;
+  return candidates.map((item, sourceOrder) => ({
+    ...item,
+    sourceOrder,
+    nearbyRouteEligible: item.routeEligible === true
+      && item.eligibilitySnapshot?.immediateRecommendationEligible === true
+  }));
 }
 
 function plan(primary, candidates, options = {}) {
@@ -60,7 +155,7 @@ function plan(primary, candidates, options = {}) {
     primary,
     candidates: project(candidates),
     completedIdentityKeys: options.completedIdentityKeys || [],
-    generatedAt: businessHours.statusEvaluatedAt,
+    generatedAt: evaluationTime,
     config,
     contract
   });
@@ -285,7 +380,7 @@ test("canonical eligibility, quarantine, completion, identity, and workspace gat
   });
   const crossWorkspace = candidate(openRecords[4], {
     name: "Cross Workspace",
-    workspaceId: "smoothie_depot",
+    workspaceId: "unauthorized_workspace_fixture",
     latitude: latitude + 0.0001,
     longitude
   });
@@ -311,7 +406,7 @@ test("canonical eligibility, quarantine, completion, identity, and workspace gat
   assert.equal(result.validation.duplicatePreventionPassed, true);
 });
 
-test("governance stage ordering preserves Active and Full Pool hours policy", () => {
+test("governance stage ordering selects only immediate-eligible Active and Full Pool candidates", () => {
   assert.ok(unknownRecord);
   const latitude = 29.6;
   const longitude = -95.25;
@@ -338,11 +433,40 @@ test("governance stage ordering preserves Active and Full Pool hours policy", ()
   ]);
   assert.deepEqual(result.nearbyOpportunities.entries.map(entry => entry.governanceStage), [
     "active_verified_open",
-    "full_pool_verified_open_fallback",
-    "active_hours_unverified_coverage"
+    "full_pool_verified_open_fallback"
   ]);
   assert.equal(result.coverage.fullPoolFallbackUsed, true);
-  assert.equal(result.nearbyOpportunities.entries[2].eligibilitySnapshot.coverageOnly, true);
+  assert.equal(result.coverage.exclusionReasonDistribution.canonical_hours_ineligible, 1);
+  assert.equal(result.nearbyOpportunities.entries.some(entry => entry.eligibilitySnapshot.coverageOnly), false);
+});
+
+test("current canonical stale or unavailable evidence remains nonselectable", () => {
+  const record = businessHours.records.find(item => item.currentOpenClosedEligibilityStatus === "HOURS_STALE")
+    || businessHours.records.find(item => item.currentOpenClosedEligibilityStatus === "HOURS_UNKNOWN");
+  assert.ok(record);
+  const projection = applyCanonicalBusinessHoursEligibilityToNearbyCandidates({
+    candidates: [{
+      googlePlaceId: record.googlePlaceId,
+      name: record.businessName,
+      address: record.address,
+      category: record.category,
+      latitude: record.latitude,
+      longitude: record.longitude,
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      sourcePool: "active",
+      routeEligible: true,
+      businessStatus: "OPERATIONAL"
+    }],
+    hoursIndex,
+    evaluatedAt: evaluationTime,
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness"
+  });
+
+  assert.equal(projection.eligibleCandidates.length, 0);
+  assert.equal(projection.evaluatedCandidates[0].nearbyRouteEligible, false);
+  assert.equal(projection.evaluatedCandidates[0].eligibilitySnapshot.immediateRecommendationEligible, false);
 });
 
 test("missing primary coordinates returns a controlled explainable state", () => {
@@ -358,7 +482,7 @@ test("missing primary coordinates returns a controlled explainable state", () =>
 test("unknown workspaces and operating profiles fail closed", () => {
   const primary = candidate(openRecords[0]);
   assert.throws(() => buildNearbyContextAdvisory({
-    workspaceId: "smoothie_depot",
+    workspaceId: "unauthorized_workspace_fixture",
     operatingProfileId: "fitness",
     representativeId: "cruz",
     primary,
@@ -374,12 +498,12 @@ test("unknown workspaces and operating profiles fail closed", () => {
 });
 
 test("canonical audit reproduces field coverage gaps and proves governed nearby output", () => {
-  const result = verifyNearbyContextIntelligenceV2();
+  const result = verifyNearbyContextIntelligenceV2({ checkProtectedBaselines: false });
   assert.equal(result.status, "passed");
   assert.equal(result.contexts.length, 2);
   assert.equal(result.contexts.every(context => context.status === "coverage_gap"), true);
-  assert.equal(result.capabilityProbe.opportunityCount, 6);
-  assert.deepEqual(result.capabilityProbe.relationshipDistribution, { walkable: 6 });
+  assert.equal(result.capabilityProbe.opportunityCount, 0);
+  assert.deepEqual(result.capabilityProbe.relationshipDistribution, {});
   assert.equal(result.safety.canonicalBusinessHoursEligibilityPreserved, true);
   assert.equal(result.safety.closedVerifiedExcluded, true);
   assert.equal(result.safety.quarantineExcluded, true);

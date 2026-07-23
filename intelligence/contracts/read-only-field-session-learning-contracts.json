@@ -147,9 +147,7 @@
   "workspaceIsolation": {
     "requiredWorkspaceId": "fitness_connection",
     "requiredOperatingProfileId": "fitness",
-    "protectedWorkspaceIds": [
-      "smoothie_depot"
-    ],
+    "allOtherWorkspaceIdsDenied": true,
     "unknownWorkspaceFailsClosed": true,
     "crossWorkspaceAggregationAllowed": false,
     "globalLearningStateAllowed": false

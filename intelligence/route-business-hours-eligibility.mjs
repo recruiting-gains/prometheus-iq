@@ -3,12 +3,13 @@ import {
   DEFAULT_BUSINESS_HOURS_POLICY,
   HOURS_CONFIDENCE_VALUES,
   HOURS_FRESHNESS_STATUSES,
-  evaluateBusinessHoursRecord,
   validateBusinessHoursArtifact
 } from "../scripts/lib/business-hours-governance.mjs";
 import {
+  assertGovernedCandidateAdmission,
   assertGovernedRouteRuntimeScope,
   createGovernedRouteRuntimeScopeFromBusinessHoursArtifact,
+  governedApprovedBusinessIdentitySet,
   routeIqGovernedRuntimeAuthorizations
 } from "./route-iq-governed-runtime-scope.mjs";
 
@@ -17,20 +18,408 @@ export const routeBusinessHoursWorkspaceId = "fitness_connection";
 export const routeBusinessHoursOperatingProfileId = "fitness";
 export const hoursNotVerifiedMarker = "HOURS_NOT_VERIFIED";
 
-const uncertainStatuses = new Set([
-  "HOURS_UNKNOWN",
-  "HOURS_STALE",
-  "SPECIAL_HOURS_UNVERIFIED"
-]);
+const dayIndex = Object.freeze({ Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 });
+const dayLabels = Object.freeze(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]);
+const minutesPerDay = 1440;
+const minutesPerWeek = 10080;
+const uncertainStatuses = new Set(["HOURS_UNKNOWN", "HOURS_STALE", "SPECIAL_HOURS_UNVERIFIED"]);
 
 function cleanText(value, maximum = 500) {
-  return String(value ?? "").trim().slice(0, maximum);
+  return String(value ?? "").replace(/[\u0000-\u001F\u007F]/g, "").trim().slice(0, maximum);
 }
 
 function evaluationInstant(value) {
   const instant = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(instant.getTime())) throw new Error(`Invalid Route IQ business-hours evaluation time: ${value}`);
   return instant;
+}
+
+function validTimezone(value) {
+  try {
+    if (!cleanText(value, 120)) return false;
+    new Intl.DateTimeFormat("en-US", { timeZone: value }).format(new Date(0));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function localDateTime(instant, timeZone) {
+  if (!validTimezone(timeZone)) return null;
+  const values = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(instant).filter(part => part.type !== "literal").map(part => [part.type, part.value]));
+  return {
+    date: `${values.year}-${values.month}-${values.day}`,
+    day: dayIndex[values.weekday],
+    hour: Number(values.hour),
+    minute: Number(values.minute),
+    time: `${values.hour}:${values.minute}`,
+    timeZone
+  };
+}
+
+function dateParts(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(cleanText(value, 10));
+  if (!match) return null;
+  const parts = { year: Number(match[1]), month: Number(match[2]), day: Number(match[3]) };
+  const date = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+  return date.getUTCFullYear() === parts.year
+    && date.getUTCMonth() === parts.month - 1
+    && date.getUTCDate() === parts.day
+    ? parts
+    : null;
+}
+
+function addDays(value, days) {
+  const parts = dateParts(value);
+  if (!parts) return null;
+  const date = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+}
+
+function dateOrdinal(value) {
+  const parts = dateParts(value);
+  return parts ? Math.floor(Date.UTC(parts.year, parts.month - 1, parts.day) / 86_400_000) : null;
+}
+
+function localStamp(date, hour, minute) {
+  const ordinal = dateOrdinal(date);
+  return ordinal === null ? null : ordinal * minutesPerDay + hour * 60 + minute;
+}
+
+function displayTime(hour, minute) {
+  return `${hour % 12 || 12}:${String(minute).padStart(2, "0")} ${hour < 12 ? "AM" : "PM"}`;
+}
+
+function localEvent(date, hour, minute, timeZone, source) {
+  return {
+    localDate: date,
+    localTime: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+    displayTime: displayTime(hour, minute),
+    timeZone,
+    source
+  };
+}
+
+function validPoint(point, mode) {
+  if (!point || typeof point !== "object") return false;
+  if (!Number.isInteger(point.hour) || point.hour < 0 || point.hour > 23
+    || !Number.isInteger(point.minute) || point.minute < 0 || point.minute > 59) return false;
+  if (mode === "weekly") return point.date == null && Number.isInteger(point.day) && point.day >= 0 && point.day <= 6;
+  return dateParts(point.date) !== null;
+}
+
+function normalizedPeriods(periods, mode, allowTwentyFourHours = false) {
+  if (!Array.isArray(periods)) return null;
+  const normalized = periods.map(period => ({
+    open: period?.open ? { ...period.open } : null,
+    close: period?.close ? { ...period.close } : null
+  }));
+  const valid = normalized.every(period => {
+    if (!validPoint(period.open, mode)) return false;
+    if (mode === "weekly" && period.close === null) {
+      return allowTwentyFourHours
+        && normalized.length === 1
+        && period.open.day === 0
+        && period.open.hour === 0
+        && period.open.minute === 0;
+    }
+    if (!validPoint(period.close, mode)) return false;
+    if (mode === "dated") {
+      const start = localStamp(period.open.date, period.open.hour, period.open.minute);
+      const end = localStamp(period.close.date, period.close.hour, period.close.minute);
+      return start !== null && end !== null && end > start;
+    }
+    const start = period.open.day * minutesPerDay + period.open.hour * 60 + period.open.minute;
+    let end = period.close.day * minutesPerDay + period.close.hour * 60 + period.close.minute;
+    if (end <= start) end += minutesPerWeek;
+    return end > start && end - start <= minutesPerWeek;
+  });
+  return valid ? normalized : null;
+}
+
+function weeklyBounds(period, periods, local, source) {
+  if (!period.close) {
+    return periods.length === 1
+      && period.open.day === 0
+      && period.open.hour === 0
+      && period.open.minute === 0
+      ? { source, twentyFourHours: true, start: null, end: null }
+      : null;
+  }
+  const start = period.open.day * minutesPerDay + period.open.hour * 60 + period.open.minute;
+  let end = period.close.day * minutesPerDay + period.close.hour * 60 + period.close.minute;
+  if (end <= start) end += minutesPerWeek;
+  const current = local.day * minutesPerDay + local.hour * 60 + local.minute;
+  const matched = [current, current + minutesPerWeek].find(value => value >= start && value < end);
+  if (matched === undefined) return null;
+  const weekShift = matched === current ? 0 : -7;
+  const closeDay = period.close.day + (end >= minutesPerWeek ? 7 : 0);
+  return {
+    source,
+    twentyFourHours: false,
+    start: localEvent(
+      addDays(local.date, period.open.day - local.day + weekShift),
+      period.open.hour,
+      period.open.minute,
+      local.timeZone,
+      source
+    ),
+    end: localEvent(
+      addDays(local.date, closeDay - local.day + weekShift),
+      period.close.hour,
+      period.close.minute,
+      local.timeZone,
+      source
+    )
+  };
+}
+
+function nextWeeklyOpening(periods, local, source) {
+  if (periods.length === 1 && periods[0].close === null) return null;
+  const current = local.day * minutesPerDay + local.hour * 60 + local.minute;
+  let next = null;
+  for (const period of periods) {
+    const opening = period.open.day * minutesPerDay + period.open.hour * 60 + period.open.minute;
+    let delta = (opening - current + minutesPerWeek) % minutesPerWeek;
+    if (delta === 0) delta = minutesPerWeek;
+    if (!next || delta < next.delta) next = { delta, point: period.open };
+  }
+  if (!next) return null;
+  const dayOffset = Math.floor((local.hour * 60 + local.minute + next.delta) / minutesPerDay);
+  return localEvent(addDays(local.date, dayOffset), next.point.hour, next.point.minute, local.timeZone, source);
+}
+
+function datedBounds(period, local, source) {
+  const start = localStamp(period.open.date, period.open.hour, period.open.minute);
+  const end = localStamp(period.close.date, period.close.hour, period.close.minute);
+  const current = localStamp(local.date, local.hour, local.minute);
+  if (start === null || end === null || current === null || current < start || current >= end) return null;
+  return {
+    source,
+    twentyFourHours: false,
+    start: localEvent(period.open.date, period.open.hour, period.open.minute, local.timeZone, source),
+    end: localEvent(period.close.date, period.close.hour, period.close.minute, local.timeZone, source)
+  };
+}
+
+function nextDatedOpening(periods, local, source) {
+  const current = localStamp(local.date, local.hour, local.minute);
+  let next = null;
+  for (const period of periods) {
+    const start = localStamp(period.open.date, period.open.hour, period.open.minute);
+    if (start !== null && start > current && (!next || start < next.start)) next = { start, point: period.open };
+  }
+  return next
+    ? localEvent(next.point.date, next.point.hour, next.point.minute, local.timeZone, source)
+    : null;
+}
+
+function freshness(record, instant, policy) {
+  const threshold = Math.min(24, Math.max(1, Number(policy.freshnessThresholdHours || 24)));
+  const verifiedAt = new Date(record?.hoursVerifiedAt);
+  if (!record?.hoursVerifiedAt || Number.isNaN(verifiedAt.getTime())) {
+    return { state: "MISSING", ageHours: null, verifiedAt: null, expiresAt: null, threshold };
+  }
+  const ageHours = (instant.getTime() - verifiedAt.getTime()) / 3_600_000;
+  return {
+    state: ageHours < 0 ? "INVALID" : ageHours > threshold ? "STALE" : "FRESH",
+    ageHours,
+    verifiedAt: verifiedAt.toISOString(),
+    expiresAt: new Date(verifiedAt.getTime() + threshold * 3_600_000).toISOString(),
+    threshold
+  };
+}
+
+function statusDisplay(status, interval, nextOpening) {
+  if (status === "HOURS_STALE") return "Hours outdated · verification required";
+  if (status === "HOURS_UNKNOWN" || status === "SPECIAL_HOURS_UNVERIFIED") {
+    return "Hours unavailable · not route eligible";
+  }
+  if (status === "OPEN_VERIFIED" && interval?.source === "VERIFIED_APPOINTMENT_WINDOW") {
+    return "Appointment window verified";
+  }
+  if (status === "OPEN_VERIFIED" && interval?.twentyFourHours) return "Open 24 hours";
+  if (status === "OPEN_VERIFIED" && interval?.end?.displayTime) return `Open now · closes ${interval.end.displayTime}`;
+  if (status === "CLOSED_VERIFIED" && nextOpening?.localDate && nextOpening?.displayTime) {
+    const parts = dateParts(nextOpening.localDate);
+    const weekday = new Date(Date.UTC(parts.year, parts.month - 1, parts.day, 12)).getUTCDay();
+    return `Closed · opens ${dayLabels[weekday]} at ${nextOpening.displayTime}`;
+  }
+  return status === "CLOSED_VERIFIED" ? "Closed" : "Hours unavailable · not route eligible";
+}
+
+function evaluatedStatus(status, reasonCode, reason, {
+  local = null,
+  freshnessState = "FRESH",
+  sourceState = "VERIFIED",
+  interval = null,
+  nextOpening = null
+} = {}) {
+  return {
+    status,
+    reasonCode,
+    reason,
+    freshnessState,
+    sourceState,
+    businessLocalDate: local?.date ?? null,
+    businessLocalTime: local?.time ?? null,
+    effectiveInterval: interval,
+    nextOpening,
+    nextClosing: interval?.end ?? null,
+    displayStatus: statusDisplay(status, interval, nextOpening)
+  };
+}
+
+function providerFailureIsCurrent(record) {
+  if (!record?.refreshFailure || !record?.lastFailedRefreshAt) return false;
+  const failedAt = new Date(record.lastFailedRefreshAt);
+  const succeededAt = new Date(record.lastSuccessfulRefreshAt || record.hoursVerifiedAt || 0);
+  return !Number.isNaN(failedAt.getTime())
+    && (Number.isNaN(succeededAt.getTime()) || failedAt.getTime() >= succeededAt.getTime());
+}
+
+function evaluateAvailability(record, instant, policy) {
+  const local = validTimezone(record?.businessTimezone)
+    ? localDateTime(instant, record.businessTimezone)
+    : null;
+  if (["CLOSED_PERMANENTLY", "CLOSED_TEMPORARILY"].includes(record?.permanentOperationalStatus)) {
+    return evaluatedStatus(
+      "CLOSED_VERIFIED",
+      `PERMANENT_STATUS_${record.permanentOperationalStatus}`,
+      `Provider business status is ${record.permanentOperationalStatus}.`,
+      { local }
+    );
+  }
+
+  const currentFreshness = freshness(record, instant, policy);
+  if (currentFreshness.state === "MISSING") {
+    return evaluatedStatus("HOURS_UNKNOWN", "HOURS_SOURCE_MISSING", "No verified business-hours source is available.", {
+      freshnessState: "MISSING",
+      sourceState: "UNAVAILABLE"
+    });
+  }
+  if (currentFreshness.state === "INVALID") {
+    return evaluatedStatus("HOURS_UNKNOWN", "HOURS_SOURCE_TIME_INVALID", "Business-hours verification time is invalid.", {
+      freshnessState: "MISSING",
+      sourceState: "INVALID"
+    });
+  }
+  if (currentFreshness.state === "STALE") {
+    return evaluatedStatus(
+      "HOURS_STALE",
+      "HOURS_SOURCE_STALE",
+      `Verified business hours are older than the ${currentFreshness.threshold}-hour freshness ceiling.`,
+      { freshnessState: "STALE", sourceState: "STALE" }
+    );
+  }
+  if (providerFailureIsCurrent(record)) {
+    return evaluatedStatus(
+      "HOURS_UNKNOWN",
+      "HOURS_PROVIDER_FAILURE",
+      "The latest governed provider refresh failed; prior evidence was preserved but cannot authorize an immediate stop.",
+      { local, freshnessState: "FRESH", sourceState: "PROVIDER_FAILURE" }
+    );
+  }
+  if (!local) {
+    return evaluatedStatus("HOURS_UNKNOWN", "BUSINESS_TIMEZONE_INVALID", "Business-local timezone is missing or invalid.", {
+      freshnessState: "FRESH",
+      sourceState: "INVALID"
+    });
+  }
+
+  if (record.appointmentAccessRequired === true) {
+    if (!Array.isArray(record.appointmentAccessWindows)) {
+      return evaluatedStatus("HOURS_UNKNOWN", "APPOINTMENT_WINDOWS_INVALID", "Appointment-only access windows are invalid.", {
+        local,
+        sourceState: "INVALID"
+      });
+    }
+    const verified = record.appointmentAccessWindows.filter(window => window?.verificationStatus === "VERIFIED");
+    const periods = normalizedPeriods(verified.map(window => ({ open: window.start, close: window.end })), "dated");
+    if (periods === null) {
+      return evaluatedStatus("HOURS_UNKNOWN", "APPOINTMENT_WINDOWS_INVALID", "Appointment-only access windows are invalid.", {
+        local,
+        sourceState: "INVALID"
+      });
+    }
+    const interval = periods.map(period => datedBounds(period, local, "VERIFIED_APPOINTMENT_WINDOW")).find(Boolean) || null;
+    const nextOpening = nextDatedOpening(periods, local, "VERIFIED_APPOINTMENT_WINDOW");
+    return evaluatedStatus(
+      interval ? "OPEN_VERIFIED" : "CLOSED_VERIFIED",
+      interval ? "VERIFIED_APPOINTMENT_WINDOW_OPEN" : "VERIFIED_APPOINTMENT_WINDOW_CLOSED",
+      interval ? "A verified appointment or access window is active." : "No verified appointment or access window is active.",
+      { local, interval, nextOpening }
+    );
+  }
+
+  const special = (record.specialOrHolidayHours || []).find(entry => entry?.date === local.date);
+  if (special) {
+    const periods = normalizedPeriods(special.periods, "dated");
+    if (special.verificationStatus !== "VERIFIED" || periods === null) {
+      return evaluatedStatus(
+        "SPECIAL_HOURS_UNVERIFIED",
+        "SPECIAL_HOURS_NOT_VERIFIED",
+        `Special or holiday hours for ${local.date} are not verified.`,
+        { local, sourceState: "UNAVAILABLE" }
+      );
+    }
+    const interval = periods.map(period => datedBounds(period, local, "VERIFIED_SPECIAL_HOURS")).find(Boolean) || null;
+    const regular = normalizedPeriods(record.regularWeeklyBusinessHours?.periods, "weekly", true) || [];
+    const nextOpening = nextDatedOpening(periods, local, "VERIFIED_SPECIAL_HOURS")
+      || nextWeeklyOpening(regular, local, "VERIFIED_REGULAR_HOURS");
+    return evaluatedStatus(
+      interval ? "OPEN_VERIFIED" : "CLOSED_VERIFIED",
+      interval ? "VERIFIED_SPECIAL_PERIOD_OPEN" : "VERIFIED_SPECIAL_PERIOD_CLOSED",
+      `Verified special hours show the business ${interval ? "open" : "closed"}.`,
+      { local, interval, nextOpening }
+    );
+  }
+
+  const currentWindow = record.currentOpeningHoursWindow;
+  if (currentWindow && local.date >= currentWindow.coverageStartDate && local.date <= currentWindow.coverageEndDate) {
+    const periods = normalizedPeriods(currentWindow.periods, "dated");
+    if (periods === null) {
+      return evaluatedStatus("HOURS_UNKNOWN", "CURRENT_HOURS_STRUCTURE_INVALID", "Current-hours periods are invalid.", {
+        local,
+        sourceState: "INVALID"
+      });
+    }
+    const interval = periods.map(period => datedBounds(period, local, "VERIFIED_CURRENT_HOURS")).find(Boolean) || null;
+    const regular = normalizedPeriods(record.regularWeeklyBusinessHours?.periods, "weekly", true) || [];
+    const nextOpening = nextDatedOpening(periods, local, "VERIFIED_CURRENT_HOURS")
+      || nextWeeklyOpening(regular, local, "VERIFIED_REGULAR_HOURS");
+    return evaluatedStatus(
+      interval ? "OPEN_VERIFIED" : "CLOSED_VERIFIED",
+      interval ? "VERIFIED_CURRENT_WINDOW_OPEN" : "VERIFIED_CURRENT_WINDOW_CLOSED",
+      `Verified current-hours data show the business ${interval ? "open" : "closed"}.`,
+      { local, interval, nextOpening }
+    );
+  }
+
+  const periods = normalizedPeriods(record.regularWeeklyBusinessHours?.periods, "weekly", true);
+  if (periods === null) {
+    return evaluatedStatus("HOURS_UNKNOWN", "REGULAR_HOURS_INVALID", "Regular weekly business hours are missing or invalid.", {
+      local,
+      sourceState: "INVALID"
+    });
+  }
+  const interval = periods.map(period => weeklyBounds(period, periods, local, "VERIFIED_REGULAR_HOURS")).find(Boolean) || null;
+  const nextOpening = nextWeeklyOpening(periods, local, "VERIFIED_REGULAR_HOURS");
+  return evaluatedStatus(
+    interval ? "OPEN_VERIFIED" : "CLOSED_VERIFIED",
+    interval ? "VERIFIED_REGULAR_PERIOD_OPEN" : "VERIFIED_REGULAR_PERIOD_CLOSED",
+    `Verified regular hours show the business ${interval ? "open" : "closed"}.`,
+    { local, interval, nextOpening }
+  );
 }
 
 function hoursProvenance(record) {
@@ -47,62 +436,135 @@ function hoursProvenance(record) {
   };
 }
 
+function visitDuration(candidate) {
+  const source = candidate?.estimatedVisitDurationMinutes || candidate?.visitDurationMinutes;
+  const minimum = Number(source?.minimum ?? source?.min ?? candidate?.estimatedVisitMinimumMinutes);
+  const maximum = Number(source?.maximum ?? source?.max ?? candidate?.estimatedVisitMaximumMinutes);
+  if (!Number.isFinite(minimum) || !Number.isFinite(maximum) || minimum <= 0 || maximum < minimum) return null;
+  return {
+    semantic: "ESTIMATED_VISIT_DURATION",
+    minimumMinutes: minimum,
+    maximumMinutes: maximum,
+    display: `Estimated visit: ${minimum}\u2013${maximum} min`
+  };
+}
+
+function admissionFor({ governedRuntimeScope, candidate, record, workspaceId, operatingProfileId, territoryId }) {
+  const admission = assertGovernedCandidateAdmission({
+    governedRuntimeScope,
+    candidate,
+    workspaceId,
+    operatingProfileId,
+    territoryId
+  });
+  const recordIdentity = cleanText(record?.googlePlaceId ?? record?.recordId, 180);
+  if (!recordIdentity || recordIdentity !== admission.candidateIdentity
+    || record?.workspaceId !== admission.workspaceId
+    || record?.operatingProfileId !== admission.operatingProfileId) {
+    throw new Error("Route IQ business-hours record does not match the admitted candidate identity and scope.");
+  }
+  return admission;
+}
+
 function decision({
   record = null,
   candidate = null,
   evaluatedAt,
-  status,
-  eligible,
-  selectionTier,
-  reasonCode,
-  reason,
-  freshness,
-  businessLocalDate = null,
-  businessLocalTime = null,
-  failClosed = false,
-  workspaceId = null,
-  operatingProfileId = null
+  availability,
+  admission = null,
+  admissionError = null,
+  workspaceId,
+  operatingProfileId,
+  freshnessInfo
 }) {
-  const uncertain = uncertainStatuses.has(status);
+  const coverageEligible = Boolean(admission) && !["INVALID", "UNAVAILABLE"].includes(availability.sourceState);
+  const immediateRecommendationEligible = coverageEligible
+    && availability.status === "OPEN_VERIFIED"
+    && availability.freshnessState === "FRESH"
+    && availability.sourceState === "VERIFIED";
+  const uncertain = uncertainStatuses.has(availability.status);
   const confidence = cleanText(record?.hoursConfidence, 20) || "NONE";
   const provenance = hoursProvenance(record);
-  const marker = uncertain ? hoursNotVerifiedMarker : status === "CLOSED_VERIFIED" ? "CLOSED_NOW" : null;
+  const reasonCode = admissionError
+    ? "BUSINESS_MANIFEST_ADMISSION_REJECTED"
+    : availability.reasonCode;
+  const reason = admissionError
+    ? cleanText(admissionError.message, 600)
+    : availability.reason;
   return {
     version: routeBusinessHoursEligibilityVersion,
-    workspaceId: cleanText(workspaceId || record?.workspaceId || candidate?.workspaceId, 80) || routeBusinessHoursWorkspaceId,
-    operatingProfileId: cleanText(operatingProfileId || record?.operatingProfileId || candidate?.operatingProfileId, 80) || routeBusinessHoursOperatingProfileId,
+    workspaceId,
+    operatingProfileId,
+    territoryId: cleanText(candidate?.territoryId, 120) || null,
     googlePlaceId: cleanText(record?.googlePlaceId || candidate?.googlePlaceId, 180) || null,
+    recordId: cleanText(record?.recordId || candidate?.recordId, 180) || null,
     permanentOperationalStatus: cleanText(record?.permanentOperationalStatus || candidate?.businessStatus, 40) || "UNKNOWN",
-    status,
-    eligible,
-    coverageOnly: uncertain && eligible,
-    selectionTier,
-    internalMarker: marker,
+    status: availability.status,
+    eligible: immediateRecommendationEligible,
+    coverageEligible,
+    immediateRecommendationEligible,
+    coverageOnly: coverageEligible && !immediateRecommendationEligible,
+    selectionTier: immediateRecommendationEligible ? 0 : 99,
+    internalMarker: uncertain ? hoursNotVerifiedMarker : availability.status === "CLOSED_VERIFIED" ? "CLOSED_NOW" : null,
     hoursConfidence: confidence,
-    hoursFreshness: cleanText(freshness, 20) || "MISSING",
-    reasonCode: cleanText(reasonCode, 160) || "HOURS_STATUS_UNAVAILABLE",
-    reason: cleanText(reason, 600) || "Business-hours eligibility could not be verified.",
+    hoursFreshness: availability.freshnessState,
+    sourceState: availability.sourceState,
+    reasonCode,
+    reason,
+    availabilityReasonCode: availability.reasonCode,
+    availabilityReason: availability.reason,
     evaluatedAt: evaluatedAt.toISOString(),
-    businessLocalDate,
-    businessLocalTime,
+    businessLocalDate: availability.businessLocalDate,
+    businessLocalTime: availability.businessLocalTime,
     businessTimezone: cleanText(record?.businessTimezone, 120) || null,
+    effectiveInterval: availability.effectiveInterval,
+    nextClosing: availability.nextClosing,
+    nextOpening: availability.nextOpening,
+    verifiedAt: freshnessInfo.verifiedAt,
+    expiresAt: freshnessInfo.expiresAt,
     sourceRetrievedAt: cleanText(record?.sourceRetrievedAt, 40) || null,
     hoursVerifiedAt: cleanText(record?.hoursVerifiedAt, 40) || null,
     sourceStatus: cleanText(record?.currentOpenClosedEligibilityStatus, 40) || null,
     sourceStatusEvaluatedAt: cleanText(record?.currentStatusEvaluatedAt, 40) || null,
     provenance,
-    failClosed,
+    admission: admission ? {
+      manifestId: admission.manifestId,
+      manifestVersion: admission.manifestVersion,
+      manifestArtifactSha256: admission.manifestArtifactSha256,
+      configurationVersion: admission.configurationVersion,
+      administrationConfigurationVersion: admission.administrationConfigurationVersion,
+      manifestConfigurationVersion: admission.manifestConfigurationVersion,
+      classification: admission.classification,
+      opportunitySourceId: admission.opportunitySourceId
+    } : null,
+    failClosed: !immediateRecommendationEligible && Boolean(admissionError),
     scoringChanged: false,
+    availability: {
+      status: availability.status,
+      localTimezone: cleanText(record?.businessTimezone, 120) || null,
+      effectiveInterval: availability.effectiveInterval,
+      nextClosing: availability.nextClosing,
+      nextOpening: availability.nextOpening,
+      verifiedAt: freshnessInfo.verifiedAt,
+      expiresAt: freshnessInfo.expiresAt,
+      freshness: availability.freshnessState,
+      sourceState: availability.sourceState,
+      sourceSystem: provenance.sourceSystem,
+      display: availability.displayStatus
+    },
+    visitDuration: visitDuration(candidate),
     explanation: {
       recommendationScore: "UNCHANGED",
-      businessHoursEligibility: status,
+      businessHoursEligibility: availability.status,
+      immediateRecommendationEligible,
+      coverageEligible,
       hoursConfidence: confidence,
-      hoursFreshness: cleanText(freshness, 20) || "MISSING",
-      reasonCode: cleanText(reasonCode, 160) || "HOURS_STATUS_UNAVAILABLE",
-      reason: cleanText(reason, 600) || "Business-hours eligibility could not be verified.",
+      hoursFreshness: availability.freshnessState,
+      reasonCode,
+      reason,
       provenance
     },
-    displayLabel: status === "OPEN_VERIFIED" ? "Verified open" : uncertain ? "Hours not verified" : "Closed now"
+    displayLabel: availability.displayStatus
   };
 }
 
@@ -111,48 +573,24 @@ function isHistoricalFitnessScope(workspaceId, operatingProfileId) {
     && operatingProfileId === routeBusinessHoursOperatingProfileId;
 }
 
-function assertRouteBusinessHoursScope(workspaceId, operatingProfileId, governedRuntimeScope = null) {
-  if (isHistoricalFitnessScope(workspaceId, operatingProfileId)) return null;
-  return assertGovernedRouteRuntimeScope({
-    workspaceId,
-    operatingProfileId,
-    governedRuntimeScope,
-    requiredAuthorization: routeIqGovernedRuntimeAuthorizations.businessHoursEligibility
-  });
-}
-
 function validateGovernedBusinessHoursArtifact(artifact, workspaceId, operatingProfileId) {
   const failures = [];
   if (!artifact || typeof artifact !== "object" || Array.isArray(artifact)) return ["Business-hours artifact is missing or invalid."];
   if (artifact.schemaVersion !== "prometheus-data-business-hours-v1") failures.push("Business-hours schemaVersion mismatch.");
-  if (artifact.artifactVersion !== "business-hours-v1") failures.push("Business-hours artifactVersion mismatch.");
   if (artifact.workspaceId !== workspaceId) failures.push("Business-hours workspace mismatch.");
   if (artifact.operatingProfileId !== operatingProfileId) failures.push("Business-hours operating profile mismatch.");
-  if (artifact.routeEligibilityActivated !== false) failures.push("Business-hours artifact must not activate route eligibility.");
-  if (artifact.runtimeBehaviorChanged !== false) failures.push("Business-hours artifact must preserve runtime behavior.");
-  if (artifact.scoringChanged !== false) failures.push("Business-hours artifact must preserve scoring.");
   if (!Array.isArray(artifact.records)) failures.push("Business-hours records must be an array.");
   if (artifact.recordCount !== (artifact.records || []).length) failures.push("Business-hours recordCount mismatch.");
-  if (!Number.isFinite(Number(artifact.freshnessPolicy?.freshnessThresholdHours))) failures.push("Business-hours freshness threshold is missing.");
+  if (Number(artifact.freshnessPolicy?.freshnessThresholdHours) > 24) failures.push("Business-hours freshness ceiling exceeds 24 hours.");
   const seen = new Set();
   for (const record of artifact.records || []) {
-    const placeId = cleanText(record?.googlePlaceId, 180);
-    if (!placeId) failures.push("Business-hours record Place ID is missing.");
-    if (seen.has(placeId)) failures.push(`Duplicate business-hours Place ID: ${placeId}`);
-    seen.add(placeId);
+    const identity = cleanText(record?.googlePlaceId ?? record?.recordId, 180);
+    if (!identity || seen.has(identity)) failures.push("Business-hours record identity is missing or duplicated.");
+    seen.add(identity);
     if (record?.workspaceId !== workspaceId || record?.operatingProfileId !== operatingProfileId) {
-      failures.push(`Cross-scope business-hours record: ${placeId || "unknown"}`);
+      failures.push("Business-hours artifact contains a cross-scope record.");
     }
-    if (!cleanText(record?.businessName, 180)) failures.push(`Missing business-hours business name: ${placeId || "unknown"}`);
-    if (!cleanText(record?.address, 300)) failures.push(`Missing business-hours address: ${placeId || "unknown"}`);
-    if (!cleanText(record?.permanentOperationalStatus, 40)) failures.push(`Missing permanent operational status: ${placeId || "unknown"}`);
-    if (!BUSINESS_HOURS_STATUSES.includes(record?.currentOpenClosedEligibilityStatus)) failures.push(`Invalid current hours status: ${placeId || "unknown"}`);
-    if (!HOURS_FRESHNESS_STATUSES.includes(record?.hoursFreshnessStatus)) failures.push(`Invalid hours freshness status: ${placeId || "unknown"}`);
-    if (!HOURS_CONFIDENCE_VALUES.includes(record?.hoursConfidence)) failures.push(`Invalid hours confidence: ${placeId || "unknown"}`);
-    if (!cleanText(record?.currentStatusReasonCode, 160) || !cleanText(record?.currentStatusReason, 600)) {
-      failures.push(`Missing explainable hours status reason: ${placeId || "unknown"}`);
-    }
-    if (!record?.hoursProvenance || typeof record.hoursProvenance !== "object") failures.push(`Missing business-hours provenance: ${placeId || "unknown"}`);
+    if (!HOURS_CONFIDENCE_VALUES.includes(record?.hoursConfidence)) failures.push("Business-hours confidence is invalid.");
   }
   return failures;
 }
@@ -160,20 +598,30 @@ function validateGovernedBusinessHoursArtifact(artifact, workspaceId, operatingP
 export function buildRouteBusinessHoursIndex(artifact, options = {}) {
   const workspaceId = options.workspaceId || artifact?.workspaceId || routeBusinessHoursWorkspaceId;
   const operatingProfileId = options.operatingProfileId || artifact?.operatingProfileId || routeBusinessHoursOperatingProfileId;
-  let governedRuntimeScope = null;
-  let failures;
-  if (isHistoricalFitnessScope(workspaceId, operatingProfileId)) {
-    assertRouteBusinessHoursScope(workspaceId, operatingProfileId);
-    failures = validateBusinessHoursArtifact(artifact, workspaceId);
-  } else {
-    governedRuntimeScope = createGovernedRouteRuntimeScopeFromBusinessHoursArtifact(artifact);
-    assertRouteBusinessHoursScope(workspaceId, operatingProfileId, governedRuntimeScope);
-    failures = validateGovernedBusinessHoursArtifact(artifact, workspaceId, operatingProfileId);
+  const governedRuntimeScope = options.governedRuntimeScope
+    || (!isHistoricalFitnessScope(workspaceId, operatingProfileId) && artifact?.routeIqRuntimeScope
+      ? createGovernedRouteRuntimeScopeFromBusinessHoursArtifact(artifact)
+      : null);
+  if (governedRuntimeScope) {
+    assertGovernedRouteRuntimeScope({
+      workspaceId,
+      operatingProfileId,
+      governedRuntimeScope,
+      requiredAuthorization: routeIqGovernedRuntimeAuthorizations.businessHoursEligibility
+    });
   }
+  const failures = governedRuntimeScope
+    ? validateGovernedBusinessHoursArtifact(artifact, workspaceId, operatingProfileId)
+    : isHistoricalFitnessScope(workspaceId, operatingProfileId)
+      ? validateBusinessHoursArtifact(artifact, workspaceId)
+      : validateGovernedBusinessHoursArtifact(artifact, workspaceId, operatingProfileId);
   if (failures.length) throw new Error(`Route IQ business-hours artifact is invalid: ${failures.join(" | ")}`);
-  if (artifact.operatingProfileId !== operatingProfileId) throw new Error("Route IQ business-hours artifact operating profile mismatch.");
-  const recordsByPlaceId = new Map();
-  for (const record of artifact.records) recordsByPlaceId.set(record.googlePlaceId, record);
+  const recordsByIdentity = new Map();
+  for (const record of artifact.records) {
+    const identity = cleanText(record.googlePlaceId ?? record.recordId, 180);
+    recordsByIdentity.set(identity, record);
+  }
+  const approvedIdentities = governedApprovedBusinessIdentitySet(governedRuntimeScope);
   return {
     version: routeBusinessHoursEligibilityVersion,
     workspaceId,
@@ -182,9 +630,15 @@ export function buildRouteBusinessHoursIndex(artifact, options = {}) {
     statusEvaluatedAt: artifact.statusEvaluatedAt,
     sourceDatasetVersion: artifact.sourceDatasetVersion,
     governedRuntimeScope,
-    freshnessPolicy: { ...DEFAULT_BUSINESS_HOURS_POLICY, ...(artifact.freshnessPolicy || {}) },
-    recordCount: recordsByPlaceId.size,
-    recordsByPlaceId
+    freshnessPolicy: {
+      ...DEFAULT_BUSINESS_HOURS_POLICY,
+      ...(artifact.freshnessPolicy || {}),
+      freshnessThresholdHours: Math.min(24, Number(artifact.freshnessPolicy?.freshnessThresholdHours || 24))
+    },
+    recordCount: recordsByIdentity.size,
+    approvedRecordCount: [...recordsByIdentity.keys()].filter(identity => approvedIdentities.has(identity)).length,
+    recordsByIdentity,
+    recordsByPlaceId: recordsByIdentity
   };
 }
 
@@ -194,129 +648,77 @@ export function evaluateRouteBusinessHoursEligibility({
   evaluatedAt = new Date(),
   policy = DEFAULT_BUSINESS_HOURS_POLICY,
   artifactAvailable = true,
-  workspaceId = routeBusinessHoursWorkspaceId,
-  operatingProfileId = routeBusinessHoursOperatingProfileId,
+  workspaceId = candidate?.workspaceId || record?.workspaceId || routeBusinessHoursWorkspaceId,
+  operatingProfileId = candidate?.operatingProfileId || record?.operatingProfileId || routeBusinessHoursOperatingProfileId,
+  territoryId = candidate?.territoryId,
   governedRuntimeScope = null
 } = {}) {
   const instant = evaluationInstant(evaluatedAt);
-  const decisionScope = { workspaceId, operatingProfileId };
-  try {
-    assertRouteBusinessHoursScope(workspaceId, operatingProfileId, governedRuntimeScope);
-  } catch (error) {
-    return decision({
-      record,
-      candidate,
-      evaluatedAt: instant,
-      status: "HOURS_UNKNOWN",
-      eligible: false,
-      selectionTier: 99,
-      reasonCode: "HOURS_WORKSPACE_SCOPE_REJECTED",
-      reason: error.message,
-      freshness: "MISSING",
-      failClosed: true,
-      ...decisionScope
-    });
-  }
-
+  let availability;
   if (!artifactAvailable) {
-    return decision({
-      record,
-      candidate,
-      evaluatedAt: instant,
-      status: "HOURS_UNKNOWN",
-      eligible: false,
-      selectionTier: 99,
-      reasonCode: "BUSINESS_HOURS_ARTIFACT_UNAVAILABLE",
-      reason: "The governed business-hours artifact is unavailable, so Route IQ failed closed.",
-      freshness: "MISSING",
-      failClosed: true,
-      ...decisionScope
+    availability = evaluatedStatus(
+      "HOURS_UNKNOWN",
+      "BUSINESS_HOURS_ARTIFACT_UNAVAILABLE",
+      "The governed business-hours artifact is unavailable.",
+      { freshnessState: "MISSING", sourceState: "UNAVAILABLE" }
+    );
+  } else if (!record) {
+    availability = evaluatedStatus(
+      "HOURS_UNKNOWN",
+      "BUSINESS_HOURS_RECORD_UNAVAILABLE",
+      "No governed business-hours record is available for this candidate.",
+      { freshnessState: "MISSING", sourceState: "UNAVAILABLE" }
+    );
+  } else if (record.workspaceId !== workspaceId || record.operatingProfileId !== operatingProfileId) {
+    availability = evaluatedStatus(
+      "HOURS_UNKNOWN",
+      "HOURS_RECORD_SCOPE_MISMATCH",
+      "The business-hours record does not belong to the active workspace and operating profile.",
+      { freshnessState: "MISSING", sourceState: "INVALID" }
+    );
+  } else {
+    try {
+      availability = evaluateAvailability(record, instant, policy);
+    } catch (error) {
+      availability = evaluatedStatus(
+        "HOURS_UNKNOWN",
+        cleanText(error?.code, 160) || "HOURS_EVALUATION_FAILED",
+        cleanText(error?.message, 600) || "Business-hours evaluation failed.",
+        { freshnessState: "MISSING", sourceState: "INVALID" }
+      );
+    }
+  }
+  if (!BUSINESS_HOURS_STATUSES.includes(availability.status)) {
+    availability = evaluatedStatus("HOURS_UNKNOWN", "HOURS_STATUS_INVALID", "The hours evaluator returned an invalid status.", {
+      freshnessState: "MISSING",
+      sourceState: "INVALID"
     });
   }
 
-  if (!record) {
-    return decision({
-      candidate,
-      evaluatedAt: instant,
-      status: "HOURS_UNKNOWN",
-      eligible: true,
-      selectionTier: 1,
-      reasonCode: "BUSINESS_HOURS_RECORD_UNAVAILABLE",
-      reason: "No governed business-hours record is available for this candidate.",
-      freshness: "MISSING",
-      ...decisionScope
-    });
-  }
-
-  if (record.workspaceId !== workspaceId || record.operatingProfileId !== operatingProfileId) {
-    return decision({
-      record,
-      candidate,
-      evaluatedAt: instant,
-      status: "HOURS_UNKNOWN",
-      eligible: false,
-      selectionTier: 99,
-      reasonCode: "HOURS_RECORD_SCOPE_MISMATCH",
-      reason: "The governed business-hours record does not belong to the active workspace and operating profile.",
-      freshness: record.hoursFreshnessStatus || "MISSING",
-      failClosed: true,
-      ...decisionScope
-    });
-  }
-
-  let evaluated;
+  let admission = null;
+  let admissionError = null;
   try {
-    // The canonical evaluator's static registry remains Fitness-only; provenance was authenticated above.
-    const evaluationRecord = isHistoricalFitnessScope(workspaceId, operatingProfileId)
-      ? record
-      : { ...record, workspaceId: routeBusinessHoursWorkspaceId, operatingProfileId: routeBusinessHoursOperatingProfileId };
-    evaluated = evaluateBusinessHoursRecord(evaluationRecord, instant, policy);
+    admission = admissionFor({
+      governedRuntimeScope,
+      candidate,
+      record,
+      workspaceId,
+      operatingProfileId,
+      territoryId
+    });
   } catch (error) {
-    return decision({
-      record,
-      candidate,
-      evaluatedAt: instant,
-      status: "HOURS_UNKNOWN",
-      eligible: false,
-      selectionTier: 99,
-      reasonCode: cleanText(error?.code, 160) || "HOURS_EVALUATION_FAILED",
-      reason: cleanText(error?.message, 600) || "Business-hours evaluation failed.",
-      freshness: record.hoursFreshnessStatus || "MISSING",
-      failClosed: true,
-      ...decisionScope
-    });
+    admissionError = error;
   }
-
-  if (!BUSINESS_HOURS_STATUSES.includes(evaluated.status)) {
-    return decision({
-      record,
-      candidate,
-      evaluatedAt: instant,
-      status: "HOURS_UNKNOWN",
-      eligible: false,
-      selectionTier: 99,
-      reasonCode: "HOURS_STATUS_INVALID",
-      reason: "The governed business-hours evaluator returned an unsupported status.",
-      freshness: evaluated.hoursFreshnessStatus || "MISSING",
-      failClosed: true,
-      ...decisionScope
-    });
-  }
-
   return decision({
     record,
     candidate,
     evaluatedAt: instant,
-    status: evaluated.status,
-    eligible: evaluated.status !== "CLOSED_VERIFIED",
-    selectionTier: evaluated.status === "OPEN_VERIFIED" ? 0 : evaluated.status === "CLOSED_VERIFIED" ? 99 : 1,
-    reasonCode: evaluated.reasonCode,
-    reason: evaluated.reason,
-    freshness: evaluated.hoursFreshnessStatus,
-    businessLocalDate: evaluated.businessLocalDate,
-    businessLocalTime: evaluated.businessLocalTime,
-    failClosed: false,
-    ...decisionScope
+    availability,
+    admission,
+    admissionError,
+    workspaceId,
+    operatingProfileId,
+    freshnessInfo: freshness(record, instant, policy)
   });
 }
 
@@ -324,7 +726,9 @@ export function applyHoursEligibilityToScore(scoreResult, eligibility) {
   const normalized = typeof scoreResult === "number" ? { score: scoreResult, signals: [] } : { ...(scoreResult || {}) };
   const score = Number(normalized.score);
   if (!Number.isFinite(score)) throw new Error("Route IQ score must remain finite when hours eligibility is applied.");
-  const hoursSignal = eligibility.status === "OPEN_VERIFIED" ? "business hours verified open" : "business hours not verified";
+  const hoursSignal = eligibility.immediateRecommendationEligible
+    ? "business hours verified open"
+    : "business hours not immediate-route eligible";
   return {
     ...normalized,
     score,
@@ -337,8 +741,9 @@ export function applyHoursEligibilityToScore(scoreResult, eligibility) {
 export function summarizeRouteBusinessHours(decisions = []) {
   const summary = {
     evaluated: 0,
-    eligible: 0,
-    excluded: 0,
+    coverageEligible: 0,
+    immediateRecommendationEligible: 0,
+    excludedFromImmediateRecommendation: 0,
     hoursUnverified: 0,
     statuses: Object.fromEntries(BUSINESS_HOURS_STATUSES.map(status => [status, 0])),
     reasonCodes: {}
@@ -346,8 +751,9 @@ export function summarizeRouteBusinessHours(decisions = []) {
   for (const item of decisions) {
     if (!item) continue;
     summary.evaluated += 1;
-    if (item.eligible) summary.eligible += 1;
-    else summary.excluded += 1;
+    if (item.coverageEligible) summary.coverageEligible += 1;
+    if (item.immediateRecommendationEligible) summary.immediateRecommendationEligible += 1;
+    else summary.excludedFromImmediateRecommendation += 1;
     if (item.internalMarker === hoursNotVerifiedMarker) summary.hoursUnverified += 1;
     if (summary.statuses[item.status] !== undefined) summary.statuses[item.status] += 1;
     summary.reasonCodes[item.reasonCode] = (summary.reasonCodes[item.reasonCode] || 0) + 1;

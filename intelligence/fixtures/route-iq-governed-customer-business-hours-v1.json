@@ -15,7 +15,7 @@
   "freshnessPolicy": {
     "providerRefreshIntervalHours": 24,
     "statusEvaluationIntervalMinutes": 15,
-    "freshnessThresholdHours": 168,
+    "freshnessThresholdHours": 24,
     "fieldObservationFreshnessMinutes": 240,
     "staleStatus": "HOURS_STALE",
     "missingStatus": "HOURS_UNKNOWN",

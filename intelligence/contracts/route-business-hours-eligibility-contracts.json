@@ -1,110 +1,145 @@
 {
   "version": "route-iq-closed-now-eligibility-contracts-v1",
+  "admissionVersion": "route-iq-governed-business-admission-v2",
   "subsystem": "prometheus-intelligence-engine",
   "domain": "route-intelligence",
-  "workspaceId": "fitness_connection",
-  "operatingProfileId": "fitness",
+  "recommendationInfluence": "OFF",
+  "collection": "OFF",
+  "activeCohorts": 0,
+  "configurationContract": {
+    "administrationSchemaVersion": "route-iq-workspace-configuration-v2",
+    "supportedCanonicalWorkspaces": [
+      "fitness_connection",
+      "northstar_outside_sales_synthetic"
+    ],
+    "companyNameBranchingAllowed": false,
+    "callerScopeMutationAllowed": false,
+    "unknownOrInvalidConfigurationBehavior": "fail_closed",
+    "demoOrFallbackCatalogAllowed": false
+  },
   "dataContract": {
-    "contractId": "fitness-connection-business-hours-data-contract-v1",
-    "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
-    "identityJoin": "googlePlaceId",
-    "dataOwnsStatusAndProvenance": true,
+    "manifestRegistry": "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
+    "manifestVersion": "route-iq-workspace-business-artifact-manifest-v1",
+    "requiredExactBindings": [
+      "workspaceId",
+      "operatingProfileId",
+      "administrationConfigurationVersion",
+      "manifestConfigurationVersion",
+      "manifestId",
+      "manifestVersion",
+      "artifactSha256",
+      "classification",
+      "approvalState",
+      "candidateIdentity",
+      "territoryId"
+    ],
+    "businessRecordsSource": "approved_tenant_company_manifest_only",
+    "dataOwnsScheduleAndProvenance": true,
     "intelligenceOwnsEligibility": true,
     "sourceRecordsModified": false
   },
   "governedRuntimeScope": {
     "version": "route-iq-governed-runtime-scope-v1",
-    "legacyDefault": {
-      "workspaceId": "fitness_connection",
-      "operatingProfileId": "fitness",
-      "compatibilityPreserved": true
-    },
-    "additionalWorkspacePolicy": "require_asset_provenance_bound_scope",
+    "requiredAdmissionVersion": "route-iq-governed-business-admission-v2",
     "requiredAssetType": "business_hours",
     "requiredAuthorizations": [
       "business_hours_eligibility",
       "continuous_adaptive_route_replenishment"
     ],
+    "canonicalManifestAdmissionRequired": true,
     "callerAuthorizationClaimsAccepted": false,
-    "workspaceAndOperatingProfileMismatchBehavior": "fail_closed",
+    "workspaceProfileTerritorySubstitutionBehavior": "fail_closed",
     "serializedScopeReuse": "rejected"
   },
   "eligibilityPolicy": {
+    "coverageAndEvaluationSeparated": true,
     "OPEN_VERIFIED": {
-      "eligible": true,
+      "coverageEligible": true,
+      "immediateRecommendationEligible": true,
       "selectionTier": 0,
       "representation": "verified_open"
     },
     "CLOSED_VERIFIED": {
-      "eligible": false,
+      "coverageEligible": true,
+      "immediateRecommendationEligible": false,
       "selectionTier": 99,
-      "representation": "excluded_closed_now"
-    },
-    "HOURS_UNKNOWN": {
-      "eligibleForCoverageOnly": true,
-      "selectionTier": 1,
-      "internalMarker": "HOURS_NOT_VERIFIED"
+      "retainNextOpening": true
     },
     "HOURS_STALE": {
-      "eligibleForCoverageOnly": true,
-      "selectionTier": 1,
+      "coverageEligible": true,
+      "immediateRecommendationEligible": false,
+      "selectionTier": 99,
+      "internalMarker": "HOURS_NOT_VERIFIED"
+    },
+    "HOURS_UNKNOWN": {
+      "coverageEligible": false,
+      "immediateRecommendationEligible": false,
+      "selectionTier": 99,
       "internalMarker": "HOURS_NOT_VERIFIED"
     },
     "SPECIAL_HOURS_UNVERIFIED": {
-      "eligibleForCoverageOnly": true,
-      "selectionTier": 1,
+      "coverageEligible": true,
+      "immediateRecommendationEligible": false,
+      "selectionTier": 99,
       "internalMarker": "HOURS_NOT_VERIFIED"
-    }
+    },
+    "PROVIDER_FAILURE": {
+      "coverageEligible": true,
+      "immediateRecommendationEligible": false,
+      "selectionTier": 99
+    },
+    "INVALID": {
+      "coverageEligible": false,
+      "immediateRecommendationEligible": false,
+      "selectionTier": 99
+    },
+    "appointmentOnlyRequiresVerifiedCurrentAccessWindow": true,
+    "maximumFreshnessHours": 24,
+    "uncertainHoursMayBeGuessedOpen": false
   },
   "queuePolicy": {
     "evaluationPoints": [
       "initial_generation",
+      "persisted_entry_restoration",
       "adaptive_replenishment",
       "route_regeneration",
       "fallback_selection"
     ],
+    "authoritativeEvaluationTimeRequired": true,
     "selectionOrder": [
-      "active_verified_open",
-      "full_pool_verified_open_fallback",
-      "active_hours_unverified_coverage",
-      "full_pool_hours_unverified_coverage"
+      "active_fresh_verified_open",
+      "approved_fallback_fresh_verified_open"
     ],
-    "verifiedClosedNeverSelected": true,
-    "completedStopExclusionPreserved": true,
-    "duplicatePreventionPreserved": true,
-    "emptyPoolBehavior": "explicit_exhausted_state"
+    "uncertainCoverageSelectableAsCurrentStop": false,
+    "persistedNowStaleRankOneRetained": false,
+    "emptyPoolBehavior": "explicit_safe_exhausted_state"
   },
-  "explainability": {
-    "requiredFields": [
+  "presentationContract": {
+    "requiredAvailabilityFields": [
       "status",
-      "eligible",
-      "hoursConfidence",
-      "hoursFreshness",
-      "reasonCode",
-      "reason",
-      "evaluatedAt",
-      "businessTimezone",
-      "sourceRetrievedAt",
-      "hoursVerifiedAt",
-      "provenance"
+      "localTimezone",
+      "effectiveInterval",
+      "nextClosing",
+      "nextOpening",
+      "verifiedAt",
+      "expiresAt",
+      "freshness",
+      "sourceState",
+      "sourceSystem",
+      "display"
     ],
-    "recommendationScoreSeparateFromHoursEligibility": true,
-    "uncertainHoursMayBeRepresentedAsOpen": false,
-    "excludedDecisionAttributable": true
+    "visitDurationSeparate": true,
+    "visitDurationLabelPrefix": "Estimated visit:",
+    "representativeFacingShadowOutput": false
   },
   "safety": {
     "scoringWeightsChanged": false,
-    "liveGoogleCalls": false,
-    "workspaceIsolation": "fail_closed",
-    "activePoolGovernancePreserved": true,
-    "fullPoolFallbackGovernancePreserved": true,
-    "unknownArtifactBehavior": "fail_closed",
-    "inventionGovernanceClassification": "operational_improvement",
-    "patentabilityClaimMade": false
-  },
-  "consumerCompatibility": {
-    "dashboard": "additive_hours_explanation_fields",
-    "mobile": "additive_hours_explanation_fields",
-    "existingRequiredFieldsRemoved": false
+    "liveProviderCalls": false,
+    "workspaceProfileTerritoryIsolation": "fail_closed",
+    "approvedRosterRequired": true,
+    "providerFailureMayPromoteStaleData": false,
+    "recommendationInfluenceChanged": false,
+    "collectionChanged": false,
+    "cohortsChanged": false
   }
 }

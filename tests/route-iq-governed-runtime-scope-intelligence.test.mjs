@@ -3,24 +3,23 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
-  buildAdaptiveIntelligenceSnapshot,
-  createEmptyRouteQueue,
-  maintainRouteQueue,
-  scoreAdaptiveCandidate
+  createEmptyRouteQueue
 } from "../intelligence/continuous-adaptive-route-replenishment.mjs";
 import {
   buildRouteBusinessHoursIndex,
   evaluateRouteBusinessHoursEligibility
 } from "../intelligence/route-business-hours-eligibility.mjs";
 
-const fixturePath = new URL("../intelligence/fixtures/route-iq-governed-customer-business-hours-v1.json", import.meta.url);
-const fixture = JSON.parse(readFileSync(fixturePath, "utf8"));
-const workspaceId = "northstar_field_services";
-const operatingProfileId = "northstar_service_calls";
-const representativeId = "northstar_rep_001";
+const fixture = JSON.parse(readFileSync(
+  new URL("../intelligence/fixtures/route-iq-governed-customer-business-hours-v1.json", import.meta.url),
+  "utf8"
+));
+const workspaceId = fixture.workspaceId;
+const operatingProfileId = fixture.operatingProfileId;
+const representativeId = "synthetic_rep_001";
 
 function clone(value) {
-  return JSON.parse(JSON.stringify(value));
+  return structuredClone(value);
 }
 
 function buildIndex(artifact = fixture, options = {}) {
@@ -31,79 +30,39 @@ function buildIndex(artifact = fixture, options = {}) {
   });
 }
 
-test("a governed customer asset authorizes matching business-hours and route operations", () => {
+test("an asset-derived scope authenticates the hours artifact but cannot replace manifest admission", () => {
   const index = buildIndex();
   const record = index.recordsByPlaceId.get("synthetic-northstar-place-001");
-  const eligibility = evaluateRouteBusinessHoursEligibility({
+  const decision = evaluateRouteBusinessHoursEligibility({
     record,
+    candidate: {
+      id: "synthetic_candidate_001",
+      googlePlaceId: record.googlePlaceId,
+      workspaceId,
+      operatingProfileId,
+      territoryId: "synthetic_territory"
+    },
     evaluatedAt: fixture.statusEvaluatedAt,
     policy: index.freshnessPolicy,
     workspaceId,
-    operatingProfileId
-  });
-  assert.equal(eligibility.status, "OPEN_VERIFIED");
-  assert.equal(eligibility.eligible, true);
-  assert.equal(eligibility.workspaceId, workspaceId);
-  assert.equal(eligibility.operatingProfileId, operatingProfileId);
-
-  const candidate = {
-    id: "northstar-route-001",
-    googlePlaceId: record.googlePlaceId,
-    name: record.businessName,
-    address: record.address,
-    workspaceId,
     operatingProfileId,
-    category: "Field Service",
-    score: 25,
-    eligible: true
-  };
-  const queue = createEmptyRouteQueue({
-    workspaceId,
-    operatingProfileId,
-    representativeId,
-    targetSize: 1,
-    threshold: 1
+    governedRuntimeScope: index.governedRuntimeScope
   });
-  const maintained = maintainRouteQueue({
-    queue,
-    workspaceId,
-    operatingProfileId,
-    representativeId,
-    primaryCandidates: [candidate],
-    force: true,
-    isEligible: () => eligibility.eligible,
-    scoreCandidate: value => value.score,
-    now: fixture.statusEvaluatedAt
-  });
-  assert.equal(maintained.queue.entries.length, 1);
-  assert.equal(maintained.queue.workspaceId, workspaceId);
-  assert.equal(maintained.queue.operatingProfileId, operatingProfileId);
-
-  const intelligence = buildAdaptiveIntelligenceSnapshot({
-    workspaceId,
-    representativeId,
-    places: [candidate],
-    generatedAt: fixture.statusEvaluatedAt
-  });
-  const scored = scoreAdaptiveCandidate({
-    candidate,
-    baseScore: 25,
-    intelligence
-  });
-  assert.equal(Number.isFinite(scored.score), true);
-  assert.equal(intelligence.operatingProfileId, operatingProfileId);
+  assert.equal(decision.status, "OPEN_VERIFIED");
+  assert.equal(decision.eligible, false);
+  assert.equal(decision.immediateRecommendationEligible, false);
+  assert.equal(decision.reasonCode, "BUSINESS_MANIFEST_ADMISSION_REJECTED");
+  assert.equal(index.approvedRecordCount, 0);
 });
 
-test("customer scope fails closed when omitted, forged, serialized, or mismatched", () => {
+test("continuous route operations reject an asset-only, forged, serialized, or mismatched scope", () => {
   const index = buildIndex();
   const common = { workspaceId, operatingProfileId, representativeId };
-  assert.doesNotThrow(() => createEmptyRouteQueue(common));
-  assert.doesNotThrow(() => createEmptyRouteQueue({ workspaceId, representativeId }));
+  assert.throws(() => createEmptyRouteQueue(common), /manifest|scope is missing/i);
   assert.throws(() => createEmptyRouteQueue({
-    workspaceId: "unregistered_workspace",
-    operatingProfileId: "unregistered_profile",
-    representativeId
-  }), /scope is missing or unauthenticated/);
+    ...common,
+    governedRuntimeScope: index.governedRuntimeScope
+  }), /canonical approved-business manifest/);
   assert.throws(() => createEmptyRouteQueue({
     ...common,
     governedRuntimeScope: { ...index.governedRuntimeScope }
@@ -114,15 +73,21 @@ test("customer scope fails closed when omitted, forged, serialized, or mismatche
   }), /scope is missing or unauthenticated/);
   assert.throws(() => createEmptyRouteQueue({
     ...common,
-    operatingProfileId: "northstar_other_profile",
+    operatingProfileId: "other_profile",
     governedRuntimeScope: index.governedRuntimeScope
   }), /does not match/);
 });
 
-test("business-hours evaluation rejects caller scope without the governed asset-derived object", () => {
+test("business-hours evaluation rejects caller-created scope objects", () => {
   const record = fixture.records[0];
   const decision = evaluateRouteBusinessHoursEligibility({
     record,
+    candidate: {
+      googlePlaceId: record.googlePlaceId,
+      workspaceId,
+      operatingProfileId,
+      territoryId: "synthetic_territory"
+    },
     evaluatedAt: fixture.statusEvaluatedAt,
     workspaceId,
     operatingProfileId,
@@ -135,11 +100,11 @@ test("business-hours evaluation rejects caller scope without the governed asset-
   });
   assert.equal(decision.eligible, false);
   assert.equal(decision.failClosed, true);
-  assert.equal(decision.reasonCode, "HOURS_WORKSPACE_SCOPE_REJECTED");
+  assert.equal(decision.reasonCode, "BUSINESS_MANIFEST_ADMISSION_REJECTED");
 });
 
-test("asset, requested context, and record provenance must match exactly", () => {
-  assert.throws(() => buildIndex(fixture, { workspaceId: "other_workspace" }), /does not match/);
+test("asset, requested context, freshness ceiling, and record provenance must match exactly", () => {
+  assert.throws(() => buildIndex(fixture, { workspaceId: "other_workspace" }), /does not match|workspace mismatch|cross-scope/i);
 
   const declarationMismatch = clone(fixture);
   declarationMismatch.routeIqRuntimeScope.operatingProfileId = "other_profile";
@@ -148,25 +113,37 @@ test("asset, requested context, and record provenance must match exactly", () =>
   const crossWorkspaceRecord = clone(fixture);
   crossWorkspaceRecord.records[0].workspaceId = "other_workspace";
   assert.throws(() => buildIndex(crossWorkspaceRecord), /cross-scope record/);
+
+  const stalePolicy = clone(fixture);
+  stalePolicy.freshnessPolicy.freshnessThresholdHours = 25;
+  assert.throws(() => buildIndex(stalePolicy), /freshness ceiling exceeds 24 hours/);
 });
 
-test("historical Fitness scope keeps its original compatibility and rejection boundary", () => {
+test("historical Fitness indexing remains readable but cannot make an unmanifested immediate recommendation", () => {
   const fitnessArtifact = JSON.parse(readFileSync(
     new URL("../data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json", import.meta.url),
     "utf8"
   ));
   const index = buildRouteBusinessHoursIndex(fitnessArtifact);
+  const record = fitnessArtifact.records[0];
+  const decision = evaluateRouteBusinessHoursEligibility({
+    record,
+    candidate: {
+      googlePlaceId: record.googlePlaceId,
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      territoryId: "historical_fixture"
+    },
+    evaluatedAt: fitnessArtifact.statusEvaluatedAt
+  });
   assert.equal(index.workspaceId, "fitness_connection");
   assert.equal(index.operatingProfileId, "fitness");
   assert.equal(index.governedRuntimeScope, null);
-  assert.doesNotThrow(() => createEmptyRouteQueue({
-    workspaceId: "fitness_connection",
-    operatingProfileId: "fitness",
-    representativeId: "cruz"
-  }));
+  assert.equal(decision.immediateRecommendationEligible, false);
+  assert.equal(decision.failClosed, true);
   assert.throws(() => createEmptyRouteQueue({
     workspaceId: "fitness_connection",
     operatingProfileId: "other_profile",
-    representativeId: "cruz"
-  }), /operating profile is not authorized/);
+    representativeId: "founder"
+  }), /governed runtime scope is missing or unauthenticated/);
 });

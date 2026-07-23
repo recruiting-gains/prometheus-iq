@@ -58,11 +58,11 @@ const requiredFiles = [
   "intelligence/contracts/recommendation-explainability-contracts.json",
   "intelligence/contracts/operating-profile-contracts.json",
   "intelligence/contracts/customer-intelligence-graph-contracts.json",
-  "intelligence/contracts/business-acquisition-intelligence-contracts.json",
   "intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json",
+  "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+  "intelligence/route-business-hours-eligibility.mjs",
+  "intelligence/route-iq-governed-runtime-scope.mjs",
   "intelligence/profiles/operating-profiles.json",
-  "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md",
-  "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json",
   "scripts/verify-field-learning-offline-evidence-harness.mjs",
   "scripts/verify-read-only-field-session-learning.mjs",
   "scripts/verify-off-route-learning-intelligence.mjs",
@@ -138,11 +138,9 @@ const prospectiveRetentionInfrastructureSuccessor = readJson("intelligence/prove
 const explainabilityContracts = readJson("intelligence/contracts/recommendation-explainability-contracts.json");
 const operatingProfileContracts = readJson("intelligence/contracts/operating-profile-contracts.json");
 const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
-const businessAcquisitionContracts = readJson("intelligence/contracts/business-acquisition-intelligence-contracts.json");
 const adaptiveReplenishmentContracts = readJson("intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json");
+const routeBusinessHoursContracts = readJson("intelligence/contracts/route-business-hours-eligibility-contracts.json");
 const operatingProfiles = readJson("intelligence/profiles/operating-profiles.json");
-const smoothieDepotWorkspacePlan = readJson("intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json");
-const smoothieDepotWorkspaceDoc = read("intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md");
 const fieldFixtures = readJson("intelligence/fixtures/field-visit-evidence-fixtures.json");
 
 const requiredArchitectureSections = [
@@ -437,24 +435,6 @@ for (const contractName of requiredCustomerGraphContracts) {
   assert(Boolean(customerGraphContracts.contracts?.[contractName]), `Customer Intelligence Graph registry missing ${contractName}`);
 }
 
-const requiredBusinessAcquisitionContracts = [
-  "FranchiseCandidateSourcing",
-  "BusinessProspectResearch",
-  "FranchiseReadinessAssessment",
-  "CandidateIntelligenceProfile",
-  "SmoothieDepotCrmPipelineStages",
-  "SmoothieDepotDashboardDisplayNeeds",
-  "JrHandoffPackage",
-  "CommissionTracking",
-  "CandidateProtectionPeriod",
-  "WorkspaceIsolationGuardrails"
-];
-for (const contractName of requiredBusinessAcquisitionContracts) {
-  assert(Boolean(smoothieDepotWorkspacePlan.contracts?.[contractName]), `Smoothie Depot workspace plan missing ${contractName}`);
-  assert(Boolean(businessAcquisitionContracts.contracts?.[contractName]), `Business Acquisition Intelligence contracts missing ${contractName}`);
-  assert(businessAcquisitionContracts.requiredContracts.includes(contractName), `Business Acquisition Intelligence registry must require ${contractName}`);
-}
-
 const requiredExplainabilityFactorGroups = [
   "location_intelligence",
   "business_intelligence",
@@ -672,9 +652,10 @@ assert(discoveryModeContracts.eligibilityContract.canonicalImplementation === "i
 assert(discoveryModeContracts.eligibilityContract.canonicalVersion === "route-iq-closed-now-eligibility-v1", "Discovery Mode v2 canonical eligibility version regressed.");
 assert(discoveryModeContracts.eligibilityContract.balancingOccursAfterEligibility === true, "Discovery Mode v2 must balance categories after eligibility.");
 assert(discoveryModeContracts.eligibilityContract.closedVerifiedEligible === false, "Discovery Mode v2 must exclude CLOSED_VERIFIED candidates.");
+assert(discoveryModeContracts.eligibilityContract.uncertainImmediateRecommendationEligible === false, "Discovery Mode v2 must exclude uncertain hours from immediate recommendations.");
 assert(discoveryModeContracts.eligibilityContract.eligibilityReimplementationAllowed === false, "Discovery Mode v2 must prohibit a second eligibility engine.");
 assert(discoveryModeContracts.scopePolicy.unknownWorkspaceBehavior === "fail_closed", "Discovery Mode v2 must fail closed for unknown workspaces.");
-assert(discoveryModeContracts.scopePolicy.smoothieDepotInfluence === false, "Discovery Mode v2 must prohibit Smoothie Depot influence.");
+assert(discoveryModeContracts.scopePolicy.crossWorkspaceInfluence === false, "Discovery Mode v2 must prohibit cross-workspace influence.");
 assert(discoveryModeContracts.designEvidence.stressTestObservationConsumedAsLearning === false, "Discovery Mode v2 must not promote stress observations into learned evidence.");
 assert(discoveryModeConfig.queueComposition.fixedCategoryRotation === false, "Discovery Mode v2 configuration must not define a fixed rotation.");
 assert(discoveryModeConfig.queueComposition.targetDistinctCategories >= 6, "Discovery Mode v2 must target broad category coverage.");
@@ -684,13 +665,15 @@ assert(discoveryModeConfig.queueComposition.preserveExistingScores === true, "Di
 assert(discoveryModeConfig.candidatePolicy.requiresCanonicalBusinessHoursEligibility === true, "Discovery Mode v2 must require canonical business-hours decisions.");
 assert(discoveryModeConfig.candidatePolicy.canonicalEligibilityVersion === discoveryModeContracts.eligibilityContract.canonicalVersion, "Discovery Mode v2 eligibility policy and contract versions must match.");
 assert(discoveryModeConfig.candidatePolicy.closedVerifiedBehavior === "exclude_never_balance", "Discovery Mode v2 CLOSED_VERIFIED policy regressed.");
+assert(discoveryModeConfig.candidatePolicy.uncertainHoursBehavior === "coverage_only_never_select", "Discovery Mode v2 uncertain-hours policy regressed.");
 assert(discoveryModeConfig.evidencePolicy.thresholdSourcePolicyVersion === readOnlyFieldSessionLearningPolicy.policyVersion, "Discovery Mode v2 must inherit governed learning thresholds.");
 assert(discoveryModeConfig.evidencePolicy.singleSessionCategoryPreferenceAllowed === false, "Discovery Mode v2 must block single-session category preference.");
 assert(discoveryModeConfig.activationSafety.recommendationInfluenceActive === false, "Discovery Mode v2 recommendation influence must remain disabled.");
 assert(discoveryModeConfig.activationSafety.routeScoringWeightsChanged === false, "Discovery Mode v2 must not change route scoring weights.");
 assert(discoveryModeConfig.activationSafety.dashboardRuntimeChanged === false, "Discovery Mode v2 must not change Dashboard runtime.");
-assert(discoveryModePlan.queuePlan.plannedSize === 15, "Discovery Mode v2 canonical advisory plan must contain 15 candidates.");
-assert(discoveryModePlan.queuePlan.compositionMetrics.distinctCategoryCount >= discoveryModeConfig.queueComposition.minimumDistinctCategories, "Discovery Mode v2 canonical advisory plan must meet minimum viable category coverage.");
+assert(discoveryModePlan.status === "exhausted_advisory_plan", "Discovery Mode v2 must fail closed while the approved Fitness roster is empty.");
+assert(discoveryModePlan.queuePlan.plannedSize === 0, "Discovery Mode v2 must not create entries from an unapproved Fitness roster.");
+assert(discoveryModePlan.queuePlan.compositionMetrics.distinctCategoryCount === 0, "Discovery Mode v2 must not invent category coverage from an unapproved roster.");
 assert(discoveryModePlan.queuePlan.compositionMetrics.maximumCategoryShare <= discoveryModeConfig.queueComposition.categoryConcentration.maximumShare, "Discovery Mode v2 canonical category concentration regressed.");
 assert(discoveryModePlan.queuePlan.compositionMetrics.duplicateCount === 0, "Discovery Mode v2 canonical advisory plan contains duplicates.");
 assert(discoveryModePlan.queuePlan.qualityMetrics.existingScoresChanged === false, "Discovery Mode v2 canonical advisory plan changed candidate scores.");
@@ -699,6 +682,7 @@ assert(discoveryModePlan.queuePlan.eligibilityMetrics.canonicalVersion === disco
 assert(discoveryModePlan.queuePlan.eligibilityMetrics.selectedClosedVerifiedCount === 0, "Discovery Mode v2 artifact selected CLOSED_VERIFIED candidates.");
 assert(discoveryModePlan.queuePlan.eligibilityMetrics.scoringChanged === false, "Discovery Mode v2 hours eligibility changed scoring.");
 assert(discoveryModePlan.queuePlan.entries.every(entry => entry.eligibilitySnapshot?.status !== "CLOSED_VERIFIED"), "Discovery Mode v2 canonical plan resurrected a closed candidate.");
+assert(discoveryModePlan.queuePlan.entries.every(entry => entry.eligibilitySnapshot?.immediateRecommendationEligible === true), "Discovery Mode v2 canonical plan selected a non-immediate candidate.");
 assert(discoveryModePlan.queuePlan.entries.every(entry => entry.eligibilitySnapshot?.reasonCode && entry.eligibilitySnapshot?.provenance), "Discovery Mode v2 canonical plan lost eligibility provenance.");
 assert(discoveryModePlan.validation.recommendationInfluenceActive === false, "Discovery Mode v2 canonical plan activated recommendation influence.");
 assert(discoveryModePlan.validation.productionQueueConsumerActive === false, "Discovery Mode v2 canonical plan activated a production queue consumer.");
@@ -712,6 +696,7 @@ assert(nearbyContextContracts.outputContract.recommendationMutationAuthorized ==
 assert(nearbyContextContracts.eligibilityContract.canonicalImplementation === "intelligence/route-business-hours-eligibility.mjs", "Nearby Context v2 must reuse canonical business-hours eligibility.");
 assert(nearbyContextContracts.eligibilityContract.relationshipClassificationOccursAfterEligibility === true, "Nearby Context v2 must classify relationships after eligibility.");
 assert(nearbyContextContracts.eligibilityContract.closedVerifiedEligible === false, "Nearby Context v2 must exclude CLOSED_VERIFIED candidates.");
+assert(nearbyContextContracts.eligibilityContract.uncertainImmediateRecommendationEligible === false, "Nearby Context v2 must exclude uncertain hours from immediate opportunities.");
 assert(nearbyContextContracts.eligibilityContract.eligibilityReimplementationAllowed === false, "Nearby Context v2 must prohibit a second eligibility engine.");
 assert(nearbyContextContracts.identityContract.canonicalImplementation === "intelligence/continuous-adaptive-route-replenishment.mjs", "Nearby Context v2 must reuse canonical Route IQ identity.");
 assert(nearbyContextContracts.identityContract.canonicalFunction === "routeQueueIdentity", "Nearby Context v2 canonical identity function regressed.");
@@ -725,6 +710,7 @@ assert(nearbyContextContracts.selectionContract.quarantineSelectable === false, 
 assert(nearbyContextContracts.selectionContract.completedBusinessesSelectable === false, "Nearby Context v2 must prohibit completed-business selection.");
 assert(nearbyContextContracts.selectionContract.recommendationScoresUsedForOrdering === false, "Nearby Context v2 must not order by recommendation scores.");
 assert(nearbyContextConfig.candidatePolicy.requiresCanonicalBusinessHoursEligibility === true, "Nearby Context v2 must require canonical hours decisions.");
+assert(nearbyContextConfig.businessHoursPolicy.uncertainStatusBehavior === "coverage_only_never_select", "Nearby Context v2 uncertain-hours policy regressed.");
 assert(nearbyContextConfig.candidatePolicy.recommendationScoreUsedForOrdering === false, "Nearby Context v2 configuration must preserve recommendation-score ordering boundaries.");
 assert(nearbyContextConfig.identityPolicy.deduplicationPhase === "before_relationship_classification", "Nearby Context v2 identity phase regressed.");
 assert(nearbyContextConfig.identityPolicy.shoppingCenterInferenceInput === "unique_canonical_businesses_only", "Nearby Context v2 shopping-center identity input regressed.");
@@ -736,7 +722,8 @@ assert(nearbyContextAudit.artifactType === "nearby_context_intelligence_v2_audit
 assert(nearbyContextAudit.stressContexts.length === 2, "Nearby Context v2 must preserve both Founder stress contexts.");
 assert(nearbyContextAudit.stressContexts.every(context => context.plan.status === "coverage_gap"), "Nearby Context v2 must report governed stress-test coverage gaps honestly.");
 assert(nearbyContextAudit.stressContexts.every(context => context.plan.nearbyOpportunities.emptyState?.recommendationInvented === false), "Nearby Context v2 must not invent an empty-state recommendation.");
-assert(nearbyContextAudit.governedCapabilityProbe.nearbyOpportunities.count === nearbyContextConfig.candidatePolicy.maximumResults, "Nearby Context v2 governed capability probe must fill the configured target.");
+assert(nearbyContextAudit.governedCapabilityProbe.status === "coverage_gap", "Nearby Context v2 capability probe must fail closed while the approved Fitness roster is empty.");
+assert(nearbyContextAudit.governedCapabilityProbe.nearbyOpportunities.count === 0, "Nearby Context v2 must not invent capability-probe opportunities.");
 assert(nearbyContextAudit.governedCapabilityProbe.nearbyOpportunities.entries.every(entry => entry.eligibilitySnapshot.status === "OPEN_VERIFIED"), "Nearby Context v2 capability probe must use verified-open candidates.");
 assert(nearbyContextAudit.governedCapabilityProbe.nearbyOpportunities.entries.every(entry => entry.recommendationScoreChanged === false), "Nearby Context v2 capability probe changed recommendation scoring.");
 assert(nearbyContextAudit.identityIntegrationRegression.aliasProbe.preRelationshipDuplicateCount === 1, "Nearby Context v2 canonical audit did not remove the alias before relationships.");
@@ -804,34 +791,22 @@ for (const contentKey of ["businesses", "visits", "outcomes", "leads", "opportun
 for (const queryType of ["snapshot_summary", "by_node_type", "by_relationship_type", "by_business", "by_territory", "by_rep", "by_opportunity", "by_evidence", "by_confidence", "by_operating_profile"]) {
   assert(customerGraphContracts.queryTypes.includes(queryType), `Customer Intelligence Graph contracts missing query type ${queryType}`);
 }
-assert(businessAcquisitionContracts.status === "planning_contracts_only", "Business Acquisition Intelligence contracts must remain planning_contracts_only.");
-assert(businessAcquisitionContracts.workspaceId === "smoothie_depot", "Business Acquisition Intelligence contracts must be scoped to Smoothie Depot.");
-assert(businessAcquisitionContracts.operatingProfileId === "franchise_development", "Business Acquisition Intelligence must use Franchise Development Operating Profile.");
-assert(businessAcquisitionContracts.domainId === "business_acquisition_intelligence", "Business Acquisition Intelligence domain must be confirmed.");
-assert(businessAcquisitionContracts.newSubsystemCreated === false, "Business Acquisition Intelligence must not create a new subsystem.");
-assert(businessAcquisitionContracts.fitnessConnectionIsolationConfirmed === true, "Business Acquisition Intelligence must confirm Fitness Connection isolation.");
-assert(businessAcquisitionContracts.routeIntelligenceInfluence === false, "Business Acquisition Intelligence must not influence Route Intelligence.");
-assert(businessAcquisitionContracts.fitnessConnectionRouteInfluence === false, "Business Acquisition Intelligence must not influence Fitness Connection routes.");
-assert(businessAcquisitionContracts.dashboardRuntimeChanged === false, "Business Acquisition Intelligence must not change Dashboard runtime.");
-assert(businessAcquisitionContracts.crmRuntimeChanged === false, "Business Acquisition Intelligence must not change CRM runtime.");
-assert(businessAcquisitionContracts.websiteChanged === false, "Business Acquisition Intelligence must not change Website.");
-assert(businessAcquisitionContracts.mobileChanged === false, "Business Acquisition Intelligence must not change Mobile.");
-assert(businessAcquisitionContracts.companionChanged === false, "Business Acquisition Intelligence must not change Companion.");
-assert(businessAcquisitionContracts.prohibitions.includes("no_fitness_connection_route_intelligence_influence"), "Business Acquisition Intelligence must prohibit Fitness Connection Route Intelligence influence.");
-assert(smoothieDepotWorkspacePlan.workspaceName === "Smoothie Depot", "Smoothie Depot workspace plan must name Smoothie Depot.");
-assert(smoothieDepotWorkspacePlan.decisionMaker === "JR", "Smoothie Depot workspace plan must identify JR.");
-assert(smoothieDepotWorkspacePlan.workspaceIsolation.fitnessConnectionIsolationConfirmed === true, "Smoothie Depot workspace must confirm Fitness Connection isolation.");
-assert(smoothieDepotWorkspacePlan.workspaceIsolation.routeIntelligenceInfluence === false, "Smoothie Depot workspace must not influence Route Intelligence.");
-assert(smoothieDepotWorkspaceDoc.includes("Workspace Isolation Guardrails"), "Smoothie Depot workspace doc must include isolation guardrails.");
-assert(adaptiveReplenishmentContracts.workspacePolicy.authorizedWorkspaceId === "fitness_connection", "Adaptive route replenishment must be scoped to Fitness Connection Route IQ.");
+assert(adaptiveReplenishmentContracts.workspacePolicy.configurationDriven === true, "Adaptive route replenishment must be configuration driven.");
+assert(adaptiveReplenishmentContracts.workspacePolicy.canonicalWorkspaceIds.includes("fitness_connection"), "Adaptive route replenishment must support the canonical Fitness workspace.");
+assert(adaptiveReplenishmentContracts.workspacePolicy.canonicalWorkspaceIds.includes("northstar_outside_sales_synthetic"), "Adaptive route replenishment must support the canonical synthetic outside-sales workspace.");
+assert(adaptiveReplenishmentContracts.workspacePolicy.canonicalManifestAdmissionRequired === true, "Adaptive route replenishment must require canonical manifest admission.");
 assert(adaptiveReplenishmentContracts.workspacePolicy.unknownWorkspaceBehavior === "fail_closed", "Adaptive route replenishment must fail closed for unknown workspaces.");
 assert(adaptiveReplenishmentContracts.workspacePolicy.crossWorkspaceLearning === false, "Adaptive route replenishment must prohibit cross-workspace learning.");
+assert(adaptiveReplenishmentContracts.workspacePolicy.crossWorkspaceRouteInfluence === false, "Adaptive route replenishment must prohibit cross-workspace route influence.");
 assert(adaptiveReplenishmentContracts.queuePolicy.targetSize === 15, "Adaptive route replenishment must target 15 active stops.");
 assert(adaptiveReplenishmentContracts.queuePolicy.replenishmentThreshold === 5, "Adaptive route replenishment threshold must be five stops.");
 assert(adaptiveReplenishmentContracts.queuePolicy.concurrency === "single_flight", "Adaptive route replenishment must use single-flight concurrency.");
-assert(adaptiveReplenishmentContracts.candidatePolicy.primaryPool === "active", "Adaptive route replenishment must prioritize Active Pool candidates.");
-assert(adaptiveReplenishmentContracts.candidatePolicy.fallbackPool === "full", "Adaptive route replenishment must preserve Full Pool fallback.");
-assert(adaptiveReplenishmentContracts.candidatePolicy.liveGoogleCalls === false, "Adaptive route replenishment must preserve zero live Google calls.");
+assert(adaptiveReplenishmentContracts.candidatePolicy.primaryPool === "approved_active", "Adaptive route replenishment must prioritize approved Active Pool candidates.");
+assert(adaptiveReplenishmentContracts.candidatePolicy.fallbackPool === "approved_full", "Adaptive route replenishment must preserve governed approved Full Pool fallback.");
+assert(adaptiveReplenishmentContracts.candidatePolicy.liveProviderCalls === false, "Adaptive route replenishment must preserve zero live provider calls.");
+assert(routeBusinessHoursContracts.recommendationInfluence === "OFF", "Business-hours eligibility must preserve recommendation influence OFF.");
+assert(routeBusinessHoursContracts.collection === "OFF", "Business-hours eligibility must preserve collection OFF.");
+assert(routeBusinessHoursContracts.activeCohorts === 0, "Business-hours eligibility must preserve zero active cohorts.");
 assert(readme.includes("Duplicate Prevention"), "Intelligence README must include duplicate-prevention guidance.");
 assert(legacyProvenanceEvidence.batchId === "BATCH-20260713-002", "Intelligence provenance evidence must identify the owner-repair batch.");
 assert(legacyProvenanceEvidence.status === "LEGACY_PROVENANCE_GAP", "Legacy mixed ownership must remain explicitly disclosed.");

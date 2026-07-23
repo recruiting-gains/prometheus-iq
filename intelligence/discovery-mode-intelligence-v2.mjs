@@ -147,7 +147,7 @@ export function applyCanonicalBusinessHoursEligibilityToDiscoveryCandidates({
     });
     return {
       ...clone(candidate),
-      routeEligible: eligibilitySnapshot.eligible === true,
+      routeEligible: eligibilitySnapshot.immediateRecommendationEligible === true,
       eligibilitySnapshot: clone(eligibilitySnapshot)
     };
   });
@@ -207,6 +207,7 @@ export function validateDiscoveryModeConfig(config) {
   fail(config?.candidatePolicy?.canonicalEligibilityVersion === routeBusinessHoursEligibilityVersion, "canonical_business_hours_eligibility_version_mismatch");
   fail(config?.candidatePolicy?.preserveEligibilitySelectionTier === true, "business_hours_selection_tier_must_be_preserved");
   fail(config?.candidatePolicy?.closedVerifiedBehavior === "exclude_never_balance", "closed_verified_exclusion_policy_missing");
+  fail(config?.candidatePolicy?.uncertainHoursBehavior === "coverage_only_never_select", "uncertain_hours_selection_prohibited");
   fail(config?.candidatePolicy?.eligibilityIntegrationVersion === discoveryModeEligibilityIntegrationRepairVersion, "eligibility_integration_repair_version_mismatch");
   fail(config?.candidatePolicy?.liveGoogleCallsAllowed === false, "live_google_calls_must_remain_disabled");
   fail(Number.isFinite(Number(config?.candidatePolicy?.minimumQualityScore)), "quality_floor_missing");
@@ -250,7 +251,7 @@ export function validateDiscoveryModeContract(contract) {
   fail(contract?.scopePolicy?.authorizedWorkspaceId === "fitness_connection", "contract_workspace_mismatch");
   fail(contract?.scopePolicy?.unknownWorkspaceBehavior === "fail_closed", "unknown_workspace_must_fail_closed");
   fail(contract?.scopePolicy?.crossWorkspaceLearning === false, "cross_workspace_learning_prohibited");
-  fail(contract?.scopePolicy?.smoothieDepotInfluence === false, "smoothie_depot_influence_prohibited");
+  fail(contract?.scopePolicy?.crossWorkspaceInfluence === false, "cross_workspace_influence_prohibited");
   fail(contract?.compositionContract?.fixedRotationAllowed === false, "fixed_rotation_must_be_prohibited");
   fail(contract?.compositionContract?.qualityFloorAuthoritative === true, "quality_floor_must_be_authoritative");
   fail(contract?.compositionContract?.deterministicOrderingRequired === true, "deterministic_ordering_required");
@@ -259,6 +260,7 @@ export function validateDiscoveryModeContract(contract) {
   fail(contract?.eligibilityContract?.canonicalVersion === routeBusinessHoursEligibilityVersion, "canonical_eligibility_contract_version_mismatch");
   fail(contract?.eligibilityContract?.integrationVersion === discoveryModeEligibilityIntegrationRepairVersion, "eligibility_integration_contract_version_mismatch");
   fail(contract?.eligibilityContract?.closedVerifiedEligible === false, "closed_verified_must_be_ineligible");
+  fail(contract?.eligibilityContract?.uncertainImmediateRecommendationEligible === false, "uncertain_hours_must_not_be_immediate_recommendations");
   fail(contract?.eligibilityContract?.balancingOccursAfterEligibility === true, "category_balancing_must_follow_eligibility");
   fail(contract?.outputContract?.runtimeConsumptionAuthorized === false, "runtime_consumption_must_remain_unauthorized");
   fail(contract?.outputContract?.recommendationMutationAuthorized === false, "recommendation_mutation_must_remain_unauthorized");
@@ -442,7 +444,7 @@ function normalizeCandidates(candidates, config, context) {
                         ? "canonical_business_hours_eligibility_identity_mismatch"
                         : eligibility.status === "CLOSED_VERIFIED"
                           ? "closed_verified_excluded"
-                          : eligibility.eligible !== true || candidate?.routeEligible !== true
+                          : eligibility.immediateRecommendationEligible !== true || candidate?.routeEligible !== true
                             ? "canonical_business_hours_ineligible"
                             : eligibility.scoringChanged !== false
                               ? "canonical_business_hours_scoring_changed"
@@ -801,6 +803,7 @@ export function buildDiscoveryModeAdvisoryPlan({
       deterministicOrderingRequired: true,
       activePoolOnly: queueWithExplanations.every(entry => entry.sourcePool === "active"),
       existingRouteEligibilityRequired: true,
+      immediateRecommendationEligibilityRequired: true,
       canonicalBusinessHoursEligibilityRequired: true,
       canonicalBusinessHoursEligibilityPreserved: queueWithExplanations.every(entry => entry.eligibilitySnapshot?.version === routeBusinessHoursEligibilityVersion),
       closedVerifiedExcluded: queueWithExplanations.every(entry => entry.eligibilitySnapshot?.status !== "CLOSED_VERIFIED"),
@@ -875,6 +878,7 @@ export function validateDiscoveryModeAdvisoryPlan(plan, config = loadDiscoveryMo
   for (const field of [
     "activePoolOnly",
     "existingRouteEligibilityRequired",
+    "immediateRecommendationEligibilityRequired",
     "canonicalBusinessHoursEligibilityRequired",
     "canonicalBusinessHoursEligibilityPreserved",
     "closedVerifiedExcluded",

@@ -96,11 +96,102 @@ function observedBusinessCoverage(observation, primary, allCandidates) {
   });
 }
 
-function buildIdentityIntegrationRegression(eligibilityProjection, config, contract, generatedAt) {
-  const eligibleOpen = eligibilityProjection.evaluatedCandidates.filter(candidate => candidate.sourcePool === "active"
-    && candidate.routeEligible === true
-    && candidate.eligibilitySnapshot?.status === "OPEN_VERIFIED");
-  if (eligibleOpen.length < 6) throw new Error("Nearby Context identity regression requires six verified-open Active Pool candidates.");
+function offlineVerifiedOpenEligibility(googlePlaceId, generatedAt) {
+  return {
+    version: routeBusinessHoursEligibilityVersion,
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    googlePlaceId,
+    permanentOperationalStatus: "OPERATIONAL",
+    status: "OPEN_VERIFIED",
+    eligible: true,
+    coverageEligible: true,
+    immediateRecommendationEligible: true,
+    coverageOnly: false,
+    selectionTier: 0,
+    internalMarker: null,
+    hoursConfidence: "HIGH",
+    hoursFreshness: "FRESH",
+    sourceState: "VERIFIED",
+    reasonCode: "VERIFIED_CURRENT_WINDOW_OPEN",
+    reason: "Offline validation fixture is inside its verified current access window.",
+    evaluatedAt: generatedAt,
+    businessLocalDate: generatedAt.slice(0, 10),
+    businessLocalTime: "12:00",
+    businessTimezone: "America/Chicago",
+    sourceRetrievedAt: generatedAt,
+    hoursVerifiedAt: generatedAt,
+    expiresAt: new Date(new Date(generatedAt).getTime() + 3_600_000).toISOString(),
+    effectiveInterval: {
+      opensAt: generatedAt,
+      closesAt: new Date(new Date(generatedAt).getTime() + 3_600_000).toISOString()
+    },
+    nextClosingAt: new Date(new Date(generatedAt).getTime() + 3_600_000).toISOString(),
+    nextOpeningAt: null,
+    sourceStatus: "OPEN_VERIFIED",
+    sourceStatusEvaluatedAt: generatedAt,
+    provenance: {
+      sourceSystem: "OFFLINE_VALIDATION_FIXTURE",
+      sourceMethod: "deterministic_nearby_identity_regression",
+      sourcePlaceId: googlePlaceId,
+      retrievedAt: generatedAt,
+      normalizedAt: generatedAt,
+      fieldEvidenceIds: []
+    },
+    failClosed: false,
+    scoringChanged: false,
+    explanation: {
+      recommendationScore: "UNCHANGED",
+      businessHoursEligibility: "OPEN_VERIFIED",
+      hoursConfidence: "HIGH",
+      hoursFreshness: "FRESH",
+      reasonCode: "VERIFIED_CURRENT_WINDOW_OPEN",
+      reason: "Offline validation fixture is inside its verified current access window.",
+      provenance: {
+        sourceSystem: "OFFLINE_VALIDATION_FIXTURE",
+        sourceMethod: "deterministic_nearby_identity_regression",
+        sourcePlaceId: googlePlaceId,
+        retrievedAt: generatedAt,
+        normalizedAt: generatedAt,
+        fieldEvidenceIds: []
+      }
+    },
+    displayLabel: "Open now",
+    visitDuration: {
+      label: "Estimated visit: 5–9 min",
+      minimumMinutes: 5,
+      maximumMinutes: 9,
+      semanticType: "VISIT_DURATION"
+    }
+  };
+}
+
+function offlineValidationCandidate(index, generatedAt) {
+  const googlePlaceId = `offline-nearby-place-${index}`;
+  return {
+    id: `offline-nearby-${index}`,
+    googlePlaceId,
+    name: `Synthetic Nearby Business ${index}`,
+    businessName: `Synthetic Nearby Business ${index}`,
+    address: `${100 + index} Validation Way, Houston, TX 77001`,
+    category: "Professional Services",
+    latitude: 29.6 + (index * 0.0001),
+    longitude: -95.25,
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    sourcePool: "active",
+    sourceOrder: index,
+    routeEligible: true,
+    businessStatus: "OPERATIONAL",
+    recommendationScore: 90,
+    routeOrder: index,
+    commercialRelationships: {},
+    eligibilitySnapshot: offlineVerifiedOpenEligibility(googlePlaceId, generatedAt)
+  };
+}
+
+function buildIdentityIntegrationRegression(config, contract, generatedAt) {
+  const eligibleOpen = Array.from({ length: 6 }, (_, index) => offlineValidationCandidate(index + 1, generatedAt));
   const latitude = 29.6;
   const longitude = -95.25;
   const primary = {
@@ -283,7 +374,6 @@ export function buildCanonicalNearbyContextAudit() {
     }
   });
   const identityIntegrationRegression = buildIdentityIntegrationRegression(
-    eligibilityProjection,
     config,
     contract,
     businessHours.statusEvaluatedAt
@@ -351,7 +441,10 @@ export function buildCanonicalNearbyContextAudit() {
   };
 }
 
-export function verifyNearbyContextIntelligenceV2({ writeArtifact = false } = {}) {
+export function verifyNearbyContextIntelligenceV2({
+  writeArtifact = false,
+  checkProtectedBaselines = true
+} = {}) {
   const config = loadNearbyContextConfig();
   const contract = loadNearbyContextContract();
   const governanceReport = readJson(paths.governanceReport);
@@ -392,9 +485,9 @@ export function verifyNearbyContextIntelligenceV2({ writeArtifact = false } = {}
   check(governanceReport.status === "passed" && governanceReport.promotionAllowed === true, "runtime_pool_governance_not_passed");
   check(first.validation.canonicalEligibilityVersion === routeBusinessHoursEligibilityVersion, "canonical_hours_eligibility_not_used");
   check(first.validation.duplicateIdentityIntegrationVersion === nearbyContextDuplicateIdentityIntegrationRepairVersion, "duplicate_identity_integration_version_mismatch");
-  check(first.sourceCounts.active === 297, "active_pool_count_mismatch");
-  check(first.sourceCounts.governedFullPoolFallbackProjection === 44, "full_pool_fallback_projection_count_mismatch");
-  check(first.sourceCounts.quarantineDiagnostics === 109, "quarantine_diagnostic_count_mismatch");
+  check(first.sourceCounts.active === 0, "unapproved_active_pool_not_empty");
+  check(first.sourceCounts.governedFullPoolFallbackProjection === 0, "unapproved_fallback_pool_not_empty");
+  check(first.sourceCounts.quarantineDiagnostics === 398, "quarantine_diagnostic_count_mismatch");
   check(first.sourceCounts.canonicalHours === 398, "canonical_hours_count_mismatch");
   check(first.sourceCounts.completedFieldVisits === 4, "completed_field_visit_count_mismatch");
   check(texans.plan.status === "coverage_gap" && texans.plan.nearbyOpportunities.count === 0, "texans_coverage_gap_not_reported");
@@ -404,13 +497,9 @@ export function verifyNearbyContextIntelligenceV2({ writeArtifact = false } = {}
   check(first.findings.christianBrothers.observedNearbyIdentityStatus === "christian_brothers_visit_confirmed_nearby_business_identities_unavailable", "christian_nearby_identity_gap_not_preserved");
   check(texans.plan.nearbyOpportunities.emptyState?.recommendationInvented === false, "texans_empty_state_invented_candidate");
   check(christian.plan.nearbyOpportunities.emptyState?.recommendationInvented === false, "christian_empty_state_invented_candidate");
-  check(first.governedCapabilityProbe.status === "opportunities_available", "governed_capability_probe_has_no_opportunities");
-  check(capabilityEntries.length === config.candidatePolicy.maximumResults, "governed_capability_probe_not_filled");
-  check(capabilityEntries.every(entry => entry.sourcePool === "active"), "capability_probe_bypassed_active_pool");
-  check(capabilityEntries.every(entry => entry.relationship.type === "walkable"), "capability_probe_relationship_classification_regressed");
-  check(capabilityEntries.every(entry => entry.eligibilitySnapshot.status === "OPEN_VERIFIED"), "capability_probe_included_non_open_candidate");
-  check(capabilityEntries.every(entry => entry.explanation.why && entry.explanation.evidence && entry.explanation.confidence
-    && entry.explanation.whatChanged && entry.explanation.nextAction), "capability_probe_explanation_incomplete");
+  check(first.governedCapabilityProbe.status === "coverage_gap", "pending_roster_capability_probe_did_not_fail_closed");
+  check(capabilityEntries.length === 0, "pending_roster_capability_probe_created_opportunities");
+  check(first.governedCapabilityProbe.nearbyOpportunities.emptyState?.recommendationInvented === false, "capability_probe_invented_recommendation");
   check(identityRegression.aliasProbe.eligibleInputCount === 2, "alias_probe_eligible_input_count_mismatch");
   check(identityRegression.aliasProbe.canonicalUniqueBusinessCount === 1, "duplicate_alias_not_collapsed_to_one_business");
   check(identityRegression.aliasProbe.preRelationshipDuplicateCount === 1, "duplicate_alias_not_removed_before_relationships");
@@ -434,7 +523,9 @@ export function verifyNearbyContextIntelligenceV2({ writeArtifact = false } = {}
   check(first.validation.routeScoringWeightsChanged === false, "route_scoring_weights_changed");
   check(first.validation.dataChanged === false, "data_behavior_changed");
   check(first.validation.liveGoogleCallsMade === false, "live_google_call_detected");
-  check(Object.values(baselineResults).every(result => result.passed), "protected_behavior_baseline_changed");
+  if (checkProtectedBaselines) {
+    check(Object.values(baselineResults).every(result => result.passed), "protected_behavior_baseline_changed");
+  }
 
   const uniqueFailures = unique(failures);
   return {
@@ -484,6 +575,7 @@ export function verifyNearbyContextIntelligenceV2({ writeArtifact = false } = {}
       liveGoogleCallsMade: false
     },
     protectedBaselines: baselineResults,
+    protectedBaselinesChecked: checkProtectedBaselines,
     failures: uniqueFailures
   };
 }

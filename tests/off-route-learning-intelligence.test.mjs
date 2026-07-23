@@ -287,7 +287,7 @@ test("missing, incomplete, and unsupported source evidence fail safely to Unknow
 test("workspace isolation and representative scope fail closed", () => {
   const { validationFixture } = fixtures();
   const crossWorkspace = clone(validationFixture.records);
-  crossWorkspace[0].workspaceId = "smoothie_depot";
+  crossWorkspace[0].workspaceId = "unauthorized_workspace_fixture";
   assert.throws(() => buildValidation(crossWorkspace), /Unknown or cross-workspace off-route evidence/);
 
   const mixedRepresentatives = clone(validationFixture.records);

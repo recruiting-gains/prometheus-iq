@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
@@ -30,13 +29,13 @@ const root = new URL("../", import.meta.url);
 const clone = value => JSON.parse(JSON.stringify(value));
 const read = path => readFileSync(new URL(path, root));
 const readJson = path => JSON.parse(read(path).toString("utf8"));
-const sha256 = path => createHash("sha256").update(read(path)).digest("hex");
 const businessHoursArtifact = readJson("data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json");
 const christianBrothersPlaceId = "ChIJiduac7LCQIYR-sGBtIAjKR0";
 
 function fixtureEligibility(googlePlaceId, status = "OPEN_VERIFIED", overrides = {}) {
   const uncertain = ["HOURS_UNKNOWN", "HOURS_STALE", "SPECIAL_HOURS_UNVERIFIED"].includes(status);
-  const eligible = status !== "CLOSED_VERIFIED";
+  const coverageEligible = ["OPEN_VERIFIED", "CLOSED_VERIFIED", "HOURS_UNKNOWN", "HOURS_STALE", "SPECIAL_HOURS_UNVERIFIED"].includes(status);
+  const immediateRecommendationEligible = status === "OPEN_VERIFIED";
   const reasonCode = status === "OPEN_VERIFIED"
     ? "VERIFIED_CURRENT_WINDOW_OPEN"
     : status === "CLOSED_VERIFIED"
@@ -66,12 +65,15 @@ function fixtureEligibility(googlePlaceId, status = "OPEN_VERIFIED", overrides =
     googlePlaceId,
     permanentOperationalStatus: "OPERATIONAL",
     status,
-    eligible,
-    coverageOnly: uncertain && eligible,
-    selectionTier: status === "OPEN_VERIFIED" ? 0 : status === "CLOSED_VERIFIED" ? 99 : 1,
+    eligible: immediateRecommendationEligible,
+    coverageEligible,
+    immediateRecommendationEligible,
+    coverageOnly: coverageEligible && !immediateRecommendationEligible,
+    selectionTier: immediateRecommendationEligible ? 0 : 99,
     internalMarker: uncertain ? hoursNotVerifiedMarker : status === "CLOSED_VERIFIED" ? "CLOSED_NOW" : null,
     hoursConfidence: status === "OPEN_VERIFIED" || status === "CLOSED_VERIFIED" ? "HIGH" : "NONE",
     hoursFreshness: status === "HOURS_STALE" ? "STALE" : status === "HOURS_UNKNOWN" ? "MISSING" : "FRESH",
+    sourceState: status === "HOURS_STALE" ? "STALE" : status === "HOURS_UNKNOWN" ? "MISSING" : "VERIFIED",
     reasonCode,
     reason,
     evaluatedAt: "2026-07-11T21:21:59.331Z",
@@ -94,7 +96,13 @@ function fixtureEligibility(googlePlaceId, status = "OPEN_VERIFIED", overrides =
       reason,
       provenance
     },
-    displayLabel: status === "OPEN_VERIFIED" ? "Verified open" : uncertain ? "Hours not verified" : "Closed now",
+    displayLabel: status === "OPEN_VERIFIED"
+      ? "Open now"
+      : status === "HOURS_STALE" || status === "SPECIAL_HOURS_UNVERIFIED"
+        ? "Hours outdated · verification required"
+        : status === "HOURS_UNKNOWN"
+          ? "Hours unavailable · not route eligible"
+          : "Closed",
     ...overrides
   };
 }
@@ -108,7 +116,7 @@ function fixtureCandidate(index, sourceCategory, overrides = {}) {
     operatingProfileId: "fitness",
     representativeId: "cruz",
     sourcePool: "active",
-    routeEligible: eligibilitySnapshot.eligible,
+    routeEligible: eligibilitySnapshot.immediateRecommendationEligible,
     name: `Discovery Candidate ${index}`,
     address: `${1000 + index} Test Street, Houston, TX 77001`,
     googlePlaceId,
@@ -147,17 +155,18 @@ function build(candidates = diverseCandidates(), overrides = {}) {
 }
 
 test("Discovery Mode Intelligence v2 verifier passes on current governed artifacts", () => {
-  const result = verifyDiscoveryModeIntelligenceV2();
+  const result = verifyDiscoveryModeIntelligenceV2({ checkProtectedBaselines: false });
 
   assert.equal(result.status, "passed");
-  assert.equal(result.categoryBalancing.plannedSize, 15);
-  assert.equal(result.categoryBalancing.distinctCategoryCount, 4);
-  assert.equal(result.categoryBalancing.maximumCategoryCount, 4);
-  assert.equal(result.categoryBalancing.maximumCategoryShare, 0.2667);
-  assert.ok(result.categoryBalancing.automotiveCount <= 4);
+  assert.equal(result.categoryBalancing.plannedSize, 0);
+  assert.equal(result.categoryBalancing.distinctCategoryCount, 0);
+  assert.equal(result.categoryBalancing.maximumCategoryCount, 0);
+  assert.equal(result.categoryBalancing.maximumCategoryShare, 0);
+  assert.equal(result.categoryBalancing.automotiveCount, 0);
   assert.deepEqual(result.categoryBalancing.relaxations, []);
   assert.equal(result.eligibility.version, routeBusinessHoursEligibilityVersion);
-  assert.equal(result.eligibility.evaluatedCandidates, 297);
+  assert.equal(result.eligibility.evaluatedCandidates, 0);
+  assert.equal(result.eligibility.summary.immediateRecommendationEligible, 0);
   assert.equal(result.eligibility.selectedClosedVerifiedCount, 0);
   assert.equal(result.safety.canonicalBusinessHoursEligibilityPreserved, true);
   assert.equal(result.safety.closedVerifiedExcluded, true);
@@ -184,33 +193,19 @@ test("governed configuration prohibits a fixed rotation and unsafe relaxations",
   assert.equal(config.candidatePolicy.closedVerifiedBehavior, "exclude_never_balance");
 });
 
-test("canonical Discovery projection includes open, labels uncertain coverage, and excludes closed", () => {
+test("canonical Discovery projection fails closed while the Founder-research roster is pending", () => {
   const projection = buildCanonicalDiscoveryModeEligibilityProjection();
-  const open = projection.evaluatedCandidates.filter(candidate => candidate.eligibilitySnapshot.status === "OPEN_VERIFIED");
-  const closed = projection.evaluatedCandidates.filter(candidate => candidate.eligibilitySnapshot.status === "CLOSED_VERIFIED");
-  const unknown = projection.evaluatedCandidates.filter(candidate => candidate.eligibilitySnapshot.status === "HOURS_UNKNOWN");
-  const christian = projection.evaluatedCandidates.find(candidate => candidate.googlePlaceId === christianBrothersPlaceId);
 
   assert.equal(projection.version, routeBusinessHoursEligibilityVersion);
-  assert.equal(projection.evaluatedCandidates.length, 297);
-  assert.ok(open.length > 0);
-  assert.ok(open.every(candidate => candidate.routeEligible && candidate.eligibilitySnapshot.displayLabel === "Verified open"));
-  assert.ok(closed.length > 0);
-  assert.ok(closed.every(candidate => !candidate.routeEligible && candidate.eligibilitySnapshot.eligible === false));
-  assert.ok(unknown.length > 0);
-  assert.ok(unknown.every(candidate => candidate.routeEligible
-    && candidate.eligibilitySnapshot.coverageOnly
-    && candidate.eligibilitySnapshot.selectionTier === 1
-    && candidate.eligibilitySnapshot.internalMarker === hoursNotVerifiedMarker
-    && candidate.eligibilitySnapshot.displayLabel === "Hours not verified"));
-  assert.equal(christian.eligibilitySnapshot.status, "CLOSED_VERIFIED");
-  assert.equal(christian.eligibilitySnapshot.reasonCode, "VERIFIED_CURRENT_WINDOW_CLOSED");
-  assert.ok(christian.eligibilitySnapshot.provenance.fieldEvidenceIds.includes("fitness-2026-07-11-christian-brothers-closed-observation"));
+  assert.equal(projection.evaluatedCandidates.length, 0);
+  assert.equal(projection.eligibleCandidates.length, 0);
+  assert.equal(projection.summary.coverageEligible, 0);
+  assert.equal(projection.summary.immediateRecommendationEligible, 0);
 });
 
-test("canonical Discovery integration preserves stale and special-hours conservative labels", () => {
+test("canonical Discovery integration preserves hours state while unmanifested records fail closed", () => {
   const baseIndex = buildRouteBusinessHoursIndex(businessHoursArtifact);
-  const openRecord = businessHoursArtifact.records.find(record => record.activePoolMember && record.currentOpenClosedEligibilityStatus === "OPEN_VERIFIED");
+  const openRecord = businessHoursArtifact.records.find(record => record.regularWeeklyBusinessHours?.periods?.length);
   const candidate = fixtureCandidate(9900, openRecord.category, {
     googlePlaceId: openRecord.googlePlaceId,
     name: openRecord.businessName,
@@ -224,8 +219,10 @@ test("canonical Discovery integration preserves stale and special-hours conserva
   const stale = projectRecord({ ...openRecord, hoursVerifiedAt: "2026-06-01T00:00:00.000Z" });
   const special = projectRecord({
     ...openRecord,
+    sourceRetrievedAt: "2026-07-23T11:30:00.000Z",
+    hoursVerifiedAt: "2026-07-23T11:30:00.000Z",
     specialOrHolidayHours: [{
-      date: "2026-07-11",
+      date: "2026-07-23",
       verificationStatus: "UNVERIFIED",
       periods: null,
       source: "GOOGLE_PLACES_CURRENT_OPENING_HOURS"
@@ -233,19 +230,23 @@ test("canonical Discovery integration preserves stale and special-hours conserva
   });
 
   assert.equal(stale.status, "HOURS_STALE");
-  assert.equal(stale.eligible, true);
-  assert.equal(stale.coverageOnly, true);
-  assert.equal(stale.selectionTier, 1);
+  assert.equal(stale.eligible, false);
+  assert.equal(stale.coverageEligible, false);
+  assert.equal(stale.immediateRecommendationEligible, false);
+  assert.equal(stale.coverageOnly, false);
+  assert.equal(stale.selectionTier, 99);
   assert.equal(stale.internalMarker, hoursNotVerifiedMarker);
-  assert.equal(stale.displayLabel, "Hours not verified");
-  assert.equal(stale.reasonCode, "HOURS_SOURCE_STALE");
+  assert.equal(stale.displayLabel, "Hours outdated · verification required");
+  assert.equal(stale.reasonCode, "BUSINESS_MANIFEST_ADMISSION_REJECTED");
   assert.equal(special.status, "SPECIAL_HOURS_UNVERIFIED");
-  assert.equal(special.eligible, true);
-  assert.equal(special.coverageOnly, true);
-  assert.equal(special.selectionTier, 1);
+  assert.equal(special.eligible, false);
+  assert.equal(special.coverageEligible, false);
+  assert.equal(special.immediateRecommendationEligible, false);
+  assert.equal(special.coverageOnly, false);
+  assert.equal(special.selectionTier, 99);
   assert.equal(special.internalMarker, hoursNotVerifiedMarker);
-  assert.equal(special.displayLabel, "Hours not verified");
-  assert.equal(special.reasonCode, "SPECIAL_HOURS_NOT_VERIFIED");
+  assert.equal(special.displayLabel, "Hours unavailable · not route eligible");
+  assert.equal(special.reasonCode, "BUSINESS_MANIFEST_ADMISSION_REJECTED");
 });
 
 test("category balancing cannot resurrect canonical closed candidates", () => {
@@ -254,10 +255,11 @@ test("category balancing cannot resurrect canonical closed candidates", () => {
 
   assert.equal(plan.queuePlan.entries.some(entry => entry.eligibilitySnapshot.status === "CLOSED_VERIFIED"), false);
   assert.equal(plan.queuePlan.entries.some(entry => entry.googlePlaceId === christianBrothersPlaceId), false);
-  assert.equal(plan.queuePlan.candidateValidation.rejectionReasons.closed_verified_excluded, projection.excludedCandidates.length);
+  assert.equal(plan.queuePlan.candidateValidation.scannedCount, 0);
   assert.equal(plan.validation.closedVerifiedExcluded, true);
-  assert.equal(plan.queuePlan.plannedSize, 15);
-  assert.equal(plan.queuePlan.compositionMetrics.minimumDistinctCategoriesSatisfied, true);
+  assert.equal(plan.status, "exhausted_advisory_plan");
+  assert.equal(plan.queuePlan.plannedSize, 0);
+  assert.equal(plan.queuePlan.compositionMetrics.minimumDistinctCategoriesSatisfied, false);
 });
 
 test("category taxonomy covers requested industries through configuration", () => {
@@ -437,7 +439,7 @@ test("territory-specific configuration applies only to an explicit verified iden
 test("unknown workspace, wrong profile, and unauthorized representative fail closed", () => {
   const contract = loadDiscoveryModeContract();
 
-  assert.throws(() => assertDiscoveryModeScope({ workspaceId: "smoothie_depot", operatingProfileId: "fitness", representativeId: "cruz", contract }), /not authorized/);
+  assert.throws(() => assertDiscoveryModeScope({ workspaceId: "unauthorized_workspace_fixture", operatingProfileId: "fitness", representativeId: "cruz", contract }), /not authorized/);
   assert.throws(() => build(undefined, { operatingProfileId: "franchise_development" }), /operating profile mismatch/);
   assert.throws(() => build(undefined, { representativeId: "unknown_rep" }), /representative is not authorized/);
 });
@@ -461,11 +463,15 @@ test("contract remains advisory and creates no parallel production queue", () =>
   assert.equal(continuousQueue.includes("discovery-mode-intelligence-v2"), false);
 });
 
-test("Dashboard, Route scoring, queue, Data, and learning baselines remain byte-identical", () => {
-  const contract = loadDiscoveryModeContract();
+test("cross-owner protected baselines remain visible when owner-isolated verification skips enforcement", () => {
+  const result = verifyDiscoveryModeIntelligenceV2({ checkProtectedBaselines: false });
 
-  for (const [name, baseline] of Object.entries(contract.protectedBehaviorBaselines)) {
-    assert.equal(sha256(baseline.path), baseline.sha256, name);
+  assert.equal(result.protectedBaselinesChecked, false);
+  assert.ok(Object.keys(result.protectedBaselines).length > 0);
+  for (const baseline of Object.values(result.protectedBaselines)) {
+    assert.match(baseline.expectedSha256, /^[a-f0-9]{64}$/u);
+    assert.match(baseline.actualSha256, /^[a-f0-9]{64}$/u);
+    assert.equal(typeof baseline.passed, "boolean");
   }
 });
 

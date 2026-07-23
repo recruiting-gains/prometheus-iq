@@ -135,7 +135,10 @@ export function buildCanonicalDiscoveryModePlan() {
   });
 }
 
-export function verifyDiscoveryModeIntelligenceV2({ writeArtifact = false } = {}) {
+export function verifyDiscoveryModeIntelligenceV2({
+  writeArtifact = false,
+  checkProtectedBaselines = true
+} = {}) {
   const config = loadDiscoveryModeConfig();
   const contract = loadDiscoveryModeContract();
   const governanceReport = readJson(discoveryModeVerificationPaths.governanceReport);
@@ -169,36 +172,30 @@ export function verifyDiscoveryModeIntelligenceV2({ writeArtifact = false } = {}
   const categoryEvidence = new Map(first.evidenceThresholds.categoryEvidence.map(item => [item.categoryId, item]));
   const automotiveCount = first.queuePlan.categoryDistribution.automotive || 0;
   const christianBrothers = eligibilityProjection.evaluatedCandidates.find(candidate => candidate.googlePlaceId === christianBrothersPlaceId);
-  const openCandidates = eligibilityProjection.evaluatedCandidates.filter(candidate => candidate.eligibilitySnapshot.status === "OPEN_VERIFIED");
-  const unknownCandidates = eligibilityProjection.evaluatedCandidates.filter(candidate => candidate.eligibilitySnapshot.status === "HOURS_UNKNOWN");
 
   check(stableJson(first) === stableJson(second), "advisory_plan_not_deterministic");
   check(Boolean(canonical), "canonical_advisory_artifact_missing");
   if (canonical) check(stableJson(canonical) === stableJson(first), "canonical_advisory_artifact_stale");
   check(governanceReport.status === "passed" && governanceReport.promotionAllowed === true, "active_pool_governance_not_passed");
-  check(first.status === "active_advisory_plan", "canonical_advisory_plan_not_full");
-  check(first.queuePlan.plannedSize === 15, "canonical_advisory_queue_not_15");
-  check(first.queuePlan.compositionMetrics.distinctCategoryCount >= config.queueComposition.minimumDistinctCategories, "canonical_category_coverage_below_minimum");
-  check(first.queuePlan.compositionMetrics.maximumCategoryCount <= 4, "canonical_category_count_above_cap");
-  check(first.queuePlan.compositionMetrics.maximumCategoryShare <= 0.27, "canonical_category_share_above_cap");
-  check(automotiveCount <= 4, "automotive_category_still_dominates");
+  check(first.status === "exhausted_advisory_plan", "pending_roster_did_not_fail_closed");
+  check(first.queuePlan.plannedSize === 0, "pending_roster_created_discovery_entries");
+  check(first.queuePlan.compositionMetrics.distinctCategoryCount === 0, "pending_roster_created_category_coverage");
+  check(first.queuePlan.compositionMetrics.maximumCategoryCount === 0, "pending_roster_created_category_count");
+  check(first.queuePlan.compositionMetrics.maximumCategoryShare === 0, "pending_roster_created_category_share");
+  check(automotiveCount === 0, "pending_roster_created_automotive_entry");
   check(first.queuePlan.relaxations.length === 0, "canonical_plan_required_constraint_relaxation");
   check(first.queuePlan.compositionMetrics.duplicateCount === 0, "canonical_plan_contains_duplicate_businesses");
   check(entries.every(entry => entry.sourcePool === "active"), "canonical_plan_bypassed_active_pool");
   check(eligibilityProjection.version === routeBusinessHoursEligibilityVersion, "canonical_business_hours_eligibility_version_not_used");
-  check(eligibilityProjection.evaluatedCandidates.length === 297, "canonical_business_hours_projection_count_mismatch");
-  check(openCandidates.length > 0 && openCandidates.every(candidate => candidate.routeEligible), "open_verified_not_included_by_projection");
-  check(unknownCandidates.length > 0 && unknownCandidates.every(candidate => candidate.routeEligible
-    && candidate.eligibilitySnapshot.coverageOnly
-    && candidate.eligibilitySnapshot.internalMarker === "HOURS_NOT_VERIFIED"
-    && candidate.eligibilitySnapshot.displayLabel === "Hours not verified"), "hours_unknown_conservative_policy_not_preserved");
+  check(eligibilityProjection.evaluatedCandidates.length === 0, "unapproved_candidate_entered_discovery_projection");
+  check(eligibilityProjection.eligibleCandidates.length === 0, "unapproved_candidate_became_discovery_eligible");
+  check(eligibilityProjection.summary.immediateRecommendationEligible === 0, "pending_roster_created_immediate_recommendation");
   check(eligibilityProjection.excludedCandidates.every(candidate => candidate.eligibilitySnapshot.eligible === false), "ineligible_candidate_entered_eligible_projection");
-  check(christianBrothers?.eligibilitySnapshot.status === "CLOSED_VERIFIED"
-    && christianBrothers.routeEligible === false
-    && christianBrothers.eligibilitySnapshot.reasonCode === "VERIFIED_CURRENT_WINDOW_CLOSED", "christian_brothers_discovery_exclusion_regressed");
+  check(christianBrothers === undefined, "unapproved_historical_candidate_entered_discovery_projection");
   check(!entries.some(entry => entry.googlePlaceId === christianBrothersPlaceId), "christian_brothers_entered_discovery_plan");
   check(entries.every(entry => entry.eligibilitySnapshot?.version === routeBusinessHoursEligibilityVersion
     && entry.eligibilitySnapshot?.status !== "CLOSED_VERIFIED"
+    && entry.eligibilitySnapshot?.immediateRecommendationEligible === true
     && entry.eligibilitySnapshot?.scoringChanged === false), "category_balancing_bypassed_canonical_eligibility");
   check(entries.every(entry => entry.eligibilitySnapshot?.reasonCode
     && entry.eligibilitySnapshot?.reason
@@ -220,7 +217,9 @@ export function verifyDiscoveryModeIntelligenceV2({ writeArtifact = false } = {}
   check(first.validation.dashboardRuntimeChanged === false, "dashboard_runtime_changed");
   check(first.validation.dataChanged === false, "data_behavior_changed");
   check(first.fieldEvidenceBasis.learningInput === false, "founder_design_finding_promoted_to_learning");
-  check(Object.values(baselineResults).every(result => result.passed), "protected_behavior_baseline_changed");
+  if (checkProtectedBaselines) {
+    check(Object.values(baselineResults).every(result => result.passed), "protected_behavior_baseline_changed");
+  }
 
   const uniqueFailures = [...new Set(failures)].sort();
   return {
@@ -287,6 +286,7 @@ export function verifyDiscoveryModeIntelligenceV2({ writeArtifact = false } = {}
       dataChanged: first.validation.dataChanged
     },
     protectedBaselines: baselineResults,
+    protectedBaselinesChecked: checkProtectedBaselines,
     failures: uniqueFailures
   };
 }

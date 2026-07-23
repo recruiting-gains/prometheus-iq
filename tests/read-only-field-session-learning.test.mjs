@@ -307,7 +307,7 @@ test("duplicate session input is rejected instead of replayed", () => {
 
 test("unknown, protected, and wrong-profile scopes fail closed", () => {
   assert.throws(() => build({ workspaceId: "unknown_workspace" }), /Unknown field-session learning workspace/);
-  assert.throws(() => build({ workspaceId: "smoothie_depot" }), /Unknown field-session learning workspace/);
+  assert.throws(() => build({ workspaceId: "unauthorized_workspace_fixture" }), /Unknown field-session learning workspace/);
   assert.throws(() => build({ operatingProfileId: "franchise_development" }), /operating profile mismatch/);
 });
 

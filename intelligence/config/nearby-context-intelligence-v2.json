@@ -28,7 +28,7 @@
     ],
     "activePoolFirst": true,
     "fullPoolFallback": true,
-    "fullPoolFallbackActivation": "after_active_verified_open_supply_cannot_fill_target_before_uncertain_hours_coverage",
+    "fullPoolFallbackActivation": "after_active_verified_open_supply_cannot_fill_target",
     "requiresExistingRouteEligibility": true,
     "requiresCanonicalBusinessHoursEligibility": true,
     "requiresWorkspaceMatch": true,
@@ -70,9 +70,7 @@
     "canonicalVersion": "route-iq-closed-now-eligibility-v1",
     "selectionOrder": [
       "active_verified_open",
-      "full_pool_verified_open_fallback",
-      "active_hours_unverified_coverage",
-      "full_pool_hours_unverified_coverage"
+      "full_pool_verified_open_fallback"
     ],
     "closedVerifiedBehavior": "exclude_never_classify",
     "uncertainStatuses": [
@@ -80,7 +78,7 @@
       "HOURS_STALE",
       "SPECIAL_HOURS_UNVERIFIED"
     ],
-    "uncertainStatusBehavior": "canonical_conservative_coverage_tier"
+    "uncertainStatusBehavior": "coverage_only_never_select"
   },
   "relationshipPolicy": {
     "priorityOrder": [

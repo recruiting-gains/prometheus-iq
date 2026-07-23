@@ -49,7 +49,7 @@
     },
     {
       "id": "scope-contamination",
-      "scopes": ["smoothie_depot", "cross_representative", "unknown"],
+      "scopes": ["unauthorized_workspace_fixture", "cross_representative", "unknown"],
       "expected": "fails_closed"
     },
     {
