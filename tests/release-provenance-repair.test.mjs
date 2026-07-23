@@ -16,6 +16,10 @@ test("Overwatch verifies Route IQ release provenance repair", () => {
     currentIntelligenceOwnerSuccessor: "21471fb1c5f32c18e4356434af71e0d63925d969",
     protectedBaselineSuccessor: "536d166e4a39a9caf4071e96f92a1598c00e7119",
     routeQualitySuccessor: "73b477a0fdec725beb7fe6de795ec35fd457ef32",
-    commercialRouteQualitySuccessor: "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a"
+    commercialRouteQualitySuccessor: "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a",
+    currentDashboardSourceCommit: "99457bcda1abed536cc06585492d29f5ac500f05",
+    currentDashboardValidationCommit: "f612e394b3af75e63cc07232d64bbd3dd1adb817",
+    currentAugust1IntelligenceSuccessorCommit:
+      "3587c3d70526b95ae9083520ed42025c5522f764"
   });
 });

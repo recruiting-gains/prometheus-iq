@@ -10,6 +10,8 @@ const dashboardRepairCommit = "a665b1b26db02716240b622d0b4d451d019c2896";
 const dashboardProspectiveCommit = "6c7671cb3f9387fdac29961432412dfe70088b2e";
 const dashboardCollectionOffCommit = "555dc6e87b1d2f884f1e18b3a06e1c62dfbd73dd";
 const dashboardProductFocusCommit = "82d1e6f23ca3a75c0073c051531477913258a98f";
+const currentDashboardSourceCommit = "99457bcda1abed536cc06585492d29f5ac500f05";
+const currentDashboardValidationCommit = "f612e394b3af75e63cc07232d64bbd3dd1adb817";
 const protectedBaselineSuccessorCommit = "536d166e4a39a9caf4071e96f92a1598c00e7119";
 const routeQualitySuccessorCommit = "73b477a0fdec725beb7fe6de795ec35fd457ef32";
 const routeQualityDataCommit = "26b07905926662e3323e557d77c608db0cbc23ed";
@@ -20,6 +22,17 @@ const investorWebsiteRouteQualitySuccessorCommit = "88b3bbbf2c34d879881ced98620c
 const restored3dRouteQualityDataCommit = "85850c74564798889ba50cb15c7a7b0406a521fd";
 const restored3dRouteQualitySuccessorCommit = "b065d069bdb3439a0541074d80862494e1d8a9bc";
 const restored3dClaimsDataCommit = "cee8d681fd2272aca3425f10b433507819085424";
+const currentAugust1IntelligenceSuccessorCommit =
+  "3587c3d70526b95ae9083520ed42025c5522f764";
+const currentAugust1IntelligenceSuccessorParent =
+  "0ac5b54351e12fec954e479c1c56506c58dea6c8";
+const currentAugust1IntelligenceSuccessorTree =
+  "5ac08aecd5c1f720c03194027aef3def4083a142";
+const currentAugust1IntelligenceSuccessorPaths = [
+  "intelligence/contracts/shadow-decision-readiness-contracts.json",
+  "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
+  "scripts/verify-shadow-decision-readiness.mjs"
+].sort();
 const currentIntelligenceSuccessorCommits = [
   "cd0a504328b0870aa695731230e6c43dd4698e3c",
   "ed46fb0964187a207468cd89fbdc1fbbb8426748",
@@ -201,6 +214,57 @@ function changedPaths(commit) {
   return output ? output.split("\n").sort() : [];
 }
 
+function verifyExactDashboardCommit({ commit, parent, tree, subject, paths }) {
+  const fields = git(
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", commit
+  ).split("\n");
+  assert.deepEqual(fields, [
+    commit,
+    parent,
+    tree,
+    "Prometheus Dashboard <dashboard@prometheus.local>",
+    "Prometheus Dashboard <dashboard@prometheus.local>",
+    subject
+  ]);
+  assert.deepEqual(changedPaths(commit), [...paths].sort());
+  assert.doesNotThrow(() => git("merge-base", "--is-ancestor", commit, "HEAD"));
+}
+
+function verifyCurrentAugust1IntelligenceSuccessor() {
+  const fields = git(
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    currentAugust1IntelligenceSuccessorCommit
+  ).split("\n");
+  assert.deepEqual(fields, [
+    currentAugust1IntelligenceSuccessorCommit,
+    currentAugust1IntelligenceSuccessorParent,
+    currentAugust1IntelligenceSuccessorTree,
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "Synchronize shadow-readiness runtime baselines"
+  ]);
+  assert.deepEqual(
+    changedPaths(currentAugust1IntelligenceSuccessorCommit),
+    currentAugust1IntelligenceSuccessorPaths
+  );
+  assert.doesNotThrow(() => git(
+    "merge-base", "--is-ancestor", currentAugust1IntelligenceSuccessorCommit, "HEAD"
+  ));
+}
+
+function isCurrentAugust1IntelligenceTransition(path, previousSha256, currentSha256) {
+  if (!currentAugust1IntelligenceSuccessorPaths.includes(path)) return false;
+  const previous = sha256(gitBytes(
+    "show", `${currentAugust1IntelligenceSuccessorParent}:${path}`
+  ));
+  const accepted = sha256(gitBytes(
+    "show", `${currentAugust1IntelligenceSuccessorCommit}:${path}`
+  ));
+  return previous === previousSha256
+    && accepted === currentSha256
+    && sha256(read(path)) === currentSha256;
+}
+
 export function verifyReleaseProvenanceRepair() {
   const mapping = readJson(mappingPath);
   const registry = readJson(registryPath);
@@ -221,6 +285,7 @@ export function verifyReleaseProvenanceRepair() {
   assert.equal(mapping.owningSubsystem, "Prometheus Overwatch");
   assert.equal(mapping.workspaceId, "fitness_connection");
   assert.equal(mapping.operatingProfileId, "fitness");
+  verifyCurrentAugust1IntelligenceSuccessor();
 
   const gap = mapping.legacyProvenanceGap;
   assert.equal(gap.commit, legacyCommit);
@@ -300,18 +365,54 @@ export function verifyReleaseProvenanceRepair() {
   assert.equal(shadowEvidence.semanticIdenticalAfterRepair, true);
 
   const dashboardAlignment = dashboardContract.repViewContract.placesAccess.alignmentEvidence;
+  verifyExactDashboardCommit({
+    commit: currentDashboardSourceCommit,
+    parent: "54804800533e705efe7add510e5e4bb72a3ba7dc",
+    tree: "ca9c01b40d763ceb707ba88118c905a8056e7407",
+    subject: "Add bounded Route IQ customer PWA",
+    paths: [
+      "_headers",
+      "deploy/cloudflare-pages/_headers",
+      "deploy/cloudflare-pages/index.html",
+      "deploy/cloudflare-pages/manifest-founder.webmanifest",
+      "deploy/cloudflare-pages/manifest.webmanifest",
+      "deploy/cloudflare-pages/sw.js",
+      "index.html",
+      "manifest-founder.webmanifest",
+      "manifest.webmanifest",
+      "scripts/verify-dashboard-runtime-workflows.mjs",
+      "sw.js",
+      "tests/dashboard-route-iq-customer-pwa.test.mjs",
+      "tests/dashboard-route-iq-field-session-producer.test.mjs",
+      "tests/dashboard-route-iq-product-focus.test.mjs"
+    ]
+  });
+  verifyExactDashboardCommit({
+    commit: currentDashboardValidationCommit,
+    parent: "d913a3c8c50379272503c93a8df12e75e048842d",
+    tree: "d0d5fb3ce8c7b9416c3695645b0ad0fb0715d650",
+    subject: "Harden governed profile mismatch harness",
+    paths: [
+      "scripts/verify-dashboard-runtime-workflows.mjs",
+      "tests/dashboard-route-iq-customer-pwa.test.mjs"
+    ]
+  });
   assert.equal(gap.overwatchOwnedFile.path, dashboardContractPath);
   assert.equal(gap.overwatchOwnedFile.canonicalOwner, "Prometheus Overwatch");
   assert.equal(gap.overwatchOwnedFile.dashboardOwnerRevalidationCommit, dashboardProspectiveCommit);
   assert.equal(gap.overwatchOwnedFile.prospectiveShadowSeamCommit, dashboardProspectiveCommit);
-  assert.equal(dashboardAlignment.dashboardCommit, dashboardProductFocusCommit);
-  assert.equal(dashboardAlignment.dashboardOwnerRevalidationCommit, dashboardProspectiveCommit);
+  assert.equal(dashboardAlignment.dashboardCommit, currentDashboardValidationCommit);
+  assert.equal(dashboardAlignment.dashboardOwnerRevalidationCommit, currentDashboardValidationCommit);
   assert.equal(dashboardAlignment.prospectiveShadowSeamCommit, dashboardProspectiveCommit);
   assert.equal(dashboardAlignment.prospectiveCollectionOffSuppressionCommit, dashboardCollectionOffCommit);
   assert.equal(dashboardAlignment.routeIqProductFocusCommit, dashboardProductFocusCommit);
   assert.equal(dashboardAlignment.decisionContextFeatureOriginCommit, "2774d91456e4b1734eb1caa13deaa84de2248f8f");
   assert.equal(sha256(read("index.html")), dashboardAlignment.dashboardSourceSha256);
   assert.equal(sha256(read("deploy/cloudflare-pages/index.html")), dashboardAlignment.dashboardSourceSha256);
+  assert.equal(
+    sha256(gitBytes("show", `${currentDashboardSourceCommit}:index.html`)),
+    dashboardAlignment.dashboardSourceSha256
+  );
   assert.match(dashboardEvidence, /Status: FOUNDER_BEHAVIOR_APPROVAL_REQUIRED/);
   assert.match(dashboardEvidence, /post-action evidence/);
   assert.match(dashboardEvidence, /does not provide the full candidate context/);
@@ -682,10 +783,30 @@ export function verifyReleaseProvenanceRepair() {
       sha256(gitBytes("show", `${restored3dRouteQualitySuccessorCommit}:${reference.consumerPath}`)),
       reference.currentConsumerSha256
     );
-    assert.equal(sha256(read(reference.consumerPath)), reference.currentConsumerSha256);
+    const currentConsumerSha256 = sha256(read(reference.consumerPath));
+    assert.equal(
+      currentConsumerSha256 === reference.currentConsumerSha256
+        || isCurrentAugust1IntelligenceTransition(
+          reference.consumerPath,
+          reference.currentConsumerSha256,
+          currentConsumerSha256
+        ),
+      true,
+      `${reference.consumerPath} current Intelligence successor drifted.`
+    );
   }
   for (const mirror of restored3dRouteQualitySuccessor.protectedReferenceAudit.ownerVerificationMirrors) {
-    assert.equal(sha256(read(mirror.path)), mirror.currentSha256);
+    const currentMirrorSha256 = sha256(read(mirror.path));
+    assert.equal(
+      currentMirrorSha256 === mirror.currentSha256
+        || isCurrentAugust1IntelligenceTransition(
+          mirror.path,
+          mirror.currentSha256,
+          currentMirrorSha256
+        ),
+      true,
+      `${mirror.path} current Intelligence successor drifted.`
+    );
   }
   assert.equal(restored3dRouteQualitySuccessor.reviewedInvariants.runtimeBehaviorChanged, false);
   assert.equal(restored3dRouteQualitySuccessor.reviewedInvariants.routeOrderingChanged, false);
@@ -775,7 +896,10 @@ export function verifyReleaseProvenanceRepair() {
     currentIntelligenceOwnerSuccessor: currentIntelligenceOwnerSuccessorCommit,
     protectedBaselineSuccessor: protectedBaselineSuccessorCommit,
     routeQualitySuccessor: routeQualitySuccessorCommit,
-    commercialRouteQualitySuccessor: commercialRouteQualitySuccessorCommit
+    commercialRouteQualitySuccessor: commercialRouteQualitySuccessorCommit,
+    currentDashboardSourceCommit,
+    currentDashboardValidationCommit,
+    currentAugust1IntelligenceSuccessorCommit
   };
 }
 
