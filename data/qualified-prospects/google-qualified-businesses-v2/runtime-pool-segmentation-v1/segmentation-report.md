@@ -1,16 +1,16 @@
 # Runtime Pool Segmentation v1
 
-Generated: 2026-07-01T05:45:13.022Z
+Generated: 2026-07-23T12:00:00.000Z
 Source dataset: google-qualified-businesses-v2
 Segmentation version: runtime-pool-segmentation-v1
 
 ## Counts
 
-- Active: 297
-- Reserve: 44
-- Quarantine: 109
+- Active: 0
+- Reserve: 0
+- Quarantine: 398
 - Audited production records: 398
-- Audited rejected records: 52
+- Noncanonical rejected sources projected: 0
 
 ## Rules
 

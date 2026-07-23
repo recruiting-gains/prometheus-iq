@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-07-01T05:45:49.093Z",
+  "generatedAt": "2026-07-23T12:00:00.000Z",
   "sourceDatasetVersion": "google-qualified-businesses-v2",
   "segmentationVersion": "runtime-pool-segmentation-v1",
   "counts": {
-    "active": 297,
-    "reserve": 44,
-    "quarantine": 109
+    "active": 0,
+    "reserve": 0,
+    "quarantine": 398
   },
   "entries": {
     "ChIJeX6hkOGZQIYR3wYTYOv4eO8": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Fuqua Professional Auto Repair",
       "address": "10619 Fuqua St, Houston, TX 77089, USA",
       "category": "Auto",
@@ -18,7 +18,7 @@
       "priority": 89
     },
     "ChIJd7g1Uh2ZQIYRRIQTRPd5-AQ": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Level Up tires & Wheels",
       "address": "12300 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Auto",
@@ -27,7 +27,7 @@
       "priority": 90
     },
     "ChIJv7MA7eGZQIYRINIvMqp85nU": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Montoya Auto Service",
       "address": "10703 Fuqua St, Houston, TX 77089, USA",
       "category": "Auto",
@@ -36,7 +36,7 @@
       "priority": 89
     },
     "ChIJO3NxhbyZQIYREU1NBpI6tgg": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "SMG Auto Service",
       "address": "10541 Almeda Genoa Rd, Houston, TX 77034, USA",
       "category": "Auto",
@@ -45,7 +45,7 @@
       "priority": 89
     },
     "ChIJTefH_reXQIYRNwxKltXtHDI": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Julia's Auto Repair",
       "address": "8911 Frey Rd, Houston, TX 77034, USA",
       "category": "Auto",
@@ -54,7 +54,7 @@
       "priority": 89
     },
     "ChIJbal6C2GXQIYRmpm3VfpXXTc": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "P & S Complete Auto Repair",
       "address": "10110 Kleckley Dr, Houston, TX 77075, USA",
       "category": "Auto",
@@ -63,7 +63,7 @@
       "priority": 89
     },
     "ChIJI93NBQCZQIYRF5V9bvKzXJM": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Velexentaris Auto System",
       "address": "12018 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Auto",
@@ -72,7 +72,7 @@
       "priority": 90
     },
     "ChIJ2yL4fwCZQIYR6WaHTbj6DVE": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Purexentaris AutoGlass Windshield Repairs",
       "address": "12130 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Auto",
@@ -81,7 +81,7 @@
       "priority": 90
     },
     "ChIJq9P1dwCZQIYRZSmkMzn8X38": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Pureventix Auto Expert",
       "address": "12475 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Auto",
@@ -90,7 +90,7 @@
       "priority": 90
     },
     "ChIJY6Zv_tyZQIYRdCRcyHj0YEE": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Quick Lane at Bayway Lincoln",
       "address": "12333 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Auto",
@@ -99,7 +99,7 @@
       "priority": 90
     },
     "ChIJ1QsomuGZQIYR7Fri-jqAKGg": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Texas Radiators & Mufflers & Vehicles Emissions Inspection",
       "address": "10923 Fuqua St, Houston, TX 77089, USA",
       "category": "Auto",
@@ -108,7 +108,7 @@
       "priority": 89
     },
     "ChIJW4FsIQCZQIYRr2oEBbrF9uk": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Nexaventix AutoGlass Tesla Windshield Repairs",
       "address": "11043 Kingspoint Rd #2/3, Houston, TX 77089, USA",
       "category": "Auto",
@@ -117,7 +117,7 @@
       "priority": 90
     },
     "ChIJvUYdrliXQIYROvZ-oMwdpoo": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Car - Beamer Auto Repair",
       "address": "10909 Beamer Rd, Houston, TX 77089, USA",
       "category": "Auto",
@@ -126,7 +126,7 @@
       "priority": 89
     },
     "ChIJu2SeWQCZQIYRH2jRsKeACrk": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Hydrarentix AutoGlass Windshield Repair Experts",
       "address": "12503 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Auto",
@@ -135,7 +135,7 @@
       "priority": 90
     },
     "ChIJF_53cmGXQIYRg97yhmQZCmU": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Taylor Tire & Automotive",
       "address": "10102 Kleckley Dr, Houston, TX 77075, USA",
       "category": "Auto",
@@ -144,7 +144,7 @@
       "priority": 89
     },
     "ChIJq7FOLwCZQIYR0J9pbcu64-U": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Aquarentix Auto System",
       "address": "12569 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Auto",
@@ -153,7 +153,7 @@
       "priority": 89
     },
     "ChIJC6t4JgCXQIYRBgz3rJu-V3c": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Aquexentaris Auto Technician",
       "address": "10636 Kingspoint Rd, Houston, TX 77089, USA",
       "category": "Auto",
@@ -162,7 +162,7 @@
       "priority": 89
     },
     "ChIJcz3Aj36XQIYRfpKaVM3b69o": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "C.A.P. Automotive Service",
       "address": "10411 Hartsook St, Houston, TX 77034, USA",
       "category": "Auto",
@@ -171,7 +171,7 @@
       "priority": 89
     },
     "ChIJGYKirzKYQIYRIvEi7ZgHKy8": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Eagle Auto Repair",
       "address": "8000 Galveston Rd, Houston, TX 77034, USA",
       "category": "Auto",
@@ -180,7 +180,7 @@
       "priority": 88
     },
     "ChIJI13UBweRQIYRmwr6qAnoIz0": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Texans Auto Repair - Blackhawk",
       "address": "10326 Blackhawk Blvd, Houston, TX 77089, USA",
       "category": "Auto",
@@ -189,7 +189,7 @@
       "priority": 87
     },
     "ChIJoUpYheyZQIYRHX_u7gVQdBo": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Tire Discount",
       "address": "11293 Fuqua St, Houston, TX 77089, USA",
       "category": "Auto",
@@ -198,7 +198,7 @@
       "priority": 90
     },
     "ChIJHZTkVQCXQIYRWYAgfeQ2qeI": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "24/7 Tire Shop",
       "address": "11055 S Sam Houston Pkwy E, Houston, TX 77089, USA",
       "category": "Auto",
@@ -207,7 +207,7 @@
       "priority": 88
     },
     "ChIJoTvHWWOXQIYR6lcB3Z1093Q": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Discount Tire",
       "address": "10250 Almeda Genoa Rd, Houston, TX 77075, USA",
       "category": "Auto",
@@ -216,7 +216,7 @@
       "priority": 89
     },
     "ChIJsemXpXeXQIYRcuzxvjQcz_0": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "RAW Wheels & Tires",
       "address": "10900 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Auto",
@@ -225,7 +225,7 @@
       "priority": 88
     },
     "ChIJyTJLMiiWQIYRNEHJfDU7UyQ": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Tire 45",
       "address": "8922 Frey Rd ste#B, Houston, TX 77034, USA",
       "category": "Auto",
@@ -234,7 +234,7 @@
       "priority": 89
     },
     "ChIJXya8cRKXQIYRdMb2MCRmgTU": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Texas Wheels & Tire",
       "address": "9318 Almeda Genoa Rd, Houston, TX 77075, USA",
       "category": "Auto",
@@ -243,7 +243,7 @@
       "priority": 88
     },
     "ChIJ3xJ5x3SXQIYR7EzH3UE9RMk": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Bla's Tire Shop",
       "address": "9338 Clearwood Dr, Houston, TX 77075, USA",
       "category": "Auto",
@@ -252,7 +252,7 @@
       "priority": 88
     },
     "ChIJl8ghUeW9QIYRV7G2n5pvzik": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Primo's Tire Shop",
       "address": "12950 Fuqua St, Houston, TX 77034, USA",
       "category": "Auto",
@@ -261,7 +261,7 @@
       "priority": 88
     },
     "ChIJiUdHcLmZQIYRHveJU_FlwXk": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "MEJJ Tire Service",
       "address": "9514 Galveston Rd, Houston, TX 77034, USA",
       "category": "Auto",
@@ -270,7 +270,7 @@
       "priority": 88
     },
     "ChIJlWTGXrqXQIYR-vrvZpMxQtQ": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "king tire and wheel #4",
       "address": "10600 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Auto",
@@ -279,7 +279,7 @@
       "priority": 88
     },
     "ChIJ5QnzguGXQIYRBj3DRt1qxSU": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Galachy Tire Shop",
       "address": "8774 Almeda Genoa Rd, Houston, TX 77075, USA",
       "category": "Auto",
@@ -288,7 +288,7 @@
       "priority": 87
     },
     "ChIJx3_bt6eXQIYRVAbbUfaOpTo": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Tire Care Center",
       "address": "7940 Fuqua St, Houston, TX 77075, USA",
       "category": "Auto",
@@ -297,7 +297,7 @@
       "priority": 86
     },
     "ChIJ-_fyy_qWQIYRHYOFl3TvG3Y": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Rubios Used Tire",
       "address": "8023 Almeda Genoa Rd, Houston, TX 77075, USA",
       "category": "Auto",
@@ -306,7 +306,7 @@
       "priority": 86
     },
     "ChIJ5UAhMcyXQIYRPphvHuSC8X0": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Gulf Freeway Tire & Auto",
       "address": "8500 Gulf Fwy, Houston, TX 77017, USA",
       "category": "Auto",
@@ -315,7 +315,7 @@
       "priority": 85
     },
     "ChIJZX29PuyWQIYR-Oa9pnCf6o8": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "House Of Tires",
       "address": "9901 Telephone Rd, Houston, TX 77075, USA",
       "category": "Auto",
@@ -324,7 +324,7 @@
       "priority": 85
     },
     "ChIJ56yfy0iXQIYRnEO2z1oEUZg": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Take 5 Oil Change",
       "address": "10604 Fuqua St, Houston, TX 77089, USA",
       "category": "Auto",
@@ -333,7 +333,7 @@
       "priority": 89
     },
     "ChIJ-1DE7-GZQIYRhYNdqb02Kak": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Jiffy Lube Oil Change",
       "address": "10605 Fuqua St, Houston, TX 77089, USA",
       "category": "Auto",
@@ -342,7 +342,7 @@
       "priority": 89
     },
     "ChIJY-qeX9mZQIYRcHxzXcYL_tY": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "AutoNation Ford Gulf Freeway Service Center",
       "address": "12227 Gulf Fwy Ste A, Houston, TX 77034, USA",
       "category": "Auto",
@@ -351,7 +351,7 @@
       "priority": 90
     },
     "ChIJ5Y-b4r6ZQIYREEEk1gSVM3s": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Express Sticker State Inspctn",
       "address": "12701 Fuqua St #106, Houston, TX 77034, USA",
       "category": "Auto",
@@ -360,7 +360,7 @@
       "priority": 89
     },
     "ChIJccUFOWWXQIYRqiWK4uTVU14": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Superior Almeda Car Wash & Lube",
       "address": "10126 Almeda Genoa Rd, Houston, TX 77075, USA",
       "category": "Car Wash",
@@ -369,7 +369,7 @@
       "priority": 89
     },
     "ChIJ04moHdmZQIYRSz8Fz6bsa5E": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "AutoNation Toyota Gulf Freeway Service Center",
       "address": "12111 Gulf Fwy Ste A, Houston, TX 77034, USA",
       "category": "Auto",
@@ -378,7 +378,7 @@
       "priority": 90
     },
     "ChIJx26i1h2ZQIYRJgytB2wesAk": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "South Houston Nissan Service",
       "address": "11911 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Auto",
@@ -387,7 +387,7 @@
       "priority": 89
     },
     "ChIJ1_yFCJKXQIYRoew2JHktsFg": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Smart Stop Alignments",
       "address": "8935 Frey Rd, Houston, TX 77034, USA",
       "category": "Auto",
@@ -396,7 +396,7 @@
       "priority": 89
     },
     "ChIJHbIc8BWYQIYRA_pP6-76RD4": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Take 5 Oil Change",
       "address": "1624 Spencer Hwy, South Houston, TX 77587, USA",
       "category": "Auto",
@@ -405,7 +405,7 @@
       "priority": 86
     },
     "ChIJVaUCWxyZQIYRfKwZzuq3tLM": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "ClearWater Express Wash",
       "address": "11027 Fuqua St, Houston, TX 77089, USA",
       "category": "Car Wash",
@@ -414,7 +414,7 @@
       "priority": 90
     },
     "ChIJnZs3jUGXQIYReOv3oXJJJL0": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Zoom Car Wash - Almeda Genoa",
       "address": "9967 Almeda Genoa Rd, Houston, TX 77075, USA",
       "category": "Car Wash",
@@ -423,7 +423,7 @@
       "priority": 89
     },
     "ChIJiSw-VF-XQIYRNXPa-F34zcY": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Easy Wash",
       "address": "10604 Fuqua St, Houston, TX 77089, USA",
       "category": "Car Wash",
@@ -432,7 +432,7 @@
       "priority": 89
     },
     "ChIJjXX-KbiXQIYRrWY6PPB6kdI": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Cano’s Car Wash",
       "address": "9998 Fuqua St, Houston, TX 77089, USA",
       "category": "Car Wash",
@@ -441,7 +441,7 @@
       "priority": 89
     },
     "ChIJ46zqkPGZQIYRf0_18g9rwkw": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Lopez Car Wash",
       "address": "9512 Galveston Rd, Houston, TX 77034, USA",
       "category": "Car Wash",
@@ -450,7 +450,7 @@
       "priority": 88
     },
     "ChIJsVRHhHKXQIYRCv9FyZndgpc": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Miami Car Wash",
       "address": "9601 Almeda Genoa Rd, Houston, TX 77075, USA",
       "category": "Car Wash",
@@ -459,7 +459,7 @@
       "priority": 88
     },
     "ChIJq07JUm2XQIYR4zDnGPJfxy4": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Citgo Car Wash",
       "address": "9418 Almeda Genoa Rd, Houston, TX 77075, USA",
       "category": "Car Wash",
@@ -468,7 +468,7 @@
       "priority": 88
     },
     "ChIJMb3z65zrQIYRiqwl5D-AoBQ": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Zapeta’s Hand Car Wash and Detail",
       "address": "9418 Almeda Genoa Rd, Houston, TX 77075, USA",
       "category": "Car Wash",
@@ -477,7 +477,7 @@
       "priority": 88
     },
     "ChIJOb3DqQOXQIYR6p6FPwU08s4": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Quick Quack Car Wash",
       "address": "11212 Monroe Rd, Houston, TX 77075, USA",
       "category": "Car Wash",
@@ -486,7 +486,7 @@
       "priority": 87
     },
     "ChIJ9-pdC1WXQIYRJxowgkIewe4": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Carwash",
       "address": "11414 Hall Rd, Houston, TX 77089, USA",
       "category": "Car Wash",
@@ -495,7 +495,7 @@
       "priority": 88
     },
     "ChIJB-oujYCZQIYRMzRjIWcO3r4": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Stop n' Wash",
       "address": "14304 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Car Wash",
@@ -504,7 +504,7 @@
       "priority": 88
     },
     "ChIJmyQy7GSZQIYRxiDyvF_eI_M": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Kruzzers Auto Care LLC",
       "address": "10617 Fuqua St, Houston, TX 77089, USA",
       "category": "Car Wash",
@@ -513,7 +513,7 @@
       "priority": 90
     },
     "ChIJ-60f9q2ZQIYRodJJOLGzVro": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Exxon Gas Station Express Car Wash",
       "address": "5104 S Shaver St, Houston, TX 77034, USA",
       "category": "Car Wash",
@@ -522,7 +522,7 @@
       "priority": 88
     },
     "ChIJo6PG1BiaQIYRFfbLjEWDbKs": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Island Breeze Car Wash & Auto Services",
       "address": "11210 Scarsdale Blvd, Houston, TX 77089, USA",
       "category": "Auto",
@@ -531,7 +531,7 @@
       "priority": 87
     },
     "ChIJod4-2XqZQIYRV9xJ7C43nxM": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Gorilla Car Wash, Pasadena, Texas",
       "address": "3504 Fairmont Pkwy, Pasadena, TX 77504, USA",
       "category": "Car Wash",
@@ -540,7 +540,7 @@
       "priority": 87
     },
     "ChIJU_4z0N6ZQIYRmkasCHfZsKA": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Uptown Detail",
       "address": "10831 Overlea Dr, Houston, TX 77089, USA",
       "category": "Auto",
@@ -549,7 +549,7 @@
       "priority": 90
     },
     "ChIJkV4HtM2ZQIYRALwgv0BXq8s": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Saraya Resturant",
       "address": "11211 Almeda Genoa Rd SUITE A, Houston, TX 77034, USA",
       "category": "Restaurant",
@@ -558,7 +558,7 @@
       "priority": 80
     },
     "ChIJiStQ_umXQIYRfwGt_7S9H1U": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Sphinx Restaurant and grill",
       "address": "10900 Kingspoint Rd, Houston, TX 77075, USA",
       "category": "Restaurant",
@@ -567,7 +567,7 @@
       "priority": 80
     },
     "ChIJScG3ot2ZQIYR0vW7n0O_7KY": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Gringo’s Mexican Kitchen {Fuqua}",
       "address": "12348 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Restaurant",
@@ -576,7 +576,7 @@
       "priority": 80
     },
     "ChIJAeYjG9SXQIYRe_tZTFXkN8w": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Tasty Cajun",
       "address": "10714 Kingspoint Rd, Houston, TX 77075, USA",
       "category": "Restaurant",
@@ -585,7 +585,7 @@
       "priority": 80
     },
     "ChIJlfH-rueZQIYR8AFLVRWHTwM": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "House of Pies",
       "address": "11311 Fuqua St, Houston, TX 77089, USA",
       "category": "Restaurant",
@@ -594,7 +594,7 @@
       "priority": 80
     },
     "ChIJv0BmY-iZQIYRdJ_TcboQoho": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Bayou City Wings®",
       "address": "12804 Gulf Fwy #100, Houston, TX 77034, USA",
       "category": "Restaurant",
@@ -603,7 +603,7 @@
       "priority": 79
     },
     "ChIJvy6mD8SZQIYRbFZwMEZP5NE": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Island Flavorz",
       "address": "11051 Fuqua St, Houston, TX 77089, USA",
       "category": "Restaurant",
@@ -612,7 +612,7 @@
       "priority": 80
     },
     "ChIJT4yW59iZQIYRBr27QlDLrss": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Sevilla Pizza",
       "address": "12200 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Restaurant",
@@ -621,7 +621,7 @@
       "priority": 79
     },
     "ChIJv24FXxqXQIYRkWVUejJkaGY": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Sam's Burgers & Gyros",
       "address": "12200 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Restaurant",
@@ -630,7 +630,7 @@
       "priority": 79
     },
     "ChIJ-TAm0qSZQIYRvt6gvEMLv3g": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Habibi Restaurant",
       "address": "11701 Fuqua St, Houston, TX 77034, USA",
       "category": "Restaurant",
@@ -639,7 +639,7 @@
       "priority": 79
     },
     "ChIJme6lCQGZQIYR9YEQMSI6EXs": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Twin Crab",
       "address": "12802 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Restaurant",
@@ -648,7 +648,7 @@
       "priority": 79
     },
     "ChIJ8QdtYemZQIYRJIExruEiN7w": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Las Haciendas",
       "address": "12933 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Restaurant",
@@ -657,7 +657,7 @@
       "priority": 79
     },
     "ChIJKQ6T-96ZQIYRLkLbQ5GZCYQ": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Brown Sugar's Bar B Que - The Original",
       "address": "11030 Kingspoint Rd Ste 2, Houston, TX 77075, USA",
       "category": "Restaurant",
@@ -666,7 +666,7 @@
       "priority": 80
     },
     "ChIJ_Tkcat-ZQIYRZ-9XaNvCbBM": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Ojos Locos Sports Cantina - Almeda",
       "address": "12200 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Restaurant",
@@ -675,7 +675,7 @@
       "priority": 79
     },
     "ChIJswEudACXQIYRhBQuIpEl5Vg": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Take the Wheel",
       "address": "10910 Kingspoint Rd, Houston, TX 77075, USA",
       "category": "Restaurant",
@@ -684,7 +684,7 @@
       "priority": 80
     },
     "ChIJ24Gq4eaZQIYRDwKw4kS0XTI": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Marina Seafood Kitchen - Fuqua",
       "address": "11229 Fuqua St, Houston, TX 77089, USA",
       "category": "Restaurant",
@@ -693,7 +693,7 @@
       "priority": 80
     },
     "ChIJ36JrFtGZQIYRrATFzwFHAWA": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Ostioneria Michoacan 16 Fuqua",
       "address": "12810 Gulf Fwy # B, Houston, TX 77034, USA",
       "category": "Restaurant",
@@ -702,7 +702,7 @@
       "priority": 79
     },
     "ChIJpwzCjeeZQIYR8lxtMpfL9-g": {
-      "pool": "active",
+      "pool": "quarantine",
       "businessName": "Golden Corral Buffet & Grill",
       "address": "12500 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Restaurant",
@@ -710,1979 +710,8 @@
       "qualityScore": 79.6,
       "priority": 80
     },
-    "ChIJVWrQa-W9QIYRqt3vxrvR5F4": {
-      "pool": "active",
-      "businessName": "Tha Chop Shop",
-      "address": "12134 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.6,
-      "priority": 96
-    },
-    "ChIJyT26K2CXQIYRp2MTmO2WTv4": {
-      "pool": "active",
-      "businessName": "Faded Empire Barbershop",
-      "address": "10900 Kingspoint Rd #8, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.6,
-      "priority": 96
-    },
-    "ChIJn2_E_0CZQIYRj9b3w-aFQ3Y": {
-      "pool": "active",
-      "businessName": "Adolfo's Barber Shop",
-      "address": "11030 Kingspoint Rd #3C, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.9,
-      "priority": 96
-    },
-    "ChIJAd3o1sGZQIYROcashZRHExA": {
-      "pool": "active",
-      "businessName": "Universal Barbering Of Houston",
-      "address": "12344 Gulf Fwy Ste - C3, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.9,
-      "priority": 96
-    },
-    "ChIJ0WNSxeCXQIYRzeCVTlzK0RA": {
-      "pool": "active",
-      "businessName": "Reyzorfadez barbershop",
-      "address": "12875 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.2,
-      "priority": 95
-    },
-    "ChIJCfUU8BOZQIYRCFljCmlK_iU": {
-      "pool": "active",
-      "businessName": "Southside Barbershop",
-      "address": "11007 Fuqua St, Houston, TX 77089, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.5,
-      "priority": 96
-    },
-    "ChIJ4e1yi0qZQIYR1C-E6mg7Sns": {
-      "pool": "active",
-      "businessName": "X Effects",
-      "address": "12260 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.8,
-      "priority": 96
-    },
-    "ChIJ5Qc_X5aXQIYRCU7k0z1m12k": {
-      "pool": "active",
-      "businessName": "Htx Domain Barbershop",
-      "address": "10900 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 94,
-      "priority": 94
-    },
-    "ChIJ1Z7Lb0CZQIYRzBRcuqxYjPM": {
-      "pool": "active",
-      "businessName": "Stylluz beauty salon & barber shop",
-      "address": "12875 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.2,
-      "priority": 95
-    },
-    "ChIJ5V7i2ByXQIYRXMMrfCC6554": {
-      "pool": "active",
-      "businessName": "Caribbean Barber Shop",
-      "address": "9990 Kleckley Dr Ste E, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.3,
-      "priority": 95
-    },
-    "ChIJLbS2u2CXQIYRbGwtk8auD5g": {
-      "pool": "active",
-      "businessName": "Hair By Paul",
-      "address": "10634 Kingspoint Rd, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.4,
-      "priority": 95
-    },
-    "ChIJ-wJcqtiXQIYR4wYj5atb5PA": {
-      "pool": "active",
-      "businessName": "Fire Fades Barbershop",
-      "address": "9870 Windmill Lakes Blvd, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 94.4,
-      "priority": 94
-    },
-    "ChIJb4YQ2rCZQIYRZCmKV2Kc7Fs": {
-      "pool": "active",
-      "businessName": "Talikutz",
-      "address": "12875 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.2,
-      "priority": 95
-    },
-    "ChIJYTFbfuyXQIYRX_XFt2z9s08": {
-      "pool": "active",
-      "businessName": "Space City BarberShop LLC",
-      "address": "9805 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.9,
-      "priority": 89
-    },
-    "ChIJC0GASV-XQIYRjvz21NqhsY8": {
-      "pool": "active",
-      "businessName": "Mexico Lindo Barber Shop",
-      "address": "10600 Fuqua St, Houston, TX 77089, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.3,
-      "priority": 95
-    },
-    "ChIJpVIDadObQIYRiNn8nYha7I4": {
-      "pool": "active",
-      "businessName": "Argel's Barber Shop",
-      "address": "15327 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 92.3,
-      "priority": 92
-    },
-    "ChIJ5dwuMHaXQIYRhKIkLFOg374": {
-      "pool": "active",
-      "businessName": "Blades Barber and Beauty Salon",
-      "address": "10733 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.8,
-      "priority": 90
-    },
-    "ChIJ9dTEO06ZQIYRakUuEVrnAGk": {
-      "pool": "active",
-      "businessName": "The Fade Barber Shack",
-      "address": "513 S Allen-Genoa Rd C-5, South Houston, TX 77587, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 92.4,
-      "priority": 92
-    },
-    "ChIJw7r5h4SZQIYRZVVI72FmJ30": {
-      "pool": "active",
-      "businessName": "Dreya G Hair Studio",
-      "address": "11030 Kingspoint Rd #4B, Houston, TX 77089, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.9,
-      "priority": 96
-    },
-    "ChIJv0BmY-iZQIYRYA5YgOcX3fA": {
-      "pool": "active",
-      "businessName": "Up Close Beauty Max LLC",
-      "address": "12804 Gulf Fwy #700B, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.4,
-      "priority": 91
-    },
-    "ChIJ5eJ6EJeXQIYRRMeCsbv34JY": {
-      "pool": "active",
-      "businessName": "Carbon Co Beauty Lounge",
-      "address": "10040 Kleckley Dr, Houston, TX 77075, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.3,
-      "priority": 91
-    },
-    "ChIJBa7n_QuXQIYR4ifXJ2ClMAQ": {
-      "pool": "active",
-      "businessName": "The Salon Elev8",
-      "address": "10222 Gulf Fwy B-400, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 93.2,
-      "priority": 93
-    },
-    "ChIJt1lrMSyXQIYREF_6C3gjXd8": {
-      "pool": "active",
-      "businessName": "Blue Moon Beauty Bar",
-      "address": "10900 Kingspoint Rd #8, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.6,
-      "priority": 96
-    },
-    "ChIJSYmp2N2ZQIYR7QO1pAzEXao": {
-      "pool": "active",
-      "businessName": "Estetica Unisex Zaleta",
-      "address": "12336 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 92,
-      "priority": 92
-    },
-    "ChIJ6wsYFeGZQIYRPTiSbo2nmiM": {
-      "pool": "active",
-      "businessName": "Nancy's Hair & Nails",
-      "address": "11001 Fuqua St, Houston, TX 77089, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.5,
-      "priority": 92
-    },
-    "ChIJF8vibuGZQIYRwDvtFvUnmzU": {
-      "pool": "active",
-      "businessName": "Top Hair Salon",
-      "address": "10992 Fuqua St, Houston, TX 77089, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.3,
-      "priority": 91
-    },
-    "ChIJk5Hx0liXQIYRrFd6OyUGQyM": {
-      "pool": "active",
-      "businessName": "Mai Hair Design",
-      "address": "10590 Fuqua St # A, Houston, TX 77089, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.2,
-      "priority": 91
-    },
-    "ChIJg3eaumCXQIYRlIUFZypreME": {
-      "pool": "active",
-      "businessName": "Fox Hair & Nails",
-      "address": "10626 Kingspoint Rd, Houston, TX 77075, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.4,
-      "priority": 91
-    },
-    "ChIJn5zT_ASZQIYRqW_v-a-4BNc": {
-      "pool": "active",
-      "businessName": "Angel’s Hair Salon",
-      "address": "9112 N Broadway Ste 4, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.2,
-      "priority": 95
-    },
-    "ChIJi_IM_L6ZQIYRkyXqEmNBIc0": {
-      "pool": "active",
-      "businessName": "Lifestyles Hair Salon",
-      "address": "12711 Fuqua St #111, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 90.6,
-      "priority": 91
-    },
-    "ChIJJw0FfN6ZQIYR15IsD9xeCbg": {
-      "pool": "active",
-      "businessName": "Glam Beauty Studio",
-      "address": "11030 Kingspoint Rd, Houston, TX 77075, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.9,
-      "priority": 92
-    },
-    "ChIJla6Uh2mZQIYRNnoKwL44FIk": {
-      "pool": "active",
-      "businessName": "Utopia Beauty Bliss",
-      "address": "10909 Sabo Rd #214, Houston, TX 77089, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.4,
-      "priority": 91
-    },
-    "ChIJUWQoipGZQIYR15Iu-IQshbc": {
-      "pool": "active",
-      "businessName": "SUPREME SMOKE OPEN 24 HOURS & VAPE & KRATOM & 7OH & THC & HOOKAH & CIGARS & GLASS PIPES & CBD & TATTOO SUPPLIES",
-      "address": "11460 Fuqua St #800, Houston, TX 77089, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 83.4,
-      "priority": 83
-    },
-    "ChIJZZ-zf4KZQIYR_iuq8sIRhKE": {
-      "pool": "active",
-      "businessName": "Rock N' Roll It",
-      "address": "11209 Fuqua St, Houston, TX 77089, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 83.5,
-      "priority": 84
-    },
-    "ChIJHXwOvy-ZQIYRZ0hMpZ_rXLg": {
-      "pool": "active",
-      "businessName": "TEXAN SMOKE SHOP",
-      "address": "11211 Almeda Genoa Rd Ste A100, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 83.6,
-      "priority": 84
-    },
-    "ChIJO1TS4aWXQIYRGHbIGtn-7R0": {
-      "pool": "active",
-      "businessName": "Vitrum Smoke Shop | Vape | Disposables | Hookah | Kratom | Glass Pipes",
-      "address": "11550 Gulf Fwy Suit C1, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 82.9,
-      "priority": 83
-    },
-    "ChIJ-6Z9k8mXQIYR3kHm7xwGMS8": {
-      "pool": "active",
-      "businessName": "Vape City",
-      "address": "10222 Gulf Fwy Ste B-130, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 81.2,
-      "priority": 81
-    },
-    "ChIJLdfY1BuXQIYRY3L5dwKjXnA": {
-      "pool": "active",
-      "businessName": "Smoke Drop – Vape & Smoke Shop Houston",
-      "address": "11400 Gulf Fwy Ste E, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 82.7,
-      "priority": 83
-    },
-    "ChIJGQVQYuGZQIYRS_mTGpzSmF4": {
-      "pool": "active",
-      "businessName": "Sabo Smoke, Vape, Delta 8 THC and CBD",
-      "address": "10717 Sagetree Dr Ste B, Houston, TX 77089, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 83,
-      "priority": 83
-    },
-    "ChIJGbJkct-XQIYRb5FY2p7TKKM": {
-      "pool": "active",
-      "businessName": "MILE HIGH SMOKE SHOP | DISPENSARY | VAPE I HOOKAH I KRATOM & MORE",
-      "address": "10008 Gulf Fwy B, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 81,
-      "priority": 81
-    },
-    "ChIJnaTY7t2ZQIYRQfuOdzvB9c4": {
-      "pool": "active",
-      "businessName": "Rock N' Roll It",
-      "address": "12344 Gulf Fwy C-1, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 83.9,
-      "priority": 84
-    },
-    "ChIJCwlYPvyZQIYR9CDm5Cpw5PI": {
-      "pool": "active",
-      "businessName": "The Vape Hub",
-      "address": "364 FM1959 Ste b, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 80.4,
-      "priority": 80
-    },
-    "ChIJH2uikJqXQIYRleNN9iHQH_Y": {
-      "pool": "active",
-      "businessName": "Geek headz",
-      "address": "10739 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 81.8,
-      "priority": 82
-    },
-    "ChIJ3zx1h92bQIYRFZPnQ54zUI0": {
-      "pool": "active",
-      "businessName": "Rock N' Roll It",
-      "address": "15327 Gulf Fwy f, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 80.3,
-      "priority": 80
-    },
-    "ChIJSZv3ae6ZQIYRNbhQy1JZTQE": {
-      "pool": "active",
-      "businessName": "Carolyn's Detail Spot and Smoke Shop",
-      "address": "12170 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 83.8,
-      "priority": 84
-    },
-    "ChIJQUkeUAuZQIYRqGFBgDyAtMc": {
-      "pool": "active",
-      "businessName": "Social Smoke Hookah Lounge & Bar",
-      "address": "11017 Fuqua St, Houston, TX 77089, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 83.5,
-      "priority": 84
-    },
-    "ChIJU2AoBl-XQIYR5mLIN7VJBHc": {
-      "pool": "active",
-      "businessName": "The smokeshop",
-      "address": "814 Edgebrook Dr, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 81.7,
-      "priority": 82
-    },
-    "ChIJi29SBXGZQIYRYnnnsek7hJ8": {
-      "pool": "active",
-      "businessName": "Texan Cell phone Repair",
-      "address": "11211 Almeda Genoa Rd, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 83.6,
-      "priority": 84
-    },
-    "ChIJq6qqqh6XQIYRfLHOpmoS8lU": {
-      "pool": "active",
-      "businessName": "Cellular Zone Inc / Almeda Wireless Inc.",
-      "address": "555 Gulf Fwy #730a, Houston, TX 77075, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 83.5,
-      "priority": 84
-    },
-    "ChIJEwHyyneXQIYRdGykis7ozuc": {
-      "pool": "active",
-      "businessName": "DelFix Computers and Phones",
-      "address": "10717 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 87.8,
-      "priority": 88
-    },
-    "ChIJfXwUoXyXQIYRTTWnWz_DyFg": {
-      "pool": "active",
-      "businessName": "uBreakiFix - Phone and Computer Repair",
-      "address": "11550 Gulf Fwy Ste C, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 82.9,
-      "priority": 83
-    },
-    "ChIJqRNSlt6ZQIYRfV1ZR0w2dUw": {
-      "pool": "active",
-      "businessName": "EZPAWN",
-      "address": "12260 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 83.9,
-      "priority": 84
-    },
-    "ChIJjzvGA6TDQIYRpjWPoAKipd4": {
-      "pool": "active",
-      "businessName": "Valu+ Pawn",
-      "address": "11655 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 83,
-      "priority": 83
-    },
-    "ChIJv24FXxqXQIYRN5wqa04fIMw": {
-      "pool": "active",
-      "businessName": "Gift Palace",
-      "address": "12200 Gulf Fwy, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.4,
-      "priority": 75
-    },
-    "ChIJwYnPaQOXQIYRrcB3i3CVipA": {
-      "pool": "active",
-      "businessName": "Alameda genoa",
-      "address": "9000 Frey Rd, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 74.9,
-      "priority": 75
-    },
-    "ChIJz_RHYGSXQIYRcXFwpRS_qf0": {
-      "pool": "active",
-      "businessName": "The Little Depot South Houston",
-      "address": "9990 Kleckley Dr A, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.3,
-      "priority": 75
-    },
-    "ChIJkzTPmx2XQIYR2HKIgHispig": {
-      "pool": "active",
-      "businessName": "The Lash Supply - Almeda Genoa TX",
-      "address": "10252 Almeda Genoa Rd Ste D, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75,
-      "priority": 75
-    },
-    "ChIJTTu2Y3uXQIYRB47YBEeQwMk": {
-      "pool": "active",
-      "businessName": "B & G Gulf Freeway",
-      "address": "11460 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 74.8,
-      "priority": 75
-    },
-    "ChIJT7-awduZQIYRZ_r-uiORguQ": {
-      "pool": "active",
-      "businessName": "MEDICAL REVENUE HOUSE, LLC",
-      "address": "10935 Almeda Genoa Rd #34682, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.5,
-      "priority": 76
-    },
-    "ChIJG2VxAUibQIYR4ayVbntYkiY": {
-      "pool": "active",
-      "businessName": "Exxon mechanic shop",
-      "address": "14300 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.9,
-      "priority": 87
-    },
-    "ChIJbc1LNQCXQIYR1RC6sBZ4f_s": {
-      "pool": "active",
-      "businessName": "Nexarentaris Auto Solutions",
-      "address": "10252 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89,
-      "priority": 89
-    },
-    "ChIJDQYzRCuaQIYRUB2eAX_d6Ss": {
-      "pool": "active",
-      "businessName": "Elite Auto Clinic",
-      "address": "15255 Gulf Fwy # 114F, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.3,
-      "priority": 86
-    },
-    "ChIJ7Xk3E7yZQIYRP2NJKo9Fn2Q": {
-      "pool": "active",
-      "businessName": "Sam's Mechanic Service",
-      "address": "13002 Almeda Genoa Rd, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.3,
-      "priority": 88
-    },
-    "ChIJ210tWQCXQIYR6BIlGidFukY": {
-      "pool": "active",
-      "businessName": "Velanentaris Auto Expert",
-      "address": "10090 Kleckley Dr, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.4,
-      "priority": 89
-    },
-    "ChIJi5b7NECWQIYRvwfqI8lSpks": {
-      "pool": "active",
-      "businessName": "Tristan's Auto Repair",
-      "address": "9998 Fuqua St, Houston, TX 77089, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.8,
-      "priority": 89
-    },
-    "ChIJjVAWsgCZQIYRaTx5B37C5IE": {
-      "pool": "active",
-      "businessName": "BB’s Inspections",
-      "address": "11293 Fuqua St Ste C, Houston, TX 77089, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.6,
-      "priority": 90
-    },
-    "ChIJ_zoeQtGZQIYRGFASfbCvtuA": {
-      "pool": "active",
-      "businessName": "All Road Tires & Road Service",
-      "address": "11294 Fuqua St, Houston, TX 77089, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.5,
-      "priority": 90
-    },
-    "ChIJNwsy8BSXQIYRAI_6tNaXiVg": {
-      "pool": "active",
-      "businessName": "Drive Rite Automotive",
-      "address": "9332 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 88,
-      "priority": 88
-    },
-    "ChIJ4bxB_fmZQIYR2dllTgLzYQM": {
-      "pool": "active",
-      "businessName": "Lam's Complete Auto",
-      "address": "11341 Hughes Rd, Houston, TX 77089, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.3,
-      "priority": 88
-    },
-    "ChIJX5q17eGZQIYRkCCnrr6ikk4": {
-      "pool": "active",
-      "businessName": "Automatic Transmission Center",
-      "address": "10703 Fuqua St, Houston, TX 77089, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.4,
-      "priority": 89
-    },
-    "ChIJS9lIAsiXQIYRbdm45-qM65w": {
-      "pool": "active",
-      "businessName": "Taylor Auto Express",
-      "address": "10102 Kleckley Dr, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.4,
-      "priority": 89
-    },
-    "ChIJ84naiSCaQIYRQzi-atsNW4Q": {
-      "pool": "active",
-      "businessName": "Tom's Auto Repair",
-      "address": "12470 Scarsdale Blvd, Houston, TX 77089, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 87.5,
-      "priority": 88
-    },
-    "ChIJIfd97xGXQIYRqQ70PQe8XZU": {
-      "pool": "active",
-      "businessName": "Jim's Auto Service",
-      "address": "9118 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 87.6,
-      "priority": 88
-    },
-    "ChIJZ67G3XiXQIYROkNVFezBH9U": {
-      "pool": "active",
-      "businessName": "A-1 Brake and Auto",
-      "address": "10910 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.1,
-      "priority": 88
-    },
-    "ChIJ0XEweACXQIYRvhdkRl26ebk": {
-      "pool": "active",
-      "businessName": "Nexexentaris Auto Expert",
-      "address": "10252 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89,
-      "priority": 89
-    },
-    "ChIJ--61SuCXQIYR2MPuYBN5iOA": {
-      "pool": "active",
-      "businessName": "McGee's Performance",
-      "address": "12817 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.3,
-      "priority": 89
-    },
-    "ChIJF3f9CKSZQIYRA7gtW41aykw": {
-      "pool": "active",
-      "businessName": "Bayway Kia Service Formerly Fredy Kia",
-      "address": "11711 Gulf Fwy Bldg 1, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89,
-      "priority": 89
-    },
-    "ChIJhVrfIACXQIYR5fVQz7qew70": {
-      "pool": "active",
-      "businessName": "Purerentaris AutoGlass Windshield Repairs",
-      "address": "10108 Kleckley Dr, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.4,
-      "priority": 89
-    },
-    "ChIJZ2E5zZaXQIYRYDa9otRGiCU": {
-      "pool": "active",
-      "businessName": "Gulf Freeway Auto Services",
-      "address": "1116 Pennsylvania St, South Houston, TX 77587, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.4,
-      "priority": 86
-    },
-    "ChIJUfoS596ZQIYRgRf56Ez4Usc": {
-      "pool": "active",
-      "businessName": "Vehicle Wraps",
-      "address": "12148 Gulf Fwy, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.8,
-      "priority": 90
-    },
-    "ChIJjc3ZH7SZQIYRBEOeXkVVLkA": {
-      "pool": "active",
-      "businessName": "La Familia Auto Insurance",
-      "address": "10655 Fuqua St E, Houston, TX 77089, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.4,
-      "priority": 89
-    },
-    "ChIJdyQJJ_CWQIYRX_5EAouXnqY": {
-      "pool": "active",
-      "businessName": "D&A General Auto Repair",
-      "address": "7905 Almeda Genoa Rd K, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 85.7,
-      "priority": 86
-    },
-    "ChIJZR-KXamZQIYRNU3Ka58Huc4": {
-      "pool": "active",
-      "businessName": "Auto tint",
-      "address": "11293 Fuqua St, Houston, TX 77089, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.6,
-      "priority": 90
-    },
-    "ChIJD5GD5YyXQIYRxO9bnNjQbKw": {
-      "pool": "active",
-      "businessName": "Total Dimensions",
-      "address": "12409 Almeda Genoa Rd, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.8,
-      "priority": 89
-    },
-    "ChIJVVVFgqSiQIYRnVdkGPdSOrk": {
-      "pool": "active",
-      "businessName": "Rapid Diesel Repair & Maintenance",
-      "address": "8922 Frey Rd C2, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.8,
-      "priority": 89
-    },
-    "ChIJD9lUXLmZQIYRNb1tXP0U-qs": {
-      "pool": "active",
-      "businessName": "Group 1 GMC South Service Center",
-      "address": "12820 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89,
-      "priority": 89
-    },
-    "ChIJP8GlEWCZQIYRj9SSYxXlBj0": {
-      "pool": "active",
-      "businessName": "AutoNation Ford Gulf Freeway Parts Center",
-      "address": "12227 Gulf Fwy Ste B, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.5,
-      "priority": 90
-    },
-    "ChIJm9Yw7k2XQIYRGZsZiz66YBk": {
-      "pool": "active",
-      "businessName": "Medina tire shop",
-      "address": "907 Edgebrook Dr, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 87.6,
-      "priority": 88
-    },
-    "ChIJmcIg1FeYQIYR7GchwNO1qpk": {
-      "pool": "active",
-      "businessName": "Take 5 Oil Change",
-      "address": "3930 Fairmont Pkwy, Pasadena, TX 77504, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.3,
-      "priority": 86
-    },
-    "ChIJHXoqZ4yZQIYR3tMnmxD7Cdo": {
-      "pool": "active",
-      "businessName": "AutoNation Chevrolet Gulf Freeway Service Center",
-      "address": "13800 Gulf Fwy Suite A, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.1,
-      "priority": 88
-    },
-    "ChIJT4yW59iZQIYR1X_XRXn-jQM": {
-      "pool": "active",
-      "businessName": "AutoNation Ford Gulf Freeway",
-      "address": "12227 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.8,
-      "priority": 90
-    },
-    "ChIJC2g2EdyZQIYRscyv10-3rWs": {
-      "pool": "active",
-      "businessName": "Bayway Lincoln Service Center",
-      "address": "12333 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.8,
-      "priority": 90
-    },
-    "ChIJR5kvuAGaQIYRbeP1x3tbCsI": {
-      "pool": "active",
-      "businessName": "Universal Lube & Oil - Auto Repair LLC",
-      "address": "12068 Beamer Rd, Houston, TX 77089, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 87.8,
-      "priority": 88
-    },
-    "ChIJW9N1_deZQIYROyhRGNPsD-U": {
-      "pool": "active",
-      "businessName": "AutoNation Toyota Gulf Freeway",
-      "address": "12111 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.6,
-      "priority": 90
-    },
-    "ChIJ6boecnSXQIYR8VSTIZAPeDQ": {
-      "pool": "active",
-      "businessName": "Alignments Checkpoint",
-      "address": "10423 Hartsook St, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.6,
-      "priority": 89
-    },
-    "ChIJNfkIbLWXQIYRj6-jothhvuU": {
-      "pool": "active",
-      "businessName": "Lynx Automotive Mobile Mechanic",
-      "address": "9401 Fuqua St, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.1,
-      "priority": 88
-    },
-    "ChIJWQqTFPiYQIYRHS8qGqfnHxE": {
-      "pool": "active",
-      "businessName": "Jiffy Lube Oil Change",
-      "address": "3939 Burke Rd, Pasadena, TX 77504, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.2,
-      "priority": 86
-    },
-    "ChIJwRnXQRiYQIYRLn87L7u-mNU": {
-      "pool": "active",
-      "businessName": "Po Panha Fast Lube",
-      "address": "1013 Spencer Hwy, South Houston, TX 77587, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.2,
-      "priority": 86
-    },
-    "ChIJ1x-0nbGZQIYRMBYpBhnmwDg": {
-      "pool": "active",
-      "businessName": "Volvo Cars Clear Lake",
-      "address": "12353 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.8,
-      "priority": 90
-    },
-    "ChIJiduac7LCQIYR-sGBtIAjKR0": {
-      "pool": "active",
-      "businessName": "Christian Brothers Automotive Pearland",
-      "address": "9245 S Sam Houston Pkwy E, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 87.4,
-      "priority": 87
-    },
-    "ChIJWz2HUxabQIYR7FN6Vk_s_RA": {
-      "pool": "active",
-      "businessName": "Vela Tire Shop",
-      "address": "12330 Scarsdale Blvd, Houston, TX 77089, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 87.4,
-      "priority": 87
-    },
-    "ChIJNRUkOHqXQIYRhg7fB2Iu9MQ": {
-      "pool": "active",
-      "businessName": "Service Department at Big Star Honda",
-      "address": "11200 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.6,
-      "priority": 89
-    },
-    "ChIJ408BdA2XQIYRkmWY7TOPyz4": {
-      "pool": "active",
-      "businessName": "Tidal Wave Auto Spa | Car Wash",
-      "address": "11540 Pearland Pkwy, Houston, TX 77089, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.3,
-      "priority": 86
-    },
-    "ChIJBedCxYWZQIYRcS5TCOsZBJQ": {
-      "pool": "active",
-      "businessName": "Walter’s Hand Car Wash",
-      "address": "11912 Galveston Rd, Houston, TX 77034, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.4,
-      "priority": 86
-    },
-    "ChIJN3yHNOOXQIYR_tFeP25rgWU": {
-      "pool": "active",
-      "businessName": "Houston Car Wash and Detailing",
-      "address": "1001 College Ave, South Houston, TX 77587, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.4,
-      "priority": 86
-    },
-    "ChIJdx0N8ESXQIYR7XkH6myTq74": {
-      "pool": "active",
-      "businessName": "KADOSH mobile wash and detailing",
-      "address": "10823 Nellsfield Ln, Houston, TX 77075, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 87.4,
-      "priority": 87
-    },
-    "ChIJ3YpJLzyYQIYRwzrlkiR0Ai8": {
-      "pool": "active",
-      "businessName": "Carwash",
-      "address": "1408 Avenue H, South Houston, TX 77587, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.5,
-      "priority": 87
-    },
-    "ChIJIf77yBiYQIYRs6ri_bMBi-M": {
-      "pool": "active",
-      "businessName": "Sunrise Hand Car Wash",
-      "address": "811 Spencer Hwy, South Houston, TX 77587, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.2,
-      "priority": 86
-    },
-    "ChIJNWgVc9yZQIYRSPqsveGjNf8": {
-      "pool": "active",
-      "businessName": "Valero",
-      "address": "11211 Almeda Genoa Rd, Houston, TX 77034, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.6,
-      "priority": 90
-    },
-    "ChIJe25sbZSXQIYRIUpfq30rAgo": {
-      "pool": "active",
-      "businessName": "Brother's Hand Car Wash",
-      "address": "south 77587, 1107 College Ave, South Houston, TX 77587, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.4,
-      "priority": 86
-    },
-    "ChIJG4nWySKXQIYRFP24b5TZ3Vs": {
-      "pool": "active",
-      "businessName": "Nino's Auto Detailing- Ceramic coatings and Paint Corrections",
-      "address": "9822 Radio Rd, Houston, TX 77075, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 87.5,
-      "priority": 88
-    },
-    "ChIJ15Xh8zWXQIYRxLDRM52CeF4": {
-      "pool": "active",
-      "businessName": "Kings Mobile Car Detailing",
-      "address": "10030 Blackhawk Blvd Suite 015, Houston, TX 77089, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 87.5,
-      "priority": 88
-    },
-    "ChIJG7HiZLOZQIYRESARsfH80GE": {
-      "pool": "active",
-      "businessName": "Space City Auto Detail",
-      "address": "11106 Sageriver Dr, Houston, TX 77089, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.1,
-      "priority": 88
-    },
-    "ChIJ7-tr_bClQIYRoUcH_fYMFvM": {
-      "pool": "active",
-      "businessName": "Ceramic Enthusiasts",
-      "address": "11826 Beachberry Dr, Houston, TX 77034, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 89,
-      "priority": 89
-    },
-    "ChIJAVotoYmZQIYRXoCUKukwa3c": {
-      "pool": "active",
-      "businessName": "Shell",
-      "address": "14304 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 87.6,
-      "priority": 88
-    },
-    "ChIJmxxg8YyXQIYRBB9lruGOpSA": {
-      "pool": "active",
-      "businessName": "Monsoon's Car Wash",
-      "address": "510 Missouri St, South Houston, TX 77587, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 86.5,
-      "priority": 87
-    },
-    "ChIJM34mkuGZQIYRrMDpkli7wjM": {
-      "pool": "active",
-      "businessName": "Pilgrim Cleaners",
-      "address": "10611 Fuqua St, Houston, TX 77089, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.4,
-      "priority": 89
-    },
-    "ChIJT4yW59iZQIYRT72OtY1sWBk": {
-      "pool": "active",
-      "businessName": "Bath & Body Works",
-      "address": "12200 Gulf Fwy, Houston, TX 77075, USA",
-      "category": "Car Wash",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.5,
-      "priority": 90
-    },
-    "ChIJ3ZJ0msOXQIYRSzlgbrhwCxU": {
-      "pool": "active",
-      "businessName": "Halal Shawarma ( HALA )",
-      "address": "11400 Gulf Fwy Ste G1, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 78.7,
-      "priority": 79
-    },
-    "ChIJH2Y2qOOZQIYRK_LHkMWWZlM": {
-      "pool": "active",
-      "businessName": "Antojitos La Paisa",
-      "address": "9112 N Broadway Ste 2, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.2,
-      "priority": 79
-    },
-    "ChIJl2p8GA6XQIYRH3jwt9ACUEU": {
-      "pool": "active",
-      "businessName": "Pochitos Mariscos y Mas",
-      "address": "11130 Gulf Fwy #900, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 78.4,
-      "priority": 78
-    },
-    "ChIJw-52yrqXQIYR1Kt-BZk98Mc": {
-      "pool": "active",
-      "businessName": "Taqueria El Rincon de Jalisco 2",
-      "address": "11550 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 78.9,
-      "priority": 79
-    },
-    "ChIJv6EmTUSXQIYRSqCw4kPut2M": {
-      "pool": "active",
-      "businessName": "Wild Peckers",
-      "address": "12200 Gulf Fwy, Houston, TX 77075, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.4,
-      "priority": 79
-    },
-    "ChIJbxa9ewCXQIYRrOp_algclEw": {
-      "pool": "active",
-      "businessName": "Hot dog guy",
-      "address": "10126 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 78.8,
-      "priority": 79
-    },
-    "ChIJJRP3NXGZQIYRwYC1PgNPiZE": {
-      "pool": "active",
-      "businessName": "Fuca",
-      "address": "11460 Fuqua St, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.5,
-      "priority": 80
-    },
-    "ChIJv0BmY-iZQIYR9XaRELLpjkw": {
-      "pool": "active",
-      "businessName": "Bun Bo Hue Duc Chuong 3",
-      "address": "12804 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.4,
-      "priority": 79
-    },
-    "ChIJCacE0buXQIYRkwVfX3EkR9A": {
-      "pool": "active",
-      "businessName": "The Bistro - Eat. Drink. Connect.®",
-      "address": "9190 Gulf Fwy, Houston, TX 77017, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 76.2,
-      "priority": 76
-    },
-    "ChIJgf7Rj8KZQIYRZ1Ie9P9yCR4": {
-      "pool": "active",
-      "businessName": "Luby's",
-      "address": "11595 Fuqua St, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.4,
-      "priority": 79
-    },
-    "ChIJ_bhF_-aZQIYRVkDjE3qhFsQ": {
-      "pool": "active",
-      "businessName": "China King",
-      "address": "11261 Fuqua St, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.6,
-      "priority": 80
-    },
-    "ChIJGwjdbB6ZQIYRRhw76TUnN_4": {
-      "pool": "active",
-      "businessName": "Rincón Mexicano",
-      "address": "11460 Fuqua St #500, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.5,
-      "priority": 80
-    },
-    "ChIJjRClSHuZQIYRtF8e_W0g4VU": {
-      "pool": "active",
-      "businessName": "The Famous Crab",
-      "address": "12130 Dickinson Rd, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 78.6,
-      "priority": 79
-    },
-    "ChIJJZUBCemZQIYRRqsJEg5bvU4": {
-      "pool": "active",
-      "businessName": "Chili's Grill & Bar",
-      "address": "12897 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.3,
-      "priority": 79
-    },
-    "ChIJa5TLQOGZQIYR3EZwdXH9Gjk": {
-      "pool": "active",
-      "businessName": "Pho 21,Fuqua St. Paul",
-      "address": "11005 Fuqua St Ste 110, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.5,
-      "priority": 80
-    },
-    "ChIJBVBUL9mZQIYRA2_npJzDh94": {
-      "pool": "active",
-      "businessName": "Lone Star Seafood",
-      "address": "10990 Fuqua St, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.3,
-      "priority": 79
-    },
-    "ChIJ9zxsR-GZQIYRWnU_N6h-FxM": {
-      "pool": "active",
-      "businessName": "7Spice",
-      "address": "11013 Fuqua St, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.5,
-      "priority": 80
-    },
-    "ChIJJWwrYuCXQIYRkx8ndteGa2E": {
-      "pool": "active",
-      "businessName": "Los Catrachos",
-      "address": "9990 Kleckley Dr Ste H, Houston, TX 77075, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.3,
-      "priority": 79
-    },
-    "ChIJeYRxGmKXQIYR8o50RVlPFqI": {
-      "pool": "active",
-      "businessName": "Krispy Krunchy Chicken",
-      "address": "475 Almeda Genoa Rd, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.4,
-      "priority": 79
-    },
-    "ChIJsX0Dar-XQIYRhpMkxCq_i5k": {
-      "pool": "active",
-      "businessName": "La Carreta Restaurante",
-      "address": "7721 Almeda Genoa Rd suit c, Houston, TX 77075, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 75.6,
-      "priority": 76
-    },
-    "ChIJ03Iq3emZQIYRFqH6Aw05bqo": {
-      "pool": "active",
-      "businessName": "Schlotzsky's Deli",
-      "address": "12720 Featherwood Dr, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.4,
-      "priority": 79
-    },
-    "ChIJNVwxzoyZQIYRhshbEY-p9_U": {
-      "pool": "active",
-      "businessName": "Texas Grill 49",
-      "address": "12075 Beamer Rd Unit 107, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 77.8,
-      "priority": 78
-    },
-    "ChIJp5cys3yXQIYRWGJA2RDc5NY": {
-      "pool": "active",
-      "businessName": "Pollo Campero",
-      "address": "11570 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79,
-      "priority": 79
-    },
-    "ChIJIz3I8YGXQIYR9MAt8Z92GaI": {
-      "pool": "active",
-      "businessName": "Pho Bac | Vietnamese Noodle House",
-      "address": "10733 Kingspoint Rd Suite B, Houston, TX 77075, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.4,
-      "priority": 79
-    },
-    "ChIJj45AiGyXQIYRWAsgmMUUmVI": {
-      "pool": "active",
-      "businessName": "El Oregano Restaurant",
-      "address": "9910 Fuqua St C, Houston, TX 77075, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 78.7,
-      "priority": 79
-    },
-    "ChIJQ-kvogCXQIYRtHz9mdGqElg": {
-      "pool": "active",
-      "businessName": "Canh Bun Houston",
-      "address": "9970 Kleckley Dr, Houston, TX 77075, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.3,
-      "priority": 79
-    },
-    "ChIJyV-7e7mZQIYRTZQLrZKbO_M": {
-      "pool": "active",
-      "businessName": "La Panga De Mejj",
-      "address": "9514 Galveston Rd, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 78.3,
-      "priority": 78
-    },
-    "ChIJPw50SOiZQIYR7MqKps8MzJQ": {
-      "pool": "active",
-      "businessName": "Olive Garden Italian Restaurant",
-      "address": "12711 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.4,
-      "priority": 79
-    },
-    "ChIJraCPnBWXQIYR32Q8i6aQBMw": {
-      "pool": "active",
-      "businessName": "Cơm Gà Houston South 45",
-      "address": "10733 Kingspoint Rd, Houston, TX 77075, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.4,
-      "priority": 79
-    },
-    "ChIJC8eiLBOZQIYRh2AyuPl9cD8": {
-      "pool": "active",
-      "businessName": "Wok D'Lite",
-      "address": "Parking lot, 10904 Fuqua St, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.3,
-      "priority": 79
-    },
-    "ChIJwWcOmp-ZQIYRLeV6ic_OJzU": {
-      "pool": "active",
-      "businessName": "Edo Japan",
-      "address": "11460 Fuqua St #900, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.4,
-      "priority": 79
-    },
-    "ChIJdwE6rWGZQIYRWZ3WgsHVaHc": {
-      "pool": "active",
-      "businessName": "The Tea Bar",
-      "address": "11009 1/2 Fuqua St, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.5,
-      "priority": 80
-    },
-    "ChIJo40id2GXQIYRZD5QJTkWJlw": {
-      "pool": "active",
-      "businessName": "Rey del Pollo",
-      "address": "10092 Kleckley Dr, Houston, TX 77075, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.4,
-      "priority": 79
-    },
-    "ChIJpyLNheGZQIYRAHrGG7frsY0": {
-      "pool": "active",
-      "businessName": "Bravos Mexican restaurant",
-      "address": "10906 Fuqua St, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.4,
-      "priority": 79
-    },
-    "ChIJrzwXg-GZQIYRdk9DizYw6JQ": {
-      "pool": "active",
-      "businessName": "Timeout #1 Sports Bar & Grill",
-      "address": "11460 Fuqua St, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.5,
-      "priority": 80
-    },
-    "ChIJV3MAdYuXQIYR2Ru6lHxw_fA": {
-      "pool": "active",
-      "businessName": "The Club House Studios",
-      "address": "11427 Hall Rd, Houston, TX 77089, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 94.1,
-      "priority": 94
-    },
-    "ChIJmU_cLhWXQIYRFZfqRjUNwMA": {
-      "pool": "active",
-      "businessName": "D’ Barber Haus- Fades.beards.Grooming",
-      "address": "10733 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 93.8,
-      "priority": 94
-    },
-    "ChIJexwRoQ-bQIYR9k07z4Vwsl4": {
-      "pool": "active",
-      "businessName": "American Hairlines Barbershop",
-      "address": "11504 Hughes Rd, Houston, TX 77089, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 94.3,
-      "priority": 94
-    },
-    "ChIJc1drI12XQIYRCg-MmaMX0io": {
-      "pool": "active",
-      "businessName": "Fade Factory Barbershop",
-      "address": "8529 Gulf Fwy, Houston, TX 77017, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 91,
-      "priority": 91
-    },
-    "ChIJVVndKDSXQIYR8xprR6X1bP4": {
-      "pool": "active",
-      "businessName": "D’Robert Barber Shop",
-      "address": "8330 Gulf Fwy, Houston, TX 77017, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 90.1,
-      "priority": 90
-    },
-    "ChIJQYn6Xh6XQIYRSQ5iOWNxfls": {
-      "pool": "active",
-      "businessName": "Montano’s barber shop # 2",
-      "address": "8500 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 92.8,
-      "priority": 93
-    },
-    "ChIJ3wW6eqGXQIYR0rrJWECHDOQ": {
-      "pool": "active",
-      "businessName": "Space City Barber Studio",
-      "address": "8018 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 92,
-      "priority": 92
-    },
-    "ChIJxW4MMACXQIYRyF5nM67hml0": {
-      "pool": "active",
-      "businessName": "Hamza’s Barbershop",
-      "address": "8902 Durham Manor Ln, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 93,
-      "priority": 93
-    },
-    "ChIJUT8-UQCXQIYRD3qaAdVntis": {
-      "pool": "active",
-      "businessName": "💈Esplendor💈",
-      "address": "1030 Edgebrook Dr, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 93.7,
-      "priority": 94
-    },
-    "ChIJx1VgCB2ZQIYRd7NBuxB1CxI": {
-      "pool": "active",
-      "businessName": "Jennis Barbershop",
-      "address": "2705 Shaver St, Pasadena, TX 77502, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.6,
-      "priority": 92
-    },
-    "ChIJ964x1WmZQIYRc1UvkXV2Y80": {
-      "pool": "active",
-      "businessName": "A&C Barbershop",
-      "address": "3527 Shaver St Ste 103, Pasadena, TX 77504, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 92.6,
-      "priority": 93
-    },
-    "ChIJe8M2PlqXQIYRG7eykLJe0po": {
-      "pool": "active",
-      "businessName": "D'RICO VIP BARBER SHOP",
-      "address": "9340 Fuqua St Ste A, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 93.8,
-      "priority": 94
-    },
-    "ChIJw-mwaEOXQIYRFZQ7tWUt-mA": {
-      "pool": "active",
-      "businessName": "M W Exclusive Hair Salon",
-      "address": "9967 Fuqua St, Houston, TX 77075, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 90.8,
-      "priority": 91
-    },
-    "ChIJj4lxeEOXQIYRJHCvVRN0OQc": {
-      "pool": "active",
-      "businessName": "ABA Salons",
-      "address": "9910 Fuqua St f, Houston, TX 77075, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 90.7,
-      "priority": 91
-    },
-    "ChIJCaPErdmXQIYRRqKYf7UwTJM": {
-      "pool": "active",
-      "businessName": "New Looks Salon",
-      "address": "9820 Gulf Fwy #C2, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 92.6,
-      "priority": 93
-    },
-    "ChIJg3gZd0OXQIYR0L0DRHiLtA4": {
-      "pool": "active",
-      "businessName": "Gigi's Hair Salon",
-      "address": "9855 Fuqua St, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 94.6,
-      "priority": 95
-    },
-    "ChIJN_7LWASZQIYRwxlRs22Uum4": {
-      "pool": "active",
-      "businessName": "Shades by Esme",
-      "address": "12875 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 95.2,
-      "priority": 95
-    },
-    "ChIJAUhwgVaZQIYRljWYRHv1fA4": {
-      "pool": "active",
-      "businessName": "Lash Chance",
-      "address": "12200 Gulf Fwy Ste 730, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.5,
-      "priority": 92
-    },
-    "ChIJAwxXEueXQIYR9CX0sAFfjmM": {
-      "pool": "active",
-      "businessName": "Hair by David",
-      "address": "1050 Edgebrook Dr, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 93.7,
-      "priority": 94
-    },
-    "ChIJ8wHj9kSZQIYRShEClIzydFo": {
-      "pool": "active",
-      "businessName": "TipsNdBlinks",
-      "address": "12260 Gulf Fwy a3, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.9,
-      "priority": 92
-    },
-    "ChIJ_Tkcat-ZQIYRQhzG5dXIHY0": {
-      "pool": "active",
-      "businessName": "Makeup & More",
-      "address": "12200 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.5,
-      "priority": 92
-    },
-    "ChIJE_qeXjmZQIYRuCgChjGMul0": {
-      "pool": "active",
-      "businessName": "Luxe Beauty Barre| Wellness, Aesthetics, Weight Loss",
-      "address": "12132 Sabo Rd, Houston, TX 77089, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 90.6,
-      "priority": 91
-    },
-    "ChIJAegWAy-YQIYRhl83za3u0ZA": {
-      "pool": "active",
-      "businessName": "D & T Beauty Salon",
-      "address": "99 E Edgebrook Dr, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.5,
-      "priority": 90
-    },
-    "ChIJb_Ij0wGaQIYRbrL-jm4Uhww": {
-      "pool": "active",
-      "businessName": "Hair By Angel salon",
-      "address": "12035 Beamer Rd, Houston, TX 77089, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.8,
-      "priority": 90
-    },
-    "ChIJWQVQdpebQIYRDhVTnr57TgU": {
-      "pool": "active",
-      "businessName": "Bossway Hair",
-      "address": "11045 Fuqua St, Houston, TX 77089, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.6,
-      "priority": 92
-    },
-    "ChIJjYz2c6uXQIYRs34L17Mo9ZU": {
-      "pool": "active",
-      "businessName": "Miracle Organics, LLC",
-      "address": "10121 Windmill Lakes Blvd, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 94.8,
-      "priority": 95
-    },
-    "ChIJI-F3g8CbQIYRcvvWKQjZ4aY": {
-      "pool": "active",
-      "businessName": "Yobe Salon",
-      "address": "10939 Scarsdale Blvd, Houston, TX 77089, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.2,
-      "priority": 89
-    },
-    "ChIJuw5Wwy-YQIYRBy5T-K-U3Uk": {
-      "pool": "active",
-      "businessName": "Happy Cut Beauty Salon",
-      "address": "125 E Edgebrook Dr, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.4,
-      "priority": 89
-    },
-    "ChIJZcBaQXuXQIYRV3wlXHCc0N4": {
-      "pool": "active",
-      "businessName": "Foxx beauty supply",
-      "address": "11510 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 90.8,
-      "priority": 91
-    },
-    "ChIJZ1srFvqXQIYR1nJce5aeUQY": {
-      "pool": "active",
-      "businessName": "Payse African Hair Braiding LLC",
-      "address": "10150 Almeda Genoa Rd Ste . E, Houston, TX 77075, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 94.9,
-      "priority": 95
-    },
-    "ChIJU-LHYIOXQIYR94wV1p14Gt0": {
-      "pool": "active",
-      "businessName": "Hilby's Fade Beauty Salon",
-      "address": "914 Edgebrook Dr, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.7,
-      "priority": 90
-    },
-    "ChIJ5wxWb4OXQIYRSOY0VzSbty8": {
-      "pool": "active",
-      "businessName": "Hanna Salon",
-      "address": "914 Edgebrook Dr, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.7,
-      "priority": 90
-    },
-    "ChIJY5XYTH-XQIYRau-N-OqLAg0": {
-      "pool": "active",
-      "businessName": "CutLuna",
-      "address": "10910 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 94,
-      "priority": 94
-    },
-    "ChIJua3nNHaXQIYRyAsSDbuTNco": {
-      "pool": "active",
-      "businessName": "Armstrong McCall Beauty Supply",
-      "address": "10759 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.8,
-      "priority": 90
-    },
-    "ChIJHx40h1aXQIYRNREN9WdYG_U": {
-      "pool": "active",
-      "businessName": "Tx Hair Fashions",
-      "address": "10859 Kirkfair Dr, Houston, TX 77089, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 94.3,
-      "priority": 94
-    },
-    "ChIJk-9b1RybQIYRoURJTpMoORM": {
-      "pool": "active",
-      "businessName": "BEAUTY LAB",
-      "address": "12555A Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.5,
-      "priority": 92
-    },
-    "ChIJjU4pyX2ZQIYRKbQjIIC9oGU": {
-      "pool": "active",
-      "businessName": "Galaxy Beauty Salon & Spa",
-      "address": "364 FM1959, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.4,
-      "priority": 88
-    },
-    "ChIJGU-97BqaQIYRrcNhETqCE1w": {
-      "pool": "active",
-      "businessName": "Hair Etc by Bobo",
-      "address": "10851 Scarsdale Blvd #640, Houston, TX 77089, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.1,
-      "priority": 89
-    },
-    "ChIJT2bVquKWQIYR4l1Oh8cBqec": {
-      "pool": "active",
-      "businessName": "N & Y",
-      "address": "8405 Almeda Genoa Rd # L, Houston, TX 77075, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 88.6,
-      "priority": 89
-    },
-    "ChIJJ5z-UOiZQIYRwrfHYUg0DwM": {
-      "pool": "active",
-      "businessName": "TEXAN NAILS SPA",
-      "address": "12859 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.2,
-      "priority": 91
-    },
-    "ChIJCe4DawCZQIYRMwubMJVys1o": {
-      "pool": "active",
-      "businessName": "Botax",
-      "address": "10909 Sabo Rd #214, Houston, TX 77089, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.4,
-      "priority": 91
-    },
-    "ChIJc7enc7CZQIYRSFNExbNUQcw": {
-      "pool": "active",
-      "businessName": "LUXURIOUS BY VALERIE",
-      "address": "10909 Sabo Rd #214, Houston, TX 77089, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 91.4,
-      "priority": 91
-    },
-    "ChIJdb31ZYqZQIYRR-qOqKAU7qk": {
-      "pool": "active",
-      "businessName": "Hollywood Hair & Nail",
-      "address": "12507 Scarsdale Blvd A, Houston, TX 77089, USA",
-      "category": "Salon",
-      "qualityClass": "Excellent",
-      "qualityScore": 89.6,
-      "priority": 90
-    },
-    "ChIJ_SN-8suZQIYRMvP-wvzJKbw": {
-      "pool": "active",
-      "businessName": "Coffee & I",
-      "address": "12344 Gulf Fwy Ste Q, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Good",
-      "qualityScore": 79.9,
-      "priority": 80
-    },
-    "ChIJiTmi7GaXQIYRKnQpVLlqfro": {
-      "pool": "active",
-      "businessName": "Telephone Pawn",
-      "address": "10855 Telephone Rd, Houston, TX 77075, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 79.3,
-      "priority": 79
-    },
-    "ChIJBRrygR-aQIYRIdHYOsFfLXE": {
-      "pool": "active",
-      "businessName": "J & E'S Pawn Shop",
-      "address": "12303 Scarsdale Blvd B, Houston, TX 77089, USA",
-      "category": "Small Retail",
-      "qualityClass": "Good",
-      "qualityScore": 81.5,
-      "priority": 82
-    },
-    "ChIJL-_gRGOXQIYRzUCVTm6Gpl0": {
-      "pool": "active",
-      "businessName": "X- WIRELESS",
-      "address": "10252 Almeda Genoa Rd Ste A, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75,
-      "priority": 75
-    },
-    "ChIJ_3SPwduZQIYRQS6okCxagnE": {
-      "pool": "active",
-      "businessName": "United States Postal Service",
-      "address": "10935 Almeda Genoa Rd, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.5,
-      "priority": 76
-    },
-    "ChIJU1n0koCXQIYR-LG-bEvL3a0": {
-      "pool": "active",
-      "businessName": "Harbor Freight",
-      "address": "10045 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 74.7,
-      "priority": 75
-    },
-    "ChIJ6TfkwtmZQIYRCGAYCk-W8sU": {
-      "pool": "active",
-      "businessName": "B&L Lock And Safe",
-      "address": "10638 Almeda Genoa Rd, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.3,
-      "priority": 75
-    },
-    "ChIJxXCCMCibQIYRgAMFLdK49fg": {
-      "pool": "active",
-      "businessName": "Mobile Notary Services",
-      "address": "12138 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.8,
-      "priority": 76
-    },
-    "ChIJ_eP7lpiXQIYRgrKvjPBP5gQ": {
-      "pool": "active",
-      "businessName": "Kikas Artesanal",
-      "address": "10252 Almeda Genoa Rd Ste E, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75,
-      "priority": 75
-    },
-    "ChIJFfRA0t6ZQIYRxk7YPCnC5xw": {
-      "pool": "active",
-      "businessName": "On The Go Grafix Signs",
-      "address": "12170 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.8,
-      "priority": 76
-    },
-    "ChIJVVVVEWKXQIYRHSpaEBdcfLQ": {
-      "pool": "active",
-      "businessName": "PARKWAY STUDIOS",
-      "address": "12200 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.4,
-      "priority": 75
-    },
-    "ChIJVVVVwr6ZQIYRmwj1hIig89U": {
-      "pool": "active",
-      "businessName": "Genoa Staff Development Center",
-      "address": "12900 Almeda Genoa Rd, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 74.6,
-      "priority": 75
-    },
-    "ChIJY-XHyfxhP4YRA3SzntPGSKQ": {
-      "pool": "active",
-      "businessName": "KT BEAUTY BOOM",
-      "address": "12200 Gulf Fwy Ste 432, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.4,
-      "priority": 75
-    },
-    "ChIJseHmRGOXQIYRUGVRkovThHs": {
-      "pool": "active",
-      "businessName": "L.A. Insurance",
-      "address": "10252 Almeda Genoa Rd Ste C, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75,
-      "priority": 75
-    },
-    "ChIJcXURt3uXQIYRs2QDJq1yxuc": {
-      "pool": "active",
-      "businessName": "Cavco Home Center",
-      "address": "11305 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 74.7,
-      "priority": 75
-    },
-    "ChIJZwHSxGOXQIYRLlTISxqyy3E": {
-      "pool": "active",
-      "businessName": "Game Posh",
-      "address": "9990 Kleckley Dr, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.3,
-      "priority": 75
-    },
-    "ChIJ964Pl9mZQIYRPGeoMgV2QkE": {
-      "pool": "active",
-      "businessName": "Carbide Grinding",
-      "address": "9317 Gamebird Ln, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.4,
-      "priority": 75
-    },
-    "ChIJA7AXVmSXQIYRNMN-76qoTMU": {
-      "pool": "active",
-      "businessName": "Small Town Storage",
-      "address": "9900 Rowlett Rd, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 74.9,
-      "priority": 75
-    },
-    "ChIJ7w0QOuGZQIYRWqzmIjvCo3M": {
-      "pool": "active",
-      "businessName": "Southview Square",
-      "address": "11005 Fuqua St, Houston, TX 77089, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.5,
-      "priority": 76
-    },
-    "ChIJNXKBGd-XQIYRRwzXJtUVr8g": {
-      "pool": "active",
-      "businessName": "Wedding Venues Arellano Palace Salones de Fiesta",
-      "address": "9823 Rowlett Rd, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75,
-      "priority": 75
-    },
-    "ChIJ_Tkcat-ZQIYR_Qd07sSrefo": {
-      "pool": "active",
-      "businessName": "Lady World",
-      "address": "12200 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.4,
-      "priority": 75
-    },
-    "ChIJ-XgfVheXQIYR3ZePVXNjjig": {
-      "pool": "active",
-      "businessName": "Southeast Houston Auto Storage",
-      "address": "9939 Rowlett Rd, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75,
-      "priority": 75
-    },
-    "ChIJ-adg7WCXQIYR4Ahl4xZpgzw": {
-      "pool": "active",
-      "businessName": "Kingspoint Mart",
-      "address": "10640 Kingspoint Rd, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Good",
-      "qualityScore": 75.4,
-      "priority": 75
-    },
     "ChIJsSHWVgCZQIYRtldNk9VaA08": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "Parc At South Green",
       "address": "12303 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Apartment",
@@ -2691,7 +720,7 @@
       "priority": 58
     },
     "ChIJ--7Ksd-ZQIYRxNrP4dxKM04": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "Almeda Park Apartments",
       "address": "10950 Tanner Park Ct, Houston, TX 77075, USA",
       "category": "Apartment",
@@ -2700,7 +729,7 @@
       "priority": 58
     },
     "ChIJXbjE6dyZQIYRNOqE_jx8rtc": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "Parc at South Green",
       "address": "12510 S Green Dr, Houston, TX 77034, USA",
       "category": "Apartment",
@@ -2709,7 +738,7 @@
       "priority": 58
     },
     "ChIJXX61U-CZQIYRHPBOvkK7mkg": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "Sabo Village",
       "address": "10701 Sabo Rd, Houston, TX 77089, USA",
       "category": "Apartment",
@@ -2718,7 +747,7 @@
       "priority": 58
     },
     "ChIJQzns05mZQIYRfFsu2XHBR_k": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "Lenox Park Apartments",
       "address": "12601 S Green Dr, Houston, TX 77034, USA",
       "category": "Apartment",
@@ -2727,7 +756,7 @@
       "priority": 58
     },
     "ChIJyclcb-CZQIYRCYJsVdGi2Bk": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "Green Arbor Apartments",
       "address": "10601 Sabo Rd, Houston, TX 77089, USA",
       "category": "Apartment",
@@ -2736,7 +765,7 @@
       "priority": 58
     },
     "ChIJtYz5yu-ZQIYRbXgjsscutLg": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "Montelago Apartments",
       "address": "11881 Gulf Pointe Dr, Houston, TX 77089, USA",
       "category": "Apartment",
@@ -2745,7 +774,7 @@
       "priority": 57
     },
     "ChIJl9wc9OGZQIYRSpncszmjTRE": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "Sage Hollow Apartments",
       "address": "10700 Fuqua St, Houston, TX 77089, USA",
       "category": "Apartment",
@@ -2754,7 +783,7 @@
       "priority": 57
     },
     "ChIJP1IJjsGZQIYRZf6tvoodIc4": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "The Domain at Ellington",
       "address": "11700 Fuqua St, Houston, TX 77034, USA",
       "category": "Apartment",
@@ -2763,7 +792,7 @@
       "priority": 57
     },
     "ChIJVRNKuXmXQIYRY8PJPj-uggw": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "Del Mar Apartments",
       "address": "10909 Gulf Fwy, Houston, TX 77034, USA",
       "category": "Apartment",
@@ -2772,7 +801,7 @@
       "priority": 56
     },
     "ChIJ1SBWpSyZQIYRPMTwxCQc3-Q": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "Settlers Ranch",
       "address": "11144 Fuqua St, Houston, TX 77089, USA",
       "category": "Apartment",
@@ -2781,7 +810,7 @@
       "priority": 57
     },
     "ChIJ-zpzPfCZQIYRA-cR5HVCFqo": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "Carrington Park At Gulf Pointe",
       "address": "11666 Gulf Pointe Dr, Houston, TX 77089, USA",
       "category": "Apartment",
@@ -2790,292 +819,13 @@
       "priority": 57
     },
     "ChIJ2eXnwP6XQIYRVTq_9R-TPcI": {
-      "pool": "reserve",
+      "pool": "quarantine",
       "businessName": "Thrive Almeda Genoa",
       "address": "10100 Almeda Genoa Rd, Houston, TX 77075, USA",
       "category": "Apartment",
       "qualityClass": "Poor",
       "qualityScore": 56.8,
       "priority": 57
-    },
-    "ChIJ6UPMER-ZQIYR-7SYI-ZHrnM": {
-      "pool": "reserve",
-      "businessName": "Texas Made Income Tax and Notary, Insurance, Real Estate",
-      "address": "12260 Gulf Fwy Ste B4, Houston, TX 77034, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 63.9,
-      "priority": 64
-    },
-    "ChIJr2TqFZyZQIYR11m_qFMRqxg": {
-      "pool": "reserve",
-      "businessName": "Apoyo Multiservices",
-      "address": "12138 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 63.8,
-      "priority": 64
-    },
-    "ChIJHYZbUOiZQIYR6AKiRujdH2o": {
-      "pool": "reserve",
-      "businessName": "Mc Carley's Tax & Financial",
-      "address": "12865 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 63.2,
-      "priority": 63
-    },
-    "ChIJMW5YDCiZQIYRvgNezLPOzIo": {
-      "pool": "reserve",
-      "businessName": "CL TAX SERVICES LLC",
-      "address": "11550 Fuqua St Ste 350, Houston, TX 77034, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 63.4,
-      "priority": 63
-    },
-    "ChIJI841TwOZQIYRaZKYjZ187QU": {
-      "pool": "reserve",
-      "businessName": "Proficient Tax Group",
-      "address": "11665 Fuqua St Ste F600, Houston, TX 77034, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 63.2,
-      "priority": 63
-    },
-    "ChIJtST-VOaXQIYRjzBjdVUVLPI": {
-      "pool": "reserve",
-      "businessName": "SRG Tax Services",
-      "address": "10596 Fuqua St, Houston, TX 77089, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 63.2,
-      "priority": 63
-    },
-    "ChIJ0b330gGaQIYROiv0rrGGx4w": {
-      "pool": "reserve",
-      "businessName": "Express Tax Services",
-      "address": "12039 Beamer Rd, Houston, TX 77089, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 61.8,
-      "priority": 62
-    },
-    "ChIJGdiUOCiZQIYRAPILZxNMIqU": {
-      "pool": "reserve",
-      "businessName": "MavCo Income Tax & Multi-Service",
-      "address": "12132 Sabo Rd # F1, Houston, TX 77089, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 62.6,
-      "priority": 63
-    },
-    "ChIJ_cUcfnqXQIYREtGFrdTkqyA": {
-      "pool": "reserve",
-      "businessName": "Jackson Hewitt Tax Service",
-      "address": "9598 Rowlett Rd, Houston, TX 77075, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 62.6,
-      "priority": 63
-    },
-    "ChIJHRGBJx2XQIYRdJBP9pKiBPc": {
-      "pool": "reserve",
-      "businessName": "Fiesta Auto Insurance & Tax Service",
-      "address": "8500 Almeda Genoa Rd Ste 108, Houston, TX 77075, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 60.8,
-      "priority": 61
-    },
-    "ChIJbcxYBf6ZQIYRGECq_oyr0qA": {
-      "pool": "reserve",
-      "businessName": "Jackson Hewitt Tax Service",
-      "address": "10918 Fuqua St Suite 6, Houston, TX 77089, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 63.3,
-      "priority": 63
-    },
-    "ChIJPfvdmDeYQIYRChuC-tUV7U4": {
-      "pool": "reserve",
-      "businessName": "Fiesta Tax Services",
-      "address": "3908 S Shaver St, Houston, TX 77034, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 61.2,
-      "priority": 61
-    },
-    "ChIJYZpBd2GXQIYRar1TLNsRs_Q": {
-      "pool": "reserve",
-      "businessName": "Colbert/Ball Tax Services",
-      "address": "10080 Kleckley Dr, Houston, TX 77075, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 63.4,
-      "priority": 63
-    },
-    "ChIJ12MB9OaZQIYRZMP_cv46dYU": {
-      "pool": "reserve",
-      "businessName": "Bayou City Property Tax",
-      "address": "11200 Fuqua St STE 100 #212, Houston, TX 77089, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 63.5,
-      "priority": 64
-    },
-    "ChIJRVYp-2K9QIYRUs4UdV5Y0CI": {
-      "pool": "reserve",
-      "businessName": "Neyra Multi Services",
-      "address": "87 E Edgebrook Dr, Houston, TX 77034, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 61.5,
-      "priority": 62
-    },
-    "ChIJnbMGuneXQIYRNX4Uk0D9918": {
-      "pool": "reserve",
-      "businessName": "H&R Block",
-      "address": "10763 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Business Services",
-      "qualityClass": "Average",
-      "qualityScore": 62,
-      "priority": 62
-    },
-    "ChIJmWZw0_2fZYYR8qiORcad-ms": {
-      "pool": "reserve",
-      "businessName": "Navi Business Group",
-      "address": "6701 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 70.1,
-      "priority": 70
-    },
-    "ChIJ60STIx2XQIYRnVI5ZMTQn34": {
-      "pool": "reserve",
-      "businessName": "LA PLACITA",
-      "address": "8500 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 72.8,
-      "priority": 73
-    },
-    "ChIJmdvcmCmXQIYRU9ZP-KE2Im0": {
-      "pool": "reserve",
-      "businessName": "Code 3",
-      "address": "7905 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 71.8,
-      "priority": 72
-    },
-    "ChIJk761gSWVQIYRMUGo7mdhVB4": {
-      "pool": "reserve",
-      "businessName": "Almeda Genoa Constructors",
-      "address": "3010 W Bellfort Ave, Houston, TX 77051, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 63.8,
-      "priority": 64
-    },
-    "ChIJv-GHw06XQIYRtZgAJ-tlsts": {
-      "pool": "reserve",
-      "businessName": "Social “D” Hub, LLC",
-      "address": "8000 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 71.9,
-      "priority": 72
-    },
-    "ChIJa5k6pjuUQIYR_m0zp4tSWLA": {
-      "pool": "reserve",
-      "businessName": "Fabco Specialties Inc",
-      "address": "5608 Almeda Genoa Rd, Houston, TX 77048, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 68.7,
-      "priority": 69
-    },
-    "ChIJG-B_M2vBQIYRsZjW-geHpj8": {
-      "pool": "reserve",
-      "businessName": "Gulf Coast Small Business Solutions",
-      "address": "2425 W Loop S, Houston, TX 77027, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Poor",
-      "qualityScore": 56.2,
-      "priority": 56
-    },
-    "ChIJx0SN6YeZQIYRY0NOppnaU1E": {
-      "pool": "reserve",
-      "businessName": "Great Western Metals Inc",
-      "address": "14121 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 73.2,
-      "priority": 73
-    },
-    "ChIJuQAEpLqXQIYRGafBF-yeHUw": {
-      "pool": "reserve",
-      "businessName": "De Mi Tierra",
-      "address": "8346B Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 72.5,
-      "priority": 73
-    },
-    "ChIJ__-_GciXQIYRFUb1GSUwkOk": {
-      "pool": "reserve",
-      "businessName": "Houston Business Builders",
-      "address": "8866 Gulf Fwy, Houston, TX 77017, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 71.6,
-      "priority": 72
-    },
-    "ChIJqRVtp32XQIYRwVTTiY3bdKE": {
-      "pool": "reserve",
-      "businessName": "Palma's Pacas",
-      "address": "10002 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 73,
-      "priority": 73
-    },
-    "ChIJu2sfMk-9QIYROjDWa6_No5w": {
-      "pool": "reserve",
-      "businessName": "Creations Group LLC",
-      "address": "11821 East Fwy Ste 450, Houston, TX 77029, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 63,
-      "priority": 63
-    },
-    "ChIJHU8h5caUQIYRwlg8pqEaiag": {
-      "pool": "reserve",
-      "businessName": "Stephen's Marketplace",
-      "address": "2902 Almeda Genoa Rd Ste A, Houston, TX 77047, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 64.6,
-      "priority": 65
-    },
-    "ChIJVVVF4cTqQIYR56gFhXGzEEQ": {
-      "pool": "reserve",
-      "businessName": "Enterprise Products",
-      "address": "11750 Almeda Rd, Houston, TX 77045, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 62.4,
-      "priority": 62
-    },
-    "ChIJiVfPSDq_QIYRyItssxUujYQ": {
-      "pool": "reserve",
-      "businessName": "Houston Business Products",
-      "address": "2016 Main St Ste 104, Houston, TX 77002, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Average",
-      "qualityScore": 60.8,
-      "priority": 61
     },
     "ChIJHwDaEQmZQIYR15ibtzM8550": {
       "pool": "quarantine",
@@ -3410,6 +1160,303 @@
       "qualityScore": 41.4,
       "priority": 41
     },
+    "ChIJ6UPMER-ZQIYR-7SYI-ZHrnM": {
+      "pool": "quarantine",
+      "businessName": "Texas Made Income Tax and Notary, Insurance, Real Estate",
+      "address": "12260 Gulf Fwy Ste B4, Houston, TX 77034, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 63.9,
+      "priority": 64
+    },
+    "ChIJr2TqFZyZQIYR11m_qFMRqxg": {
+      "pool": "quarantine",
+      "businessName": "Apoyo Multiservices",
+      "address": "12138 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 63.8,
+      "priority": 64
+    },
+    "ChIJHYZbUOiZQIYR6AKiRujdH2o": {
+      "pool": "quarantine",
+      "businessName": "Mc Carley's Tax & Financial",
+      "address": "12865 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 63.2,
+      "priority": 63
+    },
+    "ChIJMW5YDCiZQIYRvgNezLPOzIo": {
+      "pool": "quarantine",
+      "businessName": "CL TAX SERVICES LLC",
+      "address": "11550 Fuqua St Ste 350, Houston, TX 77034, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 63.4,
+      "priority": 63
+    },
+    "ChIJI841TwOZQIYRaZKYjZ187QU": {
+      "pool": "quarantine",
+      "businessName": "Proficient Tax Group",
+      "address": "11665 Fuqua St Ste F600, Houston, TX 77034, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 63.2,
+      "priority": 63
+    },
+    "ChIJtST-VOaXQIYRjzBjdVUVLPI": {
+      "pool": "quarantine",
+      "businessName": "SRG Tax Services",
+      "address": "10596 Fuqua St, Houston, TX 77089, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 63.2,
+      "priority": 63
+    },
+    "ChIJ0b330gGaQIYROiv0rrGGx4w": {
+      "pool": "quarantine",
+      "businessName": "Express Tax Services",
+      "address": "12039 Beamer Rd, Houston, TX 77089, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 61.8,
+      "priority": 62
+    },
+    "ChIJGdiUOCiZQIYRAPILZxNMIqU": {
+      "pool": "quarantine",
+      "businessName": "MavCo Income Tax & Multi-Service",
+      "address": "12132 Sabo Rd # F1, Houston, TX 77089, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 62.6,
+      "priority": 63
+    },
+    "ChIJ_cUcfnqXQIYREtGFrdTkqyA": {
+      "pool": "quarantine",
+      "businessName": "Jackson Hewitt Tax Service",
+      "address": "9598 Rowlett Rd, Houston, TX 77075, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 62.6,
+      "priority": 63
+    },
+    "ChIJHRGBJx2XQIYRdJBP9pKiBPc": {
+      "pool": "quarantine",
+      "businessName": "Fiesta Auto Insurance & Tax Service",
+      "address": "8500 Almeda Genoa Rd Ste 108, Houston, TX 77075, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 60.8,
+      "priority": 61
+    },
+    "ChIJbcxYBf6ZQIYRGECq_oyr0qA": {
+      "pool": "quarantine",
+      "businessName": "Jackson Hewitt Tax Service",
+      "address": "10918 Fuqua St Suite 6, Houston, TX 77089, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 63.3,
+      "priority": 63
+    },
+    "ChIJPfvdmDeYQIYRChuC-tUV7U4": {
+      "pool": "quarantine",
+      "businessName": "Fiesta Tax Services",
+      "address": "3908 S Shaver St, Houston, TX 77034, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 61.2,
+      "priority": 61
+    },
+    "ChIJYZpBd2GXQIYRar1TLNsRs_Q": {
+      "pool": "quarantine",
+      "businessName": "Colbert/Ball Tax Services",
+      "address": "10080 Kleckley Dr, Houston, TX 77075, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 63.4,
+      "priority": 63
+    },
+    "ChIJ12MB9OaZQIYRZMP_cv46dYU": {
+      "pool": "quarantine",
+      "businessName": "Bayou City Property Tax",
+      "address": "11200 Fuqua St STE 100 #212, Houston, TX 77089, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 63.5,
+      "priority": 64
+    },
+    "ChIJRVYp-2K9QIYRUs4UdV5Y0CI": {
+      "pool": "quarantine",
+      "businessName": "Neyra Multi Services",
+      "address": "87 E Edgebrook Dr, Houston, TX 77034, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 61.5,
+      "priority": 62
+    },
+    "ChIJnbMGuneXQIYRNX4Uk0D9918": {
+      "pool": "quarantine",
+      "businessName": "H&R Block",
+      "address": "10763 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Business Services",
+      "qualityClass": "Average",
+      "qualityScore": 62,
+      "priority": 62
+    },
+    "ChIJVWrQa-W9QIYRqt3vxrvR5F4": {
+      "pool": "quarantine",
+      "businessName": "Tha Chop Shop",
+      "address": "12134 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.6,
+      "priority": 96
+    },
+    "ChIJyT26K2CXQIYRp2MTmO2WTv4": {
+      "pool": "quarantine",
+      "businessName": "Faded Empire Barbershop",
+      "address": "10900 Kingspoint Rd #8, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.6,
+      "priority": 96
+    },
+    "ChIJn2_E_0CZQIYRj9b3w-aFQ3Y": {
+      "pool": "quarantine",
+      "businessName": "Adolfo's Barber Shop",
+      "address": "11030 Kingspoint Rd #3C, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.9,
+      "priority": 96
+    },
+    "ChIJAd3o1sGZQIYROcashZRHExA": {
+      "pool": "quarantine",
+      "businessName": "Universal Barbering Of Houston",
+      "address": "12344 Gulf Fwy Ste - C3, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.9,
+      "priority": 96
+    },
+    "ChIJ0WNSxeCXQIYRzeCVTlzK0RA": {
+      "pool": "quarantine",
+      "businessName": "Reyzorfadez barbershop",
+      "address": "12875 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.2,
+      "priority": 95
+    },
+    "ChIJCfUU8BOZQIYRCFljCmlK_iU": {
+      "pool": "quarantine",
+      "businessName": "Southside Barbershop",
+      "address": "11007 Fuqua St, Houston, TX 77089, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.5,
+      "priority": 96
+    },
+    "ChIJ4e1yi0qZQIYR1C-E6mg7Sns": {
+      "pool": "quarantine",
+      "businessName": "X Effects",
+      "address": "12260 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.8,
+      "priority": 96
+    },
+    "ChIJ5Qc_X5aXQIYRCU7k0z1m12k": {
+      "pool": "quarantine",
+      "businessName": "Htx Domain Barbershop",
+      "address": "10900 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 94,
+      "priority": 94
+    },
+    "ChIJ1Z7Lb0CZQIYRzBRcuqxYjPM": {
+      "pool": "quarantine",
+      "businessName": "Stylluz beauty salon & barber shop",
+      "address": "12875 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.2,
+      "priority": 95
+    },
+    "ChIJ5V7i2ByXQIYRXMMrfCC6554": {
+      "pool": "quarantine",
+      "businessName": "Caribbean Barber Shop",
+      "address": "9990 Kleckley Dr Ste E, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.3,
+      "priority": 95
+    },
+    "ChIJLbS2u2CXQIYRbGwtk8auD5g": {
+      "pool": "quarantine",
+      "businessName": "Hair By Paul",
+      "address": "10634 Kingspoint Rd, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.4,
+      "priority": 95
+    },
+    "ChIJ-wJcqtiXQIYR4wYj5atb5PA": {
+      "pool": "quarantine",
+      "businessName": "Fire Fades Barbershop",
+      "address": "9870 Windmill Lakes Blvd, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 94.4,
+      "priority": 94
+    },
+    "ChIJb4YQ2rCZQIYRZCmKV2Kc7Fs": {
+      "pool": "quarantine",
+      "businessName": "Talikutz",
+      "address": "12875 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.2,
+      "priority": 95
+    },
+    "ChIJYTFbfuyXQIYRX_XFt2z9s08": {
+      "pool": "quarantine",
+      "businessName": "Space City BarberShop LLC",
+      "address": "9805 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.9,
+      "priority": 89
+    },
+    "ChIJC0GASV-XQIYRjvz21NqhsY8": {
+      "pool": "quarantine",
+      "businessName": "Mexico Lindo Barber Shop",
+      "address": "10600 Fuqua St, Houston, TX 77089, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.3,
+      "priority": 95
+    },
+    "ChIJpVIDadObQIYRiNn8nYha7I4": {
+      "pool": "quarantine",
+      "businessName": "Argel's Barber Shop",
+      "address": "15327 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 92.3,
+      "priority": 92
+    },
+    "ChIJ5dwuMHaXQIYRhKIkLFOg374": {
+      "pool": "quarantine",
+      "businessName": "Blades Barber and Beauty Salon",
+      "address": "10733 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.8,
+      "priority": 90
+    },
     "ChIJw_j5DXK9QIYRfEFiOYffXt0": {
       "pool": "quarantine",
       "businessName": "David's Barber Shop",
@@ -3418,6 +1465,1275 @@
       "qualityClass": "Excellent",
       "qualityScore": 93.7,
       "priority": 94
+    },
+    "ChIJ9dTEO06ZQIYRakUuEVrnAGk": {
+      "pool": "quarantine",
+      "businessName": "The Fade Barber Shack",
+      "address": "513 S Allen-Genoa Rd C-5, South Houston, TX 77587, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 92.4,
+      "priority": 92
+    },
+    "ChIJw7r5h4SZQIYRZVVI72FmJ30": {
+      "pool": "quarantine",
+      "businessName": "Dreya G Hair Studio",
+      "address": "11030 Kingspoint Rd #4B, Houston, TX 77089, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.9,
+      "priority": 96
+    },
+    "ChIJv0BmY-iZQIYRYA5YgOcX3fA": {
+      "pool": "quarantine",
+      "businessName": "Up Close Beauty Max LLC",
+      "address": "12804 Gulf Fwy #700B, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.4,
+      "priority": 91
+    },
+    "ChIJ5eJ6EJeXQIYRRMeCsbv34JY": {
+      "pool": "quarantine",
+      "businessName": "Carbon Co Beauty Lounge",
+      "address": "10040 Kleckley Dr, Houston, TX 77075, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.3,
+      "priority": 91
+    },
+    "ChIJBa7n_QuXQIYR4ifXJ2ClMAQ": {
+      "pool": "quarantine",
+      "businessName": "The Salon Elev8",
+      "address": "10222 Gulf Fwy B-400, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 93.2,
+      "priority": 93
+    },
+    "ChIJt1lrMSyXQIYREF_6C3gjXd8": {
+      "pool": "quarantine",
+      "businessName": "Blue Moon Beauty Bar",
+      "address": "10900 Kingspoint Rd #8, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.6,
+      "priority": 96
+    },
+    "ChIJSYmp2N2ZQIYR7QO1pAzEXao": {
+      "pool": "quarantine",
+      "businessName": "Estetica Unisex Zaleta",
+      "address": "12336 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 92,
+      "priority": 92
+    },
+    "ChIJ6wsYFeGZQIYRPTiSbo2nmiM": {
+      "pool": "quarantine",
+      "businessName": "Nancy's Hair & Nails",
+      "address": "11001 Fuqua St, Houston, TX 77089, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.5,
+      "priority": 92
+    },
+    "ChIJF8vibuGZQIYRwDvtFvUnmzU": {
+      "pool": "quarantine",
+      "businessName": "Top Hair Salon",
+      "address": "10992 Fuqua St, Houston, TX 77089, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.3,
+      "priority": 91
+    },
+    "ChIJk5Hx0liXQIYRrFd6OyUGQyM": {
+      "pool": "quarantine",
+      "businessName": "Mai Hair Design",
+      "address": "10590 Fuqua St # A, Houston, TX 77089, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.2,
+      "priority": 91
+    },
+    "ChIJg3eaumCXQIYRlIUFZypreME": {
+      "pool": "quarantine",
+      "businessName": "Fox Hair & Nails",
+      "address": "10626 Kingspoint Rd, Houston, TX 77075, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.4,
+      "priority": 91
+    },
+    "ChIJn5zT_ASZQIYRqW_v-a-4BNc": {
+      "pool": "quarantine",
+      "businessName": "Angel’s Hair Salon",
+      "address": "9112 N Broadway Ste 4, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.2,
+      "priority": 95
+    },
+    "ChIJi_IM_L6ZQIYRkyXqEmNBIc0": {
+      "pool": "quarantine",
+      "businessName": "Lifestyles Hair Salon",
+      "address": "12711 Fuqua St #111, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 90.6,
+      "priority": 91
+    },
+    "ChIJJw0FfN6ZQIYR15IsD9xeCbg": {
+      "pool": "quarantine",
+      "businessName": "Glam Beauty Studio",
+      "address": "11030 Kingspoint Rd, Houston, TX 77075, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.9,
+      "priority": 92
+    },
+    "ChIJla6Uh2mZQIYRNnoKwL44FIk": {
+      "pool": "quarantine",
+      "businessName": "Utopia Beauty Bliss",
+      "address": "10909 Sabo Rd #214, Houston, TX 77089, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.4,
+      "priority": 91
+    },
+    "ChIJUWQoipGZQIYR15Iu-IQshbc": {
+      "pool": "quarantine",
+      "businessName": "SUPREME SMOKE OPEN 24 HOURS & VAPE & KRATOM & 7OH & THC & HOOKAH & CIGARS & GLASS PIPES & CBD & TATTOO SUPPLIES",
+      "address": "11460 Fuqua St #800, Houston, TX 77089, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 83.4,
+      "priority": 83
+    },
+    "ChIJZZ-zf4KZQIYR_iuq8sIRhKE": {
+      "pool": "quarantine",
+      "businessName": "Rock N' Roll It",
+      "address": "11209 Fuqua St, Houston, TX 77089, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 83.5,
+      "priority": 84
+    },
+    "ChIJHXwOvy-ZQIYRZ0hMpZ_rXLg": {
+      "pool": "quarantine",
+      "businessName": "TEXAN SMOKE SHOP",
+      "address": "11211 Almeda Genoa Rd Ste A100, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 83.6,
+      "priority": 84
+    },
+    "ChIJO1TS4aWXQIYRGHbIGtn-7R0": {
+      "pool": "quarantine",
+      "businessName": "Vitrum Smoke Shop | Vape | Disposables | Hookah | Kratom | Glass Pipes",
+      "address": "11550 Gulf Fwy Suit C1, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 82.9,
+      "priority": 83
+    },
+    "ChIJ-6Z9k8mXQIYR3kHm7xwGMS8": {
+      "pool": "quarantine",
+      "businessName": "Vape City",
+      "address": "10222 Gulf Fwy Ste B-130, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 81.2,
+      "priority": 81
+    },
+    "ChIJLdfY1BuXQIYRY3L5dwKjXnA": {
+      "pool": "quarantine",
+      "businessName": "Smoke Drop – Vape & Smoke Shop Houston",
+      "address": "11400 Gulf Fwy Ste E, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 82.7,
+      "priority": 83
+    },
+    "ChIJGQVQYuGZQIYRS_mTGpzSmF4": {
+      "pool": "quarantine",
+      "businessName": "Sabo Smoke, Vape, Delta 8 THC and CBD",
+      "address": "10717 Sagetree Dr Ste B, Houston, TX 77089, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 83,
+      "priority": 83
+    },
+    "ChIJGbJkct-XQIYRb5FY2p7TKKM": {
+      "pool": "quarantine",
+      "businessName": "MILE HIGH SMOKE SHOP | DISPENSARY | VAPE I HOOKAH I KRATOM & MORE",
+      "address": "10008 Gulf Fwy B, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 81,
+      "priority": 81
+    },
+    "ChIJnaTY7t2ZQIYRQfuOdzvB9c4": {
+      "pool": "quarantine",
+      "businessName": "Rock N' Roll It",
+      "address": "12344 Gulf Fwy C-1, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 83.9,
+      "priority": 84
+    },
+    "ChIJCwlYPvyZQIYR9CDm5Cpw5PI": {
+      "pool": "quarantine",
+      "businessName": "The Vape Hub",
+      "address": "364 FM1959 Ste b, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 80.4,
+      "priority": 80
+    },
+    "ChIJH2uikJqXQIYRleNN9iHQH_Y": {
+      "pool": "quarantine",
+      "businessName": "Geek headz",
+      "address": "10739 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 81.8,
+      "priority": 82
+    },
+    "ChIJ3zx1h92bQIYRFZPnQ54zUI0": {
+      "pool": "quarantine",
+      "businessName": "Rock N' Roll It",
+      "address": "15327 Gulf Fwy f, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 80.3,
+      "priority": 80
+    },
+    "ChIJSZv3ae6ZQIYRNbhQy1JZTQE": {
+      "pool": "quarantine",
+      "businessName": "Carolyn's Detail Spot and Smoke Shop",
+      "address": "12170 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 83.8,
+      "priority": 84
+    },
+    "ChIJQUkeUAuZQIYRqGFBgDyAtMc": {
+      "pool": "quarantine",
+      "businessName": "Social Smoke Hookah Lounge & Bar",
+      "address": "11017 Fuqua St, Houston, TX 77089, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 83.5,
+      "priority": 84
+    },
+    "ChIJU2AoBl-XQIYR5mLIN7VJBHc": {
+      "pool": "quarantine",
+      "businessName": "The smokeshop",
+      "address": "814 Edgebrook Dr, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 81.7,
+      "priority": 82
+    },
+    "ChIJi29SBXGZQIYRYnnnsek7hJ8": {
+      "pool": "quarantine",
+      "businessName": "Texan Cell phone Repair",
+      "address": "11211 Almeda Genoa Rd, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 83.6,
+      "priority": 84
+    },
+    "ChIJq6qqqh6XQIYRfLHOpmoS8lU": {
+      "pool": "quarantine",
+      "businessName": "Cellular Zone Inc / Almeda Wireless Inc.",
+      "address": "555 Gulf Fwy #730a, Houston, TX 77075, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 83.5,
+      "priority": 84
+    },
+    "ChIJEwHyyneXQIYRdGykis7ozuc": {
+      "pool": "quarantine",
+      "businessName": "DelFix Computers and Phones",
+      "address": "10717 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 87.8,
+      "priority": 88
+    },
+    "ChIJfXwUoXyXQIYRTTWnWz_DyFg": {
+      "pool": "quarantine",
+      "businessName": "uBreakiFix - Phone and Computer Repair",
+      "address": "11550 Gulf Fwy Ste C, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 82.9,
+      "priority": 83
+    },
+    "ChIJqRNSlt6ZQIYRfV1ZR0w2dUw": {
+      "pool": "quarantine",
+      "businessName": "EZPAWN",
+      "address": "12260 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 83.9,
+      "priority": 84
+    },
+    "ChIJjzvGA6TDQIYRpjWPoAKipd4": {
+      "pool": "quarantine",
+      "businessName": "Valu+ Pawn",
+      "address": "11655 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 83,
+      "priority": 83
+    },
+    "ChIJmWZw0_2fZYYR8qiORcad-ms": {
+      "pool": "quarantine",
+      "businessName": "Navi Business Group",
+      "address": "6701 Almeda Genoa Rd, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 70.1,
+      "priority": 70
+    },
+    "ChIJv24FXxqXQIYRN5wqa04fIMw": {
+      "pool": "quarantine",
+      "businessName": "Gift Palace",
+      "address": "12200 Gulf Fwy, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.4,
+      "priority": 75
+    },
+    "ChIJ60STIx2XQIYRnVI5ZMTQn34": {
+      "pool": "quarantine",
+      "businessName": "LA PLACITA",
+      "address": "8500 Almeda Genoa Rd, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 72.8,
+      "priority": 73
+    },
+    "ChIJwYnPaQOXQIYRrcB3i3CVipA": {
+      "pool": "quarantine",
+      "businessName": "Alameda genoa",
+      "address": "9000 Frey Rd, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 74.9,
+      "priority": 75
+    },
+    "ChIJz_RHYGSXQIYRcXFwpRS_qf0": {
+      "pool": "quarantine",
+      "businessName": "The Little Depot South Houston",
+      "address": "9990 Kleckley Dr A, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.3,
+      "priority": 75
+    },
+    "ChIJkzTPmx2XQIYR2HKIgHispig": {
+      "pool": "quarantine",
+      "businessName": "The Lash Supply - Almeda Genoa TX",
+      "address": "10252 Almeda Genoa Rd Ste D, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75,
+      "priority": 75
+    },
+    "ChIJTTu2Y3uXQIYRB47YBEeQwMk": {
+      "pool": "quarantine",
+      "businessName": "B & G Gulf Freeway",
+      "address": "11460 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 74.8,
+      "priority": 75
+    },
+    "ChIJT7-awduZQIYRZ_r-uiORguQ": {
+      "pool": "quarantine",
+      "businessName": "MEDICAL REVENUE HOUSE, LLC",
+      "address": "10935 Almeda Genoa Rd #34682, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.5,
+      "priority": 76
+    },
+    "ChIJmdvcmCmXQIYRU9ZP-KE2Im0": {
+      "pool": "quarantine",
+      "businessName": "Code 3",
+      "address": "7905 Almeda Genoa Rd, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 71.8,
+      "priority": 72
+    },
+    "ChIJk761gSWVQIYRMUGo7mdhVB4": {
+      "pool": "quarantine",
+      "businessName": "Almeda Genoa Constructors",
+      "address": "3010 W Bellfort Ave, Houston, TX 77051, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 63.8,
+      "priority": 64
+    },
+    "ChIJv-GHw06XQIYRtZgAJ-tlsts": {
+      "pool": "quarantine",
+      "businessName": "Social “D” Hub, LLC",
+      "address": "8000 Almeda Genoa Rd, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 71.9,
+      "priority": 72
+    },
+    "ChIJG2VxAUibQIYR4ayVbntYkiY": {
+      "pool": "quarantine",
+      "businessName": "Exxon mechanic shop",
+      "address": "14300 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.9,
+      "priority": 87
+    },
+    "ChIJbc1LNQCXQIYR1RC6sBZ4f_s": {
+      "pool": "quarantine",
+      "businessName": "Nexarentaris Auto Solutions",
+      "address": "10252 Almeda Genoa Rd, Houston, TX 77075, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89,
+      "priority": 89
+    },
+    "ChIJDQYzRCuaQIYRUB2eAX_d6Ss": {
+      "pool": "quarantine",
+      "businessName": "Elite Auto Clinic",
+      "address": "15255 Gulf Fwy # 114F, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.3,
+      "priority": 86
+    },
+    "ChIJ7Xk3E7yZQIYRP2NJKo9Fn2Q": {
+      "pool": "quarantine",
+      "businessName": "Sam's Mechanic Service",
+      "address": "13002 Almeda Genoa Rd, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.3,
+      "priority": 88
+    },
+    "ChIJ210tWQCXQIYR6BIlGidFukY": {
+      "pool": "quarantine",
+      "businessName": "Velanentaris Auto Expert",
+      "address": "10090 Kleckley Dr, Houston, TX 77075, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.4,
+      "priority": 89
+    },
+    "ChIJi5b7NECWQIYRvwfqI8lSpks": {
+      "pool": "quarantine",
+      "businessName": "Tristan's Auto Repair",
+      "address": "9998 Fuqua St, Houston, TX 77089, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.8,
+      "priority": 89
+    },
+    "ChIJjVAWsgCZQIYRaTx5B37C5IE": {
+      "pool": "quarantine",
+      "businessName": "BB’s Inspections",
+      "address": "11293 Fuqua St Ste C, Houston, TX 77089, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.6,
+      "priority": 90
+    },
+    "ChIJ_zoeQtGZQIYRGFASfbCvtuA": {
+      "pool": "quarantine",
+      "businessName": "All Road Tires & Road Service",
+      "address": "11294 Fuqua St, Houston, TX 77089, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.5,
+      "priority": 90
+    },
+    "ChIJNwsy8BSXQIYRAI_6tNaXiVg": {
+      "pool": "quarantine",
+      "businessName": "Drive Rite Automotive",
+      "address": "9332 Almeda Genoa Rd, Houston, TX 77075, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 88,
+      "priority": 88
+    },
+    "ChIJ4bxB_fmZQIYR2dllTgLzYQM": {
+      "pool": "quarantine",
+      "businessName": "Lam's Complete Auto",
+      "address": "11341 Hughes Rd, Houston, TX 77089, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.3,
+      "priority": 88
+    },
+    "ChIJX5q17eGZQIYRkCCnrr6ikk4": {
+      "pool": "quarantine",
+      "businessName": "Automatic Transmission Center",
+      "address": "10703 Fuqua St, Houston, TX 77089, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.4,
+      "priority": 89
+    },
+    "ChIJS9lIAsiXQIYRbdm45-qM65w": {
+      "pool": "quarantine",
+      "businessName": "Taylor Auto Express",
+      "address": "10102 Kleckley Dr, Houston, TX 77075, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.4,
+      "priority": 89
+    },
+    "ChIJ84naiSCaQIYRQzi-atsNW4Q": {
+      "pool": "quarantine",
+      "businessName": "Tom's Auto Repair",
+      "address": "12470 Scarsdale Blvd, Houston, TX 77089, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 87.5,
+      "priority": 88
+    },
+    "ChIJIfd97xGXQIYRqQ70PQe8XZU": {
+      "pool": "quarantine",
+      "businessName": "Jim's Auto Service",
+      "address": "9118 Almeda Genoa Rd, Houston, TX 77075, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 87.6,
+      "priority": 88
+    },
+    "ChIJZ67G3XiXQIYROkNVFezBH9U": {
+      "pool": "quarantine",
+      "businessName": "A-1 Brake and Auto",
+      "address": "10910 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.1,
+      "priority": 88
+    },
+    "ChIJ0XEweACXQIYRvhdkRl26ebk": {
+      "pool": "quarantine",
+      "businessName": "Nexexentaris Auto Expert",
+      "address": "10252 Almeda Genoa Rd, Houston, TX 77075, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89,
+      "priority": 89
+    },
+    "ChIJ--61SuCXQIYR2MPuYBN5iOA": {
+      "pool": "quarantine",
+      "businessName": "McGee's Performance",
+      "address": "12817 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.3,
+      "priority": 89
+    },
+    "ChIJF3f9CKSZQIYRA7gtW41aykw": {
+      "pool": "quarantine",
+      "businessName": "Bayway Kia Service Formerly Fredy Kia",
+      "address": "11711 Gulf Fwy Bldg 1, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89,
+      "priority": 89
+    },
+    "ChIJhVrfIACXQIYR5fVQz7qew70": {
+      "pool": "quarantine",
+      "businessName": "Purerentaris AutoGlass Windshield Repairs",
+      "address": "10108 Kleckley Dr, Houston, TX 77075, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.4,
+      "priority": 89
+    },
+    "ChIJZ2E5zZaXQIYRYDa9otRGiCU": {
+      "pool": "quarantine",
+      "businessName": "Gulf Freeway Auto Services",
+      "address": "1116 Pennsylvania St, South Houston, TX 77587, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.4,
+      "priority": 86
+    },
+    "ChIJUfoS596ZQIYRgRf56Ez4Usc": {
+      "pool": "quarantine",
+      "businessName": "Vehicle Wraps",
+      "address": "12148 Gulf Fwy, Houston, TX 77075, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.8,
+      "priority": 90
+    },
+    "ChIJjc3ZH7SZQIYRBEOeXkVVLkA": {
+      "pool": "quarantine",
+      "businessName": "La Familia Auto Insurance",
+      "address": "10655 Fuqua St E, Houston, TX 77089, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.4,
+      "priority": 89
+    },
+    "ChIJdyQJJ_CWQIYRX_5EAouXnqY": {
+      "pool": "quarantine",
+      "businessName": "D&A General Auto Repair",
+      "address": "7905 Almeda Genoa Rd K, Houston, TX 77075, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 85.7,
+      "priority": 86
+    },
+    "ChIJZR-KXamZQIYRNU3Ka58Huc4": {
+      "pool": "quarantine",
+      "businessName": "Auto tint",
+      "address": "11293 Fuqua St, Houston, TX 77089, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.6,
+      "priority": 90
+    },
+    "ChIJD5GD5YyXQIYRxO9bnNjQbKw": {
+      "pool": "quarantine",
+      "businessName": "Total Dimensions",
+      "address": "12409 Almeda Genoa Rd, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.8,
+      "priority": 89
+    },
+    "ChIJVVVFgqSiQIYRnVdkGPdSOrk": {
+      "pool": "quarantine",
+      "businessName": "Rapid Diesel Repair & Maintenance",
+      "address": "8922 Frey Rd C2, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.8,
+      "priority": 89
+    },
+    "ChIJD9lUXLmZQIYRNb1tXP0U-qs": {
+      "pool": "quarantine",
+      "businessName": "Group 1 GMC South Service Center",
+      "address": "12820 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89,
+      "priority": 89
+    },
+    "ChIJP8GlEWCZQIYRj9SSYxXlBj0": {
+      "pool": "quarantine",
+      "businessName": "AutoNation Ford Gulf Freeway Parts Center",
+      "address": "12227 Gulf Fwy Ste B, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.5,
+      "priority": 90
+    },
+    "ChIJm9Yw7k2XQIYRGZsZiz66YBk": {
+      "pool": "quarantine",
+      "businessName": "Medina tire shop",
+      "address": "907 Edgebrook Dr, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 87.6,
+      "priority": 88
+    },
+    "ChIJmcIg1FeYQIYR7GchwNO1qpk": {
+      "pool": "quarantine",
+      "businessName": "Take 5 Oil Change",
+      "address": "3930 Fairmont Pkwy, Pasadena, TX 77504, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.3,
+      "priority": 86
+    },
+    "ChIJHXoqZ4yZQIYR3tMnmxD7Cdo": {
+      "pool": "quarantine",
+      "businessName": "AutoNation Chevrolet Gulf Freeway Service Center",
+      "address": "13800 Gulf Fwy Suite A, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.1,
+      "priority": 88
+    },
+    "ChIJT4yW59iZQIYR1X_XRXn-jQM": {
+      "pool": "quarantine",
+      "businessName": "AutoNation Ford Gulf Freeway",
+      "address": "12227 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.8,
+      "priority": 90
+    },
+    "ChIJC2g2EdyZQIYRscyv10-3rWs": {
+      "pool": "quarantine",
+      "businessName": "Bayway Lincoln Service Center",
+      "address": "12333 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.8,
+      "priority": 90
+    },
+    "ChIJR5kvuAGaQIYRbeP1x3tbCsI": {
+      "pool": "quarantine",
+      "businessName": "Universal Lube & Oil - Auto Repair LLC",
+      "address": "12068 Beamer Rd, Houston, TX 77089, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 87.8,
+      "priority": 88
+    },
+    "ChIJW9N1_deZQIYROyhRGNPsD-U": {
+      "pool": "quarantine",
+      "businessName": "AutoNation Toyota Gulf Freeway",
+      "address": "12111 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.6,
+      "priority": 90
+    },
+    "ChIJ6boecnSXQIYR8VSTIZAPeDQ": {
+      "pool": "quarantine",
+      "businessName": "Alignments Checkpoint",
+      "address": "10423 Hartsook St, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.6,
+      "priority": 89
+    },
+    "ChIJNfkIbLWXQIYRj6-jothhvuU": {
+      "pool": "quarantine",
+      "businessName": "Lynx Automotive Mobile Mechanic",
+      "address": "9401 Fuqua St, Houston, TX 77075, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.1,
+      "priority": 88
+    },
+    "ChIJWQqTFPiYQIYRHS8qGqfnHxE": {
+      "pool": "quarantine",
+      "businessName": "Jiffy Lube Oil Change",
+      "address": "3939 Burke Rd, Pasadena, TX 77504, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.2,
+      "priority": 86
+    },
+    "ChIJwRnXQRiYQIYRLn87L7u-mNU": {
+      "pool": "quarantine",
+      "businessName": "Po Panha Fast Lube",
+      "address": "1013 Spencer Hwy, South Houston, TX 77587, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.2,
+      "priority": 86
+    },
+    "ChIJ1x-0nbGZQIYRMBYpBhnmwDg": {
+      "pool": "quarantine",
+      "businessName": "Volvo Cars Clear Lake",
+      "address": "12353 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.8,
+      "priority": 90
+    },
+    "ChIJiduac7LCQIYR-sGBtIAjKR0": {
+      "pool": "quarantine",
+      "businessName": "Christian Brothers Automotive Pearland",
+      "address": "9245 S Sam Houston Pkwy E, Houston, TX 77075, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 87.4,
+      "priority": 87
+    },
+    "ChIJWz2HUxabQIYR7FN6Vk_s_RA": {
+      "pool": "quarantine",
+      "businessName": "Vela Tire Shop",
+      "address": "12330 Scarsdale Blvd, Houston, TX 77089, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 87.4,
+      "priority": 87
+    },
+    "ChIJNRUkOHqXQIYRhg7fB2Iu9MQ": {
+      "pool": "quarantine",
+      "businessName": "Service Department at Big Star Honda",
+      "address": "11200 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Auto",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.6,
+      "priority": 89
+    },
+    "ChIJ408BdA2XQIYRkmWY7TOPyz4": {
+      "pool": "quarantine",
+      "businessName": "Tidal Wave Auto Spa | Car Wash",
+      "address": "11540 Pearland Pkwy, Houston, TX 77089, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.3,
+      "priority": 86
+    },
+    "ChIJBedCxYWZQIYRcS5TCOsZBJQ": {
+      "pool": "quarantine",
+      "businessName": "Walter’s Hand Car Wash",
+      "address": "11912 Galveston Rd, Houston, TX 77034, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.4,
+      "priority": 86
+    },
+    "ChIJN3yHNOOXQIYR_tFeP25rgWU": {
+      "pool": "quarantine",
+      "businessName": "Houston Car Wash and Detailing",
+      "address": "1001 College Ave, South Houston, TX 77587, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.4,
+      "priority": 86
+    },
+    "ChIJdx0N8ESXQIYR7XkH6myTq74": {
+      "pool": "quarantine",
+      "businessName": "KADOSH mobile wash and detailing",
+      "address": "10823 Nellsfield Ln, Houston, TX 77075, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 87.4,
+      "priority": 87
+    },
+    "ChIJ3YpJLzyYQIYRwzrlkiR0Ai8": {
+      "pool": "quarantine",
+      "businessName": "Carwash",
+      "address": "1408 Avenue H, South Houston, TX 77587, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.5,
+      "priority": 87
+    },
+    "ChIJIf77yBiYQIYRs6ri_bMBi-M": {
+      "pool": "quarantine",
+      "businessName": "Sunrise Hand Car Wash",
+      "address": "811 Spencer Hwy, South Houston, TX 77587, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.2,
+      "priority": 86
+    },
+    "ChIJNWgVc9yZQIYRSPqsveGjNf8": {
+      "pool": "quarantine",
+      "businessName": "Valero",
+      "address": "11211 Almeda Genoa Rd, Houston, TX 77034, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.6,
+      "priority": 90
+    },
+    "ChIJe25sbZSXQIYRIUpfq30rAgo": {
+      "pool": "quarantine",
+      "businessName": "Brother's Hand Car Wash",
+      "address": "south 77587, 1107 College Ave, South Houston, TX 77587, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.4,
+      "priority": 86
+    },
+    "ChIJG4nWySKXQIYRFP24b5TZ3Vs": {
+      "pool": "quarantine",
+      "businessName": "Nino's Auto Detailing- Ceramic coatings and Paint Corrections",
+      "address": "9822 Radio Rd, Houston, TX 77075, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 87.5,
+      "priority": 88
+    },
+    "ChIJ15Xh8zWXQIYRxLDRM52CeF4": {
+      "pool": "quarantine",
+      "businessName": "Kings Mobile Car Detailing",
+      "address": "10030 Blackhawk Blvd Suite 015, Houston, TX 77089, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 87.5,
+      "priority": 88
+    },
+    "ChIJG7HiZLOZQIYRESARsfH80GE": {
+      "pool": "quarantine",
+      "businessName": "Space City Auto Detail",
+      "address": "11106 Sageriver Dr, Houston, TX 77089, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.1,
+      "priority": 88
+    },
+    "ChIJ7-tr_bClQIYRoUcH_fYMFvM": {
+      "pool": "quarantine",
+      "businessName": "Ceramic Enthusiasts",
+      "address": "11826 Beachberry Dr, Houston, TX 77034, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 89,
+      "priority": 89
+    },
+    "ChIJAVotoYmZQIYRXoCUKukwa3c": {
+      "pool": "quarantine",
+      "businessName": "Shell",
+      "address": "14304 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 87.6,
+      "priority": 88
+    },
+    "ChIJmxxg8YyXQIYRBB9lruGOpSA": {
+      "pool": "quarantine",
+      "businessName": "Monsoon's Car Wash",
+      "address": "510 Missouri St, South Houston, TX 77587, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 86.5,
+      "priority": 87
+    },
+    "ChIJM34mkuGZQIYRrMDpkli7wjM": {
+      "pool": "quarantine",
+      "businessName": "Pilgrim Cleaners",
+      "address": "10611 Fuqua St, Houston, TX 77089, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.4,
+      "priority": 89
+    },
+    "ChIJT4yW59iZQIYRT72OtY1sWBk": {
+      "pool": "quarantine",
+      "businessName": "Bath & Body Works",
+      "address": "12200 Gulf Fwy, Houston, TX 77075, USA",
+      "category": "Car Wash",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.5,
+      "priority": 90
+    },
+    "ChIJ3ZJ0msOXQIYRSzlgbrhwCxU": {
+      "pool": "quarantine",
+      "businessName": "Halal Shawarma ( HALA )",
+      "address": "11400 Gulf Fwy Ste G1, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 78.7,
+      "priority": 79
+    },
+    "ChIJH2Y2qOOZQIYRK_LHkMWWZlM": {
+      "pool": "quarantine",
+      "businessName": "Antojitos La Paisa",
+      "address": "9112 N Broadway Ste 2, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.2,
+      "priority": 79
+    },
+    "ChIJl2p8GA6XQIYRH3jwt9ACUEU": {
+      "pool": "quarantine",
+      "businessName": "Pochitos Mariscos y Mas",
+      "address": "11130 Gulf Fwy #900, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 78.4,
+      "priority": 78
+    },
+    "ChIJw-52yrqXQIYR1Kt-BZk98Mc": {
+      "pool": "quarantine",
+      "businessName": "Taqueria El Rincon de Jalisco 2",
+      "address": "11550 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 78.9,
+      "priority": 79
+    },
+    "ChIJv6EmTUSXQIYRSqCw4kPut2M": {
+      "pool": "quarantine",
+      "businessName": "Wild Peckers",
+      "address": "12200 Gulf Fwy, Houston, TX 77075, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.4,
+      "priority": 79
+    },
+    "ChIJbxa9ewCXQIYRrOp_algclEw": {
+      "pool": "quarantine",
+      "businessName": "Hot dog guy",
+      "address": "10126 Almeda Genoa Rd, Houston, TX 77075, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 78.8,
+      "priority": 79
+    },
+    "ChIJJRP3NXGZQIYRwYC1PgNPiZE": {
+      "pool": "quarantine",
+      "businessName": "Fuca",
+      "address": "11460 Fuqua St, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.5,
+      "priority": 80
+    },
+    "ChIJv0BmY-iZQIYR9XaRELLpjkw": {
+      "pool": "quarantine",
+      "businessName": "Bun Bo Hue Duc Chuong 3",
+      "address": "12804 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.4,
+      "priority": 79
+    },
+    "ChIJCacE0buXQIYRkwVfX3EkR9A": {
+      "pool": "quarantine",
+      "businessName": "The Bistro - Eat. Drink. Connect.®",
+      "address": "9190 Gulf Fwy, Houston, TX 77017, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 76.2,
+      "priority": 76
+    },
+    "ChIJgf7Rj8KZQIYRZ1Ie9P9yCR4": {
+      "pool": "quarantine",
+      "businessName": "Luby's",
+      "address": "11595 Fuqua St, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.4,
+      "priority": 79
+    },
+    "ChIJ_bhF_-aZQIYRVkDjE3qhFsQ": {
+      "pool": "quarantine",
+      "businessName": "China King",
+      "address": "11261 Fuqua St, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.6,
+      "priority": 80
+    },
+    "ChIJGwjdbB6ZQIYRRhw76TUnN_4": {
+      "pool": "quarantine",
+      "businessName": "Rincón Mexicano",
+      "address": "11460 Fuqua St #500, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.5,
+      "priority": 80
+    },
+    "ChIJjRClSHuZQIYRtF8e_W0g4VU": {
+      "pool": "quarantine",
+      "businessName": "The Famous Crab",
+      "address": "12130 Dickinson Rd, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 78.6,
+      "priority": 79
+    },
+    "ChIJJZUBCemZQIYRRqsJEg5bvU4": {
+      "pool": "quarantine",
+      "businessName": "Chili's Grill & Bar",
+      "address": "12897 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.3,
+      "priority": 79
+    },
+    "ChIJa5TLQOGZQIYR3EZwdXH9Gjk": {
+      "pool": "quarantine",
+      "businessName": "Pho 21,Fuqua St. Paul",
+      "address": "11005 Fuqua St Ste 110, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.5,
+      "priority": 80
+    },
+    "ChIJBVBUL9mZQIYRA2_npJzDh94": {
+      "pool": "quarantine",
+      "businessName": "Lone Star Seafood",
+      "address": "10990 Fuqua St, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.3,
+      "priority": 79
+    },
+    "ChIJ9zxsR-GZQIYRWnU_N6h-FxM": {
+      "pool": "quarantine",
+      "businessName": "7Spice",
+      "address": "11013 Fuqua St, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.5,
+      "priority": 80
+    },
+    "ChIJJWwrYuCXQIYRkx8ndteGa2E": {
+      "pool": "quarantine",
+      "businessName": "Los Catrachos",
+      "address": "9990 Kleckley Dr Ste H, Houston, TX 77075, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.3,
+      "priority": 79
+    },
+    "ChIJeYRxGmKXQIYR8o50RVlPFqI": {
+      "pool": "quarantine",
+      "businessName": "Krispy Krunchy Chicken",
+      "address": "475 Almeda Genoa Rd, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.4,
+      "priority": 79
+    },
+    "ChIJsX0Dar-XQIYRhpMkxCq_i5k": {
+      "pool": "quarantine",
+      "businessName": "La Carreta Restaurante",
+      "address": "7721 Almeda Genoa Rd suit c, Houston, TX 77075, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 75.6,
+      "priority": 76
+    },
+    "ChIJ03Iq3emZQIYRFqH6Aw05bqo": {
+      "pool": "quarantine",
+      "businessName": "Schlotzsky's Deli",
+      "address": "12720 Featherwood Dr, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.4,
+      "priority": 79
+    },
+    "ChIJNVwxzoyZQIYRhshbEY-p9_U": {
+      "pool": "quarantine",
+      "businessName": "Texas Grill 49",
+      "address": "12075 Beamer Rd Unit 107, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 77.8,
+      "priority": 78
+    },
+    "ChIJp5cys3yXQIYRWGJA2RDc5NY": {
+      "pool": "quarantine",
+      "businessName": "Pollo Campero",
+      "address": "11570 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79,
+      "priority": 79
+    },
+    "ChIJIz3I8YGXQIYR9MAt8Z92GaI": {
+      "pool": "quarantine",
+      "businessName": "Pho Bac | Vietnamese Noodle House",
+      "address": "10733 Kingspoint Rd Suite B, Houston, TX 77075, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.4,
+      "priority": 79
+    },
+    "ChIJj45AiGyXQIYRWAsgmMUUmVI": {
+      "pool": "quarantine",
+      "businessName": "El Oregano Restaurant",
+      "address": "9910 Fuqua St C, Houston, TX 77075, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 78.7,
+      "priority": 79
+    },
+    "ChIJQ-kvogCXQIYRtHz9mdGqElg": {
+      "pool": "quarantine",
+      "businessName": "Canh Bun Houston",
+      "address": "9970 Kleckley Dr, Houston, TX 77075, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.3,
+      "priority": 79
+    },
+    "ChIJyV-7e7mZQIYRTZQLrZKbO_M": {
+      "pool": "quarantine",
+      "businessName": "La Panga De Mejj",
+      "address": "9514 Galveston Rd, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 78.3,
+      "priority": 78
+    },
+    "ChIJPw50SOiZQIYR7MqKps8MzJQ": {
+      "pool": "quarantine",
+      "businessName": "Olive Garden Italian Restaurant",
+      "address": "12711 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.4,
+      "priority": 79
+    },
+    "ChIJraCPnBWXQIYR32Q8i6aQBMw": {
+      "pool": "quarantine",
+      "businessName": "Cơm Gà Houston South 45",
+      "address": "10733 Kingspoint Rd, Houston, TX 77075, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.4,
+      "priority": 79
+    },
+    "ChIJC8eiLBOZQIYRh2AyuPl9cD8": {
+      "pool": "quarantine",
+      "businessName": "Wok D'Lite",
+      "address": "Parking lot, 10904 Fuqua St, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.3,
+      "priority": 79
+    },
+    "ChIJwWcOmp-ZQIYRLeV6ic_OJzU": {
+      "pool": "quarantine",
+      "businessName": "Edo Japan",
+      "address": "11460 Fuqua St #900, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.4,
+      "priority": 79
+    },
+    "ChIJdwE6rWGZQIYRWZ3WgsHVaHc": {
+      "pool": "quarantine",
+      "businessName": "The Tea Bar",
+      "address": "11009 1/2 Fuqua St, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.5,
+      "priority": 80
+    },
+    "ChIJo40id2GXQIYRZD5QJTkWJlw": {
+      "pool": "quarantine",
+      "businessName": "Rey del Pollo",
+      "address": "10092 Kleckley Dr, Houston, TX 77075, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.4,
+      "priority": 79
+    },
+    "ChIJpyLNheGZQIYRAHrGG7frsY0": {
+      "pool": "quarantine",
+      "businessName": "Bravos Mexican restaurant",
+      "address": "10906 Fuqua St, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.4,
+      "priority": 79
+    },
+    "ChIJrzwXg-GZQIYRdk9DizYw6JQ": {
+      "pool": "quarantine",
+      "businessName": "Timeout #1 Sports Bar & Grill",
+      "address": "11460 Fuqua St, Houston, TX 77089, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.5,
+      "priority": 80
     },
     "ChIJdz_Z28OXQIYRp6I2Hu9GWOQ": {
       "pool": "quarantine",
@@ -3572,6 +2888,69 @@
       "qualityScore": 37.6,
       "priority": 38
     },
+    "ChIJV3MAdYuXQIYR2Ru6lHxw_fA": {
+      "pool": "quarantine",
+      "businessName": "The Club House Studios",
+      "address": "11427 Hall Rd, Houston, TX 77089, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 94.1,
+      "priority": 94
+    },
+    "ChIJmU_cLhWXQIYRFZfqRjUNwMA": {
+      "pool": "quarantine",
+      "businessName": "D’ Barber Haus- Fades.beards.Grooming",
+      "address": "10733 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 93.8,
+      "priority": 94
+    },
+    "ChIJexwRoQ-bQIYR9k07z4Vwsl4": {
+      "pool": "quarantine",
+      "businessName": "American Hairlines Barbershop",
+      "address": "11504 Hughes Rd, Houston, TX 77089, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 94.3,
+      "priority": 94
+    },
+    "ChIJc1drI12XQIYRCg-MmaMX0io": {
+      "pool": "quarantine",
+      "businessName": "Fade Factory Barbershop",
+      "address": "8529 Gulf Fwy, Houston, TX 77017, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 91,
+      "priority": 91
+    },
+    "ChIJVVndKDSXQIYR8xprR6X1bP4": {
+      "pool": "quarantine",
+      "businessName": "D’Robert Barber Shop",
+      "address": "8330 Gulf Fwy, Houston, TX 77017, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 90.1,
+      "priority": 90
+    },
+    "ChIJQYn6Xh6XQIYRSQ5iOWNxfls": {
+      "pool": "quarantine",
+      "businessName": "Montano’s barber shop # 2",
+      "address": "8500 Almeda Genoa Rd, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 92.8,
+      "priority": 93
+    },
+    "ChIJ3wW6eqGXQIYR0rrJWECHDOQ": {
+      "pool": "quarantine",
+      "businessName": "Space City Barber Studio",
+      "address": "8018 Almeda Genoa Rd, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 92,
+      "priority": 92
+    },
     "ChIJ9TRCKYubQIYR8psjkD8AVl8": {
       "pool": "quarantine",
       "businessName": "Jorgitin-Barbershop",
@@ -3579,6 +2958,51 @@
       "category": "Barber",
       "qualityClass": "Excellent",
       "qualityScore": 93.7,
+      "priority": 94
+    },
+    "ChIJxW4MMACXQIYRyF5nM67hml0": {
+      "pool": "quarantine",
+      "businessName": "Hamza’s Barbershop",
+      "address": "8902 Durham Manor Ln, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 93,
+      "priority": 93
+    },
+    "ChIJUT8-UQCXQIYRD3qaAdVntis": {
+      "pool": "quarantine",
+      "businessName": "💈Esplendor💈",
+      "address": "1030 Edgebrook Dr, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 93.7,
+      "priority": 94
+    },
+    "ChIJx1VgCB2ZQIYRd7NBuxB1CxI": {
+      "pool": "quarantine",
+      "businessName": "Jennis Barbershop",
+      "address": "2705 Shaver St, Pasadena, TX 77502, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.6,
+      "priority": 92
+    },
+    "ChIJ964x1WmZQIYRc1UvkXV2Y80": {
+      "pool": "quarantine",
+      "businessName": "A&C Barbershop",
+      "address": "3527 Shaver St Ste 103, Pasadena, TX 77504, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 92.6,
+      "priority": 93
+    },
+    "ChIJe8M2PlqXQIYRG7eykLJe0po": {
+      "pool": "quarantine",
+      "businessName": "D'RICO VIP BARBER SHOP",
+      "address": "9340 Fuqua St Ste A, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 93.8,
       "priority": 94
     },
     "ChIJJR7e8XCbQIYRN_WV8sQpn5E": {
@@ -3590,473 +3014,581 @@
       "qualityScore": 93.7,
       "priority": 94
     },
-    "ChIJQUwrEGKXQIYRFcbd2HiSHyg": {
+    "ChIJw-mwaEOXQIYRFZQ7tWUt-mA": {
       "pool": "quarantine",
-      "businessName": "Firestone Complete Auto Care",
-      "address": "620 Almeda Mall, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJRcWXiYOXQIYRpZez0lREZBM": {
-      "pool": "quarantine",
-      "businessName": "Wheels & Tires",
-      "address": "Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJTxUNbOeZQIYRtGp3r7FpcmA": {
-      "pool": "quarantine",
-      "businessName": "Sam's Club Tire & Battery",
-      "address": "11101 Fuqua St, Houston, TX 77089, USA",
-      "category": "Auto",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJm_LQyZyXQIYRE1u1zLh21mc": {
-      "pool": "quarantine",
-      "businessName": "Tire Shop",
-      "address": "1014 Edgebrook Dr, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJwytRLNyZQIYRphFzpaCFqgQ": {
-      "pool": "quarantine",
-      "businessName": "Fitness Connection",
-      "address": "12338 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Tire",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJSbooCeGZQIYR9TmsVVvSz8I": {
-      "pool": "quarantine",
-      "businessName": "Car Wash",
-      "address": "10890 Sabo Rd #5, Houston, TX 77089, USA",
-      "category": "Car Wash",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJjxeRpiyaQIYRDbYHUqra51I": {
-      "pool": "quarantine",
-      "businessName": "CAR WASH",
-      "address": "Gulf Breeze Dr, Houston, TX 77034, USA",
-      "category": "Car Wash",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJIapySGWXQIYRDiESigWQNRI": {
-      "pool": "quarantine",
-      "businessName": "Detail Center",
-      "address": "Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Car Wash",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJlyrwnt2ZQIYRV8uswt1wsaY": {
-      "pool": "quarantine",
-      "businessName": "888 Chinese Restaurant",
-      "address": "12346 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJzb7_tJKXQIYRd5Aow8vmY1E": {
-      "pool": "quarantine",
-      "businessName": "Culichitown",
-      "address": "12200 Gulf Fwy, Almeda Mall Ste 564, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJP3RWOnaZQIYR_Lcw_R8ncpg": {
-      "pool": "quarantine",
-      "businessName": "12303 Gulf Fwy Apt 2409",
-      "address": "12303 Gulf Fwy Apt 2409, Houston, TX 77034, USA",
-      "category": "Apartment",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJocnD812ZQIYRgEE7rc1P0XY": {
-      "pool": "quarantine",
-      "businessName": "12303 Gulf Fwy Apt 2006",
-      "address": "12303 Gulf Fwy Apt 2006, Houston, TX 77034, USA",
-      "category": "Apartment",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJ___PvtyZQIYRIF5_OvkVpUM": {
-      "pool": "quarantine",
-      "businessName": "12510 S Green Dr Apt 500",
-      "address": "12510 S Green Dr Apt 500, Houston, TX 77034, USA",
-      "category": "Apartment",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJdwrAdN2ZQIYRIjmoKyAoKkU": {
-      "pool": "quarantine",
-      "businessName": "12510 S Green Dr Apt 927",
-      "address": "12510 S Green Dr Apt 927, Houston, TX 77034, USA",
-      "category": "Apartment",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJaS-79dyZQIYRBsz8x93GAhQ": {
-      "pool": "quarantine",
-      "businessName": "12510 S Green Dr Apt 428",
-      "address": "12510 S Green Dr Apt 428, Houston, TX 77034, USA",
-      "category": "Apartment",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJxWGeAu6ZQIYRx6JP4UwRJ1E": {
-      "pool": "quarantine",
-      "businessName": "12601 S Green Dr Apt 1113",
-      "address": "12601 S Green Dr Apt 1113, Houston, TX 77034, USA",
-      "category": "Apartment",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJgeketQyZQIYRc3VysCl5BD4": {
-      "pool": "quarantine",
-      "businessName": "10950 Tanner Park Ct Apt 802",
-      "address": "Building 8, 10950 Tanner Park Ct Apt 802, Houston, TX 77075, USA",
-      "category": "Apartment",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJjciMdMOZQIYReR3Q3f9OsKs": {
-      "pool": "quarantine",
-      "businessName": "Innovista Medical Center - Southbelt",
-      "address": "12823 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Medical Office",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJFwKg32yZQIYRrBq6Zzoa6NE": {
-      "pool": "quarantine",
-      "businessName": "Alloju Health Center",
-      "address": "12549 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Medical Office",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJGU-97BqaQIYRJFsKweJYbKY": {
-      "pool": "quarantine",
-      "businessName": "Harris County Tax Collector",
-      "address": "10851 Scarsdale Blvd, Houston, TX 77089, USA",
-      "category": "Business Services",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJvSks4LeXQIYR2y3jz1yfacU": {
-      "pool": "quarantine",
-      "businessName": "Internal Revenue Service (IRS) Taxpayer Assistance Center",
-      "address": "8876 Gulf Fwy, Houston, TX 77017, USA",
-      "category": "Business Services",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJd5OV6F2cQIYREOnxUHY80I0": {
-      "pool": "quarantine",
-      "businessName": "Harris County Tax Assessor",
-      "address": "16603 Buccaneer Ln #101, Houston, TX 77062, USA",
-      "category": "Business Services",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJlRAMofSZQIYRWPkQVKsG9g0": {
-      "pool": "quarantine",
-      "businessName": "Illumination Barber School",
-      "address": "12260 Gulf Fwy SteA17, Houston, TX 77034, USA",
-      "category": "Barber",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJVVXlmdiZQIYR1iKCEveibug": {
-      "pool": "quarantine",
-      "businessName": "12200 Gulf Fwy Store #250",
-      "address": "12200 Gulf Fwy Store #250, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJJX7mZPuXQIYRIHz34isl-8E": {
-      "pool": "quarantine",
-      "businessName": "VAPE ISLAND - DISPENSARY & SMOKE SHOP HOBBY AIRPORT",
-      "address": "8305 Almeda Genoa Rd Ste A200, Houston, TX 77075, USA",
-      "category": "Small Retail",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJ28K9pqmXQIYR8iRxYb31Kqs": {
-      "pool": "quarantine",
-      "businessName": "The Smoke Shoppe",
-      "address": "12043 Beamer Rd, Houston, TX 77089, USA",
-      "category": "Small Retail",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJv4PWxYCYQIYRMm8OcngaljQ": {
-      "pool": "quarantine",
-      "businessName": "Game Guys",
-      "address": "444 Almeda Mall, Houston, TX 77034, USA",
-      "category": "Small Retail",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJlZAYe3mXQIYR7wjNp52x12U": {
-      "pool": "quarantine",
-      "businessName": "Café Konbini",
-      "address": "416 Almeda Mall, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJeWyC-3mXQIYRIEroQLpw-QU": {
-      "pool": "quarantine",
-      "businessName": "Almeda Crossing",
-      "address": "11130 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJe2iprfCXQIYRS0o70BUB7go": {
-      "pool": "quarantine",
-      "businessName": "Camila beauty supply",
-      "address": "272 Almeda Mall, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJ-UTDSsKZQIYRtaRunMn83N4": {
-      "pool": "quarantine",
-      "businessName": "Fuqua Business Park",
-      "address": "11665 Fuqua St Ste B202, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJRav4sHqXQIYR0D9UxRdgJCE": {
-      "pool": "quarantine",
-      "businessName": "Almeda Crossing",
-      "address": "10013 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJBSSCBt2XQIYRF6p-dcEhCoU": {
-      "pool": "quarantine",
-      "businessName": "Almeda West",
-      "address": "10150 Almeda Genoa Rd, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJbd-EKfu_QIYRUEbuCoJTi2A": {
-      "pool": "quarantine",
-      "businessName": "South Gulf Plaza",
-      "address": "5815 Gulf Fwy, Houston, TX 77023, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJ_Tkcat-ZQIYR-iQ5cQ1iqog": {
-      "pool": "quarantine",
-      "businessName": "Uniforms N More",
-      "address": "12200 Almeda Mall, Ste 308, 12200 Gulf Fwy Ste 308, Houston, TX 77075, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJQUwrEGKXQIYRrcr0OPr3h4I": {
-      "pool": "quarantine",
-      "businessName": "Almeda Mall",
-      "address": "555 Almeda Mall, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJl9zBWQCZQIYRjMJ5hNEJxCE": {
-      "pool": "quarantine",
-      "businessName": "Hydrexentaris Auto Solutions",
-      "address": "620 Almeda Mall, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJJfK7kqeZQIYR28ia49TS4nI": {
-      "pool": "quarantine",
-      "businessName": "281 Autoworkz",
-      "address": "8510 Galveston Rd, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJTX6yKgCZQIYRyFOneof-itc": {
-      "pool": "quarantine",
-      "businessName": "Windshield Hospital",
-      "address": "12330 Gulf Fwy, Houston, TX 77034, USA",
-      "category": "Auto",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJz9Uq7OOXQIYR-He7rmwhGog": {
-      "pool": "quarantine",
-      "businessName": "45 Tires and Wheels",
-      "address": "9473 Clearwood Dr Ste A & B, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJpTD9WWOXQIYRPD8gSnDvous": {
-      "pool": "quarantine",
-      "businessName": "Walmart Auto Care Center",
-      "address": "9598 Rowlett Rd, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJI9CRQSaXQIYRO2abD_rHur4": {
-      "pool": "quarantine",
-      "businessName": "45 Tires & Wheels",
-      "address": "9610 Hollock St, Houston, TX 77075, USA",
-      "category": "Auto",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJs7kEFF-XQIYRP-gtmBR_190": {
-      "pool": "quarantine",
-      "businessName": "AutoZone Auto Parts",
-      "address": "10705 Seaford Dr, Houston, TX 77089, USA",
-      "category": "Auto",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJnTmJjuWXQIYRj9L5OFo7rik": {
-      "pool": "quarantine",
-      "businessName": "Dragon Express",
-      "address": "268 Almeda Mall, Houston, TX 77034, USA",
-      "category": "Restaurant",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJt2uoPruXQIYRb7uTey7ht3w": {
-      "pool": "quarantine",
-      "businessName": "Urban Bird Hot Chicken",
-      "address": "9990 Almeda Genoa Rd Ste 100, Houston, TX 77075, USA",
-      "category": "Restaurant",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJbbS2SFOZQIYROMX9-Idcxcc": {
-      "pool": "quarantine",
-      "businessName": "Sam's Club Cafe",
-      "address": "11101 Fuqua St, Houston, TX 77089, USA",
-      "category": "Restaurant",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
-    },
-    "ChIJ7cxu3fiXQIYR0xKxbEc3n5M": {
-      "pool": "quarantine",
-      "businessName": "Em lash studio Almeda",
-      "address": "Inside Walmart, 9598 Rowlett Rd, Houston, TX 77075, USA",
+      "businessName": "M W Exclusive Hair Salon",
+      "address": "9967 Fuqua St, Houston, TX 77075, USA",
       "category": "Salon",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
+      "qualityClass": "Excellent",
+      "qualityScore": 90.8,
+      "priority": 91
     },
-    "ChIJJ0ExYhejQIYRYFRPJNEi_-c": {
+    "ChIJj4lxeEOXQIYRJHCvVRN0OQc": {
       "pool": "quarantine",
-      "businessName": "Exclusive Elements",
-      "address": "252 Almeda Mall, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
+      "businessName": "ABA Salons",
+      "address": "9910 Fuqua St f, Houston, TX 77075, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 90.7,
+      "priority": 91
     },
-    "ChIJK8qzBciXQIYRERCqeddkHdc": {
+    "ChIJCaPErdmXQIYRRqKYf7UwTJM": {
       "pool": "quarantine",
-      "businessName": "Vibe Hobby",
-      "address": "Gulf Fwy, Houston, TX 77017, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
+      "businessName": "New Looks Salon",
+      "address": "9820 Gulf Fwy #C2, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 92.6,
+      "priority": 93
     },
-    "ChIJQUwrEGKXQIYRdP_OSiu0-4Q": {
+    "ChIJg3gZd0OXQIYR0L0DRHiLtA4": {
       "pool": "quarantine",
-      "businessName": "Orange Grove",
-      "address": "10225 Almeda Genoa Rd, Houston, TX 77034, USA",
-      "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
+      "businessName": "Gigi's Hair Salon",
+      "address": "9855 Fuqua St, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 94.6,
+      "priority": 95
     },
-    "ChIJEQmuCW6XQIYR4iM3ObuYY-Y": {
+    "ChIJN_7LWASZQIYRwxlRs22Uum4": {
+      "pool": "quarantine",
+      "businessName": "Shades by Esme",
+      "address": "12875 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 95.2,
+      "priority": 95
+    },
+    "ChIJAUhwgVaZQIYRljWYRHv1fA4": {
+      "pool": "quarantine",
+      "businessName": "Lash Chance",
+      "address": "12200 Gulf Fwy Ste 730, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.5,
+      "priority": 92
+    },
+    "ChIJAwxXEueXQIYR9CX0sAFfjmM": {
+      "pool": "quarantine",
+      "businessName": "Hair by David",
+      "address": "1050 Edgebrook Dr, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 93.7,
+      "priority": 94
+    },
+    "ChIJ8wHj9kSZQIYRShEClIzydFo": {
+      "pool": "quarantine",
+      "businessName": "TipsNdBlinks",
+      "address": "12260 Gulf Fwy a3, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.9,
+      "priority": 92
+    },
+    "ChIJ_Tkcat-ZQIYRQhzG5dXIHY0": {
+      "pool": "quarantine",
+      "businessName": "Makeup & More",
+      "address": "12200 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.5,
+      "priority": 92
+    },
+    "ChIJE_qeXjmZQIYRuCgChjGMul0": {
+      "pool": "quarantine",
+      "businessName": "Luxe Beauty Barre| Wellness, Aesthetics, Weight Loss",
+      "address": "12132 Sabo Rd, Houston, TX 77089, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 90.6,
+      "priority": 91
+    },
+    "ChIJAegWAy-YQIYRhl83za3u0ZA": {
+      "pool": "quarantine",
+      "businessName": "D & T Beauty Salon",
+      "address": "99 E Edgebrook Dr, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.5,
+      "priority": 90
+    },
+    "ChIJb_Ij0wGaQIYRbrL-jm4Uhww": {
+      "pool": "quarantine",
+      "businessName": "Hair By Angel salon",
+      "address": "12035 Beamer Rd, Houston, TX 77089, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.8,
+      "priority": 90
+    },
+    "ChIJWQVQdpebQIYRDhVTnr57TgU": {
+      "pool": "quarantine",
+      "businessName": "Bossway Hair",
+      "address": "11045 Fuqua St, Houston, TX 77089, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.6,
+      "priority": 92
+    },
+    "ChIJjYz2c6uXQIYRs34L17Mo9ZU": {
+      "pool": "quarantine",
+      "businessName": "Miracle Organics, LLC",
+      "address": "10121 Windmill Lakes Blvd, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 94.8,
+      "priority": 95
+    },
+    "ChIJI-F3g8CbQIYRcvvWKQjZ4aY": {
+      "pool": "quarantine",
+      "businessName": "Yobe Salon",
+      "address": "10939 Scarsdale Blvd, Houston, TX 77089, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.2,
+      "priority": 89
+    },
+    "ChIJuw5Wwy-YQIYRBy5T-K-U3Uk": {
+      "pool": "quarantine",
+      "businessName": "Happy Cut Beauty Salon",
+      "address": "125 E Edgebrook Dr, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.4,
+      "priority": 89
+    },
+    "ChIJZcBaQXuXQIYRV3wlXHCc0N4": {
+      "pool": "quarantine",
+      "businessName": "Foxx beauty supply",
+      "address": "11510 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 90.8,
+      "priority": 91
+    },
+    "ChIJZ1srFvqXQIYR1nJce5aeUQY": {
+      "pool": "quarantine",
+      "businessName": "Payse African Hair Braiding LLC",
+      "address": "10150 Almeda Genoa Rd Ste . E, Houston, TX 77075, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 94.9,
+      "priority": 95
+    },
+    "ChIJU-LHYIOXQIYR94wV1p14Gt0": {
+      "pool": "quarantine",
+      "businessName": "Hilby's Fade Beauty Salon",
+      "address": "914 Edgebrook Dr, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.7,
+      "priority": 90
+    },
+    "ChIJ5wxWb4OXQIYRSOY0VzSbty8": {
+      "pool": "quarantine",
+      "businessName": "Hanna Salon",
+      "address": "914 Edgebrook Dr, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.7,
+      "priority": 90
+    },
+    "ChIJY5XYTH-XQIYRau-N-OqLAg0": {
+      "pool": "quarantine",
+      "businessName": "CutLuna",
+      "address": "10910 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 94,
+      "priority": 94
+    },
+    "ChIJua3nNHaXQIYRyAsSDbuTNco": {
+      "pool": "quarantine",
+      "businessName": "Armstrong McCall Beauty Supply",
+      "address": "10759 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.8,
+      "priority": 90
+    },
+    "ChIJHx40h1aXQIYRNREN9WdYG_U": {
+      "pool": "quarantine",
+      "businessName": "Tx Hair Fashions",
+      "address": "10859 Kirkfair Dr, Houston, TX 77089, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 94.3,
+      "priority": 94
+    },
+    "ChIJk-9b1RybQIYRoURJTpMoORM": {
+      "pool": "quarantine",
+      "businessName": "BEAUTY LAB",
+      "address": "12555A Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.5,
+      "priority": 92
+    },
+    "ChIJjU4pyX2ZQIYRKbQjIIC9oGU": {
+      "pool": "quarantine",
+      "businessName": "Galaxy Beauty Salon & Spa",
+      "address": "364 FM1959, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.4,
+      "priority": 88
+    },
+    "ChIJGU-97BqaQIYRrcNhETqCE1w": {
+      "pool": "quarantine",
+      "businessName": "Hair Etc by Bobo",
+      "address": "10851 Scarsdale Blvd #640, Houston, TX 77089, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.1,
+      "priority": 89
+    },
+    "ChIJT2bVquKWQIYR4l1Oh8cBqec": {
+      "pool": "quarantine",
+      "businessName": "N & Y",
+      "address": "8405 Almeda Genoa Rd # L, Houston, TX 77075, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 88.6,
+      "priority": 89
+    },
+    "ChIJJ5z-UOiZQIYRwrfHYUg0DwM": {
+      "pool": "quarantine",
+      "businessName": "TEXAN NAILS SPA",
+      "address": "12859 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.2,
+      "priority": 91
+    },
+    "ChIJCe4DawCZQIYRMwubMJVys1o": {
+      "pool": "quarantine",
+      "businessName": "Botax",
+      "address": "10909 Sabo Rd #214, Houston, TX 77089, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.4,
+      "priority": 91
+    },
+    "ChIJc7enc7CZQIYRSFNExbNUQcw": {
+      "pool": "quarantine",
+      "businessName": "LUXURIOUS BY VALERIE",
+      "address": "10909 Sabo Rd #214, Houston, TX 77089, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 91.4,
+      "priority": 91
+    },
+    "ChIJdb31ZYqZQIYRR-qOqKAU7qk": {
+      "pool": "quarantine",
+      "businessName": "Hollywood Hair & Nail",
+      "address": "12507 Scarsdale Blvd A, Houston, TX 77089, USA",
+      "category": "Salon",
+      "qualityClass": "Excellent",
+      "qualityScore": 89.6,
+      "priority": 90
+    },
+    "ChIJ_SN-8suZQIYRMvP-wvzJKbw": {
+      "pool": "quarantine",
+      "businessName": "Coffee & I",
+      "address": "12344 Gulf Fwy Ste Q, Houston, TX 77034, USA",
+      "category": "Restaurant",
+      "qualityClass": "Good",
+      "qualityScore": 79.9,
+      "priority": 80
+    },
+    "ChIJiTmi7GaXQIYRKnQpVLlqfro": {
+      "pool": "quarantine",
+      "businessName": "Telephone Pawn",
+      "address": "10855 Telephone Rd, Houston, TX 77075, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 79.3,
+      "priority": 79
+    },
+    "ChIJBRrygR-aQIYRIdHYOsFfLXE": {
+      "pool": "quarantine",
+      "businessName": "J & E'S Pawn Shop",
+      "address": "12303 Scarsdale Blvd B, Houston, TX 77089, USA",
+      "category": "Small Retail",
+      "qualityClass": "Good",
+      "qualityScore": 81.5,
+      "priority": 82
+    },
+    "ChIJL-_gRGOXQIYRzUCVTm6Gpl0": {
+      "pool": "quarantine",
+      "businessName": "X- WIRELESS",
+      "address": "10252 Almeda Genoa Rd Ste A, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75,
+      "priority": 75
+    },
+    "ChIJ_3SPwduZQIYRQS6okCxagnE": {
       "pool": "quarantine",
       "businessName": "United States Postal Service",
-      "address": "9898 Almeda Genoa Rd, Houston, TX 77075, USA",
+      "address": "10935 Almeda Genoa Rd, Houston, TX 77034, USA",
       "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
+      "qualityClass": "Good",
+      "qualityScore": 75.5,
+      "priority": 76
     },
-    "ChIJPcSy7MSXQIYROpu0otN1uEU": {
+    "ChIJU1n0koCXQIYR-LG-bEvL3a0": {
       "pool": "quarantine",
-      "businessName": "Glenbrook Business Park",
-      "address": "9197 Winkler Dr, Houston, TX 77017, USA",
+      "businessName": "Harbor Freight",
+      "address": "10045 Almeda Genoa Rd, Houston, TX 77075, USA",
       "category": "Other Storefront",
-      "qualityClass": "Unscored",
-      "qualityScore": 0,
-      "priority": 0
+      "qualityClass": "Good",
+      "qualityScore": 74.7,
+      "priority": 75
+    },
+    "ChIJa5k6pjuUQIYR_m0zp4tSWLA": {
+      "pool": "quarantine",
+      "businessName": "Fabco Specialties Inc",
+      "address": "5608 Almeda Genoa Rd, Houston, TX 77048, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 68.7,
+      "priority": 69
+    },
+    "ChIJG-B_M2vBQIYRsZjW-geHpj8": {
+      "pool": "quarantine",
+      "businessName": "Gulf Coast Small Business Solutions",
+      "address": "2425 W Loop S, Houston, TX 77027, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Poor",
+      "qualityScore": 56.2,
+      "priority": 56
+    },
+    "ChIJ6TfkwtmZQIYRCGAYCk-W8sU": {
+      "pool": "quarantine",
+      "businessName": "B&L Lock And Safe",
+      "address": "10638 Almeda Genoa Rd, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.3,
+      "priority": 75
+    },
+    "ChIJxXCCMCibQIYRgAMFLdK49fg": {
+      "pool": "quarantine",
+      "businessName": "Mobile Notary Services",
+      "address": "12138 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.8,
+      "priority": 76
+    },
+    "ChIJ_eP7lpiXQIYRgrKvjPBP5gQ": {
+      "pool": "quarantine",
+      "businessName": "Kikas Artesanal",
+      "address": "10252 Almeda Genoa Rd Ste E, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75,
+      "priority": 75
+    },
+    "ChIJFfRA0t6ZQIYRxk7YPCnC5xw": {
+      "pool": "quarantine",
+      "businessName": "On The Go Grafix Signs",
+      "address": "12170 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.8,
+      "priority": 76
+    },
+    "ChIJVVVVEWKXQIYRHSpaEBdcfLQ": {
+      "pool": "quarantine",
+      "businessName": "PARKWAY STUDIOS",
+      "address": "12200 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.4,
+      "priority": 75
+    },
+    "ChIJVVVVwr6ZQIYRmwj1hIig89U": {
+      "pool": "quarantine",
+      "businessName": "Genoa Staff Development Center",
+      "address": "12900 Almeda Genoa Rd, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 74.6,
+      "priority": 75
+    },
+    "ChIJx0SN6YeZQIYRY0NOppnaU1E": {
+      "pool": "quarantine",
+      "businessName": "Great Western Metals Inc",
+      "address": "14121 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 73.2,
+      "priority": 73
+    },
+    "ChIJuQAEpLqXQIYRGafBF-yeHUw": {
+      "pool": "quarantine",
+      "businessName": "De Mi Tierra",
+      "address": "8346B Almeda Genoa Rd, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 72.5,
+      "priority": 73
+    },
+    "ChIJ__-_GciXQIYRFUb1GSUwkOk": {
+      "pool": "quarantine",
+      "businessName": "Houston Business Builders",
+      "address": "8866 Gulf Fwy, Houston, TX 77017, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 71.6,
+      "priority": 72
+    },
+    "ChIJY-XHyfxhP4YRA3SzntPGSKQ": {
+      "pool": "quarantine",
+      "businessName": "KT BEAUTY BOOM",
+      "address": "12200 Gulf Fwy Ste 432, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.4,
+      "priority": 75
+    },
+    "ChIJseHmRGOXQIYRUGVRkovThHs": {
+      "pool": "quarantine",
+      "businessName": "L.A. Insurance",
+      "address": "10252 Almeda Genoa Rd Ste C, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75,
+      "priority": 75
+    },
+    "ChIJcXURt3uXQIYRs2QDJq1yxuc": {
+      "pool": "quarantine",
+      "businessName": "Cavco Home Center",
+      "address": "11305 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 74.7,
+      "priority": 75
+    },
+    "ChIJqRVtp32XQIYRwVTTiY3bdKE": {
+      "pool": "quarantine",
+      "businessName": "Palma's Pacas",
+      "address": "10002 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 73,
+      "priority": 73
+    },
+    "ChIJZwHSxGOXQIYRLlTISxqyy3E": {
+      "pool": "quarantine",
+      "businessName": "Game Posh",
+      "address": "9990 Kleckley Dr, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.3,
+      "priority": 75
+    },
+    "ChIJu2sfMk-9QIYROjDWa6_No5w": {
+      "pool": "quarantine",
+      "businessName": "Creations Group LLC",
+      "address": "11821 East Fwy Ste 450, Houston, TX 77029, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 63,
+      "priority": 63
+    },
+    "ChIJHU8h5caUQIYRwlg8pqEaiag": {
+      "pool": "quarantine",
+      "businessName": "Stephen's Marketplace",
+      "address": "2902 Almeda Genoa Rd Ste A, Houston, TX 77047, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 64.6,
+      "priority": 65
+    },
+    "ChIJ964Pl9mZQIYRPGeoMgV2QkE": {
+      "pool": "quarantine",
+      "businessName": "Carbide Grinding",
+      "address": "9317 Gamebird Ln, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.4,
+      "priority": 75
+    },
+    "ChIJA7AXVmSXQIYRNMN-76qoTMU": {
+      "pool": "quarantine",
+      "businessName": "Small Town Storage",
+      "address": "9900 Rowlett Rd, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 74.9,
+      "priority": 75
+    },
+    "ChIJ7w0QOuGZQIYRWqzmIjvCo3M": {
+      "pool": "quarantine",
+      "businessName": "Southview Square",
+      "address": "11005 Fuqua St, Houston, TX 77089, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.5,
+      "priority": 76
+    },
+    "ChIJNXKBGd-XQIYRRwzXJtUVr8g": {
+      "pool": "quarantine",
+      "businessName": "Wedding Venues Arellano Palace Salones de Fiesta",
+      "address": "9823 Rowlett Rd, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75,
+      "priority": 75
+    },
+    "ChIJ_Tkcat-ZQIYR_Qd07sSrefo": {
+      "pool": "quarantine",
+      "businessName": "Lady World",
+      "address": "12200 Gulf Fwy, Houston, TX 77034, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.4,
+      "priority": 75
+    },
+    "ChIJ-XgfVheXQIYR3ZePVXNjjig": {
+      "pool": "quarantine",
+      "businessName": "Southeast Houston Auto Storage",
+      "address": "9939 Rowlett Rd, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75,
+      "priority": 75
+    },
+    "ChIJVVVF4cTqQIYR56gFhXGzEEQ": {
+      "pool": "quarantine",
+      "businessName": "Enterprise Products",
+      "address": "11750 Almeda Rd, Houston, TX 77045, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 62.4,
+      "priority": 62
+    },
+    "ChIJiVfPSDq_QIYRyItssxUujYQ": {
+      "pool": "quarantine",
+      "businessName": "Houston Business Products",
+      "address": "2016 Main St Ste 104, Houston, TX 77002, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Average",
+      "qualityScore": 60.8,
+      "priority": 61
+    },
+    "ChIJ-adg7WCXQIYR4Ahl4xZpgzw": {
+      "pool": "quarantine",
+      "businessName": "Kingspoint Mart",
+      "address": "10640 Kingspoint Rd, Houston, TX 77075, USA",
+      "category": "Other Storefront",
+      "qualityClass": "Good",
+      "qualityScore": 75.4,
+      "priority": 75
     }
   }
 }

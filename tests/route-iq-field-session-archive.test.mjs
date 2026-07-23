@@ -1023,13 +1023,13 @@ test("missing bindings, unknown workspaces, and cross-workspace evidence fail cl
 
   assert.throws(() => archivePackage({ workspaceId: "unknown_workspace" }), /Unknown field-session workspace/);
   const contaminatedEvidence = json(SOURCE_EVIDENCE_PATH);
-  contaminatedEvidence.workspaceId = "smoothie_depot";
+  contaminatedEvidence.workspaceId = "unauthorized_workspace";
   assert.throws(() => archivePackage({ stressTestEvidence: contaminatedEvidence }), /missing or cross-workspace/);
 
   const binding = kvBinding();
   await assert.rejects(() => readRouteIqFieldSessionArchive({
-    workspaceId: "smoothie_depot",
-    operatingProfileId: "franchise_development",
+    workspaceId: "unauthorized_workspace",
+    operatingProfileId: "unknown_profile",
     sessionId: SESSION_ID
   }, { env: { [routeIqFieldSessionStoreBinding]: binding } }), /Unknown field-session workspace/);
   assert.equal(binding.data.size, 0);
@@ -1198,7 +1198,10 @@ test("existing Data contract records the live Dashboard producer without activat
   assert.equal(contract.consumerRules.dashboard.automaticEndOfDayTriggerImplemented, true);
   assert.equal(contract.consumerRules.intelligence.fieldSessionLearningConsumptionAuthorized, false);
   assert.equal(contract.consumerRules.intelligence.fieldSessionHistoryMutationAllowed, false);
-  assert.equal(contract.workspaceIsolationRules.smoothieDepotMayConsumeFitnessFieldSessions, false);
+  assert.equal(contract.workspaceIsolationRules.unknownFieldSessionWorkspaceFailsClosed, true);
+  assert.equal(contract.workspaceIsolationRules.globalCustomerStateAllowed, false);
+  assert.equal(contract.workspaceIsolationRules.fixtureDataAllowedInProduction, false);
+  assert.equal(contract.workspaceIsolationRules.demoDataAllowedInProduction, false);
   assert.equal(contract.inventionGovernance.classification, "operational_improvement");
   assert.equal(manifest.invariants.dashboardBehaviorChanged, false);
   assert.equal(manifest.invariants.intelligenceScoringChanged, false);

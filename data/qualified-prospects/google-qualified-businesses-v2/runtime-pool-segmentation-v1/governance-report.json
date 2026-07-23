@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T05:58:46.228Z",
+  "generatedAt": "2026-07-23T12:00:00.000Z",
   "status": "passed",
   "promotionAllowed": true,
   "segmentationDir": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1",
@@ -10,68 +10,44 @@
   },
   "stats": {
     "active": {
-      "count": 297,
+      "count": 0,
+      "categories": {},
+      "qualityClasses": {},
+      "assignmentReasons": {}
+    },
+    "reserve": {
+      "count": 0,
+      "categories": {},
+      "qualityClasses": {},
+      "assignmentReasons": {}
+    },
+    "quarantine": {
+      "count": 398,
       "categories": {
         "Auto": 89,
         "Car Wash": 31,
         "Restaurant": 54,
-        "Barber": 40,
+        "Apartment": 13,
+        "Medical Office": 21,
+        "Dental Office": 33,
+        "Business Services": 16,
+        "Barber": 43,
         "Salon": 35,
         "Small Retail": 22,
-        "Other Storefront": 26
+        "Other Storefront": 41
       },
       "qualityClasses": {
-        "Excellent": 195,
-        "Good": 102
-      },
-      "assignmentReasons": {
-        "highest_quality_verified_runtime_candidate": 297
-      }
-    },
-    "reserve": {
-      "count": 44,
-      "categories": {
-        "Apartment": 13,
-        "Business Services": 16,
-        "Other Storefront": 15
-      },
-      "qualityClasses": {
+        "Excellent": 198,
+        "Good": 102,
         "Poor": 14,
+        "Never Visit": 54,
         "Average": 30
       },
       "assignmentReasons": {
-        "production_safe_but_not_active_quality_band": 44
-      }
-    },
-    "quarantine": {
-      "count": 109,
-      "categories": {
-        "Medical Office": 23,
-        "Dental Office": 33,
-        "Barber": 4,
-        "Auto": 11,
-        "Tire": 1,
-        "Car Wash": 3,
-        "Restaurant": 6,
-        "Apartment": 7,
-        "Business Services": 3,
-        "Small Retail": 4,
-        "Other Storefront": 13,
-        "Salon": 1
-      },
-      "qualityClasses": {
-        "Never Visit": 54,
-        "Excellent": 3,
-        "Unscored": 52
-      },
-      "assignmentReasons": {
+        "founder_approval_pending": 398,
         "runtime_quality_never_visit": 54,
         "residential_house_reported_place_id": 3,
-        "residential_house_reported_address": 3,
-        "do_not_recommend": 37,
-        "generic_or_restricted": 37,
-        "missing_numbered_address": 4,
-        "invalid_business_name": 12
+        "residential_house_reported_address": 3
       }
     }
   },

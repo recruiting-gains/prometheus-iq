@@ -6,6 +6,7 @@
   "required": [
     "schemaVersion",
     "artifactVersion",
+    "projectionVersion",
     "generatedAt",
     "statusEvaluatedAt",
     "sourceRetrievedAt",
@@ -27,6 +28,7 @@
   "properties": {
     "schemaVersion": { "const": "prometheus-data-business-hours-v1" },
     "artifactVersion": { "const": "business-hours-v1" },
+    "projectionVersion": { "const": "route-iq-business-availability-v2" },
     "generatedAt": { "type": "string", "format": "date-time" },
     "statusEvaluatedAt": { "type": "string", "format": "date-time" },
     "sourceRetrievedAt": { "type": "string", "format": "date-time" },
@@ -34,7 +36,7 @@
     "operatingProfileId": { "const": "fitness" },
     "protectedWorkspaceIds": {
       "type": "array",
-      "contains": { "const": "smoothie_depot" }
+      "maxItems": 0
     },
     "sourceDatasetVersion": { "const": "google-qualified-businesses-v2" },
     "sourceArtifact": { "type": "string", "minLength": 1 },
@@ -96,7 +98,7 @@
       "properties": {
         "providerRefreshIntervalHours": { "type": "number", "exclusiveMinimum": 0 },
         "statusEvaluationIntervalMinutes": { "type": "number", "exclusiveMinimum": 0 },
-        "freshnessThresholdHours": { "type": "number", "exclusiveMinimum": 0 },
+        "freshnessThresholdHours": { "type": "number", "exclusiveMinimum": 0, "maximum": 24 },
         "fieldObservationFreshnessMinutes": { "type": "number", "exclusiveMinimum": 0 },
         "staleStatus": { "const": "HOURS_STALE" },
         "missingStatus": { "const": "HOURS_UNKNOWN" },
@@ -113,6 +115,9 @@
         "businessName",
         "address",
         "category",
+        "accessType",
+        "appointmentAccessRequired",
+        "appointmentAccessWindows",
         "latitude",
         "longitude",
         "activePoolMember",
@@ -136,7 +141,11 @@
         "currentStatusReason",
         "currentStatusEvaluatedAt",
         "currentStatusBusinessLocalDate",
-        "currentStatusBusinessLocalTime"
+        "currentStatusBusinessLocalTime",
+        "currentEffectiveInterval",
+        "currentNextOpening",
+        "currentNextClosing",
+        "currentAvailabilityDisplay"
       ],
       "properties": {
         "workspaceId": { "const": "fitness_connection" },
@@ -145,6 +154,24 @@
         "businessName": { "type": "string", "minLength": 1 },
         "address": { "type": "string", "minLength": 1 },
         "category": { "type": "string", "minLength": 1 },
+        "accessType": { "type": ["string", "null"] },
+        "appointmentAccessRequired": { "type": "boolean" },
+        "appointmentAccessWindows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["appointmentId", "verificationStatus", "start", "end", "source", "verifiedAt"],
+            "properties": {
+              "appointmentId": { "type": ["string", "null"] },
+              "verificationStatus": { "enum": ["VERIFIED", "UNVERIFIED"] },
+              "start": { "$ref": "#/$defs/hoursPoint" },
+              "end": { "$ref": "#/$defs/hoursPoint" },
+              "source": { "type": ["string", "null"] },
+              "verifiedAt": { "$ref": "#/$defs/nullableTimestamp" }
+            }
+          }
+        },
         "latitude": { "type": ["number", "null"] },
         "longitude": { "type": ["number", "null"] },
         "activePoolMember": { "type": "boolean" },
@@ -234,9 +261,61 @@
         "currentStatusReason": { "type": "string", "minLength": 1 },
         "currentStatusEvaluatedAt": { "$ref": "#/$defs/nullableTimestamp" },
         "currentStatusBusinessLocalDate": { "type": ["string", "null"], "format": "date" },
-        "currentStatusBusinessLocalTime": { "type": ["string", "null"] }
+        "currentStatusBusinessLocalTime": { "type": ["string", "null"] },
+        "currentEffectiveInterval": {
+          "anyOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/effectiveInterval" }
+          ]
+        },
+        "currentNextOpening": {
+          "anyOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/localEvent" }
+          ]
+        },
+        "currentNextClosing": {
+          "anyOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/localEvent" }
+          ]
+        },
+        "currentAvailabilityDisplay": { "type": "string", "minLength": 1 }
       },
       "additionalProperties": false
+    },
+    "localEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["localDate", "localTime", "displayTime", "timeZone", "source"],
+      "properties": {
+        "localDate": { "type": "string", "format": "date" },
+        "localTime": { "type": "string", "pattern": "^\\d{2}:\\d{2}$" },
+        "displayTime": { "type": "string", "minLength": 1 },
+        "timeZone": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 }
+      }
+    },
+    "effectiveInterval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "twentyFourHours", "start", "end"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "twentyFourHours": { "type": "boolean" },
+        "start": {
+          "anyOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/localEvent" }
+          ]
+        },
+        "end": {
+          "anyOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/localEvent" }
+          ]
+        }
+      }
     }
   },
   "additionalProperties": false

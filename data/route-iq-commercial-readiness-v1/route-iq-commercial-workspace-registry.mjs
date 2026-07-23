@@ -379,8 +379,7 @@ export function validateCommercialWorkspaceRegistry(registry, options = {}) {
 
   if (options.requireCanonicalProof !== false) {
     const fitness = registry.workspaces.find(workspace => workspace.workspaceId === "fitness_connection");
-    const smoothie = registry.workspaces.find(workspace => workspace.workspaceId === "smoothie_depot");
-    const synthetic = registry.workspaces.find(workspace => workspace.workspaceId === "summit_roofing_synthetic");
+    const synthetic = registry.workspaces.find(workspace => workspace.workspaceId === "northstar_outside_sales_synthetic");
     if (!fitness
       || fitness.business.relationshipClassification !== routeIqFounderResearchClassification
       || fitness.evidenceGovernance.classification !== routeIqFounderResearchClassification
@@ -388,10 +387,10 @@ export function validateCommercialWorkspaceRegistry(registry, options = {}) {
       || fitness.operatingProfileId !== "fitness") {
       fail("route_iq_commercial_workspace_fitness_boundary_invalid", "Fitness Connection must remain Founder research.");
     }
-    if (!smoothie || smoothie.workspaceState !== "inactive_historical" || smoothie.normalOperationVisible !== false) {
-      fail("route_iq_commercial_workspace_smoothie_boundary_invalid", "Smoothie Depot must remain historical and inactive.");
-    }
-    if (!synthetic || synthetic.operatingProfileId !== "roofing" || synthetic.workspaceState !== "synthetic_validation_only") {
+    if (!synthetic
+      || synthetic.operatingProfileId !== "general_outside_sales"
+      || synthetic.business.businessType !== "general_outside_sales"
+      || synthetic.workspaceState !== "synthetic_validation_only") {
       fail("route_iq_commercial_workspace_configuration_proof_missing", "Synthetic non-fitness configuration proof is missing.");
     }
   }

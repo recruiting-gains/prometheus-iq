@@ -303,19 +303,23 @@ export async function refreshBusinessHoursDataset({
   const artifact = {
     schemaVersion: "prometheus-data-business-hours-v1",
     artifactVersion: "business-hours-v1",
+    projectionVersion: "route-iq-business-availability-v2",
     generatedAt: evaluated.toISOString(),
     statusEvaluatedAt: evaluated.toISOString(),
     sourceRetrievedAt: retrieved.toISOString(),
     workspaceId: workspace.workspaceId,
     operatingProfileId: workspace.operatingProfileId,
-    protectedWorkspaceIds: [...workspace.protectedWorkspaceIds],
+    protectedWorkspaceIds: [],
     sourceDatasetVersion,
     sourceArtifact: sourcePath,
     sourceCandidateCount: candidates.length,
     recordCount: records.length,
     refreshMode: "offline-scheduled-google-places-details",
     provider: "GOOGLE_PLACES_API_NEW",
-    freshnessPolicy: { ...policy },
+    freshnessPolicy: {
+      ...policy,
+      freshnessThresholdHours: Math.min(24, Number(policy.freshnessThresholdHours || 24))
+    },
     routeEligibilityActivated: false,
     runtimeBehaviorChanged: false,
     scoringChanged: false,
@@ -343,7 +347,6 @@ function loadRefreshInputs({ sourcePath, activePoolPath, evidencePath, workspace
 }
 
 async function main() {
-  loadEnvFile(path.resolve(".env"));
   const workspaceId = readArg("--workspace", "fitness_connection");
   const sourcePath = readArg("--source", DEFAULT_SOURCE);
   const activePoolPath = readArg("--active-pool", DEFAULT_ACTIVE_POOL);
@@ -352,15 +355,20 @@ async function main() {
   const reportPath = readArg("--report", DEFAULT_REPORT);
   const evaluatedAt = readArg("--at", "") || new Date().toISOString();
   const concurrency = Number(readArg("--concurrency", "6"));
+  const writeAuthorized = hasFlag("--write");
   assertBusinessHoursWorkspace(workspaceId);
 
   if (hasFlag("--evaluate-only")) {
-    const current = readBusinessHoursArtifact(outputPath, workspaceId);
-    const evaluated = recalculateBusinessHoursArtifact(current, evaluatedAt);
-    writeBusinessHoursArtifactAtomic(outputPath, evaluated, workspaceId);
+    const current = readJson(outputPath);
+    const activePool = fs.existsSync(activePoolPath) ? readJson(activePoolPath) : { records: [] };
+    const evaluated = recalculateBusinessHoursArtifact(current, evaluatedAt, {
+      activePlaceIds: new Set((activePool.records || []).map(record => record.googlePlaceId))
+    });
+    if (writeAuthorized) writeBusinessHoursArtifactAtomic(outputPath, evaluated, workspaceId);
     console.log(JSON.stringify({
       status: "passed",
       mode: "offline-status-evaluation",
+      writePerformed: writeAuthorized,
       workspaceId,
       recordCount: evaluated.recordCount,
       statusEvaluatedAt: evaluated.statusEvaluatedAt,
@@ -369,24 +377,26 @@ async function main() {
     return;
   }
 
-  const apiKey = resolveGoogleBusinessHoursApiKey();
   const { source, activePool, candidates, fieldEvidence } = loadRefreshInputs({ sourcePath, activePoolPath, evidencePath, workspaceId });
-  if (hasFlag("--dry-run")) {
+  if (hasFlag("--dry-run") || !writeAuthorized) {
     console.log(JSON.stringify({
       status: "ready",
       mode: "dry-run",
       workspaceId,
-      providerBindingPresent: true,
+      providerBindingRead: false,
+      writePerformed: false,
       sourceDatasetVersion: source.dataset_version,
       sourceCandidateCount: candidates.length,
       activePoolCount: activePool.records?.length || 0,
       fieldEvidenceCount: fieldEvidence.length,
       outputPath,
-      note: "Dry run performed no provider calls and wrote no files."
+      note: "Safe default performed no Keychain/environment lookup, provider call, or file write. Use --write for an explicitly authorized refresh."
     }, null, 2));
     return;
   }
 
+  loadEnvFile(path.resolve(".env"));
+  const apiKey = resolveGoogleBusinessHoursApiKey();
   const previousArtifact = fs.existsSync(outputPath) ? readBusinessHoursArtifact(outputPath, workspaceId) : null;
   const result = await refreshBusinessHoursDataset({
     candidates,

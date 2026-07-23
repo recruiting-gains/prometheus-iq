@@ -76,7 +76,7 @@ export const supportedFieldSessionWorkspaces = Object.freeze({
     workspaceId: "fitness_connection",
     operatingProfileId: "fitness",
     representativeIds: Object.freeze(["cruz", "anthony"]),
-    protectedWorkspaceIds: Object.freeze(["smoothie_depot"])
+    protectedWorkspaceIds: Object.freeze([])
   })
 });
 

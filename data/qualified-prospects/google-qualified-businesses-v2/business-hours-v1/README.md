@@ -73,7 +73,9 @@ Permanent status remains in `permanentOperationalStatus`; current time eligibili
 - An unknown workspace fails before any provider call or write.
 - A failed record refresh preserves the previous verified schedule, timestamps, and provenance, records `lastFailedRefreshAt`, and reevaluates freshness.
 - A first-time failed refresh produces `HOURS_UNKNOWN`; it does not invent hours.
-- Every record is scoped to `fitness_connection` / `fitness` and protects `smoothie_depot` from cross-workspace consumption.
+- Every record is scoped to `fitness_connection` / `fitness`; exact workspace and operating-profile matching deny all cross-workspace consumption.
+- The launch freshness ceiling is 24 hours.
+- Evaluation and dry-run modes are non-mutating unless the caller supplies the explicit `--write` flag.
 
 ## Canonical Handoff
 

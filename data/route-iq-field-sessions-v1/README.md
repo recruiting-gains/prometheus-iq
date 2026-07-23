@@ -140,7 +140,7 @@ The revalidation preserves the July 11 raw and normalized archive bytes, the exa
 
 - Workspace: `fitness_connection`
 - Operating profile: `fitness`
-- Protected workspace: `smoothie_depot`
+- Cross-workspace consumption: denied by exact workspace and operating-profile scope
 - Invention classification: operational improvement
 - Dashboard behavior changed: no
 - Intelligence scoring or recommendations changed: no

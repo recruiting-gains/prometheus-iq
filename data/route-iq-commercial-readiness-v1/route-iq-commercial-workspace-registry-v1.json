@@ -131,85 +131,22 @@
       }
     },
     {
-      "workspaceId": "smoothie_depot",
-      "workspaceState": "inactive_historical",
-      "normalOperationVisible": false,
-      "productionActivationAuthorized": false,
-      "business": {
-        "name": "Smoothie Depot",
-        "brand": {
-          "displayName": "Smoothie Depot Historical Workspace",
-          "primaryColor": "#374151",
-          "accentColor": "#6B7280"
-        },
-        "businessType": "franchise_development",
-        "relationshipClassification": "HISTORICAL_INACTIVE_WORKSPACE",
-        "publicRelationshipClaimsAllowed": false
-      },
-      "operatingProfileId": "franchise_development",
-      "locations": [],
-      "territories": [],
-      "roles": [
-        {
-          "roleId": "historical_auditor",
-          "operationalAccess": false,
-          "founderIntelligenceAccess": false,
-          "workspaceAdministration": false
-        }
-      ],
-      "users": [],
-      "goals": ["Preserve historical records without active Route IQ exposure"],
-      "terminology": {
-        "target": "historical candidate",
-        "visit": "historical activity",
-        "outcome": "historical outcome",
-        "success": "not active",
-        "followUp": "not active"
-      },
-      "successMeasurements": ["historical_records_preserved"],
-      "retention": {
-        "maximumCalendarMonths": 18,
-        "customerMayShorten": true,
-        "customerMayExpand": false,
-        "legalHoldSupported": true,
-        "deletionMode": "append_only_auditable_data_owned"
-      },
-      "intelligenceEligibility": {
-        "governedEvidenceLearningEligible": false,
-        "founderReadOnlyIntelligenceEligible": false,
-        "representativeIntelligenceAccessAllowed": false,
-        "recommendationInfluence": "OFF",
-        "prospectiveCollection": "OFF"
-      },
-      "evidenceGovernance": {
-        "historicalEvidenceImmutable": true,
-        "crossWorkspaceEvidenceAllowed": false,
-        "classification": "HISTORICAL_INACTIVE_WORKSPACE"
-      },
-      "codexEvidence": {
-        "bundleAuthorized": false,
-        "canonicalDatabase": false,
-        "allowlistProjectionOnly": true,
-        "sourceSessionIds": []
-      }
-    },
-    {
-      "workspaceId": "summit_roofing_synthetic",
+      "workspaceId": "northstar_outside_sales_synthetic",
       "workspaceState": "synthetic_validation_only",
       "normalOperationVisible": false,
       "productionActivationAuthorized": false,
       "business": {
-        "name": "Summit Roofing Synthetic",
+        "name": "Northstar Outside Sales Synthetic",
         "brand": {
-          "displayName": "Summit Roofing Demo",
+          "displayName": "Northstar Outside Sales Validation",
           "primaryColor": "#1F2937",
           "accentColor": "#0F766E"
         },
-        "businessType": "roofing_outside_sales",
+        "businessType": "general_outside_sales",
         "relationshipClassification": "SYNTHETIC_VALIDATION_FIXTURE",
         "publicRelationshipClaimsAllowed": false
       },
-      "operatingProfileId": "roofing",
+      "operatingProfileId": "general_outside_sales",
       "locations": [
         {
           "locationId": "synthetic_branch_one",
@@ -265,22 +202,22 @@
         }
       ],
       "goals": [
-        "Book governed roof inspections",
-        "Track estimates and contracts without changing recommendation scoring"
+        "Validate governed outside-sales opportunity configuration",
+        "Track conversations and qualified follow-ups without recommendation influence"
       ],
       "terminology": {
-        "target": "property lead",
-        "visit": "door knock",
+        "target": "business opportunity",
+        "visit": "sales visit",
         "outcome": "field outcome",
-        "success": "inspection or contract",
-        "followUp": "estimate follow-up"
+        "success": "qualified next step",
+        "followUp": "sales follow-up"
       },
       "successMeasurements": [
-        "doors_knocked",
-        "homeowners_reached",
-        "inspections_booked",
-        "estimates_sent",
-        "contracts_signed"
+        "visits_completed",
+        "decision_makers_reached",
+        "qualified_opportunities",
+        "follow_ups",
+        "agreements"
       ],
       "retention": {
         "maximumCalendarMonths": 12,

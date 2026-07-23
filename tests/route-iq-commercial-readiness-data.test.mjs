@@ -47,7 +47,7 @@ test("commercial workspace registry makes Route IQ configuration-driven without 
   assert.equal(registry.activeProduct, true);
   assert.equal(registry.recommendationInfluence, "OFF");
   assert.equal(registry.prospectiveCollection, "OFF");
-  assert.equal(registry.workspaces.length, 3);
+  assert.equal(registry.workspaces.length, 2);
 
   const active = listNormalRouteIqWorkspaces(registry);
   assert.deepEqual(active, [{
@@ -72,22 +72,20 @@ test("commercial workspace registry makes Route IQ configuration-driven without 
   });
 
   assert.throws(
-    () => getCommercialWorkspace("smoothie_depot", { registry }),
+    () => getCommercialWorkspace("retired_workspace", { registry }),
     error => error instanceof RouteIqCommercialWorkspaceError
-      && error.code === "route_iq_commercial_workspace_inactive"
+      && error.code === "route_iq_commercial_workspace_unknown"
   );
-  const smoothie = getCommercialWorkspace("smoothie_depot", { registry, includeInactive: true });
-  assert.equal(smoothie.workspaceState, "inactive_historical");
-  assert.equal(smoothie.normalOperationVisible, false);
-  assert.equal(smoothie.users.length, 0);
-  assert.equal(smoothie.codexEvidence.bundleAuthorized, false);
 
-  const roofing = getCommercialWorkspace("summit_roofing_synthetic", { registry, includeSynthetic: true });
-  assert.equal(roofing.operatingProfileId, "roofing");
-  assert.equal(roofing.business.businessType, "roofing_outside_sales");
-  assert.equal(roofing.workspaceState, "synthetic_validation_only");
-  assert.equal(roofing.productionActivationAuthorized, false);
-  assert.equal(roofing.intelligenceEligibility.recommendationInfluence, "OFF");
+  const outsideSales = getCommercialWorkspace("northstar_outside_sales_synthetic", {
+    registry,
+    includeSynthetic: true
+  });
+  assert.equal(outsideSales.operatingProfileId, "general_outside_sales");
+  assert.equal(outsideSales.business.businessType, "general_outside_sales");
+  assert.equal(outsideSales.workspaceState, "synthetic_validation_only");
+  assert.equal(outsideSales.productionActivationAuthorized, false);
+  assert.equal(outsideSales.intelligenceEligibility.recommendationInfluence, "OFF");
 });
 
 test("Founder intelligence requires exact immutable authenticated principal identity", () => {
@@ -287,11 +285,14 @@ test("Codex bundle respects time windows and fails closed on unauthorized worksp
   assert.equal(bundle.manifest.exclusions.at(-1).exclusionCode, "OUTSIDE_REQUESTED_EVIDENCE_WINDOW");
   assert.equal(bundle.manifest.exclusions.at(-1).recordCount, 2);
   assert.throws(
-    () => buildGovernedCodexEvidenceBundle({ repoRoot, workspaceId: "smoothie_depot" }),
-    error => error.code === "route_iq_commercial_workspace_inactive"
+    () => buildGovernedCodexEvidenceBundle({ repoRoot, workspaceId: "retired_workspace" }),
+    error => error.code === "route_iq_commercial_workspace_unknown"
   );
   assert.throws(
-    () => buildGovernedCodexEvidenceBundle({ repoRoot, workspaceId: "summit_roofing_synthetic" }),
+    () => buildGovernedCodexEvidenceBundle({
+      repoRoot,
+      workspaceId: "northstar_outside_sales_synthetic"
+    }),
     error => error.code === "route_iq_commercial_workspace_synthetic_only"
   );
 });

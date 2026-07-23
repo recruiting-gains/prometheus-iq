@@ -1,5 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
+import {
+  getWorkspaceBusinessArtifactManifest,
+  loadWorkspaceBusinessArtifactManifestRegistry
+} from "../data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest.mjs";
 
 const SOURCE_DIR = "data/qualified-prospects/google-qualified-businesses-v2";
 const SEGMENTATION_VERSION = "runtime-pool-segmentation-v1";
@@ -7,9 +11,9 @@ const OUTPUT_DIR = path.join(SOURCE_DIR, SEGMENTATION_VERSION);
 
 const sourceFiles = {
   production: path.join(SOURCE_DIR, "google-qualified-businesses-v2.json"),
-  rejected: path.join(SOURCE_DIR, "rejected-records.json"),
   runtime: path.join(SOURCE_DIR, "runtime-pools.json"),
-  overrides: path.join(SOURCE_DIR, "runtime-governance-overrides.json")
+  overrides: path.join(SOURCE_DIR, "runtime-governance-overrides.json"),
+  workspaceBusinessManifest: "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json"
 };
 
 const outputFiles = {
@@ -84,11 +88,33 @@ export function runtimeMap(runtime) {
       };
       entry.profiles.push({
         runtimeId: place.id,
+        id: place.id,
         repProfileId: place.repProfileId,
         seedRouteOrder: place.seedRouteOrder,
+        name: place.name,
+        address: place.address,
+        category: place.category,
+        distance: place.distance,
+        window: place.window,
+        priority: Number(place.priority || 0),
+        sourceType: place.sourceType,
         qualityClass: place.qualityClass,
         qualityScore: Number(place.qualityScore || 0),
-        priority: Number(place.priority || 0)
+        qualityReason: place.qualityReason,
+        confidence: place.confidence,
+        accessType: place.accessType,
+        askFor: place.askFor,
+        expectedVisitDuration: place.expectedVisitDuration,
+        expectedConversationOpportunity: place.expectedConversationOpportunity,
+        expectedRoi: place.expectedRoi,
+        decisionMakerAvailability: place.decisionMakerAvailability,
+        permission: place.permission,
+        truthBasis: place.truthBasis,
+        notes: place.notes,
+        googlePlaceId: place.googlePlaceId,
+        googleMapsUrl: place.googleMapsUrl,
+        latitude: Number(place.latitude),
+        longitude: Number(place.longitude)
       });
       if (Number(place.qualityScore || 0) > entry.qualityScore) {
         entry.qualityClass = place.qualityClass;
@@ -112,6 +138,9 @@ export function gateFailures(record, options = {}) {
   if (record.access_type === "Do not recommend") failures.push("do_not_recommend");
   if (record.is_generic_place === "yes" || genericNamePattern.test(`${record.business_name} ${record.full_address}`)) failures.push("generic_business");
   if (record.business_status === "CLOSED_PERMANENTLY") failures.push("closed_business");
+  if (!(options.approvedRecordIds instanceof Set) || !options.approvedRecordIds.has(record.google_place_id)) {
+    failures.push(record.shared_approval === "pending" ? "founder_approval_pending" : "record_not_in_approved_workspace_roster");
+  }
   failures.push(...governanceOverrideFailures(record, options.overrides));
   return failures;
 }
@@ -143,8 +172,16 @@ export function segmentRecord(record, runtimeByPlaceId, duplicatePlaceIds, optio
   return { pool: "quarantine", reasons: ["missing_runtime_quality_class"], runtime };
 }
 
-export function toSegmentRecord(record, segment, source) {
+export function toSegmentRecord(record, segment, source, provenance = {}) {
   return {
+    workspaceId: provenance.workspaceId || null,
+    operatingProfileId: provenance.operatingProfileId || null,
+    configurationVersion: provenance.configurationVersion || null,
+    artifactManifestId: provenance.manifestId || null,
+    artifactManifestVersion: provenance.manifestVersion || null,
+    sourceArtifactSha256: provenance.artifactSha256 || null,
+    dataClassification: provenance.classification || null,
+    approvalState: provenance.approvalState || null,
     googlePlaceId: record.google_place_id,
     businessName: record.business_name,
     address: record.full_address,
@@ -204,7 +241,7 @@ Segmentation version: ${manifest.segmentationVersion}
 - Reserve: ${manifest.counts.reserve}
 - Quarantine: ${manifest.counts.quarantine}
 - Audited production records: ${manifest.audit.productionRecordsAudited}
-- Audited rejected records: ${manifest.audit.rejectedRecordsAudited}
+- Noncanonical rejected sources projected: ${manifest.audit.rejectedRecordsAudited}
 
 ## Rules
 
@@ -229,15 +266,28 @@ Segmentation version: ${manifest.segmentationVersion}
 - ${outputFiles.manifest}`;
 }
 
-export function main() {
+export function main(options = {}) {
   const productionPayload = readJson(sourceFiles.production);
-  const rejectedPayload = readJson(sourceFiles.rejected);
   const runtimePayload = readJson(sourceFiles.runtime);
   const production = productionPayload.production_candidates || [];
-  const rejected = rejectedPayload.rejected || [];
-  const closed = rejectedPayload.closed_removed || [];
   const runtimeByPlaceId = runtimeMap(runtimePayload);
   const overrides = loadGovernanceOverrides(sourceFiles.overrides);
+  const manifestRegistry = loadWorkspaceBusinessArtifactManifestRegistry();
+  const workspaceManifest = getWorkspaceBusinessArtifactManifest("fitness_connection", { registry: manifestRegistry });
+  if (workspaceManifest.artifactPath !== sourceFiles.production) {
+    throw new Error("Canonical Fitness workspace business manifest does not point to the segmentation source.");
+  }
+  const approvedRecordIds = new Set(workspaceManifest.approvedRecordIds);
+  const provenance = {
+    workspaceId: workspaceManifest.workspaceId,
+    operatingProfileId: workspaceManifest.operatingProfileId,
+    configurationVersion: workspaceManifest.configurationVersion,
+    manifestId: workspaceManifest.manifestId,
+    manifestVersion: workspaceManifest.manifestVersion,
+    artifactSha256: workspaceManifest.artifactSha256,
+    classification: workspaceManifest.classification,
+    approvalState: workspaceManifest.approvalState
+  };
 
   const placeIdCounts = production.reduce((acc, record) => {
     const key = record.google_place_id || normalize(`${record.business_name} ${record.full_address}`);
@@ -251,25 +301,11 @@ export function main() {
   const quarantine = [];
 
   for (const record of production) {
-    const segment = segmentRecord(record, runtimeByPlaceId, duplicatePlaceIds, { overrides });
-    const outputRecord = toSegmentRecord(record, segment, "production_candidates");
+    const segment = segmentRecord(record, runtimeByPlaceId, duplicatePlaceIds, { overrides, approvedRecordIds });
+    const outputRecord = toSegmentRecord(record, segment, "production_candidates", provenance);
     if (segment.pool === "active") active.push(outputRecord);
     else if (segment.pool === "reserve") reserve.push(outputRecord);
     else quarantine.push(outputRecord);
-  }
-
-  for (const record of rejected) {
-    quarantine.push(toSegmentRecord(record, {
-      runtime: runtimeMetadataFor(record, runtimeByPlaceId),
-      reasons: record.rejection_reasons?.length ? record.rejection_reasons : gateFailures(record)
-    }, "rejected_records"));
-  }
-
-  for (const record of closed) {
-    quarantine.push(toSegmentRecord(record, {
-      runtime: runtimeMetadataFor(record, runtimeByPlaceId),
-      reasons: ["closed_business"]
-    }, "closed_removed"));
   }
 
   assertUnique(active, "Active pool");
@@ -279,14 +315,27 @@ export function main() {
   const activeIds = new Set(active.map(record => record.googlePlaceId));
   const reserveIds = new Set(reserve.map(record => record.googlePlaceId));
   const activeReserveOverlap = [...activeIds].filter(id => reserveIds.has(id)).length;
-  const activeInvalidRecords = active.filter(record => gateFailures(record.originalRecord, { overrides }).length).length;
+  const activeInvalidRecords = active.filter(record => gateFailures(record.originalRecord, { overrides, approvedRecordIds }).length).length;
 
-  const generatedAt = new Date().toISOString();
+  const generatedAt = options.generatedAt
+    || process.argv.slice(2).find(argument => argument.startsWith("--at="))?.slice("--at=".length)
+    || new Date().toISOString();
   const shared = {
     generatedAt,
     sourceDatasetVersion: productionPayload.dataset_version || "google-qualified-businesses-v2",
     segmentationVersion: SEGMENTATION_VERSION,
     sourceFiles,
+    workspaceId: workspaceManifest.workspaceId,
+    operatingProfileId: workspaceManifest.operatingProfileId,
+    configurationVersion: workspaceManifest.configurationVersion,
+    artifactManifestId: workspaceManifest.manifestId,
+    artifactManifestVersion: workspaceManifest.manifestVersion,
+    sourceArtifactSha256: workspaceManifest.artifactSha256,
+    dataClassification: workspaceManifest.classification,
+    approvalState: workspaceManifest.approvalState,
+    approvedRecordCount: workspaceManifest.approvedRecordCount,
+    demoFallbackAllowed: false,
+    crossWorkspaceFallbackAllowed: false,
     runtimeBehaviorChanged: false,
     scoringChanged: false
   };
@@ -323,8 +372,9 @@ export function main() {
     },
     audit: {
       productionRecordsAudited: production.length,
-      rejectedRecordsAudited: rejected.length,
-      closedRecordsAudited: closed.length,
+      rejectedRecordsAudited: 0,
+      closedRecordsAudited: 0,
+      noncanonicalRejectedSourcesExcluded: true,
       runtimeProfileRecordsRead: (runtimePayload.cruz || []).length + (runtimePayload.anthony || []).length,
       runtimeUniquePlaceIds: runtimeByPlaceId.size,
       duplicateProductionPlaceIds: duplicatePlaceIds.size,

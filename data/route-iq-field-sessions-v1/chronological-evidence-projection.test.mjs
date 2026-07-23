@@ -250,7 +250,7 @@ test("malformed timestamps and invalid or contaminated scopes fail closed", () =
     history.chronologicalEvidence = [{ evidenceKind: "customer_outcome_observation", sourceRecordId: "foreign", evidenceTimestamp: "2026-07-11T20:00:00.000Z", context: { workspaceId: "fitness_connection", operatingProfileId: "fitness", representativeId: "anthony" }, payload: null, relation: { type: "original", priorSourceRecordId: null } }];
   });
   assert.throws(() => project(contaminated), error => error.code === "field_session_evidence_scope_mismatch");
-  assert.throws(() => projectRouteIqChronologicalEvidence({ archiveRecord: archive(), decisionTimestamp: "2026-07-12T01:00:00.000Z", workspaceId: "smoothie_depot", operatingProfileId: "fitness", representativeId: "cruz" }), error => error.code === "field_session_workspace_unknown");
+  assert.throws(() => projectRouteIqChronologicalEvidence({ archiveRecord: archive(), decisionTimestamp: "2026-07-12T01:00:00.000Z", workspaceId: "unauthorized_workspace", operatingProfileId: "fitness", representativeId: "cruz" }), error => error.code === "field_session_workspace_unknown");
 });
 
 test("unsupported evidence kinds are explicitly excluded", () => {
@@ -273,7 +273,7 @@ test("unsupported evidence cannot hide foreign scope", () => {
 test("projection requires a committed marker matching scope and raw provenance", () => {
   for (const mutate of [
     record => { record.commit.status = "pending"; },
-    record => { record.commit.workspaceId = "smoothie_depot"; },
+    record => { record.commit.workspaceId = "unauthorized_workspace"; },
     record => { record.commit.sessionId = "another-session"; },
     record => { record.commit.operatingProfileId = "another-profile"; },
     record => { record.commit.rawSha256 = "0".repeat(64); }

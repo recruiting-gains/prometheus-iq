@@ -11,6 +11,14 @@ import {
 
 const DEFAULT_SEGMENTATION_DIR = "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1";
 const REQUIRED_RECORD_FIELDS = [
+  "workspaceId",
+  "operatingProfileId",
+  "configurationVersion",
+  "artifactManifestId",
+  "artifactManifestVersion",
+  "sourceArtifactSha256",
+  "dataClassification",
+  "approvalState",
   "googlePlaceId",
   "businessName",
   "address",
@@ -33,13 +41,64 @@ const REQUIRED_RECORD_FIELDS = [
   "originalRecord",
   "source"
 ];
+const REQUIRED_QUARANTINE_RECORD_FIELDS = [
+  "workspaceId",
+  "operatingProfileId",
+  "configurationVersion",
+  "artifactManifestId",
+  "artifactManifestVersion",
+  "sourceArtifactSha256",
+  "dataClassification",
+  "approvalState",
+  "googlePlaceId",
+  "businessName",
+  "runtimeProfiles",
+  "poolAssignmentReasons",
+  "originalRecord",
+  "source"
+];
 const REQUIRED_RUNTIME_PROFILE_FIELDS = [
   "runtimeId",
+  "id",
   "repProfileId",
   "seedRouteOrder",
+  "name",
+  "address",
+  "category",
+  "distance",
+  "window",
+  "sourceType",
   "qualityClass",
   "qualityScore",
+  "qualityReason",
+  "confidence",
+  "accessType",
+  "askFor",
+  "expectedVisitDuration",
+  "expectedConversationOpportunity",
+  "expectedRoi",
+  "decisionMakerAvailability",
+  "permission",
+  "truthBasis",
+  "notes",
+  "googlePlaceId",
+  "googleMapsUrl",
+  "latitude",
+  "longitude",
   "priority"
+];
+const REQUIRED_SCOPE_FIELDS = [
+  "workspaceId",
+  "operatingProfileId",
+  "configurationVersion",
+  "artifactManifestId",
+  "artifactManifestVersion",
+  "sourceArtifactSha256",
+  "dataClassification",
+  "approvalState",
+  "approvedRecordCount",
+  "demoFallbackAllowed",
+  "crossWorkspaceFallbackAllowed"
 ];
 const REQUIRED_POOL_MANIFEST_FIELDS = [
   "generatedAt",
@@ -48,6 +107,7 @@ const REQUIRED_POOL_MANIFEST_FIELDS = [
   "sourceFiles",
   "runtimeBehaviorChanged",
   "scoringChanged",
+  ...REQUIRED_SCOPE_FIELDS,
   "pool",
   "criteria",
   "count",
@@ -60,6 +120,7 @@ const REQUIRED_ROOT_MANIFEST_FIELDS = [
   "sourceFiles",
   "runtimeBehaviorChanged",
   "scoringChanged",
+  ...REQUIRED_SCOPE_FIELDS,
   "counts",
   "audit",
   "verification",
@@ -180,7 +241,7 @@ function snapshotFromPools(pools) {
     }
   }
   return {
-    generatedAt: new Date().toISOString(),
+    generatedAt: pools.manifest.generatedAt,
     sourceDatasetVersion: pools.manifest.sourceDatasetVersion,
     segmentationVersion: pools.manifest.segmentationVersion,
     counts: pools.manifest.counts,
@@ -225,12 +286,24 @@ function validatePoolManifests(pools, failures) {
     if (manifest.runtimeBehaviorChanged !== false || manifest.scoringChanged !== false) {
       addFailure(failures, `${pool}_stable_flags`, `${pool} pool runtime/scoring stable flags are not false`);
     }
+    if (manifest.workspaceId !== "fitness_connection"
+      || manifest.operatingProfileId !== "fitness"
+      || manifest.demoFallbackAllowed !== false
+      || manifest.crossWorkspaceFallbackAllowed !== false) {
+      addFailure(failures, `${pool}_workspace_scope`, `${pool} pool does not carry the canonical fail-closed workspace scope`);
+    }
   }
 
   const missingRoot = missingFields(pools.manifest, REQUIRED_ROOT_MANIFEST_FIELDS);
   if (missingRoot.length) addFailure(failures, "root_manifest_contract", `Root manifest is missing required fields: ${missingRoot.join(", ")}`);
   if (pools.manifest.runtimeBehaviorChanged !== false || pools.manifest.scoringChanged !== false) {
     addFailure(failures, "root_stable_flags", "Root manifest runtime/scoring stable flags are not false");
+  }
+  if (pools.manifest.workspaceId !== "fitness_connection"
+    || pools.manifest.operatingProfileId !== "fitness"
+    || pools.manifest.demoFallbackAllowed !== false
+    || pools.manifest.crossWorkspaceFallbackAllowed !== false) {
+    addFailure(failures, "root_workspace_scope", "Root manifest does not carry the canonical fail-closed workspace scope");
   }
   const verification = pools.manifest.verification || {};
   for (const flag of ["runtimeBehaviorChanged", "scoringChanged", "existingRuntimePoolsModified"]) {
@@ -262,7 +335,10 @@ function validateRecords(pools, failures, overrides) {
 
   for (const pool of POOLS) {
     const records = pools[pool].records || [];
-    const missingRequired = records.filter(record => missingFields(record, REQUIRED_RECORD_FIELDS).length);
+    const requiredFields = pool === "quarantine"
+      ? REQUIRED_QUARANTINE_RECORD_FIELDS
+      : REQUIRED_RECORD_FIELDS;
+    const missingRequired = records.filter(record => missingFields(record, requiredFields).length);
     if (missingRequired.length) addFailure(failures, `${pool}_required_fields`, `${pool} records are missing required runtime fields`, missingRequired);
 
     const malformedAddress = records.filter(record => !numberedAddress(record.address));
@@ -281,10 +357,26 @@ function validateRecords(pools, failures, overrides) {
     if (pool !== "quarantine" && missingRuntimeProfileFields.length) {
       addFailure(failures, `${pool}_runtime_profile_contract`, `${pool} records have malformed runtime profile metadata`, missingRuntimeProfileFields);
     }
+    const crossScopeRecords = records.filter(record => (
+      record.workspaceId !== pools[pool].workspaceId
+      || record.operatingProfileId !== pools[pool].operatingProfileId
+      || record.artifactManifestId !== pools[pool].artifactManifestId
+      || record.sourceArtifactSha256 !== pools[pool].sourceArtifactSha256
+    ));
+    if (crossScopeRecords.length) {
+      addFailure(failures, `${pool}_record_scope`, `${pool} contains records outside the canonical manifest scope`, crossScopeRecords);
+    }
+    if (pool === "active") {
+      const unapproved = records.filter(record => record.approvalState !== "APPROVED");
+      if (unapproved.length) addFailure(failures, "active_pool_approval", "Active pool contains records without exact approved-roster status", unapproved);
+    }
   }
 
   const invalidActive = activeRecords.filter(record => {
-    const originalFailures = gateFailures(record.originalRecord || {}, { overrides });
+    const originalFailures = gateFailures(record.originalRecord || {}, {
+      overrides,
+      approvedRecordIds: new Set(activeRecords.map(candidate => candidate.googlePlaceId))
+    });
     return originalFailures.length ||
       !["Excellent", "Good"].includes(record.qualityClass) ||
       record.qualityStatus !== "verified" ||
@@ -293,7 +385,10 @@ function validateRecords(pools, failures, overrides) {
   if (invalidActive.length) addFailure(failures, "active_integrity", "Active pool contains invalid or non-active-quality records", invalidActive);
 
   const invalidReserve = reserveRecords.filter(record => {
-    const originalFailures = gateFailures(record.originalRecord || {}, { overrides });
+    const originalFailures = gateFailures(record.originalRecord || {}, {
+      overrides,
+      approvedRecordIds: new Set(reserveRecords.map(candidate => candidate.googlePlaceId))
+    });
     return originalFailures.length ||
       !["Average", "Poor"].includes(record.qualityClass) ||
       record.qualityStatus !== "verified" ||
@@ -433,7 +528,7 @@ export function runGovernance(options = {}) {
   }
 
   const report = {
-    generatedAt: new Date().toISOString(),
+    generatedAt: options.generatedAt || pools.manifest.generatedAt,
     status: failures.length ? "failed" : "passed",
     promotionAllowed: failures.length === 0,
     segmentationDir,

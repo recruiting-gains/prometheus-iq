@@ -4,7 +4,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import {
-  buildCurrentGoldenBaseline,
   defaultPaths,
   expandActivePool,
   generateGoldenRoute,
@@ -36,6 +35,7 @@ function runWith(overrides = {}) {
   return runRouteIntelligenceQualityGate({
     ...fixtures(),
     ...overrides,
+    evaluatedAt: overrides.evaluatedAt ?? "2026-07-23T12:00:00.000Z",
     runZeroGoogleCheck: false
   });
 }
@@ -68,17 +68,20 @@ test("quality gate passes for the reviewed golden Active Pool baseline", () => {
   assert.equal(result.report.businessHoursEligibility.canonicalConsumer.registered, true);
   assert.equal(result.report.businessHoursEligibility.canonicalConsumer.identifierResolved, true);
   assert.equal(result.report.businessHoursEligibility.canonicalConsumer.requiredReadPathsPresent, true);
-  assert.equal(result.report.businessHoursEligibility.statusPolicies.OPEN_VERIFIED.eligible, true);
-  assert.equal(result.report.businessHoursEligibility.statusPolicies.CLOSED_VERIFIED.eligible, false);
-  for (const status of ["HOURS_UNKNOWN", "HOURS_STALE", "SPECIAL_HOURS_UNVERIFIED"]) {
+  assert.deepEqual(result.report.businessHoursEligibility.statusPolicies.sourceStatusCounts, {
+    HOURS_STALE: 353,
+    HOURS_UNKNOWN: 45
+  });
+  for (const status of ["HOURS_UNKNOWN", "HOURS_STALE"]) {
     assert.equal(result.report.businessHoursEligibility.statusPolicies[status].coverageOnly, true);
     assert.equal(result.report.businessHoursEligibility.statusPolicies[status].internalMarker, "HOURS_NOT_VERIFIED");
   }
   assert.equal(result.report.businessHoursEligibility.christianBrothersRegression.status, "passed");
-  assert.equal(result.report.businessHoursEligibility.queueValidation.initialStopCount, 15);
+  assert.equal(result.report.businessHoursEligibility.queueValidation.initialStopCount, 0);
   assert.equal(result.report.businessHoursEligibility.queueValidation.replenishmentThreshold, 5);
-  assert.equal(result.report.businessHoursEligibility.queueValidation.replenishedStopCount, 15);
-  assert.equal(result.report.businessHoursEligibility.queueValidation.fullPoolFallbackExercised, true);
+  assert.equal(result.report.businessHoursEligibility.queueValidation.blockedNoFreshApprovedCandidates, true);
+  assert.equal(result.report.businessHoursEligibility.queueValidation.safeEmptyRouteAccepted, true);
+  assert.equal(result.report.businessHoursEligibility.queueValidation.nonImmediateStatusCount, 0);
   assert.equal(result.report.businessHoursEligibility.queueValidation.routeScoresUnchanged, true);
   assert.equal(result.report.businessHoursEligibility.explainability.status, "passed");
   assert.equal(result.report.runtimeSurface.status, "skipped");
@@ -147,19 +150,15 @@ test("quality gate fails when a quarantined business appears in Active recommend
   assert.ok(result.report.failureReasons.some(reason => reason.includes("active_quarantine_overlap")));
 });
 
-test("quality gate detects golden route order drift", () => {
+test("quality gate detects golden route baseline drift even for a safe empty roster", () => {
   const current = fixtures();
-  const activePool = clone(current.activePool);
-  const anthonyCandidate = activePool.records.find(record => record.runtimeProfiles?.some(profile => profile.repProfileId === "anthony"));
-  assert.ok(anthonyCandidate, "fixture needs an Anthony runtime profile");
+  const expectedBaseline = clone(current.expectedBaseline);
+  expectedBaseline.routes.cruz.route = [{
+    googlePlaceId: "forged_place_id",
+    id: "forged_route_record"
+  }];
 
-  anthonyCandidate.qualityScore = 100;
-  anthonyCandidate.priority = 100;
-  anthonyCandidate.runtimeProfiles = anthonyCandidate.runtimeProfiles.map(profile => profile.repProfileId === "anthony"
-    ? { ...profile, qualityScore: 100, priority: 100, seedRouteOrder: 1 }
-    : profile);
-
-  const result = runWith({ activePool });
+  const result = runWith({ expectedBaseline });
 
   assert.equal(result.passed, false);
   assert.ok(result.report.failureReasons.some(reason => reason.includes("golden_route_order_or_membership_changed")));
@@ -179,19 +178,37 @@ test("quality gate fails when the canonical business-hours Intelligence consumer
   assert.ok(result.report.failureReasons.includes("business_hours:business_hours_consumer_not_registered"));
 });
 
-test("incomplete runtime profile rows are skipped without crashing route generation", () => {
+test("quality gate uses the injected authoritative time rather than the artifact timestamp", () => {
   const current = fixtures();
-  const activePool = clone(current.activePool);
-  const record = activePool.records.find(item => item.runtimeProfiles?.length);
-  assert.ok(record, "fixture needs runtime profiles");
-  record.runtimeProfiles = [];
-
+  const businessHoursArtifact = clone(current.businessHoursArtifact);
+  businessHoursArtifact.statusEvaluatedAt = "2026-07-11T12:00:00.000Z";
   const result = runWith({
-    activePool,
-    expectedBaseline: buildCurrentGoldenBaseline({ activePool })
+    businessHoursArtifact,
+    evaluatedAt: "2026-07-25T12:00:00.000Z"
   });
 
   assert.equal(result.passed, true, result.report.failureReasons.join("; "));
-  assert.ok(result.report.incompleteDataHandling.skippedRuntimeProfiles >= 1);
-  assert.equal(result.report.incompleteDataHandling.status, "passed");
+  assert.equal(
+    result.report.businessHoursEligibility.implementation.sourceStatusEvaluatedAt,
+    "2026-07-11T12:00:00.000Z"
+  );
+  assert.equal(
+    result.report.businessHoursEligibility.implementation.authoritativeStatusEvaluatedAt,
+    "2026-07-25T12:00:00.000Z"
+  );
+  assert.equal(result.report.businessHoursEligibility.queueValidation.initialStopCount, 0);
+  assert.equal(result.report.businessHoursEligibility.queueValidation.safeEmptyRouteAccepted, true);
+});
+
+test("incomplete runtime profile rows are skipped without route-generation failure", () => {
+  const current = fixtures();
+  const record = clone(current.quarantinePool.records.find(item => item.runtimeProfiles?.length));
+  assert.ok(record, "fixture needs runtime profiles");
+  record.runtimeProfiles = [];
+  const result = expandActivePool({ records: [record] });
+  assert.equal(result.routeRecords.length, 0);
+  assert.deepEqual(result.skipped, [{
+    googlePlaceId: record.googlePlaceId,
+    reason: "missing_runtime_profiles"
+  }]);
 });

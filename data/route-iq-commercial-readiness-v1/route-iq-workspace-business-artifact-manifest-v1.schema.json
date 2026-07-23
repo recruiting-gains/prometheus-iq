@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prometheus.local/schemas/route-iq-workspace-business-artifact-manifest-v1.schema.json",
+  "title": "Route IQ Workspace Business Artifact Manifest Registry v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registryVersion",
+    "generatedAt",
+    "fallbackPolicy",
+    "manifests"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "route-iq-workspace-business-artifact-manifest-v1" },
+    "registryVersion": { "const": "route-iq-workspace-business-artifact-manifest-registry-v1" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "fallbackPolicy": { "const": "FAIL_CLOSED_NO_DEMO_OR_CROSS_WORKSPACE_FALLBACK" },
+    "manifests": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/manifest" }
+    }
+  },
+  "$defs": {
+    "opaqueId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{2,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifestId",
+        "manifestVersion",
+        "workspaceId",
+        "operatingProfileId",
+        "configurationVersion",
+        "artifactType",
+        "artifactPath",
+        "artifactSha256",
+        "recordIdentityField",
+        "recordCount",
+        "approvedRecordCount",
+        "approvedRecordIds",
+        "approvalState",
+        "classification",
+        "sourceProvenance",
+        "freshness",
+        "productionUseAuthorized",
+        "demoFallbackAllowed",
+        "crossWorkspaceFallbackAllowed"
+      ],
+      "properties": {
+        "manifestId": { "$ref": "#/$defs/opaqueId" },
+        "manifestVersion": { "const": "route-iq-workspace-business-artifact-manifest-v1" },
+        "workspaceId": { "$ref": "#/$defs/opaqueId" },
+        "operatingProfileId": { "$ref": "#/$defs/opaqueId" },
+        "configurationVersion": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "artifactType": { "const": "approved_business_opportunity_roster" },
+        "artifactPath": { "type": "string", "pattern": "^data/[a-zA-Z0-9_./-]+\\.json$" },
+        "artifactSha256": { "$ref": "#/$defs/sha256" },
+        "recordIdentityField": { "enum": ["google_place_id", "recordId"] },
+        "recordCount": { "type": "integer", "minimum": 0 },
+        "approvedRecordCount": { "type": "integer", "minimum": 0 },
+        "approvedRecordIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+        },
+        "approvalState": {
+          "enum": ["APPROVED", "PENDING_FOUNDER_APPROVAL", "APPROVED_SYNTHETIC_VALIDATION"]
+        },
+        "classification": {
+          "enum": ["FOUNDER_FIELD_RESEARCH", "CUSTOMER_GOVERNED_DATA", "SYNTHETIC_NONCANONICAL"]
+        },
+        "sourceProvenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["producer", "producerVersion", "sourceSystem", "sourceRetrievedAt"],
+          "properties": {
+            "producer": { "type": "string", "minLength": 1, "maxLength": 120 },
+            "producerVersion": { "type": "string", "minLength": 1, "maxLength": 120 },
+            "sourceSystem": { "type": "string", "minLength": 1, "maxLength": 120 },
+            "sourceRetrievedAt": { "type": "string", "format": "date-time" }
+          }
+        },
+        "freshness": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["maximumAgeHours", "evaluatedAt", "expiresAt", "state"],
+          "properties": {
+            "maximumAgeHours": { "type": "number", "exclusiveMinimum": 0, "maximum": 24 },
+            "evaluatedAt": { "type": "string", "format": "date-time" },
+            "expiresAt": { "type": "string", "format": "date-time" },
+            "state": { "enum": ["FRESH", "STALE", "SYNTHETIC"] }
+          }
+        },
+        "productionUseAuthorized": { "type": "boolean" },
+        "demoFallbackAllowed": { "const": false },
+        "crossWorkspaceFallbackAllowed": { "const": false }
+      }
+    }
+  }
+}
