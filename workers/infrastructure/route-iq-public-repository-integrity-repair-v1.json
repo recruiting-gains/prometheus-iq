@@ -1009,13 +1009,13 @@
     "sourceMapRealpathContainmentRequired": true,
     "genericOwnerVerifierFailureAllowed": false,
     "canonicalRollbackIdentity": {
-      "artifactSha256": "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863",
-      "rollbackContractSha256": "26e1eab16fa5aed2295d025d6146e01744f1ef37ad8f8eb05afb2ab921d7916f",
-      "candidateDeploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
+      "artifactSha256": "012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe",
+      "rollbackContractSha256": "b7be296f51db1b8e8a305a068ebc1b0aa7652813de7b5378b96ac292af8af012",
+      "candidateDeploymentAssetsSha256": "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1",
       "websiteAssetsSha256": "0972695df073a0d4273cf86c7bb6fc7a326e9f194dcb1d1e9e7080a20341b58d",
       "configurationSha256": "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0",
-      "generatedWorkerSha256": "892f1599bf6bcb4350c6811e1211e7a6b15e8bec9e4bb5552431a5c79a32b7d6",
-      "generatedSourceMapSha256": "84ce3b5a9e0131d5b7e1a25f20cdc815c8c1097bcc224744789a4e48d1facfbe"
+      "generatedWorkerSha256": "547433fcf859e9dd319bbb607d081cb195822efba9b31db648100011d7115116",
+      "generatedSourceMapSha256": "4fc52da210aee785e63692eea3d69997707eb53287fe521016b29f9146b744b3"
     }
   },
   "safeCiVerification": {

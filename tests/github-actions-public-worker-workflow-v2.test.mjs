@@ -759,6 +759,25 @@ test("Infrastructure contract preserves CRM, collection, cohort, recommendation,
   assert.equal(contract.target.privateWorkerMutationAllowed, false);
 });
 
+test("historical production baseline remains immutable as the rollback candidate advances", () => {
+  const rollback = JSON.parse(readFileSync(
+    join(root, PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath),
+    "utf8"
+  ));
+  assert.equal(
+    PUBLIC_WORKFLOW_V2_POLICY.successfulProductionBaseline.deploymentAssetsSha256,
+    "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15"
+  );
+  assert.equal(
+    rollback.candidateDeploymentAssetsSha256,
+    "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1"
+  );
+  assert.notEqual(
+    rollback.candidateDeploymentAssetsSha256,
+    PUBLIC_WORKFLOW_V2_POLICY.successfulProductionBaseline.deploymentAssetsSha256
+  );
+});
+
 test("the complete static Workflow v2 verifier passes", () => {
   assert.equal(
     verifyGithubActionsPublicWorkerWorkflowV2().status,

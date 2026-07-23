@@ -10,6 +10,7 @@ import {
 } from "./lib/github-actions-public-worker-workflow-v2.mjs";
 import {
   PUBLIC_WORKER_DEPLOYMENT_POLICY,
+  verifyPublicForwardRollbackContract,
   verifyPublicStaticDeploymentPolicy,
   verifyPublicWranglerPin
 } from "./lib/github-actions-public-worker-deployment.mjs";
@@ -162,11 +163,14 @@ export function verifyGithubActionsPublicWorkerWorkflowV2() {
   assert.ok(smoke.some(entry => entry.critical));
   assert.ok(smoke.some(entry => !entry.critical));
 
+  const rollbackContract = verifyPublicForwardRollbackContract(root);
   const deploymentAssets = verifyRouteIqPublicDeploymentAssets({ build: false });
   assert.equal(
     deploymentAssets.deploymentAssetsSha256,
-    PUBLIC_WORKFLOW_V2_POLICY.successfulProductionBaseline.deploymentAssetsSha256
+    rollbackContract.candidateDeploymentAssetsSha256
   );
+  assert.equal(deploymentAssets.candidateWebsiteCommit, rollbackContract.candidateWebsiteCommit);
+  assert.equal(deploymentAssets.candidateWebsiteTree, rollbackContract.candidateWebsiteTree);
   verifyPublicStaticDeploymentPolicy(root);
   verifyPublicWranglerPin(root);
   return Object.freeze({ status: "GITHUB_ACTIONS_PUBLIC_WORKER_WORKFLOW_V2_VERIFIED" });
