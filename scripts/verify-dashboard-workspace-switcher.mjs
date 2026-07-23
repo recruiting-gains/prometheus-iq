@@ -16,7 +16,12 @@ assert(smoothieSource === smoothieDeploy, "Smoothie Depot source and deploy asse
 assert(sourceIndex.includes('data-workspace-id="fitness_connection"'), "Fitness dashboard must default to the Fitness Connection workspace.");
 assert(sourceIndex.includes('data-workspace-name="Fitness Connection"'), "Fitness dashboard must identify the Fitness Connection workspace.");
 assert(sourceIndex.includes('data-operating-profile-id="fitness"'), "Fitness dashboard must default to the Fitness operating profile.");
-assert(sourceIndex.includes('defaultWorkspaceId = "fitness_connection"'), "Workspace selection must default safely to Fitness Connection.");
+assert(
+  sourceIndex.includes(
+    'const defaultWorkspaceId = routeIqCustomerPwaSession?.workspaceId || "fitness_connection";'
+  ),
+  "Workspace selection must use the authenticated customer scope and default safely to Fitness Connection."
+);
 assert(sourceIndex.includes("function applyRouteIqWorkspace()"), "Route IQ must apply one controlled workspace scope.");
 assert(!sourceIndex.includes('id="workspaceSwitch"'), "Route IQ must not expose an active workspace switcher.");
 assert(!sourceIndex.includes("data-workspace-select"), "Route IQ must not expose active workspace-selection controls.");
