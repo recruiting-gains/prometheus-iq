@@ -27,6 +27,22 @@ const currentBaselineSuccessorPaths = Object.freeze([
   currentBaselineSuccessorPath,
   "scripts/verify-shadow-decision-readiness.mjs"
 ]);
+const crossIndustryAdoptionPath =
+  "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json";
+const crossIndustryAdoptionCommit = "5215ad7f261590f5901dc84a3b8e59d9bde6ce8b";
+const crossIndustryAdoptionTree = "0812759b11d783b845cdaf9db3ce0a7c166452c0";
+const crossIndustryAdoptionParent = "49ca63efb2d2a57e7b40ae17f504b27b399ec4c5";
+const crossIndustryAdoptionPaths = Object.freeze([
+  "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+  "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+  "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+  "intelligence/contracts/read-only-field-session-learning-contracts.json",
+  "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+  "intelligence/contracts/shadow-decision-readiness-contracts.json",
+  crossIndustryAdoptionPath,
+  "intelligence/read-only-field-session-learning.md",
+  "tests/intelligence-architecture.test.mjs"
+]);
 
 function read(path) {
   return readFileSync(resolve(root, path));
@@ -54,7 +70,7 @@ function git(args, encoding = "utf8") {
 }
 
 function verifySourceTransition({ commit, tree, subject, ownerSubsystem, paths, previousSha256,
-  currentSha256 }) {
+  currentSha256, enforceCurrent = true }) {
   const identity = ownerSubsystem === "Prometheus Dashboard"
     ? "Prometheus Dashboard <dashboard@prometheus.local>"
     : "Prometheus Intelligence Engine <intelligence@prometheus.local>";
@@ -74,13 +90,16 @@ function verifySourceTransition({ commit, tree, subject, ownerSubsystem, paths, 
       `Protected source predecessor changed: ${path}`);
     assert.equal(hashBytes(accepted), currentSha256,
       `Protected source successor changed: ${path}`);
-    assert.equal(sha256(path), currentSha256,
-      `Protected source changed after its owner successor: ${path}`);
+    if (enforceCurrent) {
+      assert.equal(sha256(path), currentSha256,
+        `Protected source changed after its owner successor: ${path}`);
+    }
   }
 }
 
 export function verifyAugust1ProtectedBehaviorBaselines(contract) {
   const successor = readJson(currentBaselineSuccessorPath);
+  const adoption = readJson(crossIndustryAdoptionPath);
   const fields = git([
     "show", "-s", "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
     currentBaselineSuccessorCommit
@@ -118,7 +137,8 @@ export function verifyAugust1ProtectedBehaviorBaselines(contract) {
 
   verifySourceTransition({
     ...successor.sourceTransitions.dashboard,
-    paths: successor.sourceTransitions.dashboard.paths
+    paths: successor.sourceTransitions.dashboard.paths,
+    enforceCurrent: false
   });
   verifySourceTransition({
     commit: successor.sourceTransitions.intelligenceRuntime.commit,
@@ -127,7 +147,8 @@ export function verifyAugust1ProtectedBehaviorBaselines(contract) {
     ownerSubsystem: successor.sourceTransitions.intelligenceRuntime.ownerSubsystem,
     paths: [successor.sourceTransitions.intelligenceRuntime.routeGeneration.path],
     previousSha256: successor.sourceTransitions.intelligenceRuntime.routeGeneration.previousSha256,
-    currentSha256: successor.sourceTransitions.intelligenceRuntime.routeGeneration.currentSha256
+    currentSha256: successor.sourceTransitions.intelligenceRuntime.routeGeneration.currentSha256,
+    enforceCurrent: false
   });
   verifySourceTransition({
     commit: successor.sourceTransitions.intelligenceRuntime.commit,
@@ -138,48 +159,83 @@ export function verifyAugust1ProtectedBehaviorBaselines(contract) {
     previousSha256:
       successor.sourceTransitions.intelligenceRuntime.businessHoursEligibility.previousSha256,
     currentSha256:
-      successor.sourceTransitions.intelligenceRuntime.businessHoursEligibility.currentSha256
+      successor.sourceTransitions.intelligenceRuntime.businessHoursEligibility.currentSha256,
+    enforceCurrent: false
   });
 
-  const governedTransitions = new Map([
-    ["dashboardSourceSha256", {
-      path: successor.sourceTransitions.dashboard.paths[0],
-      ...successor.sourceTransitions.dashboard
-    }],
-    ["dashboardSource", {
-      path: successor.sourceTransitions.dashboard.paths[0],
-      ...successor.sourceTransitions.dashboard
-    }],
-    ["dashboardDeployMirrorSha256", {
-      path: successor.sourceTransitions.dashboard.paths[1],
-      ...successor.sourceTransitions.dashboard
-    }],
-    ["dashboardDeployMirror", {
-      path: successor.sourceTransitions.dashboard.paths[1],
-      ...successor.sourceTransitions.dashboard
-    }],
-    ["adaptiveRouteEngineSha256", {
-      ...successor.sourceTransitions.intelligenceRuntime.routeGeneration
-    }],
-    ["routeGeneration", {
-      ...successor.sourceTransitions.intelligenceRuntime.routeGeneration
-    }],
-    ["businessHoursEligibilitySha256", {
-      ...successor.sourceTransitions.intelligenceRuntime.businessHoursEligibility
-    }]
+  const adoptionFields = git([
+    "show", "-s", "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+    crossIndustryAdoptionCommit
+  ]).trim().split("\n");
+  const adoptionPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", crossIndustryAdoptionCommit
+  ]).trim().split("\n").filter(Boolean).sort();
+  assert.deepEqual(adoptionFields, [
+    crossIndustryAdoptionCommit,
+    crossIndustryAdoptionTree,
+    crossIndustryAdoptionParent,
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "intelligence: adopt cross-industry governed empty state"
+  ], "Cross-industry Intelligence adoption commit changed.");
+  assert.deepEqual(adoptionPaths, [...crossIndustryAdoptionPaths].sort(),
+    "Cross-industry Intelligence adoption file set changed.");
+  assert.equal(
+    hashBytes(git(["show", `${crossIndustryAdoptionCommit}:${crossIndustryAdoptionPath}`], null)),
+    sha256(crossIndustryAdoptionPath),
+    "Cross-industry Intelligence adoption record changed."
+  );
+  assert.equal(adoption.status, "OWNER_REVIEWED_AND_SYNCHRONIZED_PENDING_OVERWATCH");
+  assert.equal(adoption.ownerSubsystem, "Prometheus Intelligence Engine");
+  for (const checkpoint of adoption.historicalCheckpoints) {
+    assert.equal(sha256(checkpoint.path), checkpoint.sha256,
+      `Historical Intelligence checkpoint changed: ${checkpoint.path}`);
+    assert.equal(checkpoint.remainsHistorical, true);
+    assert.equal(checkpoint.rewritten, false);
+  }
+  assert.equal(adoption.governedEmptyState.activeBusinessCount, 0);
+  assert.equal(adoption.governedEmptyState.retiredOrDemoSupplyRestored, false);
+  assert.equal(adoption.governedEmptyState.inventedBusinessAllowed, false);
+  assert.equal(adoption.boundaries.prospectiveCollection, "OFF");
+  assert.equal(adoption.boundaries.activeCohorts, 0);
+  assert.equal(adoption.boundaries.recommendationInfluence, "OFF");
+  assert.equal(adoption.boundaries.deploymentPerformed, false);
+  assert.equal(adoption.boundaries.productionMutationPerformed, false);
+
+  const adoptionTransitions = [
+    adoption.dataOwnerTransition.archiveRuntime,
+    ...adoption.dataOwnerTransition.availabilityArtifacts,
+    ...adoption.upstreamOwnerTransitions,
+    ...adoption.intelligenceOwnerRuntimeTransition.artifacts,
+    ...adoption.intelligenceConsumerTransitions
+  ];
+  const transitionByPath = new Map(adoptionTransitions.map(transition => [
+    transition.path,
+    transition
+  ]));
+  for (const transition of adoptionTransitions) {
+    assert.equal(sha256(transition.path), transition.currentSha256,
+      `Cross-industry protected source changed: ${transition.path}`);
+  }
+  const governedTransitionNames = new Set([
+    "dashboardSourceSha256",
+    "dashboardSource",
+    "dashboardDeployMirrorSha256",
+    "dashboardDeployMirror",
+    "adaptiveRouteEngineSha256",
+    "routeGeneration",
+    "businessHoursEligibilitySha256"
   ]);
   let successorCount = 0;
   for (const [name, expectedHash] of Object.entries(contract.protectedBehaviorBaselines)) {
     const path = contract.protectedBehaviorBaselinePaths[name];
     const currentHash = sha256(path);
-    if (currentHash === expectedHash) continue;
-    const transition = governedTransitions.get(name);
-    assert.equal(transition?.path, path, `Protected behavior path changed: ${name}`);
-    assert.equal(transition?.previousSha256, expectedHash,
+    const transition = transitionByPath.get(path);
+    assert.equal(expectedHash, transition?.currentSha256 || currentHash,
       `Protected behavior predecessor changed: ${name}`);
-    assert.equal(transition?.currentSha256, currentHash,
+    assert.equal(currentHash, expectedHash,
       `Protected behavior successor changed: ${name}`);
-    successorCount += 1;
+    if (transition && governedTransitionNames.has(name)) successorCount += 1;
   }
   return successorCount;
 }
