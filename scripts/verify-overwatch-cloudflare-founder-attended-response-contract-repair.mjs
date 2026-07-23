@@ -47,6 +47,64 @@ const primaryParent = "d32ffd8f6ea255fa029976b1bf0006663d567153";
 const primaryTree = "9eccf0475775253653e6e5633824d0562e8ee047";
 const successorCommit = "e7730315fdc8e14528b1476102984697151b4303";
 const successorTree = "9bfd2f5c614ece752df57ff25bb6580f4ecee1d6";
+const workflowV2ReconciliationSuccessor = Object.freeze({
+  commit: "6db68f845e91c967e34f3b825e4cbc2372cef6d8",
+  tree: "6dfaddbe6ad9a3b3addb05cacc2b121c7bef1387",
+  parent: "1861225879c60893f354e12385122330972d9ed8",
+  identity: "Prometheus Overwatch <overwatch@prometheus.local>",
+  subject: "overwatch: reconcile workflow v2 historical gates",
+  paths: Object.freeze([
+    "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+    "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+    "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
+    "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
+    "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
+    "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+    "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+    "tests/overwatch-public-deployment-workflow-v2.test.mjs"
+  ]),
+  transitions: Object.freeze([
+    Object.freeze({
+      path: "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
+      previousSha256: "35f0cf48a76785844b96907f31414b5f67169aed1fa9f2dad9706ff253ecfedc",
+      successorSha256: "b6c04c6a67948bccb1e3f0078c6225fdd86be0d7192c01779bea623646c62799"
+    }),
+    Object.freeze({
+      path: "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
+      previousSha256: "6cc5f5f7c0efdce15757416ef0c0c6c504d6283fd2abab05f3189072395b9434",
+      successorSha256: "da87d718547e8df775ef58af73a78e3d40262182d6800d02ebcfbb63e8d35311"
+    })
+  ])
+});
+const currentOverwatchSuccessor = Object.freeze({
+  commit: "4fb815a7e03f745685a36e24e847dbc1f109a7df",
+  tree: "81aa187479948de9cd624d29f14557eea2909b79",
+  parent: "f464a6bc19e8d2e52cab258dd2cbdd7511a18a21",
+  identity: "Prometheus Overwatch <overwatch@prometheus.local>",
+  subject: "Admit August 1 successors in paused access gates",
+  paths: Object.freeze([
+    "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+    "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+    "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",
+    "tests/overwatch-cloudflare-unattended-access.test.mjs"
+  ]),
+  transitions: Object.freeze([
+    Object.freeze({
+      path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+      previousSha256: "6d0bbb82091b1c9f931da80db0656e7e8a8cefbe8a8488e17b55428b439eb932",
+      successorSha256: "07a1ca72b14418cf1665e4ab239b4521256bc7723bc439a4789186f262c73f5f"
+    }),
+    Object.freeze({
+      path: "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+      previousSha256: "58bc993b1ad974a3e790cf2b33a7f4dec09b929c55f9887779a607ded30e2101",
+      successorSha256: "0175623565a4fb3c82ad124ad3a810711d662adc94c2d60aecb93bb2f9a6a061"
+    })
+  ])
+});
+const acceptedOverwatchSuccessors = Object.freeze([
+  workflowV2ReconciliationSuccessor,
+  currentOverwatchSuccessor
+]);
 const rotationOwnerSuccessorPaths = new Set([
   "scripts/lib/cloudflare-founder-attended-response-contract-artifacts.mjs",
   "scripts/lib/cloudflare-founder-attended-response-contract-production.mjs",
@@ -340,6 +398,31 @@ function verifyImplementationBoundary() {
 }
 
 function verifyOverwatchSuccessors(governance) {
+  for (const successor of acceptedOverwatchSuccessors) {
+    const currentSuccessorFields = git([
+      "show",
+      "-s",
+      "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      successor.commit
+    ]).split("\n");
+    const currentSuccessorPaths = git([
+      "diff-tree",
+      "--no-commit-id",
+      "--name-only",
+      "-r",
+      successor.commit
+    ]).split("\n").filter(Boolean).sort();
+    if (!equal(currentSuccessorFields, [
+      successor.commit,
+      successor.parent,
+      successor.tree,
+      successor.identity,
+      successor.identity,
+      successor.subject
+    ]) || !equal(currentSuccessorPaths, [...successor.paths].sort())) {
+      throw new Error(`Current Overwatch paused-access successor commit drifted: ${successor.commit}`);
+    }
+  }
   const createReceiptV2Governance = readJson(createReceiptV2GovernancePath);
   const keychainInteroperabilityGovernance = readJson(
     keychainInteroperabilityGovernancePath
@@ -360,6 +443,23 @@ function verifyOverwatchSuccessors(governance) {
   const routeIq3dGovernance = readJson(routeIq3dGovernancePath);
   for (const item of governance.overwatchVerificationSuccessors) {
     const current = sha256(readFileSync(resolve(root, item.path)));
+    const currentSuccessorOwner = acceptedOverwatchSuccessors.find(successor =>
+      successor.transitions.some(mapping => (
+        mapping.path === item.path
+        && mapping.successorSha256 === current
+      ))
+    );
+    const currentSuccessorTransition = currentSuccessorOwner?.transitions.find(mapping => (
+      mapping.path === item.path
+      && mapping.successorSha256 === current
+    ));
+    const currentSuccessorPrevious = currentSuccessorTransition
+      ? sha256(execFileSync("/usr/bin/git", [
+        "show", `${currentSuccessorOwner.parent}:${item.path}`
+      ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] }))
+      : null;
+    const currentSuccessorAccepted = currentSuccessorTransition?.previousSha256 ===
+      currentSuccessorPrevious;
     const transition = transitions.get(item.path);
     const keychainTransition = keychainTransitions.get(item.path);
     const githubDeploymentTransition = githubDeploymentTransitions.get(item.path);
@@ -404,7 +504,8 @@ function verifyOverwatchSuccessors(governance) {
           && keychainTransition?.owner === "Prometheus Overwatch")
         && !commercialTransition
         && routeIq3dTransition?.successorSha256 !== current
-        && !workflowV2Transition)) {
+        && !workflowV2Transition
+        && !currentSuccessorAccepted)) {
       throw new Error(`Overwatch verifier successor drifted: ${item.path}`);
     }
   }
@@ -508,6 +609,10 @@ export function verifyOverwatchFounderAttendedResponseContractRepair() {
     implementationOwner: "Prometheus Infrastructure",
     verificationOwner: "Prometheus Overwatch",
     implementationCommits: Object.freeze([primaryCommit, successorCommit]),
+    currentOverwatchSuccessorCommit: currentOverwatchSuccessor.commit,
+    acceptedCurrentOverwatchSuccessorCommits: Object.freeze(
+      acceptedOverwatchSuccessors.map(successor => successor.commit)
+    ),
     responseContractTests: 17,
     ownerVerifierOwnershipTests: 5,
     cloudflareApiContacted: false,

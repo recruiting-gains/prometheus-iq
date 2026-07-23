@@ -32,6 +32,14 @@ test("Overwatch independently verifies the owner-authored response-contract repa
     "04a38d6424099824fa3760314c7b660ce30b6930",
     "e7730315fdc8e14528b1476102984697151b4303"
   ]);
+  assert.equal(
+    result.currentOverwatchSuccessorCommit,
+    "4fb815a7e03f745685a36e24e847dbc1f109a7df"
+  );
+  assert.deepEqual([...result.acceptedCurrentOverwatchSuccessorCommits], [
+    "6db68f845e91c967e34f3b825e4cbc2372cef6d8",
+    "4fb815a7e03f745685a36e24e847dbc1f109a7df"
+  ]);
   assert.equal(result.cloudflareApiContacted, false);
   assert.equal(result.realKeychainValuesRead, false);
 });
