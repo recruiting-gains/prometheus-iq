@@ -2,18 +2,24 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 
 import {
   RouteIqRequestCrmError,
+  claimRouteIqRequestNotificationDelivery,
   exportRouteIqRequests,
   listRouteIqRequests,
   normalizeRouteIqRequestInput,
   persistRouteIqRequest,
   publicRouteIqRequestReceipt,
+  readRouteIqRequestNotificationResult,
+  recordRouteIqRequestNotificationResult,
   retrieveRouteIqRequest,
+  routeIqRequestFounderMonitoringSummary,
+  routeIqRequestFounderReceiptMonitoring,
   routeIqRequestCrmVersion,
   routeIqRequestFounderAuthorization
 } from "../../crm/route-iq-request-crm.mjs";
 
 export const ROUTE_IQ_REQUEST_CRM_PATH = "/api/partner-intake";
 export const ROUTE_IQ_REQUEST_CRM_FOUNDER_PATH = "/api/partner-intake/founder/requests";
+export const ROUTE_IQ_REQUEST_CRM_MONITORING_PATH = "/api/partner-intake/founder/monitoring";
 export const ROUTE_IQ_REQUEST_CRM_EXPORT_PATH = "/api/partner-intake/founder/export";
 export const ROUTE_IQ_REQUEST_CRM_BINDING = "ROUTE_IQ_REQUEST_CRM_COORDINATOR";
 export const ROUTE_IQ_REQUEST_CRM_ENV = Object.freeze({
@@ -435,40 +441,53 @@ async function recordFailure(store, error, id, now) {
   });
 }
 
-async function notifyFounder(env, store, result) {
-  const key = `infrastructure-route-iq-request-v1/notifications/${result.receiptId}.json`;
-  let status = "not_configured";
-  let failureCode = null;
-  if (env?.FOUNDER_EMAIL?.send) {
-    try {
-      await env.FOUNDER_EMAIL.send({
-        to: env.FOUNDER_NOTIFICATION_TO || undefined,
-        from: env.FOUNDER_NOTIFICATION_FROM || "intake@prometheusrouteiq.com",
-        subject: `New Route IQ request ${result.receiptId}`,
-        text: [
-          "A Route IQ request was durably accepted.",
-          `Receipt: ${result.receiptId}`,
-          `Submitted: ${result.record.request.submittedAt}`,
-          `Business type: ${result.record.request.businessType}`,
-          `Locations: ${result.record.request.numberOfLocations}`,
-          `Estimated users: ${result.record.request.estimatedUsers}`,
-          `Timeline: ${result.record.request.desiredTimeline}`,
-          "Use Founder-only CRM retrieval for contact details."
-        ].join("\n")
-      });
-      status = "sent";
-    } catch {
-      status = "failed";
-      failureCode = "founder_notification_delivery_failed";
-    }
+async function notifyFounder(env, store, result, now) {
+  const existing = await readRouteIqRequestNotificationResult(store, result.receiptId);
+  if (existing) return existing;
+
+  if (!env?.FOUNDER_EMAIL?.send) {
+    return (await recordRouteIqRequestNotificationResult(store, result.receiptId, {
+      status: "not_configured",
+      failureCode: null
+    }, { now })).result;
   }
-  await store.put(key, JSON.stringify({
-    version: routeIqRequestCrmVersion,
-    receiptId: result.receiptId,
-    status,
-    failureCode,
-    containsContactPii: false
-  }), { metadata: { recordType: "route_iq_request_notification", receiptId: result.receiptId, status } });
+
+  const claim = await claimRouteIqRequestNotificationDelivery(store, result.receiptId, { now });
+  if (claim.state === "terminal") return claim.result;
+  if (claim.state === "delivery_ambiguous") {
+    return (await recordRouteIqRequestNotificationResult(store, result.receiptId, {
+      status: "delivery_ambiguous",
+      failureCode: "founder_notification_delivery_ambiguous"
+    }, { now })).result;
+  }
+
+  try {
+    await env.FOUNDER_EMAIL.send({
+      to: env.FOUNDER_NOTIFICATION_TO || undefined,
+      from: env.FOUNDER_NOTIFICATION_FROM || "intake@prometheusrouteiq.com",
+      subject: `New Route IQ request ${result.receiptId}`,
+      text: [
+        "A Route IQ request was durably accepted.",
+        `Receipt: ${result.receiptId}`,
+        `Submitted: ${result.record.request.submittedAt}`,
+        `Business type: ${result.record.request.businessType}`,
+        `Locations: ${result.record.request.numberOfLocations}`,
+        `Estimated users: ${result.record.request.estimatedUsers}`,
+        `Timeline: ${result.record.request.desiredTimeline}`,
+        "Use Founder-only CRM retrieval for contact details."
+      ].join("\n")
+    });
+  } catch {
+    return (await recordRouteIqRequestNotificationResult(store, result.receiptId, {
+      status: "delivery_ambiguous",
+      failureCode: "founder_notification_delivery_ambiguous"
+    }, { now })).result;
+  }
+
+  return (await recordRouteIqRequestNotificationResult(store, result.receiptId, {
+    status: "sent",
+    failureCode: null
+  }, { now })).result;
 }
 
 async function handlePublicPost(request, env, options) {
@@ -479,7 +498,7 @@ async function handlePublicPost(request, env, options) {
     const normalized = await normalizePublicRouteIqRequest(body, { now: options.now || new Date() });
     store = options.store || createRouteIqRequestCrmDurableStore(env);
     const result = await persistRouteIqRequest(store, normalized, { now: options.now || new Date() });
-    if (!result.duplicate) await notifyFounder(env, store, result);
+    await notifyFounder(env, store, result, options.now || new Date());
     const receipt = publicRouteIqRequestReceipt(result);
     return response({ ...receipt, timestamp: receipt.submittedAt }, result.duplicate ? 200 : 201);
   } catch (error) {
@@ -518,6 +537,17 @@ async function handleFounderGet(request, env, options) {
     const url = new URL(request.url);
     const scope = await founderScope(request, env, options);
     const store = options.store || createRouteIqRequestCrmDurableStore(env);
+    if (url.pathname === ROUTE_IQ_REQUEST_CRM_MONITORING_PATH) {
+      const monitoring = await routeIqRequestFounderMonitoringSummary(store, scope);
+      return response({ ok: true, ...monitoring });
+    }
+    if (url.pathname.startsWith(`${ROUTE_IQ_REQUEST_CRM_MONITORING_PATH}/`)) {
+      const receiptId = decodeURIComponent(url.pathname.slice(ROUTE_IQ_REQUEST_CRM_MONITORING_PATH.length + 1));
+      const monitoring = await routeIqRequestFounderReceiptMonitoring(store, { ...scope, receiptId });
+      return monitoring.recordCount === 0 && monitoring.notificationCount === 0
+        ? response({ ok: false, code: "route_iq_request_not_found" }, 404)
+        : response({ ok: true, ...monitoring });
+    }
     if (url.pathname === ROUTE_IQ_REQUEST_CRM_FOUNDER_PATH) {
       const records = await listRouteIqRequests(store, scope);
       return response({ ok: true, version: routeIqRequestCrmVersion, recordCount: records.length, records });
@@ -548,8 +578,10 @@ async function handleFounderGet(request, env, options) {
 export function isRouteIqRequestCrmPath(pathname) {
   return pathname === ROUTE_IQ_REQUEST_CRM_PATH
     || pathname === ROUTE_IQ_REQUEST_CRM_FOUNDER_PATH
+    || pathname === ROUTE_IQ_REQUEST_CRM_MONITORING_PATH
     || pathname === ROUTE_IQ_REQUEST_CRM_EXPORT_PATH
-    || pathname.startsWith(`${ROUTE_IQ_REQUEST_CRM_FOUNDER_PATH}/`);
+    || pathname.startsWith(`${ROUTE_IQ_REQUEST_CRM_FOUNDER_PATH}/`)
+    || pathname.startsWith(`${ROUTE_IQ_REQUEST_CRM_MONITORING_PATH}/`);
 }
 
 export async function handleRouteIqRequestCrmRuntimeRequest(request, env = {}, options = {}) {

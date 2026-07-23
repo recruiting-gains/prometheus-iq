@@ -31,3 +31,5 @@ These values are shape-validated at deployment, but secret presence and shape al
 ## Boundaries
 
 The Founder notification contains a receipt and non-contact request summary only. Full contact information is available only through Founder-authorized retrieval. Prospective collection remains `OFF`, active cohorts remain `0`, and recommendation influence remains `OFF`. This path does not import or call the prospective shadow runtime.
+
+Notification delivery uses an atomic receipt-scoped claim before any external send. A terminal result is immutable and idempotent. If an earlier claim exists without a terminal result, duplicate intake records `delivery_ambiguous` without sending again. Founder-only monitoring exposes aggregate record and notification counts plus a sanitized receipt lookup with fixed notification statuses; it contains no contact or request PII. Public intake responses remain limited to the canonical receipt and never disclose notification state.

@@ -19,6 +19,7 @@ import {
   ROUTE_IQ_REQUEST_CRM_EXPORT_PATH,
   ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES,
   ROUTE_IQ_REQUEST_CRM_FOUNDER_PATH,
+  ROUTE_IQ_REQUEST_CRM_MONITORING_PATH,
   ROUTE_IQ_REQUEST_CRM_PATH,
   createRouteIqRequestCrmDurableStore,
   handleRouteIqRequestCrmRuntimeRequest,
@@ -64,6 +65,34 @@ function durableNamespace() {
         assert.equal(id, "route-iq-request-crm-id");
         return { fetch: (input, init) => coordinator.fetch(new Request(input, init)) };
       }
+    }
+  };
+}
+
+function injectedRuntimeStore({ failNotificationResultOnce = false } = {}) {
+  const items = new Map();
+  let shouldFailNotificationResult = failNotificationResultOnce;
+  return {
+    items,
+    async get(key) {
+      return items.get(key) ?? null;
+    },
+    async putIfAbsent(key, value) {
+      if (shouldFailNotificationResult && key.includes("/notifications/")) {
+        shouldFailNotificationResult = false;
+        throw new Error("synthetic notification result persistence interruption");
+      }
+      if (items.has(key)) return false;
+      items.set(key, String(value));
+      return true;
+    },
+    async put(key, value) {
+      items.set(key, String(value));
+    },
+    async list({ prefix }) {
+      return {
+        keys: [...items.keys()].filter(key => key.startsWith(prefix)).sort().map(name => ({ name }))
+      };
     }
   };
 }
@@ -311,6 +340,174 @@ test("public Route IQ request is normalized, durably accepted, minimally notifie
     assert.equal(exported.status, 200);
     assert.match(await exported.text(), /Houston Field Services/u);
   }
+});
+
+test("known sent notification state is terminal and duplicate intake never sends again", async () => {
+  const store = injectedRuntimeStore();
+  let sends = 0;
+  const env = {
+    FOUNDER_EMAIL: {
+      async send() {
+        assert.equal([...store.items.keys()].filter(key => key.includes("/requests/")).length, 1);
+        sends += 1;
+      }
+    }
+  };
+  const first = await handleRouteIqRequestCrmRuntimeRequest(postRequest(), env, { store, now });
+  const firstBody = await first.json();
+  assert.equal(first.status, 201);
+  assert.equal(firstBody.duplicate, false);
+  assert.equal("notificationStatus" in firstBody, false);
+
+  const duplicate = await handleRouteIqRequestCrmRuntimeRequest(postRequest(), env, { store, now });
+  const duplicateBody = await duplicate.json();
+  assert.equal(duplicate.status, 200);
+  assert.equal(duplicateBody.duplicate, true);
+  assert.equal(duplicateBody.receiptId, firstBody.receiptId);
+  assert.equal(sends, 1);
+
+  const monitoring = await handleRouteIqRequestCrmRuntimeRequest(
+    new Request(`https://prometheusrouteiq.com${ROUTE_IQ_REQUEST_CRM_MONITORING_PATH}/${firstBody.receiptId}`),
+    env,
+    { store, authTestHooks: { enabled: true, principal: exactFounderPrincipal() }, now }
+  );
+  assert.equal(monitoring.status, 200);
+  assert.deepEqual(await monitoring.json(), {
+    ok: true,
+    version: "route-iq-request-crm-v1",
+    receiptId: firstBody.receiptId,
+    recordCount: 1,
+    recordStatus: "accepted",
+    notificationCount: 1,
+    notificationStatus: "sent",
+    notificationFailureCode: null,
+    duplicateSafe: true
+  });
+});
+
+test("ambiguous notification delivery records a terminal result without a second send", async () => {
+  const store = injectedRuntimeStore();
+  let sends = 0;
+  const env = {
+    FOUNDER_EMAIL: {
+      async send() {
+        sends += 1;
+        throw new Error("synthetic ambiguous provider result");
+      }
+    }
+  };
+  const first = await handleRouteIqRequestCrmRuntimeRequest(postRequest(), env, { store, now });
+  assert.equal(first.status, 201);
+  const firstBody = await first.json();
+  assert.equal("notificationStatus" in firstBody, false);
+
+  const duplicate = await handleRouteIqRequestCrmRuntimeRequest(postRequest(), env, { store, now });
+  assert.equal(duplicate.status, 200);
+  assert.equal(sends, 1);
+
+  const monitoring = await handleRouteIqRequestCrmRuntimeRequest(
+    new Request(`https://prometheusrouteiq.com${ROUTE_IQ_REQUEST_CRM_MONITORING_PATH}/${firstBody.receiptId}`),
+    env,
+    { store, authTestHooks: { enabled: true, principal: exactFounderPrincipal() }, now }
+  );
+  const body = await monitoring.json();
+  assert.equal(body.notificationStatus, "delivery_ambiguous");
+  assert.equal(body.notificationFailureCode, "founder_notification_delivery_ambiguous");
+});
+
+test("duplicate intake repairs an interrupted notification-result write without sending twice", async () => {
+  const store = injectedRuntimeStore({ failNotificationResultOnce: true });
+  let sends = 0;
+  const env = {
+    FOUNDER_EMAIL: {
+      async send() {
+        sends += 1;
+      }
+    }
+  };
+  const captured = [];
+  const original = console.error;
+  console.error = message => captured.push(message);
+  let first;
+  try {
+    first = await handleRouteIqRequestCrmRuntimeRequest(postRequest(), env, {
+      store,
+      now,
+      testHooks: { enabled: true, attemptId: "route_iq_attempt_notification_interruption" }
+    });
+  } finally {
+    console.error = original;
+  }
+  assert.equal(first.status, 500);
+  assert.equal(sends, 1);
+  assert.equal([...store.items.keys()].filter(key => key.includes("/requests/")).length, 1);
+  assert.equal([...store.items.keys()].filter(key => key.includes("/notifications/")).length, 0);
+  assert.equal(captured.join("\n").includes("synthetic notification result persistence interruption"), false);
+
+  const recovered = await handleRouteIqRequestCrmRuntimeRequest(postRequest(), env, { store, now });
+  const recoveredBody = await recovered.json();
+  assert.equal(recovered.status, 200);
+  assert.equal(recoveredBody.duplicate, true);
+  assert.equal(sends, 1);
+  assert.equal([...store.items.keys()].filter(key => key.includes("/requests/")).length, 1);
+  assert.equal([...store.items.keys()].filter(key => key.includes("/notifications/")).length, 1);
+
+  const monitoring = await handleRouteIqRequestCrmRuntimeRequest(
+    new Request(`https://prometheusrouteiq.com${ROUTE_IQ_REQUEST_CRM_MONITORING_PATH}/${recoveredBody.receiptId}`),
+    env,
+    { store, authTestHooks: { enabled: true, principal: exactFounderPrincipal() }, now }
+  );
+  assert.equal((await monitoring.json()).notificationStatus, "delivery_ambiguous");
+});
+
+test("Founder monitoring is aggregate-only, receipt-scoped, authorized, and PII-free", async () => {
+  const store = injectedRuntimeStore();
+  const env = { FOUNDER_EMAIL: { async send() {} } };
+  const accepted = await handleRouteIqRequestCrmRuntimeRequest(postRequest(), env, { store, now });
+  const receipt = await accepted.json();
+  const authorized = { store, authTestHooks: { enabled: true, principal: exactFounderPrincipal() }, now };
+
+  const aggregate = await handleRouteIqRequestCrmRuntimeRequest(
+    new Request(`https://prometheusrouteiq.com${ROUTE_IQ_REQUEST_CRM_MONITORING_PATH}`),
+    env,
+    authorized
+  );
+  assert.equal(aggregate.status, 200);
+  const aggregateBody = await aggregate.json();
+  assert.equal(aggregateBody.recordCount, 1);
+  assert.equal(aggregateBody.notificationCount, 1);
+  assert.equal(aggregateBody.notificationStatusCounts.sent, 1);
+
+  const receiptLookup = await handleRouteIqRequestCrmRuntimeRequest(
+    new Request(`https://prometheusrouteiq.com${ROUTE_IQ_REQUEST_CRM_MONITORING_PATH}/${receipt.receiptId}`),
+    env,
+    authorized
+  );
+  const serialized = JSON.stringify({ aggregate: aggregateBody, receipt: await receiptLookup.json() });
+  for (const prohibited of ["Jordan", "jordan@example.com", "+1 713", "Houston Field Services", "Greater Houston"]) {
+    assert.equal(serialized.includes(prohibited), false);
+  }
+  const notificationState = JSON.stringify([...store.items.entries()].filter(([key]) => (
+    key.includes("/notification-attempts/") || key.includes("/notifications/")
+  )));
+  for (const prohibited of ["Jordan", "jordan@example.com", "+1 713", "Houston Field Services", "Greater Houston"]) {
+    assert.equal(notificationState.includes(prohibited), false);
+  }
+
+  const denied = await handleRouteIqRequestCrmRuntimeRequest(
+    new Request(`https://prometheusrouteiq.com${ROUTE_IQ_REQUEST_CRM_MONITORING_PATH}`),
+    env,
+    { store, authTestHooks: { enabled: true, principal: exactFounderPrincipal({ authenticated: false }) }, now }
+  );
+  assert.equal(denied.status, 403);
+  assert.equal(JSON.stringify(await denied.json()).includes("Jordan"), false);
+
+  const malformed = await handleRouteIqRequestCrmRuntimeRequest(
+    new Request(`https://prometheusrouteiq.com${ROUTE_IQ_REQUEST_CRM_MONITORING_PATH}/riq_receipt_invalid`),
+    env,
+    authorized
+  );
+  assert.equal(malformed.status, 422);
 });
 
 test("composed Worker sends the active public intake through Aegis and the Route IQ CRM runtime", async () => {

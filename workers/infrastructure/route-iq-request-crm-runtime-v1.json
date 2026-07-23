@@ -24,6 +24,8 @@
     "paths": [
       "/api/partner-intake/founder/requests",
       "/api/partner-intake/founder/requests/{receiptId}",
+      "/api/partner-intake/founder/monitoring",
+      "/api/partner-intake/founder/monitoring/{receiptId}",
       "/api/partner-intake/founder/export"
     ],
     "methods": ["GET"],
@@ -74,7 +76,12 @@
   "notification": {
     "afterDurablePersistence": true,
     "contactPiiIncluded": false,
-    "deliveryFailureIsMonitored": true
+    "deliveryFailureIsMonitored": true,
+    "deliveryClaimBeforeSend": true,
+    "terminalResultIsIdempotent": true,
+    "ambiguousDeliverySendsAgain": false,
+    "duplicateRepairsMissingResult": true,
+    "founderMonitoringContainsContactPii": false
   },
   "capacityTarget": {
     "workspaceCount": 10,
