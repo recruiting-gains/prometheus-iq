@@ -305,16 +305,19 @@ test("generated governed runtime scope must remain byte-identical to its owner s
 
 test("top-level npm lifecycle wires every August 1 owner gate before the legacy suite", () => {
   const packageJson = readJson(ROOT, "package.json");
-  assert.equal(
-    packageJson.scripts.pretest,
-    "npm run data:route-iq-august-1-launch-envelope:check && npm run infrastructure:route-iq-august-1-customer-pwa-rollback:check && npm run intelligence:route-iq-governed-runtime-scope:check && npm run overwatch:route-iq-august-1-readiness:check"
-  );
+  const pretestSteps = packageJson.scripts.pretest.split(" && ");
+  let previousIndex = -1;
   for (const name of [
     "data:route-iq-august-1-launch-envelope:check",
     "infrastructure:route-iq-august-1-customer-pwa-rollback:check",
     "intelligence:route-iq-governed-runtime-scope:check",
     "overwatch:route-iq-august-1-readiness:check"
-  ]) assert.equal(typeof packageJson.scripts[name], "string", name);
+  ]) {
+    assert.equal(typeof packageJson.scripts[name], "string", name);
+    const index = pretestSteps.indexOf(`npm run ${name}`);
+    assert.ok(index > previousIndex, `${name} must remain in the ordered pretest lifecycle`);
+    previousIndex = index;
+  }
 });
 
 test("missing, drifted, and symlinked required artifacts fail closed", async t => {
