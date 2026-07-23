@@ -10,7 +10,10 @@ import { fileURLToPath } from "node:url";
 import { verifyPublicForwardRollbackArtifact } from "./lib/route-iq-public-forward-rollback.mjs";
 import { verifyOverwatchRevised3dReleaseReadinessSuccessor } from "./verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs";
 import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
-import { verifyRouteIqPublicRepositoryIntegrityRepair } from "./verify-route-iq-public-repository-integrity-repair.mjs";
+import {
+  INFRASTRUCTURE_OWNER_BOUNDARY,
+  verifyInfrastructureOwnerBoundary
+} from "./verify-route-iq-public-repository-integrity-repair.mjs";
 
 export const PUBLIC_INTEGRITY_READINESS_PATH =
   "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json";
@@ -54,6 +57,14 @@ const SAFE_NO_SECRET_ASSET_ORDERING_INFRASTRUCTURE_CONTRACT_SHA256 =
 const ROLLBACK_CONTRACT_SHA256 = "26e1eab16fa5aed2295d025d6146e01744f1ef37ad8f8eb05afb2ab921d7916f";
 const DEPLOYMENT_ASSETS_SHA256 = "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15";
 const ROLLBACK_BUNDLE_SHA256 = "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863";
+const CURRENT_INFRASTRUCTURE_CONTRACT_SHA256 =
+  "0582bc185ccf6f5e0825de25ce5fef8c65240fb0ee3b68c22bc5ba14865350c5";
+const CURRENT_ROLLBACK_CONTRACT_SHA256 =
+  "b7be296f51db1b8e8a305a068ebc1b0aa7652813de7b5378b96ac292af8af012";
+const CURRENT_DEPLOYMENT_ASSETS_SHA256 =
+  "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1";
+const CURRENT_ROLLBACK_BUNDLE_SHA256 =
+  "012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe";
 const PRE_FOUNDER_JWT_REPAIR_ROLLBACK_CONTRACT_SHA256 =
   "a1baf16aeb970c5b9c434e333781e98c968692b80be07004295333c5741bf1e2";
 const PRE_FOUNDER_JWT_REPAIR_ROLLBACK_BUNDLE_SHA256 =
@@ -876,6 +887,7 @@ const WORKFLOW_V2_OVERWATCH_TAIL_PATHS = Object.freeze([
   "scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs",
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
   "scripts/verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs",
+  "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs",
   "tests/overwatch-public-deployment-workflow-v2.test.mjs",
   "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
   "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
@@ -972,6 +984,128 @@ const WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR = Object.freeze({
     "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
   ])
 });
+const WEBSITE_SUCCESSOR_FILES = Object.freeze([
+  "deploy/prometheusrouteiq-website/assets/IntelligenceScene-CqK-yX9Z.js",
+  "deploy/prometheusrouteiq-website/assets/IntelligenceScene-DUlz-ixy.js",
+  "deploy/prometheusrouteiq-website/assets/landing-D-Z5MAu6.js",
+  "deploy/prometheusrouteiq-website/assets/landing-Dfjv-fGW.js",
+  "deploy/prometheusrouteiq-website/index.html"
+]);
+const ROLLBACK_SUCCESSOR_FILES = Object.freeze([
+  Object.freeze({
+    path: "scripts/verify-github-actions-public-worker-workflow-v2.mjs",
+    sha256: "31e6db547928fce5e159b0d8eebebd7d56ea66ad423d5f2311331dd5e246af4c"
+  }),
+  Object.freeze({
+    path: "tests/github-actions-public-worker-deployment.test.mjs",
+    sha256: "d880b9b2f326fe01d9f8d7164e76d7910f3cb2bf10f1f9badbcc82434539d326"
+  }),
+  Object.freeze({
+    path: "tests/github-actions-public-worker-workflow-v2.test.mjs",
+    sha256: "8c00799bdec6a8973bdfd467afe21f97ec8e7f7c270a80e7a1c40978e6c042fa"
+  }),
+  Object.freeze({
+    path: ROLLBACK_CONTRACT_PATH,
+    sha256: CURRENT_ROLLBACK_CONTRACT_SHA256
+  }),
+  Object.freeze({
+    path: INFRASTRUCTURE_CONTRACT_PATH,
+    sha256: "5ecd49cb7f8306e2fed6fc18629f9ce490316cba6c1db4c9d0d6c39d09ca1d74"
+  })
+]);
+const PROVENANCE_ADMISSION_FILES = Object.freeze([
+  Object.freeze({
+    path: "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+    sha256: "85e0a267ac8272903bb01556bbcc46503ae565e18f4841bc6bacdffa3a9226c3"
+  }),
+  Object.freeze({
+    path: "tests/public-repository-integrity-repair.test.mjs",
+    sha256: "37416524fabb451e3dd05b63b24324a9b35e013f091270af446099aa333ee377"
+  }),
+  Object.freeze({
+    path: INFRASTRUCTURE_CONTRACT_PATH,
+    sha256: CURRENT_INFRASTRUCTURE_CONTRACT_SHA256
+  })
+]);
+const OVERWATCH_SUCCESSOR_FILES = Object.freeze([
+  "overwatch/governance/public-deployment-workflow-v2.json",
+  "overwatch/governance/public-deployment-workflow-v2.md",
+  PUBLIC_INTEGRITY_READINESS_PATH,
+  "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+  "scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs",
+  "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+  "scripts/verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs",
+  "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+  "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
+  "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+]);
+const WEBSITE_SUCCESSOR = Object.freeze({
+  commit: "710ad8a1428dd7621c5363a16fffaae828cc3421",
+  tree: "7e7f5cf2ec0fe0a2bfeae41c577279faab4c111b",
+  parent: "dd048c8c00804073034a89a6a4dd48f616302a75",
+  subject: "website: regenerate public deployment assets",
+  owner: "Prometheus Website",
+  author: "Prometheus Website <website@prometheus.local>",
+  committer: "Prometheus Website <website@prometheus.local>",
+  files: WEBSITE_SUCCESSOR_FILES,
+  deploymentAssetsSha256: CURRENT_DEPLOYMENT_ASSETS_SHA256
+});
+const ROLLBACK_SUCCESSOR = Object.freeze({
+  commit: "18fbe9906064bad8a0ae8e6fc224e2af0bf1a594",
+  tree: "8f58a2fb6e438d57556cb4f1860d4497782f61b2",
+  parent: WEBSITE_SUCCESSOR.commit,
+  subject: "infrastructure: advance August 1 public rollback candidate",
+  owner: "Prometheus Infrastructure",
+  author: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+  committer: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+  files: ROLLBACK_SUCCESSOR_FILES
+});
+const PROVENANCE_ADMISSION = Object.freeze({
+  commit: "a558df528f0c472d28afb1c3b3041a067ca86c4b",
+  tree: "7e4e8b94d61f57bbd3dcf3c50ebe3e4efff54608",
+  parent: ROLLBACK_SUCCESSOR.commit,
+  subject: "infrastructure: admit August 1 launch closeout successors",
+  owner: "Prometheus Infrastructure",
+  author: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+  committer: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+  files: PROVENANCE_ADMISSION_FILES
+});
+const OVERWATCH_SUCCESSOR = Object.freeze({
+  classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
+  parent: PROVENANCE_ADMISSION.commit,
+  subject: "overwatch: admit August 1 public release successors",
+  author: "Prometheus Overwatch <overwatch@prometheus.local>",
+  committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+  files: OVERWATCH_SUCCESSOR_FILES
+});
+const HISTORICAL_PRESERVATION_TERMINAL_COMMIT =
+  "d3bda9d86a388462dd5cab0fa789081eee59b541";
+const CURRENT_INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
+  ...INFRASTRUCTURE_OWNER_BOUNDARY,
+  august1LaunchCloseoutSuccessors: Object.freeze([
+    ...INFRASTRUCTURE_OWNER_BOUNDARY.august1LaunchCloseoutSuccessors,
+    Object.freeze({
+      commit: PROVENANCE_ADMISSION.commit,
+      tree: PROVENANCE_ADMISSION.tree,
+      parent: PROVENANCE_ADMISSION.parent,
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: PROVENANCE_ADMISSION.subject,
+      files: Object.freeze(PROVENANCE_ADMISSION_FILES.map(item => item.path))
+    })
+  ]),
+  august1LaunchCloseoutAdmissionSuccessor: Object.freeze({
+    parent: OVERWATCH_SUCCESSOR.parent,
+    authorName: "Prometheus Overwatch",
+    authorEmail: "overwatch@prometheus.local",
+    committerName: "Prometheus Overwatch",
+    committerEmail: "overwatch@prometheus.local",
+    subject: OVERWATCH_SUCCESSOR.subject,
+    files: OVERWATCH_SUCCESSOR_FILES
+  })
+});
 const HISTORICAL_CLASSIFICATION = Object.freeze([
   "DEPLOYMENT_ATTEMPT_CONSUMED",
   "HISTORICAL_READINESS_EVIDENCE",
@@ -983,6 +1117,11 @@ const read = (root, path) => readFileSync(resolve(root, path));
 const readJson = (root, path) => JSON.parse(read(root, path).toString("utf8"));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 const sorted = values => [...values].sort((left, right) => left.localeCompare(right));
+const readAtCommit = (root, commit, path) => execFileSync(
+  "git",
+  ["show", `${commit}:${path}`],
+  { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] }
+);
 
 function git(root, ...args) {
   return execFileSync("git", args, {
@@ -1005,6 +1144,22 @@ function commitRecord(root, commit) {
     .split("\n")
     .filter(Boolean);
   return { author, committer, subject, files };
+}
+
+function exactCommitRecord(root, commit) {
+  const [author, committer, subject] = git(
+    root,
+    "show",
+    "-s",
+    "--format=%an <%ae>%n%cn <%ce>%n%s",
+    commit
+  ).split("\n");
+  return {
+    author,
+    committer,
+    subject,
+    files: commitRecord(root, commit).files
+  };
 }
 
 export function validatePublicIntegrityReadiness(governance) {
@@ -1980,6 +2135,36 @@ export function validatePublicIntegrityReadiness(governance) {
     productionMutation: false
   });
 
+  assert.deepEqual(governance?.august1LaunchCloseoutSuccessor, {
+    classification: "CONTROLLING_CURRENT_OWNER_SUCCESSOR",
+    historicalReadinessPreserved: true,
+    historicalReleaseIdentitiesRemainNoncurrent: true,
+    websiteSuccessor: {
+      ...WEBSITE_SUCCESSOR,
+      files: [...WEBSITE_SUCCESSOR.files]
+    },
+    rollbackSuccessor: {
+      ...ROLLBACK_SUCCESSOR,
+      files: ROLLBACK_SUCCESSOR.files.map(item => ({ ...item }))
+    },
+    provenanceAdmission: {
+      ...PROVENANCE_ADMISSION,
+      files: PROVENANCE_ADMISSION.files.map(item => ({ ...item }))
+    },
+    overwatchSuccessor: {
+      ...OVERWATCH_SUCCESSOR,
+      files: [...OVERWATCH_SUCCESSOR.files]
+    },
+    currentReleaseIdentities: {
+      deploymentAssetsSha256: CURRENT_DEPLOYMENT_ASSETS_SHA256,
+      rollbackContractSha256: CURRENT_ROLLBACK_CONTRACT_SHA256,
+      deterministicRollbackBundleSha256: CURRENT_ROLLBACK_BUNDLE_SHA256,
+      infrastructureIntegrityContractSha256: CURRENT_INFRASTRUCTURE_CONTRACT_SHA256
+    },
+    productionTouched: false,
+    deploymentAuthorized: false
+  });
+
   assert.equal(governance?.safetyState?.prospectiveCollection, "OFF");
   assert.equal(governance?.safetyState?.activeCohorts, 0);
   assert.equal(governance?.safetyState?.recommendationInfluence, "OFF");
@@ -2003,6 +2188,55 @@ export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.releaseBoundary?.combinedDeploymentAuthorizationReusable, false);
   assert.equal(governance?.releaseBoundary?.freshExactCandidateAuthorizationRequired, true);
   return governance;
+}
+
+function verifyExactCommit(root, expected) {
+  assert.equal(git(root, "rev-parse", `${expected.commit}^{tree}`), expected.tree);
+  assert.equal(git(root, "rev-parse", `${expected.commit}^`), expected.parent);
+  const actual = exactCommitRecord(root, expected.commit);
+  assert.equal(actual.author, expected.author);
+  assert.equal(actual.committer, expected.committer);
+  assert.equal(actual.subject, expected.subject);
+  const expectedPaths = expected.files.map(item => typeof item === "string" ? item : item.path);
+  assert.deepEqual(sorted(actual.files), sorted(expectedPaths));
+  for (const evidence of expected.files.filter(item => typeof item !== "string")) {
+    assert.equal(
+      sha256(readAtCommit(root, expected.commit, evidence.path)),
+      evidence.sha256,
+      `Owner evidence drifted at ${expected.commit}: ${evidence.path}`
+    );
+  }
+}
+
+function verifyCurrentOwnerSuccessor(root, requireCommittedOverwatch) {
+  for (const expected of [WEBSITE_SUCCESSOR, ROLLBACK_SUCCESSOR, PROVENANCE_ADMISSION]) {
+    verifyExactCommit(root, expected);
+  }
+  const ownerBoundary = verifyInfrastructureOwnerBoundary(
+    root,
+    CURRENT_INFRASTRUCTURE_OWNER_BOUNDARY
+  );
+  assert.equal(
+    ownerBoundary.august1LaunchCloseoutSuccessorsSeen,
+    CURRENT_INFRASTRUCTURE_OWNER_BOUNDARY.august1LaunchCloseoutSuccessors.length
+  );
+
+  const head = git(root, "rev-parse", "HEAD");
+  if (requireCommittedOverwatch) {
+    assert.equal(ownerBoundary.august1LaunchCloseoutAdmissionSeen, true);
+    assert.notEqual(head, OVERWATCH_SUCCESSOR.parent, "Governed Overwatch successor is missing.");
+    assert.equal(git(root, "rev-parse", `${head}^`), OVERWATCH_SUCCESSOR.parent);
+    const actual = exactCommitRecord(root, head);
+    assert.equal(actual.author, OVERWATCH_SUCCESSOR.author);
+    assert.equal(actual.committer, OVERWATCH_SUCCESSOR.committer);
+    assert.equal(actual.subject, OVERWATCH_SUCCESSOR.subject);
+    assert.deepEqual(sorted(actual.files), sorted(OVERWATCH_SUCCESSOR.files));
+  } else {
+    assert.ok(
+      head === OVERWATCH_SUCCESSOR.parent || ownerBoundary.august1LaunchCloseoutAdmissionSeen,
+      "Current owner evidence does not resolve through the exact Overwatch successor."
+    );
+  }
 }
 
 function verifyOwnership(root, requireCommittedOverwatch) {
@@ -2497,14 +2731,18 @@ function verifyOwnership(root, requireCommittedOverwatch) {
     assert.equal(git(root, "rev-parse", `${expected.commit}^`), expected.parent);
   }
 
-  const tail = commits.slice(64);
-  if (requireCommittedOverwatch) assert.ok(tail.length >= 1, "Governed Overwatch successor is missing.");
+  const historicalTail = commits.slice(64, 80);
+  assert.equal(
+    commits[79],
+    HISTORICAL_PRESERVATION_TERMINAL_COMMIT,
+    "Historical Workflow v2 preservation terminal drifted."
+  );
   let previous = WORKFLOW_V2_RELEASE_WIRING_CLOSURE.commit;
   let authorizationBoundarySuccessorIndex = 0;
   let founderJwtValidationRepairSeen = false;
   let canonicalRollbackIdentitySuccessorSeen = false;
   let workflowV2FixtureRepairSuccessorSeen = false;
-  for (const commit of tail) {
+  for (const commit of historicalTail) {
     const record = commitRecord(root, commit);
     const expectedBoundarySuccessor =
       WORKFLOW_V2_AUTHORIZATION_BOUNDARY_SUCCESSORS[authorizationBoundarySuccessorIndex];
@@ -2591,7 +2829,8 @@ function verifyOwnership(root, requireCommittedOverwatch) {
     true,
     "Workflow v2 fixture repair successor is missing."
   );
-  if (requireCommittedOverwatch) assert.equal(previous, git(root, "rev-parse", "HEAD"));
+  assert.equal(previous, HISTORICAL_PRESERVATION_TERMINAL_COMMIT);
+  verifyCurrentOwnerSuccessor(root, requireCommittedOverwatch);
   return commits;
 }
 
@@ -2616,12 +2855,15 @@ export function verifyOverwatchPublicDeploymentIntegrityRepairReadiness({
 } = {}) {
   const governance = validatePublicIntegrityReadiness(readJson(root, PUBLIC_INTEGRITY_READINESS_PATH));
   assert.equal(sha256(read(root, HISTORICAL_SUCCESSOR_PATH)), HISTORICAL_SUCCESSOR_SHA256);
-  assert.equal(sha256(read(root, INFRASTRUCTURE_CONTRACT_PATH)), INFRASTRUCTURE_CONTRACT_SHA256);
+  assert.equal(
+    sha256(read(root, INFRASTRUCTURE_CONTRACT_PATH)),
+    CURRENT_INFRASTRUCTURE_CONTRACT_SHA256
+  );
   assert.equal(
     sha256(read(root, DEPLOYMENT_INFRASTRUCTURE_CONTRACT_PATH)),
     DEPLOYMENT_INFRASTRUCTURE_CONTRACT_SHA256
   );
-  assert.equal(sha256(read(root, ROLLBACK_CONTRACT_PATH)), ROLLBACK_CONTRACT_SHA256);
+  assert.equal(sha256(read(root, ROLLBACK_CONTRACT_PATH)), CURRENT_ROLLBACK_CONTRACT_SHA256);
 
   const historical = verifyOverwatchRevised3dReleaseReadinessSuccessor({
     root,
@@ -2634,13 +2876,15 @@ export function verifyOverwatchPublicDeploymentIntegrityRepairReadiness({
   assert.equal(historical.historicalSuccessorTree, HISTORICAL_SUCCESSOR_TREE);
   assert.equal(historical.founderVisualAcceptance, "ACCEPTED");
 
-  const ownerRepair = verifyRouteIqPublicRepositoryIntegrityRepair();
-  assert.equal(ownerRepair.rollbackArtifactSha256, ROLLBACK_BUNDLE_SHA256);
   const deployment = verifyRouteIqPublicDeploymentAssets({ build });
-  assert.equal(deployment.deploymentAssetsSha256, DEPLOYMENT_ASSETS_SHA256);
+  assert.equal(deployment.deploymentAssetsSha256, CURRENT_DEPLOYMENT_ASSETS_SHA256);
+  assert.equal(deployment.candidateWebsiteCommit, WEBSITE_SUCCESSOR.commit);
+  assert.equal(deployment.candidateWebsiteTree, WEBSITE_SUCCESSOR.tree);
   const rollback = verifyPublicForwardRollbackArtifact(root);
-  assert.equal(rollback.artifactSha256, ROLLBACK_BUNDLE_SHA256);
-  assert.equal(rollback.candidateDeploymentAssetsSha256, DEPLOYMENT_ASSETS_SHA256);
+  assert.equal(rollback.artifactSha256, CURRENT_ROLLBACK_BUNDLE_SHA256);
+  assert.equal(rollback.candidateDeploymentAssetsSha256, CURRENT_DEPLOYMENT_ASSETS_SHA256);
+  assert.equal(rollback.candidateWebsiteCommit, WEBSITE_SUCCESSOR.commit);
+  assert.equal(rollback.candidateWebsiteTree, WEBSITE_SUCCESSOR.tree);
 
   const commits = verifyOwnership(root, requireCommittedOverwatch);
   verifyConsumerResolution(root);
@@ -2651,9 +2895,13 @@ export function verifyOverwatchPublicDeploymentIntegrityRepairReadiness({
     head: git(root, "rev-parse", "HEAD"),
     tree: git(root, "rev-parse", "HEAD^{tree}"),
     commits,
-    deploymentAssetsSha256: DEPLOYMENT_ASSETS_SHA256,
-    rollbackContractSha256: ROLLBACK_CONTRACT_SHA256,
-    rollbackBundleSha256: ROLLBACK_BUNDLE_SHA256,
+    deploymentAssetsSha256: CURRENT_DEPLOYMENT_ASSETS_SHA256,
+    rollbackContractSha256: CURRENT_ROLLBACK_CONTRACT_SHA256,
+    rollbackBundleSha256: CURRENT_ROLLBACK_BUNDLE_SHA256,
+    infrastructureContractSha256: CURRENT_INFRASTRUCTURE_CONTRACT_SHA256,
+    historicalDeploymentAssetsSha256: DEPLOYMENT_ASSETS_SHA256,
+    historicalRollbackContractSha256: ROLLBACK_CONTRACT_SHA256,
+    historicalRollbackBundleSha256: ROLLBACK_BUNDLE_SHA256,
     founderJwtRepairStatus: governance.founderJwtValidationRepairClosure.status,
     founderVisualAcceptance: historical.founderVisualAcceptance,
     predeploymentBatchId: governance.predeploymentSmokeRepair.batchId,

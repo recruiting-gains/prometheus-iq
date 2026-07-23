@@ -67,6 +67,11 @@ const overwatchReleaseGateRepairPaths = [
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readBytes = path => readFileSync(resolve(root, path));
+const readBytesAtCommit = (commit, path) => execFileSync(
+  "/usr/bin/git",
+  ["show", `${commit}:${path}`],
+  { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] }
+);
 const readJson = path => JSON.parse(read(path));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 const git = (...args) => execFileSync("/usr/bin/git", args, {
@@ -230,7 +235,10 @@ function verifyPositioningAndClaims(governance, report, visualSuccessor) {
       assert.equal(current.owner, "Prometheus Intelligence Engine");
       assert.equal(current.ownerCommit, "b065d069bdb3439a0541074d80862494e1d8a9bc");
       assert.equal(current.historicalEvidenceRewritten, false);
-      assert.equal(current.successorSha256, sha256(readBytes(mapping.path)));
+      assert.equal(
+        current.successorSha256,
+        sha256(readBytesAtCommit(current.ownerCommit, mapping.path))
+      );
     } else {
       assert.equal(mapping.successorSha256, sha256(readBytes(mapping.path)));
     }

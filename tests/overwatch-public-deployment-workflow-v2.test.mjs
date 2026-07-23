@@ -29,6 +29,31 @@ test("canonical Public Deployment Workflow v2 governance verifies", () => {
   assert.equal(verifyOverwatchPublicDeploymentWorkflowV2().status, "OVERWATCH_PUBLIC_DEPLOYMENT_WORKFLOW_V2_VERIFIED");
 });
 
+test("historical Workflow v2 evidence remains historical beside exact current owner evidence", () => {
+  const historical = sources.governance.workflowV2FixtureRepairSuccessor;
+  const current = sources.governance.august1LaunchCloseoutSuccessor;
+  assert.equal(
+    sources.governance.productContinuity.deploymentAssetSha256,
+    "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15"
+  );
+  assert.equal(
+    historical.files.at(-1).sha256,
+    "76c56b86ff9c8a16ae585d3e3dd30a213e199dc937c678cd7aaeefb26e6924fc"
+  );
+  assert.equal(current.historicalWorkflowEvidencePreserved, true);
+  assert.equal(current.historicalHashesAreCurrent, false);
+  assert.equal(
+    current.currentReleaseIdentities.deploymentAssetSha256,
+    "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1"
+  );
+  assert.equal(
+    current.currentReleaseIdentities.infrastructureIntegrityContractSha256,
+    "0582bc185ccf6f5e0825de25ce5fef8c65240fb0ee3b68c22bc5ba14865350c5"
+  );
+  assert.equal(current.overwatchSuccessor.parent, "a558df528f0c472d28afb1c3b3041a067ca86c4b");
+  assert.equal(current.overwatchSuccessor.files.length, 11);
+});
+
 test("governance fails closed on ownership or production-boundary drift", () => {
   for (const patch of [
     { dispatchAudit: { ...sources.governance.dispatchAudit, implementationOwner: "Prometheus Overwatch" } },
@@ -43,6 +68,36 @@ test("governance fails closed on ownership or production-boundary drift", () => 
     { authorizationBoundaryGovernance: { ...sources.governance.authorizationBoundaryGovernance, classification: "SUBSYSTEM_IMPLEMENTATION" } },
     { authorizationBoundaryProvenanceAdmission: { ...sources.governance.authorizationBoundaryProvenanceAdmission, ownerCommit: "0".repeat(40) } },
     { authorizationBoundaryProvenanceAdmission: { ...sources.governance.authorizationBoundaryProvenanceAdmission, author: "Prometheus Overwatch <overwatch@prometheus.local>" } },
+    {
+      august1LaunchCloseoutSuccessor: {
+        ...sources.governance.august1LaunchCloseoutSuccessor,
+        provenanceAdmission: {
+          ...sources.governance.august1LaunchCloseoutSuccessor.provenanceAdmission,
+          commit: "0".repeat(40)
+        }
+      }
+    },
+    {
+      august1LaunchCloseoutSuccessor: {
+        ...sources.governance.august1LaunchCloseoutSuccessor,
+        overwatchSuccessor: {
+          ...sources.governance.august1LaunchCloseoutSuccessor.overwatchSuccessor,
+          files: [
+            ...sources.governance.august1LaunchCloseoutSuccessor.overwatchSuccessor.files,
+            "workers/infrastructure/unrelated-runtime.js"
+          ]
+        }
+      }
+    },
+    {
+      august1LaunchCloseoutSuccessor: {
+        ...sources.governance.august1LaunchCloseoutSuccessor,
+        currentReleaseIdentities: {
+          ...sources.governance.august1LaunchCloseoutSuccessor.currentReleaseIdentities,
+          deploymentAssetSha256: "0".repeat(64)
+        }
+      }
+    },
     { architecture: { ...sources.governance.architecture, authorizationConsumedAt: "before_process_spawn" } },
     { architecture: { ...sources.governance.architecture, preBoundaryFailureConsumesAuthorization: true } },
     { runtimeBoundaries: { ...sources.governance.runtimeBoundaries, deploymentPerformedByBatch: true } },

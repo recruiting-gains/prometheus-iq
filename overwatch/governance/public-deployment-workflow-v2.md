@@ -28,3 +28,13 @@ Postdeployment smoke uses only fixed GET and HEAD requests with no body. A criti
 The Infrastructure owner commit does not alter Website, CRM, Data, Dashboard, Intelligence, or private Worker implementation. The approved Route IQ 3D website and CRM deployment assets retain SHA-256 `5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15`.
 
 This batch changes and verifies the release system only. It does not request or grant deployment authorization.
+
+## August 1 Owner Successor
+
+The original Workflow v2 records above remain immutable historical evidence. They are not treated as current file pins.
+
+Website commit `710ad8a1428dd7621c5363a16fffaae828cc3421` regenerated the approved public payload without changing the governed product boundary. Infrastructure commit `18fbe9906064bad8a0ae8e6fc224e2af0bf1a594` advanced the public rollback contract and Workflow v2 fixtures for that payload. Infrastructure commit `a558df528f0c472d28afb1c3b3041a067ca86c4b` admitted the complete owner chain into the repository-integrity verifier.
+
+The active owner-successor identities are deployment assets `48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1`, rollback contract `b7be296f51db1b8e8a305a068ebc1b0aa7652813de7b5378b96ac292af8af012`, deterministic rollback bundle `012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe`, and Infrastructure integrity contract `0582bc185ccf6f5e0825de25ce5fef8c65240fb0ee3b68c22bc5ba14865350c5`.
+
+The resolving Overwatch commit must be the direct child of `a558df528f0c472d28afb1c3b3041a067ca86c4b`, use the exact subject `overwatch: admit August 1 public release successors`, retain the Prometheus Overwatch author and committer identity, and modify only the governance, verifier, and regression-test files enumerated in the JSON governance record. No deployment or production mutation is authorized by this successor.

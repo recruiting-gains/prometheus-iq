@@ -47,7 +47,7 @@ test("Overwatch independently verifies owner provenance and the public CRM relea
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
   assert.equal(result.authoritativeSuccessorBatchId, "BATCH-20260719-008");
   assert.equal(result.historicalClassification, "HISTORICAL_RECONSTRUCTION_EVIDENCE_SUPERSEDED_NON_DEPLOYABLE");
-  assert.equal(result.rollbackArtifactSha256, "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863");
+  assert.equal(result.rollbackArtifactSha256, "012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe");
   assert.equal(result.historicalRollbackArtifactSha256, "4636e18bd3d99a803803a7ab78dcd2dbf634de8d9e34386c5c43f4df6fcb1ad1");
 });
 
@@ -145,9 +145,13 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   assert.equal(result.commits[62], "0d828948968b8cedf3b1961c5320c74c03a8e18c");
   assert.equal(result.commits[63], "5b5b59509206578336b9671582669b600d0c74d4");
   assert.equal(result.commits.at(-1), result.head);
-  assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
-  assert.equal(result.rollbackContractSha256, "26e1eab16fa5aed2295d025d6146e01744f1ef37ad8f8eb05afb2ab921d7916f");
-  assert.equal(result.rollbackBundleSha256, "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863");
+  assert.equal(result.deploymentAssetsSha256, "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1");
+  assert.equal(result.rollbackContractSha256, "b7be296f51db1b8e8a305a068ebc1b0aa7652813de7b5378b96ac292af8af012");
+  assert.equal(result.rollbackBundleSha256, "012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe");
+  assert.equal(result.infrastructureContractSha256, "0582bc185ccf6f5e0825de25ce5fef8c65240fb0ee3b68c22bc5ba14865350c5");
+  assert.equal(result.historicalDeploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
+  assert.equal(result.historicalRollbackContractSha256, "26e1eab16fa5aed2295d025d6146e01744f1ef37ad8f8eb05afb2ab921d7916f");
+  assert.equal(result.historicalRollbackBundleSha256, "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863");
   assert.equal(result.founderJwtRepairStatus, "REPAIR_QUALIFIED_FOUNDER_AUTHORIZATION_REQUIRED");
   assert.equal(result.founderVisualAcceptance, "ACCEPTED");
   assert.equal(result.predeploymentBatchId, "BATCH-20260720-001");
@@ -156,6 +160,27 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   assert.equal(result.freshExactFounderAuthorizationRequired, true);
   assert.equal(result.safeCiPending, true);
   assert.equal(result.deploymentAuthorized, false);
+});
+
+test("current owner evidence is pinned independently from historical readiness", () => {
+  const value = integrityReadinessGovernance();
+  const successor = value.august1LaunchCloseoutSuccessor;
+  assert.equal(value.releaseIdentities.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
+  assert.equal(value.infrastructureEvidence.contractSha256, "76c56b86ff9c8a16ae585d3e3dd30a213e199dc937c678cd7aaeefb26e6924fc");
+  assert.equal(successor.historicalReadinessPreserved, true);
+  assert.equal(successor.historicalReleaseIdentitiesRemainNoncurrent, true);
+  assert.equal(successor.websiteSuccessor.commit, "710ad8a1428dd7621c5363a16fffaae828cc3421");
+  assert.equal(successor.rollbackSuccessor.commit, "18fbe9906064bad8a0ae8e6fc224e2af0bf1a594");
+  assert.equal(successor.provenanceAdmission.commit, "a558df528f0c472d28afb1c3b3041a067ca86c4b");
+  assert.equal(successor.overwatchSuccessor.parent, successor.provenanceAdmission.commit);
+  assert.equal(successor.overwatchSuccessor.subject, "overwatch: admit August 1 public release successors");
+  assert.equal(successor.overwatchSuccessor.files.length, 11);
+  assert.deepEqual(successor.currentReleaseIdentities, {
+    deploymentAssetsSha256: "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1",
+    rollbackContractSha256: "b7be296f51db1b8e8a305a068ebc1b0aa7652813de7b5378b96ac292af8af012",
+    deterministicRollbackBundleSha256: "012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe",
+    infrastructureIntegrityContractSha256: "0582bc185ccf6f5e0825de25ce5fef8c65240fb0ee3b68c22bc5ba14865350c5"
+  });
 });
 
 test("Dashboard rollover and clean-runner Infrastructure repairs remain exact and test-only", () => {

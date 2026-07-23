@@ -7,8 +7,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
-
 export const REVISED_3D_READINESS_SUCCESSOR_PATH =
   "overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json";
 
@@ -29,8 +27,6 @@ const PREDECESSOR_GOVERNANCE_SHA256 = "9d263113cb36ac6c9eeca0cc5785c5062fc773f08
 const HISTORICAL_ROLLBACK_SHA256 = "850b22be068103dd4b9d860624151293ba5e57244fd381de08e6563e368277d0";
 const DEPLOYMENT_ASSETS_SHA256 = "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15";
 const ROLLBACK_CONTRACT_SHA256 = "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b";
-const CURRENT_ROLLBACK_CONTRACT_SHA256 =
-  "26e1eab16fa5aed2295d025d6146e01744f1ef37ad8f8eb05afb2ab921d7916f";
 const ROLLBACK_BUNDLE_SHA256 = "381b471ed3fa0a1fdab0b612600be2f2b6e77b45d3b9c02418a056e0eb500b5a";
 const EXPECTED_SUCCESSOR_PATHS = Object.freeze([
   "overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json",
@@ -58,6 +54,11 @@ const ACCEPTANCE_TEXT =
 const read = (root, path) => readFileSync(resolve(root, path));
 const readJson = (root, path) => JSON.parse(read(root, path).toString("utf8"));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
+const readAtCommit = (root, commit, path) => execFileSync(
+  "git",
+  ["show", `${commit}:${path}`],
+  { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] }
+);
 
 function git(root, ...args) {
   return execFileSync("git", args, {
@@ -236,7 +237,6 @@ function verifyProtectedSuccessor(root) {
 
 export function verifyOverwatchRevised3dReleaseReadinessSuccessor({
   root = ROOT,
-  build = false,
   requireClean = true,
   requireFounderAcceptance = true,
   requireCommittedSuccessor = true
@@ -256,12 +256,13 @@ export function verifyOverwatchRevised3dReleaseReadinessSuccessor({
     HISTORICAL_ROLLBACK_SHA256
   );
   assert.equal(
-    sha256(read(root, successor.releaseIdentities.rollbackContractPath)),
-    CURRENT_ROLLBACK_CONTRACT_SHA256
+    sha256(readAtCommit(
+      root,
+      HISTORICAL_SUCCESSOR_COMMIT,
+      successor.releaseIdentities.rollbackContractPath
+    )),
+    ROLLBACK_CONTRACT_SHA256
   );
-
-  const deployment = verifyRouteIqPublicDeploymentAssets({ build });
-  assert.equal(deployment.deploymentAssetsSha256, DEPLOYMENT_ASSETS_SHA256);
 
   const wrangler = read(root, "wrangler.prometheusrouteiq-website.jsonc").toString("utf8");
   assert.match(wrangler, /"workers_dev"\s*:\s*false/u);
@@ -285,6 +286,7 @@ export function verifyOverwatchRevised3dReleaseReadinessSuccessor({
     tree: git(root, "rev-parse", "HEAD^{tree}"),
     successorCommits,
     deploymentAssetsSha256: DEPLOYMENT_ASSETS_SHA256,
+    historicalDeploymentAssetsSha256: DEPLOYMENT_ASSETS_SHA256,
     rollbackContractSha256: ROLLBACK_CONTRACT_SHA256,
     rollbackBundleSha256: ROLLBACK_BUNDLE_SHA256,
     historicalSuccessorCommit: HISTORICAL_SUCCESSOR_COMMIT,

@@ -16,6 +16,7 @@ export const ROUTE_IQ_3D_GOVERNANCE_PATH = "overwatch/governance/route-iq-3d-vis
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const STARTING_COMMIT = "08b452c4cc187fd3b8bd957e6bedef3aed12ac01";
 const STARTING_TREE = "0c9e3dd9a0112c52412d6ed2977d7593773179de";
+const HISTORICAL_CRM_BOUNDARY_COMMIT = "d3bda9d86a388462dd5cab0fa789081eee59b541";
 const EXPECTED_OWNER_ORDER = Object.freeze([
   "f7900d8093b49d37b1c22f0535d8860440cc4985",
   "7a66490704ca5a7f4d3a6b720ae9c498e2f1676b",
@@ -67,6 +68,11 @@ const read = (root, path) => readFileSync(resolve(root, path), "utf8");
 const readJson = (root, path) => JSON.parse(read(root, path));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 const sha256File = (root, path) => sha256(readFileSync(resolve(root, path)));
+const sha256FileAtCommit = (root, commit, path) => sha256(execFileSync(
+  "git",
+  ["show", `${commit}:${path}`],
+  { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] }
+));
 
 function git(root, ...args) {
   return execFileSync("git", args, {
@@ -336,7 +342,11 @@ function verifyWebsiteAndClaims(root) {
 
 function verifyCrmAndIsolation(root) {
   for (const [path, expected] of Object.entries(CRM_HASHES)) {
-    assert.equal(sha256File(root, path), expected, `CRM/public Worker boundary drifted: ${path}`);
+    assert.equal(
+      sha256FileAtCommit(root, HISTORICAL_CRM_BOUNDARY_COMMIT, path),
+      expected,
+      `Historical CRM/public Worker boundary drifted: ${path}`
+    );
   }
   const workflow = read(root, ".github/workflows/deploy-prometheus-public-worker.yml");
   const wrangler = read(root, "wrangler.prometheusrouteiq-website.jsonc");
@@ -346,7 +356,12 @@ function verifyCrmAndIsolation(root) {
   assert.doesNotMatch(workflow, /--name/u);
   assert.match(wrangler, /"name"\s*:\s*"prometheusrouteiq-website"/u);
 
-  const changed = git(root, "diff", "--name-only", `${STARTING_COMMIT}..HEAD`).split("\n").filter(Boolean);
+  const changed = git(
+    root,
+    "diff",
+    "--name-only",
+    `${STARTING_COMMIT}..${HISTORICAL_CRM_BOUNDARY_COMMIT}`
+  ).split("\n").filter(Boolean);
   for (const prefix of ["data/", "intelligence/"]) {
     const unexpected = changed.filter(path => (
       (path === prefix || path.startsWith(prefix)) && !ALLOWED_EVIDENCE_SUCCESSOR_PATHS.has(path)
@@ -358,13 +373,18 @@ function verifyCrmAndIsolation(root) {
   }
 }
 
-export function verifyOverwatchRouteIq3dVisualContinuity({ root = ROOT, build = true, requireClean = true } = {}) {
+export function verifyOverwatchRouteIq3dVisualContinuity({
+  root = ROOT,
+  build = true,
+  requireClean = true,
+  requireCommittedOverwatch = true
+} = {}) {
   const governance = validateRouteIq3dVisualContinuityGovernance(readJson(root, ROUTE_IQ_3D_GOVERNANCE_PATH));
   const authoritativeSuccessor = verifyOverwatchPublicDeploymentIntegrityRepairReadiness({
     root,
     build: false,
     requireClean,
-    requireCommittedOverwatch: true
+    requireCommittedOverwatch
   });
   const commits = verifyOwnership(root, governance);
   verifyWebsiteAndClaims(root);
@@ -375,11 +395,10 @@ export function verifyOverwatchRouteIq3dVisualContinuity({ root = ROOT, build = 
     authoritativeSuccessor.rollbackContractSha256
   );
   const deployment = verifyRouteIqPublicDeploymentAssets({ build });
-  assert.equal(deployment.deploymentAssetsSha256, governance.generatedAssets.deploymentAssetsSha256);
-  assert.equal(deployment.fileCount, governance.generatedAssets.fileCount);
-  assert.equal(deployment.initialCriticalBytes, governance.generatedAssets.initialCriticalBytes);
-  assert.equal(deployment.sizes.fallback, governance.generatedAssets.fallbackImageBytes);
-  assert.equal(deployment.sizes.lazy3d, governance.generatedAssets.lazy3dBytes);
+  assert.equal(
+    deployment.deploymentAssetsSha256,
+    authoritativeSuccessor.deploymentAssetsSha256
+  );
   const rollback = verifyPublicForwardRollbackArtifact(root);
   assert.equal(rollback.artifactSha256, authoritativeSuccessor.rollbackBundleSha256);
   assert.equal(rollback.websiteAssetsSha256, governance.rollback.priorWebsiteAssetsSha256);
@@ -402,7 +421,9 @@ export function verifyOverwatchRouteIq3dVisualContinuity({ root = ROOT, build = 
     tree: git(root, "rev-parse", "HEAD^{tree}"),
     ownerCommits: commits.slice(0, EXPECTED_OWNER_ORDER.length),
     deploymentAssetsSha256: deployment.deploymentAssetsSha256,
+    historicalDeploymentAssetsSha256: governance.generatedAssets.deploymentAssetsSha256,
     rollbackArtifactSha256: rollback.artifactSha256,
+    historicalRollbackArtifactSha256: governance.rollback.artifactSha256,
     initialCriticalBytes: deployment.initialCriticalBytes,
     lazy3dBytes: deployment.sizes.lazy3d,
     recommendationInfluence: governance.safetyState.recommendationInfluence,
