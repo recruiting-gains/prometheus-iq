@@ -1,0 +1,128 @@
+{
+  "version": "route-iq-intelligence-august-1-protected-baseline-successor-v1",
+  "directive": "Prometheus August 1 Autonomous Launch-Closeout Directive",
+  "status": "OWNER_REVIEWED_AND_SYNCHRONIZED",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Map the authorized Dashboard, Intelligence, and Infrastructure August 1 runtime successors into the Intelligence-owned shadow-readiness protected baselines without changing readiness methodology, recommendation influence, representative behavior, or historical evidence.",
+  "predecessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-commercial-readiness-v1.json",
+    "commit": "185767ca4c72736343f29f691fd5138c5e0662b7",
+    "tree": "42a58d538e29a7f31eb9dd96a9830781c0893ddc",
+    "sha256": "ac7875c3d6dc2513bc93b6091101a09df963dfefeb8329c94e109943a72e60ca",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "sourceTransitions": {
+    "dashboard": {
+      "ownerSubsystem": "Prometheus Dashboard",
+      "commit": "99457bcda1abed536cc06585492d29f5ac500f05",
+      "tree": "ca9c01b40d763ceb707ba88118c905a8056e7407",
+      "subject": "Add bounded Route IQ customer PWA",
+      "paths": [
+        "index.html",
+        "deploy/cloudflare-pages/index.html"
+      ],
+      "previousSha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+      "currentSha256": "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0"
+    },
+    "intelligenceRuntime": {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "54804800533e705efe7add510e5e4bb72a3ba7dc",
+      "tree": "fcb3b4cb158aa95ede0ce5e78ad157399c9efcd0",
+      "subject": "Generalize governed Route IQ runtime scope",
+      "routeGeneration": {
+        "path": "intelligence/continuous-adaptive-route-replenishment.mjs",
+        "previousSha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19",
+        "currentSha256": "95f5e997af8ded3258d218f094d9765c6e7530a2828e75e432eb2ab0630896e6"
+      },
+      "businessHoursEligibility": {
+        "path": "intelligence/route-business-hours-eligibility.mjs",
+        "previousSha256": "1c884b6c5c2668e6a034311d605fdc626d80c6d517290ef994d772e03cfb9a4a",
+        "currentSha256": "a1667f2e1bf75a71fa321c47591ba0b8e11eef91360cb835c56e828405c51f36"
+      }
+    },
+    "worker": {
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "fd14a3b13ac00b645857396f3d26fa069762b715",
+      "tree": "fcb370d28dd3d8598191915d9ef9323c3f3c3d00",
+      "subject": "Add bounded Route IQ customer runtime",
+      "path": "workers/prometheus-iq-worker.js",
+      "previousSha256": "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
+      "currentSha256": "eeb7346be172d33e7f04b6ec9ac4d256faae450410ea5c8a12e16a26a884f5dc",
+      "historicalPredecessor": {
+        "sha256": "b260dcea7204c6de0c0e403a5a67bdac5f95dd46acfc62150ce852666a780870",
+        "sourceCommit": "e41e025173d9843de51c6c8e789570e27345a13b",
+        "remainsHistorical": true,
+        "rewritten": false
+      }
+    }
+  },
+  "protectedReferenceAudit": {
+    "consumerPath": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+    "previousConsumerSha256": "f52ca21731476174cc29034e4df9d039da85f5b4cdc8011e1e9917656d5815de",
+    "currentConsumerSha256": "03e5bc7c12d33d14f8363beea74fd8f5ed7179b631348760c901369ee9f834c2",
+    "affectedBaselines": [
+      {
+        "jsonPath": "protectedBehaviorBaselines.dashboardSource",
+        "protectedSourcePath": "index.html",
+        "sourceOwnerSubsystem": "Prometheus Dashboard",
+        "sourceCommit": "99457bcda1abed536cc06585492d29f5ac500f05",
+        "previousProtectedSha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+        "currentProtectedSha256": "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0"
+      },
+      {
+        "jsonPath": "protectedBehaviorBaselines.dashboardDeployMirror",
+        "protectedSourcePath": "deploy/cloudflare-pages/index.html",
+        "sourceOwnerSubsystem": "Prometheus Dashboard",
+        "sourceCommit": "99457bcda1abed536cc06585492d29f5ac500f05",
+        "previousProtectedSha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+        "currentProtectedSha256": "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0"
+      },
+      {
+        "jsonPath": "protectedBehaviorBaselines.routeGeneration",
+        "protectedSourcePath": "intelligence/continuous-adaptive-route-replenishment.mjs",
+        "sourceOwnerSubsystem": "Prometheus Intelligence Engine",
+        "sourceCommit": "54804800533e705efe7add510e5e4bb72a3ba7dc",
+        "previousProtectedSha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19",
+        "currentProtectedSha256": "95f5e997af8ded3258d218f094d9765c6e7530a2828e75e432eb2ab0630896e6"
+      },
+      {
+        "jsonPath": "protectedBehaviorBaselines.businessHoursEligibility",
+        "protectedSourcePath": "intelligence/route-business-hours-eligibility.mjs",
+        "sourceOwnerSubsystem": "Prometheus Intelligence Engine",
+        "sourceCommit": "54804800533e705efe7add510e5e4bb72a3ba7dc",
+        "previousProtectedSha256": "1c884b6c5c2668e6a034311d605fdc626d80c6d517290ef994d772e03cfb9a4a",
+        "currentProtectedSha256": "a1667f2e1bf75a71fa321c47591ba0b8e11eef91360cb835c56e828405c51f36"
+      },
+      {
+        "jsonPath": "protectedBehaviorBaselines.worker",
+        "protectedSourcePath": "workers/prometheus-iq-worker.js",
+        "sourceOwnerSubsystem": "Prometheus Infrastructure",
+        "sourceCommit": "fd14a3b13ac00b645857396f3d26fa069762b715",
+        "previousProtectedSha256": "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
+        "currentProtectedSha256": "eeb7346be172d33e7f04b6ec9ac4d256faae450410ea5c8a12e16a26a884f5dc"
+      }
+    ],
+    "allAffectedIntelligenceReferencesAccountedFor": true
+  },
+  "reviewedInvariants": {
+    "readinessMethodologyChanged": false,
+    "readinessStateChanged": false,
+    "routeOrderingChangedBySynchronization": false,
+    "routeScoringChangedBySynchronization": false,
+    "representativeWorkflowChangedBySynchronization": false,
+    "historicalBaselineRewritten": false
+  },
+  "boundaries": {
+    "readinessState": "INSUFFICIENT_EVIDENCE",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "routeOrderingChangedBySynchronization": false,
+    "routeScoringChangedBySynchronization": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}

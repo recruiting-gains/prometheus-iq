@@ -175,7 +175,7 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   const workerBaseline = contract.protectedBehaviorBaselines.worker;
   assert.equal(
     workerBaseline.sourceCommit,
-    "11ac0668b87ed347c22bf963938b8d650370cfdb",
+    "fd14a3b13ac00b645857396f3d26fa069762b715",
   );
   assert.equal(
     workerBaseline.sourceOwnerSubsystem,
@@ -189,8 +189,70 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   });
   assert.equal(
     workerBaseline.provenanceSuccessor,
-    contract.artifacts.commercialReadinessBaselineSuccessor,
+    contract.artifacts.august1LaunchBaselineSuccessor,
   );
+  const dashboardSourceBaseline =
+    contract.protectedBehaviorBaselines.dashboardSource;
+  const dashboardDeployBaseline =
+    contract.protectedBehaviorBaselines.dashboardDeployMirror;
+  for (const dashboardBaseline of [
+    dashboardSourceBaseline,
+    dashboardDeployBaseline,
+  ]) {
+    assert.equal(
+      dashboardBaseline.sourceCommit,
+      "99457bcda1abed536cc06585492d29f5ac500f05",
+    );
+    assert.equal(
+      dashboardBaseline.sourceOwnerSubsystem,
+      "Prometheus Dashboard",
+    );
+    assert.equal(
+      dashboardBaseline.provenanceSuccessor,
+      contract.artifacts.august1LaunchBaselineSuccessor,
+    );
+    assert.deepEqual(dashboardBaseline.predecessor, {
+      sha256: "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+      sourceCommit: "82d1e6f23ca3a75c0073c051531477913258a98f",
+      remainsHistorical: true,
+      rewritten: false,
+    });
+  }
+  const routeGenerationBaseline =
+    contract.protectedBehaviorBaselines.routeGeneration;
+  const businessHoursEligibilityBaseline =
+    contract.protectedBehaviorBaselines.businessHoursEligibility;
+  for (const intelligenceBaseline of [
+    routeGenerationBaseline,
+    businessHoursEligibilityBaseline,
+  ]) {
+    assert.equal(
+      intelligenceBaseline.sourceCommit,
+      "54804800533e705efe7add510e5e4bb72a3ba7dc",
+    );
+    assert.equal(
+      intelligenceBaseline.sourceOwnerSubsystem,
+      "Prometheus Intelligence Engine",
+    );
+    assert.equal(
+      intelligenceBaseline.provenanceSuccessor,
+      contract.artifacts.august1LaunchBaselineSuccessor,
+    );
+    assert.equal(intelligenceBaseline.predecessor.remainsHistorical, true);
+    assert.equal(intelligenceBaseline.predecessor.rewritten, false);
+  }
+  assert.deepEqual(routeGenerationBaseline.predecessor, {
+    sha256: "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19",
+    sourceCommit: "be7a04c8df84a68d20868ce53183965495a4fc7d",
+    remainsHistorical: true,
+    rewritten: false,
+  });
+  assert.deepEqual(businessHoursEligibilityBaseline.predecessor, {
+    sha256: "1c884b6c5c2668e6a034311d605fdc626d80c6d517290ef994d772e03cfb9a4a",
+    sourceCommit: "be7a04c8df84a68d20868ce53183965495a4fc7d",
+    remainsHistorical: true,
+    rewritten: false,
+  });
 
   const runtimeGuardSuccessor = JSON.parse(
     readFileSync(
@@ -300,7 +362,7 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   );
   assert.equal(
     commercialReadinessSuccessor.sourceTransitions.worker.founderSnapshotEndpointCommit,
-    workerBaseline.sourceCommit,
+    "11ac0668b87ed347c22bf963938b8d650370cfdb",
   );
   assert.equal(
     commercialReadinessSuccessor.sourceTransitions.worker.predecessorSha256,
@@ -308,15 +370,14 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   );
   assert.equal(
     commercialReadinessSuccessor.sourceTransitions.worker.currentSha256,
-    workerBaseline.sha256,
+    "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
   );
-  assert.equal(sha256File(workerBaseline.path), workerBaseline.sha256);
   assert.equal(
-    sha256File(contract.protectedBehaviorBaselines.dashboardSource.path),
+    dashboardSourceBaseline.predecessor.sha256,
     commercialReadinessSuccessor.sourceTransitions.dashboard.currentSha256,
   );
   assert.equal(
-    sha256File(contract.protectedBehaviorBaselines.dashboardDeployMirror.path),
+    dashboardDeployBaseline.predecessor.sha256,
     commercialReadinessSuccessor.sourceTransitions.dashboard.currentSha256,
   );
   assert.equal(
@@ -332,6 +393,117 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     "OFF",
   );
   assert.equal(commercialReadinessSuccessor.boundaries.deploymentPerformed, false);
+
+  const august1LaunchSuccessor = JSON.parse(
+    readFileSync(
+      resolve(root, contract.artifacts.august1LaunchBaselineSuccessor),
+      "utf8",
+    ),
+  );
+  assert.equal(
+    august1LaunchSuccessor.version,
+    "route-iq-intelligence-august-1-protected-baseline-successor-v1",
+  );
+  assert.equal(
+    august1LaunchSuccessor.directive,
+    "Prometheus August 1 Autonomous Launch-Closeout Directive",
+  );
+  assert.equal(
+    august1LaunchSuccessor.status,
+    "OWNER_REVIEWED_AND_SYNCHRONIZED",
+  );
+  assert.equal(
+    august1LaunchSuccessor.ownerSubsystem,
+    "Prometheus Intelligence Engine",
+  );
+  assert.equal(
+    august1LaunchSuccessor.predecessor.path,
+    contract.artifacts.commercialReadinessBaselineSuccessor,
+  );
+  assert.equal(
+    sha256File(august1LaunchSuccessor.predecessor.path),
+    august1LaunchSuccessor.predecessor.sha256,
+  );
+  assert.equal(august1LaunchSuccessor.predecessor.remainsHistorical, true);
+  assert.equal(august1LaunchSuccessor.predecessor.rewritten, false);
+
+  const dashboardTransition = august1LaunchSuccessor.sourceTransitions.dashboard;
+  assert.equal(dashboardTransition.ownerSubsystem, "Prometheus Dashboard");
+  assert.equal(dashboardTransition.commit, dashboardSourceBaseline.sourceCommit);
+  assert.equal(
+    dashboardTransition.previousSha256,
+    dashboardSourceBaseline.predecessor.sha256,
+  );
+  assert.equal(
+    dashboardTransition.currentSha256,
+    dashboardSourceBaseline.sha256,
+  );
+  assert.equal(dashboardSourceBaseline.sha256, sha256File(dashboardSourceBaseline.path));
+  assert.equal(dashboardDeployBaseline.sha256, sha256File(dashboardDeployBaseline.path));
+
+  const intelligenceTransition =
+    august1LaunchSuccessor.sourceTransitions.intelligenceRuntime;
+  assert.equal(
+    intelligenceTransition.ownerSubsystem,
+    "Prometheus Intelligence Engine",
+  );
+  assert.equal(intelligenceTransition.commit, routeGenerationBaseline.sourceCommit);
+  assert.deepEqual(intelligenceTransition.routeGeneration, {
+    path: routeGenerationBaseline.path,
+    previousSha256: routeGenerationBaseline.predecessor.sha256,
+    currentSha256: routeGenerationBaseline.sha256,
+  });
+  assert.deepEqual(intelligenceTransition.businessHoursEligibility, {
+    path: businessHoursEligibilityBaseline.path,
+    previousSha256: businessHoursEligibilityBaseline.predecessor.sha256,
+    currentSha256: businessHoursEligibilityBaseline.sha256,
+  });
+  assert.equal(
+    routeGenerationBaseline.sha256,
+    sha256File(routeGenerationBaseline.path),
+  );
+  assert.equal(
+    businessHoursEligibilityBaseline.sha256,
+    sha256File(businessHoursEligibilityBaseline.path),
+  );
+
+  const workerTransition = august1LaunchSuccessor.sourceTransitions.worker;
+  assert.equal(workerTransition.ownerSubsystem, "Prometheus Infrastructure");
+  assert.equal(workerTransition.commit, workerBaseline.sourceCommit);
+  assert.equal(
+    workerTransition.previousSha256,
+    commercialReadinessSuccessor.sourceTransitions.worker.currentSha256,
+  );
+  assert.equal(workerTransition.currentSha256, workerBaseline.sha256);
+  assert.equal(workerBaseline.sha256, sha256File(workerBaseline.path));
+  assert.deepEqual(
+    workerTransition.historicalPredecessor,
+    workerBaseline.predecessor,
+  );
+
+  const referenceAudit = august1LaunchSuccessor.protectedReferenceAudit;
+  assert.equal(referenceAudit.consumerPath, contract.artifacts.contract);
+  assert.equal(
+    referenceAudit.currentConsumerSha256,
+    sha256File(referenceAudit.consumerPath),
+  );
+  assert.equal(referenceAudit.affectedBaselines.length, 5);
+  assert.equal(
+    referenceAudit.allAffectedIntelligenceReferencesAccountedFor,
+    true,
+  );
+  assert.deepEqual(august1LaunchSuccessor.boundaries, {
+    readinessState: "INSUFFICIENT_EVIDENCE",
+    prospectiveCollection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    representativeShadowOutputExposed: false,
+    routeOrderingChangedBySynchronization: false,
+    routeScoringChangedBySynchronization: false,
+    deploymentPerformed: false,
+    productionAccessPerformed: false,
+    productionMutationPerformed: false,
+  });
   assert.equal(
     contract.prospectiveRuntimeAdapter.runtimeVersion,
     shadowDecisionProspectiveRuntimeVersion,

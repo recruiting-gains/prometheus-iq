@@ -43,6 +43,7 @@
     "retentionInfrastructureBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-infrastructure-runtime-successor-v1.json",
     "unattendedRuntimeGuardBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
     "commercialReadinessBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-commercial-readiness-v1.json",
+    "august1LaunchBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
     "routeQualityDataSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260719-006-data-route-quality-successor-v1.json",
     "ledger": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/shadow-ledger-v1.json",
     "report": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
@@ -66,18 +67,36 @@
   "protectedBehaviorBaselines": {
     "dashboardSource": {
       "path": "index.html",
-      "sha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177"
+      "sha256": "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0",
+      "sourceCommit": "99457bcda1abed536cc06585492d29f5ac500f05",
+      "sourceOwnerSubsystem": "Prometheus Dashboard",
+      "provenanceSuccessor": "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
+      "predecessor": {
+        "sha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+        "sourceCommit": "82d1e6f23ca3a75c0073c051531477913258a98f",
+        "remainsHistorical": true,
+        "rewritten": false
+      }
     },
     "dashboardDeployMirror": {
       "path": "deploy/cloudflare-pages/index.html",
-      "sha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177"
+      "sha256": "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0",
+      "sourceCommit": "99457bcda1abed536cc06585492d29f5ac500f05",
+      "sourceOwnerSubsystem": "Prometheus Dashboard",
+      "provenanceSuccessor": "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
+      "predecessor": {
+        "sha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+        "sourceCommit": "82d1e6f23ca3a75c0073c051531477913258a98f",
+        "remainsHistorical": true,
+        "rewritten": false
+      }
     },
     "worker": {
       "path": "workers/prometheus-iq-worker.js",
-      "sha256": "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
-      "sourceCommit": "11ac0668b87ed347c22bf963938b8d650370cfdb",
+      "sha256": "eeb7346be172d33e7f04b6ec9ac4d256faae450410ea5c8a12e16a26a884f5dc",
+      "sourceCommit": "fd14a3b13ac00b645857396f3d26fa069762b715",
       "sourceOwnerSubsystem": "Prometheus Infrastructure",
-      "provenanceSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-commercial-readiness-v1.json",
+      "provenanceSuccessor": "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
       "predecessor": {
         "sha256": "b260dcea7204c6de0c0e403a5a67bdac5f95dd46acfc62150ce852666a780870",
         "sourceCommit": "e41e025173d9843de51c6c8e789570e27345a13b",
@@ -87,11 +106,29 @@
     },
     "routeGeneration": {
       "path": "intelligence/continuous-adaptive-route-replenishment.mjs",
-      "sha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19"
+      "sha256": "95f5e997af8ded3258d218f094d9765c6e7530a2828e75e432eb2ab0630896e6",
+      "sourceCommit": "54804800533e705efe7add510e5e4bb72a3ba7dc",
+      "sourceOwnerSubsystem": "Prometheus Intelligence Engine",
+      "provenanceSuccessor": "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
+      "predecessor": {
+        "sha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19",
+        "sourceCommit": "be7a04c8df84a68d20868ce53183965495a4fc7d",
+        "remainsHistorical": true,
+        "rewritten": false
+      }
     },
     "businessHoursEligibility": {
       "path": "intelligence/route-business-hours-eligibility.mjs",
-      "sha256": "1c884b6c5c2668e6a034311d605fdc626d80c6d517290ef994d772e03cfb9a4a"
+      "sha256": "a1667f2e1bf75a71fa321c47591ba0b8e11eef91360cb835c56e828405c51f36",
+      "sourceCommit": "54804800533e705efe7add510e5e4bb72a3ba7dc",
+      "sourceOwnerSubsystem": "Prometheus Intelligence Engine",
+      "provenanceSuccessor": "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
+      "predecessor": {
+        "sha256": "1c884b6c5c2668e6a034311d605fdc626d80c6d517290ef994d772e03cfb9a4a",
+        "sourceCommit": "be7a04c8df84a68d20868ce53183965495a4fc7d",
+        "remainsHistorical": true,
+        "rewritten": false
+      }
     },
     "dataCoordinator": {
       "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
