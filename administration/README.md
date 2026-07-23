@@ -42,13 +42,16 @@ Administration must not modify:
 - `schemas/`: lightweight register contract documentation.
 - `contracts/`: strict versioned Administration configuration contracts and validators.
 - `workspace-configurations/`: admitted Founder-research and synthetic validation configurations.
-- `../overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json`: canonical Integration Contract Layer registration for Administration operating artifacts.
+- `workspace-configurations/route-iq-cross-industry-workspaces-v2.json`: canonical Route IQ workspace configuration registry.
+- `contracts/route-iq-workspace-configuration-v2.schema.json`: canonical strict configuration schema.
+- `contracts/route-iq-workspace-configuration-v2-validation.mjs`: canonical browser-safe validation and authorization rules.
+- `contracts/route-iq-workspace-configuration-v2.mjs`: Node-only compatibility loader for repository tooling.
 
 ## Integration Contract Boundary
 
-Administration-owned operating manuals, daily checklists, release/sign-off registers, founder readiness reviews, field-feedback records, founder action plans, launch operations records, go/no-go readiness artifacts, and post-call AAR / decision-journal handoffs must be consumed through `overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json`.
+The versioned Route IQ workspace registry, schema, and pure validator are the canonical Administration admission boundary. Customer-specific operating-artifact contracts are not active configuration and must not be used as a fallback source.
 
-Dashboard may display operating manuals read-only. CRM may consume field feedback only through the contract. Intelligence may consume post-call AAR / decision-journal handoffs only through the contract. No workspace may consume another workspace's operating records, missing artifacts fail closed, and fixture/demo operations data is prohibited in production.
+Consumers must use the validated workspace, company, role, territory, capability, and approved-source projection. No workspace may consume another workspace's operating records, missing configuration fails closed, and fixture/demo operations data is prohibited in production.
 
 ## Private Beta Stabilization Intake
 
