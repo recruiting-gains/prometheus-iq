@@ -821,6 +821,7 @@ function verifyFixedOwnerEvidence(root, matrix, contract) {
       "crm_durability_and_notification_order",
       "legal_privacy_terms_contact",
       "named_user_provisioning",
+      "forward_rollback_readiness",
       "known_limitations_disclosure",
       "launch_day_and_post_launch_verification",
       "full_qualification_and_clean_provenance"

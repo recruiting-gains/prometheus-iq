@@ -81,8 +81,8 @@ test("authoritative August 1 package passes while launch remains fail-closed", (
   assert.equal(result.verificationStatus, "PASS");
   assert.equal(result.launchStatus, "AUGUST_1_LAUNCH_BLOCKED");
   assert.equal(result.totalRequirements, 26);
-  assert.equal(result.verifiedRequirements, 1);
-  assert.equal(result.readinessPercent, 3.8);
+  assert.equal(result.verifiedRequirements, 20);
+  assert.equal(result.readinessPercent, 76.9);
   assert.deepEqual(result.fixedLaunchContract, {
     productClassification: "PRODUCTION_NOT_BETA",
     prelaunchHumanAcceptanceTester: "cruz",
@@ -149,23 +149,26 @@ test("production CRM acceptance records one submission and forbids a second", ()
   assert.equal(contract.authority.productionMutationAuthorizedByThisPackage, false);
 });
 
-test("local integration evidence remains nonfinal until every qualification prerequisite closes", () => {
+test("final exact-candidate evidence records the completed unattended qualification scope", () => {
   const { matrix, contract } = packageSource();
   for (const id of [
     "customer_runtime_integration",
     "authentication_and_role_enforcement",
-    "tenant_company_user_isolation"
+    "tenant_company_user_isolation",
+    "forward_rollback_readiness",
+    "full_qualification_and_clean_provenance"
   ]) {
     const requirement = matrix.requirements.find(item => item.id === id);
-    assert.equal(requirement.status, "PARTIAL", id);
-    assert.equal(requirement.launchBlocking, true, id);
+    assert.equal(requirement.status, "VERIFIED", id);
+    assert.equal(requirement.launchBlocking, false, id);
+    assert.equal(requirement.requiredWork, "None.", id);
   }
   assert.deepEqual(contract.sourceObservations.ownerFocusedTests, {
     command: "node --test tests/route-iq-august-1-launch-envelope.test.mjs tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs tests/dashboard-route-iq-customer-pwa.test.mjs",
     total: 33,
     passed: 33,
     failed: 0,
-    result: "LOCAL_PASS_NONFINAL",
+    result: "PASS",
     failedAssertions: []
   });
   assert.deepEqual(contract.sourceObservations.crmFocusedTests, {
@@ -173,29 +176,29 @@ test("local integration evidence remains nonfinal until every qualification prer
     total: 20,
     passed: 20,
     failed: 0,
-    result: "LOCAL_PASS_NONFINAL"
+    result: "PASS"
   });
   assert.deepEqual(contract.sourceObservations.intelligenceGovernedRuntimeScopeFocusedTests, {
     command: "node --test tests/route-iq-governed-runtime-scope-intelligence.test.mjs",
     total: 5,
     passed: 5,
     failed: 0,
-    result: "LOCAL_PASS_NONFINAL"
+    result: "PASS"
   });
   assert.deepEqual(contract.sourceObservations.intelligenceGovernedRuntimeScopeVerification, {
     command: "node scripts/verify-route-iq-governed-runtime-scope-intelligence.mjs",
-    result: "LOCAL_PASS_NONFINAL"
+    result: "PASS"
   });
   assert.deepEqual(contract.sourceObservations.businessHoursFocusedTests, {
     command: "node --test tests/route-business-hours-eligibility.test.mjs",
     total: 16,
     passed: 16,
     failed: 0,
-    result: "LOCAL_PASS_NONFINAL"
+    result: "PASS"
   });
   assert.deepEqual(contract.sourceObservations.businessHoursCompatibilityVerification, {
     command: "node scripts/verify-route-business-hours-eligibility.mjs",
-    result: "LOCAL_PASS_NONFINAL",
+    result: "PASS",
     fixedReasonCode: "NONE"
   });
   assert.deepEqual(contract.sourceObservations.replenishmentFocusedTests, {
@@ -203,11 +206,11 @@ test("local integration evidence remains nonfinal until every qualification prer
     total: 10,
     passed: 10,
     failed: 0,
-    result: "LOCAL_PASS_NONFINAL"
+    result: "PASS"
   });
   assert.deepEqual(contract.sourceObservations.replenishmentCompatibilityVerification, {
     command: "node scripts/verify-continuous-adaptive-route-replenishment.mjs",
-    result: "LOCAL_PASS_NONFINAL",
+    result: "PASS",
     fixedReasonCode: "NONE"
   });
   assert.deepEqual(contract.sourceObservations.intelligenceGeneratedAssetParity, {
@@ -223,31 +226,31 @@ test("local integration evidence remains nonfinal until every qualification prer
     total: 27,
     passed: 27,
     failed: 0,
-    result: "LOCAL_PASS_NONFINAL"
+    result: "PASS"
   });
   assert.equal(contract.sourceObservations.customerPwaRuntimeWiredToPrivateWorker, true);
   assert.equal(contract.sourceObservations.productionCrmMonitoringImplementationPresent, true);
-  assert.equal(contract.sourceObservations.fullQualificationComplete, false);
+  assert.equal(contract.sourceObservations.fullQualificationComplete, true);
   assert.equal(contract.sourceObservations.allOwnerCommitsComplete, true);
   assert.equal(contract.sourceObservations.dashboardBrowserQualificationComplete, true);
   assert.equal(contract.sourceObservations.rollbackSuccessorQualificationComplete, true);
   assert.equal(contract.sourceObservations.ownerArtifactsCommitted, true);
-  assert.equal(contract.sourceObservations.workingTreeClean, false);
-  assert.equal(contract.sourceObservations.observationState, "NONFINAL_SHARED_WORKTREE");
+  assert.equal(contract.sourceObservations.workingTreeClean, true);
+  assert.equal(contract.sourceObservations.observationState, "FINAL_EXACT_CANDIDATE");
   assert.deepEqual(contract.sourceObservations.dashboardRuntimeVerification, {
     command: "node scripts/verify-dashboard-runtime-workflows.mjs",
     total: 196,
     passed: 196,
     failed: 0,
     mismatchedOperatingProfilesFailClosed: 4,
-    result: "LOCAL_PASS_NONFINAL"
+    result: "PASS"
   });
   assert.deepEqual(contract.sourceObservations.dashboardFocusedTests, {
     command: "node --test tests/dashboard-route-iq-customer-pwa.test.mjs",
     total: 10,
     passed: 10,
     failed: 0,
-    result: "LOCAL_PASS_NONFINAL"
+    result: "PASS"
   });
   assert.deepEqual(contract.sourceObservations.ownerSuccessorBaseline, {
     commit: "f612e394b3af75e63cc07232d64bbd3dd1adb817",

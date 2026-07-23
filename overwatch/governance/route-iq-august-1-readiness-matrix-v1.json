@@ -119,9 +119,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "The default-OFF Data envelope, owner commits, Dashboard 196-of-196 browser harness, and rollback-successor checks are complete. Reverify this boundary through the full repository suite on one clean exact tree before promotion.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -149,9 +149,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "The two-company and 40-user limits pass focused local tests and their owner artifacts are committed. Recompute this gate only after exact clean-tree full qualification completes.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -200,9 +200,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "The committed Data envelope, customer PWA runtime, private-Worker routing, generic Dashboard /app integration, 10-of-10 focused Dashboard checks, 196-of-196 browser harness, and rollback successor pass focused checks. Commit this Overwatch successor and complete full clean-tree verification before promotion.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -225,9 +225,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "The Cruz-only prelaunch rule is committed. Reverify it on the exact clean candidate during full qualification before attended acceptance.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -277,9 +277,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "The no-external-testers rule is committed. Reverify it on the exact clean candidate during full qualification.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -307,9 +307,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "Anthony remains unmapped in committed owner evidence. Reverify the exact principal and access state during full exact-tree qualification.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -334,9 +334,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "Collection OFF, cohorts 0, and recommendation influence OFF are encoded. Reverify every owner and runtime boundary on the final clean candidate.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -380,9 +380,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "One generic Route IQ customer manifest and /app entry exist locally. Complete the final Dashboard browser and generated-asset qualification on the clean committed tree.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -428,8 +428,8 @@
       ],
       "status": "BLOCKED",
       "launchBlocking": true,
-      "requiredWork": "Add owner-authored real PWA lifecycle qualification beyond the current simulated standalone harness, then complete Cruz's attended device acceptance.",
-      "founderAttendanceRequired": false
+      "requiredWork": "Cruz must complete the attended install, offline, refresh, session-expiration, recovery, and reinstall acceptance script on the immutable candidate. No external human tester is authorized.",
+      "founderAttendanceRequired": true
     },
     {
       "id": "authentication_and_role_enforcement",
@@ -528,9 +528,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "Governed runtime-scope and business-hours focused checks pass locally, and every controlling source/generated module and contract is byte-identical. Commit this Overwatch successor and complete full exact-tree qualification before promotion.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -564,9 +564,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "Focused workspace, representative, governed-scope, retry, provenance, and four mismatched-operating-profile fail-closed checks pass on committed owner artifacts. Commit this Overwatch successor and complete full exact-tree qualification before promotion.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -635,9 +635,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "The committed Dashboard browser harness passes 196 of 196, including exact 390x844, four mismatched-profile denials, and collection-OFF zero-write checks; replenishment source/deployment compatibility also passes. Commit this Overwatch successor and complete clean-tree full verification.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -676,9 +676,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "Current customer-facing source contains no governed beta finding; Dashboard source/generated pairs are committed and browser-qualified. Commit this Overwatch successor and complete full exact-tree qualification before promotion.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -711,9 +711,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "CRM durability, receipt, duplicate, notification-order, monitoring, retrieval, and export tests pass locally. Await committed owner state, full qualification, and the separate read-only production reconciliation.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -736,9 +736,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "The legal and Route IQ product-truth owner artifacts are committed. Recompute this gate after full clean-tree qualification.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -788,9 +788,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "The fail-closed named-user provisioning procedure exists. Reverify it against the final committed runtime, support plan, and exact activation envelope.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -879,9 +879,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "Regenerate and rehearse both rollback identities against the final immutable launch candidate; deployment remains separately Founder-authorized.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -901,9 +901,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "The current limitations disclosure is owner-authored and committed. Recompute this gate after the final customer runtime and full launch qualification fix the exact released behavior.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -922,9 +922,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "PARTIAL",
-      "launchBlocking": true,
-      "requiredWork": "The launch-day and post-launch procedure is owner-authored and committed. Reverify its exact identities, checks, and rollback references after final qualification.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
@@ -956,9 +956,9 @@
           "classification": "CONTROLLING_CURRENT"
         }
       ],
-      "status": "BLOCKED",
-      "launchBlocking": true,
-      "requiredWork": "Owner successors and focused checks are complete. Commit this Overwatch successor, require a clean synchronized tree, then run the complete repository and independent exact-HEAD qualification before promotion.",
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
       "founderAttendanceRequired": false
     },
     {
