@@ -1052,13 +1052,16 @@ async function submitFieldSession(fixture, store, executionContext, completionAc
   return { response, body: await response.json(), env };
 }
 
-test("private config owns one SQLite class migration and public config remains unbound", () => {
+test("private config preserves the prospective SQLite migration and public config remains unbound", () => {
   const privateConfig = readFileSync(join(root, "wrangler.jsonc"), "utf8");
   const publicConfig = readFileSync(join(root, "wrangler.prometheusrouteiq-website.jsonc"), "utf8");
   assert.match(privateConfig, new RegExp(`"name": "${ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING}"`));
   assert.match(privateConfig, new RegExp(`"class_name": "${ROUTE_IQ_PROSPECTIVE_SHADOW_CLASS}"`));
-  assert.match(privateConfig, /"new_sqlite_classes"/u);
-  assert.equal((privateConfig.match(/"new_sqlite_classes"/gu) || []).length, 1);
+  assert.equal(
+    (privateConfig.match(/"RouteIqProspectiveShadowCoordinator"/gu) || []).length,
+    2,
+    "prospective coordinator must remain declared exactly once as a binding and once in migration history"
+  );
   assert.equal(publicConfig.includes(ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING), false);
   assert.equal(publicConfig.includes(ROUTE_IQ_PROSPECTIVE_SHADOW_CLASS), false);
   assert.equal(typeof RouteIqProspectiveShadowCoordinator, "function");
