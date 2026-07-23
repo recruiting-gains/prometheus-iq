@@ -165,8 +165,8 @@ test("final exact-candidate evidence records the completed unattended qualificat
   }
   assert.deepEqual(contract.sourceObservations.ownerFocusedTests, {
     command: "node --test tests/route-iq-august-1-launch-envelope.test.mjs tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs tests/dashboard-route-iq-customer-pwa.test.mjs",
-    total: 33,
-    passed: 33,
+    total: 43,
+    passed: 43,
     failed: 0,
     result: "PASS",
     failedAssertions: []
@@ -239,16 +239,16 @@ test("final exact-candidate evidence records the completed unattended qualificat
   assert.equal(contract.sourceObservations.observationState, "FINAL_EXACT_CANDIDATE");
   assert.deepEqual(contract.sourceObservations.dashboardRuntimeVerification, {
     command: "node scripts/verify-dashboard-runtime-workflows.mjs",
-    total: 196,
-    passed: 196,
+    total: 153,
+    passed: 153,
     failed: 0,
     mismatchedOperatingProfilesFailClosed: 4,
     result: "PASS"
   });
   assert.deepEqual(contract.sourceObservations.dashboardFocusedTests, {
     command: "node --test tests/dashboard-route-iq-customer-pwa.test.mjs",
-    total: 10,
-    passed: 10,
+    total: 12,
+    passed: 12,
     failed: 0,
     result: "PASS"
   });

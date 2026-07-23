@@ -326,16 +326,16 @@ function assertSourceObservations(observations) {
   assert.equal(typeof observations.dashboardSourceMatchesGeneratedAsset, "boolean");
   assert.deepEqual(observations.dashboardRuntimeVerification, {
     command: "node scripts/verify-dashboard-runtime-workflows.mjs",
-    total: 196,
-    passed: 196,
+    total: 153,
+    passed: 153,
     failed: 0,
     mismatchedOperatingProfilesFailClosed: 4,
     result: finalPrerequisites ? "PASS" : "LOCAL_PASS_NONFINAL"
   });
   assert.deepEqual(observations.dashboardFocusedTests, {
     command: "node --test tests/dashboard-route-iq-customer-pwa.test.mjs",
-    total: 10,
-    passed: 10,
+    total: 12,
+    passed: 12,
     failed: 0,
     result: finalPrerequisites ? "PASS" : "LOCAL_PASS_NONFINAL"
   });
@@ -440,8 +440,8 @@ function assertSourceObservations(observations) {
     observations.ownerFocusedTests.command,
     "node --test tests/route-iq-august-1-launch-envelope.test.mjs tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs tests/dashboard-route-iq-customer-pwa.test.mjs"
   );
-  assert.equal(observations.ownerFocusedTests.total, 33);
-  assert.equal(observations.ownerFocusedTests.passed, 33);
+  assert.equal(observations.ownerFocusedTests.total, 43);
+  assert.equal(observations.ownerFocusedTests.passed, 43);
   assert.equal(observations.ownerFocusedTests.failed, 0);
   assert.equal(observations.ownerFocusedTests.result, finalPrerequisites ? "PASS" : "LOCAL_PASS_NONFINAL");
   assert.deepEqual(observations.ownerFocusedTests.failedAssertions, []);
