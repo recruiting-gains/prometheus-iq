@@ -7,6 +7,7 @@ import { createHash } from "node:crypto";
 
 import {
   ROUTE_IQ_REQUEST_ENDPOINT,
+  ROUTE_IQ_REQUEST_RECEIPT_PATTERN,
   buildRouteIqRequestPayload,
   resolveAcquisitionSource,
   submitRouteIqRequest
@@ -252,7 +253,7 @@ test("request submission uses one same-origin POST and exposes only the unique r
       calls.push({ url, init });
       return new Response(JSON.stringify({
         ok: true,
-        submissionId: "route_iq_request_01J3ABCDEF",
+        receiptId: "riq_receipt_0123456789abcdef01234567",
         timestamp: "2026-07-18T14:30:01.000Z",
         internalRecord: { contact: "must-not-be-returned" }
       }), { status: 201, headers: { "content-type": "application/json" } });
@@ -263,16 +264,21 @@ test("request submission uses one same-origin POST and exposes only the unique r
   assert.equal(calls[0].init.method, "POST");
   assert.equal(calls[0].init.credentials, "same-origin");
   assert.equal(calls[0].init.redirect, "error");
-  assert.deepEqual(result, { ok: true, receiptId: "route_iq_request_01J3ABCDEF", duplicate: false, submittedAt: "2026-07-18T14:30:01.000Z" });
+  assert.deepEqual(result, { ok: true, receiptId: "riq_receipt_0123456789abcdef01234567", duplicate: false, submittedAt: "2026-07-18T14:30:01.000Z" });
+  assert.equal(ROUTE_IQ_REQUEST_RECEIPT_PATTERN.test(result.receiptId), true);
   assert.equal("internalRecord" in result, false);
 });
 
-test("request submission fails closed on rejection, invalid JSON, or missing receipt without retry", async () => {
+test("request submission fails closed on rejection, invalid JSON, or any noncanonical receipt without retry", async () => {
   const payload = buildRouteIqRequestPayload({ formData: validForm() }).payload;
   for (const response of [
     new Response(JSON.stringify({ ok: false }), { status: 422 }),
     new Response("not-json", { status: 201 }),
-    new Response(JSON.stringify({ ok: true }), { status: 201 })
+    new Response(JSON.stringify({ ok: true }), { status: 201 }),
+    new Response(JSON.stringify({ ok: true, submissionId: "riq_receipt_0123456789abcdef01234567" }), { status: 201 }),
+    new Response(JSON.stringify({ ok: true, receipt: { id: "riq_receipt_0123456789abcdef01234567" } }), { status: 201 }),
+    new Response(JSON.stringify({ ok: true, receiptId: "riq_receipt_0123456789ABCDEF01234567" }), { status: 201 }),
+    new Response(JSON.stringify({ ok: true, receiptId: "riq_receipt_01234567" }), { status: 201 })
   ]) {
     let calls = 0;
     await assert.rejects(submitRouteIqRequest({ payload, fetchImpl: async () => { calls += 1; return response; } }), /REQUEST_/);

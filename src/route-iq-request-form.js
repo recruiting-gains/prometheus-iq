@@ -1,6 +1,7 @@
 export const ROUTE_IQ_REQUEST_ENDPOINT = "/api/partner-intake";
 export const ROUTE_IQ_REQUEST_FORM_ID = "route_iq_request";
 export const ROUTE_IQ_REQUEST_VERSION = "route-iq-public-request.v1";
+export const ROUTE_IQ_REQUEST_RECEIPT_PATTERN = /^riq_receipt_[a-f0-9]{24}$/u;
 
 const MAX_RESPONSE_BYTES = 16 * 1024;
 
@@ -106,10 +107,8 @@ export function buildRouteIqRequestPayload({ formData = {}, now = new Date(), ac
 }
 
 function receiptFrom(body) {
-  return normalizeText(
-    body?.submissionId || body?.receiptId || body?.receipt?.id,
-    160
-  );
+  const receiptId = normalizeText(body?.receiptId, 36);
+  return ROUTE_IQ_REQUEST_RECEIPT_PATTERN.test(receiptId) ? receiptId : "";
 }
 
 export async function submitRouteIqRequest({ payload, fetchImpl = globalThis.fetch } = {}) {
