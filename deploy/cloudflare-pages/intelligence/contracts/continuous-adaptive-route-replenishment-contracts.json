@@ -4,6 +4,11 @@
   "domain": "route-intelligence",
   "workspacePolicy": {
     "authorizedWorkspaceId": "fitness_connection",
+    "legacyAuthorizedOperatingProfileId": "fitness",
+    "additionalWorkspaceAuthorization": "governed_business_hours_asset_scope_v1",
+    "runtimeScopeVersion": "route-iq-governed-runtime-scope-v1",
+    "callerAuthorizationClaimsAccepted": false,
+    "serializedScopeReuse": "rejected",
     "unknownWorkspaceBehavior": "fail_closed",
     "crossWorkspaceLearning": false,
     "smoothieDepotRouteInfluence": false

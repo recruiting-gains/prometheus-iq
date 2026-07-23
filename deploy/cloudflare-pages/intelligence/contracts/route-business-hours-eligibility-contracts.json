@@ -12,6 +12,23 @@
     "intelligenceOwnsEligibility": true,
     "sourceRecordsModified": false
   },
+  "governedRuntimeScope": {
+    "version": "route-iq-governed-runtime-scope-v1",
+    "legacyDefault": {
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "compatibilityPreserved": true
+    },
+    "additionalWorkspacePolicy": "require_asset_provenance_bound_scope",
+    "requiredAssetType": "business_hours",
+    "requiredAuthorizations": [
+      "business_hours_eligibility",
+      "continuous_adaptive_route_replenishment"
+    ],
+    "callerAuthorizationClaimsAccepted": false,
+    "workspaceAndOperatingProfileMismatchBehavior": "fail_closed",
+    "serializedScopeReuse": "rejected"
+  },
   "eligibilityPolicy": {
     "OPEN_VERIFIED": {
       "eligible": true,
