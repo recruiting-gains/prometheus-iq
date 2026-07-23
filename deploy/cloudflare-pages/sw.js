@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v48-route-iq-product-focus";
+const CACHE_NAME = "prometheus-v49-route-iq-bounded-production";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",
@@ -34,7 +34,7 @@ self.addEventListener("fetch", event => {
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request, { cache: "no-store" }).catch(() => new Response(
-        "Prometheus IQ requires a secure connection. Reconnect and sign in again.",
+        "Route IQ requires a secure connection. Reconnect and sign in again.",
         { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } }
       ))
     );

@@ -102,7 +102,9 @@ test("Route IQ is the only active Dashboard product", () => {
   assert.match(source, /<h1>Route IQ<\/h1>/);
   assert.doesNotMatch(source, /data-workspace-select|workspaceSwitch|smoothie_depot|smoothie-depot-dashboard|Smoothie Depot/);
   assert.doesNotMatch(source, /\bGaia\b|\bAthena\b/);
-  assert.match(source, /const dashboardWorkspaces = Object\.freeze\(\{\s*fitness_connection:/);
+  assert.match(source, /const dashboardWorkspaces = Object\.freeze\(routeIqCustomerPwaSession/);
+  assert.match(source, /\[routeIqCustomerPwaSession\.workspaceId\]: Object\.freeze\(\{/);
+  assert.match(source, /workspaceId: "fitness_connection",\s*label: "Fitness Connection",\s*operatingProfileId: "fitness"/);
 });
 
 test("historical Smoothie Depot Dashboard remains byte-preserved and isolated", () => {
@@ -151,8 +153,8 @@ test("daily snapshot remains read-only and recommendation influence stays off", 
 
 test("source and deploy service-worker markers remain synchronized", () => {
   assert.equal(serviceWorker, deployServiceWorker);
-  assert.match(source, /serviceWorkerCacheVersion = "prometheus-v48-route-iq-product-focus"/);
-  assert.match(serviceWorker, /CACHE_NAME = "prometheus-v48-route-iq-product-focus"/);
+  assert.match(source, /serviceWorkerCacheVersion = "prometheus-v49-route-iq-bounded-production"/);
+  assert.match(serviceWorker, /CACHE_NAME = "prometheus-v49-route-iq-bounded-production"/);
 });
 
 test("Eventbrite expansion uses an explicit advancing clock instead of the wall-clock date", () => {

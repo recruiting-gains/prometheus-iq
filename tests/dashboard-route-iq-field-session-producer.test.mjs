@@ -509,6 +509,7 @@ test("Dashboard prospective seam is opaque, nonblocking, and limited to the exis
   const sender = sourceSection("function signalRouteIqProspectiveEvent", "const appUrlParams");
   const replenishment = sourceSection("async function performAdaptiveRouteReplenishment", "function requestAdaptiveRouteReplenishment");
   const clickBoundary = sourceSection('document.addEventListener("click"', 'document.addEventListener("change"');
+  const prospectiveActionBoundary = sourceSection("function handleRouteIqProspectiveAction", "const appUrlParams");
   const reportBuilder = sourceSection("function todayReportPayload", "function fieldSessionScope");
   const startup = sourceSection("(async () => {", "</script>");
 
@@ -535,6 +536,7 @@ test("Dashboard prospective seam is opaque, nonblocking, and limited to the exis
   assert.match(gate, /expiresAtMs <= nowMs/);
   assert.match(dashboardSource, /routeIqProspectiveBootstrapMaximumLifetimeMs = 60 \* 1000/);
   assert.doesNotMatch(gate, /localStorage|sessionStorage|indexedDB|caches\.|WebSocket|sendBeacon|setTimeout|setInterval|addEventListener|outbox|retry/i);
+  assert.match(gate, /routeIqProspectiveAdmission = admission;\s*startRouteIqProspectiveActionListener\(\);/);
   assert.match(sender, /if \(sessionRole !== "rep"\) return false/);
   assert.match(sender, /if \(!routeIqProspectiveAdmissionIsActive\(\)\) return false/);
   assert.match(sender, /const payload = \{\s*eventKind,\s*informationalSequence: \+\+routeIqProspectiveInformationalSequence,\s*informationalObservedAt: new Date\(\)\.toISOString\(\)\s*\}/);
@@ -547,8 +549,10 @@ test("Dashboard prospective seam is opaque, nonblocking, and limited to the exis
   assert.match(startup, /const prospectiveBootstrapPromise = initializeRouteIqProspectiveClient\(\)[\s\S]*await loadRouteBusinessHoursEligibility\(\)[\s\S]*await loadRuntimeProductionDataset\(\)[\s\S]*routeIqProspectiveBootstrapWindowOpen = false[\s\S]*await requestAdaptiveRouteReplenishment\(\{ force: true, trigger: "startup" \}\)/);
 
   assert.match(replenishment, /result\.metrics\.activeCount > 0 && \(result\.triggered \|\| options\.force === true\)[\s\S]*signalRouteIqProspectiveEvent\("next_stop_requested"\)/);
-  assert.match(clickBoundary, /event\.target\.closest\("#bestMoveDirections"\)[\s\S]*signalRouteIqProspectiveEvent\("representative_action_observed"\)/);
-  assert.equal((clickBoundary.match(/signalRouteIqProspectiveEvent\("representative_action_observed"\)/g) || []).length, 1);
+  assert.doesNotMatch(clickBoundary, /signalRouteIqProspectiveEvent\("representative_action_observed"\)/);
+  assert.match(prospectiveActionBoundary, /event\.target\.closest\("#bestMoveDirections"\)[\s\S]*signalRouteIqProspectiveEvent\("representative_action_observed"\)/);
+  assert.match(prospectiveActionBoundary, /if \(!routeIqProspectiveAdmission\.active \|\| routeIqProspectiveActionListenerAttached\) return false;[\s\S]*document\.addEventListener\("click", handleRouteIqProspectiveAction\)/);
+  assert.equal((prospectiveActionBoundary.match(/signalRouteIqProspectiveEvent\("representative_action_observed"\)/g) || []).length, 1);
 
   for (const forbidden of [
     "workspaceId",
@@ -579,7 +583,8 @@ test("Dashboard prospective seam is opaque, nonblocking, and limited to the exis
 });
 
 test("Dashboard collection-OFF gate has no inactive outbox, retry, listener, or service-worker replay surface", () => {
-  const gate = sourceSection("function disableRouteIqProspectiveAdmission", "const appUrlParams");
+  const gate = sourceSection("function disableRouteIqProspectiveAdmission", "function signalRouteIqProspectiveEvent");
+  const listenerGate = sourceSection("function handleRouteIqProspectiveAction", "const appUrlParams");
   const startup = sourceSection("(async () => {", "</script>");
 
   assert.match(gate, /active: false/);
@@ -588,6 +593,7 @@ test("Dashboard collection-OFF gate has no inactive outbox, retry, listener, or 
   assert.match(gate, /return disableRouteIqProspectiveAdmission\("bootstrap_invalid"\)/);
   assert.match(gate, /return disableRouteIqProspectiveAdmission\("admission_expired_or_scope_changed"\)/);
   assert.doesNotMatch(gate, /localStorage|sessionStorage|indexedDB|caches\.|WebSocket|sendBeacon|setInterval|addEventListener|outbox|drain|reconnect|retry/i);
+  assert.match(listenerGate, /if \(!routeIqProspectiveAdmission\.active \|\| routeIqProspectiveActionListenerAttached\) return false;[\s\S]*document\.addEventListener\("click", handleRouteIqProspectiveAction\)/);
   assert.doesNotMatch(startup, /await prospectiveBootstrapPromise/);
   assert.doesNotMatch(serviceWorkerSource, /route-iq\/prospective|prospective\/event/i);
   assert.equal((serviceWorkerSource.match(/event\.request\.method !== "GET"/g) || []).length, 1);

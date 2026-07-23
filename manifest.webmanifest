@@ -1,8 +1,8 @@
 {
-  "name": "Prometheus IQ",
-  "short_name": "Prometheus IQ",
-  "description": "A command center for field sales routes, visits, places, and daily unit production.",
-  "start_url": "./index.html?pwa=rep",
+  "name": "Route IQ",
+  "short_name": "Route IQ",
+  "description": "A governed field operations workspace for routes, visits, places, and outcomes.",
+  "start_url": "/app",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f7f8f5",

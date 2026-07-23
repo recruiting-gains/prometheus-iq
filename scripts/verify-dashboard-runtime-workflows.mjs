@@ -5,6 +5,8 @@ import { delimiter, extname, join, normalize, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
+import { injectRouteIqCustomerPwaSession } from "../workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js";
+
 const root = resolve(import.meta.dirname, "..");
 const dashboardRoot = resolve(root, "deploy/cloudflare-pages");
 const activePoolPath = "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -14,12 +16,154 @@ const prospectiveEventPath = "api/dashboard/route-iq/prospective/event";
 const founderDailyIntelligencePath = "api/dashboard/route-iq/intelligence/daily-snapshot";
 const founderDailyIntelligenceArtifactPath = resolve(root, "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json");
 const canonicalFounderDailyIntelligenceSnapshot = JSON.parse(readFileSync(founderDailyIntelligenceArtifactPath, "utf8"));
+const canonicalOperatingProfileRegistry = JSON.parse(readFileSync(resolve(root, "intelligence/profiles/operating-profiles.json"), "utf8"));
 const prospectiveBootstrapContractVersion = "route-iq-prospective-browser-bootstrap-v1";
 const prospectiveEventContractVersion = "route-iq-prospective-browser-event-v1";
 const prospectiveRuntimeContextContractVersion = "route-iq-prospective-runtime-context-v1";
 const prospectiveCoordinatorContractVersion = "route-iq-prospective-coordinator-contract-v1";
 const routeUpdateCompletionPrefix = "Route updated using your latest result.";
 const governedRouteHoursDetailPattern = /^(?:1 stop has|(?:[2-9]|[1-9]\d+) stops have) unverified hours\.$/;
+const customerPwaActivePoolPath = "data/__harness__/northstar/active-pool.json";
+const customerPwaFullPoolPath = "data/__harness__/northstar/full-pool.json";
+const customerPwaQuarantinePoolPath = "data/__harness__/northstar/quarantine-pool.json";
+const customerPwaBusinessHoursFixtureSourcePath = "intelligence/fixtures/route-iq-governed-customer-business-hours-v1.json";
+const customerPwaBusinessHoursPath = "data/__harness__/northstar/business-hours.json";
+const customerPwaOperatingProfilePath = "intelligence/profiles/operating-profiles.json";
+const customerPwaIntelligenceSourcePaths = new Set([
+  "intelligence/continuous-adaptive-route-replenishment.mjs",
+  "intelligence/route-business-hours-eligibility.mjs",
+  "intelligence/route-iq-governed-runtime-scope.mjs"
+]);
+const customerPwaBusinessHours = Object.freeze(JSON.parse(readFileSync(resolve(root, customerPwaBusinessHoursFixtureSourcePath), "utf8")));
+const customerPwaOperatingProfile = Object.freeze({
+  ...canonicalOperatingProfileRegistry.profiles.find(profile => profile.profileId === "general_outside_sales"),
+  profileId: "northstar_service_calls",
+  label: "Northstar Service Calls",
+  industry: "field_services",
+  terminology: Object.freeze({
+    customer: "service customer",
+    target: "service location",
+    visit: "field visit",
+    success: "qualified service opportunity"
+  }),
+  dashboardLabels: Object.freeze({
+    routeTitle: "Service Call Route",
+    primarySuccess: "Qualified Service Opportunity",
+    followUp: "Service Follow-up"
+  })
+});
+const customerPwaOperatingProfileRegistry = Object.freeze({
+  ...canonicalOperatingProfileRegistry,
+  profiles: Object.freeze([customerPwaOperatingProfile])
+});
+const customerPwaRuntimeRecords = Object.freeze(Array.from({ length: 15 }, (_, offset) => {
+  const sequence = offset + 1;
+  const googlePlaceId = `synthetic-northstar-place-${String(sequence).padStart(3, "0")}`;
+  return Object.freeze({
+    googlePlaceId,
+    businessName: `Synthetic Northstar Location ${sequence}`,
+    address: `Synthetic address ${sequence}`,
+    category: "Business Services",
+    estimatedDistanceMiles: Number((sequence / 10).toFixed(1)),
+    sourceType: "Google Places API",
+    googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`Synthetic Northstar Location ${sequence}`)}`,
+    latitude: 29.62 + sequence / 10000,
+    longitude: -95.22 - sequence / 10000,
+    accessType: "Appointment or walk-in",
+    askFor: "operations lead",
+    qualityStatus: "verified",
+    businessStatus: "OPERATIONAL",
+    qualityClass: "Excellent",
+    qualityScore: 90 - offset / 10,
+    priority: 90 - offset,
+    runtimeProfiles: Object.freeze([Object.freeze({
+      runtimeId: `northstar-runtime-${String(sequence).padStart(3, "0")}`,
+      repProfileId: "northstar_rep_001",
+      seedRouteOrder: sequence,
+      qualityClass: "Excellent",
+      qualityScore: 90 - offset / 10,
+      priority: 90 - offset
+    })])
+  });
+}));
+const customerPwaActivePool = Object.freeze({
+  generatedAt: "2026-08-01T15:00:00.000Z",
+  sourceDatasetVersion: "google-qualified-businesses-v2",
+  segmentationVersion: "runtime-pool-segmentation-v1",
+  runtimeBehaviorChanged: false,
+  scoringChanged: false,
+  pool: "active",
+  count: customerPwaRuntimeRecords.length,
+  records: customerPwaRuntimeRecords
+});
+const customerPwaFullPool = Object.freeze({
+  generated_at: "2026-08-01T15:00:00.000Z",
+  dataset_version: "google-qualified-businesses-v2",
+  cruz: Object.freeze(customerPwaRuntimeRecords.map((record, offset) => Object.freeze({
+    id: record.runtimeProfiles[0].runtimeId,
+    repProfileId: "northstar_rep_001",
+    seedRouteOrder: offset + 1,
+    name: record.businessName,
+    category: record.category,
+    window: "Anytime",
+    distance: `${record.estimatedDistanceMiles.toFixed(1)} mi`,
+    priority: record.priority,
+    address: record.address,
+    latitude: record.latitude,
+    longitude: record.longitude,
+    permission: "Unknown",
+    accessType: record.accessType,
+    askFor: record.askFor,
+    googlePlaceId: record.googlePlaceId,
+    googleMapsUrl: record.googleMapsUrl,
+    sourceType: record.sourceType,
+    qualityClass: record.qualityClass,
+    qualityScore: record.qualityScore,
+    confidence: "High",
+    truthBasis: "Synthetic noncanonical runtime fixture for browser verification only."
+  }))),
+  anthony: Object.freeze([])
+});
+const customerPwaQuarantinePool = Object.freeze({
+  generatedAt: "2026-08-01T15:00:00.000Z",
+  sourceDatasetVersion: "google-qualified-businesses-v2",
+  segmentationVersion: "runtime-pool-segmentation-v1",
+  runtimeBehaviorChanged: false,
+  scoringChanged: false,
+  pool: "quarantine",
+  count: 0,
+  records: Object.freeze([])
+});
+const customerPwaSessionFixture = Object.freeze({
+  contractVersion: "route-iq-customer-pwa-session-v1",
+  authorizationState: "server_verified",
+  workspaceId: "northstar_field_services",
+  workspaceLabel: "Northstar Field Services",
+  operatingProfileId: "northstar_service_calls",
+  userId: "northstar_user_001",
+  representativeId: "northstar_rep_001",
+  displayName: "Synthetic Representative",
+  roleId: "customer_representative",
+  capabilities: Object.freeze({
+    operateOwnRoute: true,
+    readWorkspaceOperations: false,
+    administerWorkspaceRoster: false,
+    founderIntelligence: false,
+    founderCrm: false
+  }),
+  runtimeAssets: Object.freeze({
+    fullPool: `/${customerPwaFullPoolPath}`,
+    activePool: `/${customerPwaActivePoolPath}`,
+    quarantinePool: `/${customerPwaQuarantinePoolPath}`,
+    businessHours: `/${customerPwaBusinessHoursPath}`
+  }),
+  expiresAt: "2099-01-01T00:00:00.000Z",
+  safety: Object.freeze({
+    prospectiveCollection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF"
+  })
+});
 const chromeStartupTimeoutMs = 30000;
 const chromeControlTimeoutMs = 30000;
 const chromeTargetCloseTimeoutMs = 10000;
@@ -309,6 +453,7 @@ function localHttpsCertificate() {
 
 function startStaticServer({
   missingActive = false,
+  customerPwaSession = null,
   fieldSessionResponses = [],
   prospectiveResponse = { status: 204 },
   prospectiveBootstrapResponse = disabledProspectiveBootstrap(),
@@ -467,6 +612,54 @@ function startStaticServer({
     if (missingActive && relativePath === activePoolPath) {
       response.writeHead(404, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" });
       response.end("active pool intentionally unavailable for regression harness");
+      return;
+    }
+
+    if (customerPwaSession && (relativePath === "app" || relativePath === "app/index.html")) {
+      try {
+        const dashboard = readFileSync(resolve(dashboardRoot, "index.html"), "utf8");
+        const body = injectRouteIqCustomerPwaSession(dashboard, customerPwaSession);
+        response.writeHead(200, {
+          "content-type": "text/html; charset=utf-8",
+          "cache-control": "private, no-store",
+          "x-content-type-options": "nosniff"
+        });
+        response.end(body);
+      } catch (error) {
+        response.writeHead(503, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" });
+        response.end("Customer PWA fixture unavailable");
+      }
+      return;
+    }
+
+    if (customerPwaSession && relativePath === customerPwaOperatingProfilePath) {
+      response.writeHead(200, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+      response.end(JSON.stringify(customerPwaOperatingProfileRegistry));
+      return;
+    }
+
+    const customerPwaJsonFixture = customerPwaSession && {
+      [customerPwaActivePoolPath]: customerPwaActivePool,
+      [customerPwaFullPoolPath]: customerPwaFullPool,
+      [customerPwaQuarantinePoolPath]: customerPwaQuarantinePool,
+      [customerPwaBusinessHoursPath]: customerPwaBusinessHours
+    }[relativePath];
+    if (customerPwaJsonFixture) {
+      response.writeHead(200, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+      response.end(JSON.stringify(customerPwaJsonFixture));
+      return;
+    }
+
+    if (customerPwaSession && customerPwaIntelligenceSourcePaths.has(relativePath)) {
+      const governedSourcePath = resolve(root, relativePath);
+      try {
+        const body = readFileSync(governedSourcePath);
+        response.writeHead(200, { "content-type": contentType(governedSourcePath), "cache-control": "no-store" });
+        response.end(body);
+      } catch (error) {
+        response.writeHead(404, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" });
+        response.end("Governed customer Intelligence fixture unavailable");
+      }
       return;
     }
 
@@ -757,13 +950,27 @@ class CdpSession {
         } finally {
           clearTimeout(closeTimer);
           socket.onmessage = null;
+          if (socket.readyState !== WebSocket.CLOSED) {
+            await new Promise(resolveClosed => {
+              let settled = false;
+              const finish = () => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                resolveClosed();
+              };
+              const timer = setTimeout(finish, chromeTargetCloseTimeoutMs);
+              socket.onerror = finish;
+              socket.onclose = finish;
+              try {
+                socket.close();
+              } catch (error) {
+                finish();
+              }
+            });
+          }
           socket.onerror = null;
           socket.onclose = null;
-          if (socket.readyState !== WebSocket.CLOSED) {
-            try {
-              socket.close();
-            } catch (error) {}
-          }
         }
         return;
       }
@@ -3003,6 +3210,15 @@ async function runHarness() {
         snapshot: { businessConfigurationSha256: "A".repeat(64) }
       })
     });
+    const customerPwaServer = await startServer("customer PWA HTTPS server", {
+      customerPwaSession: customerPwaSessionFixture
+    });
+    const customerPwaMissingProfileServer = await startServer("customer PWA missing-profile HTTPS server", {
+      customerPwaSession: Object.freeze({
+        ...customerPwaSessionFixture,
+        operatingProfileId: "northstar_missing_profile"
+      })
+    });
     const chrome = await launchChrome({
       executablePath: chromeExecutable,
       registerCleanup: close => resources.push({ name: "Chrome", close })
@@ -3253,6 +3469,197 @@ async function runHarness() {
     verifyMobileFit("Mobile PWA Find no-horizontal-scroll", await mobileFitSnapshot(mobileFounder.cdp));
     verifyNoErrors("Mobile Founder", mobileFounder.eventLog, await snapshot(mobileFounder.cdp));
 
+    const customerPwa = await runPageScenario(chrome, customerPwaServer, "/app", "customer-pwa", {
+      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true },
+      standalone: true
+    });
+    const customerPwaSnap = customerPwa.initial;
+    const customerPwaBoundary = await customerPwa.cdp.evaluate(`(() => {
+      const keys = Object.keys(localStorage).sort();
+      const unscoped = [
+        "prometheus-v1",
+        "prometheus-mode",
+        "prometheus-active-rep",
+        "prometheus-session-role",
+        "prometheus-route-iq-finalized-sessions-v1"
+      ];
+      return {
+        standalone: window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches,
+        manifest: document.getElementById("prometheusManifest")?.getAttribute("href") || "",
+        markerConsumed: document.getElementById("routeIqCustomerPwaSession")?.content?.textContent?.trim().startsWith("{") === true,
+        scopedKeys: keys.filter(key => key.includes("northstar_field_services:northstar_user_001")),
+        unscopedKeys: keys.filter(key => unscoped.includes(key)),
+        betaVisible: /\\bbeta\\b/iu.test(document.body.innerText || ""),
+        founderCrmVisible: /Founder CRM/iu.test(document.body.innerText || "")
+      };
+    })()`);
+    assertWorkflow(
+      "Customer PWA server-scoped identity",
+      customerPwaSnap.sessionRole === "rep"
+        && customerPwaSnap.mode === "rep"
+        && customerPwaSnap.workspaceId === "northstar_field_services"
+        && customerPwaSnap.workspaceOperatingProfileId === "northstar_service_calls"
+        && customerPwaSnap.operatingProfileId === "northstar_service_calls"
+        && customerPwaSnap.activeRepId === "northstar_rep_001"
+        && customerPwaSnap.visibleTabs.join(",") === "today,route,places"
+        && customerPwaSnap.visibleOwnerControls.length === 0,
+      "synthetic non-fitness customer rendered from one generic server-scoped PWA session",
+      JSON.stringify(customerPwaSnap)
+    );
+    assertWorkflow(
+      "Customer PWA storage and presentation boundary",
+      customerPwaBoundary.standalone
+        && customerPwaBoundary.manifest === "manifest.webmanifest"
+        && customerPwaBoundary.markerConsumed
+        && customerPwaBoundary.scopedKeys.length > 0
+        && customerPwaBoundary.unscopedKeys.length === 0
+        && !customerPwaBoundary.betaVisible
+        && !customerPwaBoundary.founderCrmVisible,
+      "standalone session uses scoped storage, production language, and no Founder CRM surface",
+      JSON.stringify(customerPwaBoundary)
+    );
+    verifyMobileFit("Customer PWA 390x844 Today no-horizontal-scroll", await mobileFitSnapshot(customerPwa.cdp));
+    await clickTab(customerPwa.cdp, "route");
+    const customerRouteSnap = await snapshot(customerPwa.cdp);
+    verifyMobileFit("Customer PWA 390x844 Route no-horizontal-scroll", await mobileFitSnapshot(customerPwa.cdp));
+    assertWorkflow(
+      "Customer PWA collection-OFF 15-stop route",
+      customerRouteSnap.routeCards === 15
+        && customerRouteSnap.routeCountLabel.includes("15 active stops")
+        && customerPwaServer.prospectiveRequests.length === 0,
+      "15 route cards rendered with zero prospective writes",
+      JSON.stringify({ routeCards: customerRouteSnap.routeCards, routeCountLabel: customerRouteSnap.routeCountLabel, writes: customerPwaServer.prospectiveRequests })
+    );
+    const customerPwaRequestedPaths = new Set(customerPwaServer.requests.map(request => request.path));
+    const customerPwaScopeBoundary = await customerPwa.cdp.evaluate(`(async () => {
+      const intelligence = await import("/intelligence/route-business-hours-eligibility.mjs");
+      const artifact = await fetch("/${customerPwaBusinessHoursPath}", { cache: "no-store" }).then(response => response.json());
+      const accepted = intelligence.buildRouteBusinessHoursIndex(artifact, {
+        workspaceId: "northstar_field_services",
+        operatingProfileId: "northstar_service_calls"
+      });
+      let mismatchedProvenanceRejected = false;
+      try {
+        intelligence.buildRouteBusinessHoursIndex(artifact, {
+          workspaceId: "northstar_field_services",
+          operatingProfileId: "general_outside_sales"
+        });
+      } catch (error) {
+        mismatchedProvenanceRejected = true;
+      }
+      return {
+        acceptedWorkspaceId: accepted.workspaceId,
+        acceptedOperatingProfileId: accepted.operatingProfileId,
+        governedScopeVersion: accepted.governedRuntimeScope?.version || "",
+        mismatchedProvenanceRejected
+      };
+    })()`);
+    assertWorkflow(
+      "Customer PWA governed Intelligence source and provenance",
+      customerPwaScopeBoundary.acceptedWorkspaceId === "northstar_field_services"
+        && customerPwaScopeBoundary.acceptedOperatingProfileId === "northstar_service_calls"
+        && customerPwaScopeBoundary.governedScopeVersion === "route-iq-governed-runtime-scope-v1"
+        && customerPwaScopeBoundary.mismatchedProvenanceRejected
+        && customerPwaRequestedPaths.has("intelligence/continuous-adaptive-route-replenishment.mjs")
+        && customerPwaRequestedPaths.has("intelligence/route-business-hours-eligibility.mjs")
+        && customerPwaRequestedPaths.has("intelligence/route-iq-governed-runtime-scope.mjs")
+        && customerPwaRequestedPaths.has(customerPwaBusinessHoursPath)
+        && customerPwaRequestedPaths.has(customerPwaActivePoolPath)
+        && !customerPwaRequestedPaths.has(activePoolPath)
+        && !customerPwaRequestedPaths.has(fullPoolPath),
+      "Northstar used revised governed Intelligence modules and synthetic workspace assets; mismatched provenance failed closed",
+      JSON.stringify({ scope: customerPwaScopeBoundary, requests: [...customerPwaRequestedPaths].sort() })
+    );
+    const customerRefreshSnap = await navigateExistingScenario(customerPwa.cdp, customerPwaServer, "/app");
+    assertWorkflow(
+      "Customer PWA authenticated refresh isolation",
+      customerRefreshSnap.workspaceId === "northstar_field_services"
+        && customerRefreshSnap.activeRepId === "northstar_rep_001"
+        && customerRefreshSnap.sessionRole === "rep"
+        && customerRefreshSnap.visibleOwnerControls.length === 0,
+      "refresh preserved the exact customer workspace and least-privileged representative",
+      JSON.stringify(customerRefreshSnap)
+    );
+    const customerExpiredBoundary = await customerPwa.cdp.evaluate(`(() => {
+      const originalDateNow = Date.now;
+      Date.now = () => Date.parse(routeIqCustomerPwaSession.expiresAt) + 1;
+      window.dispatchEvent(new Event("focus"));
+      const result = {
+        sessionRole: document.body.dataset.sessionRole || "",
+        sessionState: document.body.dataset.customerSessionState || "",
+        blockedHeading: document.querySelector(".route-iq-customer-session-blocked h1")?.textContent?.trim() || "",
+        scopedRecordPreserved: localStorage.getItem("prometheus-v1:northstar_field_services:northstar_user_001") !== null
+      };
+      Date.now = originalDateNow;
+      return result;
+    })()`);
+    assertWorkflow(
+      "Customer PWA open-session expiry lock",
+      customerExpiredBoundary.sessionRole === "unauthorized"
+        && customerExpiredBoundary.sessionState === "expired"
+        && customerExpiredBoundary.blockedHeading === "Route IQ access unavailable"
+        && customerExpiredBoundary.scopedRecordPreserved,
+      "expired server session removed the operational UI without deleting scoped customer records",
+      JSON.stringify(customerExpiredBoundary)
+    );
+    verifyNoErrors("Customer PWA", customerPwa.eventLog, customerRefreshSnap);
+    await customerPwa.cdp.close();
+
+    const missingProfileEventLog = { runtimeExceptions: [], consoleErrors: [], logErrors: [], network: [] };
+    const missingProfilePage = await attachPage(chrome, missingProfileEventLog);
+    await setViewport(missingProfilePage, { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
+    await setStandaloneMode(missingProfilePage, true);
+    await navigateAndWait(missingProfilePage, `${customerPwaMissingProfileServer.origin}/app`);
+    const missingProfileDeadline = Date.now() + 5000;
+    let missingProfileBoundary = null;
+    while (Date.now() < missingProfileDeadline) {
+      missingProfileBoundary = await missingProfilePage.evaluate(`(() => ({
+        sessionRole: document.body?.dataset.sessionRole || "",
+        sessionState: document.body?.dataset.customerSessionState || "",
+        blockedHeading: document.querySelector(".route-iq-customer-session-blocked h1")?.textContent?.trim() || "",
+        startupCompleted: window.prometheusDebugState?.startupCompleted === true,
+        operatingProfileStatus: window.prometheusDebugState?.operatingProfile?.status || "",
+        profileAccepted: window.prometheusDebugState?.customerStartup?.profileAccepted === true,
+        operationalWorkflowStarted: window.prometheusDebugState?.customerStartup?.operationalWorkflowStarted === true,
+        prospectiveBootstrapRequested: window.prometheusDebugState?.prospectiveCollection?.bootstrapRequested === true,
+        prospectiveListenerAttached: window.prometheusDebugState?.prospectiveCollection?.listenerAttached === true,
+        debug: {
+          lastError: window.prometheusDebugState?.lastError || "",
+          lastUnhandledRejection: window.prometheusDebugState?.lastUnhandledRejection || ""
+        }
+      }))()`);
+      if (missingProfileBoundary.sessionState === "configuration_unavailable") break;
+      await wait(50);
+    }
+    const missingProfileForbiddenRequests = new Set([
+      "intelligence/continuous-adaptive-route-replenishment.mjs",
+      "intelligence/route-business-hours-eligibility.mjs",
+      "intelligence/route-iq-governed-runtime-scope.mjs",
+      customerPwaBusinessHoursPath,
+      customerPwaActivePoolPath,
+      customerPwaFullPoolPath,
+      customerPwaQuarantinePoolPath
+    ]);
+    assertWorkflow(
+      "Customer PWA missing operating-profile fail-closed",
+      missingProfileBoundary?.sessionRole === "unauthorized"
+        && missingProfileBoundary?.sessionState === "configuration_unavailable"
+        && missingProfileBoundary?.blockedHeading === "Route IQ access unavailable"
+        && missingProfileBoundary?.startupCompleted === false
+        && missingProfileBoundary?.operatingProfileStatus === "configuration_unavailable"
+        && missingProfileBoundary?.profileAccepted === false
+        && missingProfileBoundary?.operationalWorkflowStarted === false
+        && missingProfileBoundary?.prospectiveBootstrapRequested === false
+        && missingProfileBoundary?.prospectiveListenerAttached === false
+        && customerPwaMissingProfileServer.prospectiveBootstrapRequests.length === 0
+        && customerPwaMissingProfileServer.prospectiveRequests.length === 0
+        && !customerPwaMissingProfileServer.requests.some(request => missingProfileForbiddenRequests.has(request.path)),
+      "missing server-authorized profile blocked startup before prospective bootstrap/listeners, Intelligence evidence, route modules, data pools, or workflow work",
+      JSON.stringify({ boundary: missingProfileBoundary, requests: customerPwaMissingProfileServer.requests })
+    );
+    verifyNoErrors("Customer PWA missing operating profile", missingProfileEventLog, missingProfileBoundary || {});
+    await missingProfilePage.close();
+
     const rep = await runPageScenario(chrome, server, "/?role=rep&rep=anthony&debug=1&harness=runtime-workflows-rep", "rep");
     const repSnap = rep.initial;
     assertWorkflow("Rep Mode", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.visibleTabs.includes("places") && !repSnap.visibleTabs.includes("stats") && !repSnap.visibleTabs.includes("find"), `rep tabs visible: ${repSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: repSnap.sessionRole, mode: repSnap.mode, visibleTabs: repSnap.visibleTabs }));
@@ -3402,7 +3809,7 @@ async function runHarness() {
     const fieldSessionResult = await verifyFieldSessionCompletion(fieldSession.cdp, "end_route");
     const fieldSessionRequest = fieldSessionServer.fieldSessionRequests[0]?.payload || {};
     assertWorkflow("End Route field-session producer", fieldSessionResult.recordStatus === "archived" && fieldSessionResult.completionAction === "end_route" && fieldSessionResult.attempts === 1 && fieldSessionResult.acknowledgment?.status === "archived", `${fieldSessionResult.acknowledgment?.sessionId || "missing session"} acknowledged`, JSON.stringify(fieldSessionResult));
-    assertWorkflow("Field-session canonical payload", fieldSessionServer.fieldSessionRequests.length === 1 && fieldSessionRequest.workspaceId === "fitness_connection" && fieldSessionRequest.operatingProfileId === "fitness" && fieldSessionRequest.finalExportConfirmed === true && fieldSessionRequest.completionAction === "end_route" && JSON.parse(fieldSessionRequest.rawReportText).reportType === "beta-daily-rep-report", "final Fitness report submitted once through the approved endpoint", JSON.stringify(fieldSessionServer.fieldSessionRequests));
+    assertWorkflow("Field-session canonical payload", fieldSessionServer.fieldSessionRequests.length === 1 && fieldSessionRequest.workspaceId === "fitness_connection" && fieldSessionRequest.operatingProfileId === "fitness" && fieldSessionRequest.finalExportConfirmed === true && fieldSessionRequest.completionAction === "end_route" && JSON.parse(fieldSessionRequest.rawReportText).reportType === "route-iq-daily-representative-report-v1", "final Fitness report submitted once through the approved endpoint", JSON.stringify(fieldSessionServer.fieldSessionRequests));
     assertWorkflow("Field-session local finalization and duplicate protection", fieldSessionResult.localRawPreserved && fieldSessionResult.endRouteDisabled && fieldSessionResult.endDayDisabled && !fieldSessionResult.retryVisible && fieldSessionResult.duplicateReturnedExisting && fieldSessionServer.fieldSessionRequests.length === 1, "frozen locally; end actions disabled; repeat action did not resubmit", JSON.stringify(fieldSessionResult));
     assertWorkflow("Field-session finalized evidence guard", !fieldSessionResult.blockedModalOpen && fieldSessionResult.blockedSave === false && fieldSessionResult.afterBlockedVisitCount === fieldSessionResult.beforeBlockedVisitCount, "post-finalization visit mutation blocked", JSON.stringify(fieldSessionResult));
     assertWorkflow("Manual Export Today's Report preserved", fieldSessionResult.manualExportVisible && fieldSessionResult.manualExportDisabled === false, "manual JSON export remains available after archive", JSON.stringify(fieldSessionResult));

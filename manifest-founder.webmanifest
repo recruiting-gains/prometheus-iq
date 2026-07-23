@@ -2,7 +2,7 @@
   "name": "Prometheus IQ Founder",
   "short_name": "Prometheus IQ",
   "description": "Founder command center for Prometheus IQ route intelligence, production insight, and field execution.",
-  "start_url": "./index.html?role=founder&rep=cruz&verify=20260626-beta",
+  "start_url": "./index.html?role=founder&rep=cruz",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f7f8f5",

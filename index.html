@@ -6,7 +6,7 @@
   <title>Route IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-fu4CgCs14xMzGQ14jVdMgglgPrqAxXIKVKWsCH+EzI8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-FwP87//zo6f+FjmUUzwZxoZa1I3WKcbe9xJfnu2ZZvo='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Route IQ">
@@ -1477,6 +1477,27 @@
         flex-wrap: wrap;
       }
     }
+
+    .route-iq-customer-session-blocked {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #f7f8f5;
+      color: #16201f;
+      text-align: center;
+    }
+
+    .route-iq-customer-session-blocked h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .route-iq-customer-session-blocked p {
+      max-width: 38rem;
+      margin: 0;
+      color: #4b5755;
+    }
   </style>
 </head>
 <body class="booting" data-mode="owner" data-session-role="founder" data-workspace-id="fitness_connection" data-workspace-name="Fitness Connection" data-operating-profile-id="fitness">
@@ -1863,18 +1884,122 @@
     </div>
   </div>
 
+  <template id="routeIqCustomerPwaSession">__ROUTE_IQ_CUSTOMER_PWA_SESSION__</template>
   <script>
+    const routeIqCustomerPwaPath = location.pathname === "/app" || location.pathname === "/app/";
+
+    function readRouteIqCustomerPwaSession() {
+      const element = document.getElementById("routeIqCustomerPwaSession");
+      if (!element || !routeIqCustomerPwaPath) return null;
+      let value;
+      try {
+        value = JSON.parse(element.content?.textContent || element.textContent || "");
+      } catch {
+        return null;
+      }
+      const exactKeys = [
+        "contractVersion",
+        "authorizationState",
+        "workspaceId",
+        "workspaceLabel",
+        "operatingProfileId",
+        "userId",
+        "representativeId",
+        "displayName",
+        "roleId",
+        "capabilities",
+        "runtimeAssets",
+        "expiresAt",
+        "safety"
+      ].sort();
+      if (!value || typeof value !== "object" || Array.isArray(value)
+        || JSON.stringify(Object.keys(value).sort()) !== JSON.stringify(exactKeys)
+        || value.contractVersion !== "route-iq-customer-pwa-session-v1"
+        || value.authorizationState !== "server_verified"
+        || !/^[a-z][a-z0-9_]{2,127}$/u.test(value.workspaceId || "")
+        || !/^[a-z][a-z0-9_]{2,127}$/u.test(value.operatingProfileId || "")
+        || !/^[a-z][a-z0-9_]{2,127}$/u.test(value.userId || "")
+        || !/^[a-z][a-z0-9_]{2,127}$/u.test(value.representativeId || "")
+        || !["customer_owner", "customer_manager", "customer_representative"].includes(value.roleId)
+        || typeof value.workspaceLabel !== "string" || !value.workspaceLabel.trim() || value.workspaceLabel.length > 160
+        || typeof value.displayName !== "string" || !value.displayName.trim() || value.displayName.length > 120
+        || !value.capabilities || value.capabilities.founderIntelligence !== false || value.capabilities.founderCrm !== false
+        || !value.runtimeAssets || Object.values(value.runtimeAssets).some(path => typeof path !== "string" || !path.startsWith("/data/") || path.includes(".."))
+        || !Number.isFinite(Date.parse(value.expiresAt)) || Date.parse(value.expiresAt) <= Date.now()
+        || value.safety?.prospectiveCollection !== "OFF"
+        || value.safety?.activeCohorts !== 0
+        || value.safety?.recommendationInfluence !== "OFF") {
+        return null;
+      }
+      return Object.freeze(value);
+    }
+
+    function renderRouteIqCustomerPwaSessionBlocked(state) {
+      document.body.dataset.sessionRole = "unauthorized";
+      document.body.dataset.customerSessionState = state;
+      document.body.innerHTML = `<main class="route-iq-customer-session-blocked"><div><h1>Route IQ access unavailable</h1><p>Your secure session is missing, expired, or outside the authorized workspace. Reconnect and sign in again.</p></div></main>`;
+    }
+
+    const routeIqCustomerPwaSession = readRouteIqCustomerPwaSession();
+    if (routeIqCustomerPwaPath && !routeIqCustomerPwaSession) {
+      renderRouteIqCustomerPwaSessionBlocked("invalid");
+      throw new Error("route_iq_customer_pwa_session_invalid");
+    }
+    if (routeIqCustomerPwaSession) {
+      document.body.dataset.workspaceId = routeIqCustomerPwaSession.workspaceId;
+      document.body.dataset.workspaceName = routeIqCustomerPwaSession.workspaceLabel;
+      document.body.dataset.operatingProfileId = routeIqCustomerPwaSession.operatingProfileId;
+      document.body.dataset.sessionRole = routeIqCustomerPwaSession.roleId;
+    }
+
+    const routeIqCustomerPwaSessionExpiresAtMs = routeIqCustomerPwaSession
+      ? Date.parse(routeIqCustomerPwaSession.expiresAt)
+      : 0;
+    let routeIqCustomerPwaSessionExpired = false;
+
+    function enforceRouteIqCustomerPwaSessionExpiry() {
+      if (!routeIqCustomerPwaSession || routeIqCustomerPwaSessionExpired) return !routeIqCustomerPwaSessionExpired;
+      if (Date.now() < routeIqCustomerPwaSessionExpiresAtMs) return true;
+      routeIqCustomerPwaSessionExpired = true;
+      renderRouteIqCustomerPwaSessionBlocked("expired");
+      return false;
+    }
+
+    function scheduleRouteIqCustomerPwaSessionExpiry() {
+      if (!routeIqCustomerPwaSession || routeIqCustomerPwaSessionExpired) return;
+      const remainingMs = routeIqCustomerPwaSessionExpiresAtMs - Date.now();
+      if (remainingMs <= 0) {
+        enforceRouteIqCustomerPwaSessionExpiry();
+        return;
+      }
+      window.setTimeout(() => {
+        if (enforceRouteIqCustomerPwaSessionExpiry()) scheduleRouteIqCustomerPwaSessionExpiry();
+      }, Math.min(remainingMs + 1, 2147483647));
+    }
+
+    if (routeIqCustomerPwaSession) {
+      scheduleRouteIqCustomerPwaSessionExpiry();
+      window.addEventListener("focus", enforceRouteIqCustomerPwaSessionExpiry);
+      window.addEventListener("pageshow", enforceRouteIqCustomerPwaSessionExpiry);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") enforceRouteIqCustomerPwaSessionExpiry();
+      });
+    }
+
     const GOAL = 4;
-    const storeKey = "prometheus-v1";
-    const modeStoreKey = "prometheus-mode";
+    const customerStorageScope = routeIqCustomerPwaSession
+      ? `${routeIqCustomerPwaSession.workspaceId}:${routeIqCustomerPwaSession.userId}`
+      : "";
+    const storeKey = customerStorageScope ? `prometheus-v1:${customerStorageScope}` : "prometheus-v1";
+    const modeStoreKey = customerStorageScope ? `prometheus-mode:${customerStorageScope}` : "prometheus-mode";
     const legacyStoreKey = "field-production-tracker-v3";
-    const activeRepStoreKey = "prometheus-active-rep";
-    const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-18-route-iq-product-focus-v1";
+    const activeRepStoreKey = customerStorageScope ? `prometheus-active-rep:${customerStorageScope}` : "prometheus-active-rep";
+    const sessionRoleStoreKey = customerStorageScope ? `prometheus-session-role:${customerStorageScope}` : "prometheus-session-role";
+    const appBuildVersion = "2026-07-22-route-iq-bounded-production-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v48-route-iq-product-focus";
-    const launchContextStoreKey = "prometheus-launch-context";
-    const fieldSessionArchiveStoreKey = "prometheus-route-iq-finalized-sessions-v1";
+    const serviceWorkerCacheVersion = "prometheus-v49-route-iq-bounded-production";
+    const launchContextStoreKey = customerStorageScope ? `prometheus-launch-context:${customerStorageScope}` : "prometheus-launch-context";
+    const fieldSessionArchiveStoreKey = customerStorageScope ? `prometheus-route-iq-finalized-sessions-v1:${customerStorageScope}` : "prometheus-route-iq-finalized-sessions-v1";
     const fieldSessionHandoffPath = "/api/dashboard/route-iq/field-session";
     const routeIqProspectiveEventPath = "/api/dashboard/route-iq/prospective/event";
     const routeIqProspectiveEventKinds = new Set(["next_stop_requested", "representative_action_observed"]);
@@ -1905,6 +2030,7 @@
     ]);
     let routeIqProspectiveInformationalSequence = 0;
     let routeIqProspectiveBootstrapWindowOpen = true;
+    let routeIqProspectiveActionListenerAttached = false;
     let routeIqProspectiveAdmission = Object.freeze({
       active: false,
       reason: "bootstrap_not_checked",
@@ -1915,7 +2041,10 @@
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
     const runtimeDatasetQuarantinePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json";
-    const businessHoursArtifactPath = "./data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json";
+    const selectedRuntimeDatasetFullPath = routeIqCustomerPwaSession?.runtimeAssets.fullPool || runtimeDatasetFullPath;
+    const selectedRuntimeDatasetActivePath = routeIqCustomerPwaSession?.runtimeAssets.activePool || runtimeDatasetActivePath;
+    const selectedRuntimeDatasetQuarantinePath = routeIqCustomerPwaSession?.runtimeAssets.quarantinePool || runtimeDatasetQuarantinePath;
+    const businessHoursArtifactPath = routeIqCustomerPwaSession?.runtimeAssets.businessHours || "./data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json";
     const businessHoursGovernanceModulePath = "./scripts/lib/business-hours-governance.mjs";
     const routeBusinessHoursModulePath = "./intelligence/route-business-hours-eligibility.mjs";
     const routeReplenishmentModulePath = "./intelligence/continuous-adaptive-route-replenishment.mjs";
@@ -1931,6 +2060,7 @@
     const runtimeDatasetExpectedSegmentationVersion = "runtime-pool-segmentation-v1";
 
     function disableRouteIqProspectiveAdmission(reason) {
+      stopRouteIqProspectiveActionListener();
       routeIqProspectiveAdmission = Object.freeze({
         active: false,
         reason: String(reason || "bootstrap_invalid"),
@@ -2009,6 +2139,7 @@
       if (Object.values(requestedScope).some(value => !isRouteIqProspectiveOpaqueScopeId(value))) {
         return disableRouteIqProspectiveAdmission("scope_invalid");
       }
+      window.prometheusDebugState.prospectiveCollection.bootstrapRequested = true;
       try {
         const response = await fetch(routeIqProspectiveEventPath, {
           method: "GET",
@@ -2029,6 +2160,7 @@
         const admission = routeIqProspectiveBootstrapAdmission(response, body, requestedScope);
         if (!admission) return disableRouteIqProspectiveAdmission("bootstrap_invalid");
         routeIqProspectiveAdmission = admission;
+        startRouteIqProspectiveActionListener();
         return true;
       } catch (error) {
         return disableRouteIqProspectiveAdmission(error?.name === "AbortError" ? "bootstrap_timeout" : "bootstrap_unavailable");
@@ -2073,25 +2205,67 @@
       return true;
     }
 
-    const appUrlParams = new URLSearchParams(location.search);
-    const defaultWorkspaceId = "fitness_connection";
-    const dashboardWorkspaces = Object.freeze({
-      fitness_connection: {
-        workspaceId: "fitness_connection",
-        label: "Fitness Connection",
-        operatingProfileId: "fitness",
-        route: "/"
+    function handleRouteIqProspectiveAction(event) {
+      if (event.target.closest("#bestMoveDirections")) {
+        signalRouteIqProspectiveEvent("representative_action_observed");
       }
-    });
+    }
+
+    function startRouteIqProspectiveActionListener() {
+      if (!routeIqProspectiveAdmission.active || routeIqProspectiveActionListenerAttached) return false;
+      document.addEventListener("click", handleRouteIqProspectiveAction);
+      routeIqProspectiveActionListenerAttached = true;
+      window.prometheusDebugState.prospectiveCollection.listenerAttached = true;
+      return true;
+    }
+
+    function stopRouteIqProspectiveActionListener() {
+      if (routeIqProspectiveActionListenerAttached) {
+        document.removeEventListener("click", handleRouteIqProspectiveAction);
+        routeIqProspectiveActionListenerAttached = false;
+      }
+      if (window.prometheusDebugState?.prospectiveCollection) {
+        window.prometheusDebugState.prospectiveCollection.listenerAttached = false;
+      }
+    }
+
+    const appUrlParams = new URLSearchParams(location.search);
+    const defaultWorkspaceId = routeIqCustomerPwaSession?.workspaceId || "fitness_connection";
+    const dashboardWorkspaces = Object.freeze(routeIqCustomerPwaSession
+      ? {
+          [routeIqCustomerPwaSession.workspaceId]: Object.freeze({
+            workspaceId: routeIqCustomerPwaSession.workspaceId,
+            label: routeIqCustomerPwaSession.workspaceLabel,
+            operatingProfileId: routeIqCustomerPwaSession.operatingProfileId,
+            route: "/app"
+          })
+        }
+      : {
+          fitness_connection: Object.freeze({
+            workspaceId: "fitness_connection",
+            label: "Fitness Connection",
+            operatingProfileId: "fitness",
+            route: "/"
+          })
+        });
     const requestedRuntimePool = appUrlParams.get("runtimePool") === "full" ? "full" : "active";
-    const founderDebugEnabled = appUrlParams.get("debug") === "1";
+    const selectedRuntimePool = routeIqCustomerPwaSession ? "active" : requestedRuntimePool;
+    const founderDebugEnabled = !routeIqCustomerPwaSession && appUrlParams.get("debug") === "1";
     window.prometheusDebugState = {
       appScriptExecuted: true,
       startupCompleted: false,
       renderRouteIntelligenceReceivedRecommendation: false,
       runtimeDataSource: "embedded-fallback",
       runtimeDataStatus: "pending",
-      runtimeDataPool: requestedRuntimePool,
+      runtimeDataPool: selectedRuntimePool,
+      customerStartup: {
+        profileAccepted: !routeIqCustomerPwaSession,
+        operationalWorkflowStarted: false
+      },
+      prospectiveCollection: {
+        bootstrapRequested: false,
+        listenerAttached: false
+      },
       routeReplenishment: {
         version: "pending",
         state: "loading",
@@ -2178,7 +2352,7 @@
     const qualifiedWalkInCategorySet = new Set(["Auto", "Tire", "Oil Change", "Car Wash", "Barber", "Restaurant", "Salon", "Clinic", "Medical Office", "Dental Office", "Business", "Business Services", "Hotel", "Retail", "Small Retail", "Office", "Employer", "Warehouse", "Apartment"]);
     const approvedPermissionSet = new Set(["Allowed table", "Allowed flyers/cards", "Allowed shift change", "Allowed staff talk", "Allowed resident email"]);
     const nearbyOpportunityRadiusFeet = 500;
-    const betaRouteTargetSize = 15;
+    const routeTargetSize = 15;
     const routeReplenishmentThreshold = 5;
     let fieldSessionSubmissionPending = false;
     let routeReplenishmentApi = null;
@@ -2205,13 +2379,37 @@
       return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
     };
     const capturedVisitLocations = new WeakMap();
-    const repProfileTemplates = {
-      cruz: { id: "cruz", name: "Cruz", role: "Founder", mode: "founder", explorationTarget: .4 },
-      anthony: { id: "anthony", name: "Anthony", role: "Beta tester", mode: "new-rep", explorationTarget: .8 }
-    };
+    const repProfileTemplates = routeIqCustomerPwaSession
+      ? {
+          [routeIqCustomerPwaSession.representativeId]: {
+            id: routeIqCustomerPwaSession.representativeId,
+            name: routeIqCustomerPwaSession.displayName,
+            role: routeIqCustomerPwaSession.roleId === "customer_owner"
+              ? "Owner"
+              : routeIqCustomerPwaSession.roleId === "customer_manager"
+                ? "Manager"
+                : "Field representative",
+            mode: routeIqCustomerPwaSession.roleId === "customer_representative" ? "rep" : "owner",
+            explorationTarget: .4
+          }
+        }
+      : {
+          cruz: { id: "cruz", name: "Cruz", role: "Founder", mode: "founder", explorationTarget: .4 },
+          anthony: { id: "anthony", name: "Anthony", role: "Field representative", mode: "new-rep", explorationTarget: .8 }
+        };
     const territoryRingSizeMiles = 5;
     const territoryRadiusOptionsMiles = [5, 10, 15, 20, 25];
-    const territoryProfiles = {
+    const territoryProfiles = routeIqCustomerPwaSession ? {
+      [routeIqCustomerPwaSession.representativeId]: {
+        label: "Assigned Territory",
+        homeBase: routeIqCustomerPwaSession.workspaceLabel,
+        homeAddress: "",
+        maxRadiusMiles: 15,
+        laneIndex: 0,
+        preferredCategories: [],
+        secondaryCategories: []
+      }
+    } : {
       cruz: {
         label: "Founder Territory",
         homeBase: "Fitness Connection",
@@ -2222,7 +2420,7 @@
         secondaryCategories: ["Barber", "Salon"]
       },
       anthony: {
-        label: "Anthony Beta Territory",
+        label: "Anthony Territory",
         homeBase: "Fitness Connection",
         homeAddress: "12338 Gulf Fwy, Houston, TX 77034",
         maxRadiusMiles: 25,
@@ -2232,28 +2430,28 @@
       }
     };
 
-    const territoryPolicyVersion = "2026-07-02-beta-route-controls-v1";
+    const territoryPolicyVersion = "2026-07-22-route-controls-v2";
 
     function defaultTerritoryPolicy(profileId) {
       const profile = territoryProfiles[profileId] || territoryProfiles.cruz;
-      const betaRepDefault = profileId === "anthony";
+      const representativeDefault = profileId === "anthony";
       return {
         policyVersion: territoryPolicyVersion,
         assignedRadiusMiles: profile.maxRadiusMiles,
         allowedRadiusMiles: profile.maxRadiusMiles,
-        allowRepRadiusChanges: betaRepDefault,
-        lockAssignedRadius: !betaRepDefault
+        allowRepRadiusChanges: representativeDefault,
+        lockAssignedRadius: !representativeDefault
       };
     }
 
     function normalizeTerritoryPolicy(profileId, raw = {}) {
       const defaults = defaultTerritoryPolicy(profileId);
       const rawPolicy = raw && typeof raw === "object" ? raw : {};
-      const shouldPromoteAnthonyBetaDefault = profileId === "anthony"
+      const shouldPromoteAnthonyRepresentativeDefault = profileId === "anthony"
         && rawPolicy.policyVersion !== territoryPolicyVersion
         && rawPolicy.allowRepRadiusChanges !== true
         && rawPolicy.lockAssignedRadius !== false;
-      if (shouldPromoteAnthonyBetaDefault) raw = defaults;
+      if (shouldPromoteAnthonyRepresentativeDefault) raw = defaults;
       const maxOption = Math.max(...territoryRadiusOptionsMiles);
       const allowedRaw = cleanNumber(raw?.allowedRadiusMiles ?? defaults.allowedRadiusMiles, maxOption);
       const assignedRaw = cleanNumber(raw?.assignedRadiusMiles ?? defaults.assignedRadiusMiles, maxOption);
@@ -19765,9 +19963,21 @@
 
     const isLocalPreview = location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
     const safeParam = value => String(value || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 60);
-    const requestedOperatingProfileId = safeParam(appUrlParams.get("operatingProfile")) || "fitness";
-    const requestedRole = safeParam(appUrlParams.get("role"));
-    const requestedRepId = safeParam(appUrlParams.get("rep") || appUrlParams.get("profile"));
+    const routeIqCustomerSessionRole = routeIqCustomerPwaSession?.roleId === "customer_owner"
+      ? "owner"
+      : routeIqCustomerPwaSession?.roleId === "customer_manager"
+        ? "manager"
+        : routeIqCustomerPwaSession?.roleId === "customer_representative"
+          ? "rep"
+          : "";
+    const requestedOperatingProfileId = routeIqCustomerPwaSession?.operatingProfileId
+      || safeParam(appUrlParams.get("operatingProfile"))
+      || "fitness";
+    const requestedRole = routeIqCustomerPwaSession
+      ? routeIqCustomerSessionRole
+      : safeParam(appUrlParams.get("role"));
+    const requestedRepId = routeIqCustomerPwaSession?.representativeId
+      || safeParam(appUrlParams.get("rep") || appUrlParams.get("profile"));
     const requestedPwaLaunch = safeParam(appUrlParams.get("pwa"));
     const validSessionRoles = new Set(["rep", "manager", "owner", "founder", "admin"]);
     const isStandalonePwa = window.navigator.standalone === true
@@ -19912,6 +20122,7 @@
     }
 
     function rememberLaunchContext(role, repId, mode) {
+      if (routeIqCustomerPwaSession) return;
       const cleanRole = validSessionRoles.has(role) ? role : "";
       const cleanRepId = safeParam(repId);
       if (!cleanRole || !cleanRepId) return;
@@ -19956,7 +20167,24 @@
         if (failures.length) throw new Error(failures.join(" | "));
         operatingProfileRegistry = registry;
         operatingProfileContracts = contracts;
-        activeOperatingProfile = registry.profiles.find(profile => profile.profileId === requestedOperatingProfileId)
+        const selectedOperatingProfile = registry.profiles.find(profile => profile.profileId === requestedOperatingProfileId);
+        if (routeIqCustomerPwaSession && !selectedOperatingProfile) {
+          activeOperatingProfile = null;
+          operatingProfileSource = "customer-configuration-unavailable";
+          window.prometheusDebugState.operatingProfile = {
+            profileId: "",
+            label: "",
+            source: operatingProfileSource,
+            contractVersion: contracts.version,
+            status: "configuration_unavailable",
+            scoringChanged: false,
+            activePoolChanged: false,
+            mobileBetaChanged: false
+          };
+          renderRouteIqCustomerPwaSessionBlocked("configuration_unavailable");
+          return false;
+        }
+        activeOperatingProfile = selectedOperatingProfile
           || registry.profiles.find(profile => profile.profileId === "fitness")
           || embeddedOperatingProfile;
         operatingProfileSource = `${registry.version}:${activeOperatingProfile.profileId}`;
@@ -19971,6 +20199,24 @@
         };
         return true;
       } catch (error) {
+        if (routeIqCustomerPwaSession) {
+          operatingProfileRegistry = null;
+          operatingProfileContracts = null;
+          activeOperatingProfile = null;
+          operatingProfileSource = "customer-configuration-unavailable";
+          window.prometheusDebugState.operatingProfile = {
+            profileId: "",
+            label: "",
+            source: operatingProfileSource,
+            contractVersion: "unavailable",
+            status: "configuration_unavailable",
+            scoringChanged: false,
+            activePoolChanged: false,
+            mobileBetaChanged: false
+          };
+          renderRouteIqCustomerPwaSessionBlocked("configuration_unavailable");
+          return false;
+        }
         activeOperatingProfile = embeddedOperatingProfile;
         operatingProfileSource = `embedded-fitness-fallback:${error?.message || "unavailable"}`;
         window.prometheusDebugState.operatingProfile = {
@@ -19987,7 +20233,8 @@
     }
 
     const storedLaunchContext = readLaunchContext();
-    const shouldUseAnthonyRepPwaLaunch = isStandalonePwa
+    const shouldUseAnthonyRepPwaLaunch = !routeIqCustomerPwaSession
+      && isStandalonePwa
       && !requestedRole
       && !requestedRepId
       && requestedPwaLaunch === "rep";
@@ -20017,11 +20264,11 @@
         : localStorage.getItem(sessionRoleStoreKey) || (isLocalPreview ? "founder" : "rep");
     if (sessionRole === "owner") sessionRole = "manager";
     if (!validSessionRoles.has(sessionRole)) sessionRole = "rep";
-    localStorage.setItem(sessionRoleStoreKey, sessionRole);
+    if (!routeIqCustomerPwaSession) localStorage.setItem(sessionRoleStoreKey, sessionRole);
     localStorage.setItem(appBuildStoreKey, appBuildVersion);
 
     function canSwitchProfiles() {
-      return sessionRole === "founder" || sessionRole === "admin";
+      return !routeIqCustomerPwaSession && (sessionRole === "founder" || sessionRole === "admin");
     }
 
     function canUseOwnerMode() {
@@ -20200,7 +20447,9 @@
     function invalidateDashboardComputationCache() {
       dashboardComputationCache = {};
     }
-    if (!state.repProfiles?.[activeRepId]) activeRepId = sessionRole === "rep" ? "anthony" : "cruz";
+    if (!state.repProfiles?.[activeRepId]) {
+      activeRepId = routeIqCustomerPwaSession?.representativeId || (sessionRole === "rep" ? "anthony" : "cruz");
+    }
     if (!state.repProfiles?.[activeRepId]) state.repProfiles[activeRepId] = createRepProfile(activeRepId, [], []);
     localStorage.setItem(activeRepStoreKey, activeRepId);
     localStorage.setItem(modeStoreKey, appMode);
@@ -20219,7 +20468,8 @@
     }
 
     function load() {
-      const raw = localStorage.getItem(storeKey) || localStorage.getItem(legacyStoreKey);
+      const raw = localStorage.getItem(storeKey)
+        || (!routeIqCustomerPwaSession ? localStorage.getItem(legacyStoreKey) : null);
       if (raw) {
         try {
           const parsed = JSON.parse(raw);
@@ -20233,19 +20483,25 @@
     }
 
     function createInitialState() {
-      const productionPlaces = productionSeedPlaces();
+      const productionPlaces = routeIqCustomerPwaSession ? [] : productionSeedPlaces();
+      const initialRepresentativeId = routeIqCustomerPwaSession?.representativeId || "cruz";
+      const initialProfiles = routeIqCustomerPwaSession
+        ? { [initialRepresentativeId]: createRepProfile(initialRepresentativeId, [], []) }
+        : {
+            cruz: createRepProfile("cruz", [], []),
+            anthony: createRepProfile("anthony", [], [])
+          };
       return withAnthonyApprovedRoute({
         places: productionPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
         visits: [],
         visitCorrections: [],
         routeHistory: [],
-        activeRepId: "cruz",
+        activeRepId: initialRepresentativeId,
         territoryPolicies: normalizeTerritoryPolicies(),
-        repProfiles: {
-          cruz: createRepProfile("cruz", [], []),
-          anthony: createRepProfile("anthony", [], [])
-        },
-        founderHistoricalSnapshot: createFounderSnapshot([], [], productionPlaces.map(place => ({ id: "", notes: "", createdAt: Date.now(), ...place })))
+        repProfiles: initialProfiles,
+        founderHistoricalSnapshot: routeIqCustomerPwaSession
+          ? null
+          : createFounderSnapshot([], [], productionPlaces.map(place => ({ id: "", notes: "", createdAt: Date.now(), ...place })))
       });
     }
 
@@ -20345,7 +20601,7 @@
       const correctionEvents = (state.visitCorrections || []).filter(event => visitIds.has(event.visitId));
       return {
         app: "Prometheus IQ",
-        reportType: "beta-daily-rep-report",
+        reportType: "route-iq-daily-representative-report-v1",
         generatedAt: reportGeneratedAt,
         date: todayKey(),
         rep: {
@@ -20418,7 +20674,8 @@
 
     function validateFieldSessionPayload(payload) {
       if (!fieldSessionCompletionActions.has(payload.completionAction)) throw new Error("Choose End Route or End Day.");
-      if (payload.workspaceId !== defaultWorkspaceId || payload.operatingProfileId !== "fitness") {
+      if (payload.workspaceId !== defaultWorkspaceId
+        || payload.operatingProfileId !== dashboardWorkspaces[defaultWorkspaceId].operatingProfileId) {
         throw new Error("Field-session archive is not available for this workspace.");
       }
       if (payload.finalExportConfirmed !== true) throw new Error("The completed field session must be confirmed before archiving.");
@@ -20432,7 +20689,10 @@
       } catch (error) {
         throw new Error("Today’s report could not be validated.");
       }
-      if (report.app !== "Prometheus IQ" || report.reportType !== "beta-daily-rep-report") throw new Error("Today’s report contract is invalid.");
+      if (report.app !== "Prometheus IQ"
+        || !["route-iq-daily-representative-report-v1", "beta-daily-rep-report"].includes(report.reportType)) {
+        throw new Error("Today’s report contract is invalid.");
+      }
       if (!/^\d{4}-\d{2}-\d{2}$/.test(report.date || "") || !report.rep?.id || !report.rep?.name) throw new Error("Today’s report identity is incomplete.");
       if (!Array.isArray(report.visits) || report.visits.length !== report.totals?.visits) throw new Error("Today’s visit total is incomplete.");
       const correctionEvidence = report.visitOutcomeEvidence;
@@ -20997,7 +21257,7 @@
         eventId: typeof crypto?.randomUUID === "function" ? crypto.randomUUID() : `visit-correction-${Date.now()}-${id()}`,
         eventType: "visit_outcome_correction",
         workspaceId: defaultWorkspaceId,
-        operatingProfileId: "fitness",
+        operatingProfileId: dashboardWorkspaces[defaultWorkspaceId].operatingProfileId,
         representativeId: activeRepId,
         visitId: originalVisit.id,
         placeId: originalVisit.placeId,
@@ -21129,7 +21389,7 @@
         profileId: "cruz",
         profileName: "Cruz",
         capturedAt: new Date().toISOString(),
-        purpose: "Founder historical baseline. Do not merge into beta tester profiles.",
+        purpose: "Founder historical baseline. Do not merge into other representative profiles.",
         visits: cloneData(visits) || [],
         routeHistory: cloneData(routeHistory) || [],
         performance
@@ -21369,7 +21629,7 @@
             eventId,
             eventType: "visit_outcome_correction",
             workspaceId,
-            operatingProfileId: "fitness",
+            operatingProfileId: dashboardWorkspaces[defaultWorkspaceId].operatingProfileId,
             representativeId,
             visitId,
             placeId,
@@ -21401,7 +21661,9 @@
         : [];
 
       const legacyVisits = normalizeVisitsList(input.visits);
-      const legacyRepresentativeId = cleanText(input.activeRepId, 60) || "cruz";
+      const legacyRepresentativeId = cleanText(input.activeRepId, 60)
+        || routeIqCustomerPwaSession?.representativeId
+        || "cruz";
       const legacyVisitCorrections = normalizeVisitCorrections(input.visitCorrections, legacyVisits, legacyRepresentativeId);
       const legacyRouteHistory = normalizeRouteHistory(input.routeHistory);
       const repProfiles = {};
@@ -21444,17 +21706,32 @@
         repProfiles[legacyRepresentativeId] = createRepProfile(legacyRepresentativeId, legacyVisits, legacyRouteHistory);
         repProfiles[legacyRepresentativeId].visitCorrections = legacyVisitCorrections;
       }
-      if (!repProfiles.cruz) repProfiles.cruz = createRepProfile("cruz", [], []);
-      if (!repProfiles.anthony) repProfiles.anthony = createRepProfile("anthony", [], []);
-      resetFounderLearningProfile(repProfiles);
-      resetAnthonyLearningProfile(repProfiles);
+      if (routeIqCustomerPwaSession) {
+        const authorizedRepresentativeId = routeIqCustomerPwaSession.representativeId;
+        Object.keys(repProfiles).forEach(profileId => {
+          if (profileId !== authorizedRepresentativeId) delete repProfiles[profileId];
+        });
+        if (!repProfiles[authorizedRepresentativeId]) {
+          repProfiles[authorizedRepresentativeId] = createRepProfile(authorizedRepresentativeId, legacyVisits, legacyRouteHistory);
+        }
+      } else {
+        if (!repProfiles.cruz) repProfiles.cruz = createRepProfile("cruz", [], []);
+        if (!repProfiles.anthony) repProfiles.anthony = createRepProfile("anthony", [], []);
+        resetFounderLearningProfile(repProfiles);
+        resetAnthonyLearningProfile(repProfiles);
+      }
 
-      const requestedActiveRep = cleanText(input.activeRepId || localStorage.getItem(activeRepStoreKey) || "cruz", 60);
-      const activeId = repProfiles[requestedActiveRep] ? requestedActiveRep : "cruz";
+      const requestedActiveRep = routeIqCustomerPwaSession?.representativeId
+        || cleanText(input.activeRepId || localStorage.getItem(activeRepStoreKey) || "cruz", 60);
+      const activeId = repProfiles[requestedActiveRep]
+        ? requestedActiveRep
+        : routeIqCustomerPwaSession?.representativeId || "cruz";
       const active = repProfiles[activeId];
       const founderHistoricalSnapshot = input.founderHistoricalSnapshot && typeof input.founderHistoricalSnapshot === "object"
         ? input.founderHistoricalSnapshot
-        : createFounderSnapshot(repProfiles.cruz.visits, repProfiles.cruz.routeHistory, places);
+        : routeIqCustomerPwaSession
+          ? null
+          : createFounderSnapshot(repProfiles.cruz.visits, repProfiles.cruz.routeHistory, places);
 
       return withAnthonyApprovedRoute({
         places,
@@ -21526,6 +21803,11 @@
     }
 
     function withAnthonyApprovedRoute(nextState) {
+      if (routeIqCustomerPwaSession) {
+        nextState.repProfiles = nextState.repProfiles || {};
+        nextState.territoryPolicies = normalizeTerritoryPolicies(nextState.territoryPolicies);
+        return nextState;
+      }
       const places = Array.isArray(nextState.places) ? nextState.places.slice() : [];
       const seedPlaces = productionSeedPlaces();
       const existingById = new Map(places.map(place => [place.id, place]));
@@ -21736,6 +22018,12 @@
     }
 
     function runtimeDatasetCandidates() {
+      if (routeIqCustomerPwaSession) {
+        return [
+          { pool: "active", path: selectedRuntimeDatasetActivePath },
+          { pool: "full", path: selectedRuntimeDatasetFullPath }
+        ];
+      }
       if (requestedRuntimePool === "full") return [{ pool: "full", path: runtimeDatasetFullPath }];
       return [
         { pool: "active", path: runtimeDatasetActivePath },
@@ -21795,11 +22083,11 @@
       try {
         const fullPromise = runtimeDatasetSource.pool === "full"
           ? Promise.resolve(runtimeDatasetPlaces.slice())
-          : fetch(runtimeDatasetFullPath, { cache: "no-store" }).then(async response => {
+          : fetch(selectedRuntimeDatasetFullPath, { cache: "no-store" }).then(async response => {
               if (!response.ok) throw new Error(`Runtime full dataset request failed with ${response.status}.`);
               return normalizeRuntimeDataset(await response.json());
             });
-        const quarantinePromise = fetch(runtimeDatasetQuarantinePath, { cache: "no-store" }).then(async response => {
+        const quarantinePromise = fetch(selectedRuntimeDatasetQuarantinePath, { cache: "no-store" }).then(async response => {
           if (!response.ok) throw new Error(`Runtime quarantine request failed with ${response.status}.`);
           return normalizeRuntimeQuarantineDataset(await response.json());
         });
@@ -22250,7 +22538,7 @@
       const availableVerifiedOpen = new Set(source.filter(place => {
         return isEligibleRouteQueueCandidate(place) && businessHoursDecisionForPlace(place).status === "OPEN_VERIFIED";
       }).map(routeIdentityKey));
-      const uncertainAllowance = Math.max(0, Number(queue.targetSize || betaRouteTargetSize) - availableVerifiedOpen.size);
+      const uncertainAllowance = Math.max(0, Number(queue.targetSize || routeTargetSize) - availableVerifiedOpen.size);
       let uncertainKept = 0;
       const removed = [];
       queue.entries = queue.entries.filter(entry => {
@@ -22285,7 +22573,7 @@
         const artifact = await response.json();
         const index = intelligence.buildRouteBusinessHoursIndex(artifact, {
           workspaceId: defaultWorkspaceId,
-          operatingProfileId: "fitness"
+          operatingProfileId: dashboardWorkspaces[defaultWorkspaceId].operatingProfileId
         });
         routeBusinessHoursIndex = index;
         routeBusinessHoursArtifactAvailable = true;
@@ -22327,7 +22615,7 @@
       if (loaded.continuousAdaptiveRouteReplenishmentVersion !== "continuous-adaptive-route-replenishment-v1") {
         throw new Error("Continuous route replenishment contract version mismatch.");
       }
-      if (loaded.defaultRouteQueueTarget !== betaRouteTargetSize || loaded.defaultRouteReplenishmentThreshold !== routeReplenishmentThreshold) {
+      if (loaded.defaultRouteQueueTarget !== routeTargetSize || loaded.defaultRouteReplenishmentThreshold !== routeReplenishmentThreshold) {
         throw new Error("Continuous route replenishment queue policy mismatch.");
       }
       routeReplenishmentApi = loaded;
@@ -22355,7 +22643,7 @@
         representativeId: activeRepId,
         operatingProfileId: activeOperatingProfile?.profileId || "fitness",
         routeDate: todayKey(),
-        targetSize: betaRouteTargetSize,
+        targetSize: routeTargetSize,
         threshold: routeReplenishmentThreshold
       });
       profile.activeRouteQueue = queue;
@@ -22511,7 +22799,7 @@
       const primaryVerifiedOpen = primaryCandidates.filter(place => {
         return isEligibleRouteQueueCandidate(place) && businessHoursDecisionForPlace(place).status === "OPEN_VERIFIED";
       }).length;
-      if (runtimeDatasetSource.pool === "full" || primaryVerifiedOpen < betaRouteTargetSize) await startRuntimeFallbackDatasetLoad();
+      if (runtimeDatasetSource.pool === "full" || primaryVerifiedOpen < routeTargetSize) await startRuntimeFallbackDatasetLoad();
       primaryCandidates = primaryRouteQueueCandidates();
       const fallbackCandidates = fallbackRouteQueueCandidates();
       const candidates = primaryCandidates.concat(fallbackCandidates);
@@ -22618,7 +22906,7 @@
 
     function activeRouteItems(windowName = "all") {
       if (!routeReplenishmentApi) {
-        return buildRouteList(routeVisiblePlaces(), betaRouteTargetSize, {
+        return buildRouteList(routeVisiblePlaces(), routeTargetSize, {
           need: Math.max(0, GOAL - sumVisits(todayVisits()).units),
           expandRadius: shouldExpandRadius(Math.max(0, GOAL - sumVisits(todayVisits()).units))
         });
@@ -23475,7 +23763,7 @@
 
     function routeDisplayLimitForPlaces(places) {
       const available = routePool(places).length;
-      if (available >= betaRouteTargetSize) return betaRouteTargetSize;
+      if (available >= routeTargetSize) return routeTargetSize;
       return available > 6 ? available : 6;
     }
 
@@ -24192,7 +24480,7 @@
       const coverage = territoryCoverage(activeRepId);
       const current = coverage.current || { index: 1, coverage: 0, visited: 0, total: 0 };
       const representativeRadius = activeRepId === "anthony"
-        ? `${config.maxRadiusMiles} mi beta radius`
+        ? `${config.maxRadiusMiles} mi assigned radius`
         : `${config.maxRadiusMiles} mi founder radius`;
       document.getElementById("territoryProfileLabel").textContent = activeProfile().name;
       document.getElementById("territoryAssignedRadius").textContent = `${config.maxRadiusMiles} mi`;
@@ -25575,10 +25863,6 @@
     }
 
     document.addEventListener("click", event => {
-      if (event.target.closest("#bestMoveDirections")) {
-        signalRouteIqProspectiveEvent("representative_action_observed");
-      }
-
       const modeSelect = event.target.closest("[data-mode-select]");
       if (modeSelect) setMode(modeSelect.dataset.modeSelect);
 
@@ -25673,8 +25957,19 @@
     });
 
     document.getElementById("quickAddPlace").addEventListener("click", () => {
-      const name = document.getElementById("quickPlaceName").value.trim();
+      const name = cleanText(document.getElementById("quickPlaceName").value, 160);
       if (!name) return;
+      const workspaceId = currentRouteWorkspaceId();
+      if (state.places.length >= MAX_PLACES) {
+        setDataStatus("The saved-place limit has been reached. Export a backup before adding more places.");
+        return;
+      }
+      const duplicate = state.places.some(place => queueCandidateWorkspace(place) === workspaceId
+        && normalizeKey(place.name) === normalizeKey(name));
+      if (duplicate) {
+        setDataStatus("That place is already saved in this workspace.");
+        return;
+      }
       state.places.push({
         id: id(),
         name,
@@ -25682,6 +25977,7 @@
         window: document.getElementById("quickPlaceWindow").value,
         permission: "Unknown",
         canRevisit: true,
+        workspaceId,
         notes: "",
         createdAt: Date.now()
       });
@@ -25725,8 +26021,14 @@
 
     (async () => {
       try {
+        const operatingProfileLoaded = await loadOperatingProfileDefinitions();
+        if (routeIqCustomerPwaSession && !operatingProfileLoaded) {
+          window.prometheusDebugState.lastStage = "customer-configuration-unavailable";
+          return;
+        }
+        window.prometheusDebugState.customerStartup.profileAccepted = true;
+        window.prometheusDebugState.customerStartup.operationalWorkflowStarted = true;
         await loadRouteReplenishmentEngine();
-        await loadOperatingProfileDefinitions();
         const prospectiveBootstrapPromise = initializeRouteIqProspectiveClient();
         await loadRouteBusinessHoursEligibility();
         await loadRuntimeProductionDataset();
