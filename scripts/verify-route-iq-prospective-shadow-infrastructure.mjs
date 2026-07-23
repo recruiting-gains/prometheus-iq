@@ -91,8 +91,16 @@ execFileSync("git", ["merge-base", "--is-ancestor", infrastructureBaseCommit, "H
 
 assert.match(privateConfig, /"name": "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR"/u);
 assert.match(privateConfig, /"class_name": "RouteIqProspectiveShadowCoordinator"/u);
-assert.equal((privateConfig.match(/"new_sqlite_classes"/gu) || []).length, 1);
 assert.match(privateConfig, /"tag": "route-iq-prospective-shadow-sqlite-v1"/u);
+assert.equal(
+  (privateConfig.match(/"tag": "route-iq-prospective-shadow-sqlite-v1"/gu) || []).length,
+  1
+);
+assert.ok(
+  privateConfig.indexOf('"tag": "route-iq-prospective-shadow-sqlite-v1"')
+    < privateConfig.indexOf('"tag": "route-iq-business-availability-sqlite-v1"'),
+  "the prospective SQLite migration must remain before the additive availability migration"
+);
 assert.doesNotMatch(publicConfig, /ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR|RouteIqProspectiveShadowCoordinator/u);
 assert.doesNotMatch(privateConfig, /ROUTE_IQ_PROSPECTIVE_SHADOW_COLLECTION|ROUTE_IQ_PROSPECTIVE_SHADOW_COHORT_CONFIG/u);
 

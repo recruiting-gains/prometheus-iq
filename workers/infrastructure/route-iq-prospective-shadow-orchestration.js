@@ -39,7 +39,9 @@ function canonicalAllocationTime(allocation) {
 
 function sampleServerDate(noncanonicalTestHooks) {
   let sampled;
-  if (noncanonicalTestHooks?.enabled === true) {
+  if (noncanonicalTestHooks?.enabled === true
+    && (typeof noncanonicalTestHooks.lifecycleNow === "function"
+      || noncanonicalTestHooks.currentDate !== undefined)) {
     sampled = typeof noncanonicalTestHooks.lifecycleNow === "function"
       ? noncanonicalTestHooks.lifecycleNow()
       : noncanonicalTestHooks.currentDate;
@@ -279,6 +281,14 @@ function terminalReceipt(receipt) {
   return receipt?.status === "excluded" || receipt?.state === "EXCLUDED";
 }
 
+function candidateManifestProducer(noncanonicalTestHooks) {
+  if (noncanonicalTestHooks?.enabled === true
+    && typeof noncanonicalTestHooks.produceCandidateManifest === "function") {
+    return noncanonicalTestHooks.produceCandidateManifest;
+  }
+  return produceRouteIqNextStopCandidateManifest;
+}
+
 export async function orchestrateRouteIqProspectiveNextStop({
   stub,
   scopeEnvelope,
@@ -299,7 +309,7 @@ export async function orchestrateRouteIqProspectiveNextStop({
     const opportunity = canonicalOpportunity(context);
     stage = "candidate_manifest";
     const sourceArtifacts = await loadSourceArtifacts(assetOrigin, env);
-    const manifestResult = produceRouteIqNextStopCandidateManifest({
+    const manifestResult = candidateManifestProducer(noncanonicalTestHooks)({
       canonicalOpportunity: opportunity,
       sourceArtifacts,
       completedCandidateIds: context.completedCandidateIds,

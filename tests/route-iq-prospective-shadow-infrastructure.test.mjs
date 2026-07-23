@@ -25,8 +25,12 @@ import {
   routeIqFieldSessionStoreBinding
 } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
 import {
+  computeRouteIqCandidateManifestDigests,
   routeIqCandidateManifestSchemaVersion,
   routeIqCandidateProducerContractVersion,
+  routeIqCandidateProducerEnvelopeVersion,
+  routeIqCandidateSourceSchemaVersion,
+  routeIqCandidateSourceVersion,
   routeIqEvaluationContextSchemaVersion,
   routeIqFieldSessionOutcomeProjectionContractVersion,
   routeIqProspectiveCollectionDefault,
@@ -81,6 +85,7 @@ import {
   CloudflareRouteIqProspectiveSqliteRepository
 } from "../workers/infrastructure/route-iq-prospective-shadow-durable-object.js";
 import {
+  ROUTE_IQ_PROSPECTIVE_SOURCE_ARTIFACTS,
   linkRouteIqProspectiveServerAction,
   orchestrateRouteIqProspectiveNextStop
 } from "../workers/infrastructure/route-iq-prospective-shadow-orchestration.js";
@@ -91,6 +96,11 @@ import {
   computeRouteIqCommittedOutcomeSha256,
   deriveRouteIqScoreableOutcomeFromCommittedEvidence
 } from "../intelligence/route-iq-committed-outcome-evaluation.mjs";
+import {
+  produceRouteIqNextStopCandidateManifest,
+  shadowDecisionProspectiveDispositionSchemaVersion,
+  shadowDecisionRankingBasisVersion
+} from "../intelligence/shadow-decision-readiness-runtime.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const testNow = new Date("2026-07-13T20:00:00.000Z");
@@ -271,6 +281,298 @@ async function principalMap(subject, representativeId = "cruz") {
   });
 }
 
+const prospectiveCompatibilityFixtureVersion =
+  "route-iq-prospective-collection-on-compatibility-fixture-v1";
+const prospectiveCompatibilityAvailableAt = "2026-07-12T18:00:00.000Z";
+const prospectiveCompatibilityCandidates = Object.freeze([
+  Object.freeze({
+    id: "synthetic-field-account-alpha",
+    googlePlaceId: "ChIJRouteIqSyntheticAlpha001",
+    repProfileId: "cruz",
+    name: "Synthetic Field Account Alpha",
+    address: "Noncanonical fixture location alpha",
+    category: "Synthetic",
+    qualityScore: 90,
+    qualityReason: "Explicit isolated compatibility fixture",
+    sourceType: "SYNTHETIC_NONCANONICAL",
+    seedRouteOrder: 1
+  }),
+  Object.freeze({
+    id: "synthetic-field-account-beta",
+    googlePlaceId: "ChIJRouteIqSyntheticBeta002",
+    repProfileId: "cruz",
+    name: "Synthetic Field Account Beta",
+    address: "Noncanonical fixture location beta",
+    category: "Synthetic",
+    qualityScore: 60,
+    qualityReason: "Explicit isolated compatibility fixture",
+    sourceType: "SYNTHETIC_NONCANONICAL",
+    seedRouteOrder: 2
+  })
+]);
+
+function prospectiveCompatibilityProvenance(kind) {
+  return {
+    fixtureKind: "noncanonical_collection_on_compatibility",
+    fixtureVersion: prospectiveCompatibilityFixtureVersion,
+    dataClassification: "SYNTHETIC_NONCANONICAL",
+    approvalState: "APPROVED_SYNTHETIC_VALIDATION",
+    productionEvidenceEligible: false,
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    representativeId: "cruz",
+    sourceKind: kind,
+    availableAt: prospectiveCompatibilityAvailableAt
+  };
+}
+
+function buildProspectiveCompatibilityFixture() {
+  const runtimeRecords = prospectiveCompatibilityCandidates.map(candidate => ({ ...candidate }));
+  const activeRecords = prospectiveCompatibilityCandidates.map(candidate => ({
+    googlePlaceId: candidate.googlePlaceId,
+    runtimeProfiles: [{
+      repProfileId: candidate.repProfileId,
+      qualityScore: candidate.qualityScore,
+      seedRouteOrder: candidate.seedRouteOrder,
+      qualityClass: "Synthetic validation only"
+    }]
+  }));
+  const businessHoursRecords = prospectiveCompatibilityCandidates.map(candidate => ({
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    googlePlaceId: candidate.googlePlaceId,
+    businessTimezone: "America/Chicago",
+    sourceRetrievedAt: prospectiveCompatibilityAvailableAt,
+    hoursVerifiedAt: prospectiveCompatibilityAvailableAt,
+    hoursFreshnessStatus: "FRESH_SYNTHETIC_VALIDATION",
+    hoursConfidence: "HIGH",
+    currentOpenClosedEligibilityStatus: "OPEN_VERIFIED_SYNTHETIC",
+    currentStatusReasonCode: "SYNTHETIC_COMPATIBILITY_WINDOW",
+    currentStatusReason: "Noncanonical compatibility fixture only.",
+    currentStatusEvaluatedAt: "2026-07-13T20:00:00.000Z"
+  }));
+  const bodies = {
+    activePool: {
+      provenance: prospectiveCompatibilityProvenance("activePool"),
+      sourceDatasetVersion: "synthetic-route-iq-compatibility-v1",
+      segmentationVersion: "synthetic-approved-segmentation-v1",
+      pool: "active",
+      count: activeRecords.length,
+      records: activeRecords
+    },
+    fullPool: {
+      provenance: prospectiveCompatibilityProvenance("fullPool"),
+      dataset_version: "synthetic-route-iq-compatibility-v1",
+      cruz: runtimeRecords,
+      anthony: []
+    },
+    quarantinePool: {
+      provenance: prospectiveCompatibilityProvenance("quarantinePool"),
+      sourceDatasetVersion: "synthetic-route-iq-compatibility-v1",
+      segmentationVersion: "synthetic-approved-segmentation-v1",
+      pool: "quarantine",
+      count: 0,
+      records: []
+    },
+    businessHours: {
+      provenance: prospectiveCompatibilityProvenance("businessHours"),
+      schemaVersion: "prometheus-data-business-hours-v1",
+      artifactVersion: "synthetic-business-hours-v1",
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      recordCount: businessHoursRecords.length,
+      records: businessHoursRecords
+    }
+  };
+  const rawByKind = Object.fromEntries(
+    Object.entries(bodies).map(([kind, value]) => [kind, JSON.stringify(value, null, 2)])
+  );
+  return Object.freeze({
+    bodies: Object.freeze(bodies),
+    rawByKind: Object.freeze(rawByKind),
+    runtimePools: bodies.fullPool,
+    activePool: bodies.activePool,
+    businessHours: bodies.businessHours
+  });
+}
+
+const prospectiveCompatibilityFixture = buildProspectiveCompatibilityFixture();
+
+function prospectiveCompatibilityAssets() {
+  const rawByPath = new Map(Object.entries(ROUTE_IQ_PROSPECTIVE_SOURCE_ARTIFACTS)
+    .map(([kind, path]) => [path, prospectiveCompatibilityFixture.rawByKind[kind]]));
+  return {
+    async fetch(request) {
+      const pathname = new URL(request.url).pathname.replace(/^\/+/, "");
+      const rawText = rawByPath.get(pathname);
+      return rawText === undefined
+        ? new Response("Not found", { status: 404 })
+        : new Response(rawText, {
+          status: 200,
+          headers: { "Content-Type": "application/json; charset=utf-8" }
+        });
+    }
+  };
+}
+
+function productionCandidateSourceArtifacts() {
+  return Object.fromEntries(Object.entries(ROUTE_IQ_PROSPECTIVE_SOURCE_ARTIFACTS)
+    .map(([kind, path]) => [kind, {
+      path,
+      rawText: readFileSync(join(root, path), "utf8")
+    }]));
+}
+
+function parseProspectiveCompatibilitySources(sourceArtifacts) {
+  assert.deepEqual(
+    Object.keys(sourceArtifacts).sort(),
+    Object.keys(ROUTE_IQ_PROSPECTIVE_SOURCE_ARTIFACTS).sort()
+  );
+  return Object.fromEntries(Object.entries(ROUTE_IQ_PROSPECTIVE_SOURCE_ARTIFACTS)
+    .map(([kind, path]) => {
+      const source = sourceArtifacts[kind];
+      assert.equal(source.path, path);
+      assert.equal(source.rawText, prospectiveCompatibilityFixture.rawByKind[kind]);
+      const value = JSON.parse(source.rawText);
+      assert.deepEqual(value.provenance, prospectiveCompatibilityProvenance(kind));
+      return [kind, {
+        path,
+        rawText: source.rawText,
+        value,
+        sourceRecordSha256: digest(source.rawText),
+        sourceRecordId: `riq_source_${digest(`${path}|${digest(source.rawText)}`)}`
+      }];
+    }));
+}
+
+function produceProspectiveCompatibilityCandidateManifest(input) {
+  assert.deepEqual(Object.keys(input).sort(), [
+    "canonicalOpportunity",
+    "completedCandidateIds",
+    "eligibilityEvaluatedAt",
+    "evidenceCutoff",
+    "sourceArtifacts",
+    "targetSize"
+  ]);
+  assert.deepEqual(input.canonicalOpportunity.scope, scope());
+  assert.equal(input.canonicalOpportunity.recordOrigin, "prospective");
+  assert.equal(input.canonicalOpportunity.opportunityType, "next_stop");
+  assert.equal(input.canonicalOpportunity.canonicalContext.territoryId, territoryContext().territoryId);
+  assert.equal(input.targetSize, 15);
+  assert.equal(Array.isArray(input.completedCandidateIds), true);
+  const evaluatedAt = new Date(input.eligibilityEvaluatedAt);
+  const evidenceCutoff = new Date(input.evidenceCutoff);
+  assert.equal(Number.isNaN(evaluatedAt.getTime()), false);
+  assert.equal(Number.isNaN(evidenceCutoff.getTime()), false);
+  assert.equal(evaluatedAt.getTime() < evidenceCutoff.getTime(), true);
+
+  const sources = parseProspectiveCompatibilitySources(input.sourceArtifacts);
+  const territorySourceRecord = {
+    sourceRecordId: `riq_source_${digest([
+      input.canonicalOpportunity.canonicalContext.territoryId,
+      input.canonicalOpportunity.territorySource.sourceRecordSha256,
+      input.canonicalOpportunity.territorySource.sourceContractVersion
+    ].join("|"))}`,
+    sourceSchemaVersion: routeIqCandidateSourceSchemaVersion,
+    sourceVersion: routeIqCandidateSourceVersion,
+    sourceRecordSha256: input.canonicalOpportunity.territorySource.sourceRecordSha256,
+    availableAt: input.canonicalOpportunity.territorySource.availableAt
+  };
+  const sourceManifest = [
+    territorySourceRecord,
+    ...Object.values(sources).map(source => ({
+      sourceRecordId: source.sourceRecordId,
+      sourceSchemaVersion: routeIqCandidateSourceSchemaVersion,
+      sourceVersion: routeIqCandidateSourceVersion,
+      sourceRecordSha256: source.sourceRecordSha256,
+      availableAt: source.value.provenance.availableAt
+    }))
+  ].sort((left, right) => left.sourceRecordId.localeCompare(right.sourceRecordId));
+  const sourceRecordIds = sourceManifest.map(source => source.sourceRecordId);
+  const completed = new Set(input.completedCandidateIds);
+  const selected = prospectiveCompatibilityCandidates
+    .filter(candidate => !completed.has(
+      deriveRouteIqCandidateIdFromGooglePlaceId(candidate.googlePlaceId)
+    ))
+    .slice(0, input.targetSize);
+  if (!selected.length) {
+    const exclusion = {
+      schemaVersion: shadowDecisionProspectiveDispositionSchemaVersion,
+      disposition: "EXCLUDED",
+      opportunityId: input.canonicalOpportunity.opportunityId,
+      reasonCodes: ["candidate_set_empty_after_governed_exclusions"],
+      canonicalProductionEvidenceEligible: false,
+      recommendationInfluence: "OFF"
+    };
+    return {
+      ...exclusion,
+      exclusionRecordSha256: digest(JSON.stringify(exclusion))
+    };
+  }
+  const totalScore = selected.reduce((total, candidate) => total + candidate.qualityScore, 0);
+  const candidates = selected.map((candidate, index) => ({
+    candidateId: deriveRouteIqCandidateIdFromGooglePlaceId(candidate.googlePlaceId),
+    sourceRecordIds,
+    eligibility: {
+      status: "eligible",
+      reasonCodes: [
+        "explicit_noncanonical_compatibility_fixture",
+        "synthetic_approved_candidate",
+        "territory_permitted"
+      ].sort(),
+      evaluatedAt: evaluatedAt.toISOString()
+    },
+    rankingContext: {
+      producerSubsystem: "Prometheus Intelligence Engine",
+      ordinal: index + 1,
+      probability: candidate.qualityScore / totalScore,
+      basisVersion: shadowDecisionRankingBasisVersion
+    }
+  }));
+  const digestInput = {
+    territoryId: input.canonicalOpportunity.canonicalContext.territoryId,
+    evidenceCutoff: evidenceCutoff.toISOString(),
+    envelopeVersion: routeIqCandidateProducerEnvelopeVersion,
+    producerSubsystem: "Prometheus Intelligence Engine",
+    producerContractVersion: routeIqCandidateProducerContractVersion,
+    schemaVersion: routeIqCandidateManifestSchemaVersion,
+    dataProjectionVersion: routeIqChronologicalEvidenceProjectionVersion,
+    candidates,
+    sourceManifest
+  };
+  const digests = computeRouteIqCandidateManifestDigests(digestInput);
+  const producerClaims = {
+    purpose: "candidate_manifest",
+    ...input.canonicalOpportunity.scope,
+    ...input.canonicalOpportunity.canonicalContext,
+    ...digestInput,
+    candidateCount: digests.candidateCount,
+    sourceCount: digests.sourceCount,
+    candidateManifestSha256: digests.candidateManifestSha256,
+    sourceManifestSha256: digests.sourceManifestSha256,
+    completeManifestSha256: digests.completeManifestSha256
+  };
+  return {
+    schemaVersion: shadowDecisionProspectiveDispositionSchemaVersion,
+    disposition: "MANIFEST_READY",
+    opportunityId: input.canonicalOpportunity.opportunityId,
+    producerClaims,
+    operationExpectations: {
+      expectedCandidateCount: digests.candidateCount,
+      expectedSourceCount: digests.sourceCount,
+      expectedCompleteManifestSha256: digests.completeManifestSha256
+    },
+    governedAudit: {
+      fixtureKind: "noncanonical_collection_on_compatibility",
+      fixtureVersion: prospectiveCompatibilityFixtureVersion,
+      canonicalProductionEvidenceEligible: false,
+      recommendationInfluence: "OFF"
+    },
+    canonicalProductionEvidenceEligible: false,
+    recommendationInfluence: "OFF"
+  };
+}
+
 async function accessFixture({
   mappedRepresentativeId = "cruz",
   cohortRepresentativeId = "cruz",
@@ -338,7 +640,7 @@ async function accessFixture({
     [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.accessTeamDomain]: testIssuer,
     [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.accessAudience]: accessAudience,
     [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.principalMap]: await principalMap(subject, mappedRepresentativeId),
-    ASSETS: fieldSessionAssets(),
+    ASSETS: prospectiveCompatibilityAssets(),
     [ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING]: {
       getByName(name) {
         calls.push("do_lookup");
@@ -530,6 +832,7 @@ async function accessFixture({
   const noncanonicalTestHooks = {
     enabled: true,
     currentDate: testNow,
+    produceCandidateManifest: produceProspectiveCompatibilityCandidateManifest,
     readNoncanonicalDataRetentionAdmission(input) {
       return readNoncanonicalDataRetentionAdmission(input, env);
     },
@@ -1440,6 +1743,78 @@ test("bootstrap fails closed for invalid path, expired Access, and unauthorized 
   }
 });
 
+test("pending production roster excludes while the isolated producer requires an explicit enabled hook", async () => {
+  const activePool = JSON.parse(readFileSync(join(
+    root,
+    ROUTE_IQ_PROSPECTIVE_SOURCE_ARTIFACTS.activePool
+  ), "utf8"));
+  assert.equal(activePool.approvalState, "PENDING_FOUNDER_APPROVAL");
+  assert.equal(activePool.approvedRecordCount, 0);
+  assert.equal(activePool.count, 0);
+  assert.deepEqual(activePool.records, []);
+
+  const canonicalContext = {
+    territoryId: territoryContext().territoryId,
+    canonicalSessionRecordSha256: digest("pending-production-session"),
+    sessionEventSequence: 0,
+    opportunityEventSequence: 0,
+    triggerRecordSha256: digest("pending-production-trigger")
+  };
+  const productionResult = produceRouteIqNextStopCandidateManifest({
+    canonicalOpportunity: {
+      opportunityId: `riq_opportunity_${digest("pending-production-opportunity")}`,
+      opportunityType: "next_stop",
+      recordOrigin: "prospective",
+      scope: scope(),
+      canonicalContext,
+      territorySource: {
+        sourceRecordSha256: territoryContext().sourceRecordSha256,
+        sourceContractVersion: territoryContext().sourceContractVersion,
+        availableAt: territoryContext().availableAt
+      }
+    },
+    sourceArtifacts: productionCandidateSourceArtifacts(),
+    completedCandidateIds: [],
+    eligibilityEvaluatedAt: "2026-07-23T12:00:00.500Z",
+    evidenceCutoff: "2026-07-23T12:00:01.000Z",
+    targetSize: 15
+  });
+  assert.equal(productionResult.disposition, "EXCLUDED");
+  assert.equal(productionResult.canonicalProductionEvidenceEligible, false);
+
+  const fixture = await accessFixture();
+  const scopeEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
+    purpose: "coordinator_scope",
+    ...scope(),
+    registryVersion: "noncanonical-test-registry-v1",
+    issuedAt: testNow.toISOString(),
+    territoryContext: territoryContext()
+  }, fixture.env);
+  const stub = fixture.env[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING].getByName(
+    "disabled-producer-hook-regression"
+  );
+  const allocationReceipt = await stub.allocateNextStopOpportunity({
+    scopeEnvelope,
+    event: { eventKind: "next_stop_requested" }
+  });
+  const ignoredHookResult = await orchestrateRouteIqProspectiveNextStop({
+    stub,
+    scopeEnvelope,
+    scope: scope(),
+    allocationReceipt,
+    assetOrigin: "https://private.invalid/",
+    env: fixture.env,
+    noncanonicalTestHooks: {
+      produceCandidateManifest() {
+        throw new Error("disabled noncanonical producer hook executed");
+      }
+    }
+  });
+  assert.deepEqual(ignoredHookResult, { status: "excluded" });
+  assert.equal(fixture.calls.includes("candidate_manifest_rpc"), false);
+  assert.equal(fixture.calls.includes("runtime_exclusion_rpc"), true);
+});
+
 test("valid Access precedes scope-only allocation and returns only opaque acknowledgments", async () => {
   const fixture = await accessFixture();
   const allocationContext = executionContextFixture();
@@ -1534,7 +1909,11 @@ test("production lifecycle samples server Date at every stage and ignores stale 
     scope: scope(),
     allocationReceipt,
     assetOrigin: "https://private.invalid/",
-    env: fixture.env
+    env: fixture.env,
+    noncanonicalTestHooks: {
+      enabled: true,
+      produceCandidateManifest: produceProspectiveCompatibilityCandidateManifest
+    }
   });
   const after = Date.now();
   assert.deepEqual(result, { status: "shadow_decision_sealed" });
@@ -2653,6 +3032,20 @@ function miniflareStub(miniflare, instanceName) {
   });
 }
 
+function miniflareCompatibilityLifecycleHooks(allocationReceipt) {
+  const allocationTime = Date.parse(allocationReceipt.authoritativeRecordTime);
+  assert.equal(Number.isFinite(allocationTime), true);
+  let sequence = 0;
+  return {
+    enabled: true,
+    lifecycleNow() {
+      sequence += 1;
+      return new Date(allocationTime + sequence);
+    },
+    produceCandidateManifest: produceProspectiveCompatibilityCandidateManifest
+  };
+}
+
 async function miniflareRuntimeContext(miniflare, instanceName, env, scopeEnvelope, at) {
   const authorityEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
     purpose: "runtime_context_read",
@@ -2670,7 +3063,7 @@ async function miniflareRuntimeContext(miniflare, instanceName, env, scopeEnvelo
 test("real Miniflare seals the complete Intelligence lifecycle, links action, and persists restart state", async () => {
   const persistencePath = mkdtempSync(join(tmpdir(), "prometheus-route-iq-lifecycle-do-"));
   const authority = authorityEnv();
-  const runtimeEnv = { ...authority, ASSETS: fieldSessionAssets() };
+  const runtimeEnv = { ...authority, ASSETS: prospectiveCompatibilityAssets() };
   const instanceName = `noncanonical-lifecycle-${randomUUID()}`;
   const scopeEnvelope = await scopeEnvelopeFor(authority);
   const allocationCommand = {
@@ -2700,10 +3093,7 @@ test("real Miniflare seals the complete Intelligence lifecycle, links action, an
       allocationReceipt: left.body.result,
       assetOrigin: "https://private.invalid/",
       env: runtimeEnv,
-      noncanonicalTestHooks: {
-        enabled: true,
-        currentDate: new Date(left.body.result.authoritativeRecordTime)
-      }
+      noncanonicalTestHooks: miniflareCompatibilityLifecycleHooks(left.body.result)
     });
     assert.deepEqual(sealed, { status: "shadow_decision_sealed" });
     const action = await linkRouteIqProspectiveServerAction({
@@ -2811,7 +3201,7 @@ test("real Miniflare records governed exclusions for action before seal and sour
 test("real Miniflare reconciles an exact committed PII-free field-session projection", async () => {
   const persistencePath = mkdtempSync(join(tmpdir(), "prometheus-route-iq-reconciliation-do-"));
   const authority = authorityEnv();
-  const runtimeEnv = { ...authority, ASSETS: fieldSessionAssets() };
+  const runtimeEnv = { ...authority, ASSETS: prospectiveCompatibilityAssets() };
   const instanceName = `noncanonical-reconciliation-${randomUUID()}`;
   const scopeEnvelope = await scopeEnvelopeFor(authority);
   const miniflare = createMiniflare(authority, persistencePath);
@@ -2828,10 +3218,7 @@ test("real Miniflare reconciles an exact committed PII-free field-session projec
       allocationReceipt: allocation.body.result,
       assetOrigin: "https://private.invalid/",
       env: runtimeEnv,
-      noncanonicalTestHooks: {
-        enabled: true,
-        currentDate: new Date(allocation.body.result.authoritativeRecordTime)
-      }
+      noncanonicalTestHooks: miniflareCompatibilityLifecycleHooks(allocation.body.result)
     });
     const action = await linkRouteIqProspectiveServerAction({
       stub,
@@ -2841,10 +3228,7 @@ test("real Miniflare reconciles an exact committed PII-free field-session projec
       authoritativeRecordTime: new Date(testNow.getTime() + 100).toISOString(),
       env: runtimeEnv
     });
-    const runtimePools = JSON.parse(readFileSync(join(
-      root,
-      "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
-    ), "utf8"));
+    const runtimePools = prospectiveCompatibilityFixture.runtimePools;
     const selected = runtimePools.cruz.find(record =>
       deriveRouteIqCandidateIdFromGooglePlaceId(record.googlePlaceId) === action.selectedCandidateId);
     assert.ok(selected, "rank-one action must resolve to the governed runtime pool");
@@ -2886,14 +3270,8 @@ test("real Miniflare reconciles an exact committed PII-free field-session projec
       }]
     });
     const store = fieldSessionStore();
-    const activePool = JSON.parse(readFileSync(join(
-      root,
-      "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json"
-    ), "utf8"));
-    const businessHours = JSON.parse(readFileSync(join(
-      root,
-      "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json"
-    ), "utf8"));
+    const activePool = prospectiveCompatibilityFixture.activePool;
+    const businessHours = prospectiveCompatibilityFixture.businessHours;
     const handoff = await consumeRouteIqEndOfDayHandoff({
       handoffContractId: routeIqEndOfDayHandoffContractId,
       producerSubsystem: "Prometheus Dashboard",
@@ -2958,7 +3336,7 @@ test("real Miniflare reconciles an exact committed PII-free field-session projec
 test("real Miniflare restart processes two same-session reconciliation links against their own exact projections", async () => {
   const persistencePath = mkdtempSync(join(tmpdir(), "prometheus-route-iq-two-link-restart-do-"));
   const authority = authorityEnv();
-  const runtimeEnv = { ...authority, ASSETS: fieldSessionAssets() };
+  const runtimeEnv = { ...authority, ASSETS: prospectiveCompatibilityAssets() };
   const instanceName = `noncanonical-two-link-restart-${randomUUID()}`;
   let firstAllocation;
   let secondAllocation;
@@ -2979,10 +3357,7 @@ test("real Miniflare restart processes two same-session reconciliation links aga
       allocationReceipt: firstAllocation,
       assetOrigin: "https://private.invalid/",
       env: runtimeEnv,
-      noncanonicalTestHooks: {
-        enabled: true,
-        currentDate: new Date(firstAllocation.authoritativeRecordTime)
-      }
+      noncanonicalTestHooks: miniflareCompatibilityLifecycleHooks(firstAllocation)
     });
     const firstAction = await linkRouteIqProspectiveServerAction({
       stub,
@@ -3004,10 +3379,7 @@ test("real Miniflare restart processes two same-session reconciliation links aga
       allocationReceipt: secondAllocation,
       assetOrigin: "https://private.invalid/",
       env: runtimeEnv,
-      noncanonicalTestHooks: {
-        enabled: true,
-        currentDate: new Date(secondAllocation.authoritativeRecordTime)
-      }
+      noncanonicalTestHooks: miniflareCompatibilityLifecycleHooks(secondAllocation)
     });
     const secondAction = await linkRouteIqProspectiveServerAction({
       stub,
@@ -3018,10 +3390,7 @@ test("real Miniflare restart processes two same-session reconciliation links aga
       env: runtimeEnv
     });
 
-    const runtimePools = JSON.parse(readFileSync(join(
-      root,
-      "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
-    ), "utf8"));
+    const runtimePools = prospectiveCompatibilityFixture.runtimePools;
     const firstSelected = runtimePools.cruz.find(record =>
       deriveRouteIqCandidateIdFromGooglePlaceId(record.googlePlaceId) === firstAction.selectedCandidateId);
     const secondSelected = runtimePools.cruz.find(record =>
@@ -3095,14 +3464,8 @@ test("real Miniflare restart processes two same-session reconciliation links aga
         }
       ]
     });
-    const activePool = JSON.parse(readFileSync(join(
-      root,
-      "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json"
-    ), "utf8"));
-    const businessHours = JSON.parse(readFileSync(join(
-      root,
-      "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json"
-    ), "utf8"));
+    const activePool = prospectiveCompatibilityFixture.activePool;
+    const businessHours = prospectiveCompatibilityFixture.businessHours;
     const handoff = await consumeRouteIqEndOfDayHandoff({
       handoffContractId: routeIqEndOfDayHandoffContractId,
       producerSubsystem: "Prometheus Dashboard",
