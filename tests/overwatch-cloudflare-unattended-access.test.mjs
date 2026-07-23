@@ -41,6 +41,7 @@ test("Overwatch independently verifies the source runtime guard and held deploym
     "99457bcda1abed536cc06585492d29f5ac500f05"
   ]);
   assert.equal(result.currentOwnerSuccessorMappings, 5);
+  assert.match(result.historicalEvidenceCommit, /^[a-f0-9]{40}$/u);
   assert.equal(result.setupStatus, "NOT_CONFIGURED");
   assert.equal(result.repositorySecretFindings, 0);
   assert.equal(result.unattendedDeploymentReady, false);

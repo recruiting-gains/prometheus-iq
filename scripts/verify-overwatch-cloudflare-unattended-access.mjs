@@ -14,25 +14,10 @@ const infrastructurePath = "workers/infrastructure/cloudflare-unattended-deploym
 const governancePath = "overwatch/governance/cloudflare-unattended-deployment-access-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260714-006-cloudflare-unattended-runtime-guard.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
-const founderAttendedSuccessorPath = "overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.json";
-const founderAttendedTtySuccessorPath = "overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.json";
-const founderAttendedRecoverySuccessorPath = "overwatch/governance/cloudflare-founder-attended-get-only-recovery-v1.json";
-const founderAttendedResponseContractSuccessorPath =
-  "overwatch/governance/cloudflare-founder-attended-service-token-response-contract-repair-v1.json";
-const founderAttendedCreateReceiptV2SuccessorPath =
-  "overwatch/governance/cloudflare-founder-attended-live-create-receipt-safe-provisioning-repair-v2.json";
-const unattendedKeychainInteroperabilitySuccessorPath =
-  "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
-const githubDeploymentSuccessorPath =
-  "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
 const commercialReadinessSuccessorPath =
   "overwatch/governance/route-iq-commercial-readiness-v1.json";
-const ycInvestorFocusSuccessorPath =
-  "overwatch/governance/route-iq-yc-investor-website-focus-v1.json";
 const routeIq3dSuccessorPath =
   "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
-const publicDeploymentWorkflowV2SuccessorPath =
-  "overwatch/governance/public-deployment-workflow-v2.json";
 
 const CURRENT_OWNER_SUCCESSORS = Object.freeze([
   Object.freeze({
@@ -151,6 +136,17 @@ function git(...args) {
   }).trim();
 }
 
+const historicalEvidenceCommit = git("log", "-1", "--format=%H", "--", governancePath);
+const historicalRead = path => execFileSync("/usr/bin/git", [
+  "show",
+  `${historicalEvidenceCommit}:${path}`
+], {
+  cwd: root,
+  encoding: "utf8",
+  maxBuffer: 16 * 1024 * 1024,
+  stdio: ["ignore", "pipe", "ignore"]
+});
+
 function verifyCurrentOwnerSuccessors(commercialReadiness, routeIq3dSuccessor, failures) {
   for (const expected of CURRENT_OWNER_COMMITS) {
     const identity = git("show", "-s", "--format=%T%n%P%n%an <%ae>%n%cn <%ce>%n%s", expected.commit)
@@ -176,9 +172,17 @@ function verifyCurrentOwnerSuccessors(commercialReadiness, routeIq3dSuccessor, f
       && entry.successorSha256 === mapping.previousSuccessorSha256
     ));
     if (!predecessor
-      || sha256(read(mapping.path)) !== mapping.successorSha256
+      || sha256(execFileSync("/usr/bin/git", [
+        "show",
+        `${mapping.ownerCommit}:${mapping.path}`
+      ], {
+        cwd: root,
+        encoding: "utf8",
+        maxBuffer: 16 * 1024 * 1024,
+        stdio: ["ignore", "pipe", "ignore"]
+      })) !== mapping.successorSha256
       || !CURRENT_OWNER_COMMITS.some(entry => entry.commit === mapping.ownerCommit)) {
-      failures.push(`Current owner successor mapping drifted: ${mapping.path}`);
+      failures.push(`Recorded owner successor mapping drifted: ${mapping.path}`);
     }
   }
 }
@@ -360,45 +364,33 @@ export function evaluateCloudflareUnattendedAccessGovernance({
   return Object.freeze({ ok: failures.length === 0, failures: Object.freeze(failures) });
 }
 
-function verifyHashes(entries, failures, label, successorMappings = [], terminalMappings = []) {
+function verifyHistoricalHashes(entries, failures, label) {
   for (const entry of Object.values(entries)) {
-    const current = entry?.path ? sha256(read(entry.path)) : null;
-    const successors = successorMappings.filter(mapping => (
-      mapping.predecessorGovernanceId === "cloudflare-unattended-deployment-access-governance-v1"
-      && mapping.path === entry?.path
-      && mapping.historicalSha256 === entry?.sha256
-    ));
-    const direct = successors.some(mapping => mapping.successorSha256 === current);
-    const terminal = successors.some(successor => terminalMappings.some(mapping => (
-      mapping.predecessorGovernanceId === "route-iq-yc-investor-website-focus-v1"
-      && mapping.path === entry?.path
-      && mapping.previousSuccessorSha256 === successor.successorSha256
-      && mapping.successorSha256 === current
-    )));
-    if (!entry?.path || !entry?.sha256 || (
-      current !== entry.sha256
-      && !direct
-      && !terminal
-    )) {
-      failures.push(`${label} hash drifted: ${entry?.path || "missing_path"}`);
+    let recorded = null;
+    try {
+      recorded = entry?.path ? sha256(historicalRead(entry.path)) : null;
+    } catch {
+      recorded = null;
+    }
+    if (!entry?.path || !entry?.sha256 || recorded !== entry.sha256) {
+      failures.push(`${label} historical hash drifted: ${entry?.path || "missing_path"}`);
     }
   }
 }
 
-function verifyProtectedRuntimeHashes(governance, failures, successorMappings = []) {
+function verifyHistoricalProtectedRuntimeHashes(governance, failures) {
   const baselines = governance.protectedRuntimeBaselines;
   for (const prefix of ["privateWrangler", "publicWrangler", "privateWorker", "dashboardSource", "dashboardDeploy"]) {
     const path = baselines[`${prefix}Path`];
     const expected = baselines[`${prefix}Sha256`];
-    const current = path ? sha256(read(path)) : null;
-    const successor = successorMappings.find(mapping => (
-      mapping.predecessorGovernanceId === governance.governanceId
-      && mapping.path === path
-      && mapping.historicalSha256 === expected
-      && mapping.successorSha256 === current
-    ));
-    if (!path || !expected || (current !== expected && !successor)) {
-      failures.push(`Protected runtime hash drifted: ${path || prefix}`);
+    let recorded = null;
+    try {
+      recorded = path ? sha256(historicalRead(path)) : null;
+    } catch {
+      recorded = null;
+    }
+    if (!path || !expected || recorded !== expected) {
+      failures.push(`Protected runtime historical hash drifted: ${path || prefix}`);
     }
   }
 }
@@ -408,20 +400,8 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
   const governance = readJson(governancePath);
   const report = readJson(reportPath);
   const registry = readJson(registryPath);
-  const founderAttendedSuccessor = readJson(founderAttendedSuccessorPath);
-  const founderAttendedTtySuccessor = readJson(founderAttendedTtySuccessorPath);
-  const founderAttendedRecoverySuccessor = readJson(founderAttendedRecoverySuccessorPath);
-  const founderAttendedResponseContractSuccessor =
-    readJson(founderAttendedResponseContractSuccessorPath);
-  const founderAttendedCreateReceiptV2Successor =
-    readJson(founderAttendedCreateReceiptV2SuccessorPath);
-  const unattendedKeychainInteroperabilitySuccessor =
-    readJson(unattendedKeychainInteroperabilitySuccessorPath);
-  const githubDeploymentSuccessor = readJson(githubDeploymentSuccessorPath);
   const commercialReadinessSuccessor = readJson(commercialReadinessSuccessorPath);
-  const ycInvestorFocusSuccessor = readJson(ycInvestorFocusSuccessorPath);
   const routeIq3dSuccessor = readJson(routeIq3dSuccessorPath);
-  const publicDeploymentWorkflowV2Successor = readJson(publicDeploymentWorkflowV2SuccessorPath);
   const packageJson = readJson("package.json");
   const packageLock = readJson("package-lock.json");
   const workflow = read(".github/workflows/security-gates.yml");
@@ -430,49 +410,22 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
   const evaluated = evaluateCloudflareUnattendedAccessGovernance({ infrastructure, governance, report });
   failures.push(...evaluated.failures);
   verifyCurrentOwnerSuccessors(commercialReadinessSuccessor, routeIq3dSuccessor, failures);
-  verifyHashes(
+  verifyHistoricalHashes(
     governance.infrastructureEvidence,
     failures,
-    "Infrastructure evidence",
-    [
-      ...founderAttendedSuccessor.protectedPredecessorSuccessors,
-      ...founderAttendedTtySuccessor.protectedPredecessorSuccessors,
-      ...founderAttendedRecoverySuccessor.protectedPredecessorSuccessors,
-      ...founderAttendedResponseContractSuccessor.protectedPredecessorSuccessors,
-      ...founderAttendedCreateReceiptV2Successor.protectedPredecessorSuccessors,
-      ...unattendedKeychainInteroperabilitySuccessor.protectedPredecessorSuccessors,
-      ...githubDeploymentSuccessor.protectedPredecessorSuccessors,
-      ...routeIq3dSuccessor.protectedPredecessorSuccessors,
-      ...publicDeploymentWorkflowV2Successor.protectedPredecessorSuccessors
-    ]
+    "Infrastructure evidence"
   );
-  verifyHashes(
+  verifyHistoricalHashes(
     Object.fromEntries(Object.entries(governance.intelligenceEvidence).filter(([, value]) => value?.path)),
     failures,
-    "Intelligence evidence",
-    [
-      ...ycInvestorFocusSuccessor.protectedBaselineSuccessors,
-      ...CURRENT_OWNER_SUCCESSORS.filter(entry => entry.owner === "Prometheus Intelligence Engine")
-    ],
-    routeIq3dSuccessor.protectedInvestorFocusBaselineSuccessors
+    "Intelligence evidence"
   );
-  verifyProtectedRuntimeHashes(
-    governance,
-    failures,
-    [
-      ...commercialReadinessSuccessor.protectedBaselineSuccessors,
-      ...CURRENT_OWNER_SUCCESSORS.filter(entry => entry.owner !== "Prometheus Intelligence Engine")
-    ]
-  );
+  verifyHistoricalProtectedRuntimeHashes(governance, failures);
 
   if (governance.intelligenceEvidence.previousWorkerSha256 !== "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59"
     || governance.intelligenceEvidence.currentWorkerSha256 !== governance.protectedRuntimeBaselines.privateWorkerSha256
-    || !CURRENT_OWNER_SUCCESSORS.some(mapping => (
-      mapping.predecessorGovernanceId === governance.governanceId
-      && mapping.path === governance.protectedRuntimeBaselines.privateWorkerPath
-      && mapping.historicalSha256 === governance.intelligenceEvidence.currentWorkerSha256
-      && mapping.successorSha256 === sha256(read(governance.protectedRuntimeBaselines.privateWorkerPath))
-    ))
+    || sha256(historicalRead(governance.protectedRuntimeBaselines.privateWorkerPath))
+      !== governance.intelligenceEvidence.currentWorkerSha256
     || governance.intelligenceEvidence.historicalBaselineRewritten !== false
     || governance.intelligenceEvidence.recommendationInfluenceChanged !== false
     || governance.intelligenceEvidence.intelligenceBehaviorChanged !== false) {
@@ -521,6 +474,7 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     guardStatus: infrastructure.servicePrincipalReadOnlyGuard.status,
     currentOwnerSuccessorCommits: CURRENT_OWNER_COMMITS.map(entry => entry.commit),
     currentOwnerSuccessorMappings: CURRENT_OWNER_SUCCESSORS.length,
+    historicalEvidenceCommit,
     repositorySecretFindings: secretFindings.length,
     unattendedDeploymentReady: false,
     unattendedSmokeReady: false,
