@@ -46,8 +46,8 @@ export const defaultPaths = {
   workspaceBusinessManifestRegistry: "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json"
 };
 
-const expectedRuntimeFileCount = 32;
-const expectedDashboardFetchCount = 10;
+const expectedRuntimeFileCount = 33;
+const expectedDashboardFetchCount = 5;
 const christianBrothersPlaceId = "ChIJiduac7LCQIYR-sGBtIAjKR0";
 
 const dashboardCategories = new Set([
@@ -490,10 +490,13 @@ export function buildBusinessHoursQualityEvidence({
   const dataRegistration = registrations.fitness_connection_business_hours_data_contract;
   const requiredReadPaths = [
     defaultPaths.businessHoursIntelligenceContract,
-    defaultPaths.businessHoursDataContract,
-    defaultPaths.businessHoursArtifact
+    defaultPaths.businessHoursArtifact,
+    defaultPaths.workspaceBusinessManifestRegistry
   ];
-  const allowedReadPaths = fitnessWorkspace?.consumerContracts?.intelligence?.allowedReadPaths || [];
+  const allowedReadPaths = Object.values(fitnessIntelligenceContract.canonicalPaths || {});
+  const intelligenceSubsystem = "Prometheus Intelligence Engine";
+  const dataContractReadAllowed = dataRegistration?.readAllowed?.includes(intelligenceSubsystem) === true;
+  const dataContractWriteAllowed = dataRegistration?.writeAllowed?.includes(intelligenceSubsystem) === true;
   const canonicalIdentifier = consumerContract.version;
   const workspaceId = "fitness_connection";
   const operatingProfileId = "fitness";
@@ -518,9 +521,11 @@ export function buildBusinessHoursQualityEvidence({
   check(consumerContract.compatibility?.supersedesRuntimeVersion === legacyBusinessHoursRuntimeVersion, "business_hours_legacy_runtime_not_superseded");
   check(consumerContract.compatibility?.supersedesContractVersion === legacyBusinessHoursContractVersion, "business_hours_legacy_contract_not_superseded");
   check(consumerRegistration?.path === defaultPaths.businessHoursIntelligenceContract, "business_hours_consumer_canonical_path_mismatch");
-  check(consumerRegistration?.linkedDataContractId === dataContract.contractId, "business_hours_consumer_data_contract_unlinked");
   check(dataRegistration?.path === defaultPaths.businessHoursDataContract, "business_hours_data_contract_canonical_path_mismatch");
+  check(dataContract.authorizationMetadata?.authorizedConsumerContractId === canonicalIdentifier, "business_hours_data_authorization_identifier_mismatch");
   check(dataContract.authorizationMetadata?.authorizedConsumerContractPath === defaultPaths.businessHoursIntelligenceContract, "business_hours_data_authorization_path_mismatch");
+  check(dataContractReadAllowed, "business_hours_consumer_data_contract_unlinked");
+  check(!dataContractWriteAllowed, "business_hours_access_not_read_only");
   check(dataContract.canonicalArtifacts?.businessHoursArtifact === defaultPaths.businessHoursArtifact, "business_hours_dataset_path_mismatch");
   check(consumerContract.dataContract?.manifestRegistry === defaultPaths.workspaceBusinessManifestRegistry, "business_hours_manifest_registry_path_mismatch");
   check(consumerContract.dataContract?.manifestVersion === workspaceBusinessManifestRegistry?.schemaVersion, "business_hours_manifest_version_mismatch");
@@ -539,17 +544,24 @@ export function buildBusinessHoursQualityEvidence({
   check(activePool.sourceArtifactSha256 === workspaceManifest?.artifactSha256, "business_hours_active_pool_artifact_hash_mismatch");
   check(activePool.dataClassification === workspaceManifest?.classification, "business_hours_active_pool_classification_mismatch");
   check(activePool.approvalState === workspaceManifest?.approvalState, "business_hours_active_pool_approval_state_mismatch");
-  check(fitnessIntelligenceContract.businessHoursAccessRules?.accessMode === "read_only", "business_hours_access_not_read_only");
-  check(fitnessIntelligenceContract.businessHoursAccessRules?.dataMutationAllowed === false, "business_hours_data_mutation_authorized");
-  check(fitnessIntelligenceContract.interpretationRules?.canMutateData === false, "fitness_intelligence_data_mutation_authorized");
+  check(dataContract.intelligenceHandoffPolicy?.intelligenceMayMutateDataArtifact === false, "business_hours_data_mutation_authorized");
+  check(fitnessIntelligenceContract.safety?.productionScoringMutationAuthorized === false, "fitness_intelligence_data_mutation_authorized");
   check(fitnessIntelligenceContract.workspaceId === "fitness_connection", "fitness_intelligence_workspace_mismatch");
   check(fitnessIntelligenceContract.operatingProfileId === "fitness", "fitness_intelligence_operating_profile_mismatch");
-  const crossWorkspaceAllowFlags = Object.entries(fitnessIntelligenceContract.workspaceIsolationRules || {})
+  check(fitnessIntelligenceContract.canonicalPaths?.businessHoursContract === defaultPaths.businessHoursIntelligenceContract, "fitness_intelligence_consumer_contract_path_mismatch");
+  check(fitnessIntelligenceContract.canonicalPaths?.businessHours === defaultPaths.businessHoursArtifact, "fitness_intelligence_business_hours_path_mismatch");
+  check(fitnessIntelligenceContract.canonicalPaths?.manifestRegistry === defaultPaths.workspaceBusinessManifestRegistry, "fitness_intelligence_manifest_registry_path_mismatch");
+  check(fitnessIntelligenceContract.admissionRules?.contractVersion === canonicalIdentifier, "fitness_intelligence_contract_version_mismatch");
+  check(fitnessIntelligenceContract.admissionRules?.runtimeVersion === requiredBusinessHoursRuntimeVersion, "fitness_intelligence_runtime_version_mismatch");
+  check(fitnessIntelligenceContract.admissionRules?.callerScopeClaimsAccepted === false, "fitness_intelligence_caller_scope_claims_allowed");
+  check(fitnessIntelligenceContract.admissionRules?.approvedManifestRosterRequired === true, "fitness_intelligence_approved_manifest_not_required");
+  const crossWorkspaceAllowFlags = Object.entries(fitnessIntelligenceContract.isolationRules || {})
     .filter(([key, value]) => key.endsWith("Allowed") && typeof value === "boolean")
     .map(([, value]) => value);
   check(crossWorkspaceAllowFlags.length > 0 && crossWorkspaceAllowFlags.every(value => value === false), "cross_workspace_business_hours_access_allowed");
-  check(fitnessIntelligenceContract.businessHoursAccessRules?.unknownWorkspaceFailsClosed === true, "unknown_business_hours_workspace_not_fail_closed");
-  check(fitnessIntelligenceContract.businessHoursAccessRules?.unknownConsumerFailsClosed === true, "unknown_business_hours_consumer_not_fail_closed");
+  check(dataContract.authorizationMetadata?.failClosedBehavior?.unknownWorkspaceFailsClosed === true, "unknown_business_hours_workspace_not_fail_closed");
+  check(dataContract.authorizationMetadata?.failClosedBehavior?.unknownConsumerFailsClosed === true, "unknown_business_hours_consumer_not_fail_closed");
+  check(fitnessIntelligenceContract.isolationRules?.missingArtifactFailsClosed === true, "fitness_intelligence_missing_artifact_not_fail_closed");
   for (const path of requiredReadPaths) check(allowedReadPaths.includes(path), `fitness_intelligence_read_path_missing:${path}`);
 
   let governedRuntimeScope = null;
@@ -694,8 +706,11 @@ export function buildBusinessHoursQualityEvidence({
     && consumerContract.compatibility?.legacyRuntimeVersionAccepted === false
     && consumerContract.compatibility?.legacyContractVersionAccepted === false
     && consumerRegistration.path === defaultPaths.businessHoursIntelligenceContract
-    && consumerRegistration.linkedDataContractId === dataContract.contractId
     && dataRegistration?.path === defaultPaths.businessHoursDataContract
+    && dataContract.authorizationMetadata?.authorizedConsumerContractId === canonicalIdentifier
+    && dataContract.authorizationMetadata?.authorizedConsumerContractPath === defaultPaths.businessHoursIntelligenceContract
+    && dataContractReadAllowed
+    && !dataContractWriteAllowed
     && consumerContract.dataContract?.manifestRegistry === defaultPaths.workspaceBusinessManifestRegistry
     && consumerContract.dataContract?.manifestVersion === workspaceBusinessManifestRegistry?.schemaVersion
     && consumerContract.configurationContract?.administrationSchemaVersion === workspaceConfigurationRegistry?.schemaVersion
@@ -703,12 +718,20 @@ export function buildBusinessHoursQualityEvidence({
     && activePool.sourceArtifactSha256 === workspaceManifest?.artifactSha256
     && Boolean(governedRuntimeScope)
     && requiredReadPaths.every(path => allowedReadPaths.includes(path))
-    && fitnessIntelligenceContract.businessHoursAccessRules?.accessMode === "read_only"
-    && fitnessIntelligenceContract.businessHoursAccessRules?.dataMutationAllowed === false
+    && dataContract.intelligenceHandoffPolicy?.intelligenceMayMutateDataArtifact === false
+    && fitnessIntelligenceContract.safety?.productionScoringMutationAuthorized === false
+    && fitnessIntelligenceContract.canonicalPaths?.businessHoursContract === defaultPaths.businessHoursIntelligenceContract
+    && fitnessIntelligenceContract.canonicalPaths?.businessHours === defaultPaths.businessHoursArtifact
+    && fitnessIntelligenceContract.canonicalPaths?.manifestRegistry === defaultPaths.workspaceBusinessManifestRegistry
+    && fitnessIntelligenceContract.admissionRules?.contractVersion === canonicalIdentifier
+    && fitnessIntelligenceContract.admissionRules?.runtimeVersion === requiredBusinessHoursRuntimeVersion
+    && fitnessIntelligenceContract.admissionRules?.callerScopeClaimsAccepted === false
+    && fitnessIntelligenceContract.admissionRules?.approvedManifestRosterRequired === true
     && crossWorkspaceAllowFlags.length > 0
     && crossWorkspaceAllowFlags.every(value => value === false)
-    && fitnessIntelligenceContract.businessHoursAccessRules?.unknownWorkspaceFailsClosed === true
-    && fitnessIntelligenceContract.businessHoursAccessRules?.unknownConsumerFailsClosed === true;
+    && dataContract.authorizationMetadata?.failClosedBehavior?.unknownWorkspaceFailsClosed === true
+    && dataContract.authorizationMetadata?.failClosedBehavior?.unknownConsumerFailsClosed === true
+    && fitnessIntelligenceContract.isolationRules?.missingArtifactFailsClosed === true;
 
   return {
     status: failures.length ? "failed" : "passed",
@@ -738,13 +761,13 @@ export function buildBusinessHoursQualityEvidence({
       datasetPath: dataContract.canonicalArtifacts?.businessHoursArtifact || null,
       requiredReadPaths,
       requiredReadPathsPresent: requiredReadPaths.every(path => allowedReadPaths.includes(path)),
-      accessMode: fitnessIntelligenceContract.businessHoursAccessRules?.accessMode || null,
-      dataMutationAllowed: fitnessIntelligenceContract.businessHoursAccessRules?.dataMutationAllowed ?? null,
+      accessMode: dataContractReadAllowed && !dataContractWriteAllowed ? "read_only" : "invalid",
+      dataMutationAllowed: dataContract.intelligenceHandoffPolicy?.intelligenceMayMutateDataArtifact ?? null,
       workspaceId: fitnessIntelligenceContract.workspaceId,
       operatingProfileId: fitnessIntelligenceContract.operatingProfileId,
       crossWorkspaceAllowFlagsAllFalse: crossWorkspaceAllowFlags.every(value => value === false),
-      unknownWorkspaceFailsClosed: fitnessIntelligenceContract.businessHoursAccessRules?.unknownWorkspaceFailsClosed,
-      unknownConsumerFailsClosed: fitnessIntelligenceContract.businessHoursAccessRules?.unknownConsumerFailsClosed,
+      unknownWorkspaceFailsClosed: dataContract.authorizationMetadata?.failClosedBehavior?.unknownWorkspaceFailsClosed,
+      unknownConsumerFailsClosed: dataContract.authorizationMetadata?.failClosedBehavior?.unknownConsumerFailsClosed,
       administrationBinding: {
         schemaVersion: workspaceConfigurationRegistry?.schemaVersion || null,
         registryVersion: workspaceConfigurationRegistry?.registryVersion || null,

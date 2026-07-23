@@ -132,8 +132,8 @@ test("command-line verification is read-only and observes the current runtime su
   const output = JSON.parse(result.stdout);
   assert.equal(output.mode, "read_only_verification");
   assert.equal(output.canonicalReportWritten, false);
-  assert.equal(output.checkedRuntimeFiles, 32);
-  assert.equal(output.dashboardFetches, 10);
+  assert.equal(output.checkedRuntimeFiles, 33);
+  assert.equal(output.dashboardFetches, 5);
   assert.equal(readFileSync(reportPath, "utf8"), before);
 });
 
@@ -233,6 +233,73 @@ test("quality gate rejects superseded v1 business-hours runtime and contract ide
   assert.ok(result.report.failureReasons.includes("business_hours:business_hours_legacy_runtime_accepted"));
   assert.ok(result.report.failureReasons.includes("business_hours:business_hours_legacy_contract_accepted"));
   assert.equal(result.report.businessHoursEligibility.canonicalConsumer.status, "failed");
+});
+
+test("quality gate rejects an unlinked or mutable business-hours consumer", () => {
+  const current = fixtures();
+  const canonicalArtifactRegistry = clone(current.canonicalArtifactRegistry);
+  const businessHoursDataContract = clone(current.businessHoursDataContract);
+  const fitnessWorkspace = canonicalArtifactRegistry.workspaces.find(
+    workspace => workspace.workspaceId === "fitness_connection"
+  );
+  const dataRegistration = fitnessWorkspace.canonicalArtifacts.find(
+    artifact => artifact.artifactId === "fitness_connection_business_hours_data_contract"
+  );
+  dataRegistration.readAllowed = dataRegistration.readAllowed.filter(
+    subsystem => subsystem !== "Prometheus Intelligence Engine"
+  );
+  dataRegistration.writeAllowed.push("Prometheus Intelligence Engine");
+  businessHoursDataContract.intelligenceHandoffPolicy.intelligenceMayMutateDataArtifact = true;
+
+  const result = runWith({
+    businessHoursDataContract,
+    canonicalArtifactRegistry
+  });
+
+  assert.equal(result.passed, false);
+  assert.ok(result.report.failureReasons.includes("business_hours:business_hours_consumer_data_contract_unlinked"));
+  assert.ok(result.report.failureReasons.includes("business_hours:business_hours_access_not_read_only"));
+  assert.ok(result.report.failureReasons.includes("business_hours:business_hours_data_mutation_authorized"));
+});
+
+test("quality gate rejects cross-workspace access and caller-controlled scope", () => {
+  const current = fixtures();
+  const fitnessIntelligenceConsumerContract = clone(current.fitnessIntelligenceConsumerContract);
+  fitnessIntelligenceConsumerContract.isolationRules.crossWorkspaceDataAllowed = true;
+  fitnessIntelligenceConsumerContract.admissionRules.callerScopeClaimsAccepted = true;
+
+  const result = runWith({
+    fitnessIntelligenceConsumerContract
+  });
+
+  assert.equal(result.passed, false);
+  assert.ok(result.report.failureReasons.includes("business_hours:cross_workspace_business_hours_access_allowed"));
+  assert.ok(result.report.failureReasons.includes("business_hours:fitness_intelligence_caller_scope_claims_allowed"));
+});
+
+test("quality gate rejects unknown consumers and incomplete canonical read paths", () => {
+  const current = fixtures();
+  const businessHoursDataContract = clone(current.businessHoursDataContract);
+  const fitnessIntelligenceConsumerContract = clone(current.fitnessIntelligenceConsumerContract);
+  businessHoursDataContract.authorizationMetadata.failClosedBehavior.unknownWorkspaceFailsClosed = false;
+  businessHoursDataContract.authorizationMetadata.failClosedBehavior.unknownConsumerFailsClosed = false;
+  fitnessIntelligenceConsumerContract.canonicalPaths = {};
+
+  const result = runWith({
+    businessHoursDataContract,
+    fitnessIntelligenceConsumerContract
+  });
+
+  assert.equal(result.passed, false);
+  assert.ok(result.report.failureReasons.includes("business_hours:unknown_business_hours_workspace_not_fail_closed"));
+  assert.ok(result.report.failureReasons.includes("business_hours:unknown_business_hours_consumer_not_fail_closed"));
+  for (const path of [
+    defaultPaths.businessHoursIntelligenceContract,
+    defaultPaths.businessHoursArtifact,
+    defaultPaths.workspaceBusinessManifestRegistry
+  ]) {
+    assert.ok(result.report.failureReasons.includes(`business_hours:fitness_intelligence_read_path_missing:${path}`));
+  }
 });
 
 test("quality gate fails closed when Administration and Data manifest provenance diverge", () => {
