@@ -387,12 +387,30 @@
           "tests/overwatch-public-deployment-workflow-v2.test.mjs",
           "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
         ]
+      },
+      {
+        "commit": "943baa9c48a85f8b0a57d5a371ff64d486926f8d",
+        "tree": "bfea848e1c2127a7c29813919a404cf6085c8b1f",
+        "parent": "5aa41020ab857c9910b526acf138c1f7348c402f",
+        "subject": "overwatch: finalize August 1 exact tail",
+        "author": "Prometheus Overwatch <overwatch@prometheus.local>",
+        "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
+        "files": [
+          "overwatch/governance/public-deployment-workflow-v2.json",
+          "overwatch/governance/public-deployment-workflow-v2.md",
+          "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+          "overwatch/governance/route-iq-august-1-launch-closeout-v1.json",
+          "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+          "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+          "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+        ]
       }
     ],
     "overwatchSuccessor": {
       "classification": "DYNAMIC_EXACT_HEAD_SUCCESSOR",
-      "parent": "5aa41020ab857c9910b526acf138c1f7348c402f",
-      "subject": "overwatch: finalize August 1 exact tail",
+      "parent": "943baa9c48a85f8b0a57d5a371ff64d486926f8d",
+      "subject": "overwatch: refresh August 1 verifier fixture",
       "author": "Prometheus Overwatch <overwatch@prometheus.local>",
       "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
       "files": [

@@ -198,7 +198,8 @@ test("current owner evidence is pinned independently from historical readiness",
       "e34259fa62a3530b0a24e9dbae3a015593c08a22",
       "95f367e03160bfeae98b722d99b6ca67d4424d72",
       "0cffd6afb7b660e61049baff330bf3b231077a89",
-      "5aa41020ab857c9910b526acf138c1f7348c402f"
+      "5aa41020ab857c9910b526acf138c1f7348c402f",
+      "943baa9c48a85f8b0a57d5a371ff64d486926f8d"
     ]
   );
   assert.equal(successor.qualificationPredecessors[0].parent, successor.overwatchPredecessors[3].commit);
@@ -209,7 +210,7 @@ test("current owner evidence is pinned independently from historical readiness",
     );
   }
   assert.equal(successor.overwatchSuccessor.parent, successor.qualificationPredecessors.at(-1).commit);
-  assert.equal(successor.overwatchSuccessor.subject, "overwatch: finalize August 1 exact tail");
+  assert.equal(successor.overwatchSuccessor.subject, "overwatch: refresh August 1 verifier fixture");
   assert.equal(successor.overwatchSuccessor.files.length, 8);
   assert.deepEqual(successor.currentReleaseIdentities, {
     deploymentAssetsSha256: "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1",

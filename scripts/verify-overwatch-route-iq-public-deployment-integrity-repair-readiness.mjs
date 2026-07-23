@@ -1264,12 +1264,21 @@ const QUALIFICATION_SUCCESSORS = Object.freeze([
     author: "Prometheus Overwatch <overwatch@prometheus.local>",
     committer: "Prometheus Overwatch <overwatch@prometheus.local>",
     files: CURRENT_OVERWATCH_SUCCESSOR_FILES
+  }),
+  Object.freeze({
+    commit: "943baa9c48a85f8b0a57d5a371ff64d486926f8d",
+    tree: "bfea848e1c2127a7c29813919a404cf6085c8b1f",
+    parent: "5aa41020ab857c9910b526acf138c1f7348c402f",
+    subject: "overwatch: finalize August 1 exact tail",
+    author: "Prometheus Overwatch <overwatch@prometheus.local>",
+    committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+    files: CURRENT_OVERWATCH_SUCCESSOR_FILES
   })
 ]);
 const OVERWATCH_SUCCESSOR = Object.freeze({
   classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
   parent: QUALIFICATION_SUCCESSORS.at(-1).commit,
-  subject: "overwatch: finalize August 1 exact tail",
+  subject: "overwatch: refresh August 1 verifier fixture",
   author: "Prometheus Overwatch <overwatch@prometheus.local>",
   committer: "Prometheus Overwatch <overwatch@prometheus.local>",
   files: CURRENT_OVERWATCH_SUCCESSOR_FILES
