@@ -235,7 +235,7 @@ function createOwnerBoundaryRepository(parent, name) {
     content: "owner boundary\n",
     subject: "infrastructure: synthetic owner boundary repair"
   });
-  commitFixture(repository, {
+  const historicalPreservationTerminal = commitFixture(repository, {
     ...overwatch,
     path: "scripts/verify-overwatch-later-successor.mjs",
     content: "export const verified = true;\n",
@@ -244,6 +244,7 @@ function createOwnerBoundaryRepository(parent, name) {
 
   return Object.freeze({
     repository,
+    historicalPreservationTerminal,
     boundary: Object.freeze({
       infrastructureCommits: Object.freeze([first, terminal]),
       knownOverwatchSuccessor,
@@ -255,6 +256,62 @@ function createOwnerBoundaryRepository(parent, name) {
         committerEmail: infrastructure.authorEmail,
         subject: repair.subject,
         files: repair.files
+      })
+    })
+  });
+}
+
+function addAugust1LaunchCloseoutSuccessors(ownerFixture) {
+  const data = commitFixture(ownerFixture.repository, {
+    authorName: "Prometheus Data",
+    authorEmail: "data@prometheus.local",
+    path: "data/route-iq-august-1-launch.json",
+    content: "{}\n",
+    subject: "Govern synthetic August 1 launch admissions"
+  });
+  const crm = commitFixture(ownerFixture.repository, {
+    authorName: "Prometheus CRM",
+    authorEmail: "crm@prometheus.local",
+    path: "crm/route-iq-august-1-delivery.mjs",
+    content: "export const delivery = true;\n",
+    subject: "Harden synthetic August 1 request delivery"
+  });
+  const admission = commitFilesFixture(ownerFixture.repository, {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: admit August 1 launch closeout successors",
+    changes: [
+      {
+        path: "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        content: "export const admitted = true;\n"
+      },
+      {
+        path: "tests/public-repository-integrity-repair.test.mjs",
+        content: "export const admissionTest = true;\n"
+      },
+      {
+        path: "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
+        content: "{}\n"
+      }
+    ]
+  });
+  return Object.freeze({
+    ...ownerFixture,
+    data,
+    crm,
+    admission,
+    boundary: Object.freeze({
+      ...ownerFixture.boundary,
+      historicalPreservationTerminal: ownerFixture.historicalPreservationTerminal,
+      august1LaunchCloseoutSuccessors: Object.freeze([data, crm]),
+      august1LaunchCloseoutAdmissionSuccessor: Object.freeze({
+        parent: crm.commit,
+        authorName: admission.authorName,
+        authorEmail: admission.authorEmail,
+        committerName: admission.committerName,
+        committerEmail: admission.committerEmail,
+        subject: admission.subject,
+        files: admission.files
       })
     })
   });
@@ -1017,6 +1074,10 @@ test("canonical rollback identity advances while predecessor closure evidence re
     result.predecessorArtifactSha256,
     "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a"
   );
+  assert.equal(
+    result.currentArtifactSha256,
+    "012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe"
+  );
   assert.equal(result.currentArtifactSha256, rollbackIdentity.artifactSha256);
 
   const historicalDrift = structuredClone(currentContract);
@@ -1398,6 +1459,25 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
     git(root, ["rev-parse", "HEAD"])
       !== "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a"
   );
+  assert.equal(current.historicalPreservationTerminalSeen, true);
+  assert.equal(
+    current.august1LaunchCloseoutSuccessorsSeen,
+    INFRASTRUCTURE_OWNER_BOUNDARY.august1LaunchCloseoutSuccessors.length
+  );
+  assert.equal(INFRASTRUCTURE_OWNER_BOUNDARY.august1LaunchCloseoutSuccessors.length, 24);
+  assert.deepEqual(
+    INFRASTRUCTURE_OWNER_BOUNDARY.august1LaunchCloseoutSuccessors.map(({ commit }) => commit),
+    git(root, [
+      "rev-list", "--reverse",
+      `${INFRASTRUCTURE_OWNER_BOUNDARY.historicalPreservationTerminal.commit}..`
+        + INFRASTRUCTURE_OWNER_BOUNDARY.august1LaunchCloseoutAdmissionSuccessor.parent
+    ]).split("\n")
+  );
+  assert.equal(
+    current.august1LaunchCloseoutAdmissionSeen,
+    git(root, ["rev-parse", "HEAD"])
+      !== INFRASTRUCTURE_OWNER_BOUNDARY.august1LaunchCloseoutAdmissionSuccessor.parent
+  );
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
   try {
@@ -1410,6 +1490,125 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
       dashboardVerificationSeen: false,
       dashboardProvenanceAdmissionSeen: false
     });
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("historical preservation remains pinned before admitted August 1 successors", () => {
+  const contract = JSON.parse(readFileSync(join(
+    root,
+    PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityContractPath
+  ), "utf8"));
+  const terminal = INFRASTRUCTURE_OWNER_BOUNDARY.historicalPreservationTerminal;
+  assert.equal(terminal.commit, "d3bda9d86a388462dd5cab0fa789081eee59b541");
+  assert.equal(
+    git(root, ["rev-parse", `${terminal.commit}^{tree}`]),
+    terminal.tree
+  );
+  assert.equal(
+    git(root, ["rev-parse", `${terminal.commit}:deploy/prometheusrouteiq-website`]),
+    contract.preservation.gitObjects["deploy/prometheusrouteiq-website"]
+  );
+  assert.notEqual(
+    git(root, ["rev-parse", `${terminal.commit}:deploy/prometheusrouteiq-website`]),
+    git(root, ["rev-parse", "HEAD:deploy/prometheusrouteiq-website"])
+  );
+  const historicalDashboardHarness = spawnSync("git", [
+    "show", `${terminal.commit}:scripts/verify-dashboard-runtime-workflows.mjs`
+  ], {
+    cwd: root,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+  assert.equal(historicalDashboardHarness.status, 0, historicalDashboardHarness.stderr);
+  assert.equal(
+    createHash("sha256").update(historicalDashboardHarness.stdout).digest("hex"),
+    contract.dashboardRuntimeHarnessProvenance.fileSha256[
+      "scripts/verify-dashboard-runtime-workflows.mjs"
+    ]
+  );
+});
+
+test("August 1 exact owner chain fails closed for every unlisted or altered successor", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-august-1-"));
+  try {
+    const accepted = addAugust1LaunchCloseoutSuccessors(
+      createOwnerBoundaryRepository(fixture, "accepted")
+    );
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary), {
+      terminalOwnerCommit: accepted.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 6,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false,
+      historicalPreservationTerminalSeen: true,
+      august1LaunchCloseoutSuccessorsSeen: 2,
+      august1LaunchCloseoutAdmissionSeen: true
+    });
+
+    const wrongOwner = structuredClone(accepted.boundary);
+    wrongOwner.august1LaunchCloseoutSuccessors[0].authorName = "Prometheus Overwatch";
+    assert.throws(
+      () => verifyInfrastructureOwnerBoundary(accepted.repository, wrongOwner),
+      /authorName drifted/u
+    );
+
+    const wrongFiles = structuredClone(accepted.boundary);
+    wrongFiles.august1LaunchCloseoutSuccessors[0].files.push(
+      "data/unlisted-august-1-scope.json"
+    );
+    assert.throws(
+      () => verifyInfrastructureOwnerBoundary(accepted.repository, wrongFiles),
+      /file scope drifted/u
+    );
+
+    const reordered = structuredClone(accepted.boundary);
+    reordered.august1LaunchCloseoutSuccessors.reverse();
+    assert.throws(
+      () => verifyInfrastructureOwnerBoundary(accepted.repository, reordered),
+      /not an exact August 1 launch closeout successor/u
+    );
+
+    const tampered = structuredClone(accepted.boundary);
+    tampered.august1LaunchCloseoutSuccessors[1].tree = "0".repeat(40);
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, tampered));
+
+    const current = git(accepted.repository, ["rev-parse", "HEAD"]);
+    const mergeParent = git(accepted.repository, ["rev-parse", "HEAD~1"]);
+    const tree = git(accepted.repository, ["rev-parse", "HEAD^{tree}"]);
+    const mergeCommit = git(accepted.repository, [
+      "commit-tree", tree, "-p", current, "-p", mergeParent
+    ], {
+      input: "infrastructure: tampered August 1 merge\n",
+      env: {
+        GIT_AUTHOR_NAME: "Prometheus Infrastructure",
+        GIT_AUTHOR_EMAIL: "infrastructure@prometheus.local",
+        GIT_COMMITTER_NAME: "Prometheus Infrastructure",
+        GIT_COMMITTER_EMAIL: "infrastructure@prometheus.local"
+      }
+    });
+    git(accepted.repository, ["update-ref", "refs/heads/main", mergeCommit, current]);
+    assert.throws(
+      () => verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary),
+      /linear non-merge successor/u
+    );
+
+    const unlisted = addAugust1LaunchCloseoutSuccessors(
+      createOwnerBoundaryRepository(fixture, "unlisted")
+    );
+    commitFixture(unlisted.repository, {
+      path: "overwatch/governance/unlisted-august-1-successor.json",
+      content: "{}\n",
+      subject: "overwatch: unlisted August 1 successor",
+      authorName: "Prometheus Overwatch",
+      authorEmail: "overwatch@prometheus.local"
+    });
+    assert.throws(
+      () => verifyInfrastructureOwnerBoundary(unlisted.repository, unlisted.boundary),
+      /not an exact August 1 launch closeout successor/u
+    );
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }

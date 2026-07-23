@@ -320,6 +320,11 @@ const workflowV2FixtureRepairSuccessorFiles = Object.freeze([
   "tests/github-actions-public-worker-workflow-v2.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const august1LaunchCloseoutAdmissionFiles = Object.freeze([
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
 
 export const SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS = Object.freeze([
   "node scripts/run-public-worker-repository-integrity-diagnostic.mjs",
@@ -843,6 +848,405 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: derive Workflow v2 rollback fixture",
     files: workflowV2FixtureRepairSuccessorFiles
+  }),
+  historicalPreservationTerminal: Object.freeze({
+    commit: "d3bda9d86a388462dd5cab0fa789081eee59b541",
+    tree: "bc1fb8b16fab4f795d51f838eab06e16d0a4a3d2",
+    parent: "f42c05ba212a00cb890f47590a27739df567e11f",
+    authorName: "Prometheus Overwatch",
+    authorEmail: "overwatch@prometheus.local",
+    committerName: "Prometheus Overwatch",
+    committerEmail: "overwatch@prometheus.local",
+    subject: "overwatch: isolate fixture successor assertion",
+    files: Object.freeze([
+      "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+    ])
+  }),
+  august1LaunchCloseoutSuccessors: Object.freeze([
+    {
+      commit: "d69161ae8fb5a7ebd4e2737b8a8d9b26345238fa",
+      tree: "0f67385073721a8ca4830b1bed1385019791793a",
+      parent: "d3bda9d86a388462dd5cab0fa789081eee59b541",
+      authorName: "Prometheus Data",
+      authorEmail: "data@prometheus.local",
+      committerName: "Prometheus Data",
+      committerEmail: "data@prometheus.local",
+      subject: "Govern bounded Route IQ launch admissions",
+      files: [
+        "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope-v1.json",
+        "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope-v1.schema.json",
+        "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs",
+        "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry.mjs",
+        "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-v1.schema.json",
+        "tests/route-iq-august-1-launch-envelope.test.mjs"
+      ]
+    },
+    {
+      commit: "dc8dae67cf3a4a2fdc73e61d381ff26848c7a71d",
+      tree: "1d23711a625809cd498a0a9f478c3bb7c4218d9f",
+      parent: "d69161ae8fb5a7ebd4e2737b8a8d9b26345238fa",
+      authorName: "Prometheus CRM",
+      authorEmail: "crm@prometheus.local",
+      committerName: "Prometheus CRM",
+      committerEmail: "crm@prometheus.local",
+      subject: "Harden Route IQ request notification delivery",
+      files: [
+        "crm/README.md",
+        "crm/route-iq-request-crm-contract-v1.json",
+        "crm/route-iq-request-crm.mjs",
+        "tests/crm-route-iq-founder-access-boundary.test.mjs",
+        "tests/crm-route-iq-request-lifecycle.test.mjs"
+      ]
+    },
+    {
+      commit: "67559d5ac12f6a96b8551237b8e792a21cb89e85",
+      tree: "52e9cfef30642f7172b72e635d8088890ba07ce7",
+      parent: "dc8dae67cf3a4a2fdc73e61d381ff26848c7a71d",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "Isolate Route IQ request notification delivery",
+      files: [
+        "docs/route-iq-request-crm-infrastructure-v1.md",
+        "tests/route-iq-request-crm-infrastructure.test.mjs",
+        "workers/infrastructure/route-iq-request-crm-runtime-v1.json",
+        "workers/infrastructure/route-iq-request-crm-runtime.js"
+      ]
+    },
+    {
+      commit: "7bdb432a6181219b6d8c373c0b97aad93bf4aed7",
+      tree: "9c8bf32e0c7e21192b65cb78fa7fd6a98d115c37",
+      parent: "67559d5ac12f6a96b8551237b8e792a21cb89e85",
+      authorName: "Prometheus Website",
+      authorEmail: "website@prometheus.local",
+      committerName: "Prometheus Website",
+      committerEmail: "website@prometheus.local",
+      subject: "Require canonical Route IQ request receipts",
+      files: [
+        "src/route-iq-request-form.js",
+        "tests/website-route-iq-product-focus.test.mjs"
+      ]
+    },
+    {
+      commit: "b6c2de6e895373dcb401aafdc88b277657b0fcb7",
+      tree: "103da82669a02087a15b84d4cd1fe431011fc163",
+      parent: "7bdb432a6181219b6d8c373c0b97aad93bf4aed7",
+      authorName: "Prometheus Administration",
+      authorEmail: "administration@prometheus.local",
+      committerName: "Prometheus Administration",
+      committerEmail: "administration@prometheus.local",
+      subject: "Define August 1 Route IQ launch operations",
+      files: [
+        "administration/launch-operations/route-iq-2026-08-01-production-activation-v1.md",
+        "administration/workflows/route-iq-production-support-triage-v1.md"
+      ]
+    },
+    {
+      commit: "c05a502683efef58fed42e8d8bc46e844fd2634d",
+      tree: "9082c414566ca1de5a06e4be2a3f1276e78461bd",
+      parent: "b6c2de6e895373dcb401aafdc88b277657b0fcb7",
+      authorName: "Prometheus Sales",
+      authorEmail: "sales@prometheus.local",
+      committerName: "Prometheus Sales",
+      committerEmail: "sales@prometheus.local",
+      subject: "Define bounded Route IQ customer onboarding",
+      files: ["sales/route-iq-customer-onboarding-v1.md"]
+    },
+    {
+      commit: "23e9b7197410df4f7288f6c7f771c6eeb4e44630",
+      tree: "263b858d690488400334c58d478313ea358f9bfc",
+      parent: "c05a502683efef58fed42e8d8bc46e844fd2634d",
+      authorName: "Prometheus Route IQ",
+      authorEmail: "route-iq@prometheus.local",
+      committerName: "Prometheus Route IQ",
+      committerEmail: "route-iq@prometheus.local",
+      subject: "Document Route IQ production limitations",
+      files: ["docs/route-iq-production-known-limitations-v1.md"]
+    },
+    {
+      commit: "9b673a27adccf0429f7fc0910356f7e2488160af",
+      tree: "4666496694d5289e8a778a0161df302440d1d600",
+      parent: "23e9b7197410df4f7288f6c7f771c6eeb4e44630",
+      authorName: "Prometheus Mobile",
+      authorEmail: "mobile@prometheus.local",
+      committerName: "Prometheus Mobile",
+      committerEmail: "mobile@prometheus.local",
+      subject: "Document Route IQ PWA installation recovery",
+      files: ["docs/route-iq-pwa-installation-and-recovery-v1.md"]
+    },
+    {
+      commit: "2c9a17217e2560969afd31f3f42067b3703caec8",
+      tree: "386065858b0050ae9ecfd57fe8726bed3657dd3b",
+      parent: "9b673a27adccf0429f7fc0910356f7e2488160af",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "Define Route IQ production operations runbook",
+      files: ["docs/route-iq-production-provisioning-monitoring-incident-rollback-v1.md"]
+    },
+    {
+      commit: "fd14a3b13ac00b645857396f3d26fa069762b715",
+      tree: "fcb370d28dd3d8598191915d9ef9323c3f3c3d00",
+      parent: "2c9a17217e2560969afd31f3f42067b3703caec8",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "Add bounded Route IQ customer runtime",
+      files: [
+        "scripts/build-route-iq-private-forward-rollback-candidate-v2.mjs",
+        "tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs",
+        "tests/route-iq-private-forward-rollback-candidate-v2.test.mjs",
+        "workers/infrastructure/route-iq-august-1-customer-pwa-runtime-v1.json",
+        "workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js",
+        "workers/infrastructure/route-iq-private-forward-rollback-candidate-v2.json",
+        "workers/infrastructure/route-iq-private-forward-rollback-inert-durable-object-v2.js",
+        "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v2.json",
+        "workers/prometheus-iq-worker.js"
+      ]
+    },
+    {
+      commit: "54804800533e705efe7add510e5e4bb72a3ba7dc",
+      tree: "fcb3b4cb158aa95ede0ce5e78ad157399c9efcd0",
+      parent: "fd14a3b13ac00b645857396f3d26fa069762b715",
+      authorName: "Prometheus Intelligence Engine",
+      authorEmail: "intelligence@prometheus.local",
+      committerName: "Prometheus Intelligence Engine",
+      committerEmail: "intelligence@prometheus.local",
+      subject: "Generalize governed Route IQ runtime scope",
+      files: [
+        "intelligence/continuous-adaptive-route-replenishment.mjs",
+        "intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json",
+        "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+        "intelligence/fixtures/route-iq-governed-customer-business-hours-v1.json",
+        "intelligence/route-business-hours-eligibility.mjs",
+        "intelligence/route-iq-governed-runtime-scope.mjs",
+        "scripts/verify-route-iq-governed-runtime-scope-intelligence.mjs",
+        "tests/route-iq-governed-runtime-scope-intelligence.test.mjs"
+      ]
+    },
+    {
+      commit: "99457bcda1abed536cc06585492d29f5ac500f05",
+      tree: "ca9c01b40d763ceb707ba88118c905a8056e7407",
+      parent: "54804800533e705efe7add510e5e4bb72a3ba7dc",
+      authorName: "Prometheus Dashboard",
+      authorEmail: "dashboard@prometheus.local",
+      committerName: "Prometheus Dashboard",
+      committerEmail: "dashboard@prometheus.local",
+      subject: "Add bounded Route IQ customer PWA",
+      files: [
+        "_headers",
+        "deploy/cloudflare-pages/_headers",
+        "deploy/cloudflare-pages/index.html",
+        "deploy/cloudflare-pages/manifest-founder.webmanifest",
+        "deploy/cloudflare-pages/manifest.webmanifest",
+        "deploy/cloudflare-pages/sw.js",
+        "index.html",
+        "manifest-founder.webmanifest",
+        "manifest.webmanifest",
+        "scripts/verify-dashboard-runtime-workflows.mjs",
+        "sw.js",
+        "tests/dashboard-route-iq-customer-pwa.test.mjs",
+        "tests/dashboard-route-iq-field-session-producer.test.mjs",
+        "tests/dashboard-route-iq-product-focus.test.mjs"
+      ]
+    },
+    {
+      commit: "b8346e9931231d055a20f2cadd6a9c6edea36ce4",
+      tree: "d3bae0576b35a6f13c6aee2f815b5306b7d38d9e",
+      parent: "99457bcda1abed536cc06585492d29f5ac500f05",
+      authorName: "Prometheus Intelligence Engine",
+      authorEmail: "intelligence@prometheus.local",
+      committerName: "Prometheus Intelligence Engine",
+      committerEmail: "intelligence@prometheus.local",
+      subject: "Pin governed Route IQ intelligence consumers",
+      files: [
+        "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+        "intelligence/contracts/nearby-context-intelligence-v2-contracts.json"
+      ]
+    },
+    {
+      commit: "610383c4e845789859946122283e8014dae35600",
+      tree: "99deba22646feb47301410ee492d4af9396fbbc7",
+      parent: "b8346e9931231d055a20f2cadd6a9c6edea36ce4",
+      authorName: "Prometheus Overwatch",
+      authorEmail: "overwatch@prometheus.local",
+      committerName: "Prometheus Overwatch",
+      committerEmail: "overwatch@prometheus.local",
+      subject: "Govern August 1 Route IQ launch readiness",
+      files: [
+        "overwatch/governance/route-iq-august-1-launch-closeout-v1.json",
+        "overwatch/governance/route-iq-august-1-readiness-matrix-v1.json",
+        "package.json",
+        "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+        "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
+      ]
+    },
+    {
+      commit: "7ad906d37d827a878ca4db82029c81d2c28cd1fd",
+      tree: "06ba662e83b1e5cb5c67f7f494948f599305cd7e",
+      parent: "610383c4e845789859946122283e8014dae35600",
+      authorName: "Prometheus Dashboard",
+      authorEmail: "dashboard@prometheus.local",
+      committerName: "Prometheus Dashboard",
+      committerEmail: "dashboard@prometheus.local",
+      subject: "Sync governed Route IQ deployment mirrors",
+      files: [
+        "deploy/cloudflare-pages/intelligence/continuous-adaptive-route-replenishment.mjs",
+        "deploy/cloudflare-pages/intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json",
+        "deploy/cloudflare-pages/intelligence/contracts/route-business-hours-eligibility-contracts.json",
+        "deploy/cloudflare-pages/intelligence/route-business-hours-eligibility.mjs"
+      ]
+    },
+    {
+      commit: "3b29b967056482cd95bc47fd3556daf0bb50dbd0",
+      tree: "c009530fe8103e501c84bee062f12a6b045d9218",
+      parent: "7ad906d37d827a878ca4db82029c81d2c28cd1fd",
+      authorName: "Prometheus Intelligence Engine",
+      authorEmail: "intelligence@prometheus.local",
+      committerName: "Prometheus Intelligence Engine",
+      committerEmail: "intelligence@prometheus.local",
+      subject: "Align business-hours verifier with governed route target",
+      files: ["scripts/verify-route-business-hours-eligibility.mjs"]
+    },
+    {
+      commit: "d913a3c8c50379272503c93a8df12e75e048842d",
+      tree: "17049a363597dc317a9c40350339503c4a1b8457",
+      parent: "3b29b967056482cd95bc47fd3556daf0bb50dbd0",
+      authorName: "Prometheus Dashboard",
+      authorEmail: "dashboard@prometheus.local",
+      committerName: "Prometheus Dashboard",
+      committerEmail: "dashboard@prometheus.local",
+      subject: "Mirror governed Route IQ runtime scope",
+      files: [
+        "deploy/cloudflare-pages/intelligence/route-iq-governed-runtime-scope.mjs",
+        "tests/dashboard-route-iq-customer-pwa.test.mjs"
+      ]
+    },
+    {
+      commit: "f612e394b3af75e63cc07232d64bbd3dd1adb817",
+      tree: "d0d5fb3ce8c7b9416c3695645b0ad0fb0715d650",
+      parent: "d913a3c8c50379272503c93a8df12e75e048842d",
+      authorName: "Prometheus Dashboard",
+      authorEmail: "dashboard@prometheus.local",
+      committerName: "Prometheus Dashboard",
+      committerEmail: "dashboard@prometheus.local",
+      subject: "Harden governed profile mismatch harness",
+      files: [
+        "scripts/verify-dashboard-runtime-workflows.mjs",
+        "tests/dashboard-route-iq-customer-pwa.test.mjs"
+      ]
+    },
+    {
+      commit: "5f97d59a5210d97e62130b271a6c3efe379c869f",
+      tree: "00a73bc6cf93507b3438dea555b9dac301e43299",
+      parent: "f612e394b3af75e63cc07232d64bbd3dd1adb817",
+      authorName: "Prometheus Overwatch",
+      authorEmail: "overwatch@prometheus.local",
+      committerName: "Prometheus Overwatch",
+      committerEmail: "overwatch@prometheus.local",
+      subject: "Refresh August 1 launch evidence",
+      files: [
+        "overwatch/governance/route-iq-august-1-launch-closeout-v1.json",
+        "overwatch/governance/route-iq-august-1-readiness-matrix-v1.json",
+        "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+        "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
+      ]
+    },
+    {
+      commit: "0ac5b54351e12fec954e479c1c56506c58dea6c8",
+      tree: "f04654e5fd2ad4d2ed315a0c6279c4e8c0249d93",
+      parent: "5f97d59a5210d97e62130b271a6c3efe379c869f",
+      authorName: "Prometheus Overwatch",
+      authorEmail: "overwatch@prometheus.local",
+      committerName: "Prometheus Overwatch",
+      committerEmail: "overwatch@prometheus.local",
+      subject: "Refresh Fitness Dashboard artifact contract",
+      files: [
+        "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json",
+        "scripts/verify-cross-subsystem-artifact-contracts.mjs",
+        "tests/cross-subsystem-artifact-contracts.test.mjs"
+      ]
+    },
+    {
+      commit: "3587c3d70526b95ae9083520ed42025c5522f764",
+      tree: "5ac08aecd5c1f720c03194027aef3def4083a142",
+      parent: "0ac5b54351e12fec954e479c1c56506c58dea6c8",
+      authorName: "Prometheus Intelligence Engine",
+      authorEmail: "intelligence@prometheus.local",
+      committerName: "Prometheus Intelligence Engine",
+      committerEmail: "intelligence@prometheus.local",
+      subject: "Synchronize shadow-readiness runtime baselines",
+      files: [
+        "intelligence/contracts/shadow-decision-readiness-contracts.json",
+        "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
+        "scripts/verify-shadow-decision-readiness.mjs"
+      ]
+    },
+    {
+      commit: "dd048c8c00804073034a89a6a4dd48f616302a75",
+      tree: "1ef8ea55a0c05d74fd6c2f09de54fc1373cdf7f7",
+      parent: "3587c3d70526b95ae9083520ed42025c5522f764",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "infrastructure: bind rollback files to immutable provenance",
+      files: [
+        "scripts/lib/github-actions-public-worker-deployment.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "tests/github-actions-public-worker-deployment.test.mjs",
+        "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+      ]
+    },
+    {
+      commit: "710ad8a1428dd7621c5363a16fffaae828cc3421",
+      tree: "7e7f5cf2ec0fe0a2bfeae41c577279faab4c111b",
+      parent: "dd048c8c00804073034a89a6a4dd48f616302a75",
+      authorName: "Prometheus Website",
+      authorEmail: "website@prometheus.local",
+      committerName: "Prometheus Website",
+      committerEmail: "website@prometheus.local",
+      subject: "website: regenerate public deployment assets",
+      files: [
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-CqK-yX9Z.js",
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-DUlz-ixy.js",
+        "deploy/prometheusrouteiq-website/assets/landing-D-Z5MAu6.js",
+        "deploy/prometheusrouteiq-website/assets/landing-Dfjv-fGW.js",
+        "deploy/prometheusrouteiq-website/index.html"
+      ]
+    },
+    {
+      commit: "18fbe9906064bad8a0ae8e6fc224e2af0bf1a594",
+      tree: "8f58a2fb6e438d57556cb4f1860d4497782f61b2",
+      parent: "710ad8a1428dd7621c5363a16fffaae828cc3421",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "infrastructure: advance August 1 public rollback candidate",
+      files: [
+        "scripts/verify-github-actions-public-worker-workflow-v2.mjs",
+        "tests/github-actions-public-worker-deployment.test.mjs",
+        "tests/github-actions-public-worker-workflow-v2.test.mjs",
+        "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
+    }
+  ].map(snapshot => Object.freeze({
+    ...snapshot,
+    files: Object.freeze(snapshot.files)
+  }))),
+  august1LaunchCloseoutAdmissionSuccessor: Object.freeze({
+    parent: "18fbe9906064bad8a0ae8e6fc224e2af0bf1a594",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: admit August 1 launch closeout successors",
+    files: august1LaunchCloseoutAdmissionFiles
   })
 });
 
@@ -898,6 +1302,9 @@ export function verifyCanonicalRollbackIdentityAdvancement({
   delete preservedCurrent.ownerBoundary.founderJwtRepairSuccessor;
   delete preservedCurrent.ownerBoundary.canonicalRollbackIdentitySuccessor;
   delete preservedCurrent.ownerBoundary.workflowV2FixtureRepairSuccessor;
+  delete preservedCurrent.ownerBoundary.historicalPreservationTerminal;
+  delete preservedCurrent.ownerBoundary.august1LaunchCloseoutSuccessors;
+  delete preservedCurrent.ownerBoundary.august1LaunchCloseoutAdmissionSuccessor;
   assert.deepEqual(preservedCurrent, predecessorContract);
 
   const canonical = currentContract.repair.canonicalRollbackIdentity;
@@ -1073,6 +1480,12 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
     assertCommitSnapshot(repositoryRoot, expected);
     gitAt(repositoryRoot, ["merge-base", "--is-ancestor", expected.commit, "HEAD"]);
   }
+  if (boundary.historicalPreservationTerminal) {
+    assertCommitSnapshot(repositoryRoot, boundary.historicalPreservationTerminal);
+    gitAt(repositoryRoot, [
+      "merge-base", "--is-ancestor", boundary.historicalPreservationTerminal.commit, "HEAD"
+    ]);
+  }
   const terminal = boundary.infrastructureCommits.at(-1).commit;
   const descendants = gitAt(repositoryRoot, ["rev-list", "--reverse", `${terminal}..HEAD`])
     .split("\n").filter(Boolean);
@@ -1116,6 +1529,9 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let founderJwtRepairSeen = false;
   let canonicalRollbackIdentitySuccessorSeen = false;
   let workflowV2FixtureRepairSuccessorSeen = false;
+  let historicalPreservationTerminalSeen = false;
+  let august1LaunchCloseoutSuccessorsSeen = 0;
+  let august1LaunchCloseoutAdmissionSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -1625,6 +2041,50 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const historicalPreservationTerminal = boundary.historicalPreservationTerminal;
+    if (historicalPreservationTerminal
+      && commit === historicalPreservationTerminal.commit) {
+      assert.equal(historicalPreservationTerminalSeen, false,
+        "historical preservation terminal repeated");
+      assertCommitSnapshot(repositoryRoot, historicalPreservationTerminal);
+      historicalPreservationTerminalSeen = true;
+      previous = commit;
+      continue;
+    }
+    const august1LaunchCloseoutSuccessor =
+      boundary.august1LaunchCloseoutSuccessors?.[august1LaunchCloseoutSuccessorsSeen];
+    if (august1LaunchCloseoutSuccessor
+      && commit === august1LaunchCloseoutSuccessor.commit) {
+      assert.equal(historicalPreservationTerminalSeen, true,
+        "August 1 owner chain preceded the historical preservation terminal");
+      assertCommitSnapshot(repositoryRoot, august1LaunchCloseoutSuccessor);
+      august1LaunchCloseoutSuccessorsSeen += 1;
+      previous = commit;
+      continue;
+    }
+    const august1LaunchCloseoutAdmission =
+      boundary.august1LaunchCloseoutAdmissionSuccessor;
+    const isAugust1LaunchCloseoutAdmission = august1LaunchCloseoutAdmission
+      && !august1LaunchCloseoutAdmissionSeen
+      && historicalPreservationTerminalSeen
+      && august1LaunchCloseoutSuccessorsSeen
+        === boundary.august1LaunchCloseoutSuccessors.length
+      && actual.parents[0] === august1LaunchCloseoutAdmission.parent
+      && actual.authorName === august1LaunchCloseoutAdmission.authorName
+      && actual.authorEmail === august1LaunchCloseoutAdmission.authorEmail
+      && actual.committerName === august1LaunchCloseoutAdmission.committerName
+      && actual.committerEmail === august1LaunchCloseoutAdmission.committerEmail
+      && actual.subject === august1LaunchCloseoutAdmission.subject
+      && JSON.stringify(actual.files)
+        === JSON.stringify([...august1LaunchCloseoutAdmission.files].sort());
+    if (isAugust1LaunchCloseoutAdmission) {
+      august1LaunchCloseoutAdmissionSeen = true;
+      previous = commit;
+      continue;
+    }
+    if (historicalPreservationTerminalSeen && boundary.august1LaunchCloseoutSuccessors) {
+      assert.fail(`${commit} is not an exact August 1 launch closeout successor`);
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -1735,6 +2195,21 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
     assert.equal(workflowV2FixtureRepairSuccessorSeen, true,
       "Workflow v2 fixture repair successor is missing");
     result.workflowV2FixtureRepairSuccessorSeen = workflowV2FixtureRepairSuccessorSeen;
+  }
+  if (boundary.historicalPreservationTerminal) {
+    assert.equal(historicalPreservationTerminalSeen, true,
+      "historical preservation terminal is missing");
+    assert.equal(august1LaunchCloseoutSuccessorsSeen,
+      boundary.august1LaunchCloseoutSuccessors.length,
+      "August 1 launch closeout owner chain is incomplete or reordered");
+    if (gitAt(repositoryRoot, ["rev-parse", "HEAD"])
+      !== boundary.august1LaunchCloseoutAdmissionSuccessor.parent) {
+      assert.equal(august1LaunchCloseoutAdmissionSeen, true,
+        "August 1 launch closeout provenance admission is missing");
+    }
+    result.historicalPreservationTerminalSeen = historicalPreservationTerminalSeen;
+    result.august1LaunchCloseoutSuccessorsSeen = august1LaunchCloseoutSuccessorsSeen;
+    result.august1LaunchCloseoutAdmissionSeen = august1LaunchCloseoutAdmissionSeen;
   }
   return Object.freeze(result);
 }
@@ -1867,6 +2342,17 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     assert.equal(ownerBoundary.deploymentAuthorizationBoundaryProvenanceAdmissionSeen, true);
   }
   assert.equal(ownerBoundary.workflowV2FixtureRepairSuccessorSeen, true);
+  assert.equal(ownerBoundary.historicalPreservationTerminalSeen, true);
+  assert.equal(
+    ownerBoundary.august1LaunchCloseoutSuccessorsSeen,
+    INFRASTRUCTURE_OWNER_BOUNDARY.august1LaunchCloseoutSuccessors.length
+  );
+  if (git(["rev-parse", "HEAD"])
+    !== INFRASTRUCTURE_OWNER_BOUNDARY.august1LaunchCloseoutAdmissionSuccessor.parent) {
+    assert.equal(ownerBoundary.august1LaunchCloseoutAdmissionSeen, true);
+  }
+  const historicalPreservationTerminal =
+    INFRASTRUCTURE_OWNER_BOUNDARY.historicalPreservationTerminal.commit;
 
   assert.deepEqual(contract.cloudflareDeploymentReadRepair, {
     failedRunId: 29780926642,
@@ -2338,19 +2824,31 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   for (const [path, expected] of Object.entries(
     contract.dashboardRuntimeHarnessProvenance.fileSha256
   )) {
-    assert.equal(sha256(path), expected, `${path} final Dashboard harness evidence drifted`);
+    assert.equal(
+      sha256AtCommit(historicalPreservationTerminal, path),
+      expected,
+      `${path} historical Dashboard harness evidence drifted`
+    );
   }
 
   assert.deepEqual(contract.preservation.gitObjects, expectedPreservedObjects);
   for (const [path, expected] of Object.entries(expectedPreservedObjects)) {
-    assert.equal(git(["rev-parse", `HEAD:${path}`]), expected, `${path} changed`);
+    assert.equal(
+      git(["rev-parse", `${historicalPreservationTerminal}:${path}`]),
+      expected,
+      `${path} changed at the historical preservation terminal`
+    );
   }
   assert.deepEqual(
     contract.preservation.publicWorkerStartupGitObjects,
     expectedPublicWorkerStartupObjects
   );
   for (const [path, expected] of Object.entries(expectedPublicWorkerStartupObjects)) {
-    assert.equal(git(["rev-parse", `HEAD:${path}`]), expected, `${path} startup repair drifted`);
+    assert.equal(
+      git(["rev-parse", `${historicalPreservationTerminal}:${path}`]),
+      expected,
+      `${path} startup repair drifted at the historical preservation terminal`
+    );
   }
   assert.equal(
     contract.preservation.preStartupWranglerGitObject,
@@ -2365,7 +2863,11 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     expectedCrmPublicWorkerAdapterObjects
   );
   for (const [path, expected] of Object.entries(expectedCrmPublicWorkerAdapterObjects)) {
-    assert.equal(git(["rev-parse", `HEAD:${path}`]), expected, `${path} CRM repair drifted`);
+    assert.equal(
+      git(["rev-parse", `${historicalPreservationTerminal}:${path}`]),
+      expected,
+      `${path} CRM repair drifted at the historical preservation terminal`
+    );
   }
   assert.equal(
     contract.preservation.preCrmAdapterGitObject,
@@ -2376,11 +2878,14 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     contract.preservation.preCrmAdapterGitObject
   );
   assert.equal(
-    sha256("overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json"),
+    sha256AtCommit(
+      historicalPreservationTerminal,
+      "overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json"
+    ),
     contract.preservation.previousReadinessSuccessorSha256
   );
   assert.equal(git([
-    "diff", "--name-only", `${contract.baseline.head}..HEAD`, "--",
+    "diff", "--name-only", `${contract.baseline.head}..${historicalPreservationTerminal}`, "--",
     "src", "deploy/prometheusrouteiq-website", "workers/prometheus-iq-worker.js",
     "overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json"
   ]), "");
