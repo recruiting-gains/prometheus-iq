@@ -1270,6 +1270,89 @@ test("declared artifact path incoherence fails closed", () => {
   );
 });
 
+test("cross-industry Dashboard successor preserves the historical shadow baseline", () => {
+  const contract = JSON.parse(
+    readFileSync(
+      "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "utf8",
+    ),
+  );
+  const successor = JSON.parse(
+    readFileSync(
+      "intelligence/provenance/protected-baseline-synchronization-cross-industry-shadow-readiness-coherence-v1.json",
+      "utf8",
+    ),
+  );
+  const transitionEntries = [
+    ...successor.dashboardTransitions,
+    ...successor.infrastructureTransitions,
+    ...successor.dataTransitions,
+    ...successor.intelligenceRuntimeTransitions,
+  ];
+  const transitions = Object.fromEntries(
+    transitionEntries.map((transition) => [transition.path, transition]),
+  );
+  assert.equal(Object.keys(transitions).length, transitionEntries.length);
+
+  const transitionedBaselineKeys = [
+    "activePool",
+    "businessHours",
+    "businessHoursEligibility",
+    "dashboardDeployMirror",
+    "dashboardSource",
+    "dataRuntimeContract",
+    "discovery",
+    "nearby",
+    "quarantinePool",
+    "routeGeneration",
+    "routeQualityGate",
+    "worker",
+  ];
+  for (const baselineKey of transitionedBaselineKeys) {
+    const baseline = contract.protectedBehaviorBaselines[baselineKey];
+    const transition = transitions[baseline.path];
+    assert.ok(transition);
+    assert.equal(transition.previousSha256, baseline.sha256);
+    assert.equal(transition.currentSha256, digest(readFileSync(baseline.path)));
+  }
+  assert.deepEqual(
+    Object.keys(transitions).sort(),
+    transitionedBaselineKeys
+      .map((key) => contract.protectedBehaviorBaselines[key].path)
+      .sort(),
+  );
+  assert.equal(
+    transitions["index.html"].currentSha256,
+    transitions["deploy/cloudflare-pages/index.html"].currentSha256,
+  );
+  for (const baselineKey of [
+    "routeGeneration",
+    "businessHoursEligibility",
+    "discovery",
+    "nearby",
+    "routeQualityGate",
+  ]) {
+    const baseline = contract.protectedBehaviorBaselines[baselineKey];
+    const transition = transitions[baseline.path];
+    assert.equal(
+      transition.ownerSubsystem,
+      "Prometheus Intelligence Engine",
+    );
+  }
+  assert.equal(successor.coherenceRule.historicalContractBaselineRewritten, false);
+  assert.equal(successor.coherenceRule.crossIndustryRuntimeSuccessorRequired, true);
+  assert.equal(successor.coherenceRule.allCurrentProtectedSuccessorsRequired, true);
+  assert.equal(successor.coherenceRule.shadowRuntimeBehaviorChanged, false);
+
+  const rewrittenBaseline = structuredClone(contract);
+  rewrittenBaseline.protectedBehaviorBaselines.dashboardSource.sha256 =
+    transitions["index.html"].currentSha256;
+  assert.throws(
+    () => validateShadowDecisionContractCoherence(rewrittenBaseline, config),
+    /Expected values to be strictly equal/,
+  );
+});
+
 test("unresolved conflict is explicit and unscored", () => {
   const candidate = record(590, "2026-07-02T12:00:00.000Z");
   let value = ledger([candidate]);
@@ -1416,6 +1499,16 @@ test("unattended runtime guard successor remains the historical predecessor to t
     ),
   );
   const worker = contract.protectedBehaviorBaselines.worker;
+  const crossIndustrySuccessor = JSON.parse(
+    readFileSync(
+      "intelligence/provenance/protected-baseline-synchronization-cross-industry-shadow-readiness-coherence-v1.json",
+      "utf8",
+    ),
+  );
+  const currentWorkerTransition =
+    crossIndustrySuccessor.infrastructureTransitions.find(
+      (transition) => transition.path === worker.path,
+    );
 
   assert.equal(successor.batchId, "BATCH-20260714-006");
   assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
@@ -1432,7 +1525,11 @@ test("unattended runtime guard successor remains the historical predecessor to t
     "3c8ca61910358c13cc0c05e1fbda5d3052b31a9b",
   );
   assert.equal(
+    currentWorkerTransition.previousSha256,
     worker.sha256,
+  );
+  assert.equal(
+    currentWorkerTransition.currentSha256,
     digest(readFileSync(worker.path)),
   );
   assert.equal(

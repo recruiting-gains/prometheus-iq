@@ -1,0 +1,132 @@
+{
+  "version": "route-iq-intelligence-cross-industry-shadow-readiness-coherence-v1",
+  "directive": "Cross-Industry Dashboard, Business Hours, and Retired Customer Regression",
+  "status": "OWNER_REVIEWED_COHERENCE_SUCCESSOR_PENDING_OVERWATCH",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Preserve the historical August 1 protected baselines in the shadow-readiness contract while validating the current owner-authored cross-industry Dashboard, Data, Infrastructure, and Intelligence artifacts through explicit successor transitions.",
+  "predecessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json",
+    "sha256": "a89539353c221b061cd39d97130764de3bbd2add03432a4c284017f483504b06",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "protectedConsumer": {
+    "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+    "historicalAugustSha256": "03e5bc7c12d33d14f8363beea74fd8f5ed7179b631348760c901369ee9f834c2",
+    "currentSha256": "c814acf7d0d1c08dbc42c24ca1231135b7123397c0c5b2698d3898ca0b3e9ab6",
+    "modifiedByThisSuccessor": false
+  },
+  "dashboardTransitions": [
+    {
+      "path": "index.html",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "commit": "1893bcbcb13ca7caffbb86331e6c5f68072ae76e",
+      "previousSha256": "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0",
+      "currentSha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108"
+    },
+    {
+      "path": "deploy/cloudflare-pages/index.html",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "1ab2f617d77fa590ed39b7f5e7cb5ebb425f86a7",
+      "previousSha256": "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0",
+      "currentSha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108"
+    }
+  ],
+  "infrastructureTransitions": [
+    {
+      "path": "workers/prometheus-iq-worker.js",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "c1d029def71efab6c555ffa851fda6be7c3fc3cc",
+      "previousSha256": "eeb7346be172d33e7f04b6ec9ac4d256faae450410ea5c8a12e16a26a884f5dc",
+      "currentSha256": "7fcb0b3e4e6772e4831a808cbd0f02ef9e28f017ebb6c2d69a9b368248ac76c9"
+    }
+  ],
+  "dataTransitions": [
+    {
+      "path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "920909eeed01c6d77b2090865199e6cf29618742",
+      "previousSha256": "4414e9ec8899f589864fb875368225922c1bc2dabbb0e1c4bdef074039512259",
+      "currentSha256": "c792c9967ebaa2878ba9aa4f54a6cd18c4395c04cdfd9ed3cdbc5ec7762660cf"
+    },
+    {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "c9b8ac823fac489e017c9ddd0c116d60985542e8",
+      "previousSha256": "ae5612f34965014c7022e6ef44da95ca7a4c0c049001192e525855b27dad1ec1",
+      "currentSha256": "d692b31e4ef46a79c84cc6c53a8b668d6b65172251a3626dfb8166cfd380dd44"
+    },
+    {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "c9b8ac823fac489e017c9ddd0c116d60985542e8",
+      "previousSha256": "13582777692f720f560da65ca6a5b26de44607fdce833a830a80583e5cf2e509",
+      "currentSha256": "e005d4ff528512ccd482b624a324ab06c53175ad11dfdd8917dc70d627c22dc2"
+    },
+    {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "c9b8ac823fac489e017c9ddd0c116d60985542e8",
+      "previousSha256": "539187bf7c20023fa5b56e60e0ceef86fc51ca9e00dbd42d997a602bdd0d0ffd",
+      "currentSha256": "e6a500ad4c946ddcd091ac8fb13b87971913919b802cd6c8897c9b999d997ba6"
+    }
+  ],
+  "intelligenceRuntimeTransitions": [
+    {
+      "path": "intelligence/continuous-adaptive-route-replenishment.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "cc0e9ebd8cac784ad4cffa2897c3a537a7dff835",
+      "previousSha256": "95f5e997af8ded3258d218f094d9765c6e7530a2828e75e432eb2ab0630896e6",
+      "currentSha256": "4b0f583ce97e8301fc2a67096a448995fa576e7f82ebbc474ca6c6348a432f0c"
+    },
+    {
+      "path": "intelligence/route-business-hours-eligibility.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "cc0e9ebd8cac784ad4cffa2897c3a537a7dff835",
+      "previousSha256": "a1667f2e1bf75a71fa321c47591ba0b8e11eef91360cb835c56e828405c51f36",
+      "currentSha256": "7889082c5bb9bbc34b481021452c56c5ac40b28c549cae3db37b8352eff82c3c"
+    },
+    {
+      "path": "intelligence/discovery-mode-intelligence-v2.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "73fb53a8382c0520542c13be2d742f62d6d4c34a",
+      "previousSha256": "d0f42e8334fed37ba3f4fa0fc632867411fc6df4be8a5f9d53c14f1ba1c5849e",
+      "currentSha256": "993b20573283f8ff05448ece5218c403208f2a84575253bbd5596441be43835e"
+    },
+    {
+      "path": "intelligence/nearby-context-intelligence-v2.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "73fb53a8382c0520542c13be2d742f62d6d4c34a",
+      "previousSha256": "7bbdc93dfb846ac8adcbfa530acf0de1ea06f917a7b8b31553b95dd58bb0e70c",
+      "currentSha256": "c65f20334c60afa86b8204df39178dee3f0e2c89ec7750d11aaa5bd14d094fab"
+    },
+    {
+      "path": "scripts/lib/route-intelligence-quality-gate.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "0e00fff6231045eb11a4508a87ae95e7b9fd6f6c",
+      "previousSha256": "30184d6d3ce3bd8dacf1e78c025c0fb594cfcb436c11939ee987a94c90828acb",
+      "currentSha256": "e4e4f77a52cfdd08af81c790e6a6fd6c47ebd6056ca5896f6b38752f7e533ba9"
+    }
+  ],
+  "coherenceRule": {
+    "historicalContractBaselineRewritten": false,
+    "historicalContractBaselineMustMatchTransitionPredecessor": true,
+    "currentFilesystemMustMatchTransitionSuccessor": true,
+    "sourceDeployParityRequired": true,
+    "crossIndustryRuntimeSuccessorRequired": true,
+    "allCurrentProtectedSuccessorsRequired": true,
+    "shadowRuntimeBehaviorChanged": false
+  },
+  "boundaries": {
+    "readinessState": "INSUFFICIENT_EVIDENCE",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}
