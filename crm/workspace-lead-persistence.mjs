@@ -11,13 +11,6 @@ export const supportedWorkspaceLeadIntakeWorkspaces = Object.freeze({
     operatingProfileId: "fitness",
     target: "lead",
     runtimePersistenceAllowed: true
-  }),
-  smoothie_depot: Object.freeze({
-    workspaceId: "smoothie_depot",
-    workspaceName: "Smoothie Depot",
-    operatingProfileId: "franchise_development",
-    target: "candidate",
-    runtimePersistenceAllowed: false
   })
 });
 

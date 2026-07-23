@@ -85,11 +85,8 @@ assert.equal(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.crmHandoffPacket.contract, "s
 assert.equal(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.crmHandoffPacket.ownerSubsystem, "Prometheus CRM");
 assert.equal(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.crmHandoffPacket.mutationPerformedByInfrastructure, false);
 assert.equal(supportedWorkspaceLeadIntakeWorkspaces.fitness_connection.runtimePersistenceAllowed, true);
-assert.equal(supportedWorkspaceLeadIntakeWorkspaces.smoothie_depot.runtimePersistenceAllowed, false);
-
-const smoothiePlanning = JSON.parse(read("crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json"));
-assert.equal(smoothiePlanning.runtimeImplementationApproved, false);
-assert.equal(smoothiePlanning.workspaceIsolation.runtimeCandidateRecordsAllowed, false);
+assert.deepEqual(Object.keys(supportedWorkspaceLeadIntakeWorkspaces), ["fitness_connection"]);
+assert.equal(Object.hasOwn(supportedWorkspaceLeadIntakeWorkspaces, "retired_customer_workspace"), false);
 
 const worker = read("workers/prometheus-iq-worker.js");
 const intakePipeline = read("workers/infrastructure/shared-lead-intake-pipeline.js");
@@ -107,7 +104,12 @@ assert.equal(routeIqRequestContract.workspace.workspaceId, routeIqRuntimeContrac
 assert.equal(routeIqRequestContract.workspace.operatingProfileId, routeIqRuntimeContract.publicIntake.operatingProfileId);
 assert.equal(routeIqRuntimeContract.publicIntake.path, "/api/partner-intake");
 assert.equal(routeIqRuntimeContract.publicIntake.legacyFitnessRoutingActive, false);
-assert.equal(routeIqRuntimeContract.publicIntake.legacySmoothieRoutingActive, false);
+assert.equal(
+  Object.entries(routeIqRuntimeContract.publicIntake)
+    .filter(([key]) => key.startsWith("legacy") && key.endsWith("RoutingActive"))
+    .every(([, value]) => value === false),
+  true
+);
 assert.equal(routeIqRuntimeContract.boundaries.prospectiveCollection, "OFF");
 assert.equal(routeIqRuntimeContract.boundaries.activeCohorts, 0);
 assert.equal(routeIqRuntimeContract.boundaries.recommendationInfluence, "OFF");

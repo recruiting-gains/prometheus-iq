@@ -52,7 +52,7 @@ function leadInput(workspaceId = "fitness_connection") {
   return {
     workspaceId,
     formId: `${workspaceId}_partner_intake`,
-    companyName: workspaceId === "smoothie_depot" ? "Governed Smoothie Candidate" : "Durable Fitness Lead",
+    companyName: "Durable Fitness Lead",
     contactName: "Production Adapter Test",
     contactMethod: "adapter-test@example.com",
     primaryGoal: "Verify CRM durable persistence.",
@@ -138,9 +138,9 @@ test("production CRM adapter writes durably and a separate runtime operation rea
   assert.equal(readBack.record.storage.keys.record, `${crmWorkspaceLeadPersistencePrefix}/workspaces/fitness_connection/submissions/${record.submissionId}/lead.json`);
 
   await assert.rejects(() => readWorkspaceLeadIntakeFromProductionStore({
-    workspaceId: "smoothie_depot",
+    workspaceId: "unapproved_company_workspace",
     submissionId: record.submissionId
-  }, { env }), /cross-workspace contamination/);
+  }, { env }), /Unknown CRM workspace intake workspace: unapproved_company_workspace/);
 });
 
 test("production CRM adapter treats a duplicate submission as the same durable record", async () => {
@@ -169,7 +169,7 @@ test("production CRM adapter treats a duplicate submission as the same durable r
 test("production CRM adapter rejects cross-workspace contamination without writes", async () => {
   const binding = kvBinding();
   const record = await intakeRecord("fitness_connection", "contaminated");
-  record.crmHandoff.packet.lead.workspaceId = "smoothie_depot";
+  record.crmHandoff.packet.lead.workspaceId = "other_company_workspace";
 
   await assert.rejects(() => persistWorkspaceLeadIntakeWithProductionStore(record, {
     env: { [crmWorkspaceLeadStoreBinding]: binding }
@@ -205,17 +205,26 @@ test("production CRM adapter rejects an unknown workspace before durable writes"
   assert.equal(binding.data.size, 0);
 });
 
-test("production CRM adapter keeps Smoothie Depot runtime candidate persistence governance-blocked", async () => {
+test("production CRM adapter rejects a retired customer workspace before durable writes", async () => {
   const binding = kvBinding();
-  const record = await intakeRecord("smoothie_depot", "smoothie_governance");
-  const result = await persistWorkspaceLeadIntakeWithProductionStore(record, {
-    env: { [crmWorkspaceLeadStoreBinding]: binding }
-  });
+  const record = await intakeRecord("fitness_connection", "retired_governance");
+  const retiredWorkspaceId = "retired_customer_workspace";
+  record.workspace.workspaceId = retiredWorkspaceId;
+  record.workspace.workspaceName = "Retired Customer Workspace";
+  record.operatingProfile.id = "general_outside_sales";
+  record.operatingProfile.label = "General Outside Sales";
+  record.crmHandoff.workspaceId = retiredWorkspaceId;
+  record.crmHandoff.crmWorkspacePath = `crm://workspace/${retiredWorkspaceId}/leads`;
+  record.crmHandoff.packet.lead.workspaceId = retiredWorkspaceId;
+  record.crmHandoff.packet.lead.workspaceName = "Retired Customer Workspace";
+  record.crmHandoff.packet.lead.operatingProfile.profileId = "general_outside_sales";
+  record.crmHandoff.packet.lead.operatingProfile.crmProfileId = "general_outside_sales";
+  record.crmHandoff.packet.crmIntegration.workspaceId = retiredWorkspaceId;
+  record.crmHandoff.packet.crmIntegration.operatingProfileId = "general_outside_sales";
 
-  assert.equal(result.ok, true);
-  assert.equal(result.persisted, false);
-  assert.equal(result.status, "governance_blocked");
-  assert.equal(result.code, "crm_workspace_runtime_governance_blocked");
+  await assert.rejects(() => persistWorkspaceLeadIntakeWithProductionStore(record, {
+    env: { [crmWorkspaceLeadStoreBinding]: binding }
+  }), /Unknown CRM workspace intake workspace: retired_customer_workspace/);
   assert.equal(binding.data.size, 0);
 });
 

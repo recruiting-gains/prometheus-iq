@@ -32,22 +32,6 @@ export {
 export const crmVersion = "beta-crm-contact-follow-up-queue-v1";
 export const defaultCrmOperatingProfileId = "fitness";
 
-export const smoothieDepotCandidatePipelineStages = [
-  "Business Identified",
-  "Owner Research Needed",
-  "Contact Found",
-  "Outreach Sent",
-  "Interested",
-  "Discovery Scheduled",
-  "Discovery Complete",
-  "Qualified Candidate",
-  "JR Handoff",
-  "FDD / Review",
-  "Closed Won",
-  "Not Qualified",
-  "No Response"
-];
-
 export const leadStatuses = [
   "New Lead",
   "Contacted",
@@ -278,8 +262,6 @@ export function createCrmState(options = {}) {
     betaActivity: [],
     attributionEvents: [],
     workspaceLeadIntakeHandoffs: [],
-    workspaceCandidateHandoffs: [],
-    workspaceBusinessProspects: [],
     workspaceLeadHandoffs: [],
     workspaceLeadPersistenceRecords: []
   };
@@ -508,120 +490,6 @@ function consumeFitnessConnectionLeadIntake(state, normalized, options = {}) {
   };
 }
 
-function consumeSmoothieDepotCandidateIntake(state, normalized, options = {}) {
-  const now = iso(options.consumedAt || normalized.submittedAt || state.clock);
-  const contactMethod = splitContactMethod(normalized.lead.contactMethod);
-  const pipelineStage = contactMethod.email || contactMethod.phone ? "Contact Found" : "Business Identified";
-  const candidateId = stableId("candidate", [normalized.workspaceId, normalized.submissionId, normalized.lead.companyName]);
-  const businessProspectId = stableId("business_prospect", [normalized.workspaceId, normalized.submissionId, normalized.lead.companyName]);
-  const attributionEvent = preserveWorkspaceLeadIntakeAttribution(state, normalized, candidateId, now);
-  const candidate = {
-    id: candidateId,
-    workspaceId: normalized.workspaceId,
-    workspaceName: normalized.workspace.workspaceName,
-    submissionId: normalized.submissionId,
-    handoffId: normalized.handoffId,
-    operatingProfileId: "franchise_development",
-    operatingProfileLabel: "Franchise Development",
-    pipeline: "smoothie_depot_franchise_candidate_pipeline",
-    pipelineStage,
-    candidateName: normalized.lead.requesterName,
-    businessName: normalized.lead.companyName,
-    businessCategory: normalized.lead.requestLabel || "Franchise Development Candidate",
-    phone: contactMethod.phone,
-    email: contactMethod.email,
-    website: normalized.lead.companyWebsite || "",
-    address: "",
-    source: normalized.record?.source || normalized.lead.source || "partner_intake",
-    googleRating: null,
-    reviewCount: null,
-    ownerContactStatus: contactMethod.email || contactMethod.phone ? "contact_found" : "owner_research_needed",
-    preferredTerritory: normalized.lead.territory || "",
-    liquidCapitalSelfReported: "",
-    netWorthSelfReported: "",
-    creditRangeSelfReported: "",
-    numberOfLocationsDesired: Number(normalized.lead.locationCount || 0) || null,
-    readinessAssessmentStatus: "not_started",
-    jrHandoffStatus: "not_ready",
-    protectedCandidateStartDate: "",
-    protectedCandidateExpirationDate: "",
-    commissionForecast: null,
-    nextFollowUpDate: normalized.lead.dueAt || "",
-    notes: [
-      normalized.lead.primaryGoal,
-      normalized.lead.currentWorkflow,
-      normalized.lead.message
-    ].filter(Boolean).join("\n\n"),
-    attribution: {
-      eventId: attributionEvent?.id || "",
-      provider: attributionEvent?.provider || "",
-      campaignId: attributionEvent?.campaignId || "",
-      leadSource: attributionEvent?.metadata?.lead_source || "",
-      visitorId: attributionEvent?.visitorId || ""
-    },
-    auditMetadata: {
-      consumerVersion: workspaceLeadIntakeConsumerVersion,
-      sourceContract: normalized.handoff.contract || "shared_workspace_crm_lead_intake_packet.v1",
-      submittedAt: normalized.submittedAt,
-      consumedAt: now,
-      auditTrail: normalized.auditTrail,
-      mutationPerformedByInfrastructure: normalized.handoff.mutationPerformed === true
-    },
-    founderVisible: true,
-    createdAt: now,
-    updatedAt: now
-  };
-  const businessProspect = {
-    id: businessProspectId,
-    workspaceId: normalized.workspaceId,
-    submissionId: normalized.submissionId,
-    candidateId,
-    businessName: candidate.businessName,
-    businessCategory: candidate.businessCategory,
-    website: candidate.website,
-    address: candidate.address,
-    source: candidate.source,
-    googleRating: candidate.googleRating,
-    reviewCount: candidate.reviewCount,
-    ownershipResearchStatus: candidate.ownerContactStatus,
-    territoryFitNotes: candidate.preferredTerritory,
-    researchEvidenceRefs: [normalized.handoffId, normalized.submissionId],
-    createdAt: now,
-    updatedAt: now
-  };
-
-  state.workspaceCandidateHandoffs.push(candidate);
-  state.workspaceBusinessProspects.push(businessProspect);
-  const audit = appendWorkspaceLeadIntakeAudit(state, normalized, {
-    targetType: "smoothie_depot_candidate_handoff",
-    targetId: candidate.id,
-    consumedAt: now
-  });
-  addSalesActivity(state, {
-    actorId: options.actorId || founderId,
-    type: "workspace_candidate_intake_consumed",
-    occurredAt: now,
-    summary: `Smoothie Depot workspace intake created candidate handoff for ${candidate.businessName}.`,
-    metadata: {
-      workspaceId: normalized.workspaceId,
-      submissionId: normalized.submissionId,
-      handoffId: normalized.handoffId,
-      candidateId: candidate.id,
-      pipelineStage
-    }
-  });
-  return {
-    ok: true,
-    consumerVersion: workspaceLeadIntakeConsumerVersion,
-    workspaceId: normalized.workspaceId,
-    targetType: "smoothie_depot_candidate_handoff",
-    candidate,
-    businessProspect,
-    attributionEvent,
-    audit
-  };
-}
-
 export function consumeWorkspaceLeadIntakeHandoff(state, input = {}, options = {}) {
   const normalized = normalizeWorkspaceLeadIntakeInput(input);
   const existing = state.workspaceLeadIntakeHandoffs.find(handoff => {
@@ -638,9 +506,6 @@ export function consumeWorkspaceLeadIntakeHandoff(state, input = {}, options = {
     };
   }
 
-  if (normalized.workspace.target === "candidate") {
-    return consumeSmoothieDepotCandidateIntake(state, normalized, options);
-  }
   return consumeFitnessConnectionLeadIntake(state, normalized, options);
 }
 
@@ -659,21 +524,6 @@ function consumedWorkspaceLeadIntakeFromAudit(state, audit) {
       contact,
       lead,
       attributionEvent: state.attributionEvents.find(event => event.leadId === lead.id) || null,
-      audit
-    };
-  }
-  if (audit.targetType === "smoothie_depot_candidate_handoff") {
-    const candidate = state.workspaceCandidateHandoffs.find(item => item.id === audit.targetId);
-    if (!candidate) return null;
-    return {
-      ok: true,
-      consumerVersion: workspaceLeadIntakeConsumerVersion,
-      workspaceId: audit.workspaceId,
-      targetType: audit.targetType,
-      duplicate: true,
-      candidate,
-      businessProspect: state.workspaceBusinessProspects.find(item => item.candidateId === candidate.id) || null,
-      attributionEvent: state.attributionEvents.find(event => event.leadId === candidate.id) || null,
       audit
     };
   }

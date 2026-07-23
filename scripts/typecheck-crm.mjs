@@ -111,7 +111,8 @@ assert.equal(typeof validateWorkspaceLeadIntakeHandoff, "function");
 assert.equal(crmWorkspaceLeadStoreBinding, "CRM_WORKSPACE_LEAD_STORE");
 assert.equal(crmWorkspaceLeadStoreTechnology, "cloudflare_workers_kv");
 assert.equal(supportedWorkspaceLeadIntakeWorkspaces.fitness_connection.runtimePersistenceAllowed, true);
-assert.equal(supportedWorkspaceLeadIntakeWorkspaces.smoothie_depot.runtimePersistenceAllowed, false);
+assert.deepEqual(Object.keys(supportedWorkspaceLeadIntakeWorkspaces), ["fitness_connection"]);
+assert.equal(Object.hasOwn(supportedWorkspaceLeadIntakeWorkspaces, "retired_customer_workspace"), false);
 
 const kvBinding = {
   async get() { return null; },

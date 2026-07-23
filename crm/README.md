@@ -22,20 +22,17 @@ CRM consumes Website attribution output and normalizes CRM lead attribution thro
 
 CRM consumes Operating Profile definitions from the Intelligence Engine. Fitness is the default profile. Use `buildCrmOperatingProfile`, `applyCrmOperatingProfileToLead`, `transitionLeadProfileStage`, and `recordProfileOutcomeForLead` for profile-driven terminology, CRM stages, outcome labels, and profile-aware pipeline reporting. Do not hardcode a new industry-specific CRM stage model inside CRM.
 
-## Workspace Planning
-
-- `workspaces/smoothie-depot/candidate-pipeline-contracts.json`: Smoothie Depot franchise candidate CRM planning contracts for candidate records, business prospects, JR handoff, commission tracking, protected candidate tracking, and workspace isolation.
-- `workspaces/smoothie-depot/candidate-pipeline-planning.md`: human-readable Smoothie Depot CRM candidate pipeline plan. This remains planning-only and does not create CRM runtime records or Dashboard consumption.
-
 ## Workspace Lead Intake
 
 CRM consumes Infrastructure-prepared `shared_workspace_crm_lead_intake_packet.v1` handoff packets through `consumeWorkspaceLeadIntakeHandoff`. Use `persistWorkspaceLeadIntakeHandoff` with a CRM-owned durable store adapter to persist canonical workspace lead records under `crm-workspace-leads/` keys. Infrastructure owns receipt, routing, and intake storage; CRM owns customer lead persistence.
+
+Only workspaces explicitly registered in `supportedWorkspaceLeadIntakeWorkspaces` may enter the CRM consumer. Removing or retiring a customer workspace means removing its registration; historical or caller-supplied identifiers cannot reactivate a route. Unknown, inactive, or unapproved workspace packets fail before CRM state or durable storage changes.
 
 ### Production Durable Store
 
 Production CRM workspace leads use the dedicated Cloudflare Workers KV binding `CRM_WORKSPACE_LEAD_STORE` and namespace `f20a0a4f66fb4b53ab26644e2d3bd0dd`. `createCloudflareKvCrmWorkspaceLeadStore` implements the existing readable/writable persistence interface, while `persistWorkspaceLeadIntakeWithProductionStore` composes the Infrastructure handoff packet into CRM-owned durable records. `readWorkspaceLeadIntakeFromProductionStore` resolves the submission index and verifies the workspace partition before returning a record.
 
-The production Worker persists Fitness Connection lead handoffs and fails closed when the CRM binding is unavailable. Smoothie Depot intake remains available to Infrastructure, but CRM runtime candidate persistence is governance-blocked until `runtimeImplementationApproved` and `runtimeCandidateRecordsAllowed` are explicitly changed in the CRM planning contract.
+The production Worker persists the currently approved Fitness Connection lead handoffs and fails closed when the CRM binding is unavailable. Additional companies require a separately validated workspace configuration and runtime approval before CRM routing or persistence is possible.
 
 ## Route IQ Requests
 

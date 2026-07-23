@@ -9,12 +9,10 @@ const files = [
   "tests/crm-foundation.test.mjs",
   "tests/crm-cloudflare-kv-workspace-lead-store.test.mjs",
   "tests/crm-enterprise-foundation.test.mjs",
-  "tests/smoothie-depot-crm-planning.test.mjs",
   "scripts/lint-crm.mjs",
   "scripts/typecheck-crm.mjs",
   "scripts/validate-crm-enterprise-foundation.mjs",
   "scripts/validate-crm-production-store.mjs",
-  "scripts/validate-smoothie-depot-crm-planning.mjs",
   "workers/infrastructure/shared-lead-intake-pipeline.js",
   "workers/prometheus-iq-worker.js"
 ];

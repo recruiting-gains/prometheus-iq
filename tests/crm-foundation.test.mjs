@@ -108,12 +108,6 @@ function canonicalWorkspaceIntakeRecord(input = {}) {
       operatingProfileId: "fitness",
       operatingProfileLabel: "Fitness",
       crmWorkspacePath: "crm://workspace/fitness_connection/leads"
-    },
-    smoothie_depot: {
-      workspaceName: "Smoothie Depot",
-      operatingProfileId: "franchise_development",
-      operatingProfileLabel: "Franchise Development",
-      crmWorkspacePath: "crm://workspace/smoothie_depot/candidate_pipeline"
     }
   };
   const workspace = workspaces[workspaceId];
@@ -691,41 +685,6 @@ test("CRM rejects stages outside the active operating profile", () => {
   assert.throws(() => transitionLeadProfileStage(state, lead.id, "Inspection Scheduled"), /Unknown CRM operating profile stage for medical/);
 });
 
-test("Smoothie Depot workspace intake creates CRM candidate handoff", async () => {
-  const state = createCrmState({ now: "2026-07-04T14:10:00.000Z" });
-  const record = canonicalWorkspaceIntakeRecord({
-    workspaceId: "smoothie_depot",
-    companyName: "Houston Juice Group",
-    contactName: "Sam Franchise",
-    contactMethod: "sam@example.com",
-    campaignId: "smoothie-depot-founder-sourcing",
-    leadSource: "partner_intake",
-    locationCount: "3"
-  });
-
-  const result = consumeWorkspaceLeadIntakeHandoff(state, record);
-
-  assert.equal(result.ok, true);
-  assert.equal(result.workspaceId, "smoothie_depot");
-  assert.equal(result.targetType, "smoothie_depot_candidate_handoff");
-  assert.equal(result.candidate.workspaceId, "smoothie_depot");
-  assert.equal(result.candidate.submissionId, record.submissionId);
-  assert.equal(result.candidate.handoffId, record.crmHandoff.handoffId);
-  assert.equal(result.candidate.operatingProfileId, "franchise_development");
-  assert.equal(result.candidate.pipeline, "smoothie_depot_franchise_candidate_pipeline");
-  assert.equal(result.candidate.pipelineStage, "Contact Found");
-  assert.equal(result.candidate.candidateName, "Sam Franchise");
-  assert.equal(result.candidate.businessName, "Houston Juice Group");
-  assert.equal(result.candidate.email, "sam@example.com");
-  assert.equal(result.candidate.numberOfLocationsDesired, 3);
-  assert.equal(result.candidate.attribution.campaignId, "smoothie-depot-founder-sourcing");
-  assert.equal(result.audit.auditTrail.some(entry => entry.event === "workspace_crm_handoff_prepared"), true);
-  assert.equal(state.workspaceCandidateHandoffs.length, 1);
-  assert.equal(state.workspaceBusinessProspects.length, 1);
-  assert.equal(state.contacts.length, 0);
-  assert.equal(state.leads.length, 0);
-});
-
 test("Fitness Connection workspace intake creates CRM lead handoff", async () => {
   const state = createCrmState({ now: "2026-07-04T14:20:00.000Z" });
   const record = canonicalWorkspaceIntakeRecord({
@@ -756,7 +715,6 @@ test("Fitness Connection workspace intake creates CRM lead handoff", async () =>
   assert.equal(state.contacts.length, 1);
   assert.equal(state.leads.length, 1);
   assert.equal(state.workspaceLeadHandoffs.length, 1);
-  assert.equal(state.workspaceCandidateHandoffs.length, 0);
 });
 
 test("Workspace intake unknown workspace fails closed without CRM mutation", () => {
@@ -788,7 +746,6 @@ test("Workspace intake unknown workspace fails closed without CRM mutation", () 
 
   assert.equal(state.contacts.length, 0);
   assert.equal(state.leads.length, 0);
-  assert.equal(state.workspaceCandidateHandoffs.length, 0);
   assert.equal(state.workspaceLeadIntakeHandoffs.length, 0);
 });
 
@@ -807,7 +764,7 @@ test("Workspace intake rejects cross-workspace contamination", async () => {
         ...record.crmHandoff.packet,
         lead: {
           ...record.crmHandoff.packet.lead,
-          workspaceId: "smoothie_depot"
+          workspaceId: "other_company_workspace"
         }
       }
     }
@@ -816,7 +773,6 @@ test("Workspace intake rejects cross-workspace contamination", async () => {
   assert.throws(() => consumeWorkspaceLeadIntakeHandoff(state, contaminated), /cross-workspace contamination/);
   assert.equal(state.contacts.length, 0);
   assert.equal(state.leads.length, 0);
-  assert.equal(state.workspaceCandidateHandoffs.length, 0);
   assert.equal(state.workspaceLeadIntakeHandoffs.length, 0);
 });
 
@@ -854,33 +810,42 @@ test("CRM persists Fitness Connection workspace lead records durably", async () 
   assert.equal(result.record.metadata.auditTrail.some(entry => entry.event === "workspace_crm_handoff_prepared"), true);
   assert.equal(result.record.storage.keys.record, `${crmWorkspaceLeadPersistencePrefix}/workspaces/fitness_connection/submissions/${record.submissionId}/lead.json`);
   assert.deepEqual(store.readJson(result.record.storage.keys.record), result.record);
-  assert.equal(store.items.has(`${crmWorkspaceLeadPersistencePrefix}/workspaces/smoothie_depot/submissions/${record.submissionId}/lead.json`), false);
+  assert.equal(store.items.has(`${crmWorkspaceLeadPersistencePrefix}/workspaces/other_company_workspace/submissions/${record.submissionId}/lead.json`), false);
   assert.equal(state.workspaceLeadPersistenceRecords.length, 1);
 });
 
-test("CRM durable persistence blocks Smoothie Depot candidate records under current governance", async () => {
+test("retired customer-specific workspaces cannot become active CRM routes without approved configuration", async () => {
   const state = createCrmState({ now: "2026-07-04T15:10:00.000Z" });
   const store = memoryKvStore();
   const record = canonicalWorkspaceIntakeRecord({
-    workspaceId: "smoothie_depot",
-    companyName: "Cypress Smoothie Operators",
-    contactName: "Riley Candidate",
+    companyName: "Northstar Field Services",
+    contactName: "Riley Operator",
     contactMethod: "7135550101",
-    campaignId: "smoothie-durable-intake",
+    campaignId: "retired-workspace-intake",
     locationCount: "4"
   });
+  const retiredWorkspaceId = "retired_customer_workspace";
+  record.workspace.workspaceId = retiredWorkspaceId;
+  record.workspace.workspaceName = "Retired Customer Workspace";
+  record.operatingProfile.id = "general_outside_sales";
+  record.operatingProfile.label = "General Outside Sales";
+  record.crmHandoff.workspaceId = retiredWorkspaceId;
+  record.crmHandoff.crmWorkspacePath = `crm://workspace/${retiredWorkspaceId}/leads`;
+  record.crmHandoff.packet.lead.workspaceId = retiredWorkspaceId;
+  record.crmHandoff.packet.lead.workspaceName = "Retired Customer Workspace";
+  record.crmHandoff.packet.lead.operatingProfile.profileId = "general_outside_sales";
+  record.crmHandoff.packet.lead.operatingProfile.crmProfileId = "general_outside_sales";
+  record.crmHandoff.packet.crmIntegration.workspaceId = retiredWorkspaceId;
+  record.crmHandoff.packet.crmIntegration.operatingProfileId = "general_outside_sales";
 
   await assert.rejects(() => persistWorkspaceLeadIntakeHandoff(state, record, {
     store,
     persistedAt: "2026-07-04T15:15:00.000Z"
-  }), error => {
-    assert.equal(error.code, "crm_workspace_runtime_governance_blocked");
-    assert.equal(error.status, 409);
-    return true;
-  });
+  }), /Unknown CRM workspace intake workspace: retired_customer_workspace/);
 
   assert.equal(store.items.size, 0);
-  assert.equal(state.workspaceCandidateHandoffs.length, 0);
+  assert.equal(state.contacts.length, 0);
+  assert.equal(state.leads.length, 0);
   assert.equal(state.workspaceLeadPersistenceRecords.length, 0);
 });
 
