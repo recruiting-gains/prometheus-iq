@@ -43,9 +43,9 @@ Prohibited:
 Current workspace examples:
 
 - Fitness Connection Workspace uses the Fitness Operating Profile and owns its own Route Intelligence, units, memberships, and field-sales activity.
-- Smoothie Depot Workspace uses the Franchise Development Operating Profile and owns its own Business Acquisition Intelligence, franchise candidates, JR handoffs, and commission tracking.
+- A synthetic General Outside Sales workspace proves that a second industry and company can use the same validated configuration and reusable product surface without a customer-specific code fork.
 
-Fitness Connection data must never influence Smoothie Depot intelligence. Smoothie Depot candidate intelligence must never influence Fitness Connection route recommendations.
+No workspace's data, candidates, intelligence, learning, or recommendations may influence another workspace.
 
 ## Governing Identity Sources
 
@@ -92,11 +92,9 @@ Areas:
 
 Primary rule: improve the existing dashboard. Do not create duplicate dashboards, duplicate route cards, or replacement apps unless Cruz explicitly approves.
 
-Founder workspace switcher rule: Founder workspace navigation lives inside the existing Dashboard through the Founder-only workspace selector in `index.html` and `deploy/cloudflare-pages/index.html`, verified by `scripts/verify-dashboard-workspace-switcher.mjs` and `scripts/verify-dashboard-runtime-workflows.mjs`. Default workspace is `fitness_connection`; Smoothie Depot selection routes to `/smoothie-depot-dashboard/`. Do not create a second workspace switcher, do not expose workspace switching to Rep/Anthony flows, and do not let workspace switching mix Fitness runtime data with Smoothie Depot candidate/JR/commission data.
+Workspace navigation rule: Founder workspace navigation lives inside the existing Dashboard through one configuration-driven selector in `index.html` and `deploy/cloudflare-pages/index.html`, verified by `scripts/verify-dashboard-workspace-switcher.mjs` and `scripts/verify-dashboard-runtime-workflows.mjs`. Do not create a second workspace switcher, expose workspace switching to unauthorized roles, or allow inactive historical workspaces into normal operation. Missing or invalid tenant configuration must fail closed without demo or customer-specific fallback data.
 
-Fitness Connection workspace contract rule: Fitness Connection is registered as canonical workspace `fitness_connection` with Operating Profile `fitness` through `overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json`, `dashboard-consumer-contract-v1.json`, `route-intelligence-data-contract-v1.json`, `crm-consumer-contract-v1.json`, and `intelligence-consumer-contract-v1.json`, all listed in `overwatch/artifact-contracts/canonical-artifact-registry.json`. Future Fitness Connection dashboard, CRM, route, rep, manager, enterprise, Data, Infrastructure, or Intelligence work must use this contract, preserve Founder/Rep separation, keep Anthony/Rep access below Founder access, block Smoothie Depot candidate/franchise data from Fitness route/CRM/intelligence paths, prohibit production fixture/demo data, and fail closed on missing artifacts.
-
-Smoothie Depot dashboard rule: the Smoothie Depot Founder Dashboard lives at `smoothie-depot-dashboard/index.html` with deploy asset `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html` and validation through `scripts/verify-smoothie-depot-dashboard.mjs`. It is scoped to `workspace_id: smoothie_depot` and `operating_profile_id: franchise_development`, consumes completed Research-owned canonical dossier artifacts read-only, stays zero-state until real CRM/runtime records are explicitly authorized, and must not surface Fitness Connection, Units, Memberships, Route Intelligence, Active Pool, Territory views, fixture data, fake candidate records, fake contacts, fake commissions, fake JR queues, or fake activity feeds.
+Fitness Connection workspace contract rule: Fitness Connection is registered as canonical workspace `fitness_connection` with Operating Profile `fitness` through `overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json`, `dashboard-consumer-contract-v1.json`, `route-intelligence-data-contract-v1.json`, `crm-consumer-contract-v1.json`, and `intelligence-consumer-contract-v1.json`, all listed in `overwatch/artifact-contracts/canonical-artifact-registry.json`. Future Fitness Connection dashboard, CRM, route, rep, manager, enterprise, Data, Infrastructure, or Intelligence work must use this contract, preserve Founder/Rep separation, keep Anthony/Rep access below Founder access, block every other workspace's data from Fitness route/CRM/intelligence paths, prohibit production fixture/demo data, and fail closed on missing artifacts.
 
 Cross-subsystem artifact contract rule: Research, Dashboard, CRM, Intelligence, and Overwatch must communicate through `overwatch/artifact-contracts/canonical-artifact-registry.json`, documented by `overwatch/artifact-contracts/cross-subsystem-artifact-contract-v1.md` and enforced by `scripts/verify-cross-subsystem-artifact-contracts.mjs`. The subsystem/workspace compliance audit lives at `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json` and `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.md`. Research writes canonical dossiers, Dashboard reads dossiers only, CRM writes activity/candidate state only through CRM-owned contracts and approved runtime paths, Intelligence reads Research and CRM before producing approved interpretation, and Overwatch verifies canonical paths, schemas, ownership, consumer rules, workspace isolation, source/deploy parity, and fixture/demo-data prohibition. Unknown or missing artifacts must fail closed. Future feature work touching any subsystem or workspace marked `partial_compliance` or `bypass_identified` in the compliance audit must first complete or explicitly include the scheduled remediation.
 
@@ -174,8 +172,6 @@ Current foundation:
 - `intelligence/contracts/customer-intelligence-graph-contracts.json`
 - `intelligence/contracts/business-acquisition-intelligence-contracts.json`
 - `intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json`
-- `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md`
-- `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json`
 
 Duplicate-prevention rule: Adaptive Outside Sales Intelligence Engine work must extend the existing Intelligence foundation, Route Intelligence V2 architecture, Continuous Learning Framework, Golden Route Quality Gate, Runtime Governance, CRM foundation, Research source policy, and Sales foundation. Do not create a parallel learning brain, separate opportunity-ranking system, duplicate knowledge graph, or production scoring path without explicit approved handoff.
 
@@ -188,8 +184,6 @@ Recommendation explainability rule: explanation work must extend `intelligence/r
 Operating Profile rule: industry adaptation and field-evidence activation work must extend `intelligence/operating-profile-engine.mjs`, `intelligence/field-evidence-activation-foundation.md`, `intelligence/profiles/operating-profiles.json`, and `intelligence/contracts/operating-profile-contracts.json`. Do not create a parallel industry-profile engine, duplicate normalized outcome model, production learning activation path, or separate Dashboard/CRM/Companion/Mobile/Website profile contract without approved Intelligence handoff.
 
 Customer Intelligence Graph rule: customer graph and Living Customer Intelligence snapshot work must extend `intelligence/customer-intelligence-graph.mjs`, `intelligence/customer-intelligence-graph.md`, and `intelligence/contracts/customer-intelligence-graph-contracts.json`. Do not create a parallel graph engine, duplicate graph vocabulary, cross-customer graph path, active confidence-propagation path, automatic learning path, scoring path, or Dashboard/CRM/Mobile/Website/Companion/Research/Sales graph consumer without approved Intelligence handoff.
-
-Smoothie Depot Workspace rule: Smoothie Depot Business Acquisition Intelligence work must extend `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md`, `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json`, and `intelligence/contracts/business-acquisition-intelligence-contracts.json`. Do not mix Smoothie Depot franchise candidate intelligence, JR handoffs, commission tracking, protection periods, or Franchise Development operating profile state with Fitness Connection Route Intelligence, Active Pool scoring, units/memberships, or customer workspace data.
 
 Continuous route replenishment rule: outcome-driven Route IQ queue work must extend `intelligence/continuous-adaptive-route-replenishment.mjs` and `intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json`. Preserve the existing Route Intelligence scoring and explanation functions, 15-stop queue target, fewer-than-5 recovery threshold, Active Pool priority, governed Full Pool fallback, quarantine exclusion, completed-stop history, deterministic append order, single-flight protection, local persistence, zero-live-Google boundary, and Fitness Connection workspace isolation. Do not replace this intelligence loop with static pagination or a second route queue.
 
@@ -238,8 +232,6 @@ Areas:
 - Calendar
 
 Primary rule: CRM owns the internal account/customer lifecycle model but must not duplicate Dashboard UI/runtime logic, Companion behavior, Infrastructure/auth/storage, Data route/prospect governance, Intelligence Engine scoring, or Sales-owned go-to-market narrative. Do not connect external communication systems or send messages without explicit Cruz approval.
-
-Smoothie Depot CRM planning rule: Smoothie Depot candidate pipeline work must extend `crm/workspaces/smoothie-depot/candidate-pipeline-planning.md` and `crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json`. It must preserve `workspace_id: smoothie_depot`, `operating_profile_id: franchise_development`, runtime-free planning status until explicit approval, and Fitness Connection separation. Do not mix Smoothie Depot candidate records with Fitness Connection CRM records, Route Intelligence, Active Pool scoring, or production recommendations.
 
 Workspace lead intake CRM consumer rule: shared intake handoffs must enter CRM through `consumeWorkspaceLeadIntakeHandoff` in `crm/crm-foundation.mjs`. The CRM consumer must route by `workspaceId`, support only approved workspaces, reject unknown workspaces fail-closed, reject cross-workspace contamination before mutation, and preserve submission ID, attribution, and audit metadata. Do not create a parallel shared intake CRM consumer or bypass workspace isolation.
 
@@ -437,7 +429,7 @@ Areas:
 
 Primary rule: Administration owns operating procedure and governance records. It does not own product engineering, runtime route logic, data refresh infrastructure, CRM automation, Companion behavior, external integrations, or deployment configuration.
 
-Smoothie Depot Administration rule: Smoothie Depot operating procedure must extend `administration/workspaces/smoothie-depot/founder-operating-manual-v1.md`, `administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md`, and `administration/workspaces/smoothie-depot/workspace-isolation-verification.json`. It must preserve `workspace_id: smoothie_depot`, `operating_profile_id: franchise_development`, and the no-Fitness-Connection / no-Route-Intelligence / no-Active-Pool / no-units / no-memberships boundary. It must not authorize CRM runtime persistence or Dashboard runtime changes.
+Administration workspace rule: operating procedures may reference only approved active workspace configurations. Inactive historical customer procedures must remain absent from active navigation and current operational documentation, and Administration must not authorize CRM runtime persistence or Dashboard runtime changes.
 
 ### 14. Prometheus Patents / IP Preparation
 

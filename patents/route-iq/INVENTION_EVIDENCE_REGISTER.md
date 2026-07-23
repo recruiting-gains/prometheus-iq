@@ -229,12 +229,12 @@ Status: Founder confirmation required
 Known repository evidence:
 
 - `docs/fitness-connection-pitch-plan.md` contains a planned 90-day pilot discussion concept and pitch language for Fitness Connection.
-- `docs/founder-conversations/2026-07-03-smoothie-depot-houston-expansion.md` preserves a founder discussion about Smoothie Depot expansion analysis and territory coverage.
+- Git history preserves a retired customer-specific founder discussion about expansion analysis and territory coverage; the obsolete current-tree conversation document was removed during product-retirement cleanup.
 - The current repository evidence shows customer/prospect discussion planning and founder research records, but it does not confirm actual Route IQ technical disclosure to a customer or prospect.
 
 Founder confirmation needed:
 
-- Confirm whether Route IQ was discussed with Fitness Connection, Smoothie Depot, Nutrition Depot, or any other prospect.
+- Confirm whether Route IQ was discussed with Fitness Connection, any retired historical customer workspace, Nutrition Depot, or any other prospect.
 - Record dates, participants, communication channels, and materials shown.
 - Confirm whether the discussion included the adaptive representative intelligence architecture or only business/marketing-level descriptions.
 - Preserve decks, emails, texts, notes, recordings, screenshots, and follow-up messages.
@@ -284,7 +284,7 @@ Current gaps:
 5. What file, demo, device, or deployment first showed Route IQ working?
 6. What screenshots exist, and what dates do they show?
 7. Was Route IQ shown publicly before attorney review?
-8. Was Route IQ shown privately to Anthony, Fitness Connection, Smoothie Depot, Nutrition Depot, or any other prospect/customer?
+8. Was Route IQ shown privately to Anthony, Fitness Connection, any retired historical customer workspace, Nutrition Depot, or any other prospect/customer?
 9. Were any disclosures made under confidentiality expectations or NDA?
 10. Has any attorney reviewed Route IQ yet?
 11. Are there notebooks, chats, texts, emails, voice notes, photos, recordings, or whiteboards that predate the git evidence?

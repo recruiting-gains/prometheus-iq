@@ -20,7 +20,7 @@ The namespace identifier is intentionally recorded only in the approved private 
 
 The binding belongs only to the existing `prometheus-iq` Worker. That Worker owns the private Route IQ application origin and is the future same-origin recipient for the separately authorized Dashboard end-of-day handoff. The public `prometheusrouteiq-website` Worker does not receive this binding. No new Worker, service, route, trigger, Dashboard behavior, CRM behavior, scoring behavior, or Intelligence consumer was created.
 
-The namespace is dedicated to Fitness Connection Route IQ field-session archival. It is separate from CRM, shared lead intake, Instagram token, Aegis rate-limit, and business-hours storage. The canonical Data adapter recognizes only `fitness_connection` and explicitly protects `smoothie_depot`; a future workspace requires its own separately approved namespace and binding design.
+The namespace is dedicated to Fitness Connection Route IQ field-session archival. It is separate from CRM, shared lead intake, Instagram token, Aegis rate-limit, and business-hours storage. The canonical Data adapter recognizes only `fitness_connection`; every inactive, historical, or unknown workspace fails closed. A future workspace requires its own separately approved namespace and binding design.
 
 ## Development And Preview
 
@@ -48,7 +48,7 @@ The canonical Data tests separately prove identical replay idempotency, conflict
 
 The production namespace was created on 2026-07-11 and verified through the configured binding name. The disposable remote probe passed separate-operation write/read-back and binding-scoped list checks, then deleted its technical record and confirmed the unique verification prefix was empty. The canonical session keyspace was not touched and no customer, route, visit, lead, or representative data was written.
 
-The focused Infrastructure suite also confirmed that existing bindings remain present, the public Worker is not bound to this namespace, missing bindings fail before writes, only `fitness_connection` is supported, Smoothie Depot and unknown workspace access fail closed, raw evidence is written first and remains unchanged on conflict, identical replay performs no second write, and the commit marker is written last.
+The focused Infrastructure suite also confirmed that existing bindings remain present, the public Worker is not bound to this namespace, missing bindings fail before writes, only `fitness_connection` is supported, inactive and unknown workspace access fails closed, raw evidence is written first and remains unchanged on conflict, identical replay performs no second write, and the commit marker is written last.
 
 ## Deployment Gate
 

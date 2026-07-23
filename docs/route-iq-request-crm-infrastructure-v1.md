@@ -1,6 +1,6 @@
 # Route IQ Request CRM Infrastructure v1
 
-Prometheus Infrastructure routes the public `POST /api/partner-intake` endpoint into the CRM-owned Route IQ request contract. The active public path is fixed to workspace `prometheus_route_iq` and operating profile `route_iq_commercial`; legacy Fitness Connection and Smoothie Depot intake routing is not used by this runtime path.
+Prometheus Infrastructure routes the public `POST /api/partner-intake` endpoint into the CRM-owned Route IQ request contract. The active public path is fixed to workspace `prometheus_route_iq` and operating profile `route_iq_commercial`; legacy customer-specific intake routing is not used by this runtime path.
 
 ## Durability
 

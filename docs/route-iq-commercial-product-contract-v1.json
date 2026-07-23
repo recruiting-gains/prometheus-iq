@@ -218,8 +218,8 @@
     "historicalEvidenceRewriteAllowed": false,
     "crossWorkspaceEvidenceUseAllowed": false
   },
-  "historicalWorkspaceBoundary": {
-    "workspaceId": "smoothie_depot",
+  "inactiveHistoricalWorkspaceBoundary": {
+    "appliesTo": "all_retired_customer_workspaces",
     "state": "inactive_historical",
     "normalOperationVisible": false,
     "activeNavigationVisible": false,
@@ -245,7 +245,7 @@
     "PROSPECTIVE_COLLECTION_ACTIVATION",
     "RAW_UNCONTROLLED_CODEX_UPLOAD",
     "HISTORICAL_EVIDENCE_REWRITE",
-    "SMOOTHIE_DEPOT_ACTIVE_OPERATION",
+    "INACTIVE_HISTORICAL_WORKSPACE_ACTIVE_OPERATION",
     "GAIA_OPERATIONAL_ACTIVATION",
     "ATHENA_OPERATIONAL_ACTIVATION"
   ],
@@ -369,7 +369,7 @@
     },
     {
       "gate": 2,
-      "name": "smoothie_depot_removed_from_active_dashboard",
+      "name": "inactive_historical_workspaces_removed_from_active_dashboard",
       "ownerSubsystems": ["Prometheus Dashboard", "Prometheus Data"],
       "evidenceSurfaces": ["index.html", "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json"],
       "requirement": "inactive_historical_hidden_without_deletion"
