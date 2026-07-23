@@ -14,9 +14,17 @@ import {
   evaluateRouteBusinessHoursEligibility,
   routeBusinessHoursEligibilityVersion
 } from "../../intelligence/route-business-hours-eligibility.mjs";
+import {
+  createGovernedRouteRuntimeScopeFromConfiguration
+} from "../../intelligence/route-iq-governed-runtime-scope.mjs";
 import { genericNamePattern, numberedAddress, safeMapsPattern } from "../segment-google-runtime-pools.mjs";
 
-export const gateVersion = "route-intelligence-golden-route-quality-gate-v1";
+export const gateVersion = "route-intelligence-golden-route-quality-gate-v2";
+export const requiredBusinessHoursRuntimeVersion = "route-iq-business-hours-eligibility-v2";
+export const requiredBusinessHoursContractVersion = "route-iq-business-hours-eligibility-contracts-v2";
+
+const legacyBusinessHoursRuntimeVersion = "route-iq-closed-now-eligibility-v1";
+const legacyBusinessHoursContractVersion = "route-iq-closed-now-eligibility-contracts-v1";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(moduleDir, "../..");
@@ -33,7 +41,9 @@ export const defaultPaths = {
   businessHoursDataContract: "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
   businessHoursIntelligenceContract: "intelligence/contracts/route-business-hours-eligibility-contracts.json",
   fitnessIntelligenceConsumerContract: "overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json",
-  canonicalArtifactRegistry: "overwatch/artifact-contracts/canonical-artifact-registry.json"
+  canonicalArtifactRegistry: "overwatch/artifact-contracts/canonical-artifact-registry.json",
+  workspaceConfigurationRegistry: "administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json",
+  workspaceBusinessManifestRegistry: "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json"
 };
 
 const expectedRuntimeFileCount = 32;
@@ -447,6 +457,8 @@ function hoursDecisionEvidence(decision) {
   return {
     status: decision?.status || null,
     eligible: decision?.eligible === true,
+    coverageEligible: decision?.coverageEligible === true,
+    immediateRecommendationEligible: decision?.immediateRecommendationEligible === true,
     coverageOnly: decision?.coverageOnly === true,
     selectionTier: decision?.selectionTier ?? null,
     internalMarker: decision?.internalMarker ?? null,
@@ -464,6 +476,8 @@ export function buildBusinessHoursQualityEvidence({
   consumerContract,
   fitnessIntelligenceContract,
   artifactRegistry,
+  workspaceConfigurationRegistry,
+  workspaceBusinessManifestRegistry,
   evaluatedAt = new Date()
 }) {
   const failures = [];
@@ -481,17 +495,50 @@ export function buildBusinessHoursQualityEvidence({
   ];
   const allowedReadPaths = fitnessWorkspace?.consumerContracts?.intelligence?.allowedReadPaths || [];
   const canonicalIdentifier = consumerContract.version;
+  const workspaceId = "fitness_connection";
+  const operatingProfileId = "fitness";
+  const workspaceConfiguration = workspaceConfigurationRegistry?.workspaces?.find(
+    workspace => workspace.workspaceId === workspaceId
+  );
+  const configuredOpportunitySource = workspaceConfiguration?.opportunitySources?.find(
+    source => source.workspaceId === workspaceId && source.profileId === operatingProfileId
+  );
+  const workspaceManifest = workspaceBusinessManifestRegistry?.manifests?.find(
+    manifest => manifest.workspaceId === workspaceId && manifest.operatingProfileId === operatingProfileId
+  );
+  const activeTerritoryId = workspaceConfiguration?.territories?.find(territory => territory.active)?.territoryId || null;
 
   check(Boolean(consumerRegistration), "business_hours_consumer_not_registered");
-  check(canonicalIdentifier === "route-iq-closed-now-eligibility-contracts-v1", "business_hours_consumer_identifier_not_canonical");
+  check(routeBusinessHoursEligibilityVersion === requiredBusinessHoursRuntimeVersion, "business_hours_runtime_version_not_v2");
+  check(canonicalIdentifier === requiredBusinessHoursContractVersion, "business_hours_consumer_contract_version_not_v2");
+  check(consumerContract.runtimeVersion === requiredBusinessHoursRuntimeVersion, "business_hours_consumer_runtime_pin_mismatch");
+  check(consumerContract.compatibility?.exactVersionRequired === true, "business_hours_exact_version_not_required");
+  check(consumerContract.compatibility?.legacyRuntimeVersionAccepted === false, "business_hours_legacy_runtime_accepted");
+  check(consumerContract.compatibility?.legacyContractVersionAccepted === false, "business_hours_legacy_contract_accepted");
+  check(consumerContract.compatibility?.supersedesRuntimeVersion === legacyBusinessHoursRuntimeVersion, "business_hours_legacy_runtime_not_superseded");
+  check(consumerContract.compatibility?.supersedesContractVersion === legacyBusinessHoursContractVersion, "business_hours_legacy_contract_not_superseded");
   check(consumerRegistration?.path === defaultPaths.businessHoursIntelligenceContract, "business_hours_consumer_canonical_path_mismatch");
-  check(consumerRegistration?.canonicalIdentifier === canonicalIdentifier, "business_hours_consumer_identifier_unresolved");
   check(consumerRegistration?.linkedDataContractId === dataContract.contractId, "business_hours_consumer_data_contract_unlinked");
   check(dataRegistration?.path === defaultPaths.businessHoursDataContract, "business_hours_data_contract_canonical_path_mismatch");
-  check(dataContract.authorizationMetadata?.authorizedConsumerContractId === canonicalIdentifier, "business_hours_data_authorization_identifier_mismatch");
   check(dataContract.authorizationMetadata?.authorizedConsumerContractPath === defaultPaths.businessHoursIntelligenceContract, "business_hours_data_authorization_path_mismatch");
-  check(consumerContract.dataContract?.contractId === dataContract.contractId, "business_hours_contract_link_mismatch");
-  check(consumerContract.dataContract?.artifact === defaultPaths.businessHoursArtifact, "business_hours_dataset_path_mismatch");
+  check(dataContract.canonicalArtifacts?.businessHoursArtifact === defaultPaths.businessHoursArtifact, "business_hours_dataset_path_mismatch");
+  check(consumerContract.dataContract?.manifestRegistry === defaultPaths.workspaceBusinessManifestRegistry, "business_hours_manifest_registry_path_mismatch");
+  check(consumerContract.dataContract?.manifestVersion === workspaceBusinessManifestRegistry?.schemaVersion, "business_hours_manifest_version_mismatch");
+  check(consumerContract.configurationContract?.administrationSchemaVersion === workspaceConfigurationRegistry?.schemaVersion, "business_hours_administration_schema_mismatch");
+  check(workspaceConfiguration?.operatingProfile?.profileId === operatingProfileId, "business_hours_administration_profile_mismatch");
+  check(configuredOpportunitySource?.manifestRegistryPath === defaultPaths.workspaceBusinessManifestRegistry, "business_hours_administration_manifest_registry_mismatch");
+  check(configuredOpportunitySource?.manifestId === workspaceManifest?.manifestId, "business_hours_administration_manifest_id_mismatch");
+  check(configuredOpportunitySource?.artifactPath === workspaceManifest?.artifactPath, "business_hours_administration_artifact_path_mismatch");
+  check(configuredOpportunitySource?.classification === workspaceManifest?.classification, "business_hours_administration_classification_mismatch");
+  check(configuredOpportunitySource?.manifestApprovalState === workspaceManifest?.approvalState, "business_hours_administration_approval_state_mismatch");
+  check(workspaceManifest?.manifestVersion === consumerContract.dataContract?.manifestVersion, "business_hours_manifest_contract_version_mismatch");
+  check(activePool.workspaceId === workspaceManifest?.workspaceId, "business_hours_active_pool_workspace_mismatch");
+  check(activePool.operatingProfileId === workspaceManifest?.operatingProfileId, "business_hours_active_pool_profile_mismatch");
+  check(activePool.artifactManifestId === workspaceManifest?.manifestId, "business_hours_active_pool_manifest_id_mismatch");
+  check(activePool.artifactManifestVersion === workspaceManifest?.manifestVersion, "business_hours_active_pool_manifest_version_mismatch");
+  check(activePool.sourceArtifactSha256 === workspaceManifest?.artifactSha256, "business_hours_active_pool_artifact_hash_mismatch");
+  check(activePool.dataClassification === workspaceManifest?.classification, "business_hours_active_pool_classification_mismatch");
+  check(activePool.approvalState === workspaceManifest?.approvalState, "business_hours_active_pool_approval_state_mismatch");
   check(fitnessIntelligenceContract.businessHoursAccessRules?.accessMode === "read_only", "business_hours_access_not_read_only");
   check(fitnessIntelligenceContract.businessHoursAccessRules?.dataMutationAllowed === false, "business_hours_data_mutation_authorized");
   check(fitnessIntelligenceContract.interpretationRules?.canMutateData === false, "fitness_intelligence_data_mutation_authorized");
@@ -505,7 +552,24 @@ export function buildBusinessHoursQualityEvidence({
   check(fitnessIntelligenceContract.businessHoursAccessRules?.unknownConsumerFailsClosed === true, "unknown_business_hours_consumer_not_fail_closed");
   for (const path of requiredReadPaths) check(allowedReadPaths.includes(path), `fitness_intelligence_read_path_missing:${path}`);
 
-  const hoursIndex = buildRouteBusinessHoursIndex(businessHoursArtifact);
+  let governedRuntimeScope = null;
+  try {
+    governedRuntimeScope = createGovernedRouteRuntimeScopeFromConfiguration({
+      workspaceRegistry: workspaceConfigurationRegistry,
+      manifestRegistry: workspaceBusinessManifestRegistry,
+      workspaceId,
+      operatingProfileId,
+      sourceArtifactSha256: workspaceManifest?.artifactSha256,
+      businessHoursArtifact,
+      allowFounderResearch: true
+    });
+  } catch {
+    check(false, "business_hours_governed_runtime_scope_invalid");
+  }
+  const hoursIndex = buildRouteBusinessHoursIndex(
+    businessHoursArtifact,
+    governedRuntimeScope ? { governedRuntimeScope, workspaceId, operatingProfileId } : {}
+  );
   const evaluationInstant = evaluatedAt instanceof Date ? evaluatedAt : new Date(evaluatedAt);
   check(!Number.isNaN(evaluationInstant.getTime()), "business_hours_authoritative_time_invalid");
   const evaluationIso = evaluationInstant.toISOString();
@@ -514,7 +578,11 @@ export function buildBusinessHoursQualityEvidence({
     record,
     candidate,
     evaluatedAt: evaluationIso,
-    policy: hoursIndex.freshnessPolicy
+    policy: hoursIndex.freshnessPolicy,
+    workspaceId,
+    operatingProfileId,
+    territoryId: candidate?.territoryId || activeTerritoryId,
+    governedRuntimeScope
   });
   const allDecisions = businessHoursArtifact.records.map(record => decisionForRecord(record));
   const sourceStatusCounts = allDecisions.reduce((counts, decision) => {
@@ -537,11 +605,18 @@ export function buildBusinessHoursQualityEvidence({
       name: record.businessName,
       address: record.address,
       category: record.category,
-      workspaceId: "fitness_connection",
-      operatingProfileId: "fitness",
+      workspaceId,
+      operatingProfileId,
+      territoryId: activeTerritoryId,
       businessStatus: record.businessStatus || record.permanentOperationalStatus || "OPERATIONAL",
       baseScore: Number(profile?.qualityScore ?? record.qualityScore ?? record.priority ?? 0),
-      hoursRecord: hoursIndex.recordsByPlaceId.get(record.googlePlaceId) || null
+      hoursRecord: hoursIndex.recordsByPlaceId.get(record.googlePlaceId) || null,
+      sourceManifestId: record.artifactManifestId || workspaceManifest?.manifestId,
+      sourceManifestVersion: record.artifactManifestVersion || workspaceManifest?.manifestVersion,
+      sourceArtifactSha256: record.sourceArtifactSha256 || workspaceManifest?.artifactSha256,
+      sourceConfigurationVersion: workspaceConfiguration?.provenance?.configurationVersion,
+      sourceManifestConfigurationVersion: workspaceManifest?.configurationVersion,
+      sourceClassification: record.dataClassification || workspaceManifest?.classification
     };
   };
   const activeCandidates = (activePool.records || []).map((record, index) => candidateFromPoolRecord(record, index, "active"));
@@ -558,23 +633,31 @@ export function buildBusinessHoursQualityEvidence({
   );
   const isEligible = candidate => isImmediateEligible(eligibilityForCandidate(candidate));
   const queueContext = {
-    workspaceId: "fitness_connection",
+    workspaceId,
     representativeId: "route-quality-gate",
-    operatingProfileId: "fitness",
-    routeDate
+    operatingProfileId,
+    routeDate,
+    governedRuntimeScope
   };
-  const initialQueue = createEmptyRouteQueue({ ...queueContext, targetSize: 15, threshold: 5 });
-  const initial = maintainRouteQueue({
-    queue: initialQueue,
-    ...queueContext,
-    primaryCandidates: activeCandidates,
-    force: true,
-    trigger: "route-quality-initial-generation",
-    identityOf: routeQueueIdentity,
-    isEligible,
-    scoreCandidate,
-    now: evaluationIso
-  });
+  let initial = {
+    queue: { entries: [], threshold: 5 },
+    exhausted: true,
+    failureReasons: ["governed_runtime_scope_unavailable"]
+  };
+  if (governedRuntimeScope) {
+    const initialQueue = createEmptyRouteQueue({ ...queueContext, targetSize: 15, threshold: 5 });
+    initial = maintainRouteQueue({
+      queue: initialQueue,
+      ...queueContext,
+      primaryCandidates: activeCandidates,
+      force: true,
+      trigger: "route-quality-initial-generation",
+      identityOf: routeQueueIdentity,
+      isEligible,
+      scoreCandidate,
+      now: evaluationIso
+    });
+  }
   const christianIdentity = routeQueueIdentity({ googlePlaceId: christianBrothersPlaceId });
   const candidateByIdentity = new Map(activeCandidates.map(candidate => [routeQueueIdentity(candidate), candidate]));
   const initialIdentityKeys = initial.queue.entries.map(entry => entry.identityKey);
@@ -588,8 +671,10 @@ export function buildBusinessHoursQualityEvidence({
   check(initialScoresUnchanged, "business_hours_changed_initial_route_score");
   check(initialExplanationsAvailable, "initial_route_hours_explanation_missing");
 
-  const explanationFields = consumerContract.explainability?.requiredFields || [];
-  const missingExplanationFields = explanationFields.filter(field => !Object.prototype.hasOwnProperty.call(christianDecision, field));
+  const explanationFields = consumerContract.presentationContract?.requiredAvailabilityFields || [];
+  const missingExplanationFields = explanationFields.filter(
+    field => !Object.prototype.hasOwnProperty.call(christianDecision.availability || {}, field)
+  );
   check(missingExplanationFields.length === 0, "business_hours_explainability_fields_missing");
   check(christianDecision.provenance?.fieldEvidenceIds?.includes("fitness-2026-07-11-christian-brothers-closed-observation"), "christian_brothers_field_evidence_missing");
   check(consumerContract.safety?.scoringWeightsChanged === false, "business_hours_contract_changed_scoring_weights");
@@ -602,11 +687,21 @@ export function buildBusinessHoursQualityEvidence({
   check(!noFreshApprovedCandidates || initial.queue.entries.length === 0, "stale_or_unapproved_route_failed_to_exhaust_safely");
 
   const canonicalConsumerPassed = Boolean(consumerRegistration)
-    && canonicalIdentifier === "route-iq-closed-now-eligibility-contracts-v1"
+    && routeBusinessHoursEligibilityVersion === requiredBusinessHoursRuntimeVersion
+    && canonicalIdentifier === requiredBusinessHoursContractVersion
+    && consumerContract.runtimeVersion === requiredBusinessHoursRuntimeVersion
+    && consumerContract.compatibility?.exactVersionRequired === true
+    && consumerContract.compatibility?.legacyRuntimeVersionAccepted === false
+    && consumerContract.compatibility?.legacyContractVersionAccepted === false
     && consumerRegistration.path === defaultPaths.businessHoursIntelligenceContract
-    && consumerRegistration.canonicalIdentifier === canonicalIdentifier
     && consumerRegistration.linkedDataContractId === dataContract.contractId
     && dataRegistration?.path === defaultPaths.businessHoursDataContract
+    && consumerContract.dataContract?.manifestRegistry === defaultPaths.workspaceBusinessManifestRegistry
+    && consumerContract.dataContract?.manifestVersion === workspaceBusinessManifestRegistry?.schemaVersion
+    && consumerContract.configurationContract?.administrationSchemaVersion === workspaceConfigurationRegistry?.schemaVersion
+    && configuredOpportunitySource?.manifestId === workspaceManifest?.manifestId
+    && activePool.sourceArtifactSha256 === workspaceManifest?.artifactSha256
+    && Boolean(governedRuntimeScope)
     && requiredReadPaths.every(path => allowedReadPaths.includes(path))
     && fitnessIntelligenceContract.businessHoursAccessRules?.accessMode === "read_only"
     && fitnessIntelligenceContract.businessHoursAccessRules?.dataMutationAllowed === false
@@ -625,14 +720,19 @@ export function buildBusinessHoursQualityEvidence({
       sourceStatusEvaluatedAt: businessHoursArtifact.statusEvaluatedAt,
       authoritativeStatusEvaluatedAt: evaluationIso,
       scoringWeightsChanged: consumerContract.safety?.scoringWeightsChanged,
-      liveGoogleCalls: consumerContract.safety?.liveGoogleCalls
+      liveGoogleCalls: consumerContract.safety?.liveProviderCalls
     },
     canonicalConsumer: {
       status: canonicalConsumerPassed ? "passed" : "failed",
       artifactId: consumerRegistration?.artifactId || null,
       registered: Boolean(consumerRegistration),
       canonicalIdentifier,
-      identifierResolved: consumerRegistration?.canonicalIdentifier === canonicalIdentifier,
+      runtimeIdentifier: routeBusinessHoursEligibilityVersion,
+      identifierResolved: canonicalIdentifier === requiredBusinessHoursContractVersion
+        && routeBusinessHoursEligibilityVersion === requiredBusinessHoursRuntimeVersion,
+      exactVersionRequired: consumerContract.compatibility?.exactVersionRequired === true,
+      legacyRuntimeAccepted: consumerContract.compatibility?.legacyRuntimeVersionAccepted === true,
+      legacyContractAccepted: consumerContract.compatibility?.legacyContractVersionAccepted === true,
       consumerContractPath: consumerRegistration?.path || null,
       dataContractPath: dataRegistration?.path || null,
       datasetPath: dataContract.canonicalArtifacts?.businessHoursArtifact || null,
@@ -644,7 +744,23 @@ export function buildBusinessHoursQualityEvidence({
       operatingProfileId: fitnessIntelligenceContract.operatingProfileId,
       crossWorkspaceAllowFlagsAllFalse: crossWorkspaceAllowFlags.every(value => value === false),
       unknownWorkspaceFailsClosed: fitnessIntelligenceContract.businessHoursAccessRules?.unknownWorkspaceFailsClosed,
-      unknownConsumerFailsClosed: fitnessIntelligenceContract.businessHoursAccessRules?.unknownConsumerFailsClosed
+      unknownConsumerFailsClosed: fitnessIntelligenceContract.businessHoursAccessRules?.unknownConsumerFailsClosed,
+      administrationBinding: {
+        schemaVersion: workspaceConfigurationRegistry?.schemaVersion || null,
+        registryVersion: workspaceConfigurationRegistry?.registryVersion || null,
+        workspaceId: workspaceConfiguration?.workspaceId || null,
+        operatingProfileId: workspaceConfiguration?.operatingProfile?.profileId || null,
+        territoryId: activeTerritoryId,
+        opportunitySourceId: configuredOpportunitySource?.sourceId || null
+      },
+      manifestBinding: {
+        registryVersion: workspaceBusinessManifestRegistry?.registryVersion || null,
+        manifestId: workspaceManifest?.manifestId || null,
+        manifestVersion: workspaceManifest?.manifestVersion || null,
+        artifactSha256: workspaceManifest?.artifactSha256 || null,
+        classification: workspaceManifest?.classification || null,
+        approvalState: workspaceManifest?.approvalState || null
+      }
     },
     statusPolicies: {
       sourceStatusCounts,
@@ -732,6 +848,8 @@ export function runRouteIntelligenceQualityGate(options = {}) {
   const businessHoursIntelligenceContract = options.businessHoursIntelligenceContract || readJson(root, paths.businessHoursIntelligenceContract);
   const fitnessIntelligenceConsumerContract = options.fitnessIntelligenceConsumerContract || readJson(root, paths.fitnessIntelligenceConsumerContract);
   const canonicalArtifactRegistry = options.canonicalArtifactRegistry || readJson(root, paths.canonicalArtifactRegistry);
+  const workspaceConfigurationRegistry = options.workspaceConfigurationRegistry || readJson(root, paths.workspaceConfigurationRegistry);
+  const workspaceBusinessManifestRegistry = options.workspaceBusinessManifestRegistry || readJson(root, paths.workspaceBusinessManifestRegistry);
   const expectedBaseline = options.expectedBaseline
     || (existsSync(resolve(root, paths.goldenBaseline)) ? readJson(root, paths.goldenBaseline) : null);
 
@@ -792,6 +910,8 @@ export function runRouteIntelligenceQualityGate(options = {}) {
     consumerContract: businessHoursIntelligenceContract,
     fitnessIntelligenceContract: fitnessIntelligenceConsumerContract,
     artifactRegistry: canonicalArtifactRegistry,
+    workspaceConfigurationRegistry,
+    workspaceBusinessManifestRegistry,
     evaluatedAt: options.evaluatedAt || new Date()
   });
   failures.push(...businessHoursEligibility.failureReasons.map(reason => `business_hours:${reason}`));
@@ -850,8 +970,8 @@ export function runRouteIntelligenceQualityGate(options = {}) {
       promotionGateStatus: promotionGate.status,
       runtimeBehaviorChanged: activePool.runtimeBehaviorChanged,
       scoringChanged: activePool.scoringChanged,
-      activePoolGovernancePreserved: businessHoursIntelligenceContract.safety?.activePoolGovernancePreserved === true,
-      fullPoolFallbackGovernancePreserved: businessHoursIntelligenceContract.safety?.fullPoolFallbackGovernancePreserved === true
+      activePoolGovernancePreserved: businessHoursIntelligenceContract.safety?.approvedRosterRequired === true,
+      fullPoolFallbackGovernancePreserved: businessHoursIntelligenceContract.queuePolicy?.selectionOrder?.includes("approved_fallback_fresh_verified_open") === true
     },
     businessHoursEligibility,
     zeroLiveGoogle,

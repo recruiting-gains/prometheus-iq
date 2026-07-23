@@ -170,7 +170,7 @@ Offline status reevaluation without provider calls:
 npm run data:business-hours:evaluate
 ```
 
-The canonical artifact is `google-qualified-businesses-v2/business-hours-v1/business-hours.json`. Missing hours produce `HOURS_UNKNOWN`, stale hours produce `HOURS_STALE`, and unverified special hours produce `SPECIAL_HOURS_UNVERIFIED`. Permanent operational status remains separate from current open/closed status. The contract authorizes only the verified Fitness Connection `route-iq-closed-now-eligibility-contracts-v1` Intelligence consumer and does not permit scoring changes, live Google runtime calls, Data mutation, or cross-workspace use.
+The canonical artifact is `google-qualified-businesses-v2/business-hours-v1/business-hours.json`. Missing hours produce `HOURS_UNKNOWN`, stale hours produce `HOURS_STALE`, and unverified special hours produce `SPECIAL_HOURS_UNVERIFIED`. Permanent operational status remains separate from current open/closed status. The Data quality gate accepts only the exact `route-iq-business-hours-eligibility-v2` runtime with `route-iq-business-hours-eligibility-contracts-v2`; it rejects the superseded v1 consumer. Admission remains bound to the Administration workspace configuration and canonical Data approved-business manifest and does not permit scoring changes, live provider calls, Data mutation, or cross-workspace use.
 
 ## Runtime Pool Segmentation
 

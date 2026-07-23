@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-07-23T12:00:00.000Z",
-  "gateVersion": "route-intelligence-golden-route-quality-gate-v1",
+  "gateVersion": "route-intelligence-golden-route-quality-gate-v2",
   "status": "passed",
   "artifactGovernance": {
     "owningSubsystem": "Prometheus Data",
@@ -84,8 +84,8 @@
   "businessHoursEligibility": {
     "status": "passed",
     "implementation": {
-      "eligibilityVersion": "route-iq-closed-now-eligibility-v1",
-      "consumerContractVersion": "route-iq-closed-now-eligibility-contracts-v1",
+      "eligibilityVersion": "route-iq-business-hours-eligibility-v2",
+      "consumerContractVersion": "route-iq-business-hours-eligibility-contracts-v2",
       "sourceDatasetVersion": "google-qualified-businesses-v2",
       "recordCount": 398,
       "sourceStatusEvaluatedAt": "2026-07-23T12:00:00.000Z",
@@ -97,8 +97,12 @@
       "status": "passed",
       "artifactId": "fitness_connection_route_business_hours_intelligence_consumer_contract",
       "registered": true,
-      "canonicalIdentifier": "route-iq-closed-now-eligibility-contracts-v1",
+      "canonicalIdentifier": "route-iq-business-hours-eligibility-contracts-v2",
+      "runtimeIdentifier": "route-iq-business-hours-eligibility-v2",
       "identifierResolved": true,
+      "exactVersionRequired": true,
+      "legacyRuntimeAccepted": false,
+      "legacyContractAccepted": false,
       "consumerContractPath": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
       "dataContractPath": "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
       "datasetPath": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
@@ -114,7 +118,23 @@
       "operatingProfileId": "fitness",
       "crossWorkspaceAllowFlagsAllFalse": true,
       "unknownWorkspaceFailsClosed": true,
-      "unknownConsumerFailsClosed": true
+      "unknownConsumerFailsClosed": true,
+      "administrationBinding": {
+        "schemaVersion": "route-iq-workspace-configuration-v2",
+        "registryVersion": "route-iq-cross-industry-workspaces-v2.1.0",
+        "workspaceId": "fitness_connection",
+        "operatingProfileId": "fitness",
+        "territoryId": "houston_founder_research_territory",
+        "opportunitySourceId": "fitness_business_manifest_binding"
+      },
+      "manifestBinding": {
+        "registryVersion": "route-iq-workspace-business-artifact-manifest-registry-v1",
+        "manifestId": "fitness_connection_approved_business_roster",
+        "manifestVersion": "route-iq-workspace-business-artifact-manifest-v1",
+        "artifactSha256": "4ab9f5e1c6a2ef2e2f828ad4ac07861c5bde3e9618a08894ff978358bcdf0870",
+        "classification": "FOUNDER_FIELD_RESEARCH",
+        "approvalState": "PENDING_FOUNDER_APPROVAL"
+      }
     },
     "statusPolicies": {
       "sourceStatusCounts": {
@@ -124,6 +144,8 @@
       "OPEN_VERIFIED": {
         "status": null,
         "eligible": false,
+        "coverageEligible": false,
+        "immediateRecommendationEligible": false,
         "coverageOnly": false,
         "selectionTier": null,
         "internalMarker": null,
@@ -134,6 +156,8 @@
       "CLOSED_VERIFIED": {
         "status": null,
         "eligible": false,
+        "coverageEligible": false,
+        "immediateRecommendationEligible": false,
         "coverageOnly": false,
         "selectionTier": null,
         "internalMarker": null,
@@ -143,27 +167,33 @@
       },
       "HOURS_UNKNOWN": {
         "status": "HOURS_UNKNOWN",
-        "eligible": true,
-        "coverageOnly": true,
-        "selectionTier": 1,
+        "eligible": false,
+        "coverageEligible": false,
+        "immediateRecommendationEligible": false,
+        "coverageOnly": false,
+        "selectionTier": 99,
         "internalMarker": "HOURS_NOT_VERIFIED",
-        "reasonCode": "HOURS_SOURCE_MISSING",
-        "reason": "No verified business-hours source is available.",
-        "displayLabel": "Hours not verified"
+        "reasonCode": "BUSINESS_MANIFEST_ADMISSION_REJECTED",
+        "reason": "Route IQ candidate provenance does not match the governed workspace and manifest.",
+        "displayLabel": "Hours unavailable · not route eligible"
       },
       "HOURS_STALE": {
         "status": "HOURS_STALE",
-        "eligible": true,
-        "coverageOnly": true,
-        "selectionTier": 1,
+        "eligible": false,
+        "coverageEligible": false,
+        "immediateRecommendationEligible": false,
+        "coverageOnly": false,
+        "selectionTier": 99,
         "internalMarker": "HOURS_NOT_VERIFIED",
-        "reasonCode": "HOURS_SOURCE_STALE",
-        "reason": "Verified business hours are older than the 24-hour freshness threshold.",
-        "displayLabel": "Hours not verified"
+        "reasonCode": "BUSINESS_MANIFEST_ADMISSION_REJECTED",
+        "reason": "Route IQ candidate provenance does not match the governed workspace and manifest.",
+        "displayLabel": "Hours outdated · verification required"
       },
       "SPECIAL_HOURS_UNVERIFIED": {
         "status": null,
         "eligible": false,
+        "coverageEligible": false,
+        "immediateRecommendationEligible": false,
         "coverageOnly": false,
         "selectionTier": null,
         "internalMarker": null,
@@ -178,11 +208,11 @@
       "businessName": "Christian Brothers Automotive Pearland",
       "permanentOperationalStatus": "OPERATIONAL",
       "eligibilityStatus": "HOURS_STALE",
-      "eligible": true,
+      "eligible": false,
       "initialRouteExcluded": true,
       "replenishmentExcluded": true,
-      "exclusionReasonCode": "HOURS_SOURCE_STALE",
-      "exclusionReason": "Verified business hours are older than the 24-hour freshness threshold.",
+      "exclusionReasonCode": "BUSINESS_MANIFEST_ADMISSION_REJECTED",
+      "exclusionReason": "Route IQ candidate provenance does not match the governed workspace and manifest.",
       "fieldEvidenceIds": [
         "fitness-2026-07-11-christian-brothers-closed-observation"
       ]
@@ -205,16 +235,16 @@
       "status": "passed",
       "requiredFields": [
         "status",
-        "eligible",
-        "hoursConfidence",
-        "hoursFreshness",
-        "reasonCode",
-        "reason",
-        "evaluatedAt",
-        "businessTimezone",
-        "sourceRetrievedAt",
-        "hoursVerifiedAt",
-        "provenance"
+        "localTimezone",
+        "effectiveInterval",
+        "nextClosing",
+        "nextOpening",
+        "verifiedAt",
+        "expiresAt",
+        "freshness",
+        "sourceState",
+        "sourceSystem",
+        "display"
       ],
       "missingFields": [],
       "initialQueueExplanationsAvailable": true,
@@ -278,7 +308,7 @@
     "branch": "codex/research-cross-industry-dashboard-regression",
     "baseRef": "origin/main",
     "baseCommit": "b32e18c5ed4a07edd41ea824ca4f934789192f5d",
-    "ahead": 5,
+    "ahead": 12,
     "behind": 0,
     "expectedLocalCommitCount": null,
     "localCommitSubjects": [
@@ -286,7 +316,14 @@
       "route-iq: retire customer-specific product documentation",
       "integrations: govern business-hours provider boundary",
       "research: retire customer-specific workspace artifacts",
-      "administration: govern cross-industry workspace admission"
+      "administration: govern cross-industry workspace admission",
+      "data: govern cross-industry business availability",
+      "administration: reconcile canonical workspace identities",
+      "infrastructure: add governed availability runtime",
+      "infrastructure: preserve additive migration verification",
+      "intelligence: govern cross-industry route availability",
+      "intelligence: version governed route availability v2",
+      "infrastructure: isolate prospective compatibility fixture"
     ]
   },
   "dashboardCompatibility": {

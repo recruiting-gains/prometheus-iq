@@ -7,6 +7,9 @@ import {
   defaultPaths,
   expandActivePool,
   generateGoldenRoute,
+  gateVersion,
+  requiredBusinessHoursContractVersion,
+  requiredBusinessHoursRuntimeVersion,
   runRouteIntelligenceQualityGate
 } from "../scripts/lib/route-intelligence-quality-gate.mjs";
 
@@ -27,7 +30,9 @@ function fixtures() {
     businessHoursDataContract: readJson(defaultPaths.businessHoursDataContract),
     businessHoursIntelligenceContract: readJson(defaultPaths.businessHoursIntelligenceContract),
     fitnessIntelligenceConsumerContract: readJson(defaultPaths.fitnessIntelligenceConsumerContract),
-    canonicalArtifactRegistry: readJson(defaultPaths.canonicalArtifactRegistry)
+    canonicalArtifactRegistry: readJson(defaultPaths.canonicalArtifactRegistry),
+    workspaceConfigurationRegistry: readJson(defaultPaths.workspaceConfigurationRegistry),
+    workspaceBusinessManifestRegistry: readJson(defaultPaths.workspaceBusinessManifestRegistry)
   };
 }
 
@@ -65,15 +70,42 @@ test("quality gate passes for the reviewed golden Active Pool baseline", () => {
   assert.equal(result.report.dashboardCompatibility.status, "passed");
   assert.equal(result.report.businessHoursEligibility.status, "passed");
   assert.equal(result.report.businessHoursEligibility.implementation.recordCount, 398);
+  assert.equal(gateVersion, "route-intelligence-golden-route-quality-gate-v2");
+  assert.equal(
+    result.report.businessHoursEligibility.implementation.eligibilityVersion,
+    requiredBusinessHoursRuntimeVersion
+  );
+  assert.equal(
+    result.report.businessHoursEligibility.implementation.consumerContractVersion,
+    requiredBusinessHoursContractVersion
+  );
   assert.equal(result.report.businessHoursEligibility.canonicalConsumer.registered, true);
   assert.equal(result.report.businessHoursEligibility.canonicalConsumer.identifierResolved, true);
+  assert.equal(result.report.businessHoursEligibility.canonicalConsumer.exactVersionRequired, true);
+  assert.equal(result.report.businessHoursEligibility.canonicalConsumer.legacyRuntimeAccepted, false);
+  assert.equal(result.report.businessHoursEligibility.canonicalConsumer.legacyContractAccepted, false);
   assert.equal(result.report.businessHoursEligibility.canonicalConsumer.requiredReadPathsPresent, true);
+  assert.equal(
+    result.report.businessHoursEligibility.canonicalConsumer.administrationBinding.schemaVersion,
+    "route-iq-workspace-configuration-v2"
+  );
+  assert.equal(
+    result.report.businessHoursEligibility.canonicalConsumer.manifestBinding.manifestVersion,
+    "route-iq-workspace-business-artifact-manifest-v1"
+  );
+  assert.match(
+    result.report.businessHoursEligibility.canonicalConsumer.manifestBinding.artifactSha256,
+    /^[a-f0-9]{64}$/
+  );
   assert.deepEqual(result.report.businessHoursEligibility.statusPolicies.sourceStatusCounts, {
     HOURS_STALE: 353,
     HOURS_UNKNOWN: 45
   });
   for (const status of ["HOURS_UNKNOWN", "HOURS_STALE"]) {
-    assert.equal(result.report.businessHoursEligibility.statusPolicies[status].coverageOnly, true);
+    assert.equal(result.report.businessHoursEligibility.statusPolicies[status].eligible, false);
+    assert.equal(result.report.businessHoursEligibility.statusPolicies[status].coverageEligible, false);
+    assert.equal(result.report.businessHoursEligibility.statusPolicies[status].immediateRecommendationEligible, false);
+    assert.equal(result.report.businessHoursEligibility.statusPolicies[status].coverageOnly, false);
     assert.equal(result.report.businessHoursEligibility.statusPolicies[status].internalMarker, "HOURS_NOT_VERIFIED");
   }
   assert.equal(result.report.businessHoursEligibility.christianBrothersRegression.status, "passed");
@@ -121,6 +153,10 @@ test("canonical quality evidence matches the governed runtime surface", () => {
   assert.equal(report.runtimeSurface.liveGoogleApiCalls, 0);
   assert.equal(report.governanceReuse.runtimeBehaviorChanged, false);
   assert.equal(report.governanceReuse.scoringChanged, false);
+  assert.equal(report.businessHoursEligibility.implementation.eligibilityVersion, requiredBusinessHoursRuntimeVersion);
+  assert.equal(report.businessHoursEligibility.implementation.consumerContractVersion, requiredBusinessHoursContractVersion);
+  assert.equal(report.businessHoursEligibility.canonicalConsumer.legacyRuntimeAccepted, false);
+  assert.equal(report.businessHoursEligibility.canonicalConsumer.legacyContractAccepted, false);
 });
 
 test("quality gate fails when a quarantined business appears in Active recommendations", () => {
@@ -176,6 +212,40 @@ test("quality gate fails when the canonical business-hours Intelligence consumer
 
   assert.equal(result.passed, false);
   assert.ok(result.report.failureReasons.includes("business_hours:business_hours_consumer_not_registered"));
+});
+
+test("quality gate rejects superseded v1 business-hours runtime and contract identifiers", () => {
+  const current = fixtures();
+  const businessHoursIntelligenceContract = clone(current.businessHoursIntelligenceContract);
+  businessHoursIntelligenceContract.version = "route-iq-closed-now-eligibility-contracts-v1";
+  businessHoursIntelligenceContract.runtimeVersion = "route-iq-closed-now-eligibility-v1";
+  businessHoursIntelligenceContract.compatibility = {
+    ...businessHoursIntelligenceContract.compatibility,
+    legacyRuntimeVersionAccepted: true,
+    legacyContractVersionAccepted: true
+  };
+
+  const result = runWith({ businessHoursIntelligenceContract });
+
+  assert.equal(result.passed, false);
+  assert.ok(result.report.failureReasons.includes("business_hours:business_hours_consumer_contract_version_not_v2"));
+  assert.ok(result.report.failureReasons.includes("business_hours:business_hours_consumer_runtime_pin_mismatch"));
+  assert.ok(result.report.failureReasons.includes("business_hours:business_hours_legacy_runtime_accepted"));
+  assert.ok(result.report.failureReasons.includes("business_hours:business_hours_legacy_contract_accepted"));
+  assert.equal(result.report.businessHoursEligibility.canonicalConsumer.status, "failed");
+});
+
+test("quality gate fails closed when Administration and Data manifest provenance diverge", () => {
+  const current = fixtures();
+  const workspaceBusinessManifestRegistry = clone(current.workspaceBusinessManifestRegistry);
+  workspaceBusinessManifestRegistry.manifests[0].manifestId = "tampered_fitness_manifest";
+
+  const result = runWith({ workspaceBusinessManifestRegistry });
+
+  assert.equal(result.passed, false);
+  assert.ok(result.report.failureReasons.includes("business_hours:business_hours_administration_manifest_id_mismatch"));
+  assert.ok(result.report.failureReasons.includes("business_hours:business_hours_active_pool_manifest_id_mismatch"));
+  assert.ok(result.report.failureReasons.includes("business_hours:business_hours_governed_runtime_scope_invalid"));
 });
 
 test("quality gate uses the injected authoritative time rather than the artifact timestamp", () => {

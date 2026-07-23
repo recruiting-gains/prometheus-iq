@@ -1,5 +1,5 @@
 {
-  "gateVersion": "route-intelligence-golden-route-quality-gate-v1",
+  "gateVersion": "route-intelligence-golden-route-quality-gate-v2",
   "sourceDatasetVersion": "google-qualified-businesses-v2",
   "segmentationVersion": "runtime-pool-segmentation-v1",
   "activePoolCount": 0,

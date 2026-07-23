@@ -2,7 +2,7 @@
 
 Owner: Prometheus Data
 
-Status: governed Data foundation implemented; the verified Fitness Connection Intelligence consumer is authorized for closed-now route eligibility.
+Status: governed Data foundation implemented; the exact v2 Fitness Connection Intelligence consumer is verified for fail-closed route availability.
 
 ## Root Cause
 
@@ -14,7 +14,9 @@ Founder field evidence from July 11, 2026 identified the failure at Christian Br
 
 `scripts/refresh-google-business-hours.mjs` is an offline or scheduled batch process. It reads verified business identities from `google-qualified-businesses-v2.json`, fetches Place Details by the existing Google Place ID, normalizes structured hours, evaluates a deterministic status in the business-local timezone, and atomically writes `business-hours.json`.
 
-The representative route-generation runtime makes no Google call. The verified `route-iq-closed-now-eligibility-contracts-v1` Prometheus Intelligence consumer may read the governed artifact for Fitness Connection initial route generation, adaptive replenishment, and explainability. Intelligence owns final route eligibility and ranking and may not mutate Data artifacts.
+The representative route-generation runtime makes no provider call. The verified `route-iq-business-hours-eligibility-v2` runtime and `route-iq-business-hours-eligibility-contracts-v2` consumer may read the governed artifact for Fitness Connection initial route generation, adaptive replenishment, and explainability. The Data quality gate requires both exact identifiers and rejects the superseded v1 runtime and contract. Intelligence owns final route eligibility and ranking and may not mutate Data artifacts.
+
+Consumer admission is derived from `administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json` and `data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json`. Workspace, operating profile, territory, manifest identity, artifact hash, classification, approval state, and configuration provenance must agree before a candidate can enter route evaluation.
 
 Provider refresh:
 
@@ -38,7 +40,7 @@ Recommended schedule:
 
 - Provider hours refresh every 24 hours.
 - Offline status reevaluation every 15 minutes.
-- Provider hours remain fresh for at most 168 hours.
+- Provider hours remain fresh for at most 24 hours.
 - Point-in-time field observations remain current for at most 240 minutes and are corroborating evidence, not a weekly schedule.
 
 No provider-refresh scheduler is deployed by this Data task. Consumer authorization is limited to the already verified Intelligence contract and does not authorize any other subsystem or workspace.
@@ -48,7 +50,7 @@ No provider-refresh scheduler is deployed by this Data task. Consumer authorizat
 - `OPEN_VERIFIED`: fresh provider periods show the business open at the evaluated business-local date and time.
 - `CLOSED_VERIFIED`: fresh provider periods show the business closed at the evaluated business-local date and time.
 - `HOURS_UNKNOWN`: hours, timezone, or verified source evidence is missing.
-- `HOURS_STALE`: the last verified hours exceed the explicit 168-hour freshness threshold.
+- `HOURS_STALE`: the last verified hours exceed the explicit 24-hour freshness threshold.
 - `SPECIAL_HOURS_UNVERIFIED`: a special or holiday date is known but its exceptional hours are not verified.
 
 Missing values remain `null`. They are never converted to `false`, `0`, open, or closed.
@@ -83,7 +85,7 @@ The Data-to-Intelligence handoff contract is:
 
 `overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json`
 
-The contract authorizes the identified Intelligence consumer to apply the verified conservative, explainable policy:
+The Data artifact contract and exact v2 Intelligence consumer apply the verified conservative, explainable policy:
 
 - Known closed businesses may be suppressed when qualified verified-open alternatives exist.
 - Known open businesses remain eligible for Intelligence evaluation.
