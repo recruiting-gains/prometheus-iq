@@ -189,7 +189,7 @@
   "protectedBehaviorBaselines": {
     "dashboard": {
       "path": "index.html",
-      "sha256": "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0"
+      "sha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108"
     },
     "routeScoring": {
       "path": "scripts/build-route-intelligence-quality-engine.mjs",
@@ -197,31 +197,31 @@
     },
     "continuousRouteQueue": {
       "path": "intelligence/continuous-adaptive-route-replenishment.mjs",
-      "sha256": "95f5e997af8ded3258d218f094d9765c6e7530a2828e75e432eb2ab0630896e6"
+      "sha256": "4b0f583ce97e8301fc2a67096a448995fa576e7f82ebbc474ca6c6348a432f0c"
     },
     "canonicalHoursEligibility": {
       "path": "intelligence/route-business-hours-eligibility.mjs",
-      "sha256": "a1667f2e1bf75a71fa321c47591ba0b8e11eef91360cb835c56e828405c51f36"
+      "sha256": "7889082c5bb9bbc34b481021452c56c5ac40b28c549cae3db37b8352eff82c3c"
     },
     "canonicalHoursContract": {
       "path": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
-      "sha256": "3a7f279063d4ff14d0fdb40fa04ad2fd9cc7ebfe26aac91ac349c3b8d65e6676"
+      "sha256": "9575323546fba3db3d58d549d5fe0e78a7d8863785a154316e00c15ba690d923"
     },
     "activePool": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
-      "sha256": "ae5612f34965014c7022e6ef44da95ca7a4c0c049001192e525855b27dad1ec1"
+      "sha256": "d692b31e4ef46a79c84cc6c53a8b668d6b65172251a3626dfb8166cfd380dd44"
     },
     "governedFullPoolFallbackProjection": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
-      "sha256": "2b4726377af6ff33b31ddeee3196899e32a6d01de7aa9c82a92f028c9daec6c1"
+      "sha256": "6e288a50739f5d0c851d716f3261afdedbfd8a6b8d0fc5210afbe41d06cb2df5"
     },
     "quarantinePool": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
-      "sha256": "13582777692f720f560da65ca6a5b26de44607fdce833a830a80583e5cf2e509"
+      "sha256": "e005d4ff528512ccd482b624a324ab06c53175ad11dfdd8917dc70d627c22dc2"
     },
     "businessHoursArtifact": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
-      "sha256": "539187bf7c20023fa5b56e60e0ceef86fc51ca9e00dbd42d997a602bdd0d0ffd"
+      "sha256": "e6a500ad4c946ddcd091ac8fb13b87971913919b802cd6c8897c9b999d997ba6"
     },
     "founderStressEvidence": {
       "path": "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json",

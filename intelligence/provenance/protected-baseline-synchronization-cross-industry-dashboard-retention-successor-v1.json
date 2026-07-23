@@ -1,0 +1,188 @@
+{
+  "version": "route-iq-intelligence-cross-industry-dashboard-retention-successor-v1",
+  "directive": "Cross-Industry Dashboard, Business Hours, and Smoothie Depot Regression",
+  "status": "OWNER_REVIEWED_AND_SYNCHRONIZED_PENDING_OVERWATCH",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Adopt the valid Data cross-industry roster and availability successor into current Intelligence-owned retention, Discovery Mode, Nearby Context, and shadow-readiness consumers without rewriting historical checkpoints, restoring retired or demo supply, or changing recommendation influence.",
+  "historicalCheckpoints": [
+    {
+      "path": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-retention-v1.json",
+      "sha256": "5b06c1108029b3ff2b04f9ea4e8a58ccb57887987db32f44fd9023039bd5571b",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    {
+      "path": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-architecture-successor-v1.json",
+      "sha256": "552360e81018684def6d570aeb80df61df2a75f9630a4ecc0dc6429310c5a810",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    {
+      "path": "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
+      "sha256": "c16874f686776723ec5ada10a06d07662328602e8e90688d146f0fbcc3e38598",
+      "remainsHistorical": true,
+      "rewritten": false
+    }
+  ],
+  "dataOwnerTransition": {
+    "commit": "c9b8ac823fac489e017c9ddd0c116d60985542e8",
+    "tree": "40cb8c89d1fd7af033d0b1a74093e40c1e8c9949",
+    "ownerSubsystem": "Prometheus Data",
+    "subject": "data: govern cross-industry business availability",
+    "archiveRuntime": {
+      "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+      "previousSha256": "68aa5ee9b216c4efe0fa3c8b3a01ce1c569e53ad15c2e6bfb7d5f8a80850e8b4",
+      "currentSha256": "631c48d6fb0193f2356113d70ace4a7dbd0bf85d16ef8bf3a5a737a9430ce80a",
+      "semanticChange": "retired_protected_workspace_removed_from_current_supported_workspace_contract",
+      "retentionSemanticsChanged": false
+    },
+    "availabilityArtifacts": [
+      {
+        "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+        "previousSha256": "ae5612f34965014c7022e6ef44da95ca7a4c0c049001192e525855b27dad1ec1",
+        "currentSha256": "d692b31e4ef46a79c84cc6c53a8b668d6b65172251a3626dfb8166cfd380dd44"
+      },
+      {
+        "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
+        "previousSha256": "2b4726377af6ff33b31ddeee3196899e32a6d01de7aa9c82a92f028c9daec6c1",
+        "currentSha256": "6e288a50739f5d0c851d716f3261afdedbfd8a6b8d0fc5210afbe41d06cb2df5"
+      },
+      {
+        "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+        "previousSha256": "13582777692f720f560da65ca6a5b26de44607fdce833a830a80583e5cf2e509",
+        "currentSha256": "e005d4ff528512ccd482b624a324ab06c53175ad11dfdd8917dc70d627c22dc2"
+      },
+      {
+        "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json",
+        "previousSha256": "5a4fefd493f9c2e04e0314f7ba39e2dec061c03f2ea872fe43f7908944a1e614",
+        "currentSha256": "f1ee2ab6aed2303b272373c741d2836f11519abe6c40e5ebbd33ae35bddd58ca"
+      },
+      {
+        "path": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+        "previousSha256": "539187bf7c20023fa5b56e60e0ceef86fc51ca9e00dbd42d997a602bdd0d0ffd",
+        "currentSha256": "e6a500ad4c946ddcd091ac8fb13b87971913919b802cd6c8897c9b999d997ba6"
+      }
+    ],
+    "activeRecords": 0,
+    "reserveRecords": 0,
+    "quarantinedRecords": 398,
+    "implementationModifiedByIntelligence": false
+  },
+  "upstreamOwnerTransitions": [
+    {
+      "ownerSubsystem": "Prometheus Dashboard",
+      "commit": "1893bcbcb13ca7caffbb86331e6c5f68072ae76e",
+      "tree": "41058281ccdeb0521090e54127f36b4e3e47f400",
+      "path": "index.html",
+      "previousSha256": "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0",
+      "currentSha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108"
+    },
+    {
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "1ab2f617d77fa590ed39b7f5e7cb5ebb425f86a7",
+      "tree": "82e661611b99c4175e8bf2849b11192a1b06a506",
+      "path": "deploy/cloudflare-pages/index.html",
+      "previousSha256": "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0",
+      "currentSha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108"
+    }
+  ],
+  "intelligenceOwnerRuntimeTransition": {
+    "commit": "cc0e9ebd8cac784ad4cffa2897c3a537a7dff835",
+    "tree": "bf3b872356402efb08f783bd0be146e3ab44b9ff",
+    "ownerSubsystem": "Prometheus Intelligence Engine",
+    "subject": "intelligence: version governed route availability v2",
+    "artifacts": [
+      {
+        "path": "intelligence/continuous-adaptive-route-replenishment.mjs",
+        "previousSha256": "95f5e997af8ded3258d218f094d9765c6e7530a2828e75e432eb2ab0630896e6",
+        "currentSha256": "4b0f583ce97e8301fc2a67096a448995fa576e7f82ebbc474ca6c6348a432f0c"
+      },
+      {
+        "path": "intelligence/route-business-hours-eligibility.mjs",
+        "previousSha256": "a1667f2e1bf75a71fa321c47591ba0b8e11eef91360cb835c56e828405c51f36",
+        "currentSha256": "7889082c5bb9bbc34b481021452c56c5ac40b28c549cae3db37b8352eff82c3c"
+      },
+      {
+        "path": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+        "previousSha256": "3a7f279063d4ff14d0fdb40fa04ad2fd9cc7ebfe26aac91ac349c3b8d65e6676",
+        "currentSha256": "9575323546fba3db3d58d549d5fe0e78a7d8863785a154316e00c15ba690d923"
+      }
+    ]
+  },
+  "intelligenceConsumerTransitions": [
+    {
+      "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+      "previousSha256": "7019fa94e1a125957a76f567ccade04cae1ca6ccc6517fb43c80bd1e420b0823",
+      "currentSha256": "7d69761a0fb4049c282077cc20c3d55dcbaa4c281a848996c4738f62bd515201"
+    },
+    {
+      "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+      "previousSha256": "d37029df624ec9caa1d7028c76659f9f9cafefc1b5e0efcbde8ed229cc110f22",
+      "currentSha256": "3f9a5044e62a9c8691676fadfe176bc9d41cce3bfa88cbbaa8d8b9927922350f"
+    },
+    {
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "previousSha256": "03e5bc7c12d33d14f8363beea74fd8f5ed7179b631348760c901369ee9f834c2",
+      "currentSha256": "c814acf7d0d1c08dbc42c24ca1231135b7123397c0c5b2698d3898ca0b3e9ab6"
+    },
+    {
+      "path": "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+      "previousSha256": "a8104285f08a71c30ff55737b5a77c146ca8d88a8ac3cd1e7fba6851b1b91338",
+      "currentSha256": "572f52a92a89178c16321f2cf5f51c1a2d5c98c68daecbe3331742662cea77ab"
+    },
+    {
+      "path": "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+      "previousSha256": "51f7022e2268ab402dfc714ca47659f88c6c22c828a34a7110d57aae338f260c",
+      "currentSha256": "12d410c5cc35acd4c25aaae2bf2a98d6aa00fcd7ed4409c0798633dcb079ba86"
+    },
+    {
+      "path": "intelligence/read-only-field-session-learning.md",
+      "previousSha256": "85d795b52b41d99b62601a29a66ecaa072ad9e83a0bf307ff3a3381608d7f3cc",
+      "currentSha256": "0cc7f9450f5490bfb41bd01ca6daf6c4250efd875b0128e7beeaa922dc0330bd"
+    },
+    {
+      "path": "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+      "previousSha256": "d274956b9d52ab6600eaf0d34b90a2fa8c5511b657e98b0a598655b8ef4c1d9e",
+      "currentSha256": "47594574fada334693f5cecf4f44b594bd8b4ebbfaa56ec23738dfbb0bbd702c"
+    }
+  ],
+  "governedEmptyState": {
+    "activeBusinessCount": 0,
+    "discoveryPlannedSize": 0,
+    "nearbyOpportunityCount": 0,
+    "discoveryStatus": "exhausted_advisory_plan",
+    "nearbyStatus": "coverage_gap",
+    "retiredOrDemoSupplyRestored": false,
+    "inventedBusinessAllowed": false,
+    "quarantinedBusinessRecommendationAllowed": false,
+    "reason": "No approved, fresh, route-eligible active businesses are present. Intelligence remains fail closed."
+  },
+  "retentionInvariants": {
+    "maximumCalendarMonths": 18,
+    "customerMayOnlyShorten": true,
+    "customerMayExpand": false,
+    "legalHoldStillAuthoritative": true,
+    "historicalArchiveRewritten": false,
+    "administrativeDispositionStillAppendOnly": true,
+    "prospectiveEvidenceAdmissionChanged": false
+  },
+  "downstreamOwnerHandoff": {
+    "overwatchRetentionGovernanceRequiresSuccessor": true,
+    "dataPublicClaimsEvidenceMatrixRequiresSuccessor": true,
+    "requiredPublicIntelligenceClaimsSha256": "47594574fada334693f5cecf4f44b594bd8b4ebbfaa56ec23738dfbb0bbd702c",
+    "overwatchModifiedByIntelligence": false,
+    "dataModifiedByIntelligence": false
+  },
+  "boundaries": {
+    "readinessState": "INSUFFICIENT_EVIDENCE",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "routeScoringChangedByAdoption": false,
+    "routeGenerationChangedByAdoption": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}

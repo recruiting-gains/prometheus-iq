@@ -8,7 +8,7 @@
   "purpose": "Project explicit representative visit-decision sources and outcomes into read-only Intelligence observations without changing Data, Dashboard, route generation, recommendation scoring, or recommendation influence.",
   "upstreamReadOnlyLearning": {
     "contractPath": "intelligence/contracts/read-only-field-session-learning-contracts.json",
-    "contractSha256": "7019fa94e1a125957a76f567ccade04cae1ca6ccc6517fb43c80bd1e420b0823",
+    "contractSha256": "7d69761a0fb4049c282077cc20c3d55dcbaa4c281a848996c4738f62bd515201",
     "policyPath": "intelligence/config/read-only-field-session-learning-policy-v1.json",
     "policySha256": "d483fca51b5285c70ec5ca519d2a73692aa98218b0a9a1096fae6570a8d8c981",
     "canonicalArchiveReader": "intelligence/read-only-field-session-learning.mjs",
@@ -144,12 +144,12 @@
     "consumeAdministrativelyExcludedSessions": false
   },
   "protectedBehaviorBaselines": {
-    "dashboardSource": {"path": "index.html", "sha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177"},
-    "dashboardDeployMirror": {"path": "deploy/cloudflare-pages/index.html", "sha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177"},
-    "dataArchiveRuntime": {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "68aa5ee9b216c4efe0fa3c8b3a01ce1c569e53ad15c2e6bfb7d5f8a80850e8b4"},
-    "dataRuntimeContract": {"path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json", "sha256": "4414e9ec8899f589864fb875368225922c1bc2dabbb0e1c4bdef074039512259"},
+    "dashboardSource": {"path": "index.html", "sha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108"},
+    "dashboardDeployMirror": {"path": "deploy/cloudflare-pages/index.html", "sha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108"},
+    "dataArchiveRuntime": {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "631c48d6fb0193f2356113d70ace4a7dbd0bf85d16ef8bf3a5a737a9430ce80a"},
+    "dataRuntimeContract": {"path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json", "sha256": "c792c9967ebaa2878ba9aa4f54a6cd18c4395c04cdfd9ed3cdbc5ec7762660cf"},
     "routeScoring": {"path": "scripts/build-route-intelligence-quality-engine.mjs", "sha256": "c12ac6e66e0ab07132bc55bc9c08d4b881c1eccd17ab3af1afc748eee781fe5c"},
-    "routeGeneration": {"path": "intelligence/continuous-adaptive-route-replenishment.mjs", "sha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19"}
+    "routeGeneration": {"path": "intelligence/continuous-adaptive-route-replenishment.mjs", "sha256": "4b0f583ce97e8301fc2a67096a448995fa576e7f82ebbc474ca6c6348a432f0c"}
   },
   "protectedBehaviorBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-commercial-readiness-v1.json",
   "inventionGovernance": {

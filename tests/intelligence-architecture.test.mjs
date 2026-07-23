@@ -231,9 +231,13 @@ test("Discovery Mode v2 is a governed advisory composer without production influ
   assert.equal(config.evidencePolicy.singleSessionCategoryPreferenceAllowed, false);
   assert.equal(config.activationSafety.recommendationInfluenceActive, false);
   assert.equal(config.activationSafety.routeScoringWeightsChanged, false);
-  assert.equal(plan.queuePlan.plannedSize, 15);
-  assert.ok(plan.queuePlan.compositionMetrics.distinctCategoryCount >= 4);
-  assert.ok(plan.queuePlan.compositionMetrics.maximumCategoryShare <= 0.27);
+  assert.equal(plan.status, "exhausted_advisory_plan");
+  assert.equal(plan.sourceProvenance.activePoolRecordCount, 0);
+  assert.equal(plan.queuePlan.plannedSize, 0);
+  assert.deepEqual(plan.queuePlan.entries, []);
+  assert.equal(plan.queuePlan.compositionMetrics.distinctCategoryCount, 0);
+  assert.equal(plan.queuePlan.compositionMetrics.maximumCategoryShare, 0);
+  assert.ok(plan.queuePlan.failureReasons.includes("no_qualified_discovery_candidates"));
   assert.equal(plan.queuePlan.compositionMetrics.duplicateCount, 0);
   assert.equal(plan.queuePlan.eligibilityMetrics.selectedClosedVerifiedCount, 0);
   assert.equal(plan.queuePlan.eligibilityMetrics.scoringChanged, false);
@@ -276,9 +280,15 @@ test("Nearby Context v2 is relationship-aware, governed, and consumer-safe", () 
   assert.equal(audit.stressContexts.length, 2);
   assert.equal(audit.stressContexts.every(context => context.plan.status === "coverage_gap"), true);
   assert.equal(audit.stressContexts.every(context => context.plan.nearbyOpportunities.emptyState.recommendationInvented === false), true);
-  assert.equal(audit.governedCapabilityProbe.nearbyOpportunities.count, 6);
-  assert.equal(audit.governedCapabilityProbe.nearbyOpportunities.entries.every(entry => entry.eligibilitySnapshot.status === "OPEN_VERIFIED"), true);
-  assert.equal(audit.governedCapabilityProbe.nearbyOpportunities.entries.every(entry => entry.recommendationScoreChanged === false), true);
+  assert.equal(audit.sourceCounts.active, 0);
+  assert.equal(audit.governedCapabilityProbe.status, "coverage_gap");
+  assert.equal(audit.governedCapabilityProbe.nearbyOpportunities.count, 0);
+  assert.deepEqual(audit.governedCapabilityProbe.nearbyOpportunities.entries, []);
+  assert.equal(
+    audit.governedCapabilityProbe.nearbyOpportunities.emptyState.recommendationInvented,
+    false,
+  );
+  assert.equal(audit.governedCapabilityProbe.coverage.governedDataInvented, false);
   assert.equal(audit.identityIntegrationRegression.aliasProbe.preRelationshipDuplicateCount, 1);
   assert.equal(audit.identityIntegrationRegression.aliasProbe.relationshipInferenceInputCount, 1);
   assert.equal(audit.identityIntegrationRegression.aliasProbe.shoppingCenterInferenceSatisfied, false);
@@ -400,6 +410,9 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   );
   const retentionArchitectureSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-architecture-successor-v1.json",
+  );
+  const crossIndustryRetentionSuccessor = readJson(
+    "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json",
   );
   const coordinatorSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
@@ -579,8 +592,24 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     currentRetentionAuthority.dataOwnerLineage.commit,
     "c73118ddb262d3010bbc94a900f8506fb2f56192",
   );
+  const currentRetentionAuthorityEvidenceCommit = git([
+    "log",
+    "-1",
+    "--format=%H",
+    "--",
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-retention-v1.json",
+  ]);
   for (const artifact of currentRetentionAuthority.dataOwnerLineage.artifacts) {
-    assert.equal(sha256(artifact.path), artifact.sha256, artifact.path);
+    assert.equal(
+      sha256Bytes(
+        gitBytes([
+          "show",
+          `${currentRetentionAuthorityEvidenceCommit}:${artifact.path}`,
+        ]),
+      ),
+      artifact.sha256,
+      artifact.path,
+    );
   }
   assert.equal(retentionArchitectureSuccessor.batchId, "BATCH-20260714-004");
   assert.equal(retentionArchitectureSuccessor.status, "OWNER_VALIDATED_SUCCESSOR_PENDING_OVERWATCH");
@@ -603,8 +632,20 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     retentionArchitectureSuccessor.currentAuthority.dataOwnerCommit,
     currentRetentionAuthority.dataOwnerLineage.commit,
   );
+  const retentionArchitectureEvidenceCommit = git([
+    "log",
+    "-1",
+    "--format=%H",
+    "--",
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-architecture-successor-v1.json",
+  ]);
   assert.equal(
-    sha256(retentionArchitectureSuccessor.dataOwnerTransition.archiveRuntime.path),
+    sha256Bytes(
+      gitBytes([
+        "show",
+        `${retentionArchitectureEvidenceCommit}:${retentionArchitectureSuccessor.dataOwnerTransition.archiveRuntime.path}`,
+      ]),
+    ),
     retentionArchitectureSuccessor.dataOwnerTransition.archiveRuntime.currentSha256,
   );
   assert.equal(
@@ -618,16 +659,14 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     retentionArchitectureSuccessor.dataOwnerTransition.archiveRuntime.currentSha256,
   );
   assert.equal(
-    sha256(retentionArchitectureSuccessor.dataOwnerTransition.runtimeContract.path),
+    sha256Bytes(
+      gitBytes([
+        "show",
+        `${retentionArchitectureEvidenceCommit}:${retentionArchitectureSuccessor.dataOwnerTransition.runtimeContract.path}`,
+      ]),
+    ),
     retentionArchitectureSuccessor.dataOwnerTransition.runtimeContract.currentSha256,
   );
-  const retentionArchitectureEvidenceCommit = git([
-    "log",
-    "-1",
-    "--format=%H",
-    "--",
-    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-architecture-successor-v1.json",
-  ]);
   for (const consumer of retentionArchitectureSuccessor.protectedConsumers) {
     assert.equal(
       sha256Bytes(
@@ -657,6 +696,67 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   assert.equal(retentionArchitectureSuccessor.boundaryValidation.learningBehaviorChanged, false);
   assert.equal(retentionArchitectureSuccessor.boundaryValidation.deploymentPerformed, false);
   assert.equal(retentionArchitectureSuccessor.boundaryValidation.productionMutationPerformed, false);
+  assert.equal(
+    crossIndustryRetentionSuccessor.status,
+    "OWNER_REVIEWED_AND_SYNCHRONIZED_PENDING_OVERWATCH",
+  );
+  assert.equal(
+    crossIndustryRetentionSuccessor.ownerSubsystem,
+    "Prometheus Intelligence Engine",
+  );
+  for (const checkpoint of crossIndustryRetentionSuccessor.historicalCheckpoints) {
+    assert.equal(sha256(checkpoint.path), checkpoint.sha256, checkpoint.path);
+    assert.equal(checkpoint.remainsHistorical, true);
+    assert.equal(checkpoint.rewritten, false);
+  }
+  assert.equal(
+    crossIndustryRetentionSuccessor.dataOwnerTransition.commit,
+    "c9b8ac823fac489e017c9ddd0c116d60985542e8",
+  );
+  assert.equal(
+    sha256(crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.path),
+    crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.currentSha256,
+  );
+  assert.notEqual(
+    crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.previousSha256,
+    crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.currentSha256,
+  );
+  assert.equal(
+    crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.retentionSemanticsChanged,
+    false,
+  );
+  for (const artifact of crossIndustryRetentionSuccessor.dataOwnerTransition.availabilityArtifacts) {
+    assert.equal(sha256(artifact.path), artifact.currentSha256, artifact.path);
+    assert.notEqual(artifact.previousSha256, artifact.currentSha256, artifact.path);
+  }
+  for (const transition of crossIndustryRetentionSuccessor.upstreamOwnerTransitions) {
+    assert.equal(sha256(transition.path), transition.currentSha256, transition.path);
+    assert.notEqual(transition.previousSha256, transition.currentSha256, transition.path);
+  }
+  for (const artifact of crossIndustryRetentionSuccessor.intelligenceOwnerRuntimeTransition.artifacts) {
+    assert.equal(sha256(artifact.path), artifact.currentSha256, artifact.path);
+    assert.notEqual(artifact.previousSha256, artifact.currentSha256, artifact.path);
+  }
+  for (const consumer of crossIndustryRetentionSuccessor.intelligenceConsumerTransitions) {
+    assert.equal(sha256(consumer.path), consumer.currentSha256, consumer.path);
+    assert.notEqual(consumer.previousSha256, consumer.currentSha256, consumer.path);
+  }
+  assert.equal(crossIndustryRetentionSuccessor.governedEmptyState.activeBusinessCount, 0);
+  assert.equal(crossIndustryRetentionSuccessor.governedEmptyState.discoveryPlannedSize, 0);
+  assert.equal(crossIndustryRetentionSuccessor.governedEmptyState.nearbyOpportunityCount, 0);
+  assert.equal(crossIndustryRetentionSuccessor.governedEmptyState.retiredOrDemoSupplyRestored, false);
+  assert.equal(crossIndustryRetentionSuccessor.governedEmptyState.inventedBusinessAllowed, false);
+  assert.equal(crossIndustryRetentionSuccessor.retentionInvariants.maximumCalendarMonths, 18);
+  assert.equal(crossIndustryRetentionSuccessor.retentionInvariants.customerMayOnlyShorten, true);
+  assert.equal(crossIndustryRetentionSuccessor.retentionInvariants.customerMayExpand, false);
+  assert.equal(crossIndustryRetentionSuccessor.retentionInvariants.historicalArchiveRewritten, false);
+  assert.equal(crossIndustryRetentionSuccessor.boundaries.readinessState, "INSUFFICIENT_EVIDENCE");
+  assert.equal(crossIndustryRetentionSuccessor.boundaries.prospectiveCollection, "OFF");
+  assert.equal(crossIndustryRetentionSuccessor.boundaries.activeCohorts, 0);
+  assert.equal(crossIndustryRetentionSuccessor.boundaries.recommendationInfluence, "OFF");
+  assert.equal(crossIndustryRetentionSuccessor.boundaries.deploymentPerformed, false);
+  assert.equal(crossIndustryRetentionSuccessor.boundaries.productionAccessPerformed, false);
+  assert.equal(crossIndustryRetentionSuccessor.boundaries.productionMutationPerformed, false);
   assert.equal(retentionSuccessor.boundaryValidation.readiness, "INSUFFICIENT_EVIDENCE");
   assert.equal(retentionSuccessor.boundaryValidation.collection, "OFF");
   assert.equal(retentionSuccessor.boundaryValidation.activeCohorts, 0);

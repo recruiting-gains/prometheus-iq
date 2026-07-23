@@ -27,7 +27,7 @@
     },
     {
       "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
-      "sha256": "f52ca21731476174cc29034e4df9d039da85f5b4cdc8011e1e9917656d5815de",
+      "sha256": "c814acf7d0d1c08dbc42c24ca1231135b7123397c0c5b2698d3898ca0b3e9ab6",
       "supports": [
         "versioned_probability_methodology",
         "founder_only_shadow_boundary",
@@ -47,7 +47,7 @@
     },
     {
       "path": "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
-      "sha256": "88bc1b9d0e3fbadcb0b4c34e34defce8d6f9f8432efd35e149869c7264f81992",
+      "sha256": "572f52a92a89178c16321f2cf5f51c1a2d5c98c68daecbe3331742662cea77ab",
       "supports": [
         "discovery_advisory_only",
         "no_runtime_consumer",
@@ -56,7 +56,7 @@
     },
     {
       "path": "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
-      "sha256": "b5ee18f3d22c3ac5ca16226b54470735ade52892814de8200f8a2955580e60f8",
+      "sha256": "12d410c5cc35acd4c25aaae2bf2a98d6aa00fcd7ed4409c0798633dcb079ba86",
       "supports": [
         "nearby_context_advisory_only",
         "dashboard_consumer_inactive",
@@ -65,7 +65,7 @@
     },
     {
       "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
-      "sha256": "e27d894e682b6a3ab909d1767de6017cbfcce59f8cd1b3e49756212d363f6b26",
+      "sha256": "3f9a5044e62a9c8691676fadfe176bc9d41cce3bfa88cbbaa8d8b9927922350f",
       "supports": [
         "off_route_read_only_observation",
         "unknown_safe_missing_context",
@@ -74,7 +74,7 @@
     },
     {
       "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
-      "sha256": "ac657404febe6a23f4a317779bce94d79305c07a626f307ebd2c2b525d29a795",
+      "sha256": "7d69761a0fb4049c282077cc20c3d55dcbaa4c281a848996c4738f62bd515201",
       "supports": [
         "read_only_learning_active",
         "no_archive_mutation_or_replay",
