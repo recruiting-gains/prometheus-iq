@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -16,6 +17,16 @@ import {
 
 const root = resolve(import.meta.dirname, "..");
 const writeSnapshot = process.argv.includes("--write");
+const currentBaselineSuccessorPath =
+  "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json";
+const currentBaselineSuccessorCommit = "3587c3d70526b95ae9083520ed42025c5522f764";
+const currentBaselineSuccessorTree = "5ac08aecd5c1f720c03194027aef3def4083a142";
+const currentBaselineSuccessorParent = "0ac5b54351e12fec954e479c1c56506c58dea6c8";
+const currentBaselineSuccessorPaths = Object.freeze([
+  "intelligence/contracts/shadow-decision-readiness-contracts.json",
+  currentBaselineSuccessorPath,
+  "scripts/verify-shadow-decision-readiness.mjs"
+]);
 
 function read(path) {
   return readFileSync(resolve(root, path));
@@ -27,6 +38,139 @@ function readJson(path) {
 
 function sha256(path) {
   return createHash("sha256").update(read(path)).digest("hex");
+}
+
+function hashBytes(bytes) {
+  return createHash("sha256").update(bytes).digest("hex");
+}
+
+function git(args, encoding = "utf8") {
+  return execFileSync("/usr/bin/git", args, {
+    cwd: root,
+    encoding,
+    maxBuffer: 8 * 1024 * 1024,
+    stdio: ["ignore", "pipe", "ignore"]
+  });
+}
+
+function verifySourceTransition({ commit, tree, subject, ownerSubsystem, paths, previousSha256,
+  currentSha256 }) {
+  const identity = ownerSubsystem === "Prometheus Dashboard"
+    ? "Prometheus Dashboard <dashboard@prometheus.local>"
+    : "Prometheus Intelligence Engine <intelligence@prometheus.local>";
+  const fields = git([
+    "show", "-s", "--format=%H%n%T%n%an <%ae>%n%cn <%ce>%n%s", commit
+  ]).trim().split("\n");
+  assert.deepEqual(fields, [commit, tree, identity, identity, subject],
+    `Protected source successor commit changed: ${commit}`);
+  execFileSync("/usr/bin/git", ["merge-base", "--is-ancestor", commit, "HEAD"], {
+    cwd: root,
+    stdio: "ignore"
+  });
+  for (const path of paths) {
+    const prior = git(["show", `${commit}^:${path}`], null);
+    const accepted = git(["show", `${commit}:${path}`], null);
+    assert.equal(hashBytes(prior), previousSha256,
+      `Protected source predecessor changed: ${path}`);
+    assert.equal(hashBytes(accepted), currentSha256,
+      `Protected source successor changed: ${path}`);
+    assert.equal(sha256(path), currentSha256,
+      `Protected source changed after its owner successor: ${path}`);
+  }
+}
+
+function verifyProtectedBehaviorBaselines(contract) {
+  const successor = readJson(currentBaselineSuccessorPath);
+  const fields = git([
+    "show", "-s", "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+    currentBaselineSuccessorCommit
+  ]).trim().split("\n");
+  const paths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", currentBaselineSuccessorCommit
+  ]).trim().split("\n").filter(Boolean).sort();
+  assert.deepEqual(fields, [
+    currentBaselineSuccessorCommit,
+    currentBaselineSuccessorTree,
+    currentBaselineSuccessorParent,
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "Synchronize shadow-readiness runtime baselines"
+  ], "Current Intelligence protected-baseline successor commit changed.");
+  assert.deepEqual(paths, [...currentBaselineSuccessorPaths].sort(),
+    "Current Intelligence protected-baseline successor file set changed.");
+  assert.equal(
+    hashBytes(git(["show", `${currentBaselineSuccessorCommit}:${currentBaselineSuccessorPath}`], null)),
+    sha256(currentBaselineSuccessorPath),
+    "Current Intelligence protected-baseline successor record changed."
+  );
+  assert.equal(successor.status, "OWNER_REVIEWED_AND_SYNCHRONIZED");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(successor.predecessor.path, contract.protectedBehaviorBaselineSuccessor);
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(successor.protectedReferenceAudit.allAffectedIntelligenceReferencesAccountedFor, true);
+  assert.equal(successor.reviewedInvariants.readinessMethodologyChanged, false);
+  assert.equal(successor.reviewedInvariants.readinessStateChanged, false);
+  assert.equal(successor.reviewedInvariants.representativeWorkflowChangedBySynchronization, false);
+  assert.equal(successor.boundaries.prospectiveCollection, "OFF");
+  assert.equal(successor.boundaries.activeCohorts, 0);
+  assert.equal(successor.boundaries.recommendationInfluence, "OFF");
+
+  verifySourceTransition({
+    ...successor.sourceTransitions.dashboard,
+    paths: successor.sourceTransitions.dashboard.paths
+  });
+  verifySourceTransition({
+    commit: successor.sourceTransitions.intelligenceRuntime.commit,
+    tree: successor.sourceTransitions.intelligenceRuntime.tree,
+    subject: successor.sourceTransitions.intelligenceRuntime.subject,
+    ownerSubsystem: successor.sourceTransitions.intelligenceRuntime.ownerSubsystem,
+    paths: [successor.sourceTransitions.intelligenceRuntime.routeGeneration.path],
+    previousSha256: successor.sourceTransitions.intelligenceRuntime.routeGeneration.previousSha256,
+    currentSha256: successor.sourceTransitions.intelligenceRuntime.routeGeneration.currentSha256
+  });
+  verifySourceTransition({
+    commit: successor.sourceTransitions.intelligenceRuntime.commit,
+    tree: successor.sourceTransitions.intelligenceRuntime.tree,
+    subject: successor.sourceTransitions.intelligenceRuntime.subject,
+    ownerSubsystem: successor.sourceTransitions.intelligenceRuntime.ownerSubsystem,
+    paths: [successor.sourceTransitions.intelligenceRuntime.businessHoursEligibility.path],
+    previousSha256:
+      successor.sourceTransitions.intelligenceRuntime.businessHoursEligibility.previousSha256,
+    currentSha256:
+      successor.sourceTransitions.intelligenceRuntime.businessHoursEligibility.currentSha256
+  });
+
+  const governedTransitions = new Map([
+    ["dashboardSourceSha256", {
+      path: successor.sourceTransitions.dashboard.paths[0],
+      ...successor.sourceTransitions.dashboard
+    }],
+    ["dashboardDeployMirrorSha256", {
+      path: successor.sourceTransitions.dashboard.paths[1],
+      ...successor.sourceTransitions.dashboard
+    }],
+    ["adaptiveRouteEngineSha256", {
+      ...successor.sourceTransitions.intelligenceRuntime.routeGeneration
+    }],
+    ["businessHoursEligibilitySha256", {
+      ...successor.sourceTransitions.intelligenceRuntime.businessHoursEligibility
+    }]
+  ]);
+  let successorCount = 0;
+  for (const [name, expectedHash] of Object.entries(contract.protectedBehaviorBaselines)) {
+    const path = contract.protectedBehaviorBaselinePaths[name];
+    const currentHash = sha256(path);
+    if (currentHash === expectedHash) continue;
+    const transition = governedTransitions.get(name);
+    assert.equal(transition?.path, path, `Protected behavior path changed: ${name}`);
+    assert.equal(transition?.previousSha256, expectedHash,
+      `Protected behavior predecessor changed: ${name}`);
+    assert.equal(transition?.currentSha256, currentHash,
+      `Protected behavior successor changed: ${name}`);
+    successorCount += 1;
+  }
+  return successorCount;
 }
 
 function sourceHashes(contract) {
@@ -43,9 +187,7 @@ export function verifyReadOnlyFieldSessionLearning(options = {}) {
   assert.deepEqual(validateReadOnlyFieldSessionLearningPolicy(policy), []);
   assert.deepEqual(validateReadOnlyFieldSessionLearningContract(contract, dataContract), []);
   assert.deepEqual(beforeHashes, contract.canonicalSourceSha256, "Canonical Data field-session source hashes changed.");
-  for (const [name, expectedHash] of Object.entries(contract.protectedBehaviorBaselines)) {
-    assert.equal(sha256(contract.protectedBehaviorBaselinePaths[name]), expectedHash, `Protected behavior baseline changed: ${name}`);
-  }
+  const protectedBehaviorSuccessors = verifyProtectedBehaviorBaselines(contract);
 
   assert.equal(dataContract.intelligenceFieldSessionLearningHandoff.status, "defined_not_authorized");
   assert.equal(dataContract.intelligenceFieldSessionLearningHandoff.independentAuthorizationRequiredBeforeConsumption, true);
@@ -110,6 +252,7 @@ export function verifyReadOnlyFieldSessionLearning(options = {}) {
     historicalReplay: false,
     routeScoringWeightsChanged: false,
     recommendationBehaviorChanged: false,
+    protectedBehaviorSuccessors,
     sourceHashes: afterHashes
   };
 }

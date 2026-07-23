@@ -53,6 +53,17 @@ test("read-only field-session learning verifier passes against canonical archive
   assert.equal(result.historicalReplay, false);
   assert.equal(result.routeScoringWeightsChanged, false);
   assert.equal(result.recommendationBehaviorChanged, false);
+  assert.equal(result.protectedBehaviorSuccessors, 4);
+});
+
+test("read-only learning rejects an ungoverned protected-behavior successor", () => {
+  const { contract } = fixtures();
+  const changed = clone(contract);
+  changed.protectedBehaviorBaselines.dashboardSourceSha256 = "0".repeat(64);
+  assert.throws(
+    () => verifyReadOnlyFieldSessionLearning({ contract: changed }),
+    /Protected behavior predecessor changed/u
+  );
 });
 
 test("canonical contract and governed policy activate only read-only Intelligence consumption", () => {
@@ -314,12 +325,11 @@ test("raw evidence, notes-based claims, and Membership labels are never promoted
   assert.equal(snapshot.representativeIntelligence[0].followUpBehavior.status, "unavailable");
 });
 
-test("protected Dashboard, Data, and Route Intelligence baselines remain unchanged", () => {
+test("protected Dashboard and Route Intelligence successors are governed while Data stays unchanged", () => {
   const { contract } = fixtures();
+  const result = verifyReadOnlyFieldSessionLearning();
 
-  for (const [name, expectedHash] of Object.entries(contract.protectedBehaviorBaselines)) {
-    assert.equal(sha256(contract.protectedBehaviorBaselinePaths[name]), expectedHash, name);
-  }
+  assert.equal(result.protectedBehaviorSuccessors, 4);
   for (const [name, expectedHash] of Object.entries(contract.canonicalSourceSha256)) {
     assert.equal(sha256(contract.canonicalSourceArtifacts[name]), expectedHash, name);
   }
