@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 import { createEmptyRouteQueue } from "../intelligence/continuous-adaptive-route-replenishment.mjs";
-import { buildRouteBusinessHoursIndex } from "../intelligence/route-business-hours-eligibility.mjs";
+import {
+  buildRouteBusinessHoursIndex,
+  isCanonicalRouteBusinessHoursEligibility
+} from "../intelligence/route-business-hours-eligibility.mjs";
 import {
   routeIqGovernedRuntimeAuthorizations,
   routeIqGovernedBusinessAdmissionVersion,
@@ -13,6 +16,14 @@ const readJson = path => JSON.parse(readFileSync(new URL(`../${path}`, import.me
 const fixture = readJson("intelligence/fixtures/route-iq-governed-customer-business-hours-v1.json");
 const hoursContract = readJson("intelligence/contracts/route-business-hours-eligibility-contracts.json");
 const replenishmentContract = readJson("intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json");
+const runtimeScopeSource = readFileSync(
+  new URL("../intelligence/route-iq-governed-runtime-scope.mjs", import.meta.url),
+  "utf8"
+);
+const browserSafeValidatorSource = readFileSync(
+  new URL("../administration/contracts/route-iq-workspace-configuration-v2-validation.mjs", import.meta.url),
+  "utf8"
+);
 
 assert.equal(hoursContract.governedRuntimeScope.version, routeIqGovernedRuntimeScopeVersion);
 assert.equal(hoursContract.governedRuntimeScope.requiredAdmissionVersion, routeIqGovernedBusinessAdmissionVersion);
@@ -24,6 +35,22 @@ assert.deepEqual(
 );
 assert.equal(hoursContract.governedRuntimeScope.callerAuthorizationClaimsAccepted, false);
 assert.equal(replenishmentContract.workspacePolicy.callerAuthorizationClaimsAccepted, false);
+assert.match(
+  runtimeScopeSource,
+  /from "\.\.\/administration\/contracts\/route-iq-workspace-configuration-v2-validation\.mjs";/u
+);
+assert.doesNotMatch(
+  runtimeScopeSource,
+  /from "\.\.\/administration\/contracts\/route-iq-workspace-configuration-v2\.mjs";/u
+);
+assert.doesNotMatch(runtimeScopeSource, /["']node:/u);
+assert.doesNotMatch(browserSafeValidatorSource, /["']node:/u);
+assert.equal(hoursContract.compatibility.legacyRuntimeVersionAccepted, false);
+assert.equal(isCanonicalRouteBusinessHoursEligibility({
+  version: hoursContract.compatibility.supersedesRuntimeVersion,
+  coverageEligible: true,
+  immediateRecommendationEligible: true
+}), false);
 
 const index = buildRouteBusinessHoursIndex(fixture);
 assert.equal(index.workspaceId, fixture.workspaceId);

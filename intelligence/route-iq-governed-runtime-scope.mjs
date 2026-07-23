@@ -1,6 +1,6 @@
 import {
   validateRouteIqWorkspaceConfigurationRegistry
-} from "../administration/contracts/route-iq-workspace-configuration-v2.mjs";
+} from "../administration/contracts/route-iq-workspace-configuration-v2-validation.mjs";
 
 export const routeIqGovernedRuntimeScopeVersion = "route-iq-governed-runtime-scope-v1";
 export const routeIqGovernedBusinessAdmissionVersion = "route-iq-governed-business-admission-v2";

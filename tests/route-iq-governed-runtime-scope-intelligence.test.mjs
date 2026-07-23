@@ -7,7 +7,8 @@ import {
 } from "../intelligence/continuous-adaptive-route-replenishment.mjs";
 import {
   buildRouteBusinessHoursIndex,
-  evaluateRouteBusinessHoursEligibility
+  evaluateRouteBusinessHoursEligibility,
+  isCanonicalRouteBusinessHoursEligibility
 } from "../intelligence/route-business-hours-eligibility.mjs";
 
 const fixture = JSON.parse(readFileSync(
@@ -22,6 +23,37 @@ function clone(value) {
   return structuredClone(value);
 }
 
+function literalModuleSpecifiers(source) {
+  const specifiers = [];
+  const patterns = [
+    /(?:^|\n)\s*import(?:\s+[\s\S]*?\s+from)?\s*["']([^"']+)["']\s*;/gu,
+    /(?:^|\n)\s*export\s+(?:\*|\{[\s\S]*?\})\s+from\s+["']([^"']+)["']\s*;/gu,
+    /\bimport\s*\(\s*["']([^"']+)["']\s*\)/gu
+  ];
+  for (const pattern of patterns) {
+    for (const match of source.matchAll(pattern)) specifiers.push(match[1]);
+  }
+  return [...new Set(specifiers)].sort();
+}
+
+function collectBrowserImportGraph(entryUrl, graph = new Map()) {
+  if (graph.has(entryUrl.href)) return graph;
+  const source = readFileSync(entryUrl, "utf8");
+  const specifiers = literalModuleSpecifiers(source);
+  graph.set(entryUrl.href, specifiers);
+  for (const specifier of specifiers) {
+    assert.equal(
+      specifier.startsWith("node:"),
+      false,
+      `Browser runtime graph contains a Node-only dependency: ${specifier}`
+    );
+    if (specifier.startsWith(".")) {
+      collectBrowserImportGraph(new URL(specifier, entryUrl), graph);
+    }
+  }
+  return graph;
+}
+
 function buildIndex(artifact = fixture, options = {}) {
   return buildRouteBusinessHoursIndex(artifact, {
     workspaceId,
@@ -29,6 +61,26 @@ function buildIndex(artifact = fixture, options = {}) {
     ...options
   });
 }
+
+test("governed runtime scope has a browser-safe import graph and keeps legacy hours v1 rejected", () => {
+  const entryUrl = new URL("../intelligence/route-iq-governed-runtime-scope.mjs", import.meta.url);
+  const validatorUrl = new URL(
+    "../administration/contracts/route-iq-workspace-configuration-v2-validation.mjs",
+    import.meta.url
+  );
+  const graph = collectBrowserImportGraph(entryUrl);
+
+  assert.deepEqual([...graph.keys()].sort(), [entryUrl.href, validatorUrl.href].sort());
+  assert.deepEqual(graph.get(entryUrl.href), [
+    "../administration/contracts/route-iq-workspace-configuration-v2-validation.mjs"
+  ]);
+  assert.deepEqual(graph.get(validatorUrl.href), []);
+  assert.equal(isCanonicalRouteBusinessHoursEligibility({
+    version: "route-iq-closed-now-eligibility-v1",
+    coverageEligible: true,
+    immediateRecommendationEligible: true
+  }), false);
+});
 
 test("an asset-derived scope authenticates the hours artifact but cannot replace manifest admission", () => {
   const index = buildIndex();
