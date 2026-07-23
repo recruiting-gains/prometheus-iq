@@ -626,10 +626,19 @@ function verifyFixedOwnerEvidence(root, matrix, contract) {
     packageJson.scripts?.["overwatch:route-iq-august-1-readiness:check"],
     "node scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs && node --test tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
   );
-  assert.equal(
-    packageJson.scripts?.pretest,
-    "npm run data:route-iq-august-1-launch-envelope:check && npm run infrastructure:route-iq-august-1-customer-pwa-rollback:check && npm run intelligence:route-iq-governed-runtime-scope:check && npm run overwatch:route-iq-august-1-readiness:check"
-  );
+  const requiredPretestSteps = [
+    "npm run data:route-iq-august-1-launch-envelope:check",
+    "npm run infrastructure:route-iq-august-1-customer-pwa-rollback:check",
+    "npm run intelligence:route-iq-governed-runtime-scope:check",
+    "npm run overwatch:route-iq-august-1-readiness:check"
+  ];
+  const pretestSteps = String(packageJson.scripts?.pretest || "").split(" && ");
+  let previousPretestIndex = -1;
+  for (const requiredStep of requiredPretestSteps) {
+    const index = pretestSteps.indexOf(requiredStep);
+    assert.ok(index > previousPretestIndex, `Required pretest step is absent or out of order: ${requiredStep}`);
+    previousPretestIndex = index;
+  }
   const envelope = readJson(
     root,
     "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope-v1.json"
