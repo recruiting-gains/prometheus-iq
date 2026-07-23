@@ -59,7 +59,7 @@ assert.match(sourceIndex, /HOURS_NOT_VERIFIED/);
 assert.match(sourceIndex, /Business-hours eligibility/);
 assert.match(sourceIndex, /function isRouteEligible\([\s\S]*?businessHoursDecisionForPlace\(place\)\.eligible/);
 assert.match(sourceIndex, /function buildRouteList\([\s\S]*?hoursEligibility\.selectionTier/);
-assert.match(sourceIndex, /primaryVerifiedOpen < betaRouteTargetSize/);
+assert.match(sourceIndex, /primaryVerifiedOpen < routeTargetSize/);
 assert.match(sourceIndex, /prepareRouteQueueForVerifiedOpenPreference/);
 assert.doesNotMatch(sourceIndex, /(?:places|maps)\.googleapis\.com/i);
 assert.doesNotMatch(sourceEligibilityModule, /\bfetch\s*\(/);
