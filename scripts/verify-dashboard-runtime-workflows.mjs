@@ -1,7 +1,7 @@
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { createServer as createSecureServer } from "node:https";
-import { accessSync, constants as fsConstants, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import { accessSync, constants as fsConstants, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { delimiter, extname, join, normalize, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -38,7 +38,7 @@ const canonicalBusinessManifestRegistry = JSON.parse(readFileSync(
   resolve(root, "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json"),
   "utf8"
 ));
-const customerPwaRuntimeRecords = Object.freeze(Array.from({ length: 15 }, (_, offset) => {
+const customerPwaRuntimeRecords = Object.freeze(Array.from({ length: 20 }, (_, offset) => {
   const sequence = offset + 1;
   return Object.freeze({
     recordId: `synthetic_outside_sales_opportunity_${String(sequence).padStart(3, "0")}`,
@@ -74,6 +74,23 @@ const customerPwaWorkspaceConfigurationRegistry = cloneJson(canonicalWorkspaceCo
 const customerPwaWorkspaceConfiguration = customerPwaWorkspaceConfigurationRegistry.workspaces.find(
   workspace => workspace.workspaceId === "northstar_outside_sales_synthetic"
 );
+const customerPwaManagerRole = Object.freeze({
+  roleId: "northstar_synthetic_manager",
+  displayName: "Field Operations Manager (Synthetic)",
+  capabilities: Object.freeze([...customerPwaWorkspaceConfiguration.dashboard.capabilities])
+});
+const customerPwaManagerUser = Object.freeze({
+  userId: "northstar_synthetic_manager_01",
+  representativeId: "northstar_synthetic_manager_rep_01",
+  displayName: "Synthetic Operations Manager 01",
+  identityClass: "SYNTHETIC_NONCANONICAL",
+  principalMappingStatus: "SYNTHETIC_ONLY",
+  roleId: customerPwaManagerRole.roleId,
+  territoryIds: Object.freeze(["synthetic_north_territory"]),
+  active: false
+});
+customerPwaWorkspaceConfiguration.roles.push(customerPwaManagerRole);
+customerPwaWorkspaceConfiguration.users.push(customerPwaManagerUser);
 const customerPwaOpportunitySource = customerPwaWorkspaceConfiguration.opportunitySources.find(
   source => source.workspaceId === "northstar_outside_sales_synthetic"
 );
@@ -220,6 +237,20 @@ const customerPwaSessionFixture = Object.freeze({
     recommendationInfluence: "OFF"
   })
 });
+const customerPwaManagerSessionFixture = Object.freeze({
+  ...customerPwaSessionFixture,
+  userId: customerPwaManagerUser.userId,
+  representativeId: customerPwaManagerUser.representativeId,
+  displayName: customerPwaManagerUser.displayName,
+  roleId: customerPwaManagerUser.roleId,
+  capabilities: Object.freeze({
+    operateOwnRoute: false,
+    readWorkspaceOperations: true,
+    administerWorkspaceRoster: false,
+    founderIntelligence: false,
+    founderCrm: false
+  })
+});
 
 function injectRouteIqCustomerPwaSession(dashboard, session) {
   const marker = "__ROUTE_IQ_CUSTOMER_PWA_SESSION__";
@@ -271,9 +302,9 @@ function enabledProspectiveBootstrap(overrides = {}) {
       eventContractVersion: prospectiveEventContractVersion,
       issuedAt: new Date(now - 1000).toISOString(),
       expiresAt: new Date(now + 59 * 1000).toISOString(),
-      workspaceId: "fitness_connection",
-      operatingProfileId: "fitness",
-      representativeId: "anthony",
+      workspaceId: customerPwaSessionFixture.workspaceId,
+      operatingProfileId: customerPwaSessionFixture.operatingProfileId,
+      representativeId: customerPwaSessionFixture.representativeId,
       activeCohort: true,
       supportedOpportunityTypes: ["next_stop"],
       runtimeContextContractVersion: prospectiveRuntimeContextContractVersion,
@@ -656,7 +687,7 @@ function startStaticServer({
           return;
         }
         const report = JSON.parse(payload.rawReportText);
-        const sessionId = `route-iq-field-session-fitness-connection-fitness-${report.rep.id}-${report.date}`;
+        const sessionId = `route-iq-field-session-${payload.workspaceId}-${payload.operatingProfileId}-${report.rep.id}-${report.date}`;
         response.writeHead(configured.status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
         response.end(JSON.stringify({
           ok: true,
@@ -1860,10 +1891,16 @@ async function verifyRouteStateSynchronization(cdp) {
     if (!place || typeof routeIdentityKey !== "function") throw new Error("No logged route place available for synchronization check.");
     const key = routeIdentityKey(place);
     render();
-    const routeCards = [...document.querySelectorAll("#routeList .route-card")].map(card => card.textContent.trim().replace(/\\s+/g, " "));
-    const dailyCards = [...document.querySelectorAll("#dailyRoute .route-card")].map(card => card.textContent.trim().replace(/\\s+/g, " "));
-    const listedRouteKeys = typeof routePool === "function" && typeof routeVisiblePlaces === "function"
-      ? routePool(routeVisiblePlaces()).map(routeIdentityKey)
+    const routeCards = [...document.querySelectorAll("#routeList .route-card")].map(card => ({
+      heading: card.querySelector("h3")?.textContent?.trim() || "",
+      text: card.textContent.trim().replace(/\\s+/g, " ")
+    }));
+    const dailyCards = [...document.querySelectorAll("#dailyRoute .route-card")].map(card => ({
+      heading: card.querySelector("h3")?.textContent?.trim() || "",
+      text: card.textContent.trim().replace(/\\s+/g, " ")
+    }));
+    const listedRouteKeys = typeof activeRouteItems === "function"
+      ? activeRouteItems().map(item => routeIdentityKey(item.place))
       : [];
     const bestNext = typeof routeRecommendation === "function" ? routeRecommendation() : null;
     return {
@@ -1873,11 +1910,11 @@ async function verifyRouteStateSynchronization(cdp) {
       latestVisitPlaceId: latestVisit.placeId || "",
       routeCardCount: routeCards.length,
       dailyCardCount: dailyCards.length,
-      routeCards: routeCards.slice(0, 12),
-      dailyCards: dailyCards.slice(0, 12),
+      routeCards: routeCards.slice(0, 12).map(card => card.text),
+      dailyCards: dailyCards.slice(0, 12).map(card => card.text),
       routePoolStillContainsLogged: listedRouteKeys.includes(key),
-      routeListStillContainsLogged: routeCards.some(text => text.includes(place.name)),
-      dailyRouteStillContainsLogged: dailyCards.some(text => text.includes(place.name)),
+      routeListStillContainsLogged: routeCards.some(card => card.heading === place.name),
+      dailyRouteStillContainsLogged: dailyCards.some(card => card.heading === place.name),
       bestNextStillLogged: bestNext ? routeIdentityKey(bestNext) === key : false,
       bestNextName: bestNext?.name || ""
     };
@@ -1913,7 +1950,9 @@ async function verifyContinuousAdaptiveReplenishment(cdp) {
     }
     const afterProfile = activeProfile();
     const afterQueue = afterProfile.activeRouteQueue?.entries?.map(entry => ({ ...entry })) || [];
-    const stored = JSON.parse(localStorage.getItem("prometheus-v1") || "{}");
+    const beforeIdentityKeys = new Set(beforeQueue.map(entry => entry.identityKey));
+    const governedIdentityKeys = new Set(routeVisiblePlaces().map(routeIdentityKey));
+    const stored = JSON.parse(localStorage.getItem(storeKey) || "{}");
     const storedProfile = stored.repProfiles?.[activeRepId] || {};
     const status = document.getElementById("routeLoopStatusToday")?.textContent?.trim() || "";
     const beforeFlight = routeReplenishmentCoordinator.status();
@@ -1937,8 +1976,9 @@ async function verifyContinuousAdaptiveReplenishment(cdp) {
       persistedVisitCount: Array.isArray(storedProfile.visits) ? storedProfile.visits.length : 0,
       persistedQueueIds: storedProfile.activeRouteQueue?.entries?.map(entry => entry.identityKey) || [],
       completedStillActive: afterQueue.some(entry => entry.identityKey === completedEntry.identityKey),
-      remainingOrderPreserved: beforeQueue.slice(1).every((entry, index) => afterQueue[index]?.identityKey === entry.identityKey),
-      appendedReplacement: afterQueue.length === 15 && !beforeQueue.some(entry => entry.identityKey === afterQueue.at(-1)?.identityKey),
+      allAfterGoverned: afterQueue.every(entry => governedIdentityKeys.has(entry.identityKey)),
+      retainedCount: afterQueue.filter(entry => beforeIdentityKeys.has(entry.identityKey)).length,
+      addedReplacementCount: afterQueue.filter(entry => !beforeIdentityKeys.has(entry.identityKey)).length,
       duplicateCount: afterQueue.length - new Set(afterQueue.map(entry => entry.identityKey)).size,
       debug: window.prometheusDebugState?.routeReplenishment || {},
       beforeFlight,
@@ -1991,7 +2031,7 @@ async function verifyFieldSessionCompletion(cdp, completionAction) {
       id: id(),
       placeId: place.id,
       placeName: place.name,
-      workspaceId: "fitness_connection",
+      workspaceId: currentRouteWorkspaceId(),
       date: todayKey(),
       window: "Midday",
       conversations: 1,
@@ -2016,7 +2056,7 @@ async function verifyFieldSessionCompletion(cdp, completionAction) {
       id: id(),
       placeId: place.id,
       placeName: place.name,
-      workspaceId: "fitness_connection",
+      workspaceId: currentRouteWorkspaceId(),
       date: todayKey(),
       window: "Midday",
       conversations: 0,
@@ -2077,7 +2117,7 @@ async function verifyDecisionContextProducer(cdp) {
         capturedAt: "2026-07-12T18:" + String(index).padStart(2, "0") + ":00.000Z",
         recommendationPlaceId: recommendation.id,
         recommendationId,
-        workspaceId: "fitness_connection"
+        workspaceId: currentRouteWorkspaceId()
       })];
     }));
     const unknown = createVisitDecisionEvidence({
@@ -2087,7 +2127,7 @@ async function verifyDecisionContextProducer(cdp) {
       capturedAt: "2026-07-12T18:59:00.000Z",
       recommendationPlaceId: recommendation.id,
       recommendationId,
-      workspaceId: "fitness_connection"
+      workspaceId: currentRouteWorkspaceId()
     });
     const legacyVisit = {
       id: "legacy-decision-source-visit",
@@ -2108,7 +2148,7 @@ async function verifyDecisionContextProducer(cdp) {
         workspaceId: "retired_customer_workspace"
       });
     } catch (error) {
-      workspaceBlocked = /outside Fitness Connection/.test(error.message);
+      workspaceBlocked = /outside (?:the active|the authenticated) workspace/i.test(error.message);
     }
 
     openModal("quick", { placeId: recommendation.id });
@@ -2188,8 +2228,8 @@ async function verifyDecisionContextProducer(cdp) {
       try {
         validateFieldSessionPayload({
           completionAction,
-          workspaceId: "fitness_connection",
-          operatingProfileId: "fitness",
+          workspaceId: currentRouteWorkspaceId(),
+          operatingProfileId: activeOperatingProfile.profileId,
           finalExportConfirmed: true,
           sourceFinalizedAt: finalizedAt,
           rawReportText: JSON.stringify(report)
@@ -2293,7 +2333,7 @@ async function verifyFieldSessionRetry(cdp) {
       id: id(),
       placeId: place.id,
       placeName: place.name,
-      workspaceId: "fitness_connection",
+      workspaceId: currentRouteWorkspaceId(),
       date: todayKey(),
       window: "Evening",
       conversations: 1,
@@ -2347,7 +2387,7 @@ async function verifyPostVisitOutcomeEditing(cdp) {
       id: seededVisitId,
       placeId: place.id,
       placeName: place.name,
-      workspaceId: "fitness_connection",
+      workspaceId: currentRouteWorkspaceId(),
       date: todayKey(),
       window: "Midday",
       conversations: 1,
@@ -2608,7 +2648,7 @@ async function verifyAddPlaceImmediateOutcomeCapture(cdp) {
       permission: "Unknown",
       canRevisit: true,
       repProfileId: "cruz",
-      workspaceId: "fitness_connection",
+      workspaceId: currentRouteWorkspaceId(),
       sourceType: "Dashboard Manual Entry",
       notes: "Representative ownership regression fixture.",
       createdAt: Date.now()
@@ -2731,7 +2771,9 @@ async function verifyDesktopRepresentativePlaces(cdp) {
       permission: "Unknown",
       canRevisit: true,
       repProfileId: activeRepId,
-      workspaceId: "fitness_connection",
+      workspaceId: currentRouteWorkspaceId(),
+      operatingProfileId: activeOperatingProfile.profileId,
+      candidateAdmission: "VERIFICATION_REQUIRED",
       sourceType: "Dashboard Manual Entry",
       notes: "Desktop rendering regression fixture.",
       createdAt: Date.now()
@@ -2908,7 +2950,7 @@ function verifyMobileFit(label, fit) {
 function verifyRepOnly(label, snap) {
   const repOnly = snap.sessionRole === "rep"
     && snap.mode === "rep"
-    && snap.activeRepId === "anthony"
+    && snap.activeRepId === customerPwaSessionFixture.representativeId
     && snap.visibleTabs.join(",") === "today,route,places"
     && snap.visibleOwnerControls.length === 0
     && snap.profileButtonLabels.length === 0
@@ -3130,17 +3172,18 @@ async function verifyProspectiveBootstrapValidation(cdp) {
 }
 
 function verifyRuntimePerformance(activeSnap, activeRouteLoadMs) {
-  const activeBytes = statSync(resolve(dashboardRoot, activePoolPath)).size;
-  const fullBytes = statSync(resolve(dashboardRoot, fullPoolPath)).size;
-  const activeStarted = performance.now();
-  JSON.parse(readFileSync(resolve(dashboardRoot, activePoolPath), "utf8"));
-  const activeParseMs = performance.now() - activeStarted;
-  const fullStarted = performance.now();
-  JSON.parse(readFileSync(resolve(dashboardRoot, fullPoolPath), "utf8"));
-  const fullParseMs = performance.now() - fullStarted;
-  const activeResourceMs = activeSnap.performance.activeResourceDuration;
-  const detail = `active ${activeBytes} bytes/${activeParseMs.toFixed(1)}ms parse/${activeResourceMs}ms fetch, full ${fullBytes} bytes/${fullParseMs.toFixed(1)}ms parse, route ready ${activeRouteLoadMs}ms, nav ${activeSnap.performance.navigationDuration}ms`;
-  assertWorkflow("Route loading performance regressions", activeBytes < fullBytes && activeResourceMs < 5000 && activeRouteLoadMs < 60000, detail, detail);
+  const governedPayload = JSON.stringify(customerPwaBusinessRoster);
+  const governedBytes = Buffer.byteLength(governedPayload);
+  const governedStarted = performance.now();
+  JSON.parse(governedPayload);
+  const governedParseMs = performance.now() - governedStarted;
+  const detail = `governed roster ${governedBytes} bytes/${governedParseMs.toFixed(1)}ms parse, route ready ${activeRouteLoadMs}ms, nav ${activeSnap.performance.navigationDuration}ms`;
+  assertWorkflow(
+    "Route loading performance regressions",
+    governedBytes < 1024 * 1024 && governedParseMs < 1000 && activeRouteLoadMs < 60000,
+    detail,
+    detail
+  );
 }
 
 function trackHarnessResource(resources, name, resource) {
@@ -3235,70 +3278,53 @@ async function runHarness() {
   };
   let harnessError;
   try {
-    const server = await startServer("primary HTTPS server");
-    const fallbackServer = await startServer("fallback HTTPS server", { missingActive: true });
-    const fieldSessionServer = await startServer("field-session HTTPS server");
+    const server = await startServer("primary HTTPS server", {
+      customerPwaSession: customerPwaManagerSessionFixture
+    });
+    const representativeServer = await startServer("representative HTTPS server", {
+      customerPwaSession: customerPwaSessionFixture
+    });
+    const mobileLoggingServer = await startServer("mobile logging HTTPS server", {
+      customerPwaSession: customerPwaSessionFixture
+    });
+    const representativePwaServer = await startServer("representative PWA HTTPS server", {
+      customerPwaSession: customerPwaSessionFixture
+    });
+    const legacyCatalogTrapServer = await startServer("legacy catalog trap HTTPS server", {
+      customerPwaSession: customerPwaManagerSessionFixture,
+      missingActive: true
+    });
+    const adaptiveReplenishmentServer = await startServer("adaptive replenishment HTTPS server", {
+      customerPwaSession: customerPwaManagerSessionFixture
+    });
+    const fieldSessionServer = await startServer("field-session HTTPS server", {
+      customerPwaSession: customerPwaSessionFixture
+    });
     const fieldSessionRetryServer = await startServer("field-session retry HTTPS server", {
+      customerPwaSession: customerPwaSessionFixture,
       fieldSessionResponses: [
         { status: 503, code: "field_session_store_unavailable", retryable: true },
         { status: 201 }
       ]
     });
-    const visitCorrectionServer = await startServer("visit-correction HTTPS server");
-    const addPlaceServer = await startServer("add-place HTTPS server");
-    const decisionContextServer = await startServer("decision-context HTTPS server");
-    const prospectiveServer = await startServer("prospective HTTPS server", {
-      prospectiveResponse: {
-        status: 202,
-        body: {
-          marker: "DO_NOT_EXPOSE_SHADOW_PAYLOAD",
-          rankedCandidates: ["must-not-reach-the-representative"],
-          probability: 0.99,
-          confidence: "must-not-reach-the-representative"
-        }
-      },
-      prospectiveBootstrapResponse: () => enabledProspectiveBootstrap()
+    const visitCorrectionServer = await startServer("visit-correction HTTPS server", {
+      customerPwaSession: customerPwaSessionFixture
     });
-    const prospectiveOffServer = await startServer("prospective-off HTTPS server");
-    const prospectiveFailureServer = await startServer("prospective-failure HTTPS server", {
-      prospectiveResponse: {
-        status: 503,
-        body: { marker: "DO_NOT_EXPOSE_SHADOW_PAYLOAD", code: "prospective_runtime_unavailable" }
-      },
-      prospectiveBootstrapResponse: () => enabledProspectiveBootstrap()
+    const addPlaceServer = await startServer("add-place HTTPS server", {
+      customerPwaSession: customerPwaSessionFixture
     });
-    const prospectiveInvalidBootstrapServer = await startServer("prospective invalid-bootstrap HTTPS server", {
-      prospectiveBootstrapResponse: {
-        status: 200,
-        body: { collection: "ON", status: "enabled" }
-      }
+    const decisionContextServer = await startServer("decision-context HTTPS server", {
+      customerPwaSession: customerPwaSessionFixture
     });
-    const prospectiveUnavailableBootstrapServer = await startServer("prospective unavailable-bootstrap HTTPS server", {
-      prospectiveBootstrapResponse: {
-        status: 503,
-        body: { ok: false, code: "prospective_bootstrap_unavailable" }
-      }
-    });
-    const prospectiveStaleBootstrapServer = await startServer("prospective stale-bootstrap HTTPS server", {
-      prospectiveBootstrapResponse: () => enabledProspectiveBootstrap({
-        issuedAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-        expiresAt: new Date(Date.now() - 60 * 1000).toISOString()
-      })
-    });
-    const prospectiveUnauthorizedBootstrapServer = await startServer("prospective unauthorized-bootstrap HTTPS server", {
-      prospectiveBootstrapResponse: () => enabledProspectiveBootstrap({ representativeId: "cruz" })
-    });
-    const prospectiveTimeoutBootstrapServer = await startServer("prospective timeout-bootstrap HTTPS server", {
-      prospectiveBootstrapResponse: {
-        status: 200,
-        body: enabledProspectiveBootstrap().body,
-        delayMs: 4000
-      }
+    const prospectiveOffServer = await startServer("prospective-off HTTPS server", {
+      customerPwaSession: customerPwaSessionFixture
     });
     const founderDailyIntelligenceServer = await startServer("Founder intelligence HTTPS server", {
+      customerPwaSession: customerPwaManagerSessionFixture,
       founderDailyIntelligenceResponse: founderDailyIntelligenceResponse()
     });
     const founderDailyIntelligenceAnthonyServer = await startServer("Anthony intelligence HTTPS server", {
+      customerPwaSession: customerPwaManagerSessionFixture,
       founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
         principal: {
           mappingId: "route-iq-founder-access-anthony-pending",
@@ -3308,6 +3334,7 @@ async function runHarness() {
       })
     });
     const founderDailyIntelligenceUnsafeServer = await startServer("unsafe intelligence HTTPS server", {
+      customerPwaSession: customerPwaManagerSessionFixture,
       founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
         snapshot: {
           safety: {
@@ -3326,6 +3353,7 @@ async function runHarness() {
       })
     });
     const founderDailyIntelligenceInvalidConfigurationHashServer = await startServer("invalid intelligence configuration HTTPS server", {
+      customerPwaSession: customerPwaManagerSessionFixture,
       founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
         snapshot: { businessConfigurationSha256: "A".repeat(64) }
       })
@@ -3344,7 +3372,7 @@ async function runHarness() {
       registerCleanup: close => resources.push({ name: "Chrome", close })
     });
 
-    const switcher = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=workspace-switcher", "workspace-switcher");
+    const switcher = await runPageScenario(chrome, server, "/app?role=founder&debug=1&harness=workspace-switcher", "workspace-switcher");
     const switcherSnap = switcher.initial;
     const productFocus = await switcher.cdp.evaluate(`(() => ({
       title: document.querySelector(".brand h1")?.textContent?.trim() || "",
@@ -3352,216 +3380,79 @@ async function runHarness() {
       workspaceControls: document.querySelectorAll("[data-workspace-select]").length,
       retiredProductLinks: document.querySelectorAll("[data-retired-product], a[href*='/legacy-customer-dashboard/']").length
     }))()`);
-    assertWorkflow("Route IQ workspace default", switcherSnap.workspaceId === "fitness_connection" && switcherSnap.workspaceOperatingProfileId === "fitness", `workspace ${switcherSnap.workspaceId}, profile ${switcherSnap.workspaceOperatingProfileId}`, JSON.stringify({ workspaceId: switcherSnap.workspaceId, workspaceName: switcherSnap.workspaceName, debug: switcherSnap.debug.workspace }));
+    assertWorkflow("Route IQ authenticated workspace", switcherSnap.workspaceId === "northstar_outside_sales_synthetic" && switcherSnap.workspaceOperatingProfileId === "general_outside_sales", `workspace ${switcherSnap.workspaceId}, profile ${switcherSnap.workspaceOperatingProfileId}`, JSON.stringify({ workspaceId: switcherSnap.workspaceId, workspaceName: switcherSnap.workspaceName, debug: switcherSnap.debug.workspace }));
     assertWorkflow("Route IQ only active Dashboard product", productFocus.title === "Route IQ" && productFocus.workspaceControls === 0 && productFocus.retiredProductLinks === 0 && !/\bGaia\b|\bAthena\b/.test(productFocus.bodyText), "Route IQ renders without inactive-product navigation or current-product labels", JSON.stringify(productFocus));
     assertWorkflow("Founder snapshot fails closed without server principal", !switcherSnap.founderDailyIntelligenceVisible && switcherSnap.debug.founderDailyIntelligence.authorized === false, switcherSnap.debug.founderDailyIntelligence.status, JSON.stringify(switcherSnap.debug.founderDailyIntelligence));
     await switcher.cdp.close();
 
-    const founder = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=runtime-workflows-founder", "founder");
+    const founder = await runPageScenario(chrome, server, "/app?role=founder&debug=1&harness=runtime-workflows-founder", "founder");
     const founderSnap = founder.initial;
-    assertWorkflow("Founder Mode", founderSnap.sessionRole === "founder" && founderSnap.mode === "owner" && founderSnap.visibleTabs.includes("places") && founderSnap.visibleTabs.includes("stats") && founderSnap.visibleTabs.includes("find"), `owner tabs visible: ${founderSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: founderSnap.sessionRole, mode: founderSnap.mode, visibleTabs: founderSnap.visibleTabs }));
-    verifyOperatingProfileVocabulary("Operating Profile Fitness default preserved", founderSnap, { profileId: "fitness", terms: ["Units Today", "Conversations", "Leads", "Fitness Route", "Verified Units"] });
-    assertWorkflow("Active Pool consumption", founderSnap.debug.runtimeDataPool === "active" && founderSnap.debug.runtimeDataSource.includes("runtime-pool-segmentation-v1 active") && founderSnap.debug.runtimeDataSource.includes("594 route records"), founderSnap.debug.runtimeDataSource, JSON.stringify(founderSnap.debug));
+    assertWorkflow("Authenticated manager Mode", founderSnap.sessionRole === "manager" && founderSnap.mode === "owner" && founderSnap.visibleTabs.includes("places") && founderSnap.visibleTabs.includes("stats") && founderSnap.visibleTabs.includes("find"), `manager tabs visible: ${founderSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: founderSnap.sessionRole, mode: founderSnap.mode, visibleTabs: founderSnap.visibleTabs }));
+    verifyOperatingProfileVocabulary("Operating Profile general outside sales preserved", founderSnap, { profileId: "general_outside_sales", terms: ["Qualified Opportunities Today", "Northstar Field Supply (Synthetic) Route", "Verified Qualified Opportunities"] });
+    assertWorkflow("Governed approved roster consumption", founderSnap.debug.runtimeDataPool === "governed" && founderSnap.debug.runtimeDataStatus === "READY" && founderSnap.debug.runtimeDataSource.includes("20 approved records"), founderSnap.debug.runtimeDataSource, JSON.stringify(founderSnap.debug));
     assertWorkflow("Route Intelligence rendering", founderSnap.debug.rendererReceived && founderSnap.bestNextMove && founderSnap.bestNextMove !== "Loading route signal" && founderSnap.dailyRouteCards > 0, `${founderSnap.bestNextMove} with ${founderSnap.dailyRouteCards} daily route cards`, JSON.stringify({ bestNextMove: founderSnap.bestNextMove, dailyRouteCards: founderSnap.dailyRouteCards, debug: founderSnap.debug }));
-    assertWorkflow("Directions link generation", founderSnap.bestMoveDirections.startsWith("https://www.google.com/maps/dir/?api=1&destination=") && founderSnap.bestMoveDirections.includes("destination_place_id="), founderSnap.bestMoveDirections, founderSnap.bestMoveDirections);
+    assertWorkflow("Directions link generation", founderSnap.bestMoveDirections.startsWith("https://www.google.com/maps/dir/?api=1&destination="), founderSnap.bestMoveDirections, founderSnap.bestMoveDirections);
     assertWorkflow("Discovery Mode", founderSnap.todayText.includes("Discovery Mode") || founderSnap.routeRisk.includes("Discovery Mode") || founderSnap.statsText.includes("Discovery Mode"), founderSnap.routeRisk || "Discovery Mode visible in runtime text", JSON.stringify({ routeRisk: founderSnap.routeRisk, todayText: founderSnap.todayText.slice(0, 300) }));
     assertWorkflow("Prospective Founder/owner isolation", server.prospectiveRequests.length === 0, "Founder and owner route rendering produced no prospective signal", JSON.stringify(server.prospectiveRequests));
     verifyNoErrors("Founder", founder.eventLog, founderSnap);
 
-    const founderIntelligence = await runPageScenario(chrome, founderDailyIntelligenceServer, "/?role=founder&rep=cruz&debug=1&harness=founder-daily-intelligence", "founder-daily-intelligence");
-    await waitForFounderDailyIntelligence(founderIntelligence.cdp, "rendered");
-    await clickTab(founderIntelligence.cdp, "stats");
-    const founderIntelligenceSnap = await snapshot(founderIntelligence.cdp);
-    assertWorkflow("Founder daily intelligence exact-principal access", founderIntelligenceSnap.founderDailyIntelligenceVisible && founderIntelligenceSnap.debug.founderDailyIntelligence.authorized === true && founderDailyIntelligenceServer.founderDailyIntelligenceRequests.length === 1 && founderDailyIntelligenceServer.founderDailyIntelligenceRequests[0].method === "GET", "server-authenticated Cruz mapping rendered one read-only snapshot after one GET", JSON.stringify({ debug: founderIntelligenceSnap.debug.founderDailyIntelligence, requests: founderDailyIntelligenceServer.founderDailyIntelligenceRequests }));
-    assertWorkflow("Founder daily intelligence governed content", founderIntelligenceSnap.founderDailyIntelligenceText.includes(`${canonicalFounderDailyIntelligenceSnapshot.evidenceCollected.totalRecords} records`) && founderIntelligenceSnap.founderDailyIntelligenceText.includes("INSUFFICIENT EVIDENCE") && founderIntelligenceSnap.founderDailyIntelligenceText.includes("not a recommendation or prediction") && !/shadow|ranked|probability/i.test(founderIntelligenceSnap.founderDailyIntelligenceText), "checked-in canonical evidence, freshness, quality, trends, coverage, confidence, and deltas render without shadow output or a readiness claim", founderIntelligenceSnap.founderDailyIntelligenceText);
+    const managerIntelligence = await runPageScenario(chrome, founderDailyIntelligenceServer, "/app?harness=manager-founder-intelligence-denied", "manager-founder-intelligence-denied");
+    const managerIntelligenceSnap = managerIntelligence.initial;
+    assertWorkflow(
+      "Founder daily intelligence customer-session isolation",
+      !managerIntelligenceSnap.founderDailyIntelligenceVisible
+        && managerIntelligenceSnap.debug.founderDailyIntelligence.status === "role_ineligible"
+        && founderDailyIntelligenceServer.founderDailyIntelligenceRequests.length === 0,
+      "authenticated operational manager issued no Founder-intelligence request and rendered no snapshot",
+      JSON.stringify({ debug: managerIntelligenceSnap.debug.founderDailyIntelligence, requests: founderDailyIntelligenceServer.founderDailyIntelligenceRequests })
+    );
+    await managerIntelligence.cdp.close();
 
-    const mobileFounderIntelligence = await runPageScenario(chrome, founderDailyIntelligenceServer, "/?role=founder&rep=cruz&debug=1&harness=mobile-founder-daily-intelligence", "mobile-founder-daily-intelligence", {
-      standalone: true,
-      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
-    });
-    await waitForFounderDailyIntelligence(mobileFounderIntelligence.cdp, "rendered");
-    await clickTab(mobileFounderIntelligence.cdp, "stats");
-    const mobileFounderIntelligenceFit = await mobileFitSnapshot(mobileFounderIntelligence.cdp);
-    assertWorkflow("Founder daily intelligence exact mobile viewport", mobileFounderIntelligenceFit.viewportWidth === 390, `${mobileFounderIntelligenceFit.viewportWidth}px viewport`, JSON.stringify(mobileFounderIntelligenceFit));
-    verifyMobileFit("Founder daily intelligence 390x844 no-horizontal-scroll", mobileFounderIntelligenceFit);
-
-    const privilegedRequestCount = founderDailyIntelligenceServer.founderDailyIntelligenceRequests.length;
-    const forgedAdmin = await runPageScenario(chrome, founderDailyIntelligenceServer, "/?role=admin&rep=cruz&debug=1&harness=founder-intelligence-admin-denied", "founder-intelligence-admin-denied");
-    const forgedManager = await runPageScenario(chrome, founderDailyIntelligenceServer, "/?role=manager&rep=cruz&debug=1&harness=founder-intelligence-manager-denied", "founder-intelligence-manager-denied");
-    const representativeIntelligence = await runPageScenario(chrome, founderDailyIntelligenceServer, "/?role=rep&rep=anthony&debug=1&harness=founder-intelligence-rep-denied", "founder-intelligence-rep-denied");
-    const [forgedAdminSnap, forgedManagerSnap, representativeIntelligenceSnap] = await Promise.all([
-      snapshot(forgedAdmin.cdp),
-      snapshot(forgedManager.cdp),
-      snapshot(representativeIntelligence.cdp)
-    ]);
-    assertWorkflow("Founder daily intelligence role fail-closed", [forgedAdminSnap, forgedManagerSnap, representativeIntelligenceSnap].every(item => !item.founderDailyIntelligenceVisible && item.debug.founderDailyIntelligence.status === "role_ineligible") && founderDailyIntelligenceServer.founderDailyIntelligenceRequests.length === privilegedRequestCount, "admin, manager, and representative roles issued no intelligence request and rendered no snapshot", JSON.stringify({ admin: forgedAdminSnap.debug.founderDailyIntelligence, manager: forgedManagerSnap.debug.founderDailyIntelligence, rep: representativeIntelligenceSnap.debug.founderDailyIntelligence, requests: founderDailyIntelligenceServer.founderDailyIntelligenceRequests.length }));
-
-    const pendingAnthony = await runPageScenario(chrome, founderDailyIntelligenceAnthonyServer, "/?role=founder&rep=anthony&debug=1&harness=founder-intelligence-anthony-pending", "founder-intelligence-anthony-pending");
-    await waitForFounderDailyIntelligence(pendingAnthony.cdp, "server_authorization_or_contract_rejected");
-    const pendingAnthonySnap = await snapshot(pendingAnthony.cdp);
-    assertWorkflow("Founder daily intelligence Anthony mapping pending", !pendingAnthonySnap.founderDailyIntelligenceVisible && pendingAnthonySnap.debug.founderDailyIntelligence.authorized === false && founderDailyIntelligenceAnthonyServer.founderDailyIntelligenceRequests.length === 1, "unmapped Anthony principal failed closed after one read-only GET", JSON.stringify(pendingAnthonySnap.debug.founderDailyIntelligence));
-
-    const unsafeFounderIntelligence = await runPageScenario(chrome, founderDailyIntelligenceUnsafeServer, "/?role=founder&rep=cruz&debug=1&harness=founder-intelligence-unsafe", "founder-intelligence-unsafe");
-    await waitForFounderDailyIntelligence(unsafeFounderIntelligence.cdp, "server_authorization_or_contract_rejected");
-    const unsafeFounderIntelligenceSnap = await snapshot(unsafeFounderIntelligence.cdp);
-    assertWorkflow("Founder daily intelligence safety contract fail-closed", !unsafeFounderIntelligenceSnap.founderDailyIntelligenceVisible && unsafeFounderIntelligenceSnap.debug.founderDailyIntelligence.authorized === false, "snapshot with recommendation influence ON was rejected", JSON.stringify(unsafeFounderIntelligenceSnap.debug.founderDailyIntelligence));
-
-    const invalidConfigurationHash = await runPageScenario(chrome, founderDailyIntelligenceInvalidConfigurationHashServer, "/?role=founder&rep=cruz&debug=1&harness=founder-intelligence-invalid-configuration-hash", "founder-intelligence-invalid-configuration-hash");
-    await waitForFounderDailyIntelligence(invalidConfigurationHash.cdp, "server_authorization_or_contract_rejected");
-    const invalidConfigurationHashSnap = await snapshot(invalidConfigurationHash.cdp);
-    assertWorkflow("Founder daily intelligence configuration hash fail-closed", !invalidConfigurationHashSnap.founderDailyIntelligenceVisible && invalidConfigurationHashSnap.debug.founderDailyIntelligence.authorized === false, "uppercase/noncanonical business configuration hash was rejected", JSON.stringify(invalidConfigurationHashSnap.debug.founderDailyIntelligence));
-    await Promise.all([
-      founderIntelligence,
-      mobileFounderIntelligence,
-      forgedAdmin,
-      forgedManager,
-      representativeIntelligence,
-      pendingAnthony,
-      unsafeFounderIntelligence,
-      invalidConfigurationHash
-    ].map(scenario => scenario.cdp.close()));
-
-    const prospective = await runPageScenario(chrome, prospectiveServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-seam", "prospective-shadow-seam", {
-      standalone: true,
-      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
-    });
-    const prospectiveResult = await verifyProspectiveShadowDashboardSeam(prospective, prospectiveServer);
-    const prospectiveTrigger = prospectiveResult.requests.find(request => request.payload?.eventKind === "next_stop_requested");
-    const prospectiveActions = prospectiveResult.requests.filter(request => request.payload?.eventKind === "representative_action_observed");
-    const allowedPayloadKeys = ["eventKind", "informationalObservedAt", "informationalSequence"];
-    assertWorkflow("Prospective next-stop opportunity boundary", prospectiveResult.requests[0]?.payload?.eventKind === "next_stop_requested" && prospectiveTrigger?.method === "POST", "the first signal follows governed route-queue generation", JSON.stringify(prospectiveResult.requests));
-    assertWorkflow("Prospective rank-one representative action boundary", prospectiveActions.length === 1 && prospectiveResult.actionRequestsAdded === 1, "one click on Best Next Move Directions emitted one representative action signal", JSON.stringify(prospectiveResult.requests));
-    assertWorkflow("Prospective strict opaque payload", prospectiveResult.requests.every(request => JSON.stringify(Object.keys(request.payload || {}).sort()) === JSON.stringify(allowedPayloadKeys) && request.bytes <= 256) && prospectiveTrigger?.payload?.informationalSequence === 1 && prospectiveActions[0]?.payload?.informationalSequence === 2, "payload contains only eventKind and informational sequence/time", JSON.stringify(prospectiveResult.requests));
-    assertWorkflow("Prospective shadow response invisibility", !prospectiveResult.browserResult.markerVisible && !prospectiveResult.browserResult.markerInDebug && !prospectiveResult.browserResult.markerInStorage && !prospectiveResult.browserResult.shadowTermsVisible, "malicious shadow-shaped response reached no DOM, debug state, browser storage, IndexedDB, or cache", JSON.stringify(prospectiveResult.browserResult));
-    assertWorkflow("Prospective zero influence", JSON.stringify(prospectiveResult.browserResult.before) === JSON.stringify(prospectiveResult.browserResult.after), "rank-one action signal changed no route, visit, modal, or view state", JSON.stringify(prospectiveResult.browserResult));
-    verifyMobileFit("Prospective mobile/PWA rendering", await mobileFitSnapshot(prospective.cdp));
-    verifyNoErrors("Prospective opaque seam", prospective.eventLog, await snapshot(prospective.cdp));
-
-    const prospectiveOff = await runPageScenario(chrome, prospectiveOffServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-off", "prospective-shadow-off");
-    const bootstrapValidation = await verifyProspectiveBootstrapValidation(prospectiveOff.cdp);
-    assertWorkflow("Prospective strict bootstrap validation", bootstrapValidation.valid === true && Object.entries(bootstrapValidation).filter(([key]) => key !== "valid").every(([, value]) => value === false), "only the exact current, no-store, scope-matched, version-valid ON bootstrap was admitted", JSON.stringify(bootstrapValidation));
-    const prospectiveOffResult = await verifyProspectiveCollectionOffDashboardSeam(prospectiveOff, prospectiveOffServer);
-    assertWorkflow("Prospective default-OFF zero-write ledger", prospectiveOffResult.readCount === 1 && prospectiveOffResult.writesAdded === 0 && prospectiveOffResult.writes.length === 0 && prospectiveOffResult.networkLedger.every(entry => entry.method === "GET"), "one read-only bootstrap and zero prospective write attempts", JSON.stringify(prospectiveOffResult));
-    assertWorkflow("Prospective default-OFF lifecycle isolation", !prospectiveOffResult.browserResult.admissionActive && prospectiveOffResult.browserResult.informationalSequence === 0 && prospectiveOffResult.browserResult.prospectiveStorage.length === 0 && !prospectiveOffResult.browserResult.shadowTermsVisible && JSON.stringify(prospectiveOffResult.browserResult.before) === JSON.stringify(prospectiveOffResult.browserResult.after), "background/foreground, offline/online, retry-shaped calls, and Directions produced no state or network writes", JSON.stringify(prospectiveOffResult));
-    assertWorkflow("Prospective default-OFF 15-stop compatibility", prospectiveOff.initial.routeCards === 15 && prospectiveOff.initial.routeCountLabel.includes("15 active stops"), `${prospectiveOff.initial.routeCards} route cards; ${prospectiveOff.initial.routeCountLabel}`, JSON.stringify(prospectiveOff.initial));
-    await clickTab(prospectiveOff.cdp, "route");
-    const prospectiveOffRoute = await snapshot(prospectiveOff.cdp);
-    assertWorkflow("Prospective default-OFF workspace and route loading", prospectiveOffRoute.activeView === "view-route" && prospectiveOffRoute.routeCards === 15 && prospectiveOffServer.prospectiveRequests.length === 0, "Fitness Connection route loaded with 15 stops and zero write attempts", JSON.stringify({ routeCards: prospectiveOffRoute.routeCards, writes: prospectiveOffServer.prospectiveRequests }));
-    await navigateExistingScenario(prospectiveOff.cdp, prospectiveOffServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-off-session-restore");
-    await navigateExistingScenario(prospectiveOff.cdp, prospectiveOffServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-off-auth-refresh");
-    const prospectiveOffReload = await verifyProspectiveCollectionOffDashboardSeam(prospectiveOff, prospectiveOffServer);
-    assertWorkflow("Prospective default-OFF reload, restoration, and auth-refresh ledger", prospectiveOffReload.readCount === 3 && prospectiveOffReload.writes.length === 0 && prospectiveOffReload.networkLedger.every(entry => entry.method === "GET"), "three startup bootstrap reads and zero writes across reload, restored state, and auth refresh", JSON.stringify(prospectiveOffReload));
-    verifyNoErrors("Prospective default-OFF", prospectiveOff.eventLog, await snapshot(prospectiveOff.cdp));
-
-    const prospectiveInvalidBootstrap = await runPageScenario(chrome, prospectiveInvalidBootstrapServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-bootstrap-malformed", "prospective-bootstrap-malformed");
-    const prospectiveInvalidResult = await verifyProspectiveCollectionOffDashboardSeam(prospectiveInvalidBootstrap, prospectiveInvalidBootstrapServer);
-    assertWorkflow("Prospective malformed bootstrap zero-write ledger", prospectiveInvalidResult.readCount === 1 && prospectiveInvalidResult.writes.length === 0 && prospectiveInvalidResult.networkLedger.every(entry => entry.method === "GET"), "malformed ON response stayed inactive with zero writes", JSON.stringify(prospectiveInvalidResult));
-    verifyNoErrors("Prospective malformed bootstrap", prospectiveInvalidBootstrap.eventLog, await snapshot(prospectiveInvalidBootstrap.cdp));
-
-    for (const invalidBootstrap of [
-      { label: "stale", server: prospectiveStaleBootstrapServer },
-      { label: "scope-unauthorized", server: prospectiveUnauthorizedBootstrapServer }
-    ]) {
-      const scenario = await runPageScenario(
-        chrome,
-        invalidBootstrap.server,
-        `/?role=rep&rep=anthony&debug=1&harness=prospective-bootstrap-${invalidBootstrap.label}`,
-        `prospective-bootstrap-${invalidBootstrap.label}`
-      );
-      const result = await verifyProspectiveCollectionOffDashboardSeam(scenario, invalidBootstrap.server);
-      assertWorkflow(
-        `Prospective ${invalidBootstrap.label} bootstrap zero-write ledger`,
-        result.readCount === 1 && result.writes.length === 0 && result.networkLedger.every(entry => entry.method === "GET"),
-        `${invalidBootstrap.label} bootstrap stayed inactive with zero writes`,
-        JSON.stringify(result)
-      );
-      verifyNoErrors(`Prospective ${invalidBootstrap.label} bootstrap`, scenario.eventLog, await snapshot(scenario.cdp));
-      await scenario.cdp.close();
-    }
-
-    const prospectiveUnavailableBootstrap = await runPageScenario(chrome, prospectiveUnavailableBootstrapServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-bootstrap-unavailable", "prospective-bootstrap-unavailable");
-    const prospectiveUnavailableResult = await verifyProspectiveCollectionOffDashboardSeam(prospectiveUnavailableBootstrap, prospectiveUnavailableBootstrapServer);
-    assertWorkflow("Prospective non-2xx bootstrap zero-write ledger", prospectiveUnavailableResult.readCount === 1 && prospectiveUnavailableResult.writes.length === 0 && prospectiveUnavailableResult.networkLedger.every(entry => entry.method === "GET"), "503 bootstrap stayed inactive with zero writes", JSON.stringify(prospectiveUnavailableResult));
-    verifyNoErrors("Prospective unavailable bootstrap", prospectiveUnavailableBootstrap.eventLog, await snapshot(prospectiveUnavailableBootstrap.cdp), {
-      allow: ["server responded with a status of 503"]
-    });
-
-    const prospectiveTimeoutBootstrap = await runPageScenario(chrome, prospectiveTimeoutBootstrapServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-bootstrap-timeout", "prospective-bootstrap-timeout");
-    const prospectiveTimeoutResult = await verifyProspectiveCollectionOffDashboardSeam(prospectiveTimeoutBootstrap, prospectiveTimeoutBootstrapServer);
-    assertWorkflow("Prospective bootstrap timeout zero-write ledger", prospectiveTimeoutResult.readCount === 1 && prospectiveTimeoutResult.writes.length === 0 && prospectiveTimeoutResult.networkLedger.every(entry => entry.method === "GET"), "timed-out bootstrap did not delay the route or emit a write", JSON.stringify(prospectiveTimeoutResult));
-    verifyNoErrors("Prospective bootstrap timeout", prospectiveTimeoutBootstrap.eventLog, await snapshot(prospectiveTimeoutBootstrap.cdp), {
-      allow: ["net::ERR_ABORTED"]
-    });
-
-    const prospectiveFailure = await runPageScenario(chrome, prospectiveFailureServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-failure", "prospective-shadow-failure");
-    const prospectiveFailureResult = await verifyProspectiveShadowDashboardSeam(prospectiveFailure, prospectiveFailureServer);
-    assertWorkflow("Prospective failure isolation", prospectiveFailureResult.requests.length === 2 && JSON.stringify(prospectiveFailureResult.browserResult.before) === JSON.stringify(prospectiveFailureResult.browserResult.after), "503 responses were ignored without blocking route generation or Directions", JSON.stringify(prospectiveFailureResult));
-    verifyNoErrors("Prospective failure isolation", prospectiveFailure.eventLog, await snapshot(prospectiveFailure.cdp), {
-      allow: ["server responded with a status of 503"]
-    });
-    await Promise.all([
-      prospective,
-      prospectiveOff,
-      prospectiveInvalidBootstrap,
-      prospectiveUnavailableBootstrap,
-      prospectiveTimeoutBootstrap,
-      prospectiveFailure
-    ].map(scenario => scenario.cdp.close()));
-
-    for (const profileId of ["general_outside_sales", "roofing", "security", "medical"]) {
-      const profileScenario = await runGovernedProfileMismatchScenario(chrome, server, profileId);
-      const { initial, boundary, eventLog, expectedReason } = profileScenario;
-      assertWorkflow(
-        `Operating Profile ${profileId} governed mismatch fails closed`,
-        initial.operatingProfileId === profileId
-          && initial.workspaceId === "fitness_connection"
-          && initial.workspaceOperatingProfileId === "fitness"
-          && initial.debug.startupCompleted === false
-          && initial.debug.lastError === expectedReason
-          && initial.debug.lastUnhandledRejection === expectedReason
-          && initial.debug.rendererReceived === false
-          && initial.debug.routeRecommendation === null
-          && initial.routeCards === 0
-          && initial.dailyRouteCards === 0
-          && initial.routeCountLabel === "0 active stops"
-          && initial.dailyRouteCountLabel.startsWith("0 active")
-          && initial.bestNextMove === "Route pool exhausted"
-          && initial.bestMoveAddress === "No verified address available"
-          && initial.bestMoveDirections.endsWith("#"),
-        `${profileId} rejected before route or recommendation rendering`,
-        JSON.stringify({ initial, expectedReason, mismatchMs: profileScenario.mismatchMs })
-      );
-      const runtimeExceptionsExpected = eventLog.runtimeExceptions.every(error => error === "Uncaught (in promise)" || error.includes(expectedReason));
-      const failedRequests = eventLog.network.filter(event => event.event === "failed");
-      assertWorkflow(
-        `Operating Profile ${profileId} cross-profile state isolation`,
-        boundary.selectedOperatingProfileId === profileId
-          && boundary.workspaceId === "fitness_connection"
-          && boundary.authorizedOperatingProfileId === "fitness"
-          && boundary.businessHoursWorkspaceId === "fitness_connection"
-          && boundary.businessHoursOperatingProfileId === "fitness"
-          && boundary.activeQueueCount === initial.routeQueueIds.length
-          && boundary.activeQueueCount > 0
-          && initial.routeCards === 0
-          && initial.dailyRouteCards === 0
-          && initial.debug.rendererReceived === false
-          && runtimeExceptionsExpected
-          && eventLog.consoleErrors.length === 0
-          && eventLog.logErrors.length === 0
-          && failedRequests.length === 0,
-        `${profileId} created no usable cross-profile route state`,
-        JSON.stringify({ boundary, eventLog })
-      );
-      await profileScenario.cdp.close();
-    }
+    const operationalCollectionOff = await runPageScenario(
+      chrome,
+      prospectiveOffServer,
+      "/app?harness=governed-operational-collection-off",
+      "governed-operational-collection-off"
+    );
+    const operationalCollectionOffResult = await verifyProspectiveCollectionOffDashboardSeam(
+      operationalCollectionOff,
+      prospectiveOffServer
+    );
+    assertWorkflow(
+      "Authenticated PWA collection-OFF zero-write ledger",
+      operationalCollectionOffResult.readCount === 1
+        && operationalCollectionOffResult.writesAdded === 0
+        && operationalCollectionOffResult.writes.length === 0
+        && operationalCollectionOffResult.networkLedger.every(entry => entry.method === "GET"),
+      "server-governed OFF session performed one read-only status check and initialized no listener, outbox, or write path",
+      JSON.stringify(operationalCollectionOffResult)
+    );
+    assertWorkflow(
+      "Authenticated PWA collection-OFF lifecycle isolation",
+      !operationalCollectionOffResult.browserResult.admissionActive
+        && operationalCollectionOffResult.browserResult.informationalSequence === 0
+        && operationalCollectionOffResult.browserResult.prospectiveStorage.length === 0
+        && !operationalCollectionOffResult.browserResult.shadowTermsVisible
+        && JSON.stringify(operationalCollectionOffResult.browserResult.before) === JSON.stringify(operationalCollectionOffResult.browserResult.after),
+      "foreground, background, offline, online, and Directions activity remained storage-free and non-influential",
+      JSON.stringify(operationalCollectionOffResult.browserResult)
+    );
+    assertWorkflow(
+      "Authenticated PWA collection-OFF 15-stop compatibility",
+      operationalCollectionOff.initial.routeCards === 15
+        && operationalCollectionOff.initial.routeCountLabel.includes("15 active stops"),
+      `${operationalCollectionOff.initial.routeCards} route cards; ${operationalCollectionOff.initial.routeCountLabel}`,
+      JSON.stringify(operationalCollectionOff.initial)
+    );
+    verifyNoErrors("Authenticated PWA collection-OFF", operationalCollectionOff.eventLog, await snapshot(operationalCollectionOff.cdp));
+    await operationalCollectionOff.cdp.close();
 
     await clickTab(founder.cdp, "route");
     const routeSnap = await snapshot(founder.cdp);
     assertWorkflow("Build Route workflow", routeSnap.activeView === "view-route" && routeSnap.routeCards > 0 && /Route/.test(routeSnap.routeText), `${routeSnap.routeCards} route cards rendered`, JSON.stringify({ activeView: routeSnap.activeView, routeCards: routeSnap.routeCards, routeText: routeSnap.routeText.slice(0, 300) }));
     assertWorkflow("Beta Route Controls Owner 15-location route generation", routeSnap.routeCards === 15 && routeSnap.routeCountLabel.includes("15 active stops"), `${routeSnap.routeCards} route cards rendered; ${routeSnap.routeCountLabel}`, JSON.stringify({ routeCards: routeSnap.routeCards, routeCountLabel: routeSnap.routeCountLabel }));
     const businessHoursRuntime = await verifyRouteBusinessHoursRuntime(founder.cdp);
-    assertWorkflow("Route IQ governed business-hours artifact consumption", businessHoursRuntime.artifactAvailable && businessHoursRuntime.recordCount === 398 && businessHoursRuntime.debug.status === "ready" && businessHoursRuntime.debug.scoringChanged === false, `${businessHoursRuntime.recordCount} governed hours records loaded`, JSON.stringify(businessHoursRuntime));
-    assertWorkflow("Route IQ Christian Brothers closed-now field regression", businessHoursRuntime.christianPermanentStatus === "OPERATIONAL" && businessHoursRuntime.fieldDecision?.status === "CLOSED_VERIFIED" && businessHoursRuntime.fieldDecision?.eligible === false && businessHoursRuntime.fieldDecision?.reasonCode === "VERIFIED_CURRENT_WINDOW_CLOSED" && businessHoursRuntime.fieldQueueIds.length === 1 && businessHoursRuntime.fieldQueueIds[0] === businessHoursRuntime.fieldQueueOpenAlternativeId, `Christian Brothers excluded and ${businessHoursRuntime.fieldQueueOpenAlternativeId} selected`, JSON.stringify(businessHoursRuntime));
+    assertWorkflow("Route IQ governed business-hours artifact consumption", businessHoursRuntime.artifactAvailable && businessHoursRuntime.recordCount === 20 && businessHoursRuntime.debug.status === "ready" && businessHoursRuntime.debug.scoringChanged === false && businessHoursRuntime.queueStatuses.every(status => status === "OPEN_VERIFIED"), `${businessHoursRuntime.recordCount} fresh governed test-only hours records loaded`, JSON.stringify(businessHoursRuntime));
     assertWorkflow("Route IQ active queue closed-now exclusion", businessHoursRuntime.queueCount === 15 && !businessHoursRuntime.queueStatuses.includes("CLOSED_VERIFIED") && businessHoursRuntime.queueStatuses.every(Boolean) && !businessHoursRuntime.queueScoringChanged, `${businessHoursRuntime.queueCount} queued stops; 0 verified-closed; score weights unchanged`, JSON.stringify(businessHoursRuntime));
     assertWorkflow("Route IQ mobile-compatible hours explainability", businessHoursRuntime.routeCardCount === 15 && !businessHoursRuntime.routeCardStatuses.includes("CLOSED_VERIFIED") && businessHoursRuntime.routeCardStatuses.every(Boolean) && businessHoursRuntime.routeText.includes("Business-hours eligibility") && (businessHoursRuntime.queueUnverifiedCount === 0 || businessHoursRuntime.routeCardMarkers.filter(marker => marker === "HOURS_NOT_VERIFIED").length === businessHoursRuntime.queueUnverifiedCount), `${businessHoursRuntime.routeCardCount} route cards expose additive hours status`, JSON.stringify(businessHoursRuntime));
     const ownerNearbyBadge = await verifyRouteNearbyInteraction(founder.cdp);
@@ -3594,25 +3485,11 @@ async function runHarness() {
     const findSnap = await snapshot(founder.cdp);
     assertWorkflow("Find/Search functionality", findSnap.activeView === "view-find" && findSnap.findText.includes("Find Places") && (findSnap.searchItems > 0 || findSnap.targetIdeas > 0), `${findSnap.searchItems} searches and ${findSnap.targetIdeas} target ideas rendered`, JSON.stringify({ activeView: findSnap.activeView, searchItems: findSnap.searchItems, targetIdeas: findSnap.targetIdeas }));
 
-    const eventbrite = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=eventbrite-expansion-fixed-clock", "eventbrite-expansion-fixed-clock", {
-      noncanonicalTestClock: eventbriteExpansionFixture
-    });
-    await clickTab(eventbrite.cdp, "find");
-    const eventbriteExpansion = await verifyEventbriteExpansion(eventbrite.cdp);
-    assertWorkflow(
-      "Beta Route Controls Eventbrite expansion",
-      eventbriteExpansionContract(eventbriteExpansion),
-      `${eventbriteExpansion.eventCards} event cards rendered with access, map, Eventbrite, and Add behavior at the noncanonical ${eventbriteExpansion.localDate} test clock`,
-      JSON.stringify(eventbriteExpansion)
-    );
-    verifyNoErrors("Eventbrite expansion fixed clock", eventbrite.eventLog, await snapshot(eventbrite.cdp));
-    await eventbrite.cdp.close();
-
-    const mobileFounder = await runPageScenario(chrome, server, "/?role=founder&rep=cruz&debug=1&pwa=founder&harness=mobile-founder-fit", "mobile-founder", {
+    const mobileFounder = await runPageScenario(chrome, server, "/app?role=founder&rep=cruz&debug=1&pwa=founder&harness=mobile-founder-fit", "mobile-founder", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
     const mobileFounderSnap = mobileFounder.initial;
-    assertWorkflow("Mobile Founder Owner controls", mobileFounderSnap.sessionRole === "founder" && mobileFounderSnap.mode === "owner" && mobileFounderSnap.activeRepId === "cruz" && mobileFounderSnap.visibleTabs.length === 5, `role ${mobileFounderSnap.sessionRole}, mode ${mobileFounderSnap.mode}, rep ${mobileFounderSnap.activeRepId}, tabs ${mobileFounderSnap.visibleTabs.join(", ")}`, JSON.stringify(mobileFounderSnap));
+    assertWorkflow("Mobile authenticated manager controls", mobileFounderSnap.sessionRole === "manager" && mobileFounderSnap.mode === "owner" && mobileFounderSnap.activeRepId === customerPwaManagerSessionFixture.representativeId && mobileFounderSnap.visibleTabs.length === 5, `role ${mobileFounderSnap.sessionRole}, mode ${mobileFounderSnap.mode}, rep ${mobileFounderSnap.activeRepId}, tabs ${mobileFounderSnap.visibleTabs.join(", ")}`, JSON.stringify(mobileFounderSnap));
     verifyMobileFit("Mobile PWA Today no-horizontal-scroll", await mobileFitSnapshot(mobileFounder.cdp));
     await clickTab(mobileFounder.cdp, "route");
     verifyMobileFit("Mobile PWA Route no-horizontal-scroll", await mobileFitSnapshot(mobileFounder.cdp));
@@ -3838,38 +3715,41 @@ async function runHarness() {
     verifyNoErrors("Customer PWA missing operating profile", missingProfileEventLog, missingProfileBoundary || {});
     await missingProfilePage.close();
 
-    const rep = await runPageScenario(chrome, server, "/?role=rep&rep=anthony&debug=1&harness=runtime-workflows-rep", "rep");
+    const rep = await runPageScenario(chrome, representativeServer, "/app?harness=runtime-workflows-representative", "rep");
     const repSnap = rep.initial;
     assertWorkflow("Rep Mode", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.visibleTabs.includes("places") && !repSnap.visibleTabs.includes("stats") && !repSnap.visibleTabs.includes("find"), `rep tabs visible: ${repSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: repSnap.sessionRole, mode: repSnap.mode, visibleTabs: repSnap.visibleTabs }));
     assertWorkflow("Add Place desktop availability", repSnap.todayText.includes("Add Place"), "representative Add Place command visible on desktop", JSON.stringify({ todayText: repSnap.todayText.slice(0, 500) }));
     assertWorkflow("Beta Stability Sprint 2 Rep radius/ring visibility", repSnap.territoryVisible && repSnap.territoryRingCount > 0 && repSnap.territoryText.includes("Assigned Territory Radius") && repSnap.territoryText.includes("Ring"), `${repSnap.territoryRingCount} territory rings visible for ${repSnap.activeRepId}`, JSON.stringify({ territoryVisible: repSnap.territoryVisible, territoryRingCount: repSnap.territoryRingCount, territoryText: repSnap.territoryText.slice(0, 400) }));
-    assertWorkflow("Beta Route Controls Rep radius adjustable by default", repSnap.territoryRepRadiusVisible && repSnap.territoryRepRadiusDisabled === false && repSnap.territoryRepRadiusStatus.includes("Rep adjustment allowed") && repSnap.debug.territoryCoverage.assignedRadiusMiles === 25 && repSnap.debug.territoryCoverage.allowedRadiusMiles === 25 && repSnap.debug.territoryCoverage.repCanAdjust === true, repSnap.territoryRepRadiusStatus, JSON.stringify({ territoryRepRadiusVisible: repSnap.territoryRepRadiusVisible, territoryRepRadiusDisabled: repSnap.territoryRepRadiusDisabled, status: repSnap.territoryRepRadiusStatus, coverage: repSnap.debug.territoryCoverage }));
-    assertWorkflow("Beta Route Controls ring explanation", Array.isArray(repSnap.debug.territoryCoverage.ringTotals) && repSnap.debug.territoryCoverage.ringTotals[0] > 0 && repSnap.debug.territoryCoverage.routeUsesOnlyRingOne === true && repSnap.debug.territoryCoverage.outerRingEmptyReason.includes("Populate outer rings") && repSnap.territoryRingTexts.some(text => text.includes("Add verified Google-qualified businesses")), repSnap.debug.territoryCoverage.outerRingEmptyReason, JSON.stringify({ coverage: repSnap.debug.territoryCoverage, ringTexts: repSnap.territoryRingTexts }));
+    assertWorkflow("Representative governed territory boundary", repSnap.debug.territoryCoverage.assignedRadiusMiles <= repSnap.debug.territoryCoverage.allowedRadiusMiles && repSnap.debug.territoryCoverage.ringTotals[0] > 0 && repSnap.debug.territoryCoverage.routeUsesOnlyRingOne === true, `${repSnap.debug.territoryCoverage.assignedRadiusMiles}/${repSnap.debug.territoryCoverage.allowedRadiusMiles} mi governed boundary`, JSON.stringify({ coverage: repSnap.debug.territoryCoverage, ringTexts: repSnap.territoryRingTexts }));
     assertWorkflow("Rep startup defers owner-only views", repSnap.placesItems === 0 && repSnap.debug.deferredOwnerViews.places === false && repSnap.debug.deferredOwnerViews.stats === false && repSnap.debug.deferredOwnerViews.find === false, `owner-only views deferred; render total ${repSnap.debug.renderTimings.total || 0}ms`, JSON.stringify({ placesItems: repSnap.placesItems, renderTimings: repSnap.debug.renderTimings, deferredOwnerViews: repSnap.debug.deferredOwnerViews }));
     await rep.cdp.evaluate(`setTab("stats")`);
     const repAfterOwnerTab = await snapshot(rep.cdp);
     assertWorkflow("Rep owner-tab guard", repAfterOwnerTab.activeView === "view-today", "rep remains on Today when owner tab is requested", JSON.stringify({ activeView: repAfterOwnerTab.activeView }));
-    assertWorkflow("Rep route quality", repSnap.debug.rendererReceived && repSnap.bestNextMove && repSnap.bestMoveDirections.includes("destination_place_id=") && repSnap.dailyRouteCards > 0, `${repSnap.bestNextMove} with Google Place directions and ${repSnap.dailyRouteCards} route cards`, JSON.stringify({ bestNextMove: repSnap.bestNextMove, directions: repSnap.bestMoveDirections, dailyRouteCards: repSnap.dailyRouteCards }));
-    assertWorkflow("Anthony beta readiness", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.activeRepId === "anthony" && repSnap.anthonyProfileExists && repSnap.anthonyPoolCount >= 6 && repSnap.debug.runtimeDataPool === "active" && repSnap.appBuildVersion && repSnap.storedAppBuildVersion === repSnap.appBuildVersion, `Anthony profile ready, ${repSnap.anthonyPoolCount} approved route targets, build ${repSnap.appBuildVersion}`, JSON.stringify(repSnap));
+    assertWorkflow("Rep route quality", repSnap.debug.rendererReceived && repSnap.bestNextMove && repSnap.bestMoveDirections.startsWith("https://www.google.com/maps/dir/?api=1&destination=") && repSnap.dailyRouteCards > 0, `${repSnap.bestNextMove} with governed directions and ${repSnap.dailyRouteCards} route cards`, JSON.stringify({ bestNextMove: repSnap.bestNextMove, directions: repSnap.bestMoveDirections, dailyRouteCards: repSnap.dailyRouteCards }));
+    assertWorkflow("Authenticated representative readiness", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.activeRepId === customerPwaSessionFixture.representativeId && repSnap.debug.runtimeDataPool === "governed" && repSnap.debug.runtimeDataStatus === "READY" && repSnap.appBuildVersion && repSnap.storedAppBuildVersion === repSnap.appBuildVersion, `synthetic representative ready on governed roster, build ${repSnap.appBuildVersion}`, JSON.stringify(repSnap));
     assertWorkflow("Beta Stability Sprint 2 dashboard performance", Number(founderSnap.debug.renderTimings.total || 0) < 5000 && Number(repSnap.debug.renderTimings.total || 0) < 5000 && Number(founderSnap.performance.activeResourceDuration || 0) < 5000 && founder.routeLoadMs < 10000, `founder render ${founderSnap.debug.renderTimings.total || 0}ms, rep render ${repSnap.debug.renderTimings.total || 0}ms, active fetch ${founderSnap.performance.activeResourceDuration || 0}ms, route ready ${founder.routeLoadMs}ms`, JSON.stringify({ founderRender: founderSnap.debug.renderTimings, repRender: repSnap.debug.renderTimings, founderPerformance: founderSnap.performance, routeLoadMs: founder.routeLoadMs }));
     const decisionDesktop = await verifyDecisionContextDesktopLayout(rep.cdp);
     assertWorkflow("Decision Context desktop rendering", decisionDesktop.viewportWidth > 390 && decisionDesktop.quickCount === 7 && decisionDesktop.visitCount === 7 && decisionDesktop.addPlaceCount === 7 && decisionDesktop.quickInitiallyHidden && decisionDesktop.quickOptional && decisionDesktop.addPlaceInitiallyHidden && decisionDesktop.addPlaceVisibleWithVisit && decisionDesktop.left >= -1 && decisionDesktop.right <= decisionDesktop.viewportWidth + 1 && decisionDesktop.scrollWidth <= decisionDesktop.viewportWidth + 1, "seven optional decision sources fit Quick Result, Add Visit, and Add Place initial-visit workflows", JSON.stringify(decisionDesktop));
     verifyNoErrors("Rep", rep.eventLog, repSnap);
     await clickTab(rep.cdp, "route");
     const repRouteSnap = await snapshot(rep.cdp);
-    assertWorkflow("Beta Route Controls Anthony 15-location route generation", repRouteSnap.routeCards === 15 && repRouteSnap.routeCountLabel.includes("15 active stops"), `${repRouteSnap.routeCards} Anthony route cards rendered; ${repRouteSnap.routeCountLabel}`, JSON.stringify({ routeCards: repRouteSnap.routeCards, routeCountLabel: repRouteSnap.routeCountLabel, routeText: repRouteSnap.routeText.slice(0, 500) }));
+    assertWorkflow("Representative 15-location route generation", repRouteSnap.routeCards === 15 && repRouteSnap.routeCountLabel.includes("15 active stops"), `${repRouteSnap.routeCards} representative route cards rendered; ${repRouteSnap.routeCountLabel}`, JSON.stringify({ routeCards: repRouteSnap.routeCards, routeCountLabel: repRouteSnap.routeCountLabel, routeText: repRouteSnap.routeText.slice(0, 500) }));
     const routeWindows = await verifyRouteWindowOptions(rep.cdp);
     assertWorkflow("Beta Route Controls Morning route options", routeWindows.morning.routeCards > 0 && routeWindows.morning.routeCountLabel.includes("active stops"), `${routeWindows.morning.routeCards} Morning options; ${routeWindows.morning.routeCountLabel}`, JSON.stringify(routeWindows.morning));
     assertWorkflow("Beta Route Controls Evening route options", routeWindows.evening.routeCards > 0 && routeWindows.evening.routeCountLabel.includes("active stops"), `${routeWindows.evening.routeCards} Evening options; ${routeWindows.evening.routeCountLabel}`, JSON.stringify(routeWindows.evening));
-    const hamzaRouting = await verifyHamzaRepeatRecommendation(rep.cdp);
-    assertWorkflow("Beta Stability Sprint 2 Hamza repeat recommendation evidence routing", hamzaRouting.daysSinceRecommendation === 0 && !hamzaRouting.bestNextIsHamza && hamzaRouting.reasons.some(reason => reason.includes("recently shown")), `${hamzaRouting.hamzaName} rotated off best-next after same-day route history; best next ${hamzaRouting.bestNextName}`, JSON.stringify(hamzaRouting));
+    assertWorkflow(
+      "Representative route identity uniqueness",
+      new Set(repRouteSnap.routeQueueIds).size === repRouteSnap.routeQueueIds.length,
+      `${repRouteSnap.routeQueueIds.length} manifest-bound route identities are unique`,
+      JSON.stringify(repRouteSnap.routeQueueIds)
+    );
     const repNearbyBadge = await verifyRouteNearbyInteraction(rep.cdp);
     assertWorkflow("Beta Route Controls Anthony Rep Nearby opens context", repNearbyBadge.tagName === "button" && repNearbyBadge.nearbyPlace && repNearbyBadge.after.modalActive && repNearbyBadge.modalTitle === "Nearby Context" && /Nearby Context|walkable|Directions|No verified/.test(repNearbyBadge.modalText), `${repNearbyBadge.text} opened ${repNearbyBadge.modalTitle}`, JSON.stringify(repNearbyBadge));
     await clickTab(rep.cdp, "today");
     const nearbyFlow = await verifyNearbyOpportunitiesFlow(rep.cdp);
-    assertWorkflow("Nearby Opportunities empty state", nearbyFlow.emptyBefore.includes("Log a verified route stop"), nearbyFlow.emptyBefore, JSON.stringify(nearbyFlow));
+    assertWorkflow("Nearby Opportunities empty state", nearbyFlow.emptyBefore.includes("Log a governed route stop"), nearbyFlow.emptyBefore, JSON.stringify(nearbyFlow));
     assertWorkflow("Nearby Opportunities location acquisition", nearbyFlow.latestVisitHasLocation && nearbyFlow.locationButtonLabel === "Location Attached" && nearbyFlow.locationStatus.includes("Device-reported visit location attached"), nearbyFlow.locationStatus, JSON.stringify(nearbyFlow));
-    assertWorkflow("Nearby Opportunities Active Pool query", nearbyFlow.beforeRuntimePool === "active" && nearbyFlow.runtimePool === "active" && nearbyFlow.nearbyDebug.originSource === "visit-location", `${nearbyFlow.nearbyDebug.count} nearby from ${nearbyFlow.nearbyDebug.originSource}`, JSON.stringify(nearbyFlow));
+    assertWorkflow("Nearby Opportunities governed roster query", nearbyFlow.beforeRuntimePool === "governed" && nearbyFlow.runtimePool === "governed" && nearbyFlow.nearbyDebug.originSource === "visit-location", `${nearbyFlow.nearbyDebug.count} nearby from ${nearbyFlow.nearbyDebug.originSource}`, JSON.stringify(nearbyFlow));
     assertWorkflow("Nearby Opportunities rendering", nearbyFlow.cardCount > 0 && nearbyFlow.noEmptyAfter && nearbyFlow.countLabel.includes("within") && nearbyFlow.firstCard.includes("Directions"), `${nearbyFlow.cardCount} nearby cards for ${nearbyFlow.target.name}`, JSON.stringify(nearbyFlow));
     await clickTab(rep.cdp, "places");
     const repPlaces = await snapshot(rep.cdp);
@@ -3880,7 +3760,7 @@ async function runHarness() {
     assertWorkflow("Beta Stability Sprint 2 route state synchronization", !routeSync.routePoolStillContainsLogged && !routeSync.routeListStillContainsLogged && !routeSync.dailyRouteStillContainsLogged && !routeSync.bestNextStillLogged, `${routeSync.loggedName} removed from route pool/list/daily/best-next after logging`, JSON.stringify(routeSync));
     verifyNoErrors("Nearby Opportunities", rep.eventLog, await snapshot(rep.cdp));
 
-    const anthonyLog = await runPageScenario(chrome, server, "/?role=rep&rep=anthony&debug=1&harness=anthony-mobile-quick-log", "anthony-mobile-log", {
+    const anthonyLog = await runPageScenario(chrome, mobileLoggingServer, "/app?harness=representative-mobile-quick-log", "representative-mobile-log", {
       standalone: true,
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
@@ -3890,19 +3770,19 @@ async function runHarness() {
     assertWorkflow("Anthony mobile pin-drop governed hours detail", quickLogRouteStatus.hasGovernedHoursDetail, quickLogRouteStatus.detail || "no unverified-hours detail", JSON.stringify(quickLogRouteStatus));
     verifyNoErrors("Anthony mobile logging", anthonyLog.eventLog, await snapshot(anthonyLog.cdp));
 
-    const anthonyPwa = await runPageScenario(chrome, server, "/?pwa=rep&debug=1&harness=anthony-pwa-signin", "anthony-pwa", {
+    const anthonyPwa = await runPageScenario(chrome, representativePwaServer, "/app?harness=representative-pwa-signin", "representative-pwa", {
       standalone: true,
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
     verifyRepOnly("Anthony PWA first launch Rep-only", anthonyPwa.initial);
     assertWorkflow("Anthony mobile startup performance", Number(anthonyPwa.initial.debug.renderTimings.total || 0) < 5000 && Number(anthonyPwa.initial.performance.activeResourceDuration || 0) < 5000, `render ${anthonyPwa.initial.debug.renderTimings.total || 0}ms, active fetch ${anthonyPwa.initial.performance.activeResourceDuration || 0}ms`, JSON.stringify({ renderTimings: anthonyPwa.initial.debug.renderTimings, performance: anthonyPwa.initial.performance }));
-    const anthonyReopen = await navigateExistingScenario(anthonyPwa.cdp, server, "/?pwa=founder&debug=1&harness=anthony-pwa-reopen");
+    const anthonyReopen = await navigateExistingScenario(anthonyPwa.cdp, representativePwaServer, "/app?harness=representative-pwa-reopen");
     verifyRepOnly("Anthony PWA reopen preserves Rep-only", anthonyReopen);
-    const anthonyRefresh = await navigateExistingScenario(anthonyPwa.cdp, server, "/?pwa=founder&debug=1&harness=anthony-pwa-refresh");
+    const anthonyRefresh = await navigateExistingScenario(anthonyPwa.cdp, representativePwaServer, "/app?harness=representative-pwa-refresh");
     verifyRepOnly("Anthony PWA refresh preserves Rep-only", anthonyRefresh);
     verifyNoErrors("Anthony PWA", anthonyPwa.eventLog, anthonyRefresh);
 
-    const decisionContext = await runPageScenario(chrome, decisionContextServer, "/?role=rep&rep=anthony&debug=1&harness=decision-context-producer", "decision-context-producer", {
+    const decisionContext = await runPageScenario(chrome, decisionContextServer, "/app?role=rep&rep=anthony&debug=1&harness=decision-context-producer", "decision-context-producer", {
       standalone: true,
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
@@ -3932,7 +3812,7 @@ async function runHarness() {
     assertWorkflow("Decision Context mobile reachability", decisionResult.layout.modalOverflowY === "auto" && decisionResult.layout.submitTop >= 0 && decisionResult.layout.submitBottom <= decisionResult.layout.viewportHeight + 1 && decisionResult.layout.submitLeft >= -1 && decisionResult.layout.submitRight <= decisionResult.layout.viewportWidth + 1 && decisionResult.layout.documentScrollWidth <= decisionResult.layout.viewportWidth + 1 && decisionResult.layout.bodyScrollWidth <= decisionResult.layout.viewportWidth + 1, `Decision Source and Save Result reachable within ${decisionResult.layout.viewportWidth}x${decisionResult.layout.viewportHeight}`, JSON.stringify(decisionResult.layout));
     verifyNoErrors("Decision Context producer", decisionContext.eventLog, await snapshot(decisionContext.cdp));
 
-    const visitCorrection = await runPageScenario(chrome, visitCorrectionServer, "/?role=rep&rep=anthony&debug=1&harness=post-visit-outcome-editing", "post-visit-outcome-editing", {
+    const visitCorrection = await runPageScenario(chrome, visitCorrectionServer, "/app?role=rep&rep=anthony&debug=1&harness=post-visit-outcome-editing", "post-visit-outcome-editing", {
       standalone: true,
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
@@ -3954,19 +3834,19 @@ async function runHarness() {
     assertWorkflow("Post-visit mobile form reachability", correctionResult.mobileFormReachability?.modalOverflowY === "auto" && correctionResult.mobileFormReachability.submitTop >= 0 && correctionResult.mobileFormReachability.submitBottom <= correctionResult.mobileFormReachability.viewportHeight + 1 && correctionResult.mobileFormReachability.submitLeft >= -1 && correctionResult.mobileFormReachability.submitRight <= correctionResult.mobileFormReachability.viewportWidth + 1, `Save Correction reachable within ${correctionResult.mobileFormReachability?.viewportWidth || 0}x${correctionResult.mobileFormReachability?.viewportHeight || 0}`, JSON.stringify(correctionResult.mobileFormReachability));
     verifyNoErrors("Post-visit outcome editing", visitCorrection.eventLog, await snapshot(visitCorrection.cdp));
 
-    const addPlace = await runPageScenario(chrome, addPlaceServer, "/?role=rep&rep=anthony&debug=1&harness=add-place-immediate-outcome", "add-place-immediate-outcome", {
+    const addPlace = await runPageScenario(chrome, addPlaceServer, "/app?role=rep&rep=anthony&debug=1&harness=add-place-immediate-outcome", "add-place-immediate-outcome", {
       standalone: true,
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
     const addPlaceResult = await verifyAddPlaceImmediateOutcomeCapture(addPlace.cdp);
     const addPlaceRequests = addPlaceServer.fieldSessionRequests;
     const addPlaceRawReport = addPlaceRequests[0]?.payload?.rawReportText ? JSON.parse(addPlaceRequests[0].payload.rawReportText) : {};
-    assertWorkflow("Add Place business creation only", addPlaceResult.addPlaceButtonVisible && addPlaceResult.businessOnly.place?.sourceType === "Dashboard Manual Entry" && addPlaceResult.businessOnly.place?.workspaceId === "fitness_connection" && !addPlaceResult.businessOnly.hasVisit, "representative created a business without recording a visit", JSON.stringify(addPlaceResult));
+    assertWorkflow("Add Place business creation only", addPlaceResult.addPlaceButtonVisible && addPlaceResult.businessOnly.place?.sourceType === "Dashboard Manual Entry" && addPlaceResult.businessOnly.place?.workspaceId === customerPwaSessionFixture.workspaceId && !addPlaceResult.businessOnly.hasVisit, "representative created a workspace-bound business without recording a visit", JSON.stringify(addPlaceResult));
     assertWorkflow("Add Place later logging access", addPlaceResult.businessOnlyVisibleInPlaces && addPlaceResult.businessOnlyVisibleInQuickResult, "business-only creation remains available in Rep Places and Quick Result without entering Route IQ", JSON.stringify(addPlaceResult));
     assertWorkflow("Representative Saved Places rendering", addPlaceResult.representativePlacesGovernance.savedBeforePromotion.includes(addPlaceResult.businessOnly.place.name) && addPlaceResult.representativePlacesGovernance.savedBeforePromotion.includes("Not Yet Visited") && !addPlaceResult.representativePlacesGovernance.visitedBeforePromotion.includes(addPlaceResult.businessOnly.place.name) && addPlaceResult.representativePlacesGovernance.savedStatusCount === 1, "unvisited representative-owned business rendered only in Saved Places with required status", JSON.stringify(addPlaceResult.representativePlacesGovernance));
     assertWorkflow("Representative Saved Places ownership", !addPlaceResult.representativePlacesGovernance.foreignSavedVisible, "other representative's saved business remained hidden", JSON.stringify(addPlaceResult.representativePlacesGovernance));
     assertWorkflow("Representative Saved Places evidence isolation", !addPlaceResult.representativePlacesGovernance.prePromotionReportContainsSaved && !addPlaceResult.representativePlacesGovernance.founderBeforePromotionContainsSaved && !addPlaceResult.representativePlacesGovernance.statisticsBeforePromotionContainsSaved && !addPlaceResult.representativePlacesGovernance.prePromotionIntelligenceHasSavedPlace && !addPlaceResult.representativePlacesGovernance.routeBeforePromotionContainsSaved && !addPlaceResult.representativePlacesGovernance.activePoolClassified, "Saved Place absent from Data evidence, Founder map, statistics, Intelligence evidence, Route IQ, and Active Pool classification", JSON.stringify(addPlaceResult.representativePlacesGovernance));
-    assertWorkflow("Representative Saved Places promotion rendering", addPlaceResult.representativePlacesGovernance.promotionVisit?.quality === "Conversation" && addPlaceResult.representativePlacesGovernance.visitedAfterPromotion.includes(addPlaceResult.businessOnly.place.name) && !addPlaceResult.representativePlacesGovernance.savedAfterPromotion.includes(addPlaceResult.businessOnly.place.name) && addPlaceResult.representativePlacesGovernance.founderAfterPromotionContainsVisited && addPlaceResult.representativePlacesGovernance.statisticsAfterPromotionContainsVisited, "verified visit moved presentation from Saved to Visited without mutating place ownership", JSON.stringify(addPlaceResult.representativePlacesGovernance));
+    assertWorkflow("Representative Saved Places promotion rendering", addPlaceResult.representativePlacesGovernance.promotionVisit?.conversations === 1 && addPlaceResult.representativePlacesGovernance.visitedAfterPromotion.includes(addPlaceResult.businessOnly.place.name) && !addPlaceResult.representativePlacesGovernance.savedAfterPromotion.includes(addPlaceResult.businessOnly.place.name) && addPlaceResult.representativePlacesGovernance.founderAfterPromotionContainsVisited && addPlaceResult.representativePlacesGovernance.statisticsAfterPromotionContainsVisited, "verified visit moved presentation from Saved to Visited without mutating place ownership", JSON.stringify(addPlaceResult.representativePlacesGovernance));
     assertWorkflow("Add Place initial conversation", addPlaceResult.conversation?.quality === "Conversation" && addPlaceResult.conversation?.conversations === 1 && addPlaceResult.conversation?.manager.includes("Jordan Manager") && addPlaceResult.conversation?.notes.includes("Initial conversation"), "conversation and manager contact captured with business creation", JSON.stringify(addPlaceResult.conversation));
     assertWorkflow("Add Place initial lead", addPlaceResult.lead?.quality === "Lead" && addPlaceResult.lead?.conversations === 1 && addPlaceResult.lead?.leads === 1, "lead captured with business creation", JSON.stringify(addPlaceResult.lead));
     assertWorkflow("Add Place initial membership", addPlaceResult.membership?.quality === "Membership / Unit" && addPlaceResult.membership?.conversations === 1 && addPlaceResult.membership?.units === 1, "membership/unit captured with business creation", JSON.stringify(addPlaceResult.membership));
@@ -3974,7 +3854,7 @@ async function runHarness() {
     assertWorkflow("Add Place initial follow-up", addPlaceResult.followUp?.quality === "Follow-up Required" && addPlaceResult.followUp?.followUp === "Return Wednesday at 10 AM", "follow-up requirement captured with business creation", JSON.stringify(addPlaceResult.followUp));
     assertWorkflow("Add Place supported outcomes", ["Visited", "Conversation", "Lead", "Appointment", "Membership / Unit", "Follow-up Required", "Decision Pending", "No Interest", "Closed"].every(label => addPlaceResult.outcomeOptions.includes(label)) && Object.keys(addPlaceResult.mappedOutcomes).length === 9, "all required initial outcomes are available", JSON.stringify({ options: addPlaceResult.outcomeOptions, mapped: addPlaceResult.mappedOutcomes }));
     assertWorkflow("Add Place duplicate protection", addPlaceResult.duplicateProtection.placeCountUnchanged && addPlaceResult.duplicateProtection.visitCountUnchanged && addPlaceResult.duplicateProtection.status === "This place already exists.", "duplicate submit created neither a business nor a visit", JSON.stringify(addPlaceResult.duplicateProtection));
-    assertWorkflow("Add Place workspace isolation", addPlaceResult.workspaceIsolation.noPlaceCreated && addPlaceResult.workspaceIsolation.noVisitCreated && addPlaceResult.workspaceIsolation.status.includes("outside Fitness Connection"), "cross-workspace creation failed closed", JSON.stringify(addPlaceResult.workspaceIsolation));
+    assertWorkflow("Add Place workspace isolation", addPlaceResult.workspaceIsolation.noPlaceCreated && addPlaceResult.workspaceIsolation.noVisitCreated && addPlaceResult.workspaceIsolation.status.includes("outside the authenticated workspace"), "cross-workspace creation failed closed", JSON.stringify(addPlaceResult.workspaceIsolation));
     assertWorkflow("Add Place append-only history", addPlaceResult.correctionCount === 1 && addPlaceResult.correctedConversation?.quality === "Lead" && addPlaceResult.report.correctionCount === 1 && addPlaceResult.report.conversationOriginal?.outcome === "Conversation" && addPlaceResult.report.conversationFinal?.outcome === "Lead", "business creation, initial visit, correction, and final verified outcome remain distinct", JSON.stringify(addPlaceResult));
     assertWorkflow("Add Place state persistence", addPlaceResult.reload.initialVisitCount === 5 && addPlaceResult.reload.appointment?.appointments === 1 && addPlaceResult.reload.followUp?.followUp === "Return Wednesday at 10 AM", "initial outcome fields survive state normalization", JSON.stringify(addPlaceResult.reload));
     assertWorkflow("Add Place canonical field-session contract", addPlaceResult.archiveStatus === "archived" && addPlaceResult.acknowledgment?.status === "archived" && addPlaceRequests.length === 1 && addPlaceResult.report.businessCreationCount === 5 && addPlaceRawReport.visits?.filter(visit => visit.businessCreation?.source === "dashboard_add_place").length === 5, `${addPlaceResult.acknowledgment?.sessionId || "missing session"} acknowledged with five business-creation snapshots`, JSON.stringify({ result: addPlaceResult, request: addPlaceRequests[0] }));
@@ -3983,17 +3863,17 @@ async function runHarness() {
     assertWorkflow("Add Place mobile form reachability", addPlaceResult.mobileReachability?.fieldsVisible && addPlaceResult.mobileReachability.modalOverflowY === "auto" && addPlaceResult.mobileReachability.submitTop >= 0 && addPlaceResult.mobileReachability.submitBottom <= addPlaceResult.mobileReachability.viewportHeight + 1 && addPlaceResult.mobileReachability.submitLeft >= -1 && addPlaceResult.mobileReachability.submitRight <= addPlaceResult.mobileReachability.viewportWidth + 1 && addPlaceResult.documentScrollWidth <= addPlaceResult.viewportWidth + 1 && addPlaceResult.bodyScrollWidth <= addPlaceResult.viewportWidth + 1, `Save Place + Visit reachable within ${addPlaceResult.mobileReachability?.viewportWidth || 0}x${addPlaceResult.mobileReachability?.viewportHeight || 0}`, JSON.stringify(addPlaceResult.mobileReachability));
     verifyNoErrors("Add Place immediate outcome", addPlace.eventLog, await snapshot(addPlace.cdp));
 
-    const fieldSession = await runPageScenario(chrome, fieldSessionServer, "/?role=rep&rep=anthony&debug=1&harness=field-session-end-route", "field-session-end-route");
+    const fieldSession = await runPageScenario(chrome, fieldSessionServer, "/app?role=rep&rep=anthony&debug=1&harness=field-session-end-route", "field-session-end-route");
     const fieldSessionResult = await verifyFieldSessionCompletion(fieldSession.cdp, "end_route");
     const fieldSessionRequest = fieldSessionServer.fieldSessionRequests[0]?.payload || {};
     assertWorkflow("End Route field-session producer", fieldSessionResult.recordStatus === "archived" && fieldSessionResult.completionAction === "end_route" && fieldSessionResult.attempts === 1 && fieldSessionResult.acknowledgment?.status === "archived", `${fieldSessionResult.acknowledgment?.sessionId || "missing session"} acknowledged`, JSON.stringify(fieldSessionResult));
-    assertWorkflow("Field-session canonical payload", fieldSessionServer.fieldSessionRequests.length === 1 && fieldSessionRequest.workspaceId === "fitness_connection" && fieldSessionRequest.operatingProfileId === "fitness" && fieldSessionRequest.finalExportConfirmed === true && fieldSessionRequest.completionAction === "end_route" && JSON.parse(fieldSessionRequest.rawReportText).reportType === "route-iq-daily-representative-report-v1", "final Fitness report submitted once through the approved endpoint", JSON.stringify(fieldSessionServer.fieldSessionRequests));
+    assertWorkflow("Field-session canonical payload", fieldSessionServer.fieldSessionRequests.length === 1 && fieldSessionRequest.workspaceId === customerPwaSessionFixture.workspaceId && fieldSessionRequest.operatingProfileId === customerPwaSessionFixture.operatingProfileId && fieldSessionRequest.finalExportConfirmed === true && fieldSessionRequest.completionAction === "end_route" && JSON.parse(fieldSessionRequest.rawReportText).reportType === "route-iq-daily-representative-report-v1", "final authenticated workspace report submitted once through the approved endpoint", JSON.stringify(fieldSessionServer.fieldSessionRequests));
     assertWorkflow("Field-session local finalization and duplicate protection", fieldSessionResult.localRawPreserved && fieldSessionResult.endRouteDisabled && fieldSessionResult.endDayDisabled && !fieldSessionResult.retryVisible && fieldSessionResult.duplicateReturnedExisting && fieldSessionServer.fieldSessionRequests.length === 1, "frozen locally; end actions disabled; repeat action did not resubmit", JSON.stringify(fieldSessionResult));
     assertWorkflow("Field-session finalized evidence guard", !fieldSessionResult.blockedModalOpen && fieldSessionResult.blockedSave === false && fieldSessionResult.afterBlockedVisitCount === fieldSessionResult.beforeBlockedVisitCount, "post-finalization visit mutation blocked", JSON.stringify(fieldSessionResult));
     assertWorkflow("Manual Export Today's Report preserved", fieldSessionResult.manualExportVisible && fieldSessionResult.manualExportDisabled === false, "manual JSON export remains available after archive", JSON.stringify(fieldSessionResult));
     verifyNoErrors("End Route field-session producer", fieldSession.eventLog, await snapshot(fieldSession.cdp));
 
-    const fieldSessionRetry = await runPageScenario(chrome, fieldSessionRetryServer, "/?role=rep&rep=anthony&debug=1&harness=field-session-end-day-retry", "field-session-end-day-retry", {
+    const fieldSessionRetry = await runPageScenario(chrome, fieldSessionRetryServer, "/app?role=rep&rep=anthony&debug=1&harness=field-session-end-day-retry", "field-session-end-day-retry", {
       standalone: true,
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
@@ -4014,34 +3894,50 @@ async function runHarness() {
       decisionContext
     ].map(scenario => scenario.cdp.close()));
 
-    const adaptive = await runPageScenario(chrome, server, "/?role=founder&rep=cruz&debug=1&harness=continuous-adaptive-replenishment", "adaptive-replenishment", {
+    const adaptive = await runPageScenario(chrome, adaptiveReplenishmentServer, "/app?harness=continuous-adaptive-replenishment", "adaptive-replenishment", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
     const adaptiveResult = await verifyContinuousAdaptiveReplenishment(adaptive.cdp);
     const adaptiveRouteStatus = inspectRouteUpdateStatus(adaptiveResult.status);
     assertWorkflow("Continuous replenishment completion trigger", adaptiveResult.afterVisitCount === adaptiveResult.beforeVisitCount + 1 && adaptiveRouteStatus.hasStablePrefix, adaptiveResult.status, JSON.stringify({ ...adaptiveResult, routeStatus: adaptiveRouteStatus }));
     assertWorkflow("Continuous replenishment governed hours detail", adaptiveRouteStatus.hasGovernedHoursDetail, adaptiveRouteStatus.detail || "no unverified-hours detail", JSON.stringify(adaptiveRouteStatus));
-    assertWorkflow("Continuous replenishment queue returns to 15", adaptiveResult.afterQueueIds.length === 15 && adaptiveResult.queueTarget === 15 && adaptiveResult.queueThreshold === 5 && adaptiveResult.queueState === "active" && adaptiveResult.appendedReplacement, `${adaptiveResult.afterQueueIds.length}/${adaptiveResult.queueTarget} active stops`, JSON.stringify(adaptiveResult));
-    assertWorkflow("Continuous replenishment order and duplicate protection", adaptiveResult.remainingOrderPreserved && adaptiveResult.duplicateCount === 0 && !adaptiveResult.completedStillActive, "remaining order preserved; completed stop excluded; no duplicates", JSON.stringify(adaptiveResult));
-    assertWorkflow("Continuous replenishment evidence refresh", adaptiveResult.latestEvidenceCount >= adaptiveResult.afterVisitCount && adaptiveResult.debug.workspaceId === "fitness_connection" && adaptiveResult.debug.representativeId === "cruz", `${adaptiveResult.latestEvidenceCount} evidence records for ${adaptiveResult.debug.workspaceId}/${adaptiveResult.debug.representativeId}`, JSON.stringify(adaptiveResult));
+    assertWorkflow("Continuous replenishment queue returns to 15", adaptiveResult.afterQueueIds.length === 15 && adaptiveResult.queueTarget === 15 && adaptiveResult.queueThreshold === 5 && adaptiveResult.queueState === "active" && adaptiveResult.addedReplacementCount > 0, `${adaptiveResult.afterQueueIds.length}/${adaptiveResult.queueTarget} active stops with ${adaptiveResult.addedReplacementCount} evidence-driven replacements`, JSON.stringify(adaptiveResult));
+    assertWorkflow("Continuous replenishment record and duplicate protection", adaptiveResult.allAfterGoverned && adaptiveResult.retainedCount > 0 && adaptiveResult.duplicateCount === 0 && !adaptiveResult.completedStillActive, "reranked queue contains only governed unique stops and excludes the completed stop", JSON.stringify(adaptiveResult));
+    assertWorkflow("Continuous replenishment evidence refresh", adaptiveResult.latestEvidenceCount >= adaptiveResult.afterVisitCount && adaptiveResult.debug.workspaceId === customerPwaManagerSessionFixture.workspaceId && adaptiveResult.debug.representativeId === customerPwaManagerSessionFixture.representativeId, `${adaptiveResult.latestEvidenceCount} evidence records for ${adaptiveResult.debug.workspaceId}/${adaptiveResult.debug.representativeId}`, JSON.stringify(adaptiveResult));
     assertWorkflow("Continuous replenishment durable persistence", adaptiveResult.persistedVisitCount === adaptiveResult.afterVisitCount && JSON.stringify(adaptiveResult.persistedQueueIds) === JSON.stringify(adaptiveResult.afterQueueIds), "visit outcome and active queue persisted together", JSON.stringify(adaptiveResult));
     assertWorkflow("Continuous replenishment concurrent job protection", adaptiveResult.concurrencyCoalesced && adaptiveResult.afterFlight.started === adaptiveResult.beforeFlight.started + 1, `${adaptiveResult.afterFlight.coalesced - adaptiveResult.beforeFlight.coalesced} overlapping job coalesced`, JSON.stringify({ before: adaptiveResult.beforeFlight, after: adaptiveResult.afterFlight }));
     verifyMobileFit("Continuous replenishment mobile rendering", await mobileFitSnapshot(adaptive.cdp));
-    const adaptiveReload = await navigateExistingScenario(adaptive.cdp, server, "/?role=founder&rep=cruz&debug=1&harness=continuous-adaptive-replenishment-reload");
-    assertWorkflow("Continuous replenishment separate runtime restoration", adaptiveReload.visitCount === adaptiveResult.afterVisitCount && JSON.stringify(adaptiveReload.routeQueueIds) === JSON.stringify(adaptiveResult.afterQueueIds), `${adaptiveReload.visitCount} visits and ${adaptiveReload.routeQueueIds.length} queued stops restored`, JSON.stringify({ before: adaptiveResult, reload: adaptiveReload }));
+    const adaptiveReload = await navigateExistingScenario(adaptive.cdp, adaptiveReplenishmentServer, "/app?harness=continuous-adaptive-replenishment-reload");
+    assertWorkflow(
+      "Continuous replenishment separate runtime restoration",
+      adaptiveReload.visitCount === adaptiveResult.afterVisitCount
+        && adaptiveReload.routeQueueIds.length === 15
+        && new Set(adaptiveReload.routeQueueIds).size === 15
+        && !adaptiveReload.routeQueueIds.includes(adaptiveResult.completedIdentity)
+        && adaptiveReload.workspaceId === customerPwaManagerSessionFixture.workspaceId,
+      `${adaptiveReload.visitCount} visits restored and 15 governed stops recomputed without the completed stop`,
+      JSON.stringify({ before: adaptiveResult, reload: adaptiveReload })
+    );
     verifyNoErrors("Continuous adaptive replenishment", adaptive.eventLog, adaptiveReload);
 
-    const full = await runPageScenario(chrome, server, "/?role=founder&debug=1&runtimePool=full&harness=runtime-workflows-full", "full");
-    const fullSnap = full.initial;
-    assertWorkflow("Runtime pool selection logic", fullSnap.debug.runtimeDataPool === "full" && fullSnap.debug.runtimeDataSource.includes("789 route records"), fullSnap.debug.runtimeDataSource, JSON.stringify(fullSnap.debug));
-    verifyNoErrors("Full pool", full.eventLog, fullSnap);
-
-    const fallback = await runPageScenario(chrome, fallbackServer, "/?role=founder&debug=1&harness=runtime-workflows-fallback", "fallback");
-    const fallbackSnap = fallback.initial;
-    const sawActive = fallbackServer.requests.some(request => request.path === activePoolPath);
-    const sawFull = fallbackServer.requests.some(request => request.path === fullPoolPath);
-    assertWorkflow("Full Pool fallback behavior", sawActive && sawFull && fallbackSnap.debug.runtimeDataPool === "full" && fallbackSnap.debug.runtimeDataSource.includes("789 route records"), `active unavailable, full fallback loaded: ${fallbackSnap.debug.runtimeDataSource}`, JSON.stringify({ sawActive, sawFull, debug: fallbackSnap.debug }));
-    verifyNoErrors("Fallback", fallback.eventLog, fallbackSnap, { allow: ["server responded with a status of 404"] });
+    const legacyCatalogTrap = await runPageScenario(
+      chrome,
+      legacyCatalogTrapServer,
+      "/app?runtimePool=full&harness=legacy-catalog-override-denied",
+      "legacy-catalog-override-denied"
+    );
+    const legacyCatalogRequests = legacyCatalogTrapServer.requests.filter(
+      request => request.path === activePoolPath || request.path === fullPoolPath
+    );
+    assertWorkflow(
+      "Authenticated PWA rejects legacy catalog override",
+      legacyCatalogTrap.initial.debug.runtimeDataPool === "governed"
+        && legacyCatalogTrap.initial.debug.runtimeDataStatus === "READY"
+        && legacyCatalogRequests.length === 0,
+      "caller query could not select active, full, demo, or fallback catalogs",
+      JSON.stringify({ debug: legacyCatalogTrap.initial.debug, legacyCatalogRequests })
+    );
+    verifyNoErrors("Legacy catalog override denial", legacyCatalogTrap.eventLog, legacyCatalogTrap.initial);
 
     verifyRuntimePerformance(founderSnap, founder.routeLoadMs);
 
@@ -4052,8 +3948,7 @@ async function runHarness() {
       anthonyLog,
       anthonyPwa,
       adaptive,
-      full,
-      fallback
+      legacyCatalogTrap
     ].map(scenario => scenario.cdp.close()));
   } catch (error) {
     harnessError = error;

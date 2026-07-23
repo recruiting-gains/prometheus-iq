@@ -105,13 +105,14 @@ test("the browser harness uses governed Northstar Intelligence provenance withou
   assert.doesNotMatch(runtimeWorkflowHarness, /customerPwaActivePoolPath|customerPwaFullPoolPath/u);
 });
 
-test("the browser harness treats Founder cross-profile previews as governed fail-closed cases", () => {
-  assert.match(runtimeWorkflowHarness, /runGovernedProfileMismatchScenario/u);
-  assert.match(runtimeWorkflowHarness, /governed runtime scope|operating profile/iu);
-  assert.match(runtimeWorkflowHarness, /initial\.debug\.startupCompleted === false/u);
-  assert.match(runtimeWorkflowHarness, /initial\.debug\.rendererReceived === false/u);
-  assert.match(runtimeWorkflowHarness, /boundary\.authorizedOperatingProfileId === "fitness"/u);
-  assert.doesNotMatch(runtimeWorkflowHarness, /for \(const expected of \[\s*\{ profileId: "general_outside_sales"/u);
+test("the browser harness uses server-scoped identity and rejects caller-selected legacy catalogs", () => {
+  assert.match(runtimeWorkflowHarness, /customerPwaSession: customerPwaManagerSessionFixture/u);
+  assert.match(runtimeWorkflowHarness, /legacy catalog trap HTTPS server/u);
+  assert.match(runtimeWorkflowHarness, /\/app\?runtimePool=full&harness=legacy-catalog-override-denied/u);
+  assert.match(runtimeWorkflowHarness, /legacyCatalogTrap\.initial\.debug\.runtimeDataPool === "governed"/u);
+  assert.match(runtimeWorkflowHarness, /legacyCatalogRequests\.length === 0/u);
+  assert.doesNotMatch(runtimeWorkflowHarness, /assertWorkflow\("Runtime pool selection logic"/u);
+  assert.doesNotMatch(runtimeWorkflowHarness, /assertWorkflow\("Full Pool fallback behavior"/u);
 });
 
 test("Dashboard source requires the governed v2 hours and manifest-admission contracts", () => {
