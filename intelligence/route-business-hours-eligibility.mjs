@@ -1,9 +1,16 @@
 import {
   BUSINESS_HOURS_STATUSES,
   DEFAULT_BUSINESS_HOURS_POLICY,
+  HOURS_CONFIDENCE_VALUES,
+  HOURS_FRESHNESS_STATUSES,
   evaluateBusinessHoursRecord,
   validateBusinessHoursArtifact
 } from "../scripts/lib/business-hours-governance.mjs";
+import {
+  assertGovernedRouteRuntimeScope,
+  createGovernedRouteRuntimeScopeFromBusinessHoursArtifact,
+  routeIqGovernedRuntimeAuthorizations
+} from "./route-iq-governed-runtime-scope.mjs";
 
 export const routeBusinessHoursEligibilityVersion = "route-iq-closed-now-eligibility-v1";
 export const routeBusinessHoursWorkspaceId = "fitness_connection";
@@ -52,7 +59,9 @@ function decision({
   freshness,
   businessLocalDate = null,
   businessLocalTime = null,
-  failClosed = false
+  failClosed = false,
+  workspaceId = null,
+  operatingProfileId = null
 }) {
   const uncertain = uncertainStatuses.has(status);
   const confidence = cleanText(record?.hoursConfidence, 20) || "NONE";
@@ -60,8 +69,8 @@ function decision({
   const marker = uncertain ? hoursNotVerifiedMarker : status === "CLOSED_VERIFIED" ? "CLOSED_NOW" : null;
   return {
     version: routeBusinessHoursEligibilityVersion,
-    workspaceId: cleanText(record?.workspaceId || candidate?.workspaceId, 80) || routeBusinessHoursWorkspaceId,
-    operatingProfileId: cleanText(record?.operatingProfileId || candidate?.operatingProfileId, 80) || routeBusinessHoursOperatingProfileId,
+    workspaceId: cleanText(workspaceId || record?.workspaceId || candidate?.workspaceId, 80) || routeBusinessHoursWorkspaceId,
+    operatingProfileId: cleanText(operatingProfileId || record?.operatingProfileId || candidate?.operatingProfileId, 80) || routeBusinessHoursOperatingProfileId,
     googlePlaceId: cleanText(record?.googlePlaceId || candidate?.googlePlaceId, 180) || null,
     permanentOperationalStatus: cleanText(record?.permanentOperationalStatus || candidate?.businessStatus, 40) || "UNKNOWN",
     status,
@@ -97,20 +106,70 @@ function decision({
   };
 }
 
-function assertRouteBusinessHoursScope(workspaceId, operatingProfileId) {
-  if (workspaceId !== routeBusinessHoursWorkspaceId) {
-    throw new Error(`Unknown Route IQ business-hours workspace: ${workspaceId || "missing"}`);
+function isHistoricalFitnessScope(workspaceId, operatingProfileId) {
+  return workspaceId === routeBusinessHoursWorkspaceId
+    && operatingProfileId === routeBusinessHoursOperatingProfileId;
+}
+
+function assertRouteBusinessHoursScope(workspaceId, operatingProfileId, governedRuntimeScope = null) {
+  if (isHistoricalFitnessScope(workspaceId, operatingProfileId)) return null;
+  return assertGovernedRouteRuntimeScope({
+    workspaceId,
+    operatingProfileId,
+    governedRuntimeScope,
+    requiredAuthorization: routeIqGovernedRuntimeAuthorizations.businessHoursEligibility
+  });
+}
+
+function validateGovernedBusinessHoursArtifact(artifact, workspaceId, operatingProfileId) {
+  const failures = [];
+  if (!artifact || typeof artifact !== "object" || Array.isArray(artifact)) return ["Business-hours artifact is missing or invalid."];
+  if (artifact.schemaVersion !== "prometheus-data-business-hours-v1") failures.push("Business-hours schemaVersion mismatch.");
+  if (artifact.artifactVersion !== "business-hours-v1") failures.push("Business-hours artifactVersion mismatch.");
+  if (artifact.workspaceId !== workspaceId) failures.push("Business-hours workspace mismatch.");
+  if (artifact.operatingProfileId !== operatingProfileId) failures.push("Business-hours operating profile mismatch.");
+  if (artifact.routeEligibilityActivated !== false) failures.push("Business-hours artifact must not activate route eligibility.");
+  if (artifact.runtimeBehaviorChanged !== false) failures.push("Business-hours artifact must preserve runtime behavior.");
+  if (artifact.scoringChanged !== false) failures.push("Business-hours artifact must preserve scoring.");
+  if (!Array.isArray(artifact.records)) failures.push("Business-hours records must be an array.");
+  if (artifact.recordCount !== (artifact.records || []).length) failures.push("Business-hours recordCount mismatch.");
+  if (!Number.isFinite(Number(artifact.freshnessPolicy?.freshnessThresholdHours))) failures.push("Business-hours freshness threshold is missing.");
+  const seen = new Set();
+  for (const record of artifact.records || []) {
+    const placeId = cleanText(record?.googlePlaceId, 180);
+    if (!placeId) failures.push("Business-hours record Place ID is missing.");
+    if (seen.has(placeId)) failures.push(`Duplicate business-hours Place ID: ${placeId}`);
+    seen.add(placeId);
+    if (record?.workspaceId !== workspaceId || record?.operatingProfileId !== operatingProfileId) {
+      failures.push(`Cross-scope business-hours record: ${placeId || "unknown"}`);
+    }
+    if (!cleanText(record?.businessName, 180)) failures.push(`Missing business-hours business name: ${placeId || "unknown"}`);
+    if (!cleanText(record?.address, 300)) failures.push(`Missing business-hours address: ${placeId || "unknown"}`);
+    if (!cleanText(record?.permanentOperationalStatus, 40)) failures.push(`Missing permanent operational status: ${placeId || "unknown"}`);
+    if (!BUSINESS_HOURS_STATUSES.includes(record?.currentOpenClosedEligibilityStatus)) failures.push(`Invalid current hours status: ${placeId || "unknown"}`);
+    if (!HOURS_FRESHNESS_STATUSES.includes(record?.hoursFreshnessStatus)) failures.push(`Invalid hours freshness status: ${placeId || "unknown"}`);
+    if (!HOURS_CONFIDENCE_VALUES.includes(record?.hoursConfidence)) failures.push(`Invalid hours confidence: ${placeId || "unknown"}`);
+    if (!cleanText(record?.currentStatusReasonCode, 160) || !cleanText(record?.currentStatusReason, 600)) {
+      failures.push(`Missing explainable hours status reason: ${placeId || "unknown"}`);
+    }
+    if (!record?.hoursProvenance || typeof record.hoursProvenance !== "object") failures.push(`Missing business-hours provenance: ${placeId || "unknown"}`);
   }
-  if (operatingProfileId !== routeBusinessHoursOperatingProfileId) {
-    throw new Error(`Route IQ business-hours operating profile mismatch: ${operatingProfileId || "missing"}`);
-  }
+  return failures;
 }
 
 export function buildRouteBusinessHoursIndex(artifact, options = {}) {
-  const workspaceId = options.workspaceId || routeBusinessHoursWorkspaceId;
-  const operatingProfileId = options.operatingProfileId || routeBusinessHoursOperatingProfileId;
-  assertRouteBusinessHoursScope(workspaceId, operatingProfileId);
-  const failures = validateBusinessHoursArtifact(artifact, workspaceId);
+  const workspaceId = options.workspaceId || artifact?.workspaceId || routeBusinessHoursWorkspaceId;
+  const operatingProfileId = options.operatingProfileId || artifact?.operatingProfileId || routeBusinessHoursOperatingProfileId;
+  let governedRuntimeScope = null;
+  let failures;
+  if (isHistoricalFitnessScope(workspaceId, operatingProfileId)) {
+    assertRouteBusinessHoursScope(workspaceId, operatingProfileId);
+    failures = validateBusinessHoursArtifact(artifact, workspaceId);
+  } else {
+    governedRuntimeScope = createGovernedRouteRuntimeScopeFromBusinessHoursArtifact(artifact);
+    assertRouteBusinessHoursScope(workspaceId, operatingProfileId, governedRuntimeScope);
+    failures = validateGovernedBusinessHoursArtifact(artifact, workspaceId, operatingProfileId);
+  }
   if (failures.length) throw new Error(`Route IQ business-hours artifact is invalid: ${failures.join(" | ")}`);
   if (artifact.operatingProfileId !== operatingProfileId) throw new Error("Route IQ business-hours artifact operating profile mismatch.");
   const recordsByPlaceId = new Map();
@@ -122,6 +181,7 @@ export function buildRouteBusinessHoursIndex(artifact, options = {}) {
     generatedAt: artifact.generatedAt,
     statusEvaluatedAt: artifact.statusEvaluatedAt,
     sourceDatasetVersion: artifact.sourceDatasetVersion,
+    governedRuntimeScope,
     freshnessPolicy: { ...DEFAULT_BUSINESS_HOURS_POLICY, ...(artifact.freshnessPolicy || {}) },
     recordCount: recordsByPlaceId.size,
     recordsByPlaceId
@@ -135,11 +195,13 @@ export function evaluateRouteBusinessHoursEligibility({
   policy = DEFAULT_BUSINESS_HOURS_POLICY,
   artifactAvailable = true,
   workspaceId = routeBusinessHoursWorkspaceId,
-  operatingProfileId = routeBusinessHoursOperatingProfileId
+  operatingProfileId = routeBusinessHoursOperatingProfileId,
+  governedRuntimeScope = null
 } = {}) {
   const instant = evaluationInstant(evaluatedAt);
+  const decisionScope = { workspaceId, operatingProfileId };
   try {
-    assertRouteBusinessHoursScope(workspaceId, operatingProfileId);
+    assertRouteBusinessHoursScope(workspaceId, operatingProfileId, governedRuntimeScope);
   } catch (error) {
     return decision({
       record,
@@ -151,7 +213,8 @@ export function evaluateRouteBusinessHoursEligibility({
       reasonCode: "HOURS_WORKSPACE_SCOPE_REJECTED",
       reason: error.message,
       freshness: "MISSING",
-      failClosed: true
+      failClosed: true,
+      ...decisionScope
     });
   }
 
@@ -166,7 +229,8 @@ export function evaluateRouteBusinessHoursEligibility({
       reasonCode: "BUSINESS_HOURS_ARTIFACT_UNAVAILABLE",
       reason: "The governed business-hours artifact is unavailable, so Route IQ failed closed.",
       freshness: "MISSING",
-      failClosed: true
+      failClosed: true,
+      ...decisionScope
     });
   }
 
@@ -179,7 +243,8 @@ export function evaluateRouteBusinessHoursEligibility({
       selectionTier: 1,
       reasonCode: "BUSINESS_HOURS_RECORD_UNAVAILABLE",
       reason: "No governed business-hours record is available for this candidate.",
-      freshness: "MISSING"
+      freshness: "MISSING",
+      ...decisionScope
     });
   }
 
@@ -194,13 +259,18 @@ export function evaluateRouteBusinessHoursEligibility({
       reasonCode: "HOURS_RECORD_SCOPE_MISMATCH",
       reason: "The governed business-hours record does not belong to the active workspace and operating profile.",
       freshness: record.hoursFreshnessStatus || "MISSING",
-      failClosed: true
+      failClosed: true,
+      ...decisionScope
     });
   }
 
   let evaluated;
   try {
-    evaluated = evaluateBusinessHoursRecord(record, instant, policy);
+    // The canonical evaluator's static registry remains Fitness-only; provenance was authenticated above.
+    const evaluationRecord = isHistoricalFitnessScope(workspaceId, operatingProfileId)
+      ? record
+      : { ...record, workspaceId: routeBusinessHoursWorkspaceId, operatingProfileId: routeBusinessHoursOperatingProfileId };
+    evaluated = evaluateBusinessHoursRecord(evaluationRecord, instant, policy);
   } catch (error) {
     return decision({
       record,
@@ -212,7 +282,8 @@ export function evaluateRouteBusinessHoursEligibility({
       reasonCode: cleanText(error?.code, 160) || "HOURS_EVALUATION_FAILED",
       reason: cleanText(error?.message, 600) || "Business-hours evaluation failed.",
       freshness: record.hoursFreshnessStatus || "MISSING",
-      failClosed: true
+      failClosed: true,
+      ...decisionScope
     });
   }
 
@@ -227,7 +298,8 @@ export function evaluateRouteBusinessHoursEligibility({
       reasonCode: "HOURS_STATUS_INVALID",
       reason: "The governed business-hours evaluator returned an unsupported status.",
       freshness: evaluated.hoursFreshnessStatus || "MISSING",
-      failClosed: true
+      failClosed: true,
+      ...decisionScope
     });
   }
 
@@ -243,7 +315,8 @@ export function evaluateRouteBusinessHoursEligibility({
     freshness: evaluated.hoursFreshnessStatus,
     businessLocalDate: evaluated.businessLocalDate,
     businessLocalTime: evaluated.businessLocalTime,
-    failClosed: false
+    failClosed: false,
+    ...decisionScope
   });
 }
 

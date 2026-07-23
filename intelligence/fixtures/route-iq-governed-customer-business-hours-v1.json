@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "prometheus-data-business-hours-v1",
+  "artifactVersion": "business-hours-v1",
+  "generatedAt": "2026-08-01T14:55:00.000Z",
+  "statusEvaluatedAt": "2026-08-01T15:00:00.000Z",
+  "sourceRetrievedAt": "2026-08-01T14:55:00.000Z",
+  "workspaceId": "northstar_field_services",
+  "operatingProfileId": "northstar_service_calls",
+  "sourceDatasetVersion": "route-iq-synthetic-governed-runtime-v1",
+  "sourceArtifact": "intelligence/fixtures/route-iq-governed-customer-business-hours-v1.json",
+  "sourceCandidateCount": 1,
+  "recordCount": 1,
+  "refreshMode": "test-only-synthetic-governed-fixture",
+  "provider": "SYNTHETIC_NONCANONICAL",
+  "freshnessPolicy": {
+    "providerRefreshIntervalHours": 24,
+    "statusEvaluationIntervalMinutes": 15,
+    "freshnessThresholdHours": 168,
+    "fieldObservationFreshnessMinutes": 240,
+    "staleStatus": "HOURS_STALE",
+    "missingStatus": "HOURS_UNKNOWN",
+    "unverifiedSpecialHoursStatus": "SPECIAL_HOURS_UNVERIFIED"
+  },
+  "routeEligibilityActivated": false,
+  "runtimeBehaviorChanged": false,
+  "scoringChanged": false,
+  "routeIqRuntimeScope": {
+    "version": "route-iq-governed-runtime-scope-v1",
+    "assetType": "business_hours",
+    "authority": "server_governed_runtime_asset",
+    "workspaceId": "northstar_field_services",
+    "operatingProfileId": "northstar_service_calls",
+    "workspaceBound": true,
+    "operatingProfileBound": true,
+    "authorizations": [
+      "business_hours_eligibility",
+      "continuous_adaptive_route_replenishment"
+    ]
+  },
+  "records": [
+    {
+      "workspaceId": "northstar_field_services",
+      "operatingProfileId": "northstar_service_calls",
+      "googlePlaceId": "synthetic-northstar-place-001",
+      "businessName": "Synthetic Northstar Location",
+      "address": "Synthetic address",
+      "category": "Field Service",
+      "latitude": null,
+      "longitude": null,
+      "activePoolMember": true,
+      "sourceDatasetVersion": "route-iq-synthetic-governed-runtime-v1",
+      "permanentOperationalStatus": "OPERATIONAL",
+      "regularWeeklyBusinessHours": {
+        "periods": [
+          {
+            "open": { "date": null, "day": 6, "hour": 8, "minute": 0, "truncated": null },
+            "close": { "date": null, "day": 6, "hour": 18, "minute": 0, "truncated": null }
+          }
+        ],
+        "sourceOpenNowAtRetrieval": true
+      },
+      "specialOrHolidayHours": [],
+      "currentOpeningHoursWindow": {
+        "coverageStartDate": "2026-08-01",
+        "coverageEndDate": "2026-08-07",
+        "periods": [
+          {
+            "open": { "date": "2026-08-01", "day": 6, "hour": 8, "minute": 0, "truncated": null },
+            "close": { "date": "2026-08-01", "day": 6, "hour": 18, "minute": 0, "truncated": null }
+          }
+        ],
+        "specialDays": [],
+        "sourceOpenNowAtRetrieval": true,
+        "nextOpenTime": null,
+        "nextCloseTime": "2026-08-01T23:00:00.000Z"
+      },
+      "businessTimezone": "America/Chicago",
+      "currentHoursSource": "SYNTHETIC_NONCANONICAL",
+      "sourceRetrievedAt": "2026-08-01T14:55:00.000Z",
+      "hoursVerifiedAt": "2026-08-01T14:55:00.000Z",
+      "hoursFreshnessStatus": "FRESH",
+      "hoursConfidence": "HIGH",
+      "hoursProvenance": {
+        "sourceSystem": "SYNTHETIC_NONCANONICAL",
+        "sourceMethod": "test_fixture",
+        "sourcePlaceId": "synthetic-northstar-place-001",
+        "retrievedAt": "2026-08-01T14:55:00.000Z",
+        "normalizedAt": "2026-08-01T14:55:00.000Z",
+        "fieldEvidenceIds": []
+      },
+      "currentOpenClosedEligibilityStatus": "OPEN_VERIFIED",
+      "currentStatusReasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+      "currentStatusReason": "Synthetic governed fixture indicates an open current-hours window.",
+      "currentStatusEvaluatedAt": "2026-08-01T15:00:00.000Z",
+      "currentStatusBusinessLocalDate": "2026-08-01",
+      "currentStatusBusinessLocalTime": "10:00"
+    }
+  ]
+}

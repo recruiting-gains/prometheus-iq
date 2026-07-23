@@ -1,3 +1,8 @@
+import {
+  assertGovernedRouteRuntimeScope,
+  routeIqGovernedRuntimeAuthorizations
+} from "./route-iq-governed-runtime-scope.mjs";
+
 export const continuousAdaptiveRouteReplenishmentVersion = "continuous-adaptive-route-replenishment-v1";
 export const defaultRouteQueueTarget = 15;
 export const defaultRouteReplenishmentThreshold = 5;
@@ -48,12 +53,29 @@ export function routeQueueIdentity(place) {
   return fallback ? `business:${fallback}` : "";
 }
 
-export function assertRouteWorkspace(workspaceId) {
+function resolveRouteWorkspace(workspaceId, operatingProfileId = "", governedRuntimeScope = null) {
   const normalized = cleanText(workspaceId, 80);
-  if (normalized !== routeIqWorkspaceId) {
-    throw new Error(`Route replenishment is not authorized for workspace: ${normalized || "unknown"}`);
+  const normalizedProfile = cleanText(operatingProfileId, 80);
+  if (normalized === routeIqWorkspaceId) {
+    if (normalizedProfile && normalizedProfile !== "fitness") {
+      throw new Error(`Route replenishment operating profile is not authorized: ${normalizedProfile}`);
+    }
+    return { workspaceId: normalized, operatingProfileId: normalizedProfile || "fitness" };
   }
-  return normalized;
+  const resolvedScope = assertGovernedRouteRuntimeScope({
+    workspaceId: normalized,
+    operatingProfileId: normalizedProfile,
+    governedRuntimeScope,
+    requiredAuthorization: routeIqGovernedRuntimeAuthorizations.continuousRouteReplenishment
+  });
+  return {
+    workspaceId: resolvedScope.workspaceId,
+    operatingProfileId: resolvedScope.operatingProfileId
+  };
+}
+
+export function assertRouteWorkspace(workspaceId, operatingProfileId = "", governedRuntimeScope = null) {
+  return resolveRouteWorkspace(workspaceId, operatingProfileId, governedRuntimeScope).workspaceId;
 }
 
 function createMetricBucket() {
@@ -135,6 +157,8 @@ function rankedStrengths(metrics) {
 
 export function buildAdaptiveIntelligenceSnapshot({
   workspaceId,
+  operatingProfileId = "",
+  governedRuntimeScope = null,
   representativeId,
   visits = [],
   places = [],
@@ -142,7 +166,8 @@ export function buildAdaptiveIntelligenceSnapshot({
   previousSignals = [],
   generatedAt = Date.now()
 } = {}) {
-  const scopedWorkspaceId = assertRouteWorkspace(workspaceId);
+  const scoped = resolveRouteWorkspace(workspaceId, operatingProfileId, governedRuntimeScope);
+  const scopedWorkspaceId = scoped.workspaceId;
   const cleanRepresentativeId = cleanText(representativeId, 80);
   if (!cleanRepresentativeId) throw new Error("Route replenishment requires a representative identity.");
   const placeMap = new Map((Array.isArray(places) ? places : []).map(place => [cleanText(place?.id, 128), place]));
@@ -190,6 +215,7 @@ export function buildAdaptiveIntelligenceSnapshot({
   return {
     version: continuousAdaptiveRouteReplenishmentVersion,
     workspaceId: scopedWorkspaceId,
+    operatingProfileId: scoped.operatingProfileId,
     representativeId: cleanRepresentativeId,
     generatedAt: isoTimestamp(generatedAt),
     evidenceCount: outcomeSignals.length,
@@ -216,10 +242,11 @@ export function scoreAdaptiveCandidate({
   intelligence,
   currentTimeWindow = "Anytime",
   territoryLabel = "",
-  routeContextDistanceMiles = null
+  routeContextDistanceMiles = null,
+  governedRuntimeScope = null
 } = {}) {
   if (!candidate || !intelligence) return { score: finiteNumber(baseScore), signals: [] };
-  assertRouteWorkspace(intelligence.workspaceId);
+  assertRouteWorkspace(intelligence.workspaceId, intelligence.operatingProfileId, governedRuntimeScope);
   const identityKey = routeQueueIdentity(candidate);
   const categoryMetric = intelligence.categoryPerformance?.[cleanText(candidate.category, 80) || "Other"];
   const placeMetric = intelligence.placePerformance?.[identityKey];
@@ -269,19 +296,21 @@ export function scoreAdaptiveCandidate({
 export function createEmptyRouteQueue({
   workspaceId,
   representativeId,
-  operatingProfileId = "fitness",
+  operatingProfileId = "",
   routeDate = localDate(),
   targetSize = defaultRouteQueueTarget,
-  threshold = defaultRouteReplenishmentThreshold
+  threshold = defaultRouteReplenishmentThreshold,
+  governedRuntimeScope = null
 } = {}) {
-  const scopedWorkspaceId = assertRouteWorkspace(workspaceId);
+  const scoped = resolveRouteWorkspace(workspaceId, operatingProfileId, governedRuntimeScope);
+  const scopedWorkspaceId = scoped.workspaceId;
   const cleanRepresentativeId = cleanText(representativeId, 80);
   if (!cleanRepresentativeId) throw new Error("Route queue requires a representative identity.");
   return {
     version: continuousAdaptiveRouteReplenishmentVersion,
     workspaceId: scopedWorkspaceId,
     representativeId: cleanRepresentativeId,
-    operatingProfileId: cleanText(operatingProfileId, 80) || "fitness",
+    operatingProfileId: scoped.operatingProfileId,
     routeDate: cleanText(routeDate, 10) || localDate(),
     targetSize: Math.max(1, Math.floor(finiteNumber(targetSize, defaultRouteQueueTarget))),
     threshold: Math.max(1, Math.floor(finiteNumber(threshold, defaultRouteReplenishmentThreshold))),
@@ -363,7 +392,8 @@ export function normalizeRouteQueue(raw, context = {}) {
     operatingProfileId: context.operatingProfileId || raw?.operatingProfileId,
     routeDate: context.routeDate || raw?.routeDate,
     targetSize: context.targetSize || raw?.targetSize,
-    threshold: context.threshold || raw?.threshold
+    threshold: context.threshold || raw?.threshold,
+    governedRuntimeScope: context.governedRuntimeScope
   });
   const sameScope = raw?.version === continuousAdaptiveRouteReplenishmentVersion
     && raw?.workspaceId === expected.workspaceId
@@ -428,7 +458,7 @@ export function maintainRouteQueue({
   queue,
   workspaceId,
   representativeId,
-  operatingProfileId = "fitness",
+  operatingProfileId = "",
   routeDate = localDate(),
   primaryCandidates = [],
   fallbackCandidates = [],
@@ -438,13 +468,15 @@ export function maintainRouteQueue({
   identityOf = routeQueueIdentity,
   isEligible = () => true,
   scoreCandidate = candidate => ({ score: finiteNumber(candidate?.score), signals: [] }),
-  now = Date.now()
+  now = Date.now(),
+  governedRuntimeScope = null
 } = {}) {
   const normalized = normalizeRouteQueue(queue, {
     workspaceId,
     representativeId,
     operatingProfileId,
-    routeDate
+    routeDate,
+    governedRuntimeScope
   });
   const completed = new Set((completedIdentityKeys || []).map(value => cleanText(value, 500)).filter(Boolean));
   const candidateByIdentity = new Map();
