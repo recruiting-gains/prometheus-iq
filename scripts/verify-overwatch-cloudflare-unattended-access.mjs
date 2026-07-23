@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
@@ -33,10 +34,154 @@ const routeIq3dSuccessorPath =
 const publicDeploymentWorkflowV2SuccessorPath =
   "overwatch/governance/public-deployment-workflow-v2.json";
 
+const CURRENT_OWNER_SUCCESSORS = Object.freeze([
+  Object.freeze({
+    predecessorGovernanceId: "cloudflare-unattended-deployment-access-governance-v1",
+    path: "intelligence/contracts/shadow-decision-readiness-contracts.json",
+    historicalSha256: "15c331611ff4f4e770ab6ddd4639303720f7f031e4c7f47ad5ad1e4c4f9231f8",
+    previousSuccessorSha256: "f52ca21731476174cc29034e4df9d039da85f5b4cdc8011e1e9917656d5815de",
+    successorSha256: "03e5bc7c12d33d14f8363beea74fd8f5ed7179b631348760c901369ee9f834c2",
+    owner: "Prometheus Intelligence Engine",
+    ownerCommit: "3587c3d70526b95ae9083520ed42025c5522f764"
+  }),
+  Object.freeze({
+    predecessorGovernanceId: "cloudflare-unattended-deployment-access-governance-v1",
+    path: "scripts/verify-shadow-decision-readiness.mjs",
+    historicalSha256: "caed723ccdaf8aa2958298a06b549f7a4ab69a2beb9d4e3cfbb0ee284ef59b49",
+    previousSuccessorSha256: "0c8a1e483c7444c76d5435397c360ce3f5028a520d85ca1e58fe24d26d93d934",
+    successorSha256: "9519b7eb0e607acc1353389409e4f7b3a9c856fbb4cd5bc6393896e1f9a9a948",
+    owner: "Prometheus Intelligence Engine",
+    ownerCommit: "3587c3d70526b95ae9083520ed42025c5522f764"
+  }),
+  Object.freeze({
+    predecessorGovernanceId: "cloudflare-unattended-deployment-access-governance-v1",
+    path: "workers/prometheus-iq-worker.js",
+    historicalSha256: "b260dcea7204c6de0c0e403a5a67bdac5f95dd46acfc62150ce852666a780870",
+    previousSuccessorSha256: "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
+    successorSha256: "eeb7346be172d33e7f04b6ec9ac4d256faae450410ea5c8a12e16a26a884f5dc",
+    owner: "Prometheus Infrastructure",
+    ownerCommit: "fd14a3b13ac00b645857396f3d26fa069762b715"
+  }),
+  Object.freeze({
+    predecessorGovernanceId: "cloudflare-unattended-deployment-access-governance-v1",
+    path: "index.html",
+    historicalSha256: "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16",
+    previousSuccessorSha256: "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+    successorSha256: "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0",
+    owner: "Prometheus Dashboard",
+    ownerCommit: "99457bcda1abed536cc06585492d29f5ac500f05"
+  }),
+  Object.freeze({
+    predecessorGovernanceId: "cloudflare-unattended-deployment-access-governance-v1",
+    path: "deploy/cloudflare-pages/index.html",
+    historicalSha256: "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16",
+    previousSuccessorSha256: "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+    successorSha256: "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0",
+    owner: "Prometheus Dashboard",
+    ownerCommit: "99457bcda1abed536cc06585492d29f5ac500f05"
+  })
+]);
+
+const CURRENT_OWNER_COMMITS = Object.freeze([
+  Object.freeze({
+    commit: "3587c3d70526b95ae9083520ed42025c5522f764",
+    tree: "5ac08aecd5c1f720c03194027aef3def4083a142",
+    parent: "0ac5b54351e12fec954e479c1c56506c58dea6c8",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "Synchronize shadow-readiness runtime baselines",
+    files: Object.freeze([
+      "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
+      "scripts/verify-shadow-decision-readiness.mjs"
+    ])
+  }),
+  Object.freeze({
+    commit: "fd14a3b13ac00b645857396f3d26fa069762b715",
+    tree: "fcb370d28dd3d8598191915d9ef9323c3f3c3d00",
+    parent: "2c9a17217e2560969afd31f3f42067b3703caec8",
+    identity: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    subject: "Add bounded Route IQ customer runtime",
+    files: Object.freeze([
+      "scripts/build-route-iq-private-forward-rollback-candidate-v2.mjs",
+      "tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs",
+      "tests/route-iq-private-forward-rollback-candidate-v2.test.mjs",
+      "workers/infrastructure/route-iq-august-1-customer-pwa-runtime-v1.json",
+      "workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js",
+      "workers/infrastructure/route-iq-private-forward-rollback-candidate-v2.json",
+      "workers/infrastructure/route-iq-private-forward-rollback-inert-durable-object-v2.js",
+      "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v2.json",
+      "workers/prometheus-iq-worker.js"
+    ])
+  }),
+  Object.freeze({
+    commit: "99457bcda1abed536cc06585492d29f5ac500f05",
+    tree: "ca9c01b40d763ceb707ba88118c905a8056e7407",
+    parent: "54804800533e705efe7add510e5e4bb72a3ba7dc",
+    identity: "Prometheus Dashboard <dashboard@prometheus.local>",
+    subject: "Add bounded Route IQ customer PWA",
+    files: Object.freeze([
+      "_headers",
+      "deploy/cloudflare-pages/_headers",
+      "deploy/cloudflare-pages/index.html",
+      "deploy/cloudflare-pages/manifest-founder.webmanifest",
+      "deploy/cloudflare-pages/manifest.webmanifest",
+      "deploy/cloudflare-pages/sw.js",
+      "index.html",
+      "manifest-founder.webmanifest",
+      "manifest.webmanifest",
+      "scripts/verify-dashboard-runtime-workflows.mjs",
+      "sw.js",
+      "tests/dashboard-route-iq-customer-pwa.test.mjs",
+      "tests/dashboard-route-iq-field-session-producer.test.mjs",
+      "tests/dashboard-route-iq-product-focus.test.mjs"
+    ])
+  })
+]);
+
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 const equalJson = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+
+function git(...args) {
+  return execFileSync("/usr/bin/git", args, {
+    cwd: root,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"]
+  }).trim();
+}
+
+function verifyCurrentOwnerSuccessors(commercialReadiness, routeIq3dSuccessor, failures) {
+  for (const expected of CURRENT_OWNER_COMMITS) {
+    const identity = git("show", "-s", "--format=%T%n%P%n%an <%ae>%n%cn <%ce>%n%s", expected.commit)
+      .split("\n");
+    const files = git("diff-tree", "--no-commit-id", "--name-only", "-r", expected.commit)
+      .split("\n").filter(Boolean).sort();
+    if (identity[0] !== expected.tree
+      || identity[1] !== expected.parent
+      || identity[2] !== expected.identity
+      || identity[3] !== expected.identity
+      || identity[4] !== expected.subject
+      || !equalJson(files, [...expected.files].sort())) {
+      failures.push(`Current owner successor drifted: ${expected.commit}`);
+    }
+  }
+
+  for (const mapping of CURRENT_OWNER_SUCCESSORS) {
+    const predecessorMappings = mapping.owner === "Prometheus Intelligence Engine"
+      ? routeIq3dSuccessor.protectedInvestorFocusBaselineSuccessors
+      : commercialReadiness.protectedBaselineSuccessors;
+    const predecessor = predecessorMappings.find(entry => (
+      entry.path === mapping.path
+      && entry.successorSha256 === mapping.previousSuccessorSha256
+    ));
+    if (!predecessor
+      || sha256(read(mapping.path)) !== mapping.successorSha256
+      || !CURRENT_OWNER_COMMITS.some(entry => entry.commit === mapping.ownerCommit)) {
+      failures.push(`Current owner successor mapping drifted: ${mapping.path}`);
+    }
+  }
+}
 
 const expectedMethods = Object.freeze(["GET", "HEAD"]);
 const expectedCredentialNames = Object.freeze({
@@ -284,6 +429,7 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
 
   const evaluated = evaluateCloudflareUnattendedAccessGovernance({ infrastructure, governance, report });
   failures.push(...evaluated.failures);
+  verifyCurrentOwnerSuccessors(commercialReadinessSuccessor, routeIq3dSuccessor, failures);
   verifyHashes(
     governance.infrastructureEvidence,
     failures,
@@ -304,18 +450,24 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     Object.fromEntries(Object.entries(governance.intelligenceEvidence).filter(([, value]) => value?.path)),
     failures,
     "Intelligence evidence",
-    ycInvestorFocusSuccessor.protectedBaselineSuccessors,
+    [
+      ...ycInvestorFocusSuccessor.protectedBaselineSuccessors,
+      ...CURRENT_OWNER_SUCCESSORS.filter(entry => entry.owner === "Prometheus Intelligence Engine")
+    ],
     routeIq3dSuccessor.protectedInvestorFocusBaselineSuccessors
   );
   verifyProtectedRuntimeHashes(
     governance,
     failures,
-    commercialReadinessSuccessor.protectedBaselineSuccessors
+    [
+      ...commercialReadinessSuccessor.protectedBaselineSuccessors,
+      ...CURRENT_OWNER_SUCCESSORS.filter(entry => entry.owner !== "Prometheus Intelligence Engine")
+    ]
   );
 
   if (governance.intelligenceEvidence.previousWorkerSha256 !== "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59"
     || governance.intelligenceEvidence.currentWorkerSha256 !== governance.protectedRuntimeBaselines.privateWorkerSha256
-    || !commercialReadinessSuccessor.protectedBaselineSuccessors.some(mapping => (
+    || !CURRENT_OWNER_SUCCESSORS.some(mapping => (
       mapping.predecessorGovernanceId === governance.governanceId
       && mapping.path === governance.protectedRuntimeBaselines.privateWorkerPath
       && mapping.historicalSha256 === governance.intelligenceEvidence.currentWorkerSha256
@@ -367,6 +519,8 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     intelligenceRepairCommit: governance.dispatchAudit.intelligenceOwnerRepair.commit,
     setupStatus: infrastructure.setupStatus,
     guardStatus: infrastructure.servicePrincipalReadOnlyGuard.status,
+    currentOwnerSuccessorCommits: CURRENT_OWNER_COMMITS.map(entry => entry.commit),
+    currentOwnerSuccessorMappings: CURRENT_OWNER_SUCCESSORS.length,
     repositorySecretFindings: secretFindings.length,
     unattendedDeploymentReady: false,
     unattendedSmokeReady: false,

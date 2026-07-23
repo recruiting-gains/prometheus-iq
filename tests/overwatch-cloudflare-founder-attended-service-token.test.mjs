@@ -28,6 +28,7 @@ test("Overwatch independently verifies the attended provisioning batch", () => {
   assert.equal(result.verificationOwner, "Prometheus Overwatch");
   assert.equal(result.focusedOwnerTests, 79);
   assert.equal(result.repairCommit, "214521d99d08a0a117d81e59b9ef38105edac147");
+  assert.equal(result.packageReleaseWiringCommit, "610383c4e845789859946122283e8014dae35600");
   assert.equal(result.realKeychainInteroperabilityVerified, false);
   assert.equal(result.trackedSecretFindings, 0);
   assert.equal(result.cloudflareAccessPerformed, false);

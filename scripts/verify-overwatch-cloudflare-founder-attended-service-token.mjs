@@ -35,6 +35,16 @@ const ownerTree = "04823fa4e3cdf5688045c321bead3d94d813b7c7";
 const repairCommit = "214521d99d08a0a117d81e59b9ef38105edac147";
 const repairParent = "e7b1171acf067ca0245f3d88558de3d857fb531d";
 const repairTree = "e2914c171797d698a78373247ec505d611e30653";
+const packageReleaseWiringCommit = "610383c4e845789859946122283e8014dae35600";
+const packageReleaseWiringParent = "b8346e9931231d055a20f2cadd6a9c6edea36ce4";
+const packageReleaseWiringTree = "99deba22646feb47301410ee492d4af9396fbbc7";
+const packageReleaseWiringPaths = Object.freeze([
+  "overwatch/governance/route-iq-august-1-launch-closeout-v1.json",
+  "overwatch/governance/route-iq-august-1-readiness-matrix-v1.json",
+  "package.json",
+  "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+  "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
+]);
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -435,6 +445,19 @@ function verifyPackageReleaseWiring() {
       item.predecessorGovernanceId === "route-iq-3d-visual-continuity-v1"
       && item.path === "package.json"
     ));
+  const packageOwnerFields = git([
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    packageReleaseWiringCommit
+  ]).split("\n");
+  const packageOwnerPaths = git([
+    "diff-tree",
+    "--no-commit-id",
+    "--name-only",
+    "-r",
+    packageReleaseWiringCommit
+  ]).split("\n").filter(Boolean).sort();
   if (responseContractTransition?.successorSha256 !== packageTransition?.previousSha256
     || packageTransition?.successorSha256 !== keychainTransition?.previousSha256
     || keychainTransition?.successorSha256 !== githubDeploymentTransition?.previousSha256
@@ -446,7 +469,16 @@ function verifyPackageReleaseWiring() {
     || githubDeploymentTransition?.owner !== "Prometheus Overwatch"
     || routeIq3dTransition?.owner !== "Prometheus Overwatch"
     || workflowV2Transition?.owner !== "Prometheus Overwatch"
-    || workflowV2Transition?.ownerCommit !== "ee80a44b8a28847d4a4acfc3fae8574697661edc") {
+    || workflowV2Transition?.ownerCommit !== packageReleaseWiringCommit
+    || !equalJson(packageOwnerFields, [
+      packageReleaseWiringCommit,
+      packageReleaseWiringParent,
+      packageReleaseWiringTree,
+      "Prometheus Overwatch <overwatch@prometheus.local>",
+      "Prometheus Overwatch <overwatch@prometheus.local>",
+      "Govern August 1 Route IQ launch readiness"
+    ])
+    || !equalJson(packageOwnerPaths, [...packageReleaseWiringPaths].sort())) {
     throw new Error("Current package release-wiring successor hash drifted.");
   }
   if (!currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-service-token.test.mjs")
@@ -533,6 +565,7 @@ export function verifyOverwatchFounderAttendedProvisioning() {
     verificationOwner: "Prometheus Overwatch",
     implementationCommit: ownerCommit,
     repairCommit,
+    packageReleaseWiringCommit,
     fixedDuration: "720h",
     fixedCreateAttemptsMaximum: 1,
     focusedOwnerTests: 79,

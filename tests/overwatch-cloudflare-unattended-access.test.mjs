@@ -35,6 +35,12 @@ test("Overwatch independently verifies the source runtime guard and held deploym
   ]);
   assert.equal(result.intelligenceRepairCommit, "c05fa818c2ccff98447089287b110c35704ff3a4");
   assert.equal(result.guardStatus, "IMPLEMENTED_SOURCE_NOT_DEPLOYED_NOT_CONFIGURED");
+  assert.deepEqual(result.currentOwnerSuccessorCommits, [
+    "3587c3d70526b95ae9083520ed42025c5522f764",
+    "fd14a3b13ac00b645857396f3d26fa069762b715",
+    "99457bcda1abed536cc06585492d29f5ac500f05"
+  ]);
+  assert.equal(result.currentOwnerSuccessorMappings, 5);
   assert.equal(result.setupStatus, "NOT_CONFIGURED");
   assert.equal(result.repositorySecretFindings, 0);
   assert.equal(result.unattendedDeploymentReady, false);
