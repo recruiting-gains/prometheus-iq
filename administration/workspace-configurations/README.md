@@ -20,7 +20,7 @@ The registry is intentionally dark:
 
 Every configuration must pass the strict validator before any owner may consume it. Missing or invalid configuration, an unknown profile, a mismatched territory, a cross-company role, an unapproved source, or a demo/fallback catalog produces a fail-closed empty state.
 
-An approved Data artifact is referenced by workspace and operating profile. Administration does not copy business records into configuration. Synthetic validation may name a pending Data-owned artifact, but it cannot become production eligible.
+A Data-owned manifest is referenced by exact registry path, manifest ID, workspace, operating profile, and artifact path. Administration does not copy business records or independently claim their approval state. The Fitness source remains pending Founder approval and stale in the current Data manifest. The synthetic outside-sales source is approved only for noncanonical validation. Neither source is production eligible.
 
 The 24-hour freshness ceiling is a maximum. Only freshly verified open businesses or verified access windows may be immediately recommendation-eligible. Closed, stale, missing, invalid, appointment-unverified, or provider-failed availability is not an immediate recommendation.
 

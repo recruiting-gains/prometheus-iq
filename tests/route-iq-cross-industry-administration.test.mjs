@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  ROUTE_IQ_FITNESS_WORKSPACE_ID,
+  ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID,
   RouteIqWorkspaceConfigurationError,
   authorizeConfiguredUser,
   loadRouteIqWorkspaceConfigurationRegistry,
@@ -29,6 +31,10 @@ test("canonical v2 registry validates two isolated configurable industries", () 
   assert.deepEqual(
     canonical.workspaces.map(workspace => workspace.operatingProfile.profileId).sort(),
     ["fitness", "general_outside_sales"]
+  );
+  assert.deepEqual(
+    canonical.workspaces.map(workspace => workspace.workspaceId).sort(),
+    [ROUTE_IQ_FITNESS_WORKSPACE_ID, ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID].sort()
   );
   assert.equal(canonical.safety.collection, "OFF");
   assert.equal(canonical.safety.activeCohorts, 0);
@@ -60,6 +66,22 @@ test("configuration-only profiles use the same generic field vocabulary", () => 
   assert.equal(fitnessFields.has("decision_maker_role"), false);
   assert.equal(outsideSalesFields.has("unit_potential"), false);
   assert.equal(outsideSalesFields.has("decision_maker_role"), true);
+
+  const fitnessSource = fitness.opportunitySources[0];
+  const outsideSalesSource = outsideSales.opportunitySources[0];
+  assert.equal(fitnessSource.manifestId, "fitness_connection_approved_business_roster");
+  assert.equal(fitnessSource.workspaceId, ROUTE_IQ_FITNESS_WORKSPACE_ID);
+  assert.equal(fitnessSource.profileId, "fitness");
+  assert.equal(fitnessSource.manifestApprovalState, "PENDING_FOUNDER_APPROVAL");
+  assert.equal(fitnessSource.productionUseAuthorized, false);
+  assert.equal(
+    outsideSalesSource.manifestId,
+    "northstar_outside_sales_synthetic_approved_business_roster"
+  );
+  assert.equal(outsideSalesSource.workspaceId, ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID);
+  assert.equal(outsideSalesSource.profileId, "general_outside_sales");
+  assert.equal(outsideSalesSource.manifestApprovalState, "APPROVED_SYNTHETIC_VALIDATION");
+  assert.equal(outsideSalesSource.productionUseAuthorized, false);
 });
 
 test("unknown workspace fails closed", () => {
@@ -73,12 +95,12 @@ test("unknown workspace fails closed", () => {
 
 test("Founder research and synthetic workspaces are not production admitted", () => {
   expectCode("route_iq_admin_configuration_workspace_not_production_admitted", () =>
-    resolveAdmittedWorkspaceConfiguration("fitness_connection_founder_research", {
+    resolveAdmittedWorkspaceConfiguration(ROUTE_IQ_FITNESS_WORKSPACE_ID, {
       registry: canonical
     })
   );
   expectCode("route_iq_admin_configuration_workspace_synthetic", () =>
-    resolveAdmittedWorkspaceConfiguration("northstar_field_supply_synthetic", {
+    resolveAdmittedWorkspaceConfiguration(ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID, {
       registry: canonical
     })
   );
@@ -90,6 +112,21 @@ test("unknown configuration fields fail closed", () => {
   expectCode("route_iq_admin_configuration_fields_invalid", () =>
     validateRouteIqWorkspaceConfigurationRegistry(fixture)
   );
+});
+
+test("invented workspace aliases are rejected", () => {
+  for (const workspaceId of [
+    ["fitness_connection", "founder", "research"].join("_"),
+    ["northstar", "field", "supply", "synthetic"].join("_")
+  ]) {
+    expectCode("route_iq_admin_configuration_workspace_unknown", () =>
+      resolveAdmittedWorkspaceConfiguration(workspaceId, {
+        registry: canonical,
+        allowFounderResearch: true,
+        allowSynthetic: true
+      })
+    );
+  }
 });
 
 test("pending or mismatched admission cannot activate a workspace", () => {
@@ -202,7 +239,7 @@ test("more than two companies or forty named users is rejected", () => {
 
 test("user authorization is bound to workspace, profile, role, and territory", () => {
   const authorized = authorizeConfiguredUser({
-    workspaceId: "fitness_connection_founder_research",
+    workspaceId: ROUTE_IQ_FITNESS_WORKSPACE_ID,
     operatingProfileId: "fitness",
     userId: "user_cruz_founder",
     roleId: "fitness_founder_research_operator",
@@ -213,7 +250,7 @@ test("user authorization is bound to workspace, profile, role, and territory", (
 
   expectCode("route_iq_admin_configuration_profile_mismatch", () =>
     authorizeConfiguredUser({
-      workspaceId: "fitness_connection_founder_research",
+      workspaceId: ROUTE_IQ_FITNESS_WORKSPACE_ID,
       operatingProfileId: "general_outside_sales",
       userId: "user_cruz_founder",
       roleId: "fitness_founder_research_operator",
@@ -222,7 +259,7 @@ test("user authorization is bound to workspace, profile, role, and territory", (
   );
   expectCode("route_iq_admin_configuration_cross_company_role", () =>
     authorizeConfiguredUser({
-      workspaceId: "fitness_connection_founder_research",
+      workspaceId: ROUTE_IQ_FITNESS_WORKSPACE_ID,
       operatingProfileId: "fitness",
       userId: "user_cruz_founder",
       roleId: "northstar_synthetic_representative",
@@ -231,11 +268,11 @@ test("user authorization is bound to workspace, profile, role, and territory", (
   );
   expectCode("route_iq_admin_configuration_territory_mismatch", () =>
     authorizeConfiguredUser({
-      workspaceId: "fitness_connection_founder_research",
+      workspaceId: ROUTE_IQ_FITNESS_WORKSPACE_ID,
       operatingProfileId: "fitness",
       userId: "user_cruz_founder",
       roleId: "fitness_founder_research_operator",
-      territoryId: "northstar_central_synthetic"
+      territoryId: "synthetic_north_territory"
     }, { registry: canonical })
   );
 });

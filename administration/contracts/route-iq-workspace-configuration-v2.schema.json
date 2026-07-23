@@ -113,7 +113,7 @@
     },
     "artifactPath": {
       "type": "string",
-      "pattern": "^(administration|data|intelligence)/[A-Za-z0-9._/-]+$",
+      "pattern": "^data/[A-Za-z0-9._/-]+\\.json$",
       "maxLength": 320
     },
     "provenance": {
@@ -789,21 +789,30 @@
       "required": [
         "sourceId",
         "adapterId",
+        "manifestRegistryPath",
+        "manifestId",
         "artifactPath",
         "artifactSchemaVersion",
         "workspaceId",
         "profileId",
         "providerId",
         "classification",
-        "admissionStatus",
-        "productionEligible",
-        "provenanceRef"
+        "manifestApprovalState",
+        "productionUseAuthorized"
       ],
       "properties": {
         "sourceId": {
           "$ref": "#/$defs/opaqueId"
         },
         "adapterId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "manifestRegistryPath": {
+          "type": "string",
+          "pattern": "^data/[A-Za-z0-9._/-]+\\.json$",
+          "maxLength": 320
+        },
+        "manifestId": {
           "$ref": "#/$defs/opaqueId"
         },
         "artifactPath": {
@@ -825,26 +834,20 @@
         },
         "classification": {
           "enum": [
-            "FOUNDER_RESEARCH_APPROVED_ROSTER",
+            "FOUNDER_FIELD_RESEARCH",
             "SYNTHETIC_NONCANONICAL",
-            "CUSTOMER_APPROVED_ROSTER"
+            "CUSTOMER_GOVERNED_DATA"
           ]
         },
-        "admissionStatus": {
+        "manifestApprovalState": {
           "enum": [
-            "ADMITTED_FOR_FOUNDER_RESEARCH",
-            "PENDING_DATA_OWNER_ARTIFACT",
-            "PENDING_CUSTOMER_APPROVAL",
-            "ADMITTED_FOR_CUSTOMER_OPERATION"
+            "APPROVED",
+            "PENDING_FOUNDER_APPROVAL",
+            "APPROVED_SYNTHETIC_VALIDATION"
           ]
         },
-        "productionEligible": {
+        "productionUseAuthorized": {
           "type": "boolean"
-        },
-        "provenanceRef": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 320
         }
       }
     }

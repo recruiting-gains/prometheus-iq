@@ -20,7 +20,7 @@
   },
   "workspaces": [
     {
-      "workspaceId": "fitness_connection_founder_research",
+      "workspaceId": "fitness_connection",
       "companyId": "fitness_connection_research",
       "lifecycle": "founder_research",
       "admission": {
@@ -290,17 +290,18 @@
       },
       "opportunitySources": [
         {
-          "sourceId": "fitness_founder_research_approved_roster",
-          "adapterId": "google_qualified_businesses_v2",
-          "artifactPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
-          "artifactSchemaVersion": "google-qualified-runtime-pool-segmentation-v1",
-          "workspaceId": "fitness_connection_founder_research",
+          "sourceId": "fitness_business_manifest_binding",
+          "adapterId": "workspace_business_manifest_adapter_v1",
+          "manifestRegistryPath": "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
+          "manifestId": "fitness_connection_approved_business_roster",
+          "artifactPath": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json",
+          "artifactSchemaVersion": "google-qualified-businesses-v2",
+          "workspaceId": "fitness_connection",
           "profileId": "fitness",
           "providerId": "google_places_existing_governed_artifact",
-          "classification": "FOUNDER_RESEARCH_APPROVED_ROSTER",
-          "admissionStatus": "ADMITTED_FOR_FOUNDER_RESEARCH",
-          "productionEligible": false,
-          "provenanceRef": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json"
+          "classification": "FOUNDER_FIELD_RESEARCH",
+          "manifestApprovalState": "PENDING_FOUNDER_APPROVAL",
+          "productionUseAuthorized": false
         }
       ],
       "fallbackPolicy": {
@@ -328,8 +329,8 @@
       }
     },
     {
-      "workspaceId": "northstar_field_supply_synthetic",
-      "companyId": "northstar_field_supply_synthetic",
+      "workspaceId": "northstar_outside_sales_synthetic",
+      "companyId": "northstar_field_supply_company_synthetic",
       "lifecycle": "synthetic_validation_only",
       "admission": {
         "status": "SYNTHETIC_VALIDATION_ONLY",
@@ -357,15 +358,15 @@
           "locationId": "northstar_houston_synthetic",
           "displayName": "Houston Sales Office (Synthetic)",
           "territoryIds": [
-            "northstar_central_synthetic"
+            "synthetic_north_territory"
           ],
           "active": true
         }
       ],
       "territories": [
         {
-          "territoryId": "northstar_central_synthetic",
-          "displayName": "Central Territory (Synthetic)",
+          "territoryId": "synthetic_north_territory",
+          "displayName": "North Territory (Synthetic)",
           "timezone": "America/Chicago",
           "active": true
         }
@@ -397,7 +398,7 @@
           "principalMappingStatus": "SYNTHETIC_ONLY",
           "roleId": "northstar_synthetic_representative",
           "territoryIds": [
-            "northstar_central_synthetic"
+            "synthetic_north_territory"
           ],
           "active": false
         }
@@ -594,17 +595,18 @@
       },
       "opportunitySources": [
         {
-          "sourceId": "northstar_general_sales_owner_artifact",
-          "adapterId": "generic_approved_opportunity_adapter_v1",
-          "artifactPath": "data/route-iq-cross-industry-validation-v1/northstar-general-sales-opportunities.json",
-          "artifactSchemaVersion": "route-iq-approved-opportunity-artifact-v1",
-          "workspaceId": "northstar_field_supply_synthetic",
+          "sourceId": "northstar_outside_sales_manifest_binding",
+          "adapterId": "workspace_business_manifest_adapter_v1",
+          "manifestRegistryPath": "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
+          "manifestId": "northstar_outside_sales_synthetic_approved_business_roster",
+          "artifactPath": "data/route-iq-commercial-readiness-v1/fixtures/general-outside-sales-synthetic-approved-businesses-v1.json",
+          "artifactSchemaVersion": "route-iq-synthetic-approved-businesses-v1",
+          "workspaceId": "northstar_outside_sales_synthetic",
           "profileId": "general_outside_sales",
           "providerId": "synthetic_owner_fixture_provider",
           "classification": "SYNTHETIC_NONCANONICAL",
-          "admissionStatus": "PENDING_DATA_OWNER_ARTIFACT",
-          "productionEligible": false,
-          "provenanceRef": "pending Data-owned synthetic validation artifact"
+          "manifestApprovalState": "APPROVED_SYNTHETIC_VALIDATION",
+          "productionUseAuthorized": false
         }
       ],
       "fallbackPolicy": {

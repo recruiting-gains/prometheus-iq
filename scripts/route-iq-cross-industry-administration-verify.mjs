@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
+  ROUTE_IQ_FITNESS_WORKSPACE_ID,
+  ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID,
   loadRouteIqWorkspaceConfigurationRegistry
 } from "../administration/contracts/route-iq-workspace-configuration-v2.mjs";
 
@@ -13,7 +16,13 @@ const schemaPath = resolve(
   "contracts/route-iq-workspace-configuration-v2.schema.json"
 );
 const legacyWorkspacePath = resolve(administrationRoot, "workspaces", "smoothie-depot");
+const dataManifestRegistryPath =
+  "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json";
 const forbiddenLiteral = /smoothie[\s_-]*depot|smoothiedepot/i;
+const forbiddenWorkspaceAliases = [
+  ["fitness_connection", "founder", "research"].join("_"),
+  ["northstar", "field", "supply", "synthetic"].join("_")
+];
 
 function listFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
@@ -25,6 +34,9 @@ function listFiles(directory) {
 
 const schema = JSON.parse(readFileSync(schemaPath, "utf8"));
 const registry = loadRouteIqWorkspaceConfigurationRegistry();
+const dataManifestRegistry = JSON.parse(
+  readFileSync(resolve(repoRoot, dataManifestRegistryPath), "utf8")
+);
 
 assert.equal(schema.$schema, "https://json-schema.org/draft/2020-12/schema");
 assert.equal(schema.additionalProperties, false);
@@ -37,6 +49,10 @@ assert.equal(schema.$defs.workspace.properties.fallbackPolicy.properties.embedde
 assert.equal(schema.$defs.workspace.properties.fallbackPolicy.properties.crossWorkspaceFallbackAllowed.const, false);
 
 assert.equal(registry.workspaces.length, 2);
+assert.deepEqual(
+  registry.workspaces.map(workspace => workspace.workspaceId).sort(),
+  [ROUTE_IQ_FITNESS_WORKSPACE_ID, ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID].sort()
+);
 assert.equal(registry.founderBoundary.attendanceMode, "CRUZ_ONLY_ATTENDED");
 assert.equal(registry.founderBoundary.anthonyMappingStatus, "UNMAPPED");
 assert.equal(registry.safety.collection, "OFF");
@@ -50,6 +66,16 @@ const literalLeaks = administrationFiles.filter(path =>
     || forbiddenLiteral.test(readFileSync(path, "utf8"))
 );
 assert.deepEqual(literalLeaks, [], "Administration must contain no current Smoothie Depot path or literal.");
+const assignedFiles = [
+  ...administrationFiles,
+  resolve(repoRoot, "scripts/route-iq-cross-industry-administration-verify.mjs"),
+  resolve(repoRoot, "tests/route-iq-cross-industry-administration.test.mjs")
+];
+const workspaceAliasLeaks = assignedFiles.filter(path => {
+  const content = readFileSync(path, "utf8");
+  return forbiddenWorkspaceAliases.some(alias => content.includes(alias));
+});
+assert.deepEqual(workspaceAliasLeaks, [], "Invented workspace aliases must not remain in assigned files.");
 
 const fitness = registry.workspaces.find(workspace => workspace.operatingProfile.profileId === "fitness");
 const general = registry.workspaces.find(
@@ -62,7 +88,7 @@ assert.equal(fitness.company.publicRelationshipClaimsAllowed, false);
 assert.equal(fitness.admission.productionAuthorized, false);
 assert.equal(general.lifecycle, "synthetic_validation_only");
 assert.equal(general.admission.productionAuthorized, false);
-assert.equal(general.opportunitySources.every(source => source.productionEligible === false), true);
+assert.equal(general.opportunitySources.every(source => source.productionUseAuthorized === false), true);
 assert.equal(
   registry.workspaces.every(workspace =>
     workspace.fallbackPolicy.mode === "FAIL_CLOSED"
@@ -76,6 +102,56 @@ assert.equal(
   registry.workspaces.every(workspace => workspace.availabilityPolicy.freshnessCeilingHours <= 24),
   true
 );
+
+const dataManifestsById = new Map(
+  dataManifestRegistry.manifests.map(manifest => [manifest.manifestId, manifest])
+);
+for (const workspace of registry.workspaces) {
+  const territoryIds = new Set(workspace.territories.map(territory => territory.territoryId));
+  for (const source of workspace.opportunitySources) {
+    assert.equal(source.manifestRegistryPath, dataManifestRegistryPath);
+    const manifest = dataManifestsById.get(source.manifestId);
+    assert.ok(manifest, `Missing Data manifest ${source.manifestId}.`);
+    assert.equal(source.workspaceId, workspace.workspaceId);
+    assert.equal(manifest.workspaceId, workspace.workspaceId);
+    assert.equal(source.profileId, workspace.operatingProfile.profileId);
+    assert.equal(manifest.operatingProfileId, workspace.operatingProfile.profileId);
+    assert.equal(source.artifactPath, manifest.artifactPath);
+    assert.equal(source.classification, manifest.classification);
+    assert.equal(source.manifestApprovalState, manifest.approvalState);
+    assert.equal(source.productionUseAuthorized, manifest.productionUseAuthorized);
+
+    const artifactBytes = readFileSync(resolve(repoRoot, manifest.artifactPath));
+    assert.equal(createHash("sha256").update(artifactBytes).digest("hex"), manifest.artifactSha256);
+    const artifact = JSON.parse(artifactBytes.toString("utf8"));
+    const artifactVersion = artifact.schemaVersion || artifact.dataset_version;
+    assert.equal(source.artifactSchemaVersion, artifactVersion);
+    if (Object.hasOwn(artifact, "workspaceId")) {
+      assert.equal(artifact.workspaceId, workspace.workspaceId);
+    }
+    if (Object.hasOwn(artifact, "operatingProfileId")) {
+      assert.equal(artifact.operatingProfileId, workspace.operatingProfile.profileId);
+    }
+    for (const record of artifact.records || []) {
+      if (record.territoryId) {
+        assert.equal(
+          territoryIds.has(record.territoryId),
+          true,
+          `${source.manifestId} contains a territory not admitted by Administration.`
+        );
+      }
+    }
+  }
+}
+
+const fitnessManifest = dataManifestsById.get("fitness_connection_approved_business_roster");
+assert.equal(fitnessManifest.approvedRecordCount, 0);
+assert.equal(fitnessManifest.approvalState, "PENDING_FOUNDER_APPROVAL");
+const syntheticManifest = dataManifestsById.get(
+  "northstar_outside_sales_synthetic_approved_business_roster"
+);
+assert.equal(syntheticManifest.approvedRecordCount, 3);
+assert.equal(syntheticManifest.approvalState, "APPROVED_SYNTHETIC_VALIDATION");
 
 const pilotCompanies = JSON.parse(
   readFileSync(resolve(administrationRoot, "registers/pilot-companies.json"), "utf8")

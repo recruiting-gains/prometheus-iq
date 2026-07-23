@@ -5,6 +5,8 @@ export const ROUTE_IQ_WORKSPACE_CONFIGURATION_SCHEMA_VERSION = "route-iq-workspa
 export const ROUTE_IQ_WORKSPACE_CONFIGURATION_AUTHORITY = "prometheus_administration";
 export const ROUTE_IQ_MAX_COMPANIES = 2;
 export const ROUTE_IQ_MAX_NAMED_USERS = 40;
+export const ROUTE_IQ_FITNESS_WORKSPACE_ID = "fitness_connection";
+export const ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID = "northstar_outside_sales_synthetic";
 
 const DEFAULT_REGISTRY_PATH = resolve(
   import.meta.dirname,
@@ -15,7 +17,7 @@ const PROFILE_VERSION = /^operating-profile-v[0-9]+$/;
 const REGISTRY_VERSION = /^route-iq-cross-industry-workspaces-v2\.[0-9]+\.[0-9]+$/;
 const CONFIGURATION_VERSION = /^v2\.[0-9]+\.[0-9]+$/;
 const COLOR = /^#[A-Fa-f0-9]{6}$/;
-const ARTIFACT_PATH = /^(administration|data|intelligence)\/[A-Za-z0-9._/-]+$/;
+const DATA_MANIFEST_PATH = /^data\/[A-Za-z0-9._/-]+\.json$/;
 const FORBIDDEN_SOURCE_TERM = /(?:^|[._/-])(demo|fallback)(?:$|[._/-])/i;
 
 const SUPPORTED_CARD_FIELDS = new Set([
@@ -84,15 +86,14 @@ const OUTCOME_CLASSIFICATIONS = new Set([
 ]);
 const KPI_AGGREGATIONS = new Set(["COUNT", "RATE", "SUM"]);
 const SOURCE_CLASSIFICATIONS = new Set([
-  "FOUNDER_RESEARCH_APPROVED_ROSTER",
+  "FOUNDER_FIELD_RESEARCH",
   "SYNTHETIC_NONCANONICAL",
-  "CUSTOMER_APPROVED_ROSTER"
+  "CUSTOMER_GOVERNED_DATA"
 ]);
-const SOURCE_ADMISSION_STATES = new Set([
-  "ADMITTED_FOR_FOUNDER_RESEARCH",
-  "PENDING_DATA_OWNER_ARTIFACT",
-  "PENDING_CUSTOMER_APPROVAL",
-  "ADMITTED_FOR_CUSTOMER_OPERATION"
+const SOURCE_APPROVAL_STATES = new Set([
+  "APPROVED",
+  "PENDING_FOUNDER_APPROVAL",
+  "APPROVED_SYNTHETIC_VALIDATION"
 ]);
 const PROVENANCE_APPROVAL_STATES = new Set([
   "FOUNDER_RESEARCH_BOUNDARY_RECORDED",
@@ -547,17 +548,25 @@ function validateOpportunitySources(workspace, scope) {
     assertExactKeys(source, [
       "sourceId",
       "adapterId",
+      "manifestRegistryPath",
+      "manifestId",
       "artifactPath",
       "artifactSchemaVersion",
       "workspaceId",
       "profileId",
       "providerId",
       "classification",
-      "admissionStatus",
-      "productionEligible",
-      "provenanceRef"
+      "manifestApprovalState",
+      "productionUseAuthorized"
     ], sourceScope);
-    for (const key of ["sourceId", "adapterId", "workspaceId", "profileId", "providerId"]) {
+    for (const key of [
+      "sourceId",
+      "adapterId",
+      "manifestId",
+      "workspaceId",
+      "profileId",
+      "providerId"
+    ]) {
       assertId(source[key], `${sourceScope}.${key}`);
     }
     if (source.workspaceId !== workspace.workspaceId) {
@@ -567,9 +576,13 @@ function validateOpportunitySources(workspace, scope) {
       fail("route_iq_admin_configuration_profile_mismatch", `${sourceScope} crosses operating-profile boundaries.`);
     }
     if (typeof source.artifactPath !== "string"
-      || !ARTIFACT_PATH.test(source.artifactPath)
+      || !DATA_MANIFEST_PATH.test(source.artifactPath)
       || source.artifactPath.length > 320
+      || typeof source.manifestRegistryPath !== "string"
+      || !DATA_MANIFEST_PATH.test(source.manifestRegistryPath)
+      || source.manifestRegistryPath.length > 320
       || FORBIDDEN_SOURCE_TERM.test(source.artifactPath)
+      || FORBIDDEN_SOURCE_TERM.test(source.manifestRegistryPath)
       || FORBIDDEN_SOURCE_TERM.test(source.sourceId)
       || FORBIDDEN_SOURCE_TERM.test(source.adapterId)) {
       fail("route_iq_admin_configuration_demo_fallback_forbidden", `${sourceScope} references demo or fallback data.`);
@@ -577,26 +590,23 @@ function validateOpportunitySources(workspace, scope) {
     if (typeof source.artifactSchemaVersion !== "string"
       || !source.artifactSchemaVersion.trim()
       || source.artifactSchemaVersion.length > 120
-      || typeof source.provenanceRef !== "string"
-      || !source.provenanceRef.trim()
-      || source.provenanceRef.length > 320
       || !SOURCE_CLASSIFICATIONS.has(source.classification)
-      || !SOURCE_ADMISSION_STATES.has(source.admissionStatus)) {
+      || !SOURCE_APPROVAL_STATES.has(source.manifestApprovalState)) {
       fail("route_iq_admin_configuration_source_invalid", `${sourceScope} is invalid.`);
     }
-    assertBoolean(source.productionEligible, `${sourceScope}.productionEligible`);
-    if (workspace.lifecycle !== "active_customer" && source.productionEligible !== false) {
+    assertBoolean(source.productionUseAuthorized, `${sourceScope}.productionUseAuthorized`);
+    if (workspace.lifecycle !== "active_customer" && source.productionUseAuthorized !== false) {
       fail("route_iq_admin_configuration_source_activation_invalid", `${sourceScope} is not production authorized.`);
     }
     if (workspace.lifecycle === "synthetic_validation_only"
       && (source.classification !== "SYNTHETIC_NONCANONICAL"
-        || source.admissionStatus !== "PENDING_DATA_OWNER_ARTIFACT")) {
+        || source.manifestApprovalState !== "APPROVED_SYNTHETIC_VALIDATION")) {
       fail("route_iq_admin_configuration_synthetic_source_invalid", `${sourceScope} is not safely synthetic.`);
     }
     if (workspace.lifecycle === "founder_research"
-      && (source.classification !== "FOUNDER_RESEARCH_APPROVED_ROSTER"
-        || source.admissionStatus !== "ADMITTED_FOR_FOUNDER_RESEARCH")) {
-      fail("route_iq_admin_configuration_founder_source_invalid", `${sourceScope} is not admitted for Founder research.`);
+      && (source.classification !== "FOUNDER_FIELD_RESEARCH"
+        || !["APPROVED", "PENDING_FOUNDER_APPROVAL"].includes(source.manifestApprovalState))) {
+      fail("route_iq_admin_configuration_founder_source_invalid", `${sourceScope} is not governed Founder research.`);
     }
     return source.sourceId;
   });
@@ -763,6 +773,7 @@ export function validateRouteIqWorkspaceConfigurationRegistry(registry) {
     .flatMap(workspace => workspace.users)
     .filter(user => user.identityClass === "FOUNDER_ATTENDED");
   if (!founderResearch
+    || founderResearch.workspaceId !== ROUTE_IQ_FITNESS_WORKSPACE_ID
     || founderResearch.operatingProfile.profileId !== "fitness"
     || founderResearch.company.relationshipClassification !== "FOUNDER_FIELD_RESEARCH"
     || founderResearch.company.publicRelationshipClaimsAllowed !== false
@@ -771,6 +782,7 @@ export function validateRouteIqWorkspaceConfigurationRegistry(registry) {
     fail("route_iq_admin_configuration_founder_research_invalid", "Fitness Founder research boundary is missing.");
   }
   if (!syntheticGeneral
+    || syntheticGeneral.workspaceId !== ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID
     || syntheticGeneral.company.relationshipClassification !== "SYNTHETIC_VALIDATION_FIXTURE"
     || syntheticGeneral.admission.productionAuthorized !== false) {
     fail("route_iq_admin_configuration_cross_industry_proof_missing", "Synthetic general outside-sales proof is missing.");
