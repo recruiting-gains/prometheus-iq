@@ -99,10 +99,12 @@ test("public Route IQ request POST remains public and independent of Founder Acc
   assert.equal(routeIqRequestCrmHttpBoundary.publicIntake.cloudflareAccessRequired, false);
 });
 
-test("the three exact Founder CRM routes are GET-only", async () => {
+test("the Founder CRM data and monitoring routes are GET-only", async () => {
   const paths = [
     "/api/partner-intake/founder/requests",
     "/api/partner-intake/founder/requests/riq_receipt_000000000000000000000000",
+    "/api/partner-intake/founder/monitoring",
+    "/api/partner-intake/founder/monitoring/riq_receipt_000000000000000000000000",
     "/api/partner-intake/founder/export"
   ];
   for (const path of paths) {
@@ -121,14 +123,19 @@ test("the three exact Founder CRM routes are GET-only", async () => {
 test("Founder GET requires a verified immutable Access sub digest", async () => {
   const fixture = await accessFixture();
   const token = await fixture.sign({ subject: fixture.subject });
-  const authorized = await handleRouteIqRequestCrmRuntimeRequest(
-    new Request("https://prometheusrouteiq.com/api/partner-intake/founder/requests", {
-      headers: { "Cf-Access-Jwt-Assertion": token }
-    }),
-    fixture.env,
-    { store: memoryStore(), authTestHooks: fixture.authTestHooks, now }
-  );
-  assert.equal(authorized.status, 200);
+  for (const path of [
+    "/api/partner-intake/founder/requests",
+    "/api/partner-intake/founder/monitoring"
+  ]) {
+    const authorized = await handleRouteIqRequestCrmRuntimeRequest(
+      new Request(`https://prometheusrouteiq.com${path}`, {
+        headers: { "Cf-Access-Jwt-Assertion": token }
+      }),
+      fixture.env,
+      { store: memoryStore(), authTestHooks: fixture.authTestHooks, now }
+    );
+    assert.equal(authorized.status, 200);
+  }
 
   const forged = await fixture.sign({
     subject: "different-cloudflare-access-subject",
@@ -138,7 +145,7 @@ test("Founder GET requires a verified immutable Access sub digest", async () => 
     bypass: true
   });
   const denied = await handleRouteIqRequestCrmRuntimeRequest(
-    new Request("https://prometheusrouteiq.com/api/partner-intake/founder/requests", {
+    new Request("https://prometheusrouteiq.com/api/partner-intake/founder/monitoring", {
       headers: { "Cf-Access-Jwt-Assertion": forged }
     }),
     fixture.env,

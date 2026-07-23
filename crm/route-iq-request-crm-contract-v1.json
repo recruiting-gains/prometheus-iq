@@ -33,7 +33,10 @@
     "deterministicContentIdentity": true,
     "identicalRetryReturnsOriginalReceipt": true,
     "changedIdempotencyRetryFailsClosed": true,
-    "partialWriteRecovery": "repair_forward_from_immutable_idempotency_claim"
+    "partialWriteRecovery": "repair_forward_from_immutable_idempotency_claim",
+    "notificationDeliveryClaim": "atomic_put_if_absent_before_external_send",
+    "notificationTerminalResult": "immutable_first_terminal_result",
+    "ambiguousDeliveryPolicy": "record_ambiguous_without_second_send"
   },
   "httpBoundary": {
     "publicIntake": {
@@ -46,6 +49,8 @@
       "paths": [
         "/api/partner-intake/founder/requests",
         "/api/partner-intake/founder/requests/{receiptId}",
+        "/api/partner-intake/founder/monitoring",
+        "/api/partner-intake/founder/monitoring/{receiptId}",
         "/api/partner-intake/founder/export"
       ],
       "methods": ["GET"],
@@ -80,7 +85,11 @@
   "monitoring": {
     "acceptedRecordMetadata": true,
     "safeFailureMetadata": true,
-    "failureMetadataContainsRequestPii": false
+    "failureMetadataContainsRequestPii": false,
+    "founderOnlySanitizedAggregate": true,
+    "founderOnlySanitizedReceiptLookup": true,
+    "notificationStatuses": ["sent", "failed", "not_configured", "delivery_ambiguous"],
+    "contactPiiExposed": false
   },
   "productionMutationPerformed": false
 }

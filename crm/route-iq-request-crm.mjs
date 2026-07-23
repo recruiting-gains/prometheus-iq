@@ -27,6 +27,8 @@ export const routeIqRequestCrmHttpBoundary = Object.freeze({
     paths: Object.freeze([
       "/api/partner-intake/founder/requests",
       "/api/partner-intake/founder/requests/{receiptId}",
+      "/api/partner-intake/founder/monitoring",
+      "/api/partner-intake/founder/monitoring/{receiptId}",
       "/api/partner-intake/founder/export"
     ]),
     methods: Object.freeze(["GET"]),
@@ -89,6 +91,18 @@ const requestInputKeys = Object.freeze([
 const opaqueIdPattern = /^[A-Za-z0-9][A-Za-z0-9_-]{15,127}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phonePattern = /^\+?[0-9][0-9 ()-]{6,23}$/;
+export const routeIqRequestReceiptPattern = /^riq_receipt_[a-f0-9]{24}$/;
+export const routeIqRequestNotificationStatuses = Object.freeze([
+  "sent",
+  "failed",
+  "not_configured",
+  "delivery_ambiguous"
+]);
+const routeIqRequestNotificationFailureCodes = Object.freeze([
+  "founder_notification_delivery_failed",
+  "founder_notification_delivery_ambiguous"
+]);
+const routeIqRequestNotificationStoragePrefix = "infrastructure-route-iq-request-v1";
 
 export class RouteIqRequestCrmError extends Error {
   constructor(code, message, status = 422) {
@@ -148,6 +162,13 @@ function positiveInteger(value, field, max) {
 
 function enumValue(value, field, values) {
   if (!values.includes(value)) fail("invalid_request_field", `${field} is unsupported.`);
+  return value;
+}
+
+function receiptId(value) {
+  if (typeof value !== "string" || !routeIqRequestReceiptPattern.test(value)) {
+    fail("invalid_receipt_id", "receiptId is invalid.");
+  }
   return value;
 }
 
@@ -399,6 +420,116 @@ export function publicRouteIqRequestReceipt(result = {}) {
   };
 }
 
+export function routeIqRequestNotificationStorageKeys(value) {
+  const normalizedReceiptId = receiptId(value);
+  return Object.freeze({
+    attempt: `${routeIqRequestNotificationStoragePrefix}/notification-attempts/${normalizedReceiptId}.json`,
+    result: `${routeIqRequestNotificationStoragePrefix}/notifications/${normalizedReceiptId}.json`
+  });
+}
+
+function validateNotificationResult(value, expectedReceiptId) {
+  const expected = receiptId(expectedReceiptId);
+  if (!value
+    || typeof value !== "object"
+    || Array.isArray(value)
+    || value.version !== routeIqRequestCrmVersion
+    || value.receiptId !== expected
+    || !routeIqRequestNotificationStatuses.includes(value.status)
+    || value.containsContactPii !== false
+    || (value.failureCode !== null && !routeIqRequestNotificationFailureCodes.includes(value.failureCode))) {
+    fail("crm_notification_record_invalid", "CRM notification result is invalid.", 500);
+  }
+  const expectedFailureCode = value.status === "failed"
+    ? "founder_notification_delivery_failed"
+    : value.status === "delivery_ambiguous"
+      ? "founder_notification_delivery_ambiguous"
+      : null;
+  if (value.failureCode !== expectedFailureCode) {
+    fail("crm_notification_record_invalid", "CRM notification result is inconsistent.", 500);
+  }
+  if (value.recordedAt !== undefined) iso(value.recordedAt);
+  return Object.freeze({
+    version: routeIqRequestCrmVersion,
+    receiptId: expected,
+    status: value.status,
+    failureCode: value.failureCode,
+    containsContactPii: false,
+    ...(value.recordedAt === undefined ? {} : { recordedAt: value.recordedAt })
+  });
+}
+
+function validateNotificationAttempt(value, expectedReceiptId) {
+  const expected = receiptId(expectedReceiptId);
+  if (!value
+    || typeof value !== "object"
+    || Array.isArray(value)
+    || value.version !== routeIqRequestCrmVersion
+    || value.receiptId !== expected
+    || value.state !== "delivery_claimed"
+    || value.containsContactPii !== false) {
+    fail("crm_notification_attempt_invalid", "CRM notification delivery claim is invalid.", 500);
+  }
+  iso(value.claimedAt);
+  return value;
+}
+
+export async function readRouteIqRequestNotificationResult(store, value) {
+  requireStore(store);
+  const normalizedReceiptId = receiptId(value);
+  const stored = await readJson(store, routeIqRequestNotificationStorageKeys(normalizedReceiptId).result);
+  return stored ? validateNotificationResult(stored, normalizedReceiptId) : null;
+}
+
+export async function claimRouteIqRequestNotificationDelivery(store, value, options = {}) {
+  requireStore(store);
+  const normalizedReceiptId = receiptId(value);
+  const keys = routeIqRequestNotificationStorageKeys(normalizedReceiptId);
+  const terminal = await readRouteIqRequestNotificationResult(store, normalizedReceiptId);
+  if (terminal) return Object.freeze({ state: "terminal", result: terminal });
+
+  const claim = {
+    version: routeIqRequestCrmVersion,
+    receiptId: normalizedReceiptId,
+    state: "delivery_claimed",
+    claimedAt: iso(options.now || new Date()),
+    containsContactPii: false
+  };
+  const claimed = await putIfAbsent(store, keys.attempt, claim, {
+    receiptId: normalizedReceiptId,
+    recordType: "route_iq_request_notification_attempt"
+  });
+  const durableClaim = await readJson(store, keys.attempt);
+  validateNotificationAttempt(durableClaim, normalizedReceiptId);
+  const racedTerminal = await readRouteIqRequestNotificationResult(store, normalizedReceiptId);
+  if (racedTerminal) return Object.freeze({ state: "terminal", result: racedTerminal });
+  return Object.freeze({ state: claimed ? "claimed" : "delivery_ambiguous", result: null });
+}
+
+export async function recordRouteIqRequestNotificationResult(store, value, input = {}, options = {}) {
+  requireStore(store);
+  const normalizedReceiptId = receiptId(value);
+  const proposed = validateNotificationResult({
+    version: routeIqRequestCrmVersion,
+    receiptId: normalizedReceiptId,
+    status: input.status,
+    failureCode: input.failureCode ?? null,
+    containsContactPii: false,
+    recordedAt: iso(options.now || new Date())
+  }, normalizedReceiptId);
+  const key = routeIqRequestNotificationStorageKeys(normalizedReceiptId).result;
+  const created = await putIfAbsent(store, key, proposed, {
+    receiptId: normalizedReceiptId,
+    recordType: "route_iq_request_notification",
+    status: proposed.status
+  });
+  const durable = await readJson(store, key);
+  return Object.freeze({
+    created,
+    result: validateNotificationResult(durable, normalizedReceiptId)
+  });
+}
+
 export function authorizeRouteIqRequestFounder(principal = {}) {
   const allowed = principal.authenticated === true
     && principal.identityProvider === routeIqRequestFounderAuthorization.identityProvider
@@ -417,12 +548,11 @@ function requireFounderScope(input = {}) {
 export async function retrieveRouteIqRequest(store, input = {}) {
   requireStore(store, { list: true });
   requireFounderScope(input);
-  const receiptId = boundedText(input.receiptId, "receiptId", 16, 80);
-  if (!/^riq_receipt_[a-f0-9]{24}$/.test(receiptId)) fail("invalid_receipt_id", "receiptId is invalid.");
-  const key = `${routeIqRequestCrmStoragePrefix}/workspaces/${input.workspaceId}/requests/${receiptId}.json`;
+  const normalizedReceiptId = receiptId(input.receiptId);
+  const key = `${routeIqRequestCrmStoragePrefix}/workspaces/${input.workspaceId}/requests/${normalizedReceiptId}.json`;
   const record = await readJson(store, key);
   if (!record) return null;
-  if (record.workspace?.workspaceId !== input.workspaceId || record.receiptId !== receiptId) {
+  if (record.workspace?.workspaceId !== input.workspaceId || record.receiptId !== normalizedReceiptId) {
     fail("crm_store_record_invalid", "CRM request retrieval crossed a workspace partition.", 500);
   }
   return record;
@@ -448,6 +578,72 @@ export async function listRouteIqRequests(store, input = {}) {
     records.push(record);
   }
   return records.sort((a, b) => a.request.submittedAt.localeCompare(b.request.submittedAt) || a.receiptId.localeCompare(b.receiptId));
+}
+
+function receiptIdsFromList(listed, prefix) {
+  const keys = Array.isArray(listed) ? listed : listed?.keys;
+  if (!Array.isArray(keys)) fail("crm_store_list_invalid", "CRM durable list response is invalid.", 500);
+  return keys.map(item => {
+    const key = typeof item === "string" ? item : item?.name;
+    if (typeof key !== "string" || !key.startsWith(prefix) || !key.endsWith(".json")) {
+      fail("crm_store_list_invalid", "CRM durable list returned an invalid key.", 500);
+    }
+    return receiptId(key.slice(prefix.length, -".json".length));
+  });
+}
+
+function monitoringReceiptId(record, workspaceId) {
+  if (!record
+    || record.workspace?.workspaceId !== workspaceId
+    || record.status !== "accepted"
+    || record.monitoring?.storageStatus !== "committed") {
+    fail("crm_store_record_invalid", "CRM request monitoring found an invalid canonical record.", 500);
+  }
+  return receiptId(record.receiptId);
+}
+
+export async function routeIqRequestFounderMonitoringSummary(store, input = {}) {
+  requireStore(store, { list: true });
+  requireFounderScope(input);
+  const notificationPrefix = `${routeIqRequestNotificationStoragePrefix}/notifications/`;
+  const requestReceiptIds = (await listRouteIqRequests(store, input)).map(record => (
+    monitoringReceiptId(record, input.workspaceId)
+  ));
+  const notificationReceiptIds = receiptIdsFromList(await store.list({ prefix: notificationPrefix }), notificationPrefix);
+  const requestSet = new Set(requestReceiptIds);
+  const notificationSet = new Set(notificationReceiptIds);
+  const notificationStatusCounts = Object.fromEntries(routeIqRequestNotificationStatuses.map(status => [status, 0]));
+  for (const notificationReceiptId of notificationReceiptIds) {
+    const result = await readRouteIqRequestNotificationResult(store, notificationReceiptId);
+    notificationStatusCounts[result.status] += 1;
+  }
+  return Object.freeze({
+    version: routeIqRequestCrmVersion,
+    recordCount: requestReceiptIds.length,
+    notificationCount: notificationReceiptIds.length,
+    notificationStatusCounts: Object.freeze(notificationStatusCounts),
+    missingNotificationCount: requestReceiptIds.filter(id => !notificationSet.has(id)).length,
+    orphanNotificationCount: notificationReceiptIds.filter(id => !requestSet.has(id)).length
+  });
+}
+
+export async function routeIqRequestFounderReceiptMonitoring(store, input = {}) {
+  requireStore(store, { list: true });
+  requireFounderScope(input);
+  const normalizedReceiptId = receiptId(input.receiptId);
+  const record = await retrieveRouteIqRequest(store, { ...input, receiptId: normalizedReceiptId });
+  if (record) monitoringReceiptId(record, input.workspaceId);
+  const notification = await readRouteIqRequestNotificationResult(store, normalizedReceiptId);
+  return Object.freeze({
+    version: routeIqRequestCrmVersion,
+    receiptId: normalizedReceiptId,
+    recordCount: record ? 1 : 0,
+    recordStatus: record ? "accepted" : "missing",
+    notificationCount: notification ? 1 : 0,
+    notificationStatus: notification?.status || "missing",
+    notificationFailureCode: notification?.failureCode || null,
+    duplicateSafe: true
+  });
 }
 
 function csvCell(value) {

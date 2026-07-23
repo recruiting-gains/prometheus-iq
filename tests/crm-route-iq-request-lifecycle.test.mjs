@@ -5,13 +5,18 @@ import { resolve } from "node:path";
 import {
   RouteIqRequestCrmError,
   authorizeRouteIqRequestFounder,
+  claimRouteIqRequestNotificationDelivery,
   exportRouteIqRequests,
   listRouteIqRequests,
   normalizeRouteIqRequestInput,
   persistRouteIqRequest,
   publicRouteIqRequestReceipt,
+  readRouteIqRequestNotificationResult,
+  recordRouteIqRequestNotificationResult,
   retrieveRouteIqRequest,
   routeIqRequestCrmAccessConfigurationNames,
+  routeIqRequestFounderMonitoringSummary,
+  routeIqRequestFounderReceiptMonitoring,
   routeIqRequestCrmHttpBoundary,
   routeIqRequestCrmStoragePrefix,
   routeIqRequestFailureMetadata,
@@ -221,6 +226,75 @@ test("Founder retrieval requires Cruz's exact immutable authenticated principal"
   }
 });
 
+test("notification claims and Founder monitoring are idempotent, receipt-scoped, and PII-free", async () => {
+  const store = memoryDurableStore();
+  const accepted = await persistRouteIqRequest(store, input(), { now: "2026-07-18T15:00:00.000Z" });
+  const claim = await claimRouteIqRequestNotificationDelivery(store, accepted.receiptId, {
+    now: "2026-07-18T15:00:01.000Z"
+  });
+  assert.equal(claim.state, "claimed");
+
+  const recorded = await recordRouteIqRequestNotificationResult(store, accepted.receiptId, {
+    status: "sent",
+    failureCode: null
+  }, { now: "2026-07-18T15:00:02.000Z" });
+  assert.equal(recorded.created, true);
+  assert.equal((await readRouteIqRequestNotificationResult(store, accepted.receiptId)).status, "sent");
+
+  const terminal = await claimRouteIqRequestNotificationDelivery(store, accepted.receiptId, {
+    now: "2026-07-18T15:00:03.000Z"
+  });
+  assert.equal(terminal.state, "terminal");
+  const conflictingTerminal = await recordRouteIqRequestNotificationResult(store, accepted.receiptId, {
+    status: "delivery_ambiguous",
+    failureCode: "founder_notification_delivery_ambiguous"
+  }, { now: "2026-07-18T15:00:04.000Z" });
+  assert.equal(conflictingTerminal.created, false);
+  assert.equal(conflictingTerminal.result.status, "sent");
+
+  const summary = await routeIqRequestFounderMonitoringSummary(store, founderScope());
+  assert.deepEqual(summary, {
+    version: "route-iq-request-crm-v1",
+    recordCount: 1,
+    notificationCount: 1,
+    notificationStatusCounts: {
+      sent: 1,
+      failed: 0,
+      not_configured: 0,
+      delivery_ambiguous: 0
+    },
+    missingNotificationCount: 0,
+    orphanNotificationCount: 0
+  });
+  const receiptMonitoring = await routeIqRequestFounderReceiptMonitoring(store, {
+    ...founderScope(),
+    receiptId: accepted.receiptId
+  });
+  assert.deepEqual(receiptMonitoring, {
+    version: "route-iq-request-crm-v1",
+    receiptId: accepted.receiptId,
+    recordCount: 1,
+    recordStatus: "accepted",
+    notificationCount: 1,
+    notificationStatus: "sent",
+    notificationFailureCode: null,
+    duplicateSafe: true
+  });
+  const serialized = JSON.stringify({ summary, receiptMonitoring });
+  assert.equal(serialized.includes("Jordan"), false);
+  assert.equal(serialized.includes("jordan@example.com"), false);
+  assert.equal(serialized.includes("Houston Field Services"), false);
+
+  await assert.rejects(
+    () => routeIqRequestFounderMonitoringSummary(store, founderScope({ principal: cruzPrincipal({ authenticated: false }) })),
+    error => error.code === "founder_authorization_required" && error.status === 403
+  );
+  await assert.rejects(
+    () => routeIqRequestFounderReceiptMonitoring(store, { ...founderScope(), receiptId: "riq_receipt_invalid" }),
+    error => error.code === "invalid_receipt_id"
+  );
+});
+
 test("CSV export neutralizes spreadsheet formulas and safe failure metadata excludes request PII", async () => {
   const store = memoryDurableStore();
   await persistRouteIqRequest(store, input({
@@ -267,6 +341,8 @@ test("machine-readable CRM contract pins fields, durable semantics, and authoriz
       paths: [
         "/api/partner-intake/founder/requests",
         "/api/partner-intake/founder/requests/{receiptId}",
+        "/api/partner-intake/founder/monitoring",
+        "/api/partner-intake/founder/monitoring/{receiptId}",
         "/api/partner-intake/founder/export"
       ],
       methods: ["GET"],
