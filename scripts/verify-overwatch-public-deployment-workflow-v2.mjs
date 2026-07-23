@@ -75,7 +75,6 @@ const WORKFLOW_V2_TAIL_PARENT = "0d828948968b8cedf3b1961c5320c74c03a8e18c";
 const WORKFLOW_V2_TAIL_PATHS = Object.freeze([
   HISTORICAL_READINESS_GOVERNANCE_PATH,
   GOVERNANCE_PATH,
-  AUGUST1_READINESS_REPORT_PATH,
   "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
   "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
   "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
@@ -386,12 +385,21 @@ const AUGUST1_QUALIFICATION_SUCCESSORS = Object.freeze([
     author: OVERWATCH_IDENTITY,
     committer: OVERWATCH_IDENTITY,
     files: AUGUST1_CURRENT_OVERWATCH_SUCCESSOR_FILES
+  }),
+  Object.freeze({
+    commit: "5aa41020ab857c9910b526acf138c1f7348c402f",
+    tree: "fb2b2cd20624d9b62c43a50de49867f6355a72c5",
+    parent: "0cffd6afb7b660e61049baff330bf3b231077a89",
+    subject: "overwatch: align August 1 tail boundary",
+    author: OVERWATCH_IDENTITY,
+    committer: OVERWATCH_IDENTITY,
+    files: AUGUST1_CURRENT_OVERWATCH_SUCCESSOR_FILES
   })
 ]);
 const AUGUST1_OVERWATCH_SUCCESSOR = Object.freeze({
   classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
   parent: AUGUST1_QUALIFICATION_SUCCESSORS.at(-1).commit,
-  subject: "overwatch: align August 1 tail boundary",
+  subject: "overwatch: finalize August 1 exact tail",
   author: OVERWATCH_IDENTITY,
   committer: OVERWATCH_IDENTITY,
   files: AUGUST1_CURRENT_OVERWATCH_SUCCESSOR_FILES

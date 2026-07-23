@@ -505,7 +505,6 @@
       "files": [
         "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
         "overwatch/governance/public-deployment-workflow-v2.json",
-        "overwatch/governance/route-iq-august-1-launch-closeout-v1.json",
         "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
         "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
         "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
@@ -1921,12 +1920,30 @@
           "tests/overwatch-public-deployment-workflow-v2.test.mjs",
           "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
         ]
+      },
+      {
+        "commit": "5aa41020ab857c9910b526acf138c1f7348c402f",
+        "tree": "fb2b2cd20624d9b62c43a50de49867f6355a72c5",
+        "parent": "0cffd6afb7b660e61049baff330bf3b231077a89",
+        "subject": "overwatch: align August 1 tail boundary",
+        "author": "Prometheus Overwatch <overwatch@prometheus.local>",
+        "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
+        "files": [
+          "overwatch/governance/public-deployment-workflow-v2.json",
+          "overwatch/governance/public-deployment-workflow-v2.md",
+          "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+          "overwatch/governance/route-iq-august-1-launch-closeout-v1.json",
+          "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+          "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+          "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+        ]
       }
     ],
     "overwatchSuccessor": {
       "classification": "DYNAMIC_EXACT_HEAD_SUCCESSOR",
-      "parent": "0cffd6afb7b660e61049baff330bf3b231077a89",
-      "subject": "overwatch: align August 1 tail boundary",
+      "parent": "5aa41020ab857c9910b526acf138c1f7348c402f",
+      "subject": "overwatch: finalize August 1 exact tail",
       "author": "Prometheus Overwatch <overwatch@prometheus.local>",
       "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
       "files": [
