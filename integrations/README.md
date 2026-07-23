@@ -15,7 +15,7 @@ The contract registers the Infrastructure-owned intake path for isolated workspa
 
 - `POST /api/partner-intake`
 - `SHARED_LEAD_INTAKE_STORE`
-- workspace routing for `fitness_connection` and `smoothie_depot`
+- an Administration-owned governed workspace registry with no embedded customer routes
 - intake submission artifact shape
 - `shared_workspace_crm_lead_intake_packet.v1`
 - Founder email notification event state
@@ -30,6 +30,38 @@ Verification:
 
 ```bash
 npm run infrastructure:intake-contract:check
+```
+
+## Business Hours Provider Adapter v1
+
+Entrypoint:
+
+```text
+integrations/business-hours-provider-adapter.js
+```
+
+The provider-neutral adapter is a Worker-safe boundary between a governed external
+hours provider and Prometheus Data normalization. It:
+
+- defaults to `OFF` and performs zero transport calls while disabled
+- permits `GET` only and rejects redirects
+- accepts a fixed HTTPS endpoint and strict opaque business/provider identities
+- enforces a strict response-field allowlist
+- requires complete, identity-matched results
+- uses a bounded caller-supplied retry schedule
+- enforces request timeouts without retaining provider responses
+- returns only `route-iq-business-hours-data-normalization-input.v1`
+- never returns eligibility, recommendation, credential, header, or raw-response data
+
+No provider credential, paid-provider activation, or live provider endpoint is
+configured by this contract. Data remains responsible for normalization,
+freshness, provenance acceptance, and current-state derivation. Intelligence
+remains responsible for route eligibility.
+
+Verification:
+
+```bash
+node --test tests/business-hours-provider-adapter.test.mjs
 ```
 
 ## Founder Calendar & Message Contract v1

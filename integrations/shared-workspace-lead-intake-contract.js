@@ -1,4 +1,4 @@
-export const SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT_VERSION = "shared-workspace-lead-intake-artifact-contract.v1";
+export const SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT_VERSION = "shared-workspace-lead-intake-artifact-contract.v2";
 
 export const SHARED_WORKSPACE_LEAD_INTAKE_COMPONENTS = Object.freeze([
   "partner_intake_endpoint",
@@ -40,8 +40,8 @@ export const SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT = Object.freeze({
     publicWorkerOnly: true,
     founderRetrievalRequiresImmutablePrincipal: true,
     representativeRetrievalAllowed: false,
-    fitnessConnectionCustomerIntakeActive: false,
-    smoothieDepotCustomerIntakeActive: false
+    customerSpecificWorkspaceIntakeActive: false,
+    governedRouteIqRequestOnly: true
   }),
   legacyWorkspaceIntakeRuntime: Object.freeze({
     status: "historical_inactive",
@@ -68,42 +68,11 @@ export const SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT = Object.freeze({
     missingWorkspaceRouteFailsClosed: true,
     noCrossWorkspaceRouting: true,
     noProductionFixtureOrDemoIntakeData: true,
-    workspaces: Object.freeze({
-      fitness_connection: Object.freeze({
-        workspaceId: "fitness_connection",
-        workspaceName: "Fitness Connection",
-        operatingProfileId: "fitness",
-        operatingProfileLabel: "Fitness",
-        aliases: Object.freeze([
-          "fitness_connection",
-          "fitness-connection",
-          "fitness connection",
-          "fitness",
-          "fc",
-          "fitness_connection_partner_intake"
-        ]),
-        protectedWorkspaceIds: Object.freeze(["smoothie_depot"]),
-        crmWorkspacePath: "crm://workspace/fitness_connection/leads",
-        kvSubmissionPrefix: "shared-lead-intake/workspaces/fitness_connection/submissions/"
-      }),
-      smoothie_depot: Object.freeze({
-        workspaceId: "smoothie_depot",
-        workspaceName: "Smoothie Depot",
-        operatingProfileId: "franchise_development",
-        operatingProfileLabel: "Franchise Development",
-        aliases: Object.freeze([
-          "smoothie_depot",
-          "smoothie-depot",
-          "smoothie depot",
-          "smoothie",
-          "sd",
-          "smoothie_depot_partner_intake"
-        ]),
-        protectedWorkspaceIds: Object.freeze(["fitness_connection"]),
-        crmWorkspacePath: "crm://workspace/smoothie_depot/candidate_pipeline",
-        kvSubmissionPrefix: "shared-lead-intake/workspaces/smoothie_depot/submissions/"
-      })
-    })
+    registryOwnerSubsystem: "Prometheus Administration",
+    runtimeConsumerSubsystem: "Prometheus Infrastructure",
+    runtimeRegistryRequired: true,
+    embeddedCustomerWorkspaceRoutesAllowed: false,
+    workspaces: Object.freeze({})
   }),
   kvPersistence: Object.freeze({
     id: "kv_persistence",
@@ -269,12 +238,18 @@ export function listSharedWorkspaceLeadIntakeContracts() {
   });
 }
 
-export function getSharedLeadIntakeWorkspaceContract(workspaceId) {
-  return SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.workspaceRouter.workspaces[workspaceId] || null;
+export function getSharedLeadIntakeWorkspaceContract(
+  workspaceId,
+  workspaceRegistry = SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.workspaceRouter.workspaces
+) {
+  if (!workspaceRegistry || typeof workspaceRegistry !== "object" || Array.isArray(workspaceRegistry)) {
+    return null;
+  }
+  return workspaceRegistry[workspaceId] || null;
 }
 
-export function workspaceSubmissionKeyPrefix(workspaceId) {
-  return getSharedLeadIntakeWorkspaceContract(workspaceId)?.kvSubmissionPrefix || null;
+export function workspaceSubmissionKeyPrefix(workspaceId, workspaceRegistry) {
+  return getSharedLeadIntakeWorkspaceContract(workspaceId, workspaceRegistry)?.kvSubmissionPrefix || null;
 }
 
 export function assertSharedWorkspaceLeadIntakeContract() {
