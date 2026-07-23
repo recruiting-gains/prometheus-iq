@@ -1,0 +1,112 @@
+{
+  "contractVersion": "route-iq-august-1-customer-pwa-runtime-v1",
+  "ownerSubsystem": "Prometheus Infrastructure",
+  "worker": "prometheus-iq",
+  "state": "INERT_DEFAULT_OFF",
+  "routes": {
+    "application": ["/app", "/app/"],
+    "session": "/api/dashboard/route-iq/customer/session",
+    "fieldSessionWrite": "/api/dashboard/route-iq/field-session",
+    "methods": {
+      "application": ["GET", "HEAD"],
+      "session": ["GET", "HEAD"],
+      "fieldSessionWrite": ["POST"]
+    },
+    "canonicalApplicationPath": "/app",
+    "trailingSlashBehavior": "AUTHENTICATED_307_TO_CANONICAL_PATH_PRIVATE_NO_STORE_QUERY_ONLY",
+    "nestedApplicationPaths": "NOT_FOUND"
+  },
+  "activation": {
+    "runtimeSwitchName": "ROUTE_IQ_CUSTOMER_PWA_LAUNCH_ENABLED",
+    "runtimeSwitchActiveValue": "ON",
+    "missingMalformedOrOff": "OFF_OR_FAIL_CLOSED",
+    "dataEnvelope": "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope-v1.json",
+    "requiredEnvelopeState": "ACTIVE",
+    "bothRuntimeSwitchAndEnvelopeRequired": true
+  },
+  "configuration": {
+    "workerName": "ROUTE_IQ_CUSTOMER_PWA_WORKER_NAME",
+    "accessTeamDomain": "ROUTE_IQ_CUSTOMER_PWA_ACCESS_TEAM_DOMAIN",
+    "accessAudience": "ROUTE_IQ_CUSTOMER_PWA_ACCESS_AUDIENCE"
+  },
+  "authentication": {
+    "authority": "Cloudflare Access",
+    "assertionHeader": "Cf-Access-Jwt-Assertion",
+    "algorithm": "RS256",
+    "issuer": "EXACT_CONFIGURED_TEAM_DOMAIN",
+    "audience": "EXACT_CONFIGURED_APPLICATION_AUDIENCE",
+    "jwks": "EXACT_TEAM_DOMAIN_CDN_CGI_ACCESS_CERTS",
+    "requiredClaims": ["sub", "iat", "exp"],
+    "maximumClockToleranceSeconds": 5,
+    "principalDerivation": "riq_principal_sha256_of_verified_subject_in_memory",
+    "callerIdentityFieldsAccepted": false,
+    "clientSessionExpiry": "EARLIER_OF_VERIFIED_ACCESS_EXP_AND_LAUNCH_ENVELOPE_EXPIRY",
+    "clientSessionExpiryFormat": "ISO_8601_ONLY"
+  },
+  "sessionContract": {
+    "marker": "__ROUTE_IQ_CUSTOMER_PWA_SESSION__",
+    "templateId": "routeIqCustomerPwaSession",
+    "htmlElement": "template#routeIqCustomerPwaSession",
+    "executable": false,
+    "injectionMode": "REPLACE_EXACT_MARKER_TEXT_INSIDE_EXISTING_TEMPLATE",
+    "additionalElementCreated": false,
+    "responseKeys": ["ok", "session"],
+    "sessionKeys": [
+      "contractVersion",
+      "authorizationState",
+      "workspaceId",
+      "workspaceLabel",
+      "operatingProfileId",
+      "userId",
+      "representativeId",
+      "displayName",
+      "roleId",
+      "capabilities",
+      "runtimeAssets",
+      "expiresAt",
+      "safety"
+    ],
+    "capabilityKeys": [
+      "operateOwnRoute",
+      "readWorkspaceOperations",
+      "administerWorkspaceRoster",
+      "founderIntelligence",
+      "founderCrm"
+    ],
+    "runtimeAssetKeys": ["fullPool", "activePool", "quarantinePool", "businessHours"],
+    "safetyKeys": ["prospectiveCollection", "activeCohorts", "recommendationInfluence"],
+    "errorResponseKeys": ["ok", "code", "message"],
+    "serializationEscapes": ["<", ">", "&", "U+2028", "U+2029"],
+    "forbiddenOutput": [
+      "access_token",
+      "authorization_cookie",
+      "raw_subject",
+      "subject_hash",
+      "founder_intelligence",
+      "founder_crm"
+    ]
+  },
+  "fieldSessionWriteBoundary": {
+    "launchOffBehavior": "PRESERVE_EXISTING_FOUNDER_RESEARCH_WORKFLOW",
+    "launchOnBehavior": "REQUIRE_VERIFIED_MAPPED_PRINCIPAL_BEFORE_ARCHIVE_WRITE",
+    "workspaceSource": "SERVER_VERIFIED_PRINCIPAL_AND_DATA_ENVELOPE",
+    "operatingProfileSource": "SERVER_VERIFIED_PRINCIPAL_AND_DATA_ENVELOPE",
+    "representativeSource": "SERVER_VERIFIED_PRINCIPAL_AND_DATA_ENVELOPE",
+    "crossWorkspaceWrites": "DENIED",
+    "crossRepresentativeWrites": "DENIED"
+  },
+  "boundedCapacity": {
+    "maximumCompanies": 2,
+    "maximumNamedUsers": 40,
+    "enforcedBy": "Prometheus Data launch envelope and Infrastructure admission check",
+    "serializedToClient": false
+  },
+  "safety": {
+    "founderCrm": false,
+    "founderIntelligence": false,
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "productionActivationAuthorized": false
+  }
+}

@@ -27,6 +27,15 @@ import {
   isRouteIqRequestCrmPath
 } from "./infrastructure/route-iq-request-crm-runtime.js";
 import {
+  assertRouteIqCustomerPwaFieldSessionScope,
+  authorizeRouteIqCustomerPwaRequest,
+  getRouteIqCustomerPwaLaunchMode,
+  handleRouteIqCustomerPwaRequest,
+  isRouteIqCustomerPwaAppNamespace,
+  isRouteIqCustomerPwaSessionPath,
+  routeIqCustomerPwaErrorResponse
+} from "./infrastructure/route-iq-august-1-customer-pwa-runtime.js";
+import {
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
   getRouteIqProspectiveActivation,
   handleRouteIqProspectiveShadowRequest,
@@ -822,6 +831,7 @@ function scheduleRouteIqProspectiveSessionClose(request, env, {
 }
 
 async function handleRouteIqFieldSessionHandoff(request, env, {
+  customerPwaAuthorization,
   executionContext,
   prospectiveTestHooks
 } = {}) {
@@ -841,6 +851,9 @@ async function handleRouteIqFieldSessionHandoff(request, env, {
     }
 
     const body = await readBoundedJsonRequest(request);
+    if (customerPwaAuthorization) {
+      assertRouteIqCustomerPwaFieldSessionScope(customerPwaAuthorization, body);
+    }
     if (!ROUTE_IQ_FIELD_SESSION_ACTIONS.includes(body.completionAction)) {
       throw fieldSessionRequestError(
         "Field-session completion action must be End Route or End Day.",
@@ -927,6 +940,27 @@ async function handleRouteIqFieldSessionHandoff(request, env, {
   }
 }
 
+async function handleRouteIqCustomerAwareFieldSessionRequest(request, env, executionContext, {
+  customerPwaTestHooks
+} = {}) {
+  let customerPwaAuthorization = null;
+  if (request.method === "POST") {
+    try {
+      if (getRouteIqCustomerPwaLaunchMode(env) === "ON") {
+        customerPwaAuthorization = await authorizeRouteIqCustomerPwaRequest(request, env, {
+          testHooks: customerPwaTestHooks
+        });
+      }
+    } catch (error) {
+      return routeIqCustomerPwaErrorResponse(error);
+    }
+  }
+  return handleRouteIqFieldSessionHandoff(request, env, {
+    customerPwaAuthorization,
+    executionContext
+  });
+}
+
 async function handleApiRequest(request, env, executionContext, { dailySnapshotTestHooks } = {}) {
   const url = new URL(request.url);
   if (url.pathname === ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH) {
@@ -947,6 +981,7 @@ async function handleApiRequest(request, env, executionContext, { dailySnapshotT
 }
 
 export async function handlePrometheusIqWorkerRequest(request, env, executionContext, {
+  customerPwaTestHooks,
   unattendedSmokeTestHooks,
   dailySnapshotTestHooks
 } = {}) {
@@ -958,14 +993,26 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
   let response;
   try {
     const url = new URL(request.url);
-    if (isRouteIqProspectiveShadowPath(url.pathname)
+    if (isRouteIqCustomerPwaAppNamespace(url.pathname)
+      || isRouteIqCustomerPwaSessionPath(url.pathname)) {
+      response = await handleRouteIqCustomerPwaRequest(request, env, { testHooks: customerPwaTestHooks });
+    } else if (isRouteIqProspectiveShadowPath(url.pathname)
       && (!getRouteIqProspectiveActivation(env).active || request.method === "GET")) {
       response = await handleRouteIqProspectiveShadowRequest(request, env, { executionContext });
     } else if (url.pathname.startsWith("/api/")) {
       const aegis = await enforceAegisControls(request, env);
-      response = !aegis.ok
-        ? aegis.response
-        : withAegisHeaders(await handleApiRequest(request, env, executionContext, { dailySnapshotTestHooks }), aegis);
+      if (!aegis.ok) {
+        response = aegis.response;
+      } else if (url.pathname === ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH) {
+        response = withAegisHeaders(
+          await handleRouteIqCustomerAwareFieldSessionRequest(request, env, executionContext, {
+            customerPwaTestHooks
+          }),
+          aegis
+        );
+      } else {
+        response = withAegisHeaders(await handleApiRequest(request, env, executionContext, { dailySnapshotTestHooks }), aegis);
+      }
     } else {
       response = await env.ASSETS.fetch(
         sanitizeCloudflareUnattendedSmokeAssetRequest(request, smokeAuthorization)

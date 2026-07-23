@@ -1,0 +1,94 @@
+{
+  "contractId": "route-iq-private-forward-compatible-rollback-candidate-v2",
+  "product": "Route IQ",
+  "owner": "Prometheus Infrastructure",
+  "status": "PREPARED_NOT_DEPLOYED",
+  "target": {
+    "worker": "prometheus-iq",
+    "environment": "production_private",
+    "publicWorker": "prometheusrouteiq-website",
+    "publicWorkerExcluded": true
+  },
+  "currentPrivateProduction": {
+    "workerVersion": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+    "trafficPercent": 100,
+    "evidence": "FOUNDER_CONFIRMED_REQUIRES_READ_ONLY_PREFLIGHT_BEFORE_ANY_FUTURE_DEPLOYMENT"
+  },
+  "applicationBehaviorSource": {
+    "commit": "dec2ba1b137b0123b6f072ada4b3dd184f88c80d",
+    "tree": "61258b4edcafe2af6e94f76b9e011e2486cb2fe6",
+    "workerVersion": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+    "workerSourceSha256": "140fdf73b01f1d0e1113971e93c2ef0f63fbd52317f0617b5c4f8121a85b35ea",
+    "dashboardAssetSha256": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
+  },
+  "statefulCompatibility": {
+    "binding": "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR",
+    "className": "RouteIqProspectiveShadowCoordinator",
+    "migrationTag": "route-iq-prospective-shadow-sqlite-v1",
+    "storageBackend": "sqlite",
+    "migrationHistoryPreserved": true,
+    "newMigrationAdded": false,
+    "deletedClassesAllowed": false,
+    "namespaceDeletionAllowed": false,
+    "bindingRemovalAllowed": false,
+    "classExportRemovalAllowed": false,
+    "nativeCloudflareRollbackAllowed": false,
+    "deploymentMode": "future_normal_forward_deployment"
+  },
+  "protectedRuntimeConfiguration": {
+    "keepVars": true,
+    "knownRequiredSecretNames": [
+      "ROUTE_IQ_PROSPECTIVE_SHADOW_AUTHORITY_KEY",
+      "ROUTE_IQ_PROSPECTIVE_SHADOW_AUTHORITY_KEY_VERSION"
+    ],
+    "allExistingSecretBindingsPreserved": true,
+    "secretValuesInRepository": false,
+    "secretsFileAllowed": false,
+    "secretCreateUpdateDeleteAllowed": false,
+    "customerAccessConfigurationPreservedButUnusedWhileOff": true
+  },
+  "runtimeBoundary": {
+    "customerPwaLaunch": "OFF",
+    "customerPwaRoutesPresent": false,
+    "prospectiveCollection": "OFF",
+    "effectiveActiveCohortCount": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutput": false,
+    "durableObjectWrites": false,
+    "durableObjectReads": false,
+    "operationalInfluence": false
+  },
+  "candidatePackage": {
+    "builder": "scripts/build-route-iq-private-forward-rollback-candidate-v2.mjs",
+    "configurationTemplate": "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v2.json",
+    "inertClassSource": "workers/infrastructure/route-iq-private-forward-rollback-inert-durable-object-v2.js",
+    "generatedEntrypoint": "workers/prometheus-iq-worker.js",
+    "retainedEntrypoint": "workers/prometheus-iq-retained-version-55.js",
+    "generatedManifest": "route-iq-private-forward-rollback-build-manifest-v2.json",
+    "publicWorkerConfigurationIncluded": false,
+    "releaseCandidateCommitAndTreePinnedInGeneratedManifest": true,
+    "canonicalQualificationRequiresCommittedCleanRef": true,
+    "worktreeBuildIsNoncanonicalTestOnly": true
+  },
+  "artifactIdentity": {
+    "algorithm": "sha256",
+    "configSha256": "3f8e7bc25e2223f85ae22c8d1bbcd4d0a3c8188ead5a4d7513de0ee0aadcedd9",
+    "inertClassSha256": "79690a2d2f15aae213798d3b729edb620beac1bdbf06dabb377074d7020121ec",
+    "generatedEntrypointSha256": "e19e041b7cec8d83d88fbe28eeec1bd4609fe5ecbf75416164e45610afdf260f",
+    "contentTreeSha256": "2cc96307bc063114682c41e66071784f579be991eb80858c01b08b14ac06c2ed"
+  },
+  "monitoringAndCost": {
+    "observabilityPreserved": true,
+    "expectedIncrementalDurableObjectRequests": 0,
+    "expectedIncrementalDurableObjectStorageWrites": 0,
+    "expectedIncrementalMonthlyCostUsd": 0,
+    "budgetControl": "No retained application route resolves the inert coordinator and both launch controls are OFF."
+  },
+  "authorization": {
+    "candidatePreparationAuthorized": true,
+    "deploymentAuthorized": false,
+    "trafficChangeAuthorized": false,
+    "productionMutationAuthorized": false,
+    "productionDataMutationAuthorized": false
+  }
+}
