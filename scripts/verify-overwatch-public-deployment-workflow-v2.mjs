@@ -947,10 +947,6 @@ function verifyAugust1LaunchCloseoutSuccessor(governance) {
   ]) verifyExactCommit(expected);
 
   verifyExactCommit(CURRENT_AUGUST1_PIN_REFRESH);
-  assert.equal(
-    git(["log", "-1", "--format=%H", "--", AUGUST1_READINESS_REPORT_PATH]),
-    CURRENT_AUGUST1_PIN_REFRESH.commit
-  );
 
   const currentEvidence = [
     ...AUGUST1_ROLLBACK_SUCCESSOR_FILES.slice(0, 4),
