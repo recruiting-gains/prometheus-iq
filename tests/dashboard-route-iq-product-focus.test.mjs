@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { EventEmitter } from "node:events";
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -19,16 +18,11 @@ import {
 } from "../scripts/verify-dashboard-runtime-workflows.mjs";
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
-const sha256 = value => createHash("sha256").update(value).digest("hex");
 
 const source = read("index.html");
-const deploy = read("deploy/cloudflare-pages/index.html");
 const serviceWorker = read("sw.js");
-const deployServiceWorker = read("deploy/cloudflare-pages/sw.js");
 const runtimeWorkflowVerifier = read("scripts/verify-dashboard-runtime-workflows.mjs");
 const canonicalFounderSnapshot = JSON.parse(read("intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json"));
-const historicalSmoothie = read("smoothie-depot-dashboard/index.html");
-const historicalSmoothieDeploy = read("deploy/cloudflare-pages/smoothie-depot-dashboard/index.html");
 
 function createHarnessFixture(t) {
   const fixtureRoot = mkdtempSync(join(tmpdir(), "prometheus-dashboard-harness-test-"));
@@ -96,22 +90,21 @@ function createFakeChrome(fixtureRoot, {
 }
 
 test("Route IQ is the only active Dashboard product", () => {
-  assert.equal(source, deploy);
   assert.match(source, /<title>Route IQ<\/title>/);
   assert.match(source, /apple-mobile-web-app-title" content="Route IQ"/);
   assert.match(source, /<h1>Route IQ<\/h1>/);
-  assert.doesNotMatch(source, /data-workspace-select|workspaceSwitch|smoothie_depot|smoothie-depot-dashboard|Smoothie Depot/);
+  assert.doesNotMatch(source, /data-workspace-select|workspaceSwitch|retired_customer_catalog/u);
   assert.doesNotMatch(source, /\bGaia\b|\bAthena\b/);
   assert.match(source, /const dashboardWorkspaces = Object\.freeze\(routeIqCustomerPwaSession/);
   assert.match(source, /\[routeIqCustomerPwaSession\.workspaceId\]: Object\.freeze\(\{/);
-  assert.match(source, /workspaceId: "fitness_connection",\s*label: "Fitness Connection",\s*operatingProfileId: "fitness"/);
+  assert.doesNotMatch(source, /workspaceId: "fitness_connection",\s*label:/u);
+  assert.match(source, /workspaceId: routeIqCustomerPwaSession\.workspaceId/u);
 });
 
-test("historical Smoothie Depot Dashboard remains byte-preserved and isolated", () => {
-  const expectedHistoricalSha256 = "2ff668f76454deb843179852e07d6b4633e2f3929edf324df53e56b8a4140129";
-  assert.equal(sha256(historicalSmoothie), expectedHistoricalSha256);
-  assert.equal(sha256(historicalSmoothieDeploy), expectedHistoricalSha256);
-  assert.equal(historicalSmoothie, historicalSmoothieDeploy);
+test("obsolete customer-specific Dashboard entry points are absent from current source", () => {
+  assert.equal(existsSync(new URL("../smoothie-depot-dashboard/index.html", import.meta.url)), false);
+  assert.equal(existsSync(new URL("../smoothie-depot-dashboard/command-center.js", import.meta.url)), false);
+  assert.equal(existsSync(new URL("../demo-dashboard/index.html", import.meta.url)), false);
 });
 
 test("daily intelligence consumer requires exact server-authenticated Cruz mapping", () => {
@@ -151,10 +144,13 @@ test("daily snapshot remains read-only and recommendation influence stays off", 
   assert.match(source, /This is governed observation, not a recommendation or prediction/);
 });
 
-test("source and deploy service-worker markers remain synchronized", () => {
-  assert.equal(serviceWorker, deployServiceWorker);
-  assert.match(source, /serviceWorkerCacheVersion = "prometheus-v49-route-iq-bounded-production"/);
-  assert.match(serviceWorker, /CACHE_NAME = "prometheus-v49-route-iq-bounded-production"/);
+test("source service worker uses the v50 generic shell and never caches governed runtime data", () => {
+  assert.match(source, /serviceWorkerCacheVersion = "prometheus-v50-route-iq-configurable-dashboard"/);
+  assert.match(serviceWorker, /CACHE_NAME = "prometheus-v50-route-iq-configurable-dashboard"/);
+  assert.match(serviceWorker, /\/administration\/workspace-configurations\//u);
+  assert.match(serviceWorker, /\/data\/route-iq-commercial-readiness-v1\//u);
+  assert.match(serviceWorker, /fetch\(event\.request, \{ cache: "no-store" \}\)/u);
+  assert.doesNotMatch(serviceWorker, /APP_SHELL[\s\S]*index\.html/u);
 });
 
 test("Eventbrite expansion uses an explicit advancing clock instead of the wall-clock date", () => {

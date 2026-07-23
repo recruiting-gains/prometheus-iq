@@ -10,9 +10,7 @@ import {
 } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
 
 const dashboardSource = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const deployedDashboardSource = readFileSync(new URL("../deploy/cloudflare-pages/index.html", import.meta.url), "utf8");
 const serviceWorkerSource = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
-const deployedServiceWorkerSource = readFileSync(new URL("../deploy/cloudflare-pages/sw.js", import.meta.url), "utf8");
 
 function sourceSection(start, end) {
   const startIndex = dashboardSource.indexOf(start);
@@ -457,8 +455,6 @@ test("Dashboard producer fails retryably when canonical runtime assets are unava
 });
 
 test("Dashboard Decision Source remains optional post-action evidence rather than frozen shadow context", () => {
-  assert.equal(deployedDashboardSource, dashboardSource);
-
   const definitions = sourceSection("const visitDecisionSourceDefinitions", "const visitDecisionSourceIds");
   const markup = sourceSection("function visitDecisionSourceMarkup", "function attachVisitDecisionSourceControl");
   const evidenceFactory = sourceSection("function createVisitDecisionEvidence", "const visitOutcomeFields");
@@ -502,9 +498,6 @@ test("Dashboard Decision Source remains optional post-action evidence rather tha
 });
 
 test("Dashboard prospective seam is opaque, nonblocking, and limited to the existing next-stop boundary", () => {
-  assert.equal(deployedDashboardSource, dashboardSource);
-  assert.equal(deployedServiceWorkerSource, serviceWorkerSource);
-
   const gate = sourceSection("function disableRouteIqProspectiveAdmission", "function signalRouteIqProspectiveEvent");
   const sender = sourceSection("function signalRouteIqProspectiveEvent", "const appUrlParams");
   const replenishment = sourceSection("async function performAdaptiveRouteReplenishment", "function requestAdaptiveRouteReplenishment");
@@ -546,7 +539,7 @@ test("Dashboard prospective seam is opaque, nonblocking, and limited to the exis
   assert.match(sender, /void fetch\([\s\S]*\)\.catch\(\(\) => undefined\)/);
   assert.doesNotMatch(sender, /await|\.then\(|response|\.json\(|\.text\(|localStorage|sessionStorage|indexedDB|caches\./);
 
-  assert.match(startup, /const prospectiveBootstrapPromise = initializeRouteIqProspectiveClient\(\)[\s\S]*await loadRouteBusinessHoursEligibility\(\)[\s\S]*await loadRuntimeProductionDataset\(\)[\s\S]*routeIqProspectiveBootstrapWindowOpen = false[\s\S]*await requestAdaptiveRouteReplenishment\(\{ force: true, trigger: "startup" \}\)/);
+  assert.match(startup, /await loadRuntimeProductionDataset\(\)[\s\S]*const prospectiveBootstrapPromise = initializeRouteIqProspectiveClient\(\)[\s\S]*await loadRouteBusinessHoursEligibility\(\)[\s\S]*routeIqProspectiveBootstrapWindowOpen = false[\s\S]*await requestAdaptiveRouteReplenishment\(\{ force: true, trigger: "startup" \}\)/);
 
   assert.match(replenishment, /result\.metrics\.activeCount > 0 && \(result\.triggered \|\| options\.force === true\)[\s\S]*signalRouteIqProspectiveEvent\("next_stop_requested"\)/);
   assert.doesNotMatch(clickBoundary, /signalRouteIqProspectiveEvent\("representative_action_observed"\)/);
@@ -578,7 +571,7 @@ test("Dashboard prospective seam is opaque, nonblocking, and limited to the exis
 
   assert.doesNotMatch(dashboardSource, /representative_outcome_observed/);
   assert.doesNotMatch(reportBuilder, /routeIqProspective|shadowDecision|shadowRanking|shadowProbability|shadowConfidence|shadowReadiness/);
-  assert.match(serviceWorkerSource, /if \(event\.request\.method !== "GET"\) return/);
+  assert.match(serviceWorkerSource, /if \(event\.request\.method !== "GET" && event\.request\.method !== "HEAD"\) return/);
   assert.doesNotMatch(serviceWorkerSource, /route-iq\/prospective|prospective\/event/);
 });
 

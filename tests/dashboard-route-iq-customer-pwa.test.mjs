@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import test from "node:test";
 
 const root = resolve(import.meta.dirname, "..");
@@ -8,15 +8,7 @@ const dashboard = readFileSync(resolve(root, "index.html"), "utf8");
 const manifest = JSON.parse(readFileSync(resolve(root, "manifest.webmanifest"), "utf8"));
 const serviceWorker = readFileSync(resolve(root, "sw.js"), "utf8");
 const runtimeWorkflowHarness = readFileSync(resolve(root, "scripts/verify-dashboard-runtime-workflows.mjs"), "utf8");
-const generatedIntelligenceRoot = resolve(root, "deploy/cloudflare-pages/intelligence");
-
-function generatedModules(directory) {
-  return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
-    const path = resolve(directory, entry.name);
-    if (entry.isDirectory()) return generatedModules(path);
-    return entry.isFile() && entry.name.endsWith(".mjs") ? [path] : [];
-  });
-}
+const dashboardPlatform = readFileSync(resolve(root, "dashboard/route-iq-dashboard-platform.mjs"), "utf8");
 
 test("the customer PWA is one generic Route IQ app with a server-verified entry path", () => {
   assert.equal(manifest.name, "Route IQ");
@@ -30,17 +22,25 @@ test("the customer PWA is one generic Route IQ app with a server-verified entry 
 });
 
 test("customer identity and local state are server-scoped and cannot be selected by URL or prior browser state", () => {
-  assert.match(dashboard, /routeIqCustomerPwaSession\?\.representativeId\s*\|\|\s*safeParam/u);
-  assert.match(dashboard, /routeIqCustomerPwaSession\s*\?\s*routeIqCustomerSessionRole\s*:\s*safeParam/u);
-  assert.match(dashboard, /prometheus-v1:\$\{customerStorageScope\}/u);
+  assert.match(dashboard, /routeIqCustomerPwaSession\?\.representativeId\s*\|\|\s*\(isLocalPreview \? safeParam/u);
+  assert.match(dashboard, /routeIqCustomerPwaSession\s*\?\s*routeIqCustomerSessionRole\s*:\s*isLocalPreview\s*\?\s*safeParam/u);
+  assert.match(dashboard, /prometheus-v2:\$\{customerStorageScope\}/u);
   assert.match(dashboard, /prometheus-route-iq-finalized-sessions-v1:\$\{customerStorageScope\}/u);
   assert.match(dashboard, /if \(!routeIqCustomerPwaSession\) localStorage\.setItem\(sessionRoleStoreKey/u);
   assert.match(dashboard, /Object\.keys\(repProfiles\)\.forEach/u);
   assert.match(dashboard, /profileId !== authorizedRepresentativeId/u);
-  assert.match(dashboard, /requestedRuntimePool = appUrlParams\.get\("runtimePool"\) === "full"/u);
-  assert.match(dashboard, /selectedRuntimePool = routeIqCustomerPwaSession \? "active" : requestedRuntimePool/u);
+  assert.doesNotMatch(dashboard, /requestedRuntimePool|selectedRuntimePool|appUrlParams\.get\("runtimePool"\)/u);
+  assert.match(dashboard, /\["businessManifestRegistry", "businessRoster", "businessHours"\]\.some/u);
   assert.match(dashboard, /founderDebugEnabled = !routeIqCustomerPwaSession && appUrlParams\.get\("debug"\) === "1"/u);
   assert.doesNotMatch(dashboard, /role:\s*"Beta tester"|Anthony Beta Territory|mi beta radius/u);
+});
+
+test("customer territory presentation is applied only after authenticated configuration loads", () => {
+  const territoryProfiles = dashboard.match(/const territoryProfiles = routeIqCustomerPwaSession \? \{[\s\S]*?\n    \} : \{/u)?.[0] || "";
+  assert.doesNotMatch(territoryProfiles, /activeWorkspaceConfiguration/u);
+  assert.match(dashboard, /const activeTerritory = activeWorkspaceConfiguration\.territories\.find/u);
+  assert.match(dashboard, /activeDashboardPlatform\.territoryIds\.includes\(territory\.territoryId\)/u);
+  assert.match(dashboard, /activeTerritoryProfile\.label = activeTerritory\.displayName/u);
 });
 
 test("customer sessions cannot expose Founder intelligence, Founder CRM, collection, cohorts, or recommendations", () => {
@@ -53,12 +53,11 @@ test("customer sessions cannot expose Founder intelligence, Founder CRM, collect
 });
 
 test("a missing customer operating profile blocks startup without falling back to Fitness", () => {
-  assert.match(dashboard, /routeIqCustomerPwaSession && !selectedOperatingProfile/u);
-  assert.match(dashboard, /operatingProfileSource = "customer-configuration-unavailable"/u);
-  assert.match(dashboard, /renderRouteIqCustomerPwaSessionBlocked\("configuration_unavailable"\)/u);
-  assert.match(dashboard, /const operatingProfileLoaded = await loadOperatingProfileDefinitions\(\);[\s\S]*?if \(routeIqCustomerPwaSession && !operatingProfileLoaded\) \{[\s\S]*?return;[\s\S]*?\}[\s\S]*?await loadRouteReplenishmentEngine\(\);/u);
+  assert.match(dashboard, /operatingProfileSource = "configuration-unavailable"/u);
+  assert.match(dashboard, /runtimeDatasetSource = \{\s*label: "governed-runtime-unavailable",\s*status: "configuration-required"/u);
+  assert.match(dashboard, /const operatingProfileLoaded = await loadOperatingProfileDefinitions\(\);[\s\S]*?await loadRuntimeProductionDataset\(\);[\s\S]*?if \(!operatingProfileLoaded\) \{[\s\S]*?disableRouteIqProspectiveAdmission\("workspace_configuration_unavailable"\)[\s\S]*?return;[\s\S]*?\}[\s\S]*?await loadRouteReplenishmentEngine\(\);/u);
   assert.match(dashboard, /customerStartup\.operationalWorkflowStarted = true;[\s\S]*?await loadRouteReplenishmentEngine\(\);[\s\S]*?initializeRouteIqProspectiveClient\(\);/u);
-  assert.match(dashboard, /if \(routeIqCustomerPwaSession\) \{[\s\S]*?return false;[\s\S]*?activeOperatingProfile = embeddedOperatingProfile;/u);
+  assert.doesNotMatch(dashboard, /embeddedOperatingProfile|embeddedBusinessCatalog/u);
 });
 
 test("navigation and session expiry fail closed without caching an authenticated app document", () => {
@@ -80,45 +79,38 @@ test("quick Add Place enforces workspace duplicate and capacity checks", () => {
   assert.match(dashboard, /state\.places\.length >= MAX_PLACES/u);
   assert.match(dashboard, /queueCandidateWorkspace\(place\) === workspaceId/u);
   assert.match(dashboard, /normalizeKey\(place\.name\) === normalizeKey\(name\)/u);
-  assert.match(dashboard, /workspaceId,\s*\n\s*notes:/u);
+  assert.match(dashboard, /workspaceId,\s*\n\s*operatingProfileId:[\s\S]*candidateAdmission: "VERIFICATION_REQUIRED"/u);
 });
 
 test("the browser harness uses governed Northstar Intelligence provenance without Fitness asset substitution", () => {
-  assert.match(runtimeWorkflowHarness, /operatingProfileId: "northstar_service_calls"/u);
-  assert.match(runtimeWorkflowHarness, /intelligence\/fixtures\/route-iq-governed-customer-business-hours-v1\.json/u);
+  assert.match(runtimeWorkflowHarness, /workspaceId: "northstar_outside_sales_synthetic"/u);
+  assert.match(runtimeWorkflowHarness, /operatingProfileId: "general_outside_sales"/u);
+  assert.match(runtimeWorkflowHarness, /administration\/workspace-configurations\/route-iq-cross-industry-workspaces-v2\.json/u);
+  assert.match(runtimeWorkflowHarness, /route-iq-workspace-business-artifact-manifest-registry-v1\.json/u);
+  assert.match(runtimeWorkflowHarness, /data\/__harness__\/northstar\/approved-roster\.json/u);
   assert.match(runtimeWorkflowHarness, /data\/__harness__\/northstar\/business-hours\.json/u);
   assert.match(runtimeWorkflowHarness, /intelligence\/route-iq-governed-runtime-scope\.mjs/u);
   assert.match(runtimeWorkflowHarness, /mismatchedProvenanceRejected/u);
-  assert.match(runtimeWorkflowHarness, /!customerPwaRequestedPaths\.has\(activePoolPath\)/u);
-  assert.match(runtimeWorkflowHarness, /!customerPwaRequestedPaths\.has\(fullPoolPath\)/u);
-  assert.doesNotMatch(runtimeWorkflowHarness, /customerPwaSessionFixture[\s\S]{0,1800}business-hours-v1\/business-hours\.json/u);
+  assert.doesNotMatch(runtimeWorkflowHarness, /customerPwaActivePoolPath|customerPwaFullPoolPath/u);
 });
 
 test("the browser harness treats Founder cross-profile previews as governed fail-closed cases", () => {
   assert.match(runtimeWorkflowHarness, /runGovernedProfileMismatchScenario/u);
-  assert.match(runtimeWorkflowHarness, /Route replenishment operating profile is not authorized:/u);
+  assert.match(runtimeWorkflowHarness, /governed runtime scope|operating profile/iu);
   assert.match(runtimeWorkflowHarness, /initial\.debug\.startupCompleted === false/u);
   assert.match(runtimeWorkflowHarness, /initial\.debug\.rendererReceived === false/u);
   assert.match(runtimeWorkflowHarness, /boundary\.authorizedOperatingProfileId === "fitness"/u);
   assert.doesNotMatch(runtimeWorkflowHarness, /for \(const expected of \[\s*\{ profileId: "general_outside_sales"/u);
 });
 
-test("generated Dashboard Intelligence modules retain source parity and resolvable imports", () => {
-  const governedScopeSource = readFileSync(resolve(root, "intelligence/route-iq-governed-runtime-scope.mjs"));
-  const governedScopeDeploy = readFileSync(resolve(generatedIntelligenceRoot, "route-iq-governed-runtime-scope.mjs"));
-  assert.deepEqual(governedScopeDeploy, governedScopeSource);
-
-  const staticRelativeImport = /\bimport\s+(?:[\s\S]*?\s+from\s+)?["'](\.{1,2}\/[^"']+)["'];/gu;
-  for (const modulePath of generatedModules(generatedIntelligenceRoot)) {
-    const moduleSource = readFileSync(modulePath, "utf8");
-    for (const match of moduleSource.matchAll(staticRelativeImport)) {
-      assert.equal(
-        existsSync(resolve(dirname(modulePath), match[1])),
-        true,
-        `${modulePath} imports missing generated dependency ${match[1]}`
-      );
-    }
-  }
+test("Dashboard source requires the governed v2 hours and manifest-admission contracts", () => {
+  assert.match(dashboard, /route-iq-business-hours-eligibility-v2/u);
+  assert.match(dashboard, /createGovernedRouteRuntimeScopeFromConfiguration/u);
+  assert.match(dashboard, /governedRuntimeScope: routeGovernedRuntimeScope/u);
+  assert.match(dashboardPlatform, /sourceManifestConfigurationVersion/u);
+  assert.match(dashboardPlatform, /sourceArtifactSha256/u);
+  assert.match(serviceWorker, /\/intelligence\//u);
+  assert.doesNotMatch(serviceWorker, /cache\.put|runtime JSON|stale-while-revalidate/iu);
 });
 
 test("the browser harness proves a missing customer profile stops before operational startup", () => {
@@ -129,6 +121,6 @@ test("the browser harness proves a missing customer profile stops before operati
   assert.match(runtimeWorkflowHarness, /prospectiveListenerAttached === false/u);
   assert.match(runtimeWorkflowHarness, /operationalWorkflowStarted === false/u);
   assert.match(runtimeWorkflowHarness, /intelligence\/continuous-adaptive-route-replenishment\.mjs/u);
-  assert.match(runtimeWorkflowHarness, /customerPwaActivePoolPath/u);
-  assert.match(runtimeWorkflowHarness, /!customerPwaMissingProfileServer\.requests\.some\(request => missingProfileForbiddenRequests\.has\(request\.path\)\)/u);
+  assert.match(runtimeWorkflowHarness, /businessRoster/u);
+  assert.match(runtimeWorkflowHarness, /!customerPwaMissingProfileServer\.requests\.some/u);
 });

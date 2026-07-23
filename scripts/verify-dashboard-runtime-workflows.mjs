@@ -1,11 +1,10 @@
 import { spawn, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { createServer as createSecureServer } from "node:https";
 import { accessSync, constants as fsConstants, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
 import { delimiter, extname, join, normalize, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-
-import { injectRouteIqCustomerPwaSession } from "../workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js";
 
 const root = resolve(import.meta.dirname, "..");
 const dashboardRoot = resolve(root, "deploy/cloudflare-pages");
@@ -16,133 +15,190 @@ const prospectiveEventPath = "api/dashboard/route-iq/prospective/event";
 const founderDailyIntelligencePath = "api/dashboard/route-iq/intelligence/daily-snapshot";
 const founderDailyIntelligenceArtifactPath = resolve(root, "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json");
 const canonicalFounderDailyIntelligenceSnapshot = JSON.parse(readFileSync(founderDailyIntelligenceArtifactPath, "utf8"));
-const canonicalOperatingProfileRegistry = JSON.parse(readFileSync(resolve(root, "intelligence/profiles/operating-profiles.json"), "utf8"));
 const prospectiveBootstrapContractVersion = "route-iq-prospective-browser-bootstrap-v1";
 const prospectiveEventContractVersion = "route-iq-prospective-browser-event-v1";
 const prospectiveRuntimeContextContractVersion = "route-iq-prospective-runtime-context-v1";
 const prospectiveCoordinatorContractVersion = "route-iq-prospective-coordinator-contract-v1";
 const routeUpdateCompletionPrefix = "Route updated using your latest result.";
 const governedRouteHoursDetailPattern = /^(?:1 stop has|(?:[2-9]|[1-9]\d+) stops have) unverified hours\.$/;
-const customerPwaActivePoolPath = "data/__harness__/northstar/active-pool.json";
-const customerPwaFullPoolPath = "data/__harness__/northstar/full-pool.json";
-const customerPwaQuarantinePoolPath = "data/__harness__/northstar/quarantine-pool.json";
-const customerPwaBusinessHoursFixtureSourcePath = "intelligence/fixtures/route-iq-governed-customer-business-hours-v1.json";
+const customerPwaWorkspaceConfigurationPath = "administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json";
+const customerPwaManifestRegistryPath = "data/__harness__/northstar/manifest-registry.json";
+const customerPwaBusinessRosterPath = "data/__harness__/northstar/approved-roster.json";
 const customerPwaBusinessHoursPath = "data/__harness__/northstar/business-hours.json";
-const customerPwaOperatingProfilePath = "intelligence/profiles/operating-profiles.json";
-const customerPwaIntelligenceSourcePaths = new Set([
-  "intelligence/continuous-adaptive-route-replenishment.mjs",
-  "intelligence/route-business-hours-eligibility.mjs",
-  "intelligence/route-iq-governed-runtime-scope.mjs"
-]);
-const customerPwaBusinessHours = Object.freeze(JSON.parse(readFileSync(resolve(root, customerPwaBusinessHoursFixtureSourcePath), "utf8")));
-const customerPwaOperatingProfile = Object.freeze({
-  ...canonicalOperatingProfileRegistry.profiles.find(profile => profile.profileId === "general_outside_sales"),
-  profileId: "northstar_service_calls",
-  label: "Northstar Service Calls",
-  industry: "field_services",
-  terminology: Object.freeze({
-    customer: "service customer",
-    target: "service location",
-    visit: "field visit",
-    success: "qualified service opportunity"
-  }),
-  dashboardLabels: Object.freeze({
-    routeTitle: "Service Call Route",
-    primarySuccess: "Qualified Service Opportunity",
-    followUp: "Service Follow-up"
-  })
+const customerPwaTestClock = Object.freeze({
+  now: "2026-07-23T16:00:00.000Z",
+  timezoneId: "America/Chicago"
 });
-const customerPwaOperatingProfileRegistry = Object.freeze({
-  ...canonicalOperatingProfileRegistry,
-  profiles: Object.freeze([customerPwaOperatingProfile])
-});
+const cloneJson = value => JSON.parse(JSON.stringify(value));
+const canonicalWorkspaceConfigurationRegistry = JSON.parse(readFileSync(
+  resolve(root, customerPwaWorkspaceConfigurationPath),
+  "utf8"
+));
+const canonicalBusinessManifestRegistry = JSON.parse(readFileSync(
+  resolve(root, "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json"),
+  "utf8"
+));
 const customerPwaRuntimeRecords = Object.freeze(Array.from({ length: 15 }, (_, offset) => {
   const sequence = offset + 1;
-  const googlePlaceId = `synthetic-northstar-place-${String(sequence).padStart(3, "0")}`;
   return Object.freeze({
-    googlePlaceId,
-    businessName: `Synthetic Northstar Location ${sequence}`,
-    address: `Synthetic address ${sequence}`,
-    category: "Business Services",
-    estimatedDistanceMiles: Number((sequence / 10).toFixed(1)),
-    sourceType: "Google Places API",
-    googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`Synthetic Northstar Location ${sequence}`)}`,
+    recordId: `synthetic_outside_sales_opportunity_${String(sequence).padStart(3, "0")}`,
+    businessName: `Synthetic Outside Sales Opportunity ${sequence}`,
+    address: `${sequence}00 Validation Way, Example City, TX 77001`,
+    category: sequence % 2 ? "Business Services" : "Office",
+    territoryId: "synthetic_north_territory",
+    approvalState: "APPROVED_SYNTHETIC_VALIDATION",
+    estimated_distance_miles: Number((sequence / 10).toFixed(1)),
     latitude: 29.62 + sequence / 10000,
     longitude: -95.22 - sequence / 10000,
-    accessType: "Appointment or walk-in",
-    askFor: "operations lead",
-    qualityStatus: "verified",
-    businessStatus: "OPERATIONAL",
-    qualityClass: "Excellent",
-    qualityScore: 90 - offset / 10,
-    priority: 90 - offset,
-    runtimeProfiles: Object.freeze([Object.freeze({
-      runtimeId: `northstar-runtime-${String(sequence).padStart(3, "0")}`,
-      repProfileId: "northstar_rep_001",
-      seedRouteOrder: sequence,
-      qualityClass: "Excellent",
-      qualityScore: 90 - offset / 10,
-      priority: 90 - offset
-    })])
+    access_type: "Walk-in ready",
+    ask_for: "Operations lead",
+    expected_visit_duration: "5-9",
+    opportunity_stage: sequence % 3 ? "Prospecting" : "Qualification"
   });
 }));
-const customerPwaActivePool = Object.freeze({
-  generatedAt: "2026-08-01T15:00:00.000Z",
-  sourceDatasetVersion: "google-qualified-businesses-v2",
-  segmentationVersion: "runtime-pool-segmentation-v1",
-  runtimeBehaviorChanged: false,
-  scoringChanged: false,
-  pool: "active",
-  count: customerPwaRuntimeRecords.length,
+const customerPwaBusinessRoster = Object.freeze({
+  schemaVersion: "route-iq-synthetic-approved-businesses-v1",
+  artifactVersion: "route-iq-dashboard-runtime-harness-approved-businesses-v2",
+  workspaceId: "northstar_outside_sales_synthetic",
+  operatingProfileId: "general_outside_sales",
+  classification: "SYNTHETIC_NONCANONICAL",
+  generatedAt: "2026-07-23T12:00:00.000Z",
+  recordCount: customerPwaRuntimeRecords.length,
   records: customerPwaRuntimeRecords
 });
-const customerPwaFullPool = Object.freeze({
-  generated_at: "2026-08-01T15:00:00.000Z",
-  dataset_version: "google-qualified-businesses-v2",
-  cruz: Object.freeze(customerPwaRuntimeRecords.map((record, offset) => Object.freeze({
-    id: record.runtimeProfiles[0].runtimeId,
-    repProfileId: "northstar_rep_001",
-    seedRouteOrder: offset + 1,
-    name: record.businessName,
-    category: record.category,
-    window: "Anytime",
-    distance: `${record.estimatedDistanceMiles.toFixed(1)} mi`,
-    priority: record.priority,
-    address: record.address,
-    latitude: record.latitude,
-    longitude: record.longitude,
-    permission: "Unknown",
-    accessType: record.accessType,
-    askFor: record.askFor,
-    googlePlaceId: record.googlePlaceId,
-    googleMapsUrl: record.googleMapsUrl,
-    sourceType: record.sourceType,
-    qualityClass: record.qualityClass,
-    qualityScore: record.qualityScore,
-    confidence: "High",
-    truthBasis: "Synthetic noncanonical runtime fixture for browser verification only."
-  }))),
-  anthony: Object.freeze([])
+const customerPwaBusinessRosterText = JSON.stringify(customerPwaBusinessRoster);
+const customerPwaBusinessRosterSha256 = createHash("sha256")
+  .update(customerPwaBusinessRosterText)
+  .digest("hex");
+const customerPwaWorkspaceConfigurationRegistry = cloneJson(canonicalWorkspaceConfigurationRegistry);
+const customerPwaWorkspaceConfiguration = customerPwaWorkspaceConfigurationRegistry.workspaces.find(
+  workspace => workspace.workspaceId === "northstar_outside_sales_synthetic"
+);
+const customerPwaOpportunitySource = customerPwaWorkspaceConfiguration.opportunitySources.find(
+  source => source.workspaceId === "northstar_outside_sales_synthetic"
+);
+Object.assign(customerPwaOpportunitySource, {
+  manifestRegistryPath: customerPwaManifestRegistryPath,
+  artifactPath: customerPwaBusinessRosterPath,
+  artifactSchemaVersion: customerPwaBusinessRoster.schemaVersion
 });
-const customerPwaQuarantinePool = Object.freeze({
-  generatedAt: "2026-08-01T15:00:00.000Z",
-  sourceDatasetVersion: "google-qualified-businesses-v2",
-  segmentationVersion: "runtime-pool-segmentation-v1",
+const customerPwaBusinessManifestRegistry = cloneJson(canonicalBusinessManifestRegistry);
+const customerPwaBusinessManifest = customerPwaBusinessManifestRegistry.manifests.find(
+  manifest => manifest.workspaceId === "northstar_outside_sales_synthetic"
+);
+Object.assign(customerPwaBusinessManifestRegistry, {
+  generatedAt: "2026-07-23T12:00:00.000Z"
+});
+Object.assign(customerPwaBusinessManifest, {
+  artifactPath: customerPwaBusinessRosterPath,
+  artifactSha256: customerPwaBusinessRosterSha256,
+  recordCount: customerPwaRuntimeRecords.length,
+  approvedRecordCount: customerPwaRuntimeRecords.length,
+  approvedRecordIds: customerPwaRuntimeRecords.map(record => record.recordId),
+  freshness: {
+    maximumAgeHours: 24,
+    evaluatedAt: "2026-07-23T12:00:00.000Z",
+    expiresAt: "2026-07-24T12:00:00.000Z",
+    state: "SYNTHETIC"
+  },
+  sourceProvenance: {
+    producer: "Prometheus Data",
+    producerVersion: customerPwaBusinessRoster.artifactVersion,
+    sourceSystem: "deterministic_synthetic_fixture",
+    sourceRetrievedAt: "2026-07-23T12:00:00.000Z"
+  }
+});
+const customerPwaBusinessHours = Object.freeze({
+  schemaVersion: "prometheus-data-business-hours-v1",
+  artifactVersion: "business-hours-v1",
+  generatedAt: "2026-07-23T15:55:00.000Z",
+  statusEvaluatedAt: customerPwaTestClock.now,
+  sourceRetrievedAt: "2026-07-23T15:55:00.000Z",
+  workspaceId: "northstar_outside_sales_synthetic",
+  operatingProfileId: "general_outside_sales",
+  sourceDatasetVersion: "route-iq-dashboard-runtime-harness-hours-v2",
+  sourceArtifact: customerPwaBusinessHoursPath,
+  sourceCandidateCount: customerPwaRuntimeRecords.length,
+  recordCount: customerPwaRuntimeRecords.length,
+  refreshMode: "test-only-synthetic-governed-fixture",
+  provider: "SYNTHETIC_NONCANONICAL",
+  freshnessPolicy: {
+    providerRefreshIntervalHours: 24,
+    statusEvaluationIntervalMinutes: 15,
+    freshnessThresholdHours: 24,
+    fieldObservationFreshnessMinutes: 240,
+    staleStatus: "HOURS_STALE",
+    missingStatus: "HOURS_UNKNOWN",
+    unverifiedSpecialHoursStatus: "SPECIAL_HOURS_UNVERIFIED"
+  },
+  routeEligibilityActivated: false,
   runtimeBehaviorChanged: false,
   scoringChanged: false,
-  pool: "quarantine",
-  count: 0,
-  records: Object.freeze([])
+  routeIqRuntimeScope: {
+    version: "route-iq-governed-runtime-scope-v1",
+    assetType: "business_hours",
+    authority: "server_governed_runtime_asset",
+    workspaceId: "northstar_outside_sales_synthetic",
+    operatingProfileId: "general_outside_sales",
+    workspaceBound: true,
+    operatingProfileBound: true,
+    authorizations: [
+      "business_hours_eligibility",
+      "continuous_adaptive_route_replenishment"
+    ]
+  },
+  records: customerPwaRuntimeRecords.map(record => ({
+    workspaceId: "northstar_outside_sales_synthetic",
+    operatingProfileId: "general_outside_sales",
+    recordId: record.recordId,
+    businessName: record.businessName,
+    address: record.address,
+    category: record.category,
+    latitude: record.latitude,
+    longitude: record.longitude,
+    activePoolMember: true,
+    sourceDatasetVersion: "route-iq-dashboard-runtime-harness-hours-v2",
+    permanentOperationalStatus: "OPERATIONAL",
+    regularWeeklyBusinessHours: {
+      periods: [{
+        open: { date: null, day: 0, hour: 0, minute: 0, truncated: null },
+        close: null
+      }],
+      sourceOpenNowAtRetrieval: true
+    },
+    specialOrHolidayHours: [],
+    currentOpeningHoursWindow: null,
+    businessTimezone: "America/Chicago",
+    currentHoursSource: "SYNTHETIC_NONCANONICAL",
+    sourceRetrievedAt: "2026-07-23T15:55:00.000Z",
+    hoursVerifiedAt: "2026-07-23T15:55:00.000Z",
+    hoursFreshnessStatus: "FRESH",
+    hoursConfidence: "HIGH",
+    hoursProvenance: {
+      sourceSystem: "SYNTHETIC_NONCANONICAL",
+      sourceMethod: "test_fixture",
+      sourcePlaceId: record.recordId,
+      retrievedAt: "2026-07-23T15:55:00.000Z",
+      normalizedAt: "2026-07-23T15:55:00.000Z",
+      fieldEvidenceIds: []
+    },
+    currentOpenClosedEligibilityStatus: "OPEN_VERIFIED",
+    currentStatusReasonCode: "VERIFIED_24_HOUR_OPERATION",
+    currentStatusReason: "Synthetic governed fixture verifies continuous operation.",
+    currentStatusEvaluatedAt: customerPwaTestClock.now,
+    currentStatusBusinessLocalDate: "2026-07-23",
+    currentStatusBusinessLocalTime: "11:00"
+  }))
 });
 const customerPwaSessionFixture = Object.freeze({
-  contractVersion: "route-iq-customer-pwa-session-v1",
+  contractVersion: "route-iq-customer-pwa-session-v2",
   authorizationState: "server_verified",
-  workspaceId: "northstar_field_services",
-  workspaceLabel: "Northstar Field Services",
-  operatingProfileId: "northstar_service_calls",
-  userId: "northstar_user_001",
-  representativeId: "northstar_rep_001",
-  displayName: "Synthetic Representative",
+  workspaceId: "northstar_outside_sales_synthetic",
+  workspaceLabel: "Northstar Field Supply (Synthetic)",
+  operatingProfileId: "general_outside_sales",
+  userId: "northstar_synthetic_user_01",
+  representativeId: "northstar_synthetic_rep_01",
+  displayName: "Synthetic Representative 01",
   roleId: "customer_representative",
   capabilities: Object.freeze({
     operateOwnRoute: true,
@@ -152,9 +208,9 @@ const customerPwaSessionFixture = Object.freeze({
     founderCrm: false
   }),
   runtimeAssets: Object.freeze({
-    fullPool: `/${customerPwaFullPoolPath}`,
-    activePool: `/${customerPwaActivePoolPath}`,
-    quarantinePool: `/${customerPwaQuarantinePoolPath}`,
+    workspaceConfiguration: `/${customerPwaWorkspaceConfigurationPath}`,
+    businessManifestRegistry: `/${customerPwaManifestRegistryPath}`,
+    businessRoster: `/${customerPwaBusinessRosterPath}`,
     businessHours: `/${customerPwaBusinessHoursPath}`
   }),
   expiresAt: "2099-01-01T00:00:00.000Z",
@@ -164,6 +220,17 @@ const customerPwaSessionFixture = Object.freeze({
     recommendationInfluence: "OFF"
   })
 });
+
+function injectRouteIqCustomerPwaSession(dashboard, session) {
+  const marker = "__ROUTE_IQ_CUSTOMER_PWA_SESSION__";
+  if (dashboard.split(marker).length !== 2) {
+    throw new Error("Customer PWA session marker is missing or duplicated.");
+  }
+  const payload = JSON.stringify(session).replace(/[<>&\u2028\u2029]/gu, character => {
+    return `\\u${character.codePointAt(0).toString(16).padStart(4, "0")}`;
+  });
+  return dashboard.replace(marker, payload);
+}
 const chromeStartupTimeoutMs = 30000;
 const chromeControlTimeoutMs = 30000;
 const chromeTargetCloseTimeoutMs = 10000;
@@ -617,7 +684,7 @@ function startStaticServer({
 
     if (customerPwaSession && (relativePath === "app" || relativePath === "app/index.html")) {
       try {
-        const dashboard = readFileSync(resolve(dashboardRoot, "index.html"), "utf8");
+        const dashboard = readFileSync(resolve(root, "index.html"), "utf8");
         const body = injectRouteIqCustomerPwaSession(dashboard, customerPwaSession);
         response.writeHead(200, {
           "content-type": "text/html; charset=utf-8",
@@ -632,16 +699,9 @@ function startStaticServer({
       return;
     }
 
-    if (customerPwaSession && relativePath === customerPwaOperatingProfilePath) {
-      response.writeHead(200, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
-      response.end(JSON.stringify(customerPwaOperatingProfileRegistry));
-      return;
-    }
-
     const customerPwaJsonFixture = customerPwaSession && {
-      [customerPwaActivePoolPath]: customerPwaActivePool,
-      [customerPwaFullPoolPath]: customerPwaFullPool,
-      [customerPwaQuarantinePoolPath]: customerPwaQuarantinePool,
+      [customerPwaWorkspaceConfigurationPath]: customerPwaWorkspaceConfigurationRegistry,
+      [customerPwaManifestRegistryPath]: customerPwaBusinessManifestRegistry,
       [customerPwaBusinessHoursPath]: customerPwaBusinessHours
     }[relativePath];
     if (customerPwaJsonFixture) {
@@ -650,21 +710,15 @@ function startStaticServer({
       return;
     }
 
-    if (customerPwaSession && customerPwaIntelligenceSourcePaths.has(relativePath)) {
-      const governedSourcePath = resolve(root, relativePath);
-      try {
-        const body = readFileSync(governedSourcePath);
-        response.writeHead(200, { "content-type": contentType(governedSourcePath), "cache-control": "no-store" });
-        response.end(body);
-      } catch (error) {
-        response.writeHead(404, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" });
-        response.end("Governed customer Intelligence fixture unavailable");
-      }
+    if (customerPwaSession && relativePath === customerPwaBusinessRosterPath) {
+      response.writeHead(200, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+      response.end(customerPwaBusinessRosterText);
       return;
     }
 
-    const resolvedPath = resolve(dashboardRoot, normalize(relativePath));
-    if (!resolvedPath.startsWith(dashboardRoot)) {
+    const staticRoot = customerPwaSession ? root : dashboardRoot;
+    const resolvedPath = resolve(staticRoot, normalize(relativePath));
+    if (!resolvedPath.startsWith(staticRoot)) {
       response.writeHead(403, { "content-type": "text/plain; charset=utf-8" });
       response.end("Forbidden");
       return;
@@ -1227,7 +1281,7 @@ async function waitForDashboardReady(cdp, timeoutMs = 10000) {
       const debug = window.prometheusDebugState || {};
       return Boolean(
         debug.startupCompleted &&
-        debug.runtimeDataStatus === "loaded" &&
+        ["loaded", "READY"].includes(debug.runtimeDataStatus) &&
         debug.renderRouteIntelligenceReceivedRecommendation &&
         document.getElementById("bestNextMove") &&
         document.getElementById("bestNextMove").textContent.trim() !== "Loading route signal"
@@ -3572,7 +3626,8 @@ async function runHarness() {
 
     const customerPwa = await runPageScenario(chrome, customerPwaServer, "/app", "customer-pwa", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true },
-      standalone: true
+      standalone: true,
+      noncanonicalTestClock: customerPwaTestClock
     });
     const customerPwaSnap = customerPwa.initial;
     const customerPwaBoundary = await customerPwa.cdp.evaluate(`(() => {
@@ -3588,7 +3643,7 @@ async function runHarness() {
         standalone: window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches,
         manifest: document.getElementById("prometheusManifest")?.getAttribute("href") || "",
         markerConsumed: document.getElementById("routeIqCustomerPwaSession")?.content?.textContent?.trim().startsWith("{") === true,
-        scopedKeys: keys.filter(key => key.includes("northstar_field_services:northstar_user_001")),
+        scopedKeys: keys.filter(key => key.includes("northstar_outside_sales_synthetic:northstar_synthetic_user_01")),
         unscopedKeys: keys.filter(key => unscoped.includes(key)),
         betaVisible: /\\bbeta\\b/iu.test(document.body.innerText || ""),
         founderCrmVisible: /Founder CRM/iu.test(document.body.innerText || "")
@@ -3598,10 +3653,10 @@ async function runHarness() {
       "Customer PWA server-scoped identity",
       customerPwaSnap.sessionRole === "rep"
         && customerPwaSnap.mode === "rep"
-        && customerPwaSnap.workspaceId === "northstar_field_services"
-        && customerPwaSnap.workspaceOperatingProfileId === "northstar_service_calls"
-        && customerPwaSnap.operatingProfileId === "northstar_service_calls"
-        && customerPwaSnap.activeRepId === "northstar_rep_001"
+        && customerPwaSnap.workspaceId === "northstar_outside_sales_synthetic"
+        && customerPwaSnap.workspaceOperatingProfileId === "general_outside_sales"
+        && customerPwaSnap.operatingProfileId === "general_outside_sales"
+        && customerPwaSnap.activeRepId === "northstar_synthetic_rep_01"
         && customerPwaSnap.visibleTabs.join(",") === "today,route,places"
         && customerPwaSnap.visibleOwnerControls.length === 0,
       "synthetic non-fitness customer rendered from one generic server-scoped PWA session",
@@ -3633,17 +3688,37 @@ async function runHarness() {
     );
     const customerPwaRequestedPaths = new Set(customerPwaServer.requests.map(request => request.path));
     const customerPwaScopeBoundary = await customerPwa.cdp.evaluate(`(async () => {
-      const intelligence = await import("/intelligence/route-business-hours-eligibility.mjs");
-      const artifact = await fetch("/${customerPwaBusinessHoursPath}", { cache: "no-store" }).then(response => response.json());
+      const [dashboard, intelligence, governedRuntime, configuration, manifestRegistry, rosterResponse, artifact] = await Promise.all([
+        import("/dashboard/route-iq-dashboard-platform.mjs"),
+        import("/intelligence/route-business-hours-eligibility.mjs"),
+        import("/intelligence/route-iq-governed-runtime-scope.mjs"),
+        fetch("/${customerPwaWorkspaceConfigurationPath}", { cache: "no-store" }).then(response => response.json()),
+        fetch("/${customerPwaManifestRegistryPath}", { cache: "no-store" }).then(response => response.json()),
+        fetch("/${customerPwaBusinessRosterPath}", { cache: "no-store" }),
+        fetch("/${customerPwaBusinessHoursPath}", { cache: "no-store" }).then(response => response.json())
+      ]);
+      const rosterBytes = await rosterResponse.arrayBuffer();
+      const sourceArtifactSha256 = await dashboard.sha256Hex(rosterBytes);
+      const governedScope = governedRuntime.createGovernedRouteRuntimeScopeFromConfiguration({
+        workspaceRegistry: configuration,
+        manifestRegistry,
+        workspaceId: "northstar_outside_sales_synthetic",
+        operatingProfileId: "general_outside_sales",
+        sourceArtifactSha256,
+        businessHoursArtifact: artifact,
+        allowSynthetic: true
+      });
       const accepted = intelligence.buildRouteBusinessHoursIndex(artifact, {
-        workspaceId: "northstar_field_services",
-        operatingProfileId: "northstar_service_calls"
+        workspaceId: "northstar_outside_sales_synthetic",
+        operatingProfileId: "general_outside_sales",
+        governedRuntimeScope: governedScope
       });
       let mismatchedProvenanceRejected = false;
       try {
         intelligence.buildRouteBusinessHoursIndex(artifact, {
-          workspaceId: "northstar_field_services",
-          operatingProfileId: "general_outside_sales"
+          workspaceId: "northstar_outside_sales_synthetic",
+          operatingProfileId: "fitness",
+          governedRuntimeScope: governedScope
         });
       } catch (error) {
         mismatchedProvenanceRejected = true;
@@ -3651,31 +3726,35 @@ async function runHarness() {
       return {
         acceptedWorkspaceId: accepted.workspaceId,
         acceptedOperatingProfileId: accepted.operatingProfileId,
+        eligibilityVersion: accepted.version,
         governedScopeVersion: accepted.governedRuntimeScope?.version || "",
         mismatchedProvenanceRejected
       };
     })()`);
     assertWorkflow(
       "Customer PWA governed Intelligence source and provenance",
-      customerPwaScopeBoundary.acceptedWorkspaceId === "northstar_field_services"
-        && customerPwaScopeBoundary.acceptedOperatingProfileId === "northstar_service_calls"
+      customerPwaScopeBoundary.acceptedWorkspaceId === "northstar_outside_sales_synthetic"
+        && customerPwaScopeBoundary.acceptedOperatingProfileId === "general_outside_sales"
+        && customerPwaScopeBoundary.eligibilityVersion === "route-iq-business-hours-eligibility-v2"
         && customerPwaScopeBoundary.governedScopeVersion === "route-iq-governed-runtime-scope-v1"
         && customerPwaScopeBoundary.mismatchedProvenanceRejected
         && customerPwaRequestedPaths.has("intelligence/continuous-adaptive-route-replenishment.mjs")
         && customerPwaRequestedPaths.has("intelligence/route-business-hours-eligibility.mjs")
         && customerPwaRequestedPaths.has("intelligence/route-iq-governed-runtime-scope.mjs")
+        && customerPwaRequestedPaths.has(customerPwaWorkspaceConfigurationPath)
+        && customerPwaRequestedPaths.has(customerPwaManifestRegistryPath)
+        && customerPwaRequestedPaths.has(customerPwaBusinessRosterPath)
         && customerPwaRequestedPaths.has(customerPwaBusinessHoursPath)
-        && customerPwaRequestedPaths.has(customerPwaActivePoolPath)
         && !customerPwaRequestedPaths.has(activePoolPath)
         && !customerPwaRequestedPaths.has(fullPoolPath),
-      "Northstar used revised governed Intelligence modules and synthetic workspace assets; mismatched provenance failed closed",
+      "the generic PWA used exact v2 Intelligence and manifest-bound synthetic workspace assets; mismatched provenance failed closed",
       JSON.stringify({ scope: customerPwaScopeBoundary, requests: [...customerPwaRequestedPaths].sort() })
     );
     const customerRefreshSnap = await navigateExistingScenario(customerPwa.cdp, customerPwaServer, "/app");
     assertWorkflow(
       "Customer PWA authenticated refresh isolation",
-      customerRefreshSnap.workspaceId === "northstar_field_services"
-        && customerRefreshSnap.activeRepId === "northstar_rep_001"
+      customerRefreshSnap.workspaceId === "northstar_outside_sales_synthetic"
+        && customerRefreshSnap.activeRepId === "northstar_synthetic_rep_01"
         && customerRefreshSnap.sessionRole === "rep"
         && customerRefreshSnap.visibleOwnerControls.length === 0,
       "refresh preserved the exact customer workspace and least-privileged representative",
@@ -3689,7 +3768,7 @@ async function runHarness() {
         sessionRole: document.body.dataset.sessionRole || "",
         sessionState: document.body.dataset.customerSessionState || "",
         blockedHeading: document.querySelector(".route-iq-customer-session-blocked h1")?.textContent?.trim() || "",
-        scopedRecordPreserved: localStorage.getItem("prometheus-v1:northstar_field_services:northstar_user_001") !== null
+        scopedRecordPreserved: localStorage.getItem("prometheus-v2:northstar_outside_sales_synthetic:northstar_synthetic_user_01") !== null
       };
       Date.now = originalDateNow;
       return result;
@@ -3737,9 +3816,7 @@ async function runHarness() {
       "intelligence/route-business-hours-eligibility.mjs",
       "intelligence/route-iq-governed-runtime-scope.mjs",
       customerPwaBusinessHoursPath,
-      customerPwaActivePoolPath,
-      customerPwaFullPoolPath,
-      customerPwaQuarantinePoolPath
+      customerPwaBusinessRosterPath
     ]);
     assertWorkflow(
       "Customer PWA missing operating-profile fail-closed",
