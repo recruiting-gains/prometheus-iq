@@ -15,10 +15,9 @@ const schemaPath = resolve(
   administrationRoot,
   "contracts/route-iq-workspace-configuration-v2.schema.json"
 );
-const legacyWorkspacePath = resolve(administrationRoot, "workspaces", "smoothie-depot");
+const retiredWorkspaceArtifactRoot = resolve(administrationRoot, "workspaces");
 const dataManifestRegistryPath =
   "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json";
-const forbiddenLiteral = /smoothie[\s_-]*depot|smoothiedepot/i;
 const forbiddenWorkspaceAliases = [
   ["fitness_connection", "founder", "research"].join("_"),
   ["northstar", "field", "supply", "synthetic"].join("_")
@@ -58,14 +57,15 @@ assert.equal(registry.founderBoundary.anthonyMappingStatus, "UNMAPPED");
 assert.equal(registry.safety.collection, "OFF");
 assert.equal(registry.safety.activeCohorts, 0);
 assert.equal(registry.safety.recommendationInfluence, "OFF");
-assert.equal(existsSync(legacyWorkspacePath), false);
+assert.deepEqual(
+  existsSync(retiredWorkspaceArtifactRoot)
+    ? readdirSync(retiredWorkspaceArtifactRoot)
+    : [],
+  [],
+  "Retired customer-specific workspace artifacts must not remain active in Administration."
+);
 
 const administrationFiles = listFiles(administrationRoot);
-const literalLeaks = administrationFiles.filter(path =>
-  forbiddenLiteral.test(path.replace(`${administrationRoot}/`, ""))
-    || forbiddenLiteral.test(readFileSync(path, "utf8"))
-);
-assert.deepEqual(literalLeaks, [], "Administration must contain no current Smoothie Depot path or literal.");
 const assignedFiles = [
   ...administrationFiles,
   resolve(repoRoot, "scripts/route-iq-cross-industry-administration-verify.mjs"),

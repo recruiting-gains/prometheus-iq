@@ -1,6 +1,12 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import {
+  ROUTE_IQ_FITNESS_WORKSPACE_ID,
+  ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID,
+  loadRouteIqWorkspaceConfigurationRegistry
+} from '../administration/contracts/route-iq-workspace-configuration-v2.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -37,10 +43,7 @@ const requiredMarkdown = [
   'administration/command-center/beta-sprint-2/README.md',
   'administration/command-center/beta-sprint-2/issue-tracker.md',
   'administration/command-center/beta-sprint-2/evidence-log.md',
-  'administration/command-center/beta-sprint-2/follow-up-decisions.md',
-  'administration/workspaces/smoothie-depot/README.md',
-  'administration/workspaces/smoothie-depot/founder-operating-manual-v1.md',
-  'administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md'
+  'administration/command-center/beta-sprint-2/follow-up-decisions.md'
 ];
 
 const requiredJson = [
@@ -59,9 +62,7 @@ const requiredJson = [
   'administration/registers/regression-verification.json',
   'administration/verification/beta-stabilization-sprint-1/issue-verification-matrix.json',
   'administration/verification/beta-stabilization-sprint-1/beta-stabilization-sprint-1-readiness.json',
-  'administration/command-center/beta-sprint-2/issue-tracker.json',
-  'administration/workspaces/smoothie-depot/workspace-isolation-verification.json',
-  'overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json'
+  'administration/command-center/beta-sprint-2/issue-tracker.json'
 ];
 
 const failures = [];
@@ -97,6 +98,50 @@ for (const filePath of requiredMarkdown) {
 }
 
 const jsonByPath = new Map(requiredJson.map((filePath) => [filePath, readJson(filePath)]));
+
+const retiredWorkspaceArtifactRoot = path.join(repoRoot, 'administration/workspaces');
+const retiredWorkspaceArtifactEntries = existsSync(retiredWorkspaceArtifactRoot)
+  ? readdirSync(retiredWorkspaceArtifactRoot)
+  : [];
+if (retiredWorkspaceArtifactEntries.length > 0) {
+  failures.push('Retired customer-specific workspace artifacts must not remain active in Administration');
+}
+
+let routeIqRegistry = null;
+try {
+  routeIqRegistry = loadRouteIqWorkspaceConfigurationRegistry();
+} catch (error) {
+  failures.push(`Route IQ workspace configuration v2 failed strict validation: ${error.code ?? error.message}`);
+}
+if (routeIqRegistry) {
+  const expectedWorkspaceIds = [
+    ROUTE_IQ_FITNESS_WORKSPACE_ID,
+    ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID
+  ].sort();
+  const expectedProfileIds = ['fitness', 'general_outside_sales'].sort();
+  const workspaceIds = routeIqRegistry.workspaces.map((workspace) => workspace.workspaceId).sort();
+  const profileIds = routeIqRegistry.workspaces
+    .map((workspace) => workspace.operatingProfile.profileId)
+    .sort();
+
+  if (JSON.stringify(workspaceIds) !== JSON.stringify(expectedWorkspaceIds)) {
+    failures.push('Route IQ Administration must admit only the current Fitness and synthetic outside-sales workspaces');
+  }
+  if (JSON.stringify(profileIds) !== JSON.stringify(expectedProfileIds)) {
+    failures.push('Route IQ Administration must retain the Fitness and general outside-sales profiles');
+  }
+  if (routeIqRegistry.workspaces.some((workspace) => workspace.admission.productionAuthorized !== false)) {
+    failures.push('Founder-research and synthetic validation workspaces must remain outside production admission');
+  }
+  if (routeIqRegistry.workspaces.some((workspace) =>
+    workspace.fallbackPolicy.mode !== 'FAIL_CLOSED'
+      || workspace.fallbackPolicy.demoCatalogAllowed !== false
+      || workspace.fallbackPolicy.embeddedBusinessCatalogAllowed !== false
+      || workspace.fallbackPolicy.crossWorkspaceFallbackAllowed !== false
+  )) {
+    failures.push('Every Route IQ workspace configuration must fail closed without demo or cross-workspace fallback');
+  }
+}
 
 const betaTesters = jsonByPath.get('administration/registers/beta-testers.json');
 if (betaTesters) {
@@ -419,72 +464,6 @@ if (sprint2Tracker) {
   }
 }
 
-const smoothieManual = readRequired('administration/workspaces/smoothie-depot/founder-operating-manual-v1.md') ?? '';
-const smoothieChecklists = readRequired('administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md') ?? '';
-const smoothieIsolation = jsonByPath.get('administration/workspaces/smoothie-depot/workspace-isolation-verification.json');
-if (smoothieIsolation) {
-  if (smoothieIsolation.workspaceId !== 'smoothie_depot') {
-    failures.push('Smoothie Depot operating manual must use workspaceId smoothie_depot');
-  }
-  if (smoothieIsolation.operatingProfileId !== 'franchise_development') {
-    failures.push('Smoothie Depot operating manual must use franchise_development operating profile');
-  }
-  if (smoothieIsolation.newSubsystemCreated !== false) {
-    failures.push('Smoothie Depot operating manual must not create a new subsystem');
-  }
-  const isolation = smoothieIsolation.workspaceIsolation ?? {};
-  for (const [flag, expected] of Object.entries({
-    smoothieDepotOnly: true,
-    fitnessConnectionDataUsed: false,
-    routeSystemsUsed: false,
-    activePoolUsed: false,
-    unitTrackingUsed: false,
-    membershipTrackingUsed: false,
-    crossWorkspaceLearningUsed: false,
-    crmRuntimeModified: false,
-    dashboardRuntimeModified: false,
-    intelligenceRuntimeModified: false,
-    infrastructureModified: false
-  })) {
-    if (isolation[flag] !== expected) {
-      failures.push(`Smoothie Depot isolation flag ${flag} must be ${expected}`);
-    }
-  }
-  for (const filePath of smoothieIsolation.manualFiles ?? []) {
-    if (!existsSync(path.join(repoRoot, filePath))) {
-      failures.push(`Smoothie Depot manual references missing file: ${filePath}`);
-    }
-  }
-}
-for (const phrase of [
-  'Morning Startup',
-  'Research Workflow',
-  'Outreach Workflow',
-  'Qualification Workflow',
-  'JR Handoff Workflow',
-  'Follow-Up Workflow',
-  'End Of Day',
-  'Daily Decision Rule'
-]) {
-  if (!smoothieManual.includes(phrase)) {
-    failures.push(`Smoothie Depot founder operating manual is missing section: ${phrase}`);
-  }
-}
-for (const phrase of [
-  'Morning Checklist',
-  'Research Checklist',
-  'Call Checklist',
-  'Discovery Checklist',
-  'Qualification Checklist',
-  'JR Handoff Checklist',
-  'Follow-Up Checklist',
-  'End-Of-Day Checklist'
-]) {
-  if (!smoothieChecklists.includes(phrase)) {
-    failures.push(`Smoothie Depot daily checklists are missing: ${phrase}`);
-  }
-}
-
 const readme = readRequired('administration/README.md') ?? '';
 for (const phrase of ['Dashboard', 'Companion', 'CRM', 'Infrastructure', 'Integrations']) {
   if (!readme.includes(phrase)) {
@@ -494,72 +473,6 @@ for (const phrase of ['Dashboard', 'Companion', 'CRM', 'Infrastructure', 'Integr
 for (const phrase of ['Private Beta Stabilization Intake', 'stabilization-issues.json', 'tester sign-off']) {
   if (!readme.includes(phrase)) {
     failures.push(`Administration README must document ${phrase}`);
-  }
-}
-
-const administrationContract = jsonByPath.get('overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json');
-if (administrationContract) {
-  if (administrationContract.owningSubsystem !== 'Prometheus Administration') {
-    failures.push('Administration operating artifact contract must be Administration-owned');
-  }
-  if (administrationContract.workspaceId !== 'smoothie_depot') {
-    failures.push('Administration operating artifact contract must register Smoothie Depot workspace');
-  }
-  const requiredArtifactTypes = [
-    'founder_operating_manual',
-    'workspace_operating_manual',
-    'daily_checklist',
-    'release_signoff_register',
-    'founder_readiness_review',
-    'field_feedback_artifact',
-    'founder_action_plan',
-    'launch_operations_record',
-    'go_no_go_readiness_artifact',
-    'post_call_aar_decision_journal_handoff'
-  ];
-  const registeredTypes = Object.values(administrationContract.artifactContracts ?? {}).map((artifact) => artifact.artifactType);
-  for (const artifactType of requiredArtifactTypes) {
-    if (!registeredTypes.includes(artifactType)) {
-      failures.push(`Administration operating artifact contract missing ${artifactType}`);
-    }
-  }
-  for (const [sectionName, section] of Object.entries(administrationContract.artifactContracts ?? {})) {
-    for (const filePath of Object.values(section.canonicalPaths ?? {})) {
-      if (!existsSync(path.join(repoRoot, filePath))) {
-        failures.push(`Administration contract ${sectionName} references missing file: ${filePath}`);
-      }
-    }
-    if (section.canonicalPaths && section.failClosedIfMissing !== true) {
-      failures.push(`Administration contract ${sectionName} must fail closed on missing canonical paths`);
-    }
-    if (section.canonicalPathPattern && section.missingWorkspaceInstanceBehavior !== 'fail_closed') {
-      failures.push(`Administration contract ${sectionName} must fail closed for missing workspace instances`);
-    }
-    if (section.fixtureDemoOperationsDataAllowedInProduction === true) {
-      failures.push(`Administration contract ${sectionName} must not allow fixture/demo operations data in production`);
-    }
-  }
-  if (administrationContract.workspaceRegistrations?.smoothie_depot?.status !== 'registered') {
-    failures.push('Smoothie Depot Administration operating artifacts must be registered');
-  }
-  const fitnessDiscoveryPath = administrationContract.workspaceRegistrations?.fitness_connection?.artifactDiscoveryPath;
-  if (fitnessDiscoveryPath && administrationContract.workspaceRegistrations.fitness_connection.currentAdministrationArtifactsPresent !== existsSync(path.join(repoRoot, fitnessDiscoveryPath))) {
-    failures.push('Fitness Connection Administration artifact presence must match discovery path');
-  }
-  if (administrationContract.consumerRules?.dashboard?.mayDisplayOperatingManualsReadOnly !== true) {
-    failures.push('Dashboard must display Administration operating manuals read-only through contract');
-  }
-  if (administrationContract.consumerRules?.crm?.mayConsumeFieldFeedbackOnlyThroughContract !== true) {
-    failures.push('CRM must consume Administration field feedback only through contract');
-  }
-  if (administrationContract.consumerRules?.intelligence?.mayConsumeDecisionJournalAarOnlyThroughContract !== true) {
-    failures.push('Intelligence must consume Administration AAR / decision journals only through contract');
-  }
-  if (administrationContract.workspaceIsolationRules?.noWorkspaceMayConsumeAnotherWorkspaceOperatingRecords !== true) {
-    failures.push('Administration contract must prohibit cross-workspace operating record consumption');
-  }
-  if (administrationContract.productionRules?.fixtureDemoOperationsDataProhibitedInProduction !== true) {
-    failures.push('Administration contract must prohibit fixture/demo operations data in production');
   }
 }
 

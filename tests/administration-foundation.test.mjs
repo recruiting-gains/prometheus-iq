@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { test } from 'node:test';
+
+import {
+  ROUTE_IQ_FITNESS_WORKSPACE_ID,
+  ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID,
+  loadRouteIqWorkspaceConfigurationRegistry,
+  resolveAdmittedWorkspaceConfiguration
+} from '../administration/contracts/route-iq-workspace-configuration-v2.mjs';
 
 test('administration foundation validation gate passes', () => {
   const result = spawnSync(process.execPath, ['scripts/validate-administration-foundation.mjs'], {
@@ -12,15 +19,17 @@ test('administration foundation validation gate passes', () => {
   assert.match(result.stdout, /Administration foundation validation passed/);
 });
 
-test('beta tester registry keeps Anthony in rep-only beta permissions', () => {
+test('beta tester registry keeps Anthony paused, unmapped, and without runtime access', () => {
   const registry = JSON.parse(readFileSync('administration/registers/beta-testers.json', 'utf8'));
   const anthony = registry.testers.find((tester) => tester.testerId === 'tester-anthony-001');
 
   assert.ok(anthony);
-  assert.equal(anthony.status, 'active');
+  assert.equal(anthony.status, 'paused_unmapped');
   assert.equal(anthony.permissions.roleId, 'rep_beta_tester');
   assert.equal(anthony.permissions.mustOpenInRepMode, true);
   assert.equal(anthony.permissions.ownerAdminControlsAllowed, false);
+  assert.equal(anthony.permissions.authenticatedPrincipalMapped, false);
+  assert.equal(anthony.permissions.runtimeAccessAuthorized, false);
 });
 
 test('administration release history records this foundation without product deployment', () => {
@@ -168,68 +177,39 @@ test('Sprint 2 command center issues are mirrored into unified stabilization int
   }
 });
 
-test('Smoothie Depot founder operating manual preserves workspace isolation', () => {
-  const isolation = JSON.parse(
-    readFileSync('administration/workspaces/smoothie-depot/workspace-isolation-verification.json', 'utf8')
+test('retired customer workspace artifacts are not required or active', () => {
+  assert.deepEqual(readdirSync('administration/workspaces'), []);
+
+  assert.throws(
+    () => resolveAdmittedWorkspaceConfiguration('retired_customer_workspace', {
+      allowFounderResearch: true,
+      allowSynthetic: true
+    }),
+    (error) => error.code === 'route_iq_admin_configuration_workspace_unknown'
   );
-
-  assert.equal(isolation.workspaceId, 'smoothie_depot');
-  assert.equal(isolation.operatingProfileId, 'franchise_development');
-  assert.equal(isolation.newSubsystemCreated, false);
-  assert.equal(isolation.workspaceIsolation.smoothieDepotOnly, true);
-  assert.equal(isolation.workspaceIsolation.fitnessConnectionDataUsed, false);
-  assert.equal(isolation.workspaceIsolation.routeSystemsUsed, false);
-  assert.equal(isolation.workspaceIsolation.activePoolUsed, false);
-  assert.equal(isolation.workspaceIsolation.unitTrackingUsed, false);
-  assert.equal(isolation.workspaceIsolation.membershipTrackingUsed, false);
 });
 
-test('Smoothie Depot founder operating manual covers full daily workflow', () => {
-  const manual = readFileSync('administration/workspaces/smoothie-depot/founder-operating-manual-v1.md', 'utf8');
-
-  for (const section of [
-    'Morning Startup',
-    'Research Workflow',
-    'Outreach Workflow',
-    'Qualification Workflow',
-    'JR Handoff Workflow',
-    'Follow-Up Workflow',
-    'End Of Day',
-    'Daily Decision Rule'
-  ]) {
-    assert.match(manual, new RegExp(section));
-  }
-});
-
-test('Smoothie Depot daily operating checklists cover required operating modes', () => {
-  const checklists = readFileSync('administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md', 'utf8');
-
-  for (const checklist of [
-    'Morning Checklist',
-    'Research Checklist',
-    'Call Checklist',
-    'Discovery Checklist',
-    'Qualification Checklist',
-    'JR Handoff Checklist',
-    'Follow-Up Checklist',
-    'End-Of-Day Checklist'
-  ]) {
-    assert.match(checklists, new RegExp(checklist));
-  }
-});
-
-test('Administration operating artifacts are registered in the canonical contract layer', () => {
-  const contract = JSON.parse(
-    readFileSync('overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json', 'utf8')
+test('Administration v2 registry retains only the governed cross-industry profiles', () => {
+  const registry = loadRouteIqWorkspaceConfigurationRegistry();
+  assert.deepEqual(
+    registry.workspaces.map((workspace) => workspace.workspaceId).sort(),
+    [ROUTE_IQ_FITNESS_WORKSPACE_ID, ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID].sort()
   );
-
-  assert.equal(contract.owningSubsystem, 'Prometheus Administration');
-  assert.equal(contract.workspaceRegistrations.smoothie_depot.status, 'registered');
-  assert.equal(contract.artifactContracts.founderOperatingManuals.canonicalPaths.smoothieDepotFounderOperatingManual, 'administration/workspaces/smoothie-depot/founder-operating-manual-v1.md');
-  assert.equal(contract.artifactContracts.releaseSignOffRegisters.canonicalPaths.releaseHistory, 'administration/registers/release-history.json');
-  assert.equal(contract.artifactContracts.fieldFeedbackArtifacts.canonicalPaths.stabilizationIssues, 'administration/registers/stabilization-issues.json');
-  assert.equal(contract.consumerRules.dashboard.mayDisplayOperatingManualsReadOnly, true);
-  assert.equal(contract.consumerRules.crm.mayConsumeFieldFeedbackOnlyThroughContract, true);
-  assert.equal(contract.consumerRules.intelligence.mayConsumeDecisionJournalAarOnlyThroughContract, true);
-  assert.equal(contract.workspaceIsolationRules.noWorkspaceMayConsumeAnotherWorkspaceOperatingRecords, true);
+  assert.deepEqual(
+    registry.workspaces.map((workspace) => workspace.operatingProfile.profileId).sort(),
+    ['fitness', 'general_outside_sales']
+  );
+  assert.equal(
+    registry.workspaces.every((workspace) => workspace.admission.productionAuthorized === false),
+    true
+  );
+  assert.equal(
+    registry.workspaces.every((workspace) =>
+      workspace.fallbackPolicy.mode === 'FAIL_CLOSED'
+        && workspace.fallbackPolicy.demoCatalogAllowed === false
+        && workspace.fallbackPolicy.embeddedBusinessCatalogAllowed === false
+        && workspace.fallbackPolicy.crossWorkspaceFallbackAllowed === false
+    ),
+    true
+  );
 });
