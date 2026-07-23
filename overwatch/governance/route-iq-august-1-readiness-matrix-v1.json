@@ -1,0 +1,986 @@
+{
+  "matrixId": "route-iq-august-1-readiness-matrix-v1",
+  "schema": "RouteIqAugust1ReadinessMatrixV1",
+  "directive": "Prometheus August 1 Autonomous Launch-Closeout Directive",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "authority": {
+    "authoritativeForReadinessReporting": true,
+    "deploymentAuthorizationSource": false,
+    "activationAuthorizationSource": false,
+    "productionEvidenceClaimedWithoutExternalVerification": false,
+    "subsystemImplementationOwnedByOverwatch": false
+  },
+  "historicalEvidencePolicy": {
+    "classification": "HISTORICAL_BETA_MATERIAL_NONCONTROLLING",
+    "controllingForLaunch": false,
+    "preserved": true,
+    "reconciliationRule": "NEWEST_GOVERNED_PRODUCTION_EVIDENCE_AND_CURRENT_CODE_CONTROL",
+    "paths": [
+      "administration/command-center/beta-sprint-2/",
+      "administration/verification/beta-stabilization-sprint-1/",
+      "docs/pilot-support-system.md",
+      "docs/prometheus-release-checklist.md"
+    ]
+  },
+  "statusVocabulary": [
+    "VERIFIED",
+    "PARTIAL",
+    "BLOCKED",
+    "PENDING_EXTERNAL_ACTION",
+    "PENDING_FOUNDER"
+  ],
+  "requirements": [
+    {
+      "id": "authoritative_readiness_governance",
+      "directivePhase": "PHASE_2",
+      "requirement": "Maintain one authoritative, machine-readable August 1 readiness gate with historical beta evidence classified as noncontrolling.",
+      "owner": "Prometheus Overwatch",
+      "supportingOwners": [],
+      "evidence": [
+        {
+          "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+          "kind": "governance",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "package.json",
+          "kind": "governance",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "administration/launch-operations/route-iq-2026-08-01-production-activation-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "VERIFIED",
+      "launchBlocking": false,
+      "requiredWork": "None.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "production_crm_acceptance",
+      "directivePhase": "PHASE_1",
+      "requirement": "Complete exactly one governed production CRM test lead with unique receipt, duplicate check, persistence-before-notification evidence, and unchanged safety boundaries.",
+      "owner": "Prometheus CRM",
+      "supportingOwners": [
+        "Prometheus Infrastructure",
+        "Prometheus Overwatch"
+      ],
+      "evidence": [
+        {
+          "path": "crm/route-iq-request-crm-contract-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-request-crm-infrastructure.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "Do not submit again. After Cruz restores the expired Founder Access session, perform read-only reconciliation proving CRM count 1, unique receipt riq_receipt_e74e57903a211291a9f1f37a, stored synthetic values, persisted notification state, and duplicate absence.",
+      "founderAttendanceRequired": true
+    },
+    {
+      "id": "default_off_activation_envelope",
+      "directivePhase": "PHASE_3",
+      "requirement": "Keep the canonical customer activation envelope default OFF, empty, time-unissued, and incapable of admitting a company or user without a successor authorization.",
+      "owner": "Prometheus Data",
+      "supportingOwners": [
+        "Prometheus Infrastructure"
+      ],
+      "evidence": [
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-august-1-launch-envelope.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-v1.schema.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "The default-OFF Data envelope, owner commits, Dashboard 196-of-196 browser harness, and rollback-successor checks are complete. Reverify this boundary through the full repository suite on one clean exact tree before promotion.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "bounded_company_user_limits",
+      "directivePhase": "PHASE_3",
+      "requirement": "Enforce a hard ceiling of two customer companies and 40 named customer users with deterministic fail-closed admission.",
+      "owner": "Prometheus Data",
+      "supportingOwners": [
+        "Prometheus Infrastructure"
+      ],
+      "evidence": [
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope-v1.schema.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-august-1-launch-envelope.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "The two-company and 40-user limits pass focused local tests and their owner artifacts are committed. Recompute this gate only after exact clean-tree full qualification completes.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "customer_runtime_integration",
+      "directivePhase": "PHASE_3",
+      "requirement": "Wire the owner-authored bounded customer PWA coordinator into the private Worker without creating a second application architecture or enabling activation.",
+      "owner": "Prometheus Infrastructure",
+      "supportingOwners": [
+        "Prometheus Dashboard",
+        "Prometheus Data"
+      ],
+      "evidence": [
+        {
+          "path": "workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "workers/infrastructure/route-iq-august-1-customer-pwa-runtime-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "workers/prometheus-iq-worker.js",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "index.html",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "_headers",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "deploy/cloudflare-pages/_headers",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "The committed Data envelope, customer PWA runtime, private-Worker routing, generic Dashboard /app integration, Dashboard browser harness, and rollback successor pass focused checks. Complete full clean-tree verification before promotion.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "cruz_only_prelaunch_acceptance",
+      "directivePhase": "PHASE_4",
+      "requirement": "Restrict all prelaunch human acceptance to Cruz Garza as the single authorized acceptance tester.",
+      "owner": "Prometheus Administration",
+      "supportingOwners": [
+        "Prometheus Overwatch"
+      ],
+      "evidence": [
+        {
+          "path": "administration/launch-operations/route-iq-2026-08-01-production-activation-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "The Cruz-only prelaunch rule is committed. Reverify it on the exact clean candidate during full qualification before attended acceptance.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "founder_acceptance_execution",
+      "directivePhase": "PHASE_4",
+      "requirement": "Complete and record the attended Founder desktop, mobile, PWA, workflow, and safety acceptance script before any customer activation.",
+      "owner": "Prometheus Administration",
+      "supportingOwners": [
+        "Prometheus Dashboard",
+        "Prometheus Mobile",
+        "Prometheus Overwatch"
+      ],
+      "evidence": [
+        {
+          "path": "administration/launch-operations/route-iq-2026-08-01-production-activation-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "docs/route-iq-pwa-installation-and-recovery-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PENDING_FOUNDER",
+      "launchBlocking": true,
+      "requiredWork": "Cruz must perform and sign the exact acceptance script after the immutable customer runtime candidate passes all local gates.",
+      "founderAttendanceRequired": true
+    },
+    {
+      "id": "no_external_human_testers",
+      "directivePhase": "CROSS_PHASE",
+      "requirement": "Prohibit customer users and every other external person from participating in prelaunch human testing.",
+      "owner": "Prometheus Administration",
+      "supportingOwners": [
+        "Prometheus Overwatch"
+      ],
+      "evidence": [
+        {
+          "path": "administration/launch-operations/route-iq-2026-08-01-production-activation-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "The no-external-testers rule is committed. Reverify it on the exact clean candidate during full qualification.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "anthony_unmapped",
+      "directivePhase": "CROSS_PHASE",
+      "requirement": "Keep Anthony unmapped and without operational, Founder intelligence, CRM, customer, or acceptance access.",
+      "owner": "Prometheus Data",
+      "supportingOwners": [
+        "Prometheus Infrastructure"
+      ],
+      "evidence": [
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-august-1-launch-envelope.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "Anthony remains unmapped in committed owner evidence. Reverify the exact principal and access state during full exact-tree qualification.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "collection_cohorts_recommendation_off",
+      "directivePhase": "CROSS_PHASE",
+      "requirement": "Hold prospective collection OFF, active cohorts at zero, and recommendation influence OFF through acceptance and launch.",
+      "owner": "Prometheus Intelligence Engine",
+      "supportingOwners": [
+        "Prometheus Data",
+        "Prometheus Infrastructure",
+        "Prometheus Dashboard"
+      ],
+      "evidence": [
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "scripts/verify-dashboard-runtime-workflows.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "Collection OFF, cohorts 0, and recommendation influence OFF are encoded. Reverify every owner and runtime boundary on the final clean candidate.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "one_generic_customer_pwa",
+      "directivePhase": "PHASE_3",
+      "requirement": "Use one generic Route IQ customer PWA at the governed customer path without customer-specific manifests, forks, or install URLs.",
+      "owner": "Prometheus Mobile",
+      "supportingOwners": [
+        "Prometheus Dashboard",
+        "Prometheus Infrastructure"
+      ],
+      "evidence": [
+        {
+          "path": "manifest.webmanifest",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "deploy/cloudflare-pages/manifest.webmanifest",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "sw.js",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "deploy/cloudflare-pages/sw.js",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "docs/route-iq-pwa-installation-and-recovery-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "index.html",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "One generic Route IQ customer manifest and /app entry exist locally. Complete the final Dashboard browser and generated-asset qualification on the clean committed tree.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "pwa_mobile_lifecycle_acceptance",
+      "directivePhase": "PHASE_3",
+      "requirement": "Prove real install, 390 by 844 layout, refresh, offline, session-expiration, revocation, update, safe recovery, and reinstall behavior.",
+      "owner": "Prometheus Mobile",
+      "supportingOwners": [
+        "Prometheus Dashboard",
+        "Prometheus Infrastructure"
+      ],
+      "evidence": [
+        {
+          "path": "docs/route-iq-pwa-installation-and-recovery-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "scripts/verify-dashboard-runtime-workflows.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/dashboard-route-iq-product-focus.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/dashboard-route-iq-field-session-producer.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/dashboard-route-iq-customer-pwa.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "sw.js",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "BLOCKED",
+      "launchBlocking": true,
+      "requiredWork": "Add owner-authored real PWA lifecycle qualification beyond the current simulated standalone harness, then complete Cruz's attended device acceptance.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "authentication_and_role_enforcement",
+      "directivePhase": "PHASE_3",
+      "requirement": "Derive customer identity server-side, validate immutable Access principals, and enforce owner, manager, and representative permissions without Founder access leakage.",
+      "owner": "Prometheus Infrastructure",
+      "supportingOwners": [
+        "Prometheus Data",
+        "Prometheus Dashboard",
+        "Prometheus Intelligence Engine"
+      ],
+      "evidence": [
+        {
+          "path": "workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-august-1-launch-envelope.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-governed-runtime-scope-intelligence.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "intelligence/route-iq-governed-runtime-scope.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "intelligence/route-business-hours-eligibility.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "deploy/cloudflare-pages/intelligence/route-business-hours-eligibility.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "deploy/cloudflare-pages/intelligence/contracts/route-business-hours-eligibility-contracts.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "scripts/lib/business-hours-governance.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "deploy/cloudflare-pages/scripts/lib/business-hours-governance.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "intelligence/fixtures/route-iq-governed-customer-business-hours-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "scripts/verify-route-iq-governed-runtime-scope-intelligence.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "scripts/verify-route-business-hours-eligibility.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-business-hours-eligibility.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "The governed runtime-scope tests pass locally, but the business-hours source/deployment compatibility verifier still detects owner-generated parity drift. Recompute only after Intelligence and Dashboard owner outputs settle and full exact-tree qualification passes.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "tenant_company_user_isolation",
+      "directivePhase": "PHASE_3",
+      "requirement": "Prove zero cross-company and cross-user exposure, deterministic retries, scoped browser storage, and server-side write isolation.",
+      "owner": "Prometheus Data",
+      "supportingOwners": [
+        "Prometheus Infrastructure",
+        "Prometheus Dashboard"
+      ],
+      "evidence": [
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-august-1-launch-envelope.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "index.html",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "Focused local workspace, representative, governed-scope, retry, and provenance tests pass on committed owner artifacts. Recompute this gate only after full exact-tree qualification.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "route_workflow_collection_off",
+      "directivePhase": "PHASE_3",
+      "requirement": "Preserve the complete Route IQ field workflow and prove zero prospective write attempts while collection remains OFF.",
+      "owner": "Prometheus Dashboard",
+      "supportingOwners": [
+        "Prometheus Data",
+        "Prometheus Intelligence Engine"
+      ],
+      "evidence": [
+        {
+          "path": "scripts/verify-dashboard-runtime-workflows.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/dashboard-route-iq-product-focus.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/dashboard-route-iq-field-session-producer.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "intelligence/continuous-adaptive-route-replenishment.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "deploy/cloudflare-pages/intelligence/continuous-adaptive-route-replenishment.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "deploy/cloudflare-pages/intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "scripts/verify-continuous-adaptive-route-replenishment.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/continuous-adaptive-route-replenishment.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "The committed Dashboard browser harness passes 196 of 196, including exact 390x844 and collection-OFF zero-write checks, but the replenishment source/deployment compatibility verifier still detects parity drift. Repair that owner boundary and complete clean-tree full verification.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "production_not_beta_language",
+      "directivePhase": "PHASE_3",
+      "requirement": "Use production language on every active customer-facing source and generated deployment surface without treating historical beta materials as controlling.",
+      "owner": "Prometheus Dashboard",
+      "supportingOwners": [
+        "Prometheus Route IQ",
+        "Prometheus Website"
+      ],
+      "evidence": [
+        {
+          "path": "index.html",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "deploy/cloudflare-pages/index.html",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "manifest-founder.webmanifest",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "deploy/cloudflare-pages/manifest-founder.webmanifest",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "docs/route-iq-production-known-limitations-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "Current customer-facing source contains no governed beta finding and source/generated pairs match locally. Recompute only after the racing Dashboard assets are committed and browser-qualified.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "crm_durability_and_notification_order",
+      "directivePhase": "PHASE_3",
+      "requirement": "Keep CRM validation, unique receipts, idempotency, durable storage, Founder retrieval and export, and notification-after-persistence ordering fail closed.",
+      "owner": "Prometheus CRM",
+      "supportingOwners": [
+        "Prometheus Infrastructure"
+      ],
+      "evidence": [
+        {
+          "path": "crm/route-iq-request-crm.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "workers/infrastructure/route-iq-request-crm-runtime.js",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "workers/infrastructure/route-iq-request-crm-runtime-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-request-crm-infrastructure.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "CRM durability, receipt, duplicate, notification-order, monitoring, retrieval, and export tests pass locally. Await committed owner state, full qualification, and the separate read-only production reconciliation.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "legal_privacy_terms_contact",
+      "directivePhase": "PHASE_3",
+      "requirement": "Keep public legal, privacy, terms, contact, metadata, sitemap, and Route IQ product-truth boundaries accessible and synchronized.",
+      "owner": "Prometheus Website",
+      "supportingOwners": [
+        "Prometheus Route IQ"
+      ],
+      "evidence": [
+        {
+          "path": "tests/website-route-iq-product-focus.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "src/route-iq-request-form.js",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "The legal and Route IQ product-truth owner artifacts are committed. Recompute this gate after full clean-tree qualification.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "customer_activation_and_onboarding",
+      "directivePhase": "PHASE_4",
+      "requirement": "Complete customer authorization, roster, territory, permitted-data, retention, training, device, support, and onboarding decisions before granting access.",
+      "owner": "Prometheus Sales / Customer Success",
+      "supportingOwners": [
+        "Prometheus Administration",
+        "Prometheus Data"
+      ],
+      "evidence": [
+        {
+          "path": "sales/route-iq-customer-onboarding-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "administration/launch-operations/route-iq-2026-08-01-production-activation-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PENDING_FOUNDER",
+      "launchBlocking": true,
+      "requiredWork": "Record the exact Founder and customer decisions, approved company roster, named users, support scope, activation date, and completed onboarding checklist.",
+      "founderAttendanceRequired": true
+    },
+    {
+      "id": "named_user_provisioning",
+      "directivePhase": "PHASE_4",
+      "requirement": "Use a fail-closed named-user provisioning procedure with exact principal, role, workspace, pre-add counts, post-add reconciliation, removal, and pause controls.",
+      "owner": "Prometheus Infrastructure",
+      "supportingOwners": [
+        "Prometheus Data",
+        "Prometheus Administration"
+      ],
+      "evidence": [
+        {
+          "path": "docs/route-iq-production-provisioning-monitoring-incident-rollback-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "The fail-closed named-user provisioning procedure exists. Reverify it against the final committed runtime, support plan, and exact activation envelope.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "monitoring_support_incident_response",
+      "directivePhase": "PHASE_4",
+      "requirement": "Have current production monitoring sources, thresholds, named support and incident owners, coverage, escalation, and fail-closed incident containment ready before activation.",
+      "owner": "Prometheus Infrastructure",
+      "supportingOwners": [
+        "Prometheus Administration",
+        "Prometheus Overwatch"
+      ],
+      "evidence": [
+        {
+          "path": "docs/route-iq-production-provisioning-monitoring-incident-rollback-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "administration/workflows/route-iq-production-support-triage-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "workers/infrastructure/route-iq-request-crm-runtime.js",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "workers/infrastructure/route-iq-request-crm-runtime-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-request-crm-infrastructure.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "CRM monitoring implementation and its contract exist. Name the support and incident owners, record the approved channel and coverage, and verify every required production metric source before activation.",
+      "founderAttendanceRequired": true
+    },
+    {
+      "id": "forward_rollback_readiness",
+      "directivePhase": "PHASE_4",
+      "requirement": "Qualify exact forward-compatible public and private rollback artifacts that preserve migrations, classes, bindings, namespaces, secrets, and accepted records.",
+      "owner": "Prometheus Infrastructure",
+      "supportingOwners": [
+        "Prometheus Overwatch"
+      ],
+      "evidence": [
+        {
+          "path": "docs/route-iq-production-provisioning-monitoring-incident-rollback-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "workers/infrastructure/route-iq-private-forward-rollback-candidate-v2.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v2.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "workers/infrastructure/route-iq-private-forward-rollback-inert-durable-object-v2.js",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "scripts/build-route-iq-private-forward-rollback-candidate-v2.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "tests/route-iq-private-forward-rollback-candidate-v2.test.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "Regenerate and rehearse both rollback identities against the final immutable launch candidate; deployment remains separately Founder-authorized.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "known_limitations_disclosure",
+      "directivePhase": "PHASE_4",
+      "requirement": "Disclose evidence insufficiency, OFF safety states, bounded capacity, generic PWA, retention, support, connectivity, and Founder-research limitations truthfully.",
+      "owner": "Prometheus Route IQ",
+      "supportingOwners": [
+        "Prometheus Data",
+        "Prometheus Intelligence Engine",
+        "Prometheus Infrastructure"
+      ],
+      "evidence": [
+        {
+          "path": "docs/route-iq-production-known-limitations-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "The current limitations disclosure is owner-authored and committed. Recompute this gate after the final customer runtime and full launch qualification fix the exact released behavior.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "launch_day_and_post_launch_verification",
+      "directivePhase": "PHASE_4",
+      "requirement": "Maintain exact launch-day go/no-go, activation-order, first-hour, four-hour, 24-hour, and seven-day verification procedures.",
+      "owner": "Prometheus Administration",
+      "supportingOwners": [
+        "Prometheus Infrastructure",
+        "Prometheus Overwatch"
+      ],
+      "evidence": [
+        {
+          "path": "administration/launch-operations/route-iq-2026-08-01-production-activation-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PARTIAL",
+      "launchBlocking": true,
+      "requiredWork": "The launch-day and post-launch procedure is owner-authored and committed. Reverify its exact identities, checks, and rollback references after final qualification.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "full_qualification_and_clean_provenance",
+      "directivePhase": "PHASE_5",
+      "requirement": "Pass the complete repository, Workflow v2, security, Aegis, secret, build, contract, CRM, authentication, isolation, PWA, ownership, rollback, Git, and clean-runner gates on one exact candidate.",
+      "owner": "Prometheus Overwatch",
+      "supportingOwners": [
+        "Prometheus Infrastructure",
+        "Prometheus Dashboard",
+        "Prometheus Data",
+        "Prometheus CRM",
+        "Prometheus Intelligence Engine"
+      ],
+      "evidence": [
+        {
+          "path": "overwatch/governance/public-deployment-workflow-v2.json",
+          "kind": "governance",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "kind": "test",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "overwatch/governance/verified-engineering-batch-auto-push-v1.json",
+          "kind": "governance",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "BLOCKED",
+      "launchBlocking": true,
+      "requiredWork": "Finish owner work, produce clean correctly owned commits, rerun every required gate, and independently qualify the exact final HEAD and tree.",
+      "founderAttendanceRequired": false
+    },
+    {
+      "id": "activation_and_deployment_authorization",
+      "directivePhase": "PHASE_6",
+      "requirement": "Keep customer activation, deployment, access grants, external communication, and production mutation default OFF until separate exact Founder decisions are recorded.",
+      "owner": "Prometheus Overwatch",
+      "supportingOwners": [
+        "Prometheus Administration",
+        "Prometheus Infrastructure"
+      ],
+      "evidence": [
+        {
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope-v1.json",
+          "kind": "contract",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
+          "path": "administration/launch-operations/route-iq-2026-08-01-production-activation-v1.md",
+          "kind": "procedure",
+          "classification": "CONTROLLING_CURRENT"
+        }
+      ],
+      "status": "PENDING_FOUNDER",
+      "launchBlocking": true,
+      "requiredWork": "After all other blockers close, obtain exact Founder decisions for the final deployment, company roster, named users, activation window, support scope, and customer access grants.",
+      "founderAttendanceRequired": true
+    }
+  ]
+}
