@@ -63,8 +63,29 @@ test("historical Workflow v2 evidence remains historical beside exact current ow
   assert.equal(current.overwatchPredecessors[1].parent, current.overwatchPredecessors[0].commit);
   assert.equal(current.overwatchPredecessors[2].parent, current.overwatchPredecessors[1].commit);
   assert.equal(current.overwatchPredecessors[3].parent, current.overwatchPredecessors[2].commit);
-  assert.equal(current.overwatchSuccessor.parent, current.overwatchPredecessors[3].commit);
-  assert.equal(current.overwatchSuccessor.files.length, 7);
+  assert.deepEqual(
+    current.qualificationPredecessors.map(item => item.commit),
+    [
+      "f464a6bc19e8d2e52cab258dd2cbdd7511a18a21",
+      "4fb815a7e03f745685a36e24e847dbc1f109a7df",
+      "1a1e130b9ffe63948ceaf7fc7d5cfff647431e3e",
+      "e295f94c09d98c6ec45cf797ca51c12e62fac7be",
+      "c58c44b0314598a5848599fc855c383b884fba60",
+      "affd4548054ca5f2c73521820d3bd3b82afa7545",
+      "325c50c4c33f18dea07f16d6214a4decdcc46c29",
+      "e34259fa62a3530b0a24e9dbae3a015593c08a22",
+      "95f367e03160bfeae98b722d99b6ca67d4424d72"
+    ]
+  );
+  assert.equal(current.qualificationPredecessors[0].parent, current.overwatchPredecessors[3].commit);
+  for (let index = 1; index < current.qualificationPredecessors.length; index += 1) {
+    assert.equal(
+      current.qualificationPredecessors[index].parent,
+      current.qualificationPredecessors[index - 1].commit
+    );
+  }
+  assert.equal(current.overwatchSuccessor.parent, current.qualificationPredecessors.at(-1).commit);
+  assert.equal(current.overwatchSuccessor.files.length, 8);
 });
 
 test("governance fails closed on ownership or production-boundary drift", () => {
@@ -99,6 +120,18 @@ test("governance fails closed on ownership or production-boundary drift", () => 
             tree: "0".repeat(40)
           },
           sources.governance.august1LaunchCloseoutSuccessor.overwatchPredecessors[1]
+        ]
+      }
+    },
+    {
+      august1LaunchCloseoutSuccessor: {
+        ...sources.governance.august1LaunchCloseoutSuccessor,
+        qualificationPredecessors: [
+          {
+            ...sources.governance.august1LaunchCloseoutSuccessor.qualificationPredecessors[0],
+            tree: "0".repeat(40)
+          },
+          ...sources.governance.august1LaunchCloseoutSuccessor.qualificationPredecessors.slice(1)
         ]
       }
     },

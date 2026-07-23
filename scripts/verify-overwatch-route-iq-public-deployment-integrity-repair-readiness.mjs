@@ -17,6 +17,8 @@ import {
 
 export const PUBLIC_INTEGRITY_READINESS_PATH =
   "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json";
+const AUGUST1_READINESS_REPORT_PATH =
+  "overwatch/governance/route-iq-august-1-launch-closeout-v1.json";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const HISTORICAL_SUCCESSOR_PATH =
@@ -1064,6 +1066,7 @@ const CURRENT_OVERWATCH_SUCCESSOR_FILES = Object.freeze([
   "overwatch/governance/public-deployment-workflow-v2.json",
   "overwatch/governance/public-deployment-workflow-v2.md",
   PUBLIC_INTEGRITY_READINESS_PATH,
+  AUGUST1_READINESS_REPORT_PATH,
   "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
   "tests/overwatch-public-deployment-workflow-v2.test.mjs",
@@ -1136,10 +1139,119 @@ const WORKFLOW_PIN_REFRESH_SUCCESSOR = Object.freeze({
   committer: "Prometheus Overwatch <overwatch@prometheus.local>",
   files: WORKFLOW_PIN_REFRESH_SUCCESSOR_FILES
 });
+const QUALIFICATION_SUCCESSORS = Object.freeze([
+  Object.freeze({
+    commit: "f464a6bc19e8d2e52cab258dd2cbdd7511a18a21",
+    tree: "231142c33106b7d936ed575696b3814fa99618ff",
+    parent: WORKFLOW_PIN_REFRESH_SUCCESSOR.commit,
+    subject: "overwatch: align August 1 package successor",
+    author: "Prometheus Overwatch <overwatch@prometheus.local>",
+    committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+    files: WORKFLOW_PIN_REFRESH_SUCCESSOR_FILES
+  }),
+  Object.freeze({
+    commit: "4fb815a7e03f745685a36e24e847dbc1f109a7df",
+    tree: "81aa187479948de9cd624d29f14557eea2909b79",
+    parent: "f464a6bc19e8d2e52cab258dd2cbdd7511a18a21",
+    subject: "Admit August 1 successors in paused access gates",
+    author: "Prometheus Overwatch <overwatch@prometheus.local>",
+    committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+    files: Object.freeze([
+      "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+      "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+      "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",
+      "tests/overwatch-cloudflare-unattended-access.test.mjs"
+    ])
+  }),
+  Object.freeze({
+    commit: "1a1e130b9ffe63948ceaf7fc7d5cfff647431e3e",
+    tree: "c0dcdd559630b95120d7e0dd76bcc2e8b3616721",
+    parent: "4fb815a7e03f745685a36e24e847dbc1f109a7df",
+    subject: "Reconcile attended response verifier successors",
+    author: "Prometheus Overwatch <overwatch@prometheus.local>",
+    committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+    files: Object.freeze([
+      "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
+      "tests/overwatch-cloudflare-founder-attended-response-contract-repair.test.mjs"
+    ])
+  }),
+  Object.freeze({
+    commit: "e295f94c09d98c6ec45cf797ca51c12e62fac7be",
+    tree: "6d3e777a9cf5ab89e0a6bb4d1265815d9102ccd7",
+    parent: "1a1e130b9ffe63948ceaf7fc7d5cfff647431e3e",
+    subject: "Reconcile create receipt verifier successors",
+    author: "Prometheus Overwatch <overwatch@prometheus.local>",
+    committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+    files: Object.freeze([
+      "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+      "tests/overwatch-cloudflare-founder-attended-create-receipt-v2.test.mjs"
+    ])
+  }),
+  Object.freeze({
+    commit: "c58c44b0314598a5848599fc855c383b884fba60",
+    tree: "49e274b6be76bf97a15573913b71ba0c7adc9cac",
+    parent: "e295f94c09d98c6ec45cf797ca51c12e62fac7be",
+    subject: "Align workspace verifier with customer scope",
+    author: "Prometheus Dashboard <dashboard@prometheus.local>",
+    committer: "Prometheus Dashboard <dashboard@prometheus.local>",
+    files: Object.freeze(["scripts/verify-dashboard-workspace-switcher.mjs"])
+  }),
+  Object.freeze({
+    commit: "affd4548054ca5f2c73521820d3bd3b82afa7545",
+    tree: "5f5694b67525c8352a41be6149dc02c0e828bfc2",
+    parent: "c58c44b0314598a5848599fc855c383b884fba60",
+    subject: "Admit governed learning baseline successors",
+    author: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    committer: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    files: Object.freeze([
+      "scripts/verify-read-only-field-session-learning.mjs",
+      "tests/read-only-field-session-learning.test.mjs"
+    ])
+  }),
+  Object.freeze({
+    commit: "325c50c4c33f18dea07f16d6214a4decdcc46c29",
+    tree: "dc36977f793fc31d9716127cf167c734c186d4f8",
+    parent: "affd4548054ca5f2c73521820d3bd3b82afa7545",
+    subject: "Share governed learning successor verification",
+    author: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    committer: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    files: Object.freeze([
+      "scripts/verify-off-route-learning-intelligence.mjs",
+      "scripts/verify-read-only-field-session-learning.mjs",
+      "tests/off-route-learning-intelligence.test.mjs"
+    ])
+  }),
+  Object.freeze({
+    commit: "e34259fa62a3530b0a24e9dbae3a015593c08a22",
+    tree: "0968335f8545b5ff306d6f14c724be008a506b7f",
+    parent: "325c50c4c33f18dea07f16d6214a4decdcc46c29",
+    subject: "Reconcile current release provenance successors",
+    author: "Prometheus Overwatch <overwatch@prometheus.local>",
+    committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+    files: Object.freeze([
+      "scripts/verify-release-provenance-repair.mjs",
+      "tests/release-provenance-repair.test.mjs"
+    ])
+  }),
+  Object.freeze({
+    commit: "95f367e03160bfeae98b722d99b6ca67d4424d72",
+    tree: "7810b49f5eab1a1cefcc2811b65fad1c0a4b5b7e",
+    parent: "e34259fa62a3530b0a24e9dbae3a015593c08a22",
+    subject: "overwatch: finalize August 1 launch readiness",
+    author: "Prometheus Overwatch <overwatch@prometheus.local>",
+    committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+    files: Object.freeze([
+      AUGUST1_READINESS_REPORT_PATH,
+      "overwatch/governance/route-iq-august-1-readiness-matrix-v1.json",
+      "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
+    ])
+  })
+]);
 const OVERWATCH_SUCCESSOR = Object.freeze({
   classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
-  parent: WORKFLOW_PIN_REFRESH_SUCCESSOR.commit,
-  subject: "overwatch: align August 1 package successor",
+  parent: QUALIFICATION_SUCCESSORS.at(-1).commit,
+  subject: "overwatch: close August 1 qualification chain",
   author: "Prometheus Overwatch <overwatch@prometheus.local>",
   committer: "Prometheus Overwatch <overwatch@prometheus.local>",
   files: CURRENT_OVERWATCH_SUCCESSOR_FILES
@@ -1204,7 +1316,18 @@ const CURRENT_INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
       committerEmail: "overwatch@prometheus.local",
       subject: WORKFLOW_PIN_REFRESH_SUCCESSOR.subject,
       files: WORKFLOW_PIN_REFRESH_SUCCESSOR.files
-    })
+    }),
+    ...QUALIFICATION_SUCCESSORS.map(successor => Object.freeze({
+      commit: successor.commit,
+      tree: successor.tree,
+      parent: successor.parent,
+      authorName: successor.author.replace(/ <[^>]+>$/u, ""),
+      authorEmail: successor.author.match(/<([^>]+)>$/u)[1],
+      committerName: successor.committer.replace(/ <[^>]+>$/u, ""),
+      committerEmail: successor.committer.match(/<([^>]+)>$/u)[1],
+      subject: successor.subject,
+      files: successor.files
+    }))
   ]),
   august1LaunchCloseoutAdmissionSuccessor: Object.freeze({
     parent: OVERWATCH_SUCCESSOR.parent,
@@ -2174,7 +2297,7 @@ export function validatePublicIntegrityReadiness(governance) {
   assert.deepEqual(governance?.productionIdentities, {
     publicWorker: {
       name: "prometheusrouteiq-website",
-      version: "a0296f92-4427-4cea-a3e2-9a5e05a4596c",
+      version: "28c6ffbc-86dc-4037-aaff-5c74f5fe990e",
       trafficPercent: 100
     },
     privateWorker: {
@@ -2279,6 +2402,10 @@ export function validatePublicIntegrityReadiness(governance) {
         files: [...WORKFLOW_PIN_REFRESH_SUCCESSOR.files]
       }
     ],
+    qualificationPredecessors: QUALIFICATION_SUCCESSORS.map(successor => ({
+      ...successor,
+      files: [...successor.files]
+    })),
     overwatchSuccessor: {
       ...OVERWATCH_SUCCESSOR,
       files: [...OVERWATCH_SUCCESSOR.files]
@@ -2344,7 +2471,8 @@ function verifyCurrentOwnerSuccessor(root, requireCommittedOverwatch) {
     INITIAL_OVERWATCH_SUCCESSOR,
     MANIFEST_REPAIR_SUCCESSOR,
     PROVENANCE_CLOSURE_SUCCESSOR,
-    WORKFLOW_PIN_REFRESH_SUCCESSOR
+    WORKFLOW_PIN_REFRESH_SUCCESSOR,
+    ...QUALIFICATION_SUCCESSORS
   ]) {
     verifyExactCommit(root, expected);
   }

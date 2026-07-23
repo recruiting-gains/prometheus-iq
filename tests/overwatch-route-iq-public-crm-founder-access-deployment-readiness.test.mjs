@@ -185,9 +185,30 @@ test("current owner evidence is pinned independently from historical readiness",
   assert.equal(successor.overwatchPredecessors[1].parent, successor.overwatchPredecessors[0].commit);
   assert.equal(successor.overwatchPredecessors[2].parent, successor.overwatchPredecessors[1].commit);
   assert.equal(successor.overwatchPredecessors[3].parent, successor.overwatchPredecessors[2].commit);
-  assert.equal(successor.overwatchSuccessor.parent, successor.overwatchPredecessors[3].commit);
-  assert.equal(successor.overwatchSuccessor.subject, "overwatch: align August 1 package successor");
-  assert.equal(successor.overwatchSuccessor.files.length, 7);
+  assert.deepEqual(
+    successor.qualificationPredecessors.map(item => item.commit),
+    [
+      "f464a6bc19e8d2e52cab258dd2cbdd7511a18a21",
+      "4fb815a7e03f745685a36e24e847dbc1f109a7df",
+      "1a1e130b9ffe63948ceaf7fc7d5cfff647431e3e",
+      "e295f94c09d98c6ec45cf797ca51c12e62fac7be",
+      "c58c44b0314598a5848599fc855c383b884fba60",
+      "affd4548054ca5f2c73521820d3bd3b82afa7545",
+      "325c50c4c33f18dea07f16d6214a4decdcc46c29",
+      "e34259fa62a3530b0a24e9dbae3a015593c08a22",
+      "95f367e03160bfeae98b722d99b6ca67d4424d72"
+    ]
+  );
+  assert.equal(successor.qualificationPredecessors[0].parent, successor.overwatchPredecessors[3].commit);
+  for (let index = 1; index < successor.qualificationPredecessors.length; index += 1) {
+    assert.equal(
+      successor.qualificationPredecessors[index].parent,
+      successor.qualificationPredecessors[index - 1].commit
+    );
+  }
+  assert.equal(successor.overwatchSuccessor.parent, successor.qualificationPredecessors.at(-1).commit);
+  assert.equal(successor.overwatchSuccessor.subject, "overwatch: close August 1 qualification chain");
+  assert.equal(successor.overwatchSuccessor.files.length, 8);
   assert.deepEqual(successor.currentReleaseIdentities, {
     deploymentAssetsSha256: "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1",
     rollbackContractSha256: "b7be296f51db1b8e8a305a068ebc1b0aa7652813de7b5378b96ac292af8af012",
