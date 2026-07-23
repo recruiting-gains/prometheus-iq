@@ -122,7 +122,7 @@ function scoreWithEligibility(place, _sourcePool, now = evaluationTime) {
     signals: ["test evidence"],
     selectionTier: immediate ? 0 : 99,
     eligibility: {
-      version: "route-iq-closed-now-eligibility-v1",
+      version: "route-iq-business-hours-eligibility-v2",
       workspaceId,
       operatingProfileId,
       googlePlaceId: place.googlePlaceId,

@@ -649,7 +649,7 @@ assert(discoveryModeContracts.outputContract.recommendationMutationAuthorized ==
 assert(discoveryModeContracts.compositionContract.fixedRotationAllowed === false, "Discovery Mode v2 must prohibit fixed category rotation.");
 assert(discoveryModeContracts.compositionContract.qualityFloorAuthoritative === true, "Discovery Mode v2 must preserve the quality floor.");
 assert(discoveryModeContracts.eligibilityContract.canonicalImplementation === "intelligence/route-business-hours-eligibility.mjs", "Discovery Mode v2 must reuse canonical business-hours eligibility.");
-assert(discoveryModeContracts.eligibilityContract.canonicalVersion === "route-iq-closed-now-eligibility-v1", "Discovery Mode v2 canonical eligibility version regressed.");
+assert(discoveryModeContracts.eligibilityContract.canonicalVersion === "route-iq-business-hours-eligibility-v2", "Discovery Mode v2 canonical eligibility version regressed.");
 assert(discoveryModeContracts.eligibilityContract.balancingOccursAfterEligibility === true, "Discovery Mode v2 must balance categories after eligibility.");
 assert(discoveryModeContracts.eligibilityContract.closedVerifiedEligible === false, "Discovery Mode v2 must exclude CLOSED_VERIFIED candidates.");
 assert(discoveryModeContracts.eligibilityContract.uncertainImmediateRecommendationEligible === false, "Discovery Mode v2 must exclude uncertain hours from immediate recommendations.");

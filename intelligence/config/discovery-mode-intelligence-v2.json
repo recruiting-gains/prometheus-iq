@@ -18,7 +18,7 @@
     "requiresExistingRouteEligibility": true,
     "requiresCanonicalBusinessHoursEligibility": true,
     "eligibilityIntegrationVersion": "discovery-mode-eligibility-integration-repair-v1",
-    "canonicalEligibilityVersion": "route-iq-closed-now-eligibility-v1",
+    "canonicalEligibilityVersion": "route-iq-business-hours-eligibility-v2",
     "preserveEligibilitySelectionTier": true,
     "closedVerifiedBehavior": "exclude_never_balance",
     "uncertainHoursBehavior": "coverage_only_never_select",

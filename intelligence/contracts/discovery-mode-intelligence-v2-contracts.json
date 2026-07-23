@@ -46,7 +46,7 @@
     "integrationVersion": "discovery-mode-eligibility-integration-repair-v1",
     "canonicalImplementation": "intelligence/route-business-hours-eligibility.mjs",
     "canonicalConsumerContract": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
-    "canonicalVersion": "route-iq-closed-now-eligibility-v1",
+    "canonicalVersion": "route-iq-business-hours-eligibility-v2",
     "balancingOccursAfterEligibility": true,
     "openVerifiedEligible": true,
     "closedVerifiedEligible": false,

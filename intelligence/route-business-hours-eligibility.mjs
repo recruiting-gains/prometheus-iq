@@ -13,7 +13,7 @@ import {
   routeIqGovernedRuntimeAuthorizations
 } from "./route-iq-governed-runtime-scope.mjs";
 
-export const routeBusinessHoursEligibilityVersion = "route-iq-closed-now-eligibility-v1";
+export const routeBusinessHoursEligibilityVersion = "route-iq-business-hours-eligibility-v2";
 export const routeBusinessHoursWorkspaceId = "fitness_connection";
 export const routeBusinessHoursOperatingProfileId = "fitness";
 export const hoursNotVerifiedMarker = "HOURS_NOT_VERIFIED";
@@ -26,6 +26,12 @@ const uncertainStatuses = new Set(["HOURS_UNKNOWN", "HOURS_STALE", "SPECIAL_HOUR
 
 function cleanText(value, maximum = 500) {
   return String(value ?? "").replace(/[\u0000-\u001F\u007F]/g, "").trim().slice(0, maximum);
+}
+
+export function isCanonicalRouteBusinessHoursEligibility(value) {
+  return value?.version === routeBusinessHoursEligibilityVersion
+    && typeof value.coverageEligible === "boolean"
+    && typeof value.immediateRecommendationEligible === "boolean";
 }
 
 function evaluationInstant(value) {
@@ -723,6 +729,9 @@ export function evaluateRouteBusinessHoursEligibility({
 }
 
 export function applyHoursEligibilityToScore(scoreResult, eligibility) {
+  if (!isCanonicalRouteBusinessHoursEligibility(eligibility)) {
+    throw new Error("Route IQ business-hours eligibility must use the exact governed v2 contract.");
+  }
   const normalized = typeof scoreResult === "number" ? { score: scoreResult, signals: [] } : { ...(scoreResult || {}) };
   const score = Number(normalized.score);
   if (!Number.isFinite(score)) throw new Error("Route IQ score must remain finite when hours eligibility is applied.");

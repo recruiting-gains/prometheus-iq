@@ -3,6 +3,9 @@ import {
   assertGovernedRouteRuntimeScope,
   routeIqGovernedRuntimeAuthorizations
 } from "./route-iq-governed-runtime-scope.mjs";
+import {
+  isCanonicalRouteBusinessHoursEligibility
+} from "./route-business-hours-eligibility.mjs";
 
 export const continuousAdaptiveRouteReplenishmentVersion = "continuous-adaptive-route-replenishment-v1";
 export const defaultRouteQueueTarget = 15;
@@ -323,7 +326,7 @@ export function createEmptyRouteQueue({
 }
 
 function normalizeEligibilitySnapshot(raw) {
-  if (!raw || typeof raw !== "object") return null;
+  if (!isCanonicalRouteBusinessHoursEligibility(raw)) return null;
   const provenance = raw.provenance && typeof raw.provenance === "object" ? raw.provenance : {};
   return {
     version: cleanText(raw.version, 120),

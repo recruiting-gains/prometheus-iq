@@ -12,6 +12,7 @@ import {
   buildRouteBusinessHoursIndex,
   evaluateRouteBusinessHoursEligibility,
   hoursNotVerifiedMarker,
+  isCanonicalRouteBusinessHoursEligibility,
   routeBusinessHoursEligibilityVersion,
   summarizeRouteBusinessHours
 } from "../intelligence/route-business-hours-eligibility.mjs";
@@ -28,6 +29,10 @@ const administrationRegistry = JSON.parse(readFileSync(
 ));
 const canonicalManifestRegistry = JSON.parse(readFileSync(
   new URL("../data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json", import.meta.url),
+  "utf8"
+));
+const eligibilityContract = JSON.parse(readFileSync(
+  new URL("../intelligence/contracts/route-business-hours-eligibility-contracts.json", import.meta.url),
   "utf8"
 ));
 const sourceHash = "a".repeat(64);
@@ -211,6 +216,49 @@ function queueScore(context, record, at) {
     decisionFor(context, record, at)
   );
 }
+
+test("v2 contract identity rejects legacy eligibility snapshots at consumer boundaries", () => {
+  const workspace = administrationRegistry.workspaces[0];
+  const record = baseHoursRecord(workspace, "versioned_open");
+  const context = governedContext(0, [record]);
+  const current = decisionFor(context, record);
+  const legacy = { ...current, version: "route-iq-closed-now-eligibility-v1" };
+
+  assert.equal(routeBusinessHoursEligibilityVersion, "route-iq-business-hours-eligibility-v2");
+  assert.equal(eligibilityContract.version, "route-iq-business-hours-eligibility-contracts-v2");
+  assert.equal(eligibilityContract.runtimeVersion, routeBusinessHoursEligibilityVersion);
+  assert.equal(eligibilityContract.compatibility.exactVersionRequired, true);
+  assert.equal(eligibilityContract.compatibility.legacyRuntimeVersionAccepted, false);
+  assert.equal(isCanonicalRouteBusinessHoursEligibility(current), true);
+  assert.equal(isCanonicalRouteBusinessHoursEligibility(legacy), false);
+  assert.throws(
+    () => applyHoursEligibilityToScore({ score: 50, signals: [] }, legacy),
+    /exact governed v2 contract/
+  );
+  const candidate = candidateFor(context, record.googlePlaceId);
+  const queue = createEmptyRouteQueue({
+    workspaceId: context.workspace.workspaceId,
+    operatingProfileId: context.workspace.operatingProfile.profileId,
+    representativeId: "synthetic_rep",
+    routeDate: "2026-07-23",
+    governedRuntimeScope: context.scope
+  });
+  const result = maintainRouteQueue({
+    queue,
+    workspaceId: context.workspace.workspaceId,
+    operatingProfileId: context.workspace.operatingProfile.profileId,
+    representativeId: "synthetic_rep",
+    routeDate: "2026-07-23",
+    primaryCandidates: [candidate],
+    scoreCandidate: () => ({ score: 50, signals: [], eligibility: legacy }),
+    now: evaluatedAt,
+    governedRuntimeScope: context.scope,
+    force: true
+  });
+  assert.equal(result.exhausted, true);
+  assert.deepEqual(result.queue.entries, []);
+  assert.ok(result.failureReasons.some(reason => reason.includes("eligibility_missing")));
+});
 
 test("canonical Administration and Data registries align while the pending roster admits no business identity", () => {
   const workspace = administrationRegistry.workspaces[0];

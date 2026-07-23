@@ -27,7 +27,7 @@
     "businessHoursArtifactVersion": "business-hours-v1",
     "businessHoursSourceDatasetVersion": "google-qualified-businesses-v2",
     "businessHoursStatusEvaluatedAt": "2026-07-23T12:00:00.000Z",
-    "canonicalEligibilityVersion": "route-iq-closed-now-eligibility-v1",
+    "canonicalEligibilityVersion": "route-iq-business-hours-eligibility-v2",
     "eligibilitySummary": {
       "evaluated": 0,
       "coverageEligible": 0,
@@ -69,7 +69,7 @@
     "inputBoundary": "post_governance_canonical_business_hours_eligible_candidates",
     "candidateSource": "active",
     "eligibilityImplementation": "intelligence/route-business-hours-eligibility.mjs",
-    "eligibilityVersion": "route-iq-closed-now-eligibility-v1",
+    "eligibilityVersion": "route-iq-business-hours-eligibility-v2",
     "balancingOccursAfterEligibility": true,
     "existingScores": "immutable_input_snapshots",
     "learningSource": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
@@ -1350,7 +1350,7 @@
       "rejectionReasons": {}
     },
     "eligibilityMetrics": {
-      "canonicalVersion": "route-iq-closed-now-eligibility-v1",
+      "canonicalVersion": "route-iq-business-hours-eligibility-v2",
       "selectedStatusDistribution": {},
       "selectedTierDistribution": {},
       "selectedCoverageOnlyCount": 0,

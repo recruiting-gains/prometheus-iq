@@ -1,5 +1,19 @@
 {
-  "version": "route-iq-closed-now-eligibility-contracts-v1",
+  "version": "route-iq-business-hours-eligibility-contracts-v2",
+  "runtimeVersion": "route-iq-business-hours-eligibility-v2",
+  "compatibility": {
+    "supersedesRuntimeVersion": "route-iq-closed-now-eligibility-v1",
+    "supersedesContractVersion": "route-iq-closed-now-eligibility-contracts-v1",
+    "exactVersionRequired": true,
+    "legacyRuntimeVersionAccepted": false,
+    "legacyContractVersionAccepted": false,
+    "breakingChanges": [
+      "coverage_and_immediate_eligibility_are_separate",
+      "manifest_admission_and_provenance_are_required",
+      "availability_and_visit_duration_have_distinct_output_semantics",
+      "persisted_queue_entries_are_re_evaluated_at_authoritative_time"
+    ]
+  },
   "admissionVersion": "route-iq-governed-business-admission-v2",
   "subsystem": "prometheus-intelligence-engine",
   "domain": "route-intelligence",

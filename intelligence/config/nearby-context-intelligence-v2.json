@@ -67,7 +67,7 @@
   },
   "businessHoursPolicy": {
     "canonicalImplementation": "intelligence/route-business-hours-eligibility.mjs",
-    "canonicalVersion": "route-iq-closed-now-eligibility-v1",
+    "canonicalVersion": "route-iq-business-hours-eligibility-v2",
     "selectionOrder": [
       "active_verified_open",
       "full_pool_verified_open_fallback"

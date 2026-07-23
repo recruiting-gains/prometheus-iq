@@ -112,7 +112,7 @@
             "nearby_context_generation"
           ],
           "canonicalHoursImplementation": "intelligence/route-business-hours-eligibility.mjs",
-          "canonicalHoursVersion": "route-iq-closed-now-eligibility-v1",
+          "canonicalHoursVersion": "route-iq-business-hours-eligibility-v2",
           "activePoolPriority": true,
           "governedFullPoolFallback": true,
           "relationshipPriority": [
@@ -1200,7 +1200,7 @@
             "nearby_context_generation"
           ],
           "canonicalHoursImplementation": "intelligence/route-business-hours-eligibility.mjs",
-          "canonicalHoursVersion": "route-iq-closed-now-eligibility-v1",
+          "canonicalHoursVersion": "route-iq-business-hours-eligibility-v2",
           "activePoolPriority": true,
           "governedFullPoolFallback": true,
           "relationshipPriority": [
@@ -2281,7 +2281,7 @@
         "nearby_context_generation"
       ],
       "canonicalHoursImplementation": "intelligence/route-business-hours-eligibility.mjs",
-      "canonicalHoursVersion": "route-iq-closed-now-eligibility-v1",
+      "canonicalHoursVersion": "route-iq-business-hours-eligibility-v2",
       "activePoolPriority": true,
       "governedFullPoolFallback": true,
       "relationshipPriority": [
@@ -3373,7 +3373,7 @@
     "capabilityProbe": [],
     "identityAliasProbe": [],
     "identityMultiTenantProbe": [],
-    "canonicalEligibilityVersion": "route-iq-closed-now-eligibility-v1",
+    "canonicalEligibilityVersion": "route-iq-business-hours-eligibility-v2",
     "duplicateIdentityIntegrationVersion": "nearby-context-duplicate-identity-integration-repair-v1",
     "recommendationInfluenceActive": false,
     "dashboardConsumerActive": false,

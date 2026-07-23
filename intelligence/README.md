@@ -35,6 +35,8 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - `field-evidence-activation-foundation.md`: architecture-only activation foundation for real field evidence admission, normalized outcomes, safety controls, and profile-agnostic explainability.
 - `customer-intelligence-graph.mjs`: read-only graph snapshot engine for per-customer Business, Visit, Lead, Outcome, Opportunity, Rep, Manager, Territory, Operating Profile, Customer, and Learning Signal relationships.
 - `customer-intelligence-graph.md`: Customer Intelligence Graph architecture, CustomerGraphSnapshots, provenance, safe query contracts, customer isolation rules, graph objectives, and future consumer boundaries.
+- `route-business-hours-eligibility.mjs`: exact-version v2 eligibility engine that separates coverage from immediate-stop admission, requires canonical manifest provenance, and rejects legacy v1 snapshots at scoring and queue boundaries.
+- `contracts/route-business-hours-eligibility-contracts.json`: governed v2 availability, presentation, queue, compatibility, and fail-closed admission contract.
 - `continuous-adaptive-route-replenishment.mjs`: production Route IQ queue controller for outcome-driven, representative-scoped, workspace-safe route maintenance.
 - `contracts/adaptive-intelligence-contracts.json`: machine-readable contract registry for validation and future implementation planning.
 - `contracts/field-learning-loop-contracts.json`: machine-readable Field Learning Loop contract registry for completed-visit evidence, normalized signals, confidence, explainability, and human override review.
