@@ -64,6 +64,10 @@ function sha256File(path) {
   return sha256(readFileSync(path));
 }
 
+export function removeTransientNodeModulesPath(path) {
+  rmSync(path, { recursive: true, force: true });
+}
+
 function readSource(path, sourceRef) {
   if (sourceRef === "WORKTREE") return readFileSync(resolve(root, path));
   return git(["show", `${sourceRef}:${path}`], { encoding: "buffer" });
@@ -323,7 +327,7 @@ export function buildRouteIqPrivateForwardRollbackCandidateV3({
       });
       generatedManifest.dryRunPassed = true;
     } finally {
-      rmSync(nodeModulesLink, { force: true });
+      removeTransientNodeModulesPath(nodeModulesLink);
       rmSync(dryRunOutput, { recursive: true, force: true });
     }
   }

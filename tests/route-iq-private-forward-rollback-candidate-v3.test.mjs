@@ -1,13 +1,22 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
 
 import {
   buildRouteIqPrivateForwardRollbackCandidateV3,
+  removeTransientNodeModulesPath,
   validateRouteIqPrivateForwardRollbackBoundaryV3
 } from "../scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs";
 import {
@@ -273,6 +282,26 @@ test("qualification dry-run succeeds without a deploy, secret mutation, or publi
     assert.equal(result.manifest.deploymentAuthorized, false);
     assert.match(builderSource, /"--dry-run"/u);
     assert.doesNotMatch(builderSource, /secret (?:put|delete|bulk)|--secrets-file|prometheusrouteiq-website/u);
+  } finally {
+    rmSync(outputRoot, { recursive: true, force: true });
+  }
+});
+
+test("dry-run cleanup removes either a symlink or a materialized node_modules directory", () => {
+  const outputRoot = mkdtempSync(join(tmpdir(), "route-iq-private-forward-rollback-v3-cleanup-test-"));
+  const target = join(outputRoot, "target");
+  const transientPath = join(outputRoot, "node_modules");
+  try {
+    mkdirSync(target);
+    symlinkSync(target, transientPath, "dir");
+    removeTransientNodeModulesPath(transientPath);
+    assert.equal(existsSync(transientPath), false);
+    assert.equal(existsSync(target), true);
+
+    mkdirSync(transientPath);
+    writeFileSync(join(transientPath, "materialized.txt"), "runner-materialized\n");
+    removeTransientNodeModulesPath(transientPath);
+    assert.equal(existsSync(transientPath), false);
   } finally {
     rmSync(outputRoot, { recursive: true, force: true });
   }
