@@ -289,20 +289,16 @@ Benchmark-derived Prometheus methodology:
 - Red-team review.
 - Executive brief and appendices.
 
-First packages produced under the standard without modifying the standard:
+Cross-industry validation is provided by:
 
-- `research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`
-- `research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3.md`
-- `research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3.json`
-- `research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3-evidence.json`
-- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md`
-- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.json`
-- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`
-- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json`
-- `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`
-- `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json`
+- `research/fixtures/cross-industry-research-fixture-v1.json`
 
-Smoothie Depot v3 is canonical for brand strategy and expansion readiness. Nutrition Depot v2 and Cranky Carrot remain canonical within prospect due diligence. Nutrition Depot v1 remains preserved as a superseded historical artifact because it failed Founder Review and must not be used as the current executive-delivery artifact.
+The fixture is explicitly synthetic and non-production. It proves that the
+same Research standards can represent multiple industries while preserving
+workspace isolation, evidence provenance, confidence requirements, and
+production boundaries. Customer-specific Research workspaces are not part of
+the current deployable tree; repository history remains the audit archive for
+retired Research artifacts.
 
 Existing Executive Due Diligence Dossiers remain historical Research artifacts and current Dashboard inputs until a future approved Dashboard handoff migrates consumers to Executive Intelligence Packages. New Research work must create Executive Intelligence Packages and package registers instead of new dossier artifacts as the primary output.
 

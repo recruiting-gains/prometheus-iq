@@ -398,7 +398,7 @@ This refines, but does not replace, Executive Intelligence Platform v1's 12 inte
 
 1. Add a Research package register for completed Executive Intelligence Packages.
 2. Add a benchmark-derived quality gate to the Executive Intelligence Package schema.
-3. Generate Nutrition Depot Executive Intelligence Package v1 using this methodology.
+3. Validate a synthetic cross-industry Executive Intelligence Package using this methodology.
 4. Add post-meeting learning fields to package artifacts.
 5. Create a package-level "decision thesis" and "unknown value ranking" requirement.
 6. Create a Dashboard handoff proposal only after at least one package artifact is complete and reviewed.

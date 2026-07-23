@@ -1,0 +1,108 @@
+{
+  "fixtureId": "cross_industry_research_fixture_v1",
+  "fixtureVersion": "1.0.0",
+  "classification": "synthetic_non_production_fixture",
+  "purpose": "Prove that one governed Research standard supports distinct industries without customer-specific code or data.",
+  "productionRuntimeChange": false,
+  "providerCallsPerformed": false,
+  "containsCustomerData": false,
+  "containsPersonalInformation": false,
+  "platformStandard": "executive_intelligence_platform_v1",
+  "evidenceEngineStandard": "gaia_research_orchestrator_foundation_v1",
+  "evidenceLabels": [
+    "Observed",
+    "Corroborated",
+    "Owner-provided",
+    "Unknown",
+    "Inference"
+  ],
+  "conclusionRequirements": [
+    "evidenceBasis",
+    "sourceReliability",
+    "confidenceLevel",
+    "verificationNeeded",
+    "businessDecisionImpact"
+  ],
+  "workspaces": [
+    {
+      "workspaceId": "synthetic_field_services",
+      "companyDisplayName": "Synthetic Northstar Field Services",
+      "industry": "General outside sales",
+      "operatingProfileId": "general_outside_sales",
+      "researchQuestion": "Which territory evidence would justify a supervised field-sales experiment?",
+      "evidenceItems": [
+        {
+          "evidenceId": "synthetic_field_services_evidence_001",
+          "label": "Observed",
+          "sourceTier": "Tier 1",
+          "sourceKind": "synthetic_public_company_document",
+          "allowedForExecutiveIntelligence": true
+        },
+        {
+          "evidenceId": "synthetic_field_services_evidence_002",
+          "label": "Unknown",
+          "sourceTier": "Tier 3",
+          "sourceKind": "synthetic_enrichment_signal",
+          "allowedForExecutiveIntelligence": false
+        }
+      ],
+      "majorConclusion": {
+        "label": "Inference",
+        "evidenceBasis": "One synthetic primary observation and one excluded enrichment signal.",
+        "sourceReliability": "Synthetic validation only",
+        "confidenceLevel": "Low",
+        "verificationNeeded": "Replace every synthetic item with lawful, workspace-authorized evidence.",
+        "businessDecisionImpact": "No production or customer decision is permitted from this fixture."
+      }
+    },
+    {
+      "workspaceId": "synthetic_medical_distribution",
+      "companyDisplayName": "Synthetic Harborline Medical Supply",
+      "industry": "Medical field sales",
+      "operatingProfileId": "medical_field_sales",
+      "researchQuestion": "Which account-access constraints must be proven before a supervised field-sales experiment?",
+      "evidenceItems": [
+        {
+          "evidenceId": "synthetic_medical_distribution_evidence_001",
+          "label": "Corroborated",
+          "sourceTier": "Tier 1",
+          "sourceKind": "synthetic_regulatory_document",
+          "allowedForExecutiveIntelligence": true
+        },
+        {
+          "evidenceId": "synthetic_medical_distribution_evidence_002",
+          "label": "Owner-provided",
+          "sourceTier": "Tier 1",
+          "sourceKind": "synthetic_authorized_owner_statement",
+          "allowedForExecutiveIntelligence": true
+        }
+      ],
+      "majorConclusion": {
+        "label": "Unknown",
+        "evidenceBasis": "Synthetic corroborated and owner-provided evidence does not establish real access conditions.",
+        "sourceReliability": "Synthetic validation only",
+        "confidenceLevel": "Low",
+        "verificationNeeded": "Obtain lawful, current access evidence for the authorized workspace.",
+        "businessDecisionImpact": "No production or customer decision is permitted from this fixture."
+      }
+    }
+  ],
+  "isolationAssertions": {
+    "workspaceIdsUnique": true,
+    "evidenceIdsUnique": true,
+    "crossWorkspaceEvidenceReferences": false,
+    "sharedCustomerRecords": false,
+    "runtimeFallbackAllowed": false
+  },
+  "boundaryConfirmation": {
+    "researchArtifactOnly": true,
+    "dashboardModified": false,
+    "crmModified": false,
+    "websiteModified": false,
+    "infrastructureModified": false,
+    "companionModified": false,
+    "mobileModified": false,
+    "intelligenceRuntimeModified": false,
+    "productionDataModified": false
+  }
+}

@@ -49,24 +49,7 @@ Prometheus IQ is not a gym sales platform. Gym sales is the first production val
 - `reports/executive-intelligence-benchmark-study-v1.json`: Structured benchmark ledger and Prometheus methodology recommendation.
 - `reports/market-expansion-recommendation-v1.md`: First founder-ready strategic market expansion recommendation.
 - `reports/market-expansion-scoring-v1.json`: Structured scoring ledger for Market Expansion Recommendation v1.
-- `workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md`: Smoothie Depot public business prospect discovery workflow.
-- `workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md`: Smoothie Depot executive due diligence intelligence standard.
-- `workspaces/smoothie-depot/executive-due-diligence-framework-v4.json`: Machine-readable evidence, confidence, contradiction, decision tree, and decision journal framework.
-- `workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`: Research register for completed Smoothie Depot Executive Intelligence Packages.
-- `workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3.md`: Canonical Smoothie Depot brand-strategy and expansion-readiness Executive Intelligence Package.
-- `workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3.json`: Machine-readable canonical Smoothie Depot v3 package ledger.
-- `workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3-evidence.json`: Gaia provenance, conflict, deduplication, confidence, and evidence-quality ledger for Smoothie Depot v3.
-- `workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md`: Canonical rebuilt Nutrition Depot Executive Intelligence Package.
-- `workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.json`: Structured canonical rebuilt Nutrition Depot Executive Intelligence Package ledger.
-- `workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`: Historical first Executive Intelligence Package superseded by v2.
-- `workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json`: Historical structured first Executive Intelligence Package ledger superseded by v2.
-- `workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`: Second Executive Intelligence Package.
-- `workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json`: Structured second Executive Intelligence Package ledger.
-- `workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`: First founder-ready Smoothie Depot ranked prospect list.
-- `workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`: Structured Smoothie Depot prospect scoring ledger.
-- `workspaces/smoothie-depot/dossiers/dossier-register.json`: Canonical completed dossier register for Smoothie Depot Research.
-- `workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md`: First completed canonical Executive Due Diligence Dossier.
-- `workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json`: Structured canonical Executive Due Diligence Dossier ledger.
+- `fixtures/cross-industry-research-fixture-v1.json`: Synthetic, non-production proof that one Research standard supports distinct field-service and medical-distribution industries without customer-specific artifacts.
 
 ## Recurring Founder Intelligence Briefs
 
@@ -190,37 +173,21 @@ Current founder-ready output:
 - Top 10 expansion opportunities: Roofing, Solar, HVAC, Pest Control, Home Services, Security, Medical, Insurance, Commercial Services, Telecommunications.
 - Report: `research/reports/market-expansion-recommendation-v1.md`
 
-## Smoothie Depot Business Prospect Discovery
+## Cross-Industry Validation
 
-Research owns Smoothie Depot Business Prospect Discovery v1 as a workspace-isolated research workflow for the daily founder question: "Who should I call today?"
+Research standards are customer-neutral. The synthetic fixture at
+`research/fixtures/cross-industry-research-fixture-v1.json` proves that the
+same evidence, package, provenance, isolation, and boundary rules can describe
+distinct field-service and medical-distribution research contexts.
 
-Current founder-ready output:
+The fixture:
 
-- Top call targets: Nutrition Depot Houston and Greater Houston, Cranky Carrot Juice Co., LEEMOO Health Bar, Tight Squeeze Juice Bar, and HS Green.
-- Report: `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`
-- Structured ledger: `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
-- Executive Intelligence Package register: `research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`
-- Canonical Smoothie Depot brand-strategy package: `research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3.md`
-- Smoothie Depot v3 evidence ledger: `research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3-evidence.json`
-- Canonical rebuilt Nutrition Depot Executive Intelligence Package: `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md`
-- Historical Nutrition Depot Executive Intelligence Package: `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`
-- Second Executive Intelligence Package: `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`
-- First canonical completed dossier: `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md`
-
-This workflow uses lawful public business information only. It does not collect private financials, credit reports, bank information, tax records, or restricted-platform scraped data. It does not modify CRM, Dashboard, Website, Infrastructure, Companion, Mobile, Route Intelligence, Active Pool, Fitness Connection, or Intelligence Engine runtime.
-
-Apollo enrichment standard:
-
-- Apollo is permitted as a lead/contact/company enrichment source for future franchise target lists when available through approved ChatGPT plugins/connectors.
-- Apollo-derived findings must be labeled as enrichment signals unless corroborated by lawful public sources or owner-provided evidence.
-- Apollo alone must not support final ownership, capital readiness, franchise-fit, authority, qualification, or Executive Intelligence conclusions.
-- Future franchise target lists must document whether Apollo was used; if not used, Research must explain why.
-
-Executive due diligence standard:
-
-- Evidence labels: observed, inferred from multiple evidence sources, self-reported, owner-provided, unknown.
-- Required challenge loops: supporting evidence, contradicting evidence, assumptions, confidence, falsification triggers, and unknowns.
-- Required analysis: second-order implications, third-order recommendation effects, opportunity cost, alternative hypotheses, red-team review, unknown-value ranking, scenario decision tree, decision confidence matrix, and post-meeting decision journal.
+- Contains no production, customer, credential, contact, or location data.
+- Uses clearly synthetic company and workspace identities.
+- Keeps each workspace's evidence and conclusions isolated.
+- Exercises one common Executive Intelligence Package standard.
+- Confirms that Research remains advisory and changes no runtime subsystem.
+- Must never become a production catalog, customer record, or recommendation input.
 
 ## Boundary
 
