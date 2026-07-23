@@ -177,14 +177,16 @@ test("current owner evidence is pinned independently from historical readiness",
     [
       "5c20b551820c21b02a0c25c9d38c93474457fd23",
       "59fab7bc5f307336fba52d15bc73181cb1a20b04",
-      "899e4bbad0a74d2cf9514eda5ba5875b69aa6636"
+      "899e4bbad0a74d2cf9514eda5ba5875b69aa6636",
+      "bc5c03392580470c3549c8e3fe510458e5cdc196"
     ]
   );
   assert.equal(successor.overwatchPredecessors[0].parent, successor.provenanceAdmission.commit);
   assert.equal(successor.overwatchPredecessors[1].parent, successor.overwatchPredecessors[0].commit);
   assert.equal(successor.overwatchPredecessors[2].parent, successor.overwatchPredecessors[1].commit);
-  assert.equal(successor.overwatchSuccessor.parent, successor.overwatchPredecessors[2].commit);
-  assert.equal(successor.overwatchSuccessor.subject, "overwatch: refresh August 1 workflow pins");
+  assert.equal(successor.overwatchPredecessors[3].parent, successor.overwatchPredecessors[2].commit);
+  assert.equal(successor.overwatchSuccessor.parent, successor.overwatchPredecessors[3].commit);
+  assert.equal(successor.overwatchSuccessor.subject, "overwatch: align August 1 package successor");
   assert.equal(successor.overwatchSuccessor.files.length, 7);
   assert.deepEqual(successor.currentReleaseIdentities, {
     deploymentAssetsSha256: "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1",

@@ -182,6 +182,15 @@ const AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR_FILES = Object.freeze([
   "tests/overwatch-public-deployment-workflow-v2.test.mjs",
   "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
 ]);
+const AUGUST1_WORKFLOW_PIN_REFRESH_SUCCESSOR_FILES = Object.freeze([
+  GOVERNANCE_PATH,
+  DOCUMENTATION_PATH,
+  HISTORICAL_READINESS_GOVERNANCE_PATH,
+  "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+  "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+  "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+  "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+]);
 const AUGUST1_CURRENT_OVERWATCH_SUCCESSOR_FILES = Object.freeze([
   GOVERNANCE_PATH,
   DOCUMENTATION_PATH,
@@ -248,10 +257,19 @@ const AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR = Object.freeze({
   committer: OVERWATCH_IDENTITY,
   files: AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR_FILES
 });
-const AUGUST1_OVERWATCH_SUCCESSOR = Object.freeze({
-  classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
+const AUGUST1_WORKFLOW_PIN_REFRESH_SUCCESSOR = Object.freeze({
+  commit: "bc5c03392580470c3549c8e3fe510458e5cdc196",
+  tree: "4b15decd6b6ec6cc42bea1ab4770609a35b74768",
   parent: AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR.commit,
   subject: "overwatch: refresh August 1 workflow pins",
+  author: OVERWATCH_IDENTITY,
+  committer: OVERWATCH_IDENTITY,
+  files: AUGUST1_WORKFLOW_PIN_REFRESH_SUCCESSOR_FILES
+});
+const AUGUST1_OVERWATCH_SUCCESSOR = Object.freeze({
+  classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
+  parent: AUGUST1_WORKFLOW_PIN_REFRESH_SUCCESSOR.commit,
+  subject: "overwatch: align August 1 package successor",
   author: OVERWATCH_IDENTITY,
   committer: OVERWATCH_IDENTITY,
   files: AUGUST1_CURRENT_OVERWATCH_SUCCESSOR_FILES
@@ -275,7 +293,8 @@ const AUGUST1_LAUNCH_CLOSEOUT_SUCCESSOR = Object.freeze({
   overwatchPredecessors: Object.freeze([
     AUGUST1_INITIAL_OVERWATCH_SUCCESSOR,
     AUGUST1_MANIFEST_REPAIR_SUCCESSOR,
-    AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR
+    AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR,
+    AUGUST1_WORKFLOW_PIN_REFRESH_SUCCESSOR
   ]),
   overwatchSuccessor: AUGUST1_OVERWATCH_SUCCESSOR,
   currentReleaseIdentities: Object.freeze({
@@ -459,8 +478,8 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
     && item.historicalSha256 === historicalSha256
     && item.successorSha256 === successorSha256
     && item.owner === "Prometheus Overwatch"
-    && item.ownerCommit === "ee80a44b8a28847d4a4acfc3fae8574697661edc"
-    && item.classification === "OVERWATCH_RELEASE_GATE_REGISTRATION_ONLY"
+    && item.ownerCommit === "610383c4e845789859946122283e8014dae35600"
+    && item.classification === "OVERWATCH_AUGUST_1_RELEASE_GATE_REGISTRATION_ONLY"
   )) ?? [];
   return matches.length === 1;
 }
@@ -691,7 +710,8 @@ function verifyAugust1LaunchCloseoutSuccessor(governance) {
     AUGUST1_PROVENANCE_ADMISSION,
     AUGUST1_INITIAL_OVERWATCH_SUCCESSOR,
     AUGUST1_MANIFEST_REPAIR_SUCCESSOR,
-    AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR
+    AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR,
+    AUGUST1_WORKFLOW_PIN_REFRESH_SUCCESSOR
   ]) verifyExactCommit(expected);
 
   const head = git(["rev-parse", "HEAD"]);

@@ -217,12 +217,29 @@
           "tests/overwatch-public-deployment-workflow-v2.test.mjs",
           "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
         ]
+      },
+      {
+        "commit": "bc5c03392580470c3549c8e3fe510458e5cdc196",
+        "tree": "4b15decd6b6ec6cc42bea1ab4770609a35b74768",
+        "parent": "899e4bbad0a74d2cf9514eda5ba5875b69aa6636",
+        "subject": "overwatch: refresh August 1 workflow pins",
+        "author": "Prometheus Overwatch <overwatch@prometheus.local>",
+        "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
+        "files": [
+          "overwatch/governance/public-deployment-workflow-v2.json",
+          "overwatch/governance/public-deployment-workflow-v2.md",
+          "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+          "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+          "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+          "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+        ]
       }
     ],
     "overwatchSuccessor": {
       "classification": "DYNAMIC_EXACT_HEAD_SUCCESSOR",
-      "parent": "899e4bbad0a74d2cf9514eda5ba5875b69aa6636",
-      "subject": "overwatch: refresh August 1 workflow pins",
+      "parent": "bc5c03392580470c3549c8e3fe510458e5cdc196",
+      "subject": "overwatch: align August 1 package successor",
       "author": "Prometheus Overwatch <overwatch@prometheus.local>",
       "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
       "files": [

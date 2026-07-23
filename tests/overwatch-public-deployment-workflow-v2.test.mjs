@@ -55,13 +55,15 @@ test("historical Workflow v2 evidence remains historical beside exact current ow
     [
       "5c20b551820c21b02a0c25c9d38c93474457fd23",
       "59fab7bc5f307336fba52d15bc73181cb1a20b04",
-      "899e4bbad0a74d2cf9514eda5ba5875b69aa6636"
+      "899e4bbad0a74d2cf9514eda5ba5875b69aa6636",
+      "bc5c03392580470c3549c8e3fe510458e5cdc196"
     ]
   );
   assert.equal(current.overwatchPredecessors[0].parent, current.provenanceAdmission.commit);
   assert.equal(current.overwatchPredecessors[1].parent, current.overwatchPredecessors[0].commit);
   assert.equal(current.overwatchPredecessors[2].parent, current.overwatchPredecessors[1].commit);
-  assert.equal(current.overwatchSuccessor.parent, current.overwatchPredecessors[2].commit);
+  assert.equal(current.overwatchPredecessors[3].parent, current.overwatchPredecessors[2].commit);
+  assert.equal(current.overwatchSuccessor.parent, current.overwatchPredecessors[3].commit);
   assert.equal(current.overwatchSuccessor.files.length, 7);
 });
 
