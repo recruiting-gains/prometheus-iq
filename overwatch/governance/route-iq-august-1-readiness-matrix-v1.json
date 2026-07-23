@@ -202,7 +202,7 @@
       ],
       "status": "PARTIAL",
       "launchBlocking": true,
-      "requiredWork": "The committed Data envelope, customer PWA runtime, private-Worker routing, generic Dashboard /app integration, Dashboard browser harness, and rollback successor pass focused checks. Complete full clean-tree verification before promotion.",
+      "requiredWork": "The committed Data envelope, customer PWA runtime, private-Worker routing, generic Dashboard /app integration, 10-of-10 focused Dashboard checks, 196-of-196 browser harness, and rollback successor pass focused checks. Commit this Overwatch successor and complete full clean-tree verification before promotion.",
       "founderAttendanceRequired": false
     },
     {
@@ -473,6 +473,11 @@
           "classification": "CONTROLLING_CURRENT"
         },
         {
+          "path": "deploy/cloudflare-pages/intelligence/route-iq-governed-runtime-scope.mjs",
+          "kind": "implementation",
+          "classification": "CONTROLLING_CURRENT"
+        },
+        {
           "path": "intelligence/route-business-hours-eligibility.mjs",
           "kind": "implementation",
           "classification": "CONTROLLING_CURRENT"
@@ -525,7 +530,7 @@
       ],
       "status": "PARTIAL",
       "launchBlocking": true,
-      "requiredWork": "The governed runtime-scope tests pass locally, but the business-hours source/deployment compatibility verifier still detects owner-generated parity drift. Recompute only after Intelligence and Dashboard owner outputs settle and full exact-tree qualification passes.",
+      "requiredWork": "Governed runtime-scope and business-hours focused checks pass locally, and every controlling source/generated module and contract is byte-identical. Commit this Overwatch successor and complete full exact-tree qualification before promotion.",
       "founderAttendanceRequired": false
     },
     {
@@ -561,7 +566,7 @@
       ],
       "status": "PARTIAL",
       "launchBlocking": true,
-      "requiredWork": "Focused local workspace, representative, governed-scope, retry, and provenance tests pass on committed owner artifacts. Recompute this gate only after full exact-tree qualification.",
+      "requiredWork": "Focused workspace, representative, governed-scope, retry, provenance, and four mismatched-operating-profile fail-closed checks pass on committed owner artifacts. Commit this Overwatch successor and complete full exact-tree qualification before promotion.",
       "founderAttendanceRequired": false
     },
     {
@@ -632,7 +637,7 @@
       ],
       "status": "PARTIAL",
       "launchBlocking": true,
-      "requiredWork": "The committed Dashboard browser harness passes 196 of 196, including exact 390x844 and collection-OFF zero-write checks, but the replenishment source/deployment compatibility verifier still detects parity drift. Repair that owner boundary and complete clean-tree full verification.",
+      "requiredWork": "The committed Dashboard browser harness passes 196 of 196, including exact 390x844, four mismatched-profile denials, and collection-OFF zero-write checks; replenishment source/deployment compatibility also passes. Commit this Overwatch successor and complete clean-tree full verification.",
       "founderAttendanceRequired": false
     },
     {
@@ -673,7 +678,7 @@
       ],
       "status": "PARTIAL",
       "launchBlocking": true,
-      "requiredWork": "Current customer-facing source contains no governed beta finding and source/generated pairs match locally. Recompute only after the racing Dashboard assets are committed and browser-qualified.",
+      "requiredWork": "Current customer-facing source contains no governed beta finding; Dashboard source/generated pairs are committed and browser-qualified. Commit this Overwatch successor and complete full exact-tree qualification before promotion.",
       "founderAttendanceRequired": false
     },
     {
@@ -953,7 +958,7 @@
       ],
       "status": "BLOCKED",
       "launchBlocking": true,
-      "requiredWork": "Finish owner work, produce clean correctly owned commits, rerun every required gate, and independently qualify the exact final HEAD and tree.",
+      "requiredWork": "Owner successors and focused checks are complete. Commit this Overwatch successor, require a clean synchronized tree, then run the complete repository and independent exact-HEAD qualification before promotion.",
       "founderAttendanceRequired": false
     },
     {

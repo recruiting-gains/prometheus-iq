@@ -67,6 +67,15 @@ function rewriteMatrixAndPin(root, mutate) {
   writeJson(root, AUGUST_1_GOVERNANCE_REPORT_PATH, contract);
 }
 
+function rewriteArtifactAndPin(root, path, value) {
+  writeFileSync(resolve(root, path), value);
+  const contract = readJson(root, AUGUST_1_GOVERNANCE_REPORT_PATH);
+  const pin = contract.artifactPins.find(artifact => artifact.path === path);
+  assert.ok(pin, `Missing artifact pin for ${path}`);
+  pin.sha256 = sha256(readFileSync(resolve(root, path)));
+  writeJson(root, AUGUST_1_GOVERNANCE_REPORT_PATH, contract);
+}
+
 test("authoritative August 1 package passes while launch remains fail-closed", () => {
   const result = verifyOverwatchRouteIqAugust1LaunchReadiness({ root: ROOT, verifyGit: false });
   assert.equal(result.verificationStatus, "PASS");
@@ -186,8 +195,8 @@ test("local integration evidence remains nonfinal until every qualification prer
   });
   assert.deepEqual(contract.sourceObservations.businessHoursCompatibilityVerification, {
     command: "node scripts/verify-route-business-hours-eligibility.mjs",
-    result: "LOCAL_FAIL_NONFINAL",
-    fixedReasonCode: "SOURCE_DEPLOYMENT_PARITY_DRIFT"
+    result: "LOCAL_PASS_NONFINAL",
+    fixedReasonCode: "NONE"
   });
   assert.deepEqual(contract.sourceObservations.replenishmentFocusedTests, {
     command: "node --test tests/continuous-adaptive-route-replenishment.test.mjs",
@@ -198,15 +207,16 @@ test("local integration evidence remains nonfinal until every qualification prer
   });
   assert.deepEqual(contract.sourceObservations.replenishmentCompatibilityVerification, {
     command: "node scripts/verify-continuous-adaptive-route-replenishment.mjs",
-    result: "LOCAL_FAIL_NONFINAL",
-    fixedReasonCode: "SOURCE_DEPLOYMENT_PARITY_DRIFT"
+    result: "LOCAL_PASS_NONFINAL",
+    fixedReasonCode: "NONE"
   });
   assert.deepEqual(contract.sourceObservations.intelligenceGeneratedAssetParity, {
-    businessHoursEligibilityModule: false,
+    businessHoursEligibilityModule: true,
     businessHoursGovernanceModule: true,
-    businessHoursContract: false,
-    continuousAdaptiveRouteReplenishmentModule: false,
-    continuousAdaptiveRouteReplenishmentContract: false
+    businessHoursContract: true,
+    continuousAdaptiveRouteReplenishmentModule: true,
+    continuousAdaptiveRouteReplenishmentContract: true,
+    governedRuntimeScopeModule: true
   });
   assert.deepEqual(contract.sourceObservations.infrastructureFocusedTests, {
     command: "node --test tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs tests/route-iq-private-forward-rollback-candidate-v2.test.mjs",
@@ -226,7 +236,26 @@ test("local integration evidence remains nonfinal until every qualification prer
   assert.equal(contract.sourceObservations.observationState, "NONFINAL_SHARED_WORKTREE");
   assert.deepEqual(contract.sourceObservations.dashboardRuntimeVerification, {
     command: "node scripts/verify-dashboard-runtime-workflows.mjs",
+    total: 196,
+    passed: 196,
+    failed: 0,
+    mismatchedOperatingProfilesFailClosed: 4,
     result: "LOCAL_PASS_NONFINAL"
+  });
+  assert.deepEqual(contract.sourceObservations.dashboardFocusedTests, {
+    command: "node --test tests/dashboard-route-iq-customer-pwa.test.mjs",
+    total: 10,
+    passed: 10,
+    failed: 0,
+    result: "LOCAL_PASS_NONFINAL"
+  });
+  assert.deepEqual(contract.sourceObservations.ownerSuccessorBaseline, {
+    commit: "f612e394b3af75e63cc07232d64bbd3dd1adb817",
+    tree: "d0d5fb3ce8c7b9416c3695645b0ad0fb0715d650",
+    dashboardGeneratedIntelligenceMirrorsCommit: "7ad906d37d827a878ca4db82029c81d2c28cd1fd",
+    intelligenceRouteTargetVerifierCommit: "3b29b967056482cd95bc47fd3556daf0bb50dbd0",
+    dashboardGovernedRuntimeScopeMirrorCommit: "d913a3c8c50379272503c93a8df12e75e048842d",
+    dashboardProfileMismatchHarnessCommit: "f612e394b3af75e63cc07232d64bbd3dd1adb817"
   });
 });
 
@@ -242,6 +271,7 @@ test("every controlling matrix artifact is pinned exactly once with no stale rol
   assert.equal(pinPaths.includes("workers/infrastructure/route-iq-forward-rollback-candidate-v1.json"), false);
   for (const path of [
     "intelligence/route-iq-governed-runtime-scope.mjs",
+    "deploy/cloudflare-pages/intelligence/route-iq-governed-runtime-scope.mjs",
     "intelligence/route-business-hours-eligibility.mjs",
     "intelligence/contracts/route-business-hours-eligibility-contracts.json",
     "intelligence/continuous-adaptive-route-replenishment.mjs",
@@ -254,6 +284,20 @@ test("every controlling matrix artifact is pinned exactly once with no stale rol
     "tests/route-business-hours-eligibility.test.mjs",
     "tests/continuous-adaptive-route-replenishment.test.mjs"
   ]) assert.equal(pinPaths.includes(path), true, path);
+});
+
+test("generated governed runtime scope must remain byte-identical to its owner source", t => {
+  const fixture = createPackageFixture(t);
+  const generatedPath = "deploy/cloudflare-pages/intelligence/route-iq-governed-runtime-scope.mjs";
+  rewriteArtifactAndPin(
+    fixture,
+    generatedPath,
+    `${readFileSync(resolve(fixture, generatedPath), "utf8")}\n// governed mirror drift\n`
+  );
+  assert.throws(
+    () => verifyOverwatchRouteIqAugust1LaunchReadiness({ root: fixture, verifyGit: false }),
+    /Intelligence generated-asset parity observation drifted/u
+  );
 });
 
 test("top-level npm lifecycle wires every August 1 owner gate before the legacy suite", () => {

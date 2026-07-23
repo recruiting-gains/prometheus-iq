@@ -15,6 +15,14 @@ export const AUGUST_1_GOVERNANCE_REPORT_PATH =
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const STARTING_COMMIT = "d3bda9d86a388462dd5cab0fa789081eee59b541";
 const STARTING_TREE = "bc1fb8b16fab4f795d51f838eab06e16d0a4a3d2";
+const OWNER_SUCCESSOR_BASELINE = Object.freeze({
+  commit: "f612e394b3af75e63cc07232d64bbd3dd1adb817",
+  tree: "d0d5fb3ce8c7b9416c3695645b0ad0fb0715d650",
+  dashboardGeneratedIntelligenceMirrorsCommit: "7ad906d37d827a878ca4db82029c81d2c28cd1fd",
+  intelligenceRouteTargetVerifierCommit: "3b29b967056482cd95bc47fd3556daf0bb50dbd0",
+  dashboardGovernedRuntimeScopeMirrorCommit: "d913a3c8c50379272503c93a8df12e75e048842d",
+  dashboardProfileMismatchHarnessCommit: "f612e394b3af75e63cc07232d64bbd3dd1adb817"
+});
 const FINAL_BLOCKED_STATUS = "AUGUST_1_LAUNCH_BLOCKED";
 const STATUS_VALUES = Object.freeze([
   "VERIFIED",
@@ -276,6 +284,7 @@ function assertSourceObservations(observations) {
     "crmFocusedTests",
     "customerFacingBetaFindings",
     "customerPwaRuntimeWiredToPrivateWorker",
+    "dashboardFocusedTests",
     "dashboardSourceMatchesGeneratedAsset",
     "dashboardRuntimeVerification",
     "dashboardBrowserQualificationComplete",
@@ -288,6 +297,7 @@ function assertSourceObservations(observations) {
     "observationState",
     "ownerArtifactsCommitted",
     "ownerFocusedTests",
+    "ownerSuccessorBaseline",
     "productionCrmMonitoringImplementationPresent",
     "replenishmentCompatibilityVerification",
     "replenishmentFocusedTests",
@@ -316,6 +326,17 @@ function assertSourceObservations(observations) {
   assert.equal(typeof observations.dashboardSourceMatchesGeneratedAsset, "boolean");
   assert.deepEqual(observations.dashboardRuntimeVerification, {
     command: "node scripts/verify-dashboard-runtime-workflows.mjs",
+    total: 196,
+    passed: 196,
+    failed: 0,
+    mismatchedOperatingProfilesFailClosed: 4,
+    result: finalPrerequisites ? "PASS" : "LOCAL_PASS_NONFINAL"
+  });
+  assert.deepEqual(observations.dashboardFocusedTests, {
+    command: "node --test tests/dashboard-route-iq-customer-pwa.test.mjs",
+    total: 10,
+    passed: 10,
+    failed: 0,
     result: finalPrerequisites ? "PASS" : "LOCAL_PASS_NONFINAL"
   });
   assert.ok(Array.isArray(observations.customerFacingBetaFindings));
@@ -324,6 +345,7 @@ function assertSourceObservations(observations) {
   assert.equal(typeof observations.ownerArtifactsCommitted, "boolean");
   assert.equal(typeof observations.fullQualificationComplete, "boolean");
   if (observations.allOwnerCommitsComplete) assert.equal(observations.ownerArtifactsCommitted, true);
+  assert.deepEqual(observations.ownerSuccessorBaseline, OWNER_SUCCESSOR_BASELINE);
   assertExactObjectKeys(observations.crmFocusedTests, [
     "command",
     "failed",
@@ -368,7 +390,8 @@ function assertSourceObservations(observations) {
     "businessHoursEligibilityModule",
     "businessHoursGovernanceModule",
     "continuousAdaptiveRouteReplenishmentContract",
-    "continuousAdaptiveRouteReplenishmentModule"
+    "continuousAdaptiveRouteReplenishmentModule",
+    "governedRuntimeScopeModule"
   ], "sourceObservations.intelligenceGeneratedAssetParity");
   for (const value of Object.values(observations.intelligenceGeneratedAssetParity)) {
     assert.equal(typeof value, "boolean", "Intelligence generated-asset parity values must be boolean.");
@@ -378,6 +401,8 @@ function assertSourceObservations(observations) {
     && observations.intelligenceGeneratedAssetParity.businessHoursContract;
   const replenishmentParityComplete = observations.intelligenceGeneratedAssetParity.continuousAdaptiveRouteReplenishmentModule
     && observations.intelligenceGeneratedAssetParity.continuousAdaptiveRouteReplenishmentContract;
+  const governedRuntimeScopeParityComplete =
+    observations.intelligenceGeneratedAssetParity.governedRuntimeScopeModule;
   const compatibilityResult = complete => (
     complete ? (finalPrerequisites ? "PASS" : "LOCAL_PASS_NONFINAL") : "LOCAL_FAIL_NONFINAL"
   );
@@ -394,6 +419,7 @@ function assertSourceObservations(observations) {
   if (finalPrerequisites) {
     assert.equal(businessHoursParityComplete, true);
     assert.equal(replenishmentParityComplete, true);
+    assert.equal(governedRuntimeScopeParityComplete, true);
   }
   assert.deepEqual(observations.infrastructureFocusedTests, {
     command: "node --test tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs tests/route-iq-private-forward-rollback-candidate-v2.test.mjs",
@@ -754,7 +780,9 @@ function verifyFixedOwnerEvidence(root, matrix, contract) {
     continuousAdaptiveRouteReplenishmentModule: read(root, "intelligence/continuous-adaptive-route-replenishment.mjs")
       .equals(read(root, "deploy/cloudflare-pages/intelligence/continuous-adaptive-route-replenishment.mjs")),
     continuousAdaptiveRouteReplenishmentContract: read(root, "intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json")
-      .equals(read(root, "deploy/cloudflare-pages/intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json"))
+      .equals(read(root, "deploy/cloudflare-pages/intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json")),
+    governedRuntimeScopeModule: read(root, "intelligence/route-iq-governed-runtime-scope.mjs")
+      .equals(read(root, "deploy/cloudflare-pages/intelligence/route-iq-governed-runtime-scope.mjs"))
   };
   assert.deepEqual(
     intelligenceGeneratedAssetParity,
@@ -812,6 +840,15 @@ function verifyFixedOwnerEvidence(root, matrix, contract) {
 function verifyRepositoryBaseline(root, contract, { requireClean }) {
   assert.equal(git(root, "rev-parse", `${STARTING_COMMIT}^{tree}`), STARTING_TREE);
   execFileSync("git", ["merge-base", "--is-ancestor", STARTING_COMMIT, "HEAD"], { cwd: root });
+  assert.equal(
+    git(root, "rev-parse", `${OWNER_SUCCESSOR_BASELINE.commit}^{tree}`),
+    OWNER_SUCCESSOR_BASELINE.tree
+  );
+  execFileSync(
+    "git",
+    ["merge-base", "--is-ancestor", OWNER_SUCCESSOR_BASELINE.commit, "HEAD"],
+    { cwd: root }
+  );
   const ownerArtifactPaths = contract.artifactPins
     .filter(artifact => artifact.owner !== "Prometheus Overwatch")
     .map(artifact => artifact.path);

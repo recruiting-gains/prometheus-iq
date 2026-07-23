@@ -56,7 +56,7 @@
   },
   "matrix": {
     "path": "overwatch/governance/route-iq-august-1-readiness-matrix-v1.json",
-    "sha256": "b7b7a3aa99cfc28611cb8e3967ca26a7d24f947f44e1dd16c04ea1806a2645c5"
+    "sha256": "58fb4d8dace71f68bb14c2163e30ec0a5bef1561bcc01f410714f9fb5e620a51"
   },
   "productionCrmAcceptance": {
     "classification": "FOUNDER_REPORTED_GOVERNED_EVIDENCE_NOT_INDEPENDENTLY_RECONCILED",
@@ -114,8 +114,8 @@
     },
     "businessHoursCompatibilityVerification": {
       "command": "node scripts/verify-route-business-hours-eligibility.mjs",
-      "result": "LOCAL_FAIL_NONFINAL",
-      "fixedReasonCode": "SOURCE_DEPLOYMENT_PARITY_DRIFT"
+      "result": "LOCAL_PASS_NONFINAL",
+      "fixedReasonCode": "NONE"
     },
     "replenishmentFocusedTests": {
       "command": "node --test tests/continuous-adaptive-route-replenishment.test.mjs",
@@ -126,15 +126,16 @@
     },
     "replenishmentCompatibilityVerification": {
       "command": "node scripts/verify-continuous-adaptive-route-replenishment.mjs",
-      "result": "LOCAL_FAIL_NONFINAL",
-      "fixedReasonCode": "SOURCE_DEPLOYMENT_PARITY_DRIFT"
+      "result": "LOCAL_PASS_NONFINAL",
+      "fixedReasonCode": "NONE"
     },
     "intelligenceGeneratedAssetParity": {
-      "businessHoursEligibilityModule": false,
+      "businessHoursEligibilityModule": true,
       "businessHoursGovernanceModule": true,
-      "businessHoursContract": false,
-      "continuousAdaptiveRouteReplenishmentModule": false,
-      "continuousAdaptiveRouteReplenishmentContract": false
+      "businessHoursContract": true,
+      "continuousAdaptiveRouteReplenishmentModule": true,
+      "continuousAdaptiveRouteReplenishmentContract": true,
+      "governedRuntimeScopeModule": true
     },
     "infrastructureFocusedTests": {
       "command": "node --test tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs tests/route-iq-private-forward-rollback-candidate-v2.test.mjs",
@@ -146,12 +147,31 @@
     "dashboardSourceMatchesGeneratedAsset": true,
     "dashboardRuntimeVerification": {
       "command": "node scripts/verify-dashboard-runtime-workflows.mjs",
+      "total": 196,
+      "passed": 196,
+      "failed": 0,
+      "mismatchedOperatingProfilesFailClosed": 4,
+      "result": "LOCAL_PASS_NONFINAL"
+    },
+    "dashboardFocusedTests": {
+      "command": "node --test tests/dashboard-route-iq-customer-pwa.test.mjs",
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
       "result": "LOCAL_PASS_NONFINAL"
     },
     "customerFacingBetaFindings": [],
     "customerPwaRuntimeWiredToPrivateWorker": true,
     "productionCrmMonitoringImplementationPresent": true,
     "ownerArtifactsCommitted": true,
+    "ownerSuccessorBaseline": {
+      "commit": "f612e394b3af75e63cc07232d64bbd3dd1adb817",
+      "tree": "d0d5fb3ce8c7b9416c3695645b0ad0fb0715d650",
+      "dashboardGeneratedIntelligenceMirrorsCommit": "7ad906d37d827a878ca4db82029c81d2c28cd1fd",
+      "intelligenceRouteTargetVerifierCommit": "3b29b967056482cd95bc47fd3556daf0bb50dbd0",
+      "dashboardGovernedRuntimeScopeMirrorCommit": "d913a3c8c50379272503c93a8df12e75e048842d",
+      "dashboardProfileMismatchHarnessCommit": "f612e394b3af75e63cc07232d64bbd3dd1adb817"
+    },
     "fullQualificationComplete": false,
     "genericCustomerPwa": {
       "customerManifestCount": 1,
@@ -239,10 +259,11 @@
     {"path":"data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-v1.schema.json","owner":"Prometheus Data","classification":"CONTROLLING_CURRENT","required":true,"sha256":"ae62f65f433ca14c2c3997857eda331ab61f24ca27398379148c5557e08af7c9"},
     {"path":"deploy/cloudflare-pages/_headers","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"0b61c2c3701ea76eb832ae3b27577799fd7d55277617fe38bf3f51ce14aafc4c"},
     {"path":"deploy/cloudflare-pages/index.html","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0"},
-    {"path":"deploy/cloudflare-pages/intelligence/continuous-adaptive-route-replenishment.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19"},
-    {"path":"deploy/cloudflare-pages/intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"3ec7af06aea392e12a90bb7ba2df99c5e68c50ce942a4be8577191c166eec7b8"},
-    {"path":"deploy/cloudflare-pages/intelligence/contracts/route-business-hours-eligibility-contracts.json","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"b5c4812c9d1d8eb6384b30b939d803b7b5d5486f1b15681972692e78aa3e8e21"},
-    {"path":"deploy/cloudflare-pages/intelligence/route-business-hours-eligibility.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"1c884b6c5c2668e6a034311d605fdc626d80c6d517290ef994d772e03cfb9a4a"},
+    {"path":"deploy/cloudflare-pages/intelligence/continuous-adaptive-route-replenishment.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"95f5e997af8ded3258d218f094d9765c6e7530a2828e75e432eb2ab0630896e6"},
+    {"path":"deploy/cloudflare-pages/intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"15c95f6165e56cbf178b0c9faf31d36fe6f7c6caa97433ba1a737e4434888505"},
+    {"path":"deploy/cloudflare-pages/intelligence/contracts/route-business-hours-eligibility-contracts.json","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"3a7f279063d4ff14d0fdb40fa04ad2fd9cc7ebfe26aac91ac349c3b8d65e6676"},
+    {"path":"deploy/cloudflare-pages/intelligence/route-business-hours-eligibility.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"a1667f2e1bf75a71fa321c47591ba0b8e11eef91360cb835c56e828405c51f36"},
+    {"path":"deploy/cloudflare-pages/intelligence/route-iq-governed-runtime-scope.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"fc809d55c785e23960294fe0a480add432af7ec5facff5b12ae5371906262a56"},
     {"path":"deploy/cloudflare-pages/manifest-founder.webmanifest","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"40c0793fe0834d70a21acaea8b1b39992555e28474985df9d521b464c03212e6"},
     {"path":"deploy/cloudflare-pages/manifest.webmanifest","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"6ff1654268df7e31cf0e09227fa31f6042e27246061d368023e7bc57724cbaf3"},
     {"path":"deploy/cloudflare-pages/scripts/lib/business-hours-governance.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"121d9401268a4eefd2190d8b701d5caecfa3f53ab86db2bf5d0703deded9ca0d"},
@@ -268,18 +289,18 @@
     {"path":"scripts/build-route-iq-private-forward-rollback-candidate-v2.mjs","owner":"Prometheus Infrastructure","classification":"CONTROLLING_CURRENT","required":true,"sha256":"c338f064af73b70504df4e2e5eedc26147abba0e4453524942145528a4a82d11"},
     {"path":"scripts/lib/business-hours-governance.mjs","owner":"Prometheus Intelligence Engine","classification":"CONTROLLING_CURRENT","required":true,"sha256":"121d9401268a4eefd2190d8b701d5caecfa3f53ab86db2bf5d0703deded9ca0d"},
     {"path":"scripts/verify-continuous-adaptive-route-replenishment.mjs","owner":"Prometheus Intelligence Engine","classification":"CONTROLLING_CURRENT","required":true,"sha256":"b638b4fe81a2b769584d395bfab30fe7cb2ffa6403b7c2830235f899f0618eb0"},
-    {"path":"scripts/verify-dashboard-runtime-workflows.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"1cd91b8ff36303d59a153c5a895f14f6c15007c062adabde95c7658ff275516c"},
+    {"path":"scripts/verify-dashboard-runtime-workflows.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"0cd2f784ddd063c98ef3844d70a42a995a18bfcc06abbc0d7c75e1cd3b18328a"},
     {"path":"scripts/verify-overwatch-public-deployment-workflow-v2.mjs","owner":"Prometheus Overwatch","classification":"CONTROLLING_CURRENT","required":true,"sha256":"ad9704cf4c7b2d9310a38b3b824715f605f0508d30e23dc840cfeffc2b7df4f0"},
-    {"path":"scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs","owner":"Prometheus Overwatch","classification":"CONTROLLING_CURRENT","required":true,"sha256":"894c0af38243bdbaad8312f89f0240f8cb5255138d369f6cec8ada52eb18703e"},
-    {"path":"scripts/verify-route-business-hours-eligibility.mjs","owner":"Prometheus Intelligence Engine","classification":"CONTROLLING_CURRENT","required":true,"sha256":"71fb75af1f39ab6085096e9be3b10a8221aa74712c56e43264d7e90bf8b0c193"},
+    {"path":"scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs","owner":"Prometheus Overwatch","classification":"CONTROLLING_CURRENT","required":true,"sha256":"c8f6012a41a963f1d768eb8b7a1727aad8439703bbe51c442785839c8d9a777e"},
+    {"path":"scripts/verify-route-business-hours-eligibility.mjs","owner":"Prometheus Intelligence Engine","classification":"CONTROLLING_CURRENT","required":true,"sha256":"b05e9513decb5a081a91ce7fddd440363676581e856f91bf89a8d1d948a665e2"},
     {"path":"scripts/verify-route-iq-governed-runtime-scope-intelligence.mjs","owner":"Prometheus Intelligence Engine","classification":"CONTROLLING_CURRENT","required":true,"sha256":"b70fcccbcbfe8473cc58f9d0c0729409627a664c8a219f52c3573ffa97d9f8dd"},
     {"path":"src/route-iq-request-form.js","owner":"Prometheus Website","classification":"CONTROLLING_CURRENT","required":true,"sha256":"b797d7a0916f56e4afc6168755aa88701a7316a451806222e01968a3d08e8612"},
     {"path":"sw.js","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"4979dc17575745ee9c6f8ac73b45951bb9810fa1bee7789db96e29683f4fe30a"},
     {"path":"tests/continuous-adaptive-route-replenishment.test.mjs","owner":"Prometheus Intelligence Engine","classification":"CONTROLLING_CURRENT","required":true,"sha256":"894f6f6893a4dc38f844cf0502c542fae3ed22ab5a9022e1653e2b61c38dcded"},
-    {"path":"tests/dashboard-route-iq-customer-pwa.test.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"207784f46292aa2938f5293ea108543dcfb3531a20b16c58dcc1290ee7184c20"},
+    {"path":"tests/dashboard-route-iq-customer-pwa.test.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"609551fb97903447823d2ea860054777698b589b9ac239e6adedca862e5778c9"},
     {"path":"tests/dashboard-route-iq-field-session-producer.test.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"7453ae66d2de4348abe108257eca6c471c2ad98c6140eafcd21578dad90a82df"},
     {"path":"tests/dashboard-route-iq-product-focus.test.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"1e98943318b12defaa66c531b6a8e11a20f7d48384555d358a09fd7a4a417f18"},
-    {"path":"tests/overwatch-route-iq-august-1-launch-readiness.test.mjs","owner":"Prometheus Overwatch","classification":"CONTROLLING_CURRENT","required":true,"sha256":"0abb8e3394a27a2743de228439708406d3f62fad559b3a86c280351d534f82a1"},
+    {"path":"tests/overwatch-route-iq-august-1-launch-readiness.test.mjs","owner":"Prometheus Overwatch","classification":"CONTROLLING_CURRENT","required":true,"sha256":"9d25f15fac72ad2728b88f077a65a0d1cf8bc8e2447a9641b19147961ac88406"},
     {"path":"tests/route-business-hours-eligibility.test.mjs","owner":"Prometheus Intelligence Engine","classification":"CONTROLLING_CURRENT","required":true,"sha256":"1305df66df181b907bb2969ebbb93feacd89d31883d18952fe6289372460dfbb"},
     {"path":"tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs","owner":"Prometheus Infrastructure","classification":"CONTROLLING_CURRENT","required":true,"sha256":"45d128d0ff900edbd5a1ad988577e9365513adf1315384086b36b7fca69771d6"},
     {"path":"tests/route-iq-august-1-launch-envelope.test.mjs","owner":"Prometheus Data","classification":"CONTROLLING_CURRENT","required":true,"sha256":"b94217b0d69ac687427b04516d15f6b91efb7f1a05d1a6816f623c019acb6cb1"},
