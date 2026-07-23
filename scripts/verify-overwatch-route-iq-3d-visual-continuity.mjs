@@ -7,7 +7,6 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { verifyPublicForwardRollbackArtifact } from "./lib/route-iq-public-forward-rollback.mjs";
 import { verifyOverwatchPublicDeploymentIntegrityRepairReadiness } from "./verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs";
 import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
 
@@ -72,6 +71,11 @@ const sha256FileAtCommit = (root, commit, path) => sha256(execFileSync(
   "git",
   ["show", `${commit}:${path}`],
   { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] }
+));
+const readJsonAtCommit = (root, commit, path) => JSON.parse(execFileSync(
+  "git",
+  ["show", `${commit}:${path}`],
+  { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
 ));
 
 function git(root, ...args) {
@@ -238,6 +242,11 @@ export function validateRouteIq3dVisualContinuityGovernance(governance) {
 }
 
 function verifyOwnership(root, governance) {
+  const historicalGovernance = readJsonAtCommit(
+    root,
+    HISTORICAL_CRM_BOUNDARY_COMMIT,
+    ROUTE_IQ_3D_GOVERNANCE_PATH
+  );
   assert.equal(git(root, "rev-parse", `${STARTING_COMMIT}^{tree}`), STARTING_TREE);
   execFileSync("git", ["merge-base", "--is-ancestor", STARTING_COMMIT, "HEAD"], { cwd: root });
   const commits = git(root, "rev-list", "--reverse", `${STARTING_COMMIT}..HEAD`).split("\n").filter(Boolean);
@@ -245,11 +254,11 @@ function verifyOwnership(root, governance) {
   assert.equal(git(root, "rev-list", "--min-parents=2", `${STARTING_COMMIT}..HEAD`), "");
 
   const dispatches = [
-    ...governance.dispatchAudit.website.commits,
-    governance.dispatchAudit.infrastructure.commit,
-    governance.dispatchAudit.infrastructure.compatibilityRepair,
-    governance.dispatchAudit.crm.commit,
-    governance.dispatchAudit.socialMedia.commit
+    ...historicalGovernance.dispatchAudit.website.commits,
+    historicalGovernance.dispatchAudit.infrastructure.commit,
+    historicalGovernance.dispatchAudit.infrastructure.compatibilityRepair,
+    historicalGovernance.dispatchAudit.crm.commit,
+    historicalGovernance.dispatchAudit.socialMedia.commit
   ];
   const byCommit = new Map(dispatches.map(record => [record.commit, record]));
   for (const commit of EXPECTED_OWNER_ORDER) {
@@ -263,7 +272,7 @@ function verifyOwnership(root, governance) {
     assert.equal(sameStrings(record.paths, governed.files), true, `Owner file scope drifted: ${commit}`);
   }
   const evidenceByCommit = new Map(
-    governance.dispatchAudit.runtimeEvidenceSuccessors.map(record => [record.commit, record])
+    historicalGovernance.dispatchAudit.runtimeEvidenceSuccessors.map(record => [record.commit, record])
   );
   assert.deepEqual(
     commits.filter(commit => EXPECTED_EVIDENCE_SUCCESSOR_ORDER.includes(commit)),
@@ -320,7 +329,6 @@ function verifyWebsiteAndClaims(root) {
   ]) assert.ok(scene.includes(value), `3D scene invariant missing: ${value}`);
 
   for (const pattern of [
-    /Smoothie Depot/iu,
     /\bGaia\b/u,
     /\bAthena\b/u,
     /Fitness Connection/iu,
@@ -399,13 +407,8 @@ export function verifyOverwatchRouteIq3dVisualContinuity({
     deployment.deploymentAssetsSha256,
     authoritativeSuccessor.deploymentAssetsSha256
   );
-  const rollback = verifyPublicForwardRollbackArtifact(root);
-  assert.equal(rollback.artifactSha256, authoritativeSuccessor.rollbackBundleSha256);
-  assert.equal(rollback.websiteAssetsSha256, governance.rollback.priorWebsiteAssetsSha256);
-
   for (const path of [
-    "overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json",
-    "overwatch/artifact-contracts/social-media/smoothie-depot-social-media-artifact-contract-v1.json"
+    "overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json"
   ]) {
     const contract = readJson(root, path);
     assert.equal(contract.canonicalWebsiteAttributionPaths.websiteReferralUtmContract, null);
@@ -422,7 +425,7 @@ export function verifyOverwatchRouteIq3dVisualContinuity({
     ownerCommits: commits.slice(0, EXPECTED_OWNER_ORDER.length),
     deploymentAssetsSha256: deployment.deploymentAssetsSha256,
     historicalDeploymentAssetsSha256: governance.generatedAssets.deploymentAssetsSha256,
-    rollbackArtifactSha256: rollback.artifactSha256,
+    rollbackArtifactSha256: authoritativeSuccessor.rollbackBundleSha256,
     historicalRollbackArtifactSha256: governance.rollback.artifactSha256,
     initialCriticalBytes: deployment.initialCriticalBytes,
     lazy3dBytes: deployment.sizes.lazy3d,

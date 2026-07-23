@@ -62,8 +62,8 @@
     "publicEndorsementClaimAllowed": false
   },
   "historicalWorkspaceBoundary": {
-    "workspaceId": "smoothie_depot",
-    "state": "inactive_historical",
+    "workspaceId": "retired_customer_history",
+    "state": "retired_noncanonical_history",
     "historicalArtifactsPreserved": true,
     "normalOperationVisible": false,
     "activeNavigationVisible": false,

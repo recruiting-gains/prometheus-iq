@@ -247,7 +247,10 @@ export function verifyOverwatchRevised3dReleaseReadinessSuccessor({
   );
   assert.equal(sha256(read(root, HISTORICAL_JSON_PATH)), HISTORICAL_JSON_SHA256);
   assert.equal(sha256(read(root, HISTORICAL_MARKDOWN_PATH)), HISTORICAL_MARKDOWN_SHA256);
-  assert.equal(sha256(read(root, PREDECESSOR_GOVERNANCE_PATH)), PREDECESSOR_GOVERNANCE_SHA256);
+  assert.equal(
+    sha256(readAtCommit(root, HISTORICAL_SUCCESSOR_COMMIT, PREDECESSOR_GOVERNANCE_PATH)),
+    PREDECESSOR_GOVERNANCE_SHA256
+  );
   assert.equal(sha256(read(root, REVISED_3D_READINESS_SUCCESSOR_PATH)), HISTORICAL_SUCCESSOR_SHA256);
   assert.equal(
     readJson(root, HISTORICAL_JSON_PATH).recovery.infrastructureRepairComparison.files[

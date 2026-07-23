@@ -1,44 +1,49 @@
 {
   "contractId": "fitness-connection-route-intelligence-data-contract-v1",
-  "status": "active",
+  "contractVersion": "2.0.0",
+  "status": "active_founder_research",
   "owningSubsystem": "Prometheus Overwatch",
   "producerSubsystem": "Prometheus Data",
-  "consumerSubsystem": "Prometheus Dashboard",
+  "consumers": [
+    "Prometheus Dashboard",
+    "Prometheus Intelligence Engine",
+    "Prometheus Infrastructure"
+  ],
   "workspaceId": "fitness_connection",
-  "workspaceName": "Fitness Connection",
   "operatingProfileId": "fitness",
-  "routeIntelligenceDomain": "fitness_route_intelligence",
-  "canonicalContractPaths": {
-    "dataRuntimeArtifactContract": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json"
-  },
-  "canonicalDataPaths": {
+  "canonicalPaths": {
+    "manifestRegistry": "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
+    "approvedRoster": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json",
+    "businessHours": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
     "activePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
-    "activePoolDeployMirror": "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
-    "runtimePools": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
-    "runtimePoolsDeployMirror": "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
-    "runtimePoolManifest": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json",
-    "routeQualityReport": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
-    "runtimeGovernanceOverrides": "data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json"
+    "reservePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
+    "quarantinePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+    "runtimePoolManifest": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json"
   },
-  "canonicalAssignedLeadPaths": {
-    "founderPool": "data/qualified-prospects/google-qualified-businesses-v2/founder-15-mile-pool.json",
-    "anthonyPool": "data/qualified-prospects/google-qualified-businesses-v2/anthony-25-mile-pool.json",
-    "runtimePools": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
+  "currentFailClosedState": {
+    "approvedRecordCount": 0,
+    "activePoolCount": 0,
+    "reservePoolCount": 0,
+    "quarantinePoolCount": 398,
+    "productionUseAuthorized": false
   },
-  "assignedLeadRules": {
-    "repProfilesRequired": ["cruz", "anthony"],
-    "anthonyAssignedLeadsAllowed": true,
-    "ownerAssignedLeadsAllowed": true,
-    "smoothieDepotCandidateLeadsAllowed": false,
-    "activePoolExpectedCount": 297,
-    "expandedDashboardRouteRecordsExpected": 594
+  "freshnessRules": {
+    "maximumAgeHours": 24,
+    "providerFailureMayPromoteStaleData": false,
+    "missingOrInvalidHoursMayBeGuessedOpen": false,
+    "staleOrUnavailableHoursRouteEligible": false
   },
-  "productionRules": {
-    "noLiveGoogleApiCalls": true,
-    "fixtureDataAllowed": false,
-    "smoothieDepotCandidateDataAllowed": false,
-    "missingArtifactFailsClosed": true,
-    "routeScoringChangesRequireIntelligenceHandoff": true,
-    "dataGovernanceOverridesMustRemainDataOwned": true
+  "isolationRules": {
+    "approvedTenantCompanySourceRequired": true,
+    "crossWorkspaceDataAllowed": false,
+    "crossCompanyDataAllowed": false,
+    "crossProfileDataAllowed": false,
+    "fixtureDataAllowedInProduction": false,
+    "missingArtifactFailsClosed": true
+  },
+  "externalDataBoundary": {
+    "liveGoogleCallsAuthorized": false,
+    "paidProviderAuthorized": false,
+    "newCredentialAuthorized": false
   }
 }

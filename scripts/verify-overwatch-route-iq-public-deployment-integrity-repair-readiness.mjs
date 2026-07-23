@@ -3,11 +3,11 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { verifyPublicForwardRollbackArtifact } from "./lib/route-iq-public-forward-rollback.mjs";
 import { verifyOverwatchRevised3dReleaseReadinessSuccessor } from "./verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs";
 import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
 import {
@@ -67,6 +67,10 @@ const CURRENT_DEPLOYMENT_ASSETS_SHA256 =
   "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1";
 const CURRENT_ROLLBACK_BUNDLE_SHA256 =
   "012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe";
+const CURRENT_PUBLIC_ROLLBACK_OWNER_COMMIT =
+  "a558df528f0c472d28afb1c3b3041a067ca86c4b";
+const PUBLIC_READINESS_TERMINAL_COMMIT =
+  "b32e18c5ed4a07edd41ea824ca4f934789192f5d";
 const PRE_FOUNDER_JWT_REPAIR_ROLLBACK_CONTRACT_SHA256 =
   "a1baf16aeb970c5b9c434e333781e98c968692b80be07004295333c5741bf1e2";
 const PRE_FOUNDER_JWT_REPAIR_ROLLBACK_BUNDLE_SHA256 =
@@ -1396,6 +1400,83 @@ function git(root, ...args) {
     maxBuffer: 8 * 1024 * 1024,
     timeout: 30_000
   }).trim();
+}
+
+function verifyCurrentPublicRollbackAtOwnerCommit(root) {
+  const checkout = mkdtempSync(join(tmpdir(), "route-iq-public-readiness-"));
+  try {
+    execFileSync("git", ["clone", "--shared", "--no-checkout", root, checkout], {
+      encoding: "utf8",
+      stdio: ["ignore", "ignore", "ignore"],
+      timeout: 30_000
+    });
+    execFileSync("git", ["checkout", "--detach", CURRENT_PUBLIC_ROLLBACK_OWNER_COMMIT], {
+      cwd: checkout,
+      encoding: "utf8",
+      stdio: ["ignore", "ignore", "ignore"],
+      timeout: 30_000
+    });
+    symlinkSync(resolve(root, "node_modules"), join(checkout, "node_modules"), "dir");
+    const source = [
+      "const root = process.argv[1];",
+      "const module = await import(`file://${root}/scripts/lib/route-iq-public-forward-rollback.mjs`);",
+      "const result = module.verifyPublicForwardRollbackArtifact(root);",
+      "process.stdout.write(JSON.stringify(result));"
+    ].join("\n");
+    return JSON.parse(execFileSync(process.execPath, ["--input-type=module", "-e", source, checkout], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      maxBuffer: 8 * 1024 * 1024,
+      timeout: 240_000
+    }));
+  } finally {
+    rmSync(checkout, { recursive: true, force: true });
+  }
+}
+
+function verifyFrozenPublicReadiness(root, { build, requireClean }) {
+  if (requireClean) {
+    assert.equal(git(root, "status", "--porcelain"), "", "Working tree is not clean.");
+  }
+  assert.equal(
+    git(root, "merge-base", "--is-ancestor", PUBLIC_READINESS_TERMINAL_COMMIT, "HEAD"),
+    ""
+  );
+  const checkout = mkdtempSync(join(tmpdir(), "route-iq-public-readiness-terminal-"));
+  try {
+    execFileSync("git", ["clone", "--shared", "--no-checkout", root, checkout], {
+      encoding: "utf8",
+      stdio: ["ignore", "ignore", "ignore"],
+      timeout: 30_000
+    });
+    execFileSync("git", ["checkout", "--detach", PUBLIC_READINESS_TERMINAL_COMMIT], {
+      cwd: checkout,
+      encoding: "utf8",
+      stdio: ["ignore", "ignore", "ignore"],
+      timeout: 30_000
+    });
+    symlinkSync(resolve(root, "node_modules"), join(checkout, "node_modules"), "dir");
+    const source = [
+      "const root = process.argv[1];",
+      "const module = await import(`file://${root}/scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs`);",
+      "const result = module.verifyOverwatchPublicDeploymentIntegrityRepairReadiness({",
+      "  root, build: true, requireClean: false, requireCommittedOverwatch: true",
+      "});",
+      "process.stdout.write(JSON.stringify(result));"
+    ].join("\n");
+    return JSON.parse(execFileSync(
+      process.execPath,
+      ["--input-type=module", "-e", source, checkout],
+      {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+        maxBuffer: 16 * 1024 * 1024,
+        timeout: 300_000
+      }
+    ));
+  } finally {
+    rmSync(checkout, { recursive: true, force: true });
+  }
 }
 
 function commitRecord(root, commit) {
@@ -3144,6 +3225,14 @@ export function verifyOverwatchPublicDeploymentIntegrityRepairReadiness({
   requireClean = true,
   requireCommittedOverwatch = true
 } = {}) {
+  if (git(root, "rev-parse", "HEAD") !== PUBLIC_READINESS_TERMINAL_COMMIT) {
+    assert.equal(
+      requireCommittedOverwatch,
+      true,
+      "Historical public readiness cannot admit an uncommitted successor."
+    );
+    return verifyFrozenPublicReadiness(root, { build, requireClean });
+  }
   const governance = validatePublicIntegrityReadiness(readJson(root, PUBLIC_INTEGRITY_READINESS_PATH));
   assert.equal(sha256(read(root, HISTORICAL_SUCCESSOR_PATH)), HISTORICAL_SUCCESSOR_SHA256);
   assert.equal(
@@ -3171,7 +3260,7 @@ export function verifyOverwatchPublicDeploymentIntegrityRepairReadiness({
   assert.equal(deployment.deploymentAssetsSha256, CURRENT_DEPLOYMENT_ASSETS_SHA256);
   assert.equal(deployment.candidateWebsiteCommit, WEBSITE_SUCCESSOR.commit);
   assert.equal(deployment.candidateWebsiteTree, WEBSITE_SUCCESSOR.tree);
-  const rollback = verifyPublicForwardRollbackArtifact(root);
+  const rollback = verifyCurrentPublicRollbackAtOwnerCommit(root);
   assert.equal(rollback.artifactSha256, CURRENT_ROLLBACK_BUNDLE_SHA256);
   assert.equal(rollback.candidateDeploymentAssetsSha256, CURRENT_DEPLOYMENT_ASSETS_SHA256);
   assert.equal(rollback.candidateWebsiteCommit, WEBSITE_SUCCESSOR.commit);

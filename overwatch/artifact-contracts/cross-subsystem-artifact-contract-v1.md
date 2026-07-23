@@ -1,204 +1,47 @@
-# Cross-Subsystem Artifact Contract v1
+# Cross-Subsystem Artifact Contract v2
 
 ## Purpose
 
-This contract is the Prometheus subsystem connection layer. It defines how Prometheus subsystems communicate through canonical artifacts without duplicating ownership or contaminating workspaces.
+This contract is the Route IQ connection layer. It keeps reusable product code generic while binding every business record to one Administration-owned workspace configuration, one Data-owned manifest, and one governed provenance chain.
 
-## Architecture Law
+## Canonical Flow
 
-Platform-level systems are shared. Workspace-level data is isolated.
+1. Administration defines the workspace, company, profile, roles, users, territories, Dashboard fields, actions, KPIs, availability policy, and source bindings.
+2. Data publishes one approved business manifest per workspace and owns normalized availability, freshness, provenance, pools, exclusions, and evidence retention.
+3. Intelligence admits only manifest-bound records and determines immediate route eligibility from fresh verified availability.
+4. Infrastructure projects canonical artifacts without changing admission, identity, freshness, or eligibility.
+5. Dashboard renders the generic PWA from the authenticated session and the exact four runtime assets.
+6. Overwatch verifies ownership, hashes, isolation, source/deploy parity, and release boundaries.
 
-No subsystem may:
+## Required Runtime Assets
 
-- Regenerate another subsystem's artifact.
-- Invent missing data.
-- Consume fixture or demo data in production.
-- Write into another subsystem's owned artifact path.
-- Continue when an expected canonical artifact is missing.
-- Mix customer data across workspaces.
+- `workspaceConfiguration`
+- `businessManifestRegistry`
+- `businessRoster`
+- `businessHours`
 
-Unknown or missing artifacts must fail closed.
+Missing, malformed, stale, cross-workspace, or hash-mismatched inputs fail closed. Production may never replace missing tenant data with embedded, demo, or cross-workspace records.
 
-## Canonical Registry
+## Current Profiles
 
-The machine-readable registry is:
+- `fitness_connection` / `fitness`: Founder field research only. It is not a customer, partner, sponsor, endorsement, or committed pilot.
+- `northstar_outside_sales_synthetic` / `general_outside_sales`: deterministic nonproduction configuration proof.
 
-`overwatch/artifact-contracts/canonical-artifact-registry.json`
+Both profiles use the same Dashboard module, service worker, runtime asset contract, and Intelligence availability contract. A company name may not select application behavior.
 
-Overwatch validation is:
+## Availability Boundary
 
-`scripts/verify-cross-subsystem-artifact-contracts.mjs`
+Freshness is capped at 24 hours. Only fresh verified-open records or verified current access windows may be an immediate stop. Verified closed, stale, unavailable, invalid, provider-failure, or unverified appointment records remain non-recommended.
 
-## Ownership Rules
+Operating hours and estimated visit duration are independent fields and independent presentation states.
 
-Research writes dossiers.
+## Safety
 
-Dashboard reads dossiers only.
+- Collection: `OFF`
+- Active cohorts: `0`
+- Recommendation influence: `OFF`
+- Anthony Founder mapping: `UNMAPPED`
+- Production activation: separately Founder-gated
+- External provider credentials and scheduler activation: separately Founder-gated
 
-CRM writes activity, lead, candidate, handoff, and pipeline state only through CRM-owned contracts and approved runtime paths.
-
-Intelligence reads Research and CRM artifacts and may produce interpretation only through approved Intelligence-owned contracts.
-
-Administration writes operating procedure artifacts, release/sign-off registers, founder readiness reviews, field-feedback records, action plans, launch operation records, go/no-go reviews, and post-call AAR / decision-journal handoffs.
-
-Overwatch verifies contract consistency, canonical paths, workspace isolation, source/deploy parity, and fixture/demo-data prohibition.
-
-## Smoothie Depot Canonical Artifacts
-
-Research-owned:
-
-- `research/workspaces/smoothie-depot/dossiers/dossier-register.json`
-- `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md`
-- `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json`
-- `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
-
-Dashboard-owned read-only consumers:
-
-- `smoothie-depot-dashboard/index.html`
-- `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`
-- `smoothie-depot-dashboard/command-center.js`
-- `deploy/cloudflare-pages/smoothie-depot-dashboard/command-center.js`
-
-CRM-owned contracts and entry points:
-
-- `crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json`
-- `crm/crm-foundation.mjs`
-- `consumeWorkspaceLeadIntakeHandoff`
-
-Intelligence-owned planning contracts:
-
-- `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json`
-- `intelligence/contracts/business-acquisition-intelligence-contracts.json`
-
-Administration-owned operating artifacts:
-
-- `overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json`
-- `administration/workspaces/smoothie-depot/founder-operating-manual-v1.md`
-- `administration/workspaces/smoothie-depot/README.md`
-- `administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md`
-- `administration/workspaces/smoothie-depot/workspace-isolation-verification.json`
-- `administration/registers/release-history.json`
-- `administration/registers/regression-verification.json`
-- `administration/registers/stabilization-issues.json`
-- `administration/registers/beta-observations.json`
-- `administration/registers/test-session-history.json`
-- `administration/command-center/beta-sprint-2/issue-tracker.json`
-
-## Fitness Connection Canonical Artifacts
-
-Overwatch-owned workspace contracts:
-
-- `overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json`
-- `overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json`
-- `overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json`
-- `overwatch/artifact-contracts/workspaces/fitness-connection/crm-consumer-contract-v1.json`
-- `overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json`
-
-Dashboard-owned runtime consumers:
-
-- `index.html`
-- `deploy/cloudflare-pages/index.html`
-
-Data-owned route intelligence artifacts:
-
-- `overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json`
-- `overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json`
-- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`
-- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/promotion-gate.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/founder-15-mile-pool.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/anthony-25-mile-pool.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/quality-report.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.schema.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours-refresh-report.json`
-- `data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/founder-field-evidence.json`
-
-CRM-owned contracts and entry points:
-
-- `crm/crm-foundation.mjs`
-- `consumeWorkspaceLeadIntakeHandoff`
-
-Intelligence-owned profile and interpretation contracts:
-
-- `intelligence/profiles/operating-profiles.json`
-- `intelligence/contracts/operating-profile-contracts.json`
-- `intelligence/contracts/adaptive-intelligence-contracts.json`
-- `intelligence/contracts/field-learning-loop-contracts.json`
-- `intelligence/contracts/recommendation-explainability-contracts.json`
-- `intelligence/contracts/customer-intelligence-graph-contracts.json`
-
-## Consumer Rules
-
-Dashboard must render completed Research-owned canonical dossier artifacts read-only. It must expose the canonical artifact hash, render the full Markdown and structured JSON artifact, and fail closed for businesses without a completed canonical dossier.
-
-Dashboard must not summarize, abbreviate, reinterpret, mutate, or create Research intelligence.
-
-Dashboard must read Fitness Connection Active Pool and runtime pool artifacts only through approved Data contract paths and must not write Data artifacts.
-
-Prometheus Data owns normalized Fitness Connection business-hours records, source freshness, timezone evaluation, provenance, and deterministic `OPEN_VERIFIED`, `CLOSED_VERIFIED`, `HOURS_UNKNOWN`, `HOURS_STALE`, and `SPECIAL_HOURS_UNVERIFIED` statuses. Permanent operational status and current hours status must remain separate.
-
-The business-hours contract authorizes only the verified `route-iq-closed-now-eligibility-contracts-v1` Prometheus Intelligence consumer for Fitness Connection initial route generation, continuous adaptive replenishment, and explainability. The authorization does not permit Data mutation, scoring-weight changes, live Google calls, cross-workspace use, Smoothie Depot consumption, or unregistered consumers. Intelligence must preserve the attributable status reason and remains the sole owner of final route eligibility and ranking.
-
-CRM must route intake and future candidate records by `workspaceId`, reject unknown workspaces, and reject cross-workspace contamination before mutation.
-
-CRM may consume Fitness Connection assigned lead artifacts only through the Data runtime artifact contract. CRM must not directly consume the Fitness Active Pool as mutable CRM state.
-
-Intelligence must not activate production scoring, mutate Research or CRM artifacts, or let Smoothie Depot intelligence influence Fitness Connection recommendations.
-
-Intelligence may interpret Fitness Connection Data artifacts only through approved read paths and must not mutate Data artifacts or change scoring through the Data contract.
-
-Mobile may consume only role-scoped, workspace-scoped Fitness lead artifacts and must not consume Smoothie Depot candidate or franchise data.
-
-Fitness Connection work must preserve the `fitness_connection` workspace, `fitness` Operating Profile, Founder/Rep separation, Anthony Rep-only access, Data-owned Active Pool governance, CRM-owned lead/activity state, and Smoothie Depot isolation.
-
-Dashboard may display Administration operating manuals read-only through the Administration operating artifact contract. Dashboard must not mutate, regenerate, summarize into source-of-truth records, or invent missing Administration operating artifacts.
-
-CRM may consume Administration field-feedback artifacts only through the Administration operating artifact contract. CRM must not read workspace operating manuals as mutable CRM state and must reject cross-workspace feedback.
-
-Intelligence may consume post-call AAR / decision-journal handoff artifacts only through the Administration operating artifact contract. Intelligence must not use field-feedback or decision-journal records as cross-workspace training signals.
-
-Overwatch must reject future handoffs that bypass this registry, duplicate these contracts, introduce production fixture/demo data, or blur workspace ownership.
-
-## Fixture and Demo Data Policy
-
-Fixture/demo data may exist only in explicitly non-production validation or demo paths.
-
-Known allowed non-production fixture/demo locations:
-
-- `intelligence/fixtures/field-visit-evidence-fixtures.json`
-- `demo-dashboard/index.html`
-- `prometheus-os/demo-data.js`
-
-The Smoothie Depot production dashboard must remain zero-state until real CRM/runtime records are explicitly authorized.
-
-## Current Audit Findings
-
-Broken links identified:
-
-- None for the current Nutrition Depot canonical dossier path.
-
-Incomplete links identified:
-
-- Cranky Carrot and LEEMOO have no completed Research-owned canonical dossiers and must remain fail-closed in Dashboard.
-- CRM durable candidate persistence is not authorized.
-- Intelligence production interpretation over Research plus CRM is not authorized.
-- Authenticated production browser smoke remains outside the contract layer and requires Cloudflare Access credentials or CDP when runtime verification is requested.
-- Companion is quarantined/dormant by Founder decision. No Companion contract-layer, runtime, simulation, or feature work is authorized unless Founder explicitly reactivates Companion.
-
-Required remediation order:
-
-1. Keep Overwatch artifact contract verification active in `npm test`.
-2. Sales must register a consumer contract before using Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
-3. Research must publish additional completed canonical dossiers before Dashboard populates additional Smoothie Depot mission slots.
-4. CRM runtime persistence requires explicit CRM-owned approval.
-5. Intelligence interpretation requires explicit Intelligence-owned approval and must preserve workspace isolation.
+The machine-readable registry is `overwatch/artifact-contracts/canonical-artifact-registry.json`. The release-blocking verifier is `scripts/verify-cross-subsystem-artifact-contracts.mjs`.

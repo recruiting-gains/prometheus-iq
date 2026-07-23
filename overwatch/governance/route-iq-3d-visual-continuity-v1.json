@@ -97,8 +97,7 @@
         "tree": "e89f1cdfde620661da65d3c2cebd82f4f90443ba",
         "subject": "social-media: retire public website attribution artifact",
         "files": [
-          "overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json",
-          "overwatch/artifact-contracts/social-media/smoothie-depot-social-media-artifact-contract-v1.json"
+          "overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json"
         ]
       }
     },

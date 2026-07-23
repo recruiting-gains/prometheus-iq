@@ -1,9 +1,9 @@
 {
   "contractId": "prometheus-cross-subsystem-artifact-contract-v1",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "status": "active",
   "owningSubsystem": "Prometheus Overwatch",
-  "purpose": "Define the canonical artifact connection layer between Prometheus subsystems and isolated workspaces.",
+  "purpose": "Register the single configuration-driven Route IQ platform and fail-closed cross-subsystem evidence boundaries.",
   "globalRules": {
     "noSubsystemMayRegenerateAnotherSubsystemArtifact": true,
     "noSubsystemMayInventMissingData": true,
@@ -11,7 +11,15 @@
     "noCrossSubsystemWrites": true,
     "unknownOrMissingArtifactFailsClosed": true,
     "workspaceIsolationRequired": true,
-    "customerSpecificGlobalStateProhibited": true
+    "companyProfileRepresentativeAndTerritoryIsolationRequired": true,
+    "approvedTenantCompanyBusinessSourceRequired": true,
+    "unapprovedBusinessRejected": true,
+    "businessHoursMaximumAgeHours": 24,
+    "staleOrUnavailableHoursImmediateRecommendationAllowed": false,
+    "operatingHoursAndVisitDurationMustRemainDistinct": true,
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF"
   },
   "governanceArtifacts": [
     {
@@ -21,8 +29,12 @@
       "path": "overwatch/governance/verified-engineering-batch-auto-push-v1.json",
       "documentationPath": "overwatch/governance/verified-engineering-batch-auto-push-v1.md",
       "schema": "VerifiedEngineeringBatchAutomaticCommitPushGovernanceV1",
-      "writeAllowed": ["Prometheus Overwatch"],
-      "readAllowed": ["Prometheus Overwatch"],
+      "writeAllowed": [
+        "Prometheus Overwatch"
+      ],
+      "readAllowed": [
+        "Prometheus Overwatch"
+      ],
       "productionConsumer": false,
       "failClosedIfMissing": true
     },
@@ -33,8 +45,12 @@
       "path": "overwatch/governance/cloudflare-unattended-deployment-access-v1.json",
       "documentationPath": "overwatch/governance/cloudflare-unattended-deployment-access-v1.md",
       "schema": "CloudflareUnattendedDeploymentAccessGovernanceV1",
-      "writeAllowed": ["Prometheus Overwatch"],
-      "readAllowed": ["Prometheus Overwatch"],
+      "writeAllowed": [
+        "Prometheus Overwatch"
+      ],
+      "readAllowed": [
+        "Prometheus Overwatch"
+      ],
       "productionConsumer": false,
       "failClosedIfMissing": true
     },
@@ -45,8 +61,13 @@
       "path": "overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.json",
       "documentationPath": "overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.md",
       "schema": "CloudflareFounderAttendedServiceTokenProvisioningGovernanceV1",
-      "writeAllowed": ["Prometheus Overwatch"],
-      "readAllowed": ["Prometheus Infrastructure", "Prometheus Overwatch"],
+      "writeAllowed": [
+        "Prometheus Overwatch"
+      ],
+      "readAllowed": [
+        "Prometheus Infrastructure",
+        "Prometheus Overwatch"
+      ],
       "productionConsumer": false,
       "failClosedIfMissing": true
     },
@@ -57,8 +78,13 @@
       "path": "overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.json",
       "documentationPath": "overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.md",
       "schema": "CloudflareFounderAttendedRealMacOsTtyCompatibilityRepairGovernanceV1",
-      "writeAllowed": ["Prometheus Overwatch"],
-      "readAllowed": ["Prometheus Infrastructure", "Prometheus Overwatch"],
+      "writeAllowed": [
+        "Prometheus Overwatch"
+      ],
+      "readAllowed": [
+        "Prometheus Infrastructure",
+        "Prometheus Overwatch"
+      ],
       "productionConsumer": false,
       "failClosedIfMissing": true
     },
@@ -69,8 +95,13 @@
       "path": "overwatch/governance/cloudflare-founder-attended-get-only-recovery-v1.json",
       "documentationPath": "overwatch/governance/cloudflare-founder-attended-get-only-recovery-v1.md",
       "schema": "CloudflareFounderAttendedGetOnlyRecoveryGovernanceV1",
-      "writeAllowed": ["Prometheus Overwatch"],
-      "readAllowed": ["Prometheus Infrastructure", "Prometheus Overwatch"],
+      "writeAllowed": [
+        "Prometheus Overwatch"
+      ],
+      "readAllowed": [
+        "Prometheus Infrastructure",
+        "Prometheus Overwatch"
+      ],
       "productionConsumer": false,
       "failClosedIfMissing": true
     },
@@ -183,8 +214,13 @@
       "path": "overwatch/governance/public-deployment-workflow-v2.json",
       "documentationPath": "overwatch/governance/public-deployment-workflow-v2.md",
       "schema": "PublicDeploymentWorkflowV2GovernanceV1",
-      "writeAllowed": ["Prometheus Overwatch"],
-      "readAllowed": ["Prometheus Infrastructure", "Prometheus Overwatch"],
+      "writeAllowed": [
+        "Prometheus Overwatch"
+      ],
+      "readAllowed": [
+        "Prometheus Infrastructure",
+        "Prometheus Overwatch"
+      ],
       "productionConsumer": false,
       "failClosedIfMissing": true
     },
@@ -195,338 +231,164 @@
       "path": "overwatch/governance/route-iq-commercial-readiness-v1.json",
       "documentationPath": "overwatch/governance/route-iq-commercial-readiness-v1.md",
       "schema": "RouteIqCommercialReadinessGovernanceV1",
-      "writeAllowed": ["Prometheus Overwatch"],
-      "readAllowed": ["Prometheus Route IQ", "Prometheus Dashboard", "Prometheus Data", "Prometheus Intelligence Engine", "Prometheus CRM", "Prometheus Infrastructure", "Prometheus Website", "Prometheus Overwatch"],
+      "writeAllowed": [
+        "Prometheus Overwatch"
+      ],
+      "readAllowed": [
+        "Prometheus Route IQ",
+        "Prometheus Dashboard",
+        "Prometheus Data",
+        "Prometheus Intelligence Engine",
+        "Prometheus CRM",
+        "Prometheus Infrastructure",
+        "Prometheus Website",
+        "Prometheus Overwatch"
+      ],
+      "productionConsumer": false,
+      "failClosedIfMissing": true
+    },
+    {
+      "artifactId": "route-iq-cross-industry-dashboard-regression-governance-v1",
+      "artifactType": "overwatch_cross_industry_dashboard_release_governance",
+      "ownerSubsystem": "Prometheus Overwatch",
+      "path": "overwatch/governance/route-iq-cross-industry-dashboard-regression-v1.json",
+      "documentationPath": "overwatch/governance/route-iq-cross-industry-dashboard-regression-v1.md",
+      "schema": "RouteIqCrossIndustryDashboardRegressionGovernanceV1",
+      "writeAllowed": [
+        "Prometheus Overwatch"
+      ],
+      "readAllowed": [
+        "Prometheus Administration",
+        "Prometheus Dashboard",
+        "Prometheus Data",
+        "Prometheus Infrastructure",
+        "Prometheus Intelligence Engine",
+        "Prometheus Security/Aegis",
+        "Prometheus Overwatch"
+      ],
       "productionConsumer": false,
       "failClosedIfMissing": true
     }
   ],
   "workspaces": [
     {
-      "workspaceId": "smoothie_depot",
-      "workspaceName": "Smoothie Depot",
-      "operatingProfileId": "franchise_development",
-      "intelligenceDomain": "business_acquisition_intelligence",
-      "lifecycleState": "inactive_historical",
-      "normalOperationVisible": false,
-      "activeNavigationVisible": false,
-      "runtimeConsumptionAuthorized": false,
-      "historicalArtifactsPreserved": true,
-      "protectedWorkspaceIds": ["fitness_connection"],
-      "workspaceIsolationRules": {
-        "fitnessConnectionDataUsed": false,
-        "routeIntelligenceUsed": false,
-        "activePoolUsed": false,
-        "fitnessConnectionInfluenceAllowed": false,
-        "globalCustomerStateAllowed": false,
-        "wrongOperatingProfileAllowed": false
-      },
-      "canonicalArtifacts": [
-        {
-          "artifactId": "smoothie_depot_dossier_register",
-          "artifactType": "dossier_register",
-          "ownerSubsystem": "Prometheus Research",
-          "path": "research/workspaces/smoothie-depot/dossiers/dossier-register.json",
-          "schema": "DossierRegisterV1",
-          "writeAllowed": ["Prometheus Research"],
-          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": false,
-          "requiredWorkspaceId": "smoothie_depot",
-          "requiredOperatingProfileId": "franchise_development",
-          "failClosedIfMissing": true
-        },
-        {
-          "artifactId": "nutrition_depot_executive_dossier_markdown",
-          "artifactType": "executive_due_diligence_dossier_markdown",
-          "ownerSubsystem": "Prometheus Research",
-          "path": "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md",
-          "schema": "ExecutiveDueDiligenceDossierMarkdownV1",
-          "writeAllowed": ["Prometheus Research"],
-          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": false,
-          "requiredWorkspaceId": "smoothie_depot",
-          "requiredOperatingProfileId": "franchise_development",
-          "failClosedIfMissing": true
-        },
-        {
-          "artifactId": "nutrition_depot_executive_dossier_json",
-          "artifactType": "executive_due_diligence_dossier_structured",
-          "ownerSubsystem": "Prometheus Research",
-          "path": "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json",
-          "schema": "ExecutiveDueDiligenceDossierJsonV1",
-          "writeAllowed": ["Prometheus Research"],
-          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": false,
-          "requiredWorkspaceId": "smoothie_depot",
-          "requiredOperatingProfileId": "franchise_development",
-          "failClosedIfMissing": true
-        },
-        {
-          "artifactId": "smoothie_depot_ranked_business_prospects",
-          "artifactType": "ranked_business_prospects",
-          "ownerSubsystem": "Prometheus Research",
-          "path": "research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json",
-          "schema": "RankedBusinessProspectsV1",
-          "writeAllowed": ["Prometheus Research"],
-          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": false,
-          "requiredWorkspaceId": "smoothie_depot",
-          "requiredOperatingProfileId": "franchise_development",
-          "failClosedIfMissing": true
-        },
-        {
-          "artifactId": "smoothie_depot_crm_candidate_pipeline_contract",
-          "artifactType": "crm_candidate_pipeline_contract",
-          "ownerSubsystem": "Prometheus CRM",
-          "path": "crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json",
-          "schema": "CRMCandidatePipelineContractV1",
-          "writeAllowed": ["Prometheus CRM"],
-          "readAllowed": ["Prometheus Dashboard", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": false,
-          "requiredWorkspaceId": "smoothie_depot",
-          "requiredOperatingProfileId": "franchise_development",
-          "failClosedIfMissing": true
-        },
-        {
-          "artifactId": "smoothie_depot_intelligence_workspace_plan",
-          "artifactType": "workspace_intelligence_plan",
-          "ownerSubsystem": "Prometheus Intelligence Engine",
-          "path": "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json",
-          "schema": "WorkspaceIntelligencePlanV1",
-          "writeAllowed": ["Prometheus Intelligence Engine"],
-          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Research", "Prometheus Overwatch"],
-          "productionConsumer": false,
-          "requiredWorkspaceId": "smoothie_depot",
-          "requiredOperatingProfileId": "franchise_development",
-          "failClosedIfMissing": true
-        },
-        {
-          "artifactId": "smoothie_depot_dashboard_source",
-          "artifactType": "dashboard_read_only_consumer",
-          "ownerSubsystem": "Prometheus Dashboard",
-          "path": "smoothie-depot-dashboard/index.html",
-          "schema": "DashboardReadOnlyDossierConsumerV1",
-          "writeAllowed": ["Prometheus Dashboard"],
-          "readAllowed": ["Prometheus Overwatch"],
-          "productionConsumer": false,
-          "requiredWorkspaceId": "smoothie_depot",
-          "requiredOperatingProfileId": "franchise_development",
-          "failClosedIfMissing": true
-        },
-        {
-          "artifactId": "smoothie_depot_dashboard_deploy_asset",
-          "artifactType": "dashboard_read_only_consumer_deploy_mirror",
-          "ownerSubsystem": "Prometheus Dashboard",
-          "path": "deploy/cloudflare-pages/smoothie-depot-dashboard/index.html",
-          "schema": "DashboardReadOnlyDossierConsumerV1",
-          "writeAllowed": ["Prometheus Dashboard"],
-          "readAllowed": ["Prometheus Overwatch"],
-          "productionConsumer": false,
-          "requiredWorkspaceId": "smoothie_depot",
-          "requiredOperatingProfileId": "franchise_development",
-          "failClosedIfMissing": true
-        },
-        {
-          "artifactId": "smoothie_depot_shared_lead_intake_contract",
-          "artifactType": "infrastructure_shared_workspace_lead_intake_contract",
-          "ownerSubsystem": "Prometheus Infrastructure",
-          "path": "integrations/shared-workspace-lead-intake-contract.js",
-          "schema": "SharedWorkspaceLeadIntakeArtifactContractV1",
-          "writeAllowed": ["Prometheus Infrastructure"],
-          "readAllowed": ["Prometheus CRM", "Prometheus Website", "Prometheus Overwatch"],
-          "productionConsumer": false,
-          "requiredWorkspaceId": "smoothie_depot",
-          "requiredOperatingProfileId": "franchise_development",
-          "failClosedIfMissing": true
-        },
-        {
-          "artifactId": "smoothie_depot_social_media_artifact_contract",
-          "artifactType": "social_media_analytics_attribution_artifact_contract",
-          "ownerSubsystem": "Prometheus Social Media",
-          "path": "overwatch/artifact-contracts/social-media/smoothie-depot-social-media-artifact-contract-v1.json",
-          "schema": "SocialMediaAnalyticsAttributionArtifactContractV1",
-          "writeAllowed": ["Prometheus Social Media"],
-          "readAllowed": ["Prometheus Website", "Prometheus CRM", "Prometheus Dashboard", "Prometheus Research", "Prometheus Overwatch"],
-          "productionConsumer": false,
-          "requiredWorkspaceId": "smoothie_depot",
-          "requiredOperatingProfileId": "franchise_development",
-          "failClosedIfMissing": true
-        },
-        {
-          "artifactId": "smoothie_depot_administration_operating_artifact_contract",
-          "artifactType": "administration_operating_artifact_contract",
-          "ownerSubsystem": "Prometheus Administration",
-          "path": "overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json",
-          "schema": "AdministrationOperatingArtifactContractV1",
-          "writeAllowed": ["Prometheus Administration"],
-          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": false,
-          "requiredWorkspaceId": "smoothie_depot",
-          "requiredOperatingProfileId": "franchise_development",
-          "failClosedIfMissing": true
-        }
-      ],
-      "consumerContracts": {
-        "dashboard": {
-          "consumerSubsystem": "Prometheus Dashboard",
-          "historicalVerificationOnly": true,
-          "activeNavigationAuthorized": false,
-          "runtimeConsumptionAuthorized": false,
-          "allowedReadPaths": [
-            "research/workspaces/smoothie-depot/dossiers/dossier-register.json",
-            "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md",
-            "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json",
-            "administration/workspaces/smoothie-depot/founder-operating-manual-v1.md",
-            "administration/workspaces/smoothie-depot/README.md",
-            "administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md"
-          ],
-          "requiredSourcePaths": [
-            "smoothie-depot-dashboard/index.html",
-            "deploy/cloudflare-pages/smoothie-depot-dashboard/index.html"
-          ],
-          "writeProhibitedPaths": ["research/", "crm/", "intelligence/"],
-          "mustRenderFullArtifact": true,
-          "mustExposeArtifactHash": true,
-          "mustFailClosedOnMissingCanonicalDossier": true,
-          "mustNotSummarize": true,
-          "mustNotRegenerateResearch": true,
-          "mustNotUseFixtureData": true,
-          "administrationOperatingManualsReadOnly": true,
-          "mustNotWriteAdministrationArtifacts": true
-        },
-        "crm": {
-          "consumerSubsystem": "Prometheus CRM",
-          "ownedWritePaths": [
-            "crm/crm-foundation.mjs",
-            "crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json"
-          ],
-          "allowedReadPaths": [
-            "research/workspaces/smoothie-depot/dossiers/dossier-register.json",
-            "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json",
-            "administration/registers/stabilization-issues.json",
-            "administration/registers/beta-observations.json",
-            "administration/registers/test-session-history.json",
-            "administration/command-center/beta-sprint-2/issue-tracker.json"
-          ],
-          "requiredEntryPoint": "consumeWorkspaceLeadIntakeHandoff",
-          "mustRejectUnknownWorkspace": true,
-          "mustRejectCrossWorkspaceContamination": true,
-          "runtimeCandidatePersistenceAuthorized": false,
-          "mayConsumeFieldFeedbackOnlyThroughAdministrationContract": true,
-          "mayWriteAdministrationArtifacts": false
-        },
-        "intelligence": {
-          "consumerSubsystem": "Prometheus Intelligence Engine",
-          "ownedWritePaths": [
-            "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json",
-            "intelligence/contracts/business-acquisition-intelligence-contracts.json"
-          ],
-          "allowedReadPaths": [
-            "research/workspaces/smoothie-depot/dossiers/dossier-register.json",
-            "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json",
-            "crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json"
-          ],
-          "mustNotActivateProductionScoring": true,
-          "mustNotInfluenceFitnessConnection": true,
-          "mustNotMutateResearchOrCrm": true,
-          "mayConsumeDecisionJournalAarOnlyThroughAdministrationContract": true,
-          "administrationDecisionJournalPathPattern": "administration/workspaces/{workspace-slug}/decision-journal/{yyyy-mm-dd}-{handoff-id}.json",
-          "mustNotWriteAdministrationArtifacts": true
-        },
-        "overwatch": {
-          "consumerSubsystem": "Prometheus Overwatch",
-          "allowedReadPaths": ["*"],
-          "validationScript": "scripts/verify-cross-subsystem-artifact-contracts.mjs",
-          "mustVerifySourceAndDeployParity": true,
-          "mustVerifyCanonicalPathsExist": true,
-          "mustVerifyWorkspaceIsolation": true,
-          "mustVerifyFixtureDataProhibition": true
-        }
-      },
-      "auditFindings": {
-        "brokenLinksIdentified": [],
-        "incompleteLinksIdentified": [
-          "Cranky Carrot and LEEMOO mission slots have no completed canonical Research-owned dossier yet and must remain fail-closed.",
-          "CRM durable candidate persistence is not authorized; CRM currently owns handoff consumption contracts and workspace-scoped library behavior only.",
-          "Intelligence interpretation over Research plus CRM is planned by contract, but no production interpretation runtime is authorized."
-        ],
-        "fixtureDataLocationsIdentified": [
-          {
-            "path": "intelligence/fixtures/field-visit-evidence-fixtures.json",
-            "status": "allowed_offline_validation_only",
-            "productionConsumerAllowed": false
-          },
-          {
-            "path": "demo-dashboard/index.html",
-            "status": "allowed_demo_surface_only",
-            "productionConsumerAllowed": false
-          },
-          {
-            "path": "prometheus-os/demo-data.js",
-            "status": "allowed_companion_demo_context_only",
-            "productionConsumerAllowed": false
-          }
-        ],
-        "requiredRemediationOrder": [
-          "1. Keep Overwatch artifact contract verifier in npm test before accepting cross-subsystem handoffs.",
-          "2. Research must publish additional completed canonical dossiers before Dashboard populates Wednesday or Friday mission slots.",
-          "3. Dashboard may consume only completed Research-owned dossiers and must fail closed for missing dossiers.",
-          "4. CRM runtime persistence requires explicit CRM-owned approval before candidate records become durable records.",
-          "5. Intelligence may read Research plus CRM contracts only after an explicit interpretation handoff and must preserve workspace isolation."
-        ]
-      }
-    },
-    {
       "workspaceId": "fitness_connection",
-      "workspaceName": "Fitness Connection",
+      "companyId": "fitness_connection_research",
+      "workspaceName": "Fitness Connection Founder Field Research",
       "operatingProfileId": "fitness",
       "intelligenceDomain": "route_intelligence",
-      "protectedWorkspaceIds": ["smoothie_depot"],
+      "lifecycleState": "founder_research",
+      "relationshipClassification": "FOUNDER_FIELD_RESEARCH",
+      "normalOperationVisible": true,
+      "productionActivationAuthorized": false,
+      "publicRelationshipClaimsAllowed": false,
       "workspaceIsolationRules": {
-        "smoothieDepotDataUsed": false,
-        "smoothieDepotCandidateDataUsed": false,
-        "smoothieDepotFranchiseLearningInfluenceAllowed": false,
-        "globalCustomerStateAllowed": false,
-        "wrongOperatingProfileAllowed": false,
+        "approvedTenantCompanySourceRequired": true,
+        "crossWorkspaceDataAllowed": false,
+        "crossCompanyDataAllowed": false,
+        "crossProfileDataAllowed": false,
+        "crossRepresentativeDataAllowed": false,
         "fixtureDataAllowedInProduction": false,
         "missingArtifactFailsClosed": true
       },
       "canonicalArtifacts": [
         {
           "artifactId": "fitness_connection_workspace_identity_contract",
-          "artifactType": "workspace_identity_contract",
+          "artifactType": "overwatch_workspace_identity_contract",
           "ownerSubsystem": "Prometheus Overwatch",
           "path": "overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json",
-          "schema": "FitnessConnectionWorkspaceIdentityContractV1",
-          "writeAllowed": ["Prometheus Overwatch"],
-          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Data", "Prometheus Intelligence Engine", "Prometheus Infrastructure", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "schema": "RouteIqWorkspaceIdentityContractV2",
+          "writeAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "readAllowed": [
+            "Prometheus Administration",
+            "Prometheus Dashboard",
+            "Prometheus Data",
+            "Prometheus Intelligence Engine",
+            "Prometheus CRM",
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
           "failClosedIfMissing": true
         },
         {
           "artifactId": "fitness_connection_dashboard_consumer_contract",
-          "artifactType": "dashboard_consumer_contract",
+          "artifactType": "overwatch_dashboard_consumer_contract",
           "ownerSubsystem": "Prometheus Overwatch",
           "path": "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json",
-          "schema": "FitnessConnectionDashboardConsumerContractV1",
-          "writeAllowed": ["Prometheus Overwatch"],
-          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "schema": "RouteIqDashboardConsumerContractV2",
+          "writeAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "readAllowed": [
+            "Prometheus Dashboard",
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
           "failClosedIfMissing": true
         },
         {
           "artifactId": "fitness_connection_route_intelligence_data_contract",
-          "artifactType": "route_intelligence_data_contract",
+          "artifactType": "overwatch_route_intelligence_data_contract",
           "ownerSubsystem": "Prometheus Overwatch",
           "path": "overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json",
-          "schema": "FitnessConnectionRouteIntelligenceDataContractV1",
-          "writeAllowed": ["Prometheus Overwatch"],
-          "readAllowed": ["Prometheus Dashboard", "Prometheus Data", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "schema": "RouteIqRouteIntelligenceDataContractV2",
+          "writeAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "readAllowed": [
+            "Prometheus Data",
+            "Prometheus Dashboard",
+            "Prometheus Intelligence Engine",
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_crm_consumer_contract",
+          "artifactType": "overwatch_crm_consumer_contract",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/artifact-contracts/workspaces/fitness-connection/crm-consumer-contract-v1.json",
+          "schema": "RouteIqCrmConsumerContractV2",
+          "writeAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "readAllowed": [
+            "Prometheus CRM",
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_intelligence_consumer_contract",
+          "artifactType": "overwatch_intelligence_consumer_contract",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json",
+          "schema": "RouteIqIntelligenceConsumerContractV2",
+          "writeAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "readAllowed": [
+            "Prometheus Intelligence Engine",
+            "Prometheus Data",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
           "failClosedIfMissing": true
@@ -536,9 +398,16 @@
           "artifactType": "data_runtime_artifact_contract",
           "ownerSubsystem": "Prometheus Data",
           "path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-          "schema": "FitnessConnectionRuntimeArtifactContractV1",
-          "writeAllowed": ["Prometheus Data"],
-          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Mobile", "Prometheus Overwatch"],
+          "schema": "RouteIqRuntimeArtifactContractV2",
+          "writeAllowed": [
+            "Prometheus Data"
+          ],
+          "readAllowed": [
+            "Prometheus Dashboard",
+            "Prometheus Intelligence Engine",
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": true,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
@@ -546,31 +415,38 @@
         },
         {
           "artifactId": "fitness_connection_business_hours_data_contract",
-          "artifactType": "data_to_intelligence_business_hours_contract",
+          "artifactType": "data_business_hours_artifact_contract",
           "ownerSubsystem": "Prometheus Data",
           "path": "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
-          "schema": "FitnessConnectionBusinessHoursDataContractV1",
-          "writeAllowed": ["Prometheus Data"],
-          "readAllowed": ["Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "schema": "RouteIqBusinessHoursDataContractV2",
+          "writeAllowed": [
+            "Prometheus Data"
+          ],
+          "readAllowed": [
+            "Prometheus Intelligence Engine",
+            "Prometheus Dashboard",
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": true,
-          "requiresIndependentOverwatchVerification": true,
-          "authorizedConsumerSubsystem": "Prometheus Intelligence Engine",
-          "authorizedConsumerContractId": "route-iq-closed-now-eligibility-contracts-v1",
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
           "failClosedIfMissing": true
         },
         {
           "artifactId": "fitness_connection_route_business_hours_intelligence_consumer_contract",
-          "artifactType": "intelligence_business_hours_consumer_contract",
+          "artifactType": "intelligence_business_hours_contract",
           "ownerSubsystem": "Prometheus Intelligence Engine",
           "path": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
-          "schema": "RouteIqClosedNowEligibilityContractsV1",
-          "canonicalIdentifier": "route-iq-closed-now-eligibility-contracts-v1",
-          "linkedDataContractId": "fitness-connection-business-hours-data-contract-v1",
-          "linkedDataContractPath": "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
-          "writeAllowed": ["Prometheus Intelligence Engine"],
-          "readAllowed": ["Prometheus Data", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "schema": "RouteIqBusinessHoursEligibilityContractsV2",
+          "writeAllowed": [
+            "Prometheus Intelligence Engine"
+          ],
+          "readAllowed": [
+            "Prometheus Dashboard",
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": true,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
@@ -578,72 +454,90 @@
         },
         {
           "artifactId": "fitness_connection_read_only_field_session_learning_consumer_contract",
-          "artifactType": "intelligence_read_only_field_session_learning_consumer_contract",
+          "artifactType": "intelligence_read_only_learning_contract",
           "ownerSubsystem": "Prometheus Intelligence Engine",
           "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
           "schema": "ReadOnlyFieldSessionLearningContractsV1",
-          "canonicalIdentifier": "read-only-field-session-learning-contracts-v1",
-          "linkedDataContractId": "fitness-connection-runtime-artifact-contract-v1",
-          "linkedDataContractPath": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-          "writeAllowed": ["Prometheus Intelligence Engine"],
-          "readAllowed": ["Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "writeAllowed": [
+            "Prometheus Intelligence Engine"
+          ],
+          "readAllowed": [
+            "Prometheus Data",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
           "failClosedIfMissing": true
         },
         {
           "artifactId": "fitness_connection_read_only_field_session_learning_policy",
-          "artifactType": "intelligence_field_session_learning_policy",
+          "artifactType": "intelligence_read_only_learning_policy",
           "ownerSubsystem": "Prometheus Intelligence Engine",
           "path": "intelligence/config/read-only-field-session-learning-policy-v1.json",
           "schema": "ReadOnlyFieldSessionLearningPolicyV1",
-          "canonicalIdentifier": "read-only-field-session-learning-policy-v1",
-          "writeAllowed": ["Prometheus Intelligence Engine"],
-          "readAllowed": ["Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "writeAllowed": [
+            "Prometheus Intelligence Engine"
+          ],
+          "readAllowed": [
+            "Prometheus Data",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
           "failClosedIfMissing": true
         },
         {
           "artifactId": "fitness_connection_read_only_field_session_learning_snapshot",
-          "artifactType": "intelligence_read_only_field_session_learning_snapshot",
+          "artifactType": "intelligence_read_only_learning_snapshot",
           "ownerSubsystem": "Prometheus Intelligence Engine",
           "path": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
-          "schema": "PrometheusIntelligenceReadOnlyFieldSessionLearningSnapshotV1",
-          "canonicalIdentifier": "prometheus-intelligence-read-only-field-session-learning-snapshot-v1",
-          "writeAllowed": ["Prometheus Intelligence Engine"],
-          "readAllowed": ["Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "schema": "ReadOnlyFieldSessionLearningSnapshotV1",
+          "writeAllowed": [
+            "Prometheus Intelligence Engine"
+          ],
+          "readAllowed": [
+            "Prometheus Data",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
           "failClosedIfMissing": true
         },
         {
           "artifactId": "fitness_connection_shadow_decision_readiness_contract",
-          "artifactType": "intelligence_shadow_decision_readiness_contract",
+          "artifactType": "intelligence_shadow_readiness_contract",
           "ownerSubsystem": "Prometheus Intelligence Engine",
           "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
-          "schema": "RouteIqShadowDecisionReadinessContractV1",
-          "canonicalIdentifier": "route-iq-shadow-decision-readiness-contract-v1",
-          "writeAllowed": ["Prometheus Intelligence Engine"],
-          "readAllowed": ["Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "schema": "ShadowDecisionReadinessContractsV1",
+          "writeAllowed": [
+            "Prometheus Intelligence Engine"
+          ],
+          "readAllowed": [
+            "Prometheus Data",
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": false,
-          "founderOnly": true,
-          "recommendationInfluence": "OFF",
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
           "failClosedIfMissing": true
         },
         {
           "artifactId": "fitness_connection_route_iq_prospective_retention_policy",
-          "artifactType": "data_prospective_shadow_retention_policy",
+          "artifactType": "data_retention_policy",
           "ownerSubsystem": "Prometheus Data",
           "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
           "schema": "RouteIqProspectiveShadowRetentionPolicyV1",
-          "writeAllowed": ["Prometheus Data"],
-          "readAllowed": ["Prometheus Infrastructure", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "writeAllowed": [
+            "Prometheus Data"
+          ],
+          "readAllowed": [
+            "Prometheus Infrastructure",
+            "Prometheus Intelligence Engine",
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": false,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
@@ -655,8 +549,16 @@
           "ownerSubsystem": "Prometheus Overwatch",
           "path": "overwatch/governance/route-iq-prospective-collection-activation-v1.json",
           "schema": "RouteIqProspectiveCollectionActivationGovernanceV1",
-          "writeAllowed": ["Prometheus Overwatch"],
-          "readAllowed": ["Prometheus Overwatch"],
+          "writeAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "readAllowed": [
+            "Prometheus Data",
+            "Prometheus Infrastructure",
+            "Prometheus Intelligence Engine",
+            "Prometheus Dashboard",
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": false,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
@@ -664,12 +566,16 @@
         },
         {
           "artifactId": "fitness_connection_route_iq_collection_activation_batch_record",
-          "artifactType": "overwatch_engineering_batch_record",
+          "artifactType": "overwatch_collection_activation_batch_record",
           "ownerSubsystem": "Prometheus Overwatch",
           "path": "overwatch/reports/BATCH-20260714-003-route-iq-prospective-collection-activation-readiness.json",
           "schema": "RouteIqProspectiveCollectionActivationBatchRecordV1",
-          "writeAllowed": ["Prometheus Overwatch"],
-          "readAllowed": ["Prometheus Overwatch"],
+          "writeAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "readAllowed": [
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": false,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
@@ -681,8 +587,15 @@
           "ownerSubsystem": "Prometheus Overwatch",
           "path": "overwatch/governance/route-iq-prospective-evidence-retention-v1.json",
           "schema": "RouteIqProspectiveEvidenceRetentionGovernanceV1",
-          "writeAllowed": ["Prometheus Overwatch"],
-          "readAllowed": ["Prometheus Overwatch"],
+          "writeAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "readAllowed": [
+            "Prometheus Data",
+            "Prometheus Infrastructure",
+            "Prometheus Intelligence Engine",
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": false,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
@@ -690,12 +603,16 @@
         },
         {
           "artifactId": "fitness_connection_route_iq_retention_batch_record",
-          "artifactType": "overwatch_engineering_batch_record",
+          "artifactType": "overwatch_retention_batch_record",
           "ownerSubsystem": "Prometheus Overwatch",
           "path": "overwatch/reports/BATCH-20260714-004-route-iq-prospective-evidence-retention.json",
           "schema": "RouteIqProspectiveEvidenceRetentionBatchRecordV1",
-          "writeAllowed": ["Prometheus Overwatch"],
-          "readAllowed": ["Prometheus Overwatch"],
+          "writeAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "readAllowed": [
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": false,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
@@ -703,51 +620,35 @@
         },
         {
           "artifactId": "fitness_connection_release_provenance_repair_mapping",
-          "artifactType": "overwatch_release_provenance_governance",
+          "artifactType": "overwatch_release_provenance_mapping",
           "ownerSubsystem": "Prometheus Overwatch",
           "path": "overwatch/artifact-contracts/provenance/route-iq-release-provenance-repair-v1.json",
-          "schema": "RouteIqReleaseProvenanceRepairV1",
-          "writeAllowed": ["Prometheus Overwatch"],
-          "readAllowed": ["Prometheus Overwatch"],
+          "schema": "RouteIqReleaseProvenanceRepairMappingV1",
+          "writeAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "readAllowed": [
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": false,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
           "failClosedIfMissing": true
         },
         {
-          "artifactId": "fitness_connection_crm_consumer_contract",
-          "artifactType": "crm_consumer_contract",
-          "ownerSubsystem": "Prometheus Overwatch",
-          "path": "overwatch/artifact-contracts/workspaces/fitness-connection/crm-consumer-contract-v1.json",
-          "schema": "FitnessConnectionCrmConsumerContractV1",
-          "writeAllowed": ["Prometheus Overwatch"],
-          "readAllowed": ["Prometheus CRM", "Prometheus Dashboard", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": true,
-          "requiredWorkspaceId": "fitness_connection",
-          "requiredOperatingProfileId": "fitness",
-          "failClosedIfMissing": true
-        },
-        {
-          "artifactId": "fitness_connection_intelligence_consumer_contract",
-          "artifactType": "intelligence_consumer_contract",
-          "ownerSubsystem": "Prometheus Overwatch",
-          "path": "overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json",
-          "schema": "FitnessConnectionIntelligenceConsumerContractV1",
-          "writeAllowed": ["Prometheus Overwatch"],
-          "readAllowed": ["Prometheus Intelligence Engine", "Prometheus Dashboard", "Prometheus CRM", "Prometheus Overwatch"],
-          "productionConsumer": true,
-          "requiredWorkspaceId": "fitness_connection",
-          "requiredOperatingProfileId": "fitness",
-          "failClosedIfMissing": true
-        },
-        {
           "artifactId": "fitness_connection_dashboard_source",
-          "artifactType": "dashboard_runtime_consumer",
+          "artifactType": "dashboard_source",
           "ownerSubsystem": "Prometheus Dashboard",
           "path": "index.html",
-          "schema": "FitnessConnectionDashboardRuntimeConsumerV1",
-          "writeAllowed": ["Prometheus Dashboard"],
-          "readAllowed": ["Prometheus Overwatch"],
+          "schema": "RouteIqConfigurableDashboardHtmlV2",
+          "writeAllowed": [
+            "Prometheus Dashboard"
+          ],
+          "readAllowed": [
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": true,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
@@ -755,12 +656,16 @@
         },
         {
           "artifactId": "fitness_connection_dashboard_deploy_asset",
-          "artifactType": "dashboard_runtime_consumer_deploy_mirror",
-          "ownerSubsystem": "Prometheus Dashboard",
+          "artifactType": "infrastructure_dashboard_deploy_asset",
+          "ownerSubsystem": "Prometheus Infrastructure",
           "path": "deploy/cloudflare-pages/index.html",
-          "schema": "FitnessConnectionDashboardRuntimeConsumerV1",
-          "writeAllowed": ["Prometheus Dashboard"],
-          "readAllowed": ["Prometheus Overwatch"],
+          "schema": "RouteIqConfigurableDashboardDeployHtmlV2",
+          "writeAllowed": [
+            "Prometheus Infrastructure"
+          ],
+          "readAllowed": [
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": true,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
@@ -768,12 +673,18 @@
         },
         {
           "artifactId": "fitness_connection_shared_lead_intake_contract",
-          "artifactType": "infrastructure_shared_workspace_lead_intake_contract",
+          "artifactType": "infrastructure_shared_intake_contract",
           "ownerSubsystem": "Prometheus Infrastructure",
           "path": "integrations/shared-workspace-lead-intake-contract.js",
-          "schema": "SharedWorkspaceLeadIntakeArtifactContractV1",
-          "writeAllowed": ["Prometheus Infrastructure"],
-          "readAllowed": ["Prometheus CRM", "Prometheus Website", "Prometheus Overwatch"],
+          "schema": "SharedWorkspaceLeadIntakeContract",
+          "writeAllowed": [
+            "Prometheus Infrastructure"
+          ],
+          "readAllowed": [
+            "Prometheus CRM",
+            "Prometheus Website",
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": true,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
@@ -781,12 +692,60 @@
         },
         {
           "artifactId": "fitness_connection_social_media_artifact_contract",
-          "artifactType": "social_media_analytics_attribution_artifact_contract",
+          "artifactType": "social_media_attribution_contract",
           "ownerSubsystem": "Prometheus Social Media",
           "path": "overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json",
-          "schema": "SocialMediaAnalyticsAttributionArtifactContractV1",
-          "writeAllowed": ["Prometheus Social Media"],
-          "readAllowed": ["Prometheus Website", "Prometheus CRM", "Prometheus Dashboard", "Prometheus Research", "Prometheus Overwatch"],
+          "schema": "RouteIqSocialMediaAttributionContractV1",
+          "writeAllowed": [
+            "Prometheus Social Media"
+          ],
+          "readAllowed": [
+            "Prometheus Website",
+            "Prometheus CRM",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "route_iq_cross_industry_administration_configuration",
+          "artifactType": "administration_workspace_configuration",
+          "ownerSubsystem": "Prometheus Administration",
+          "path": "administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json",
+          "schema": "RouteIqWorkspaceConfigurationV2",
+          "writeAllowed": [
+            "Prometheus Administration"
+          ],
+          "readAllowed": [
+            "Prometheus Dashboard",
+            "Prometheus Data",
+            "Prometheus Intelligence Engine",
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "route_iq_workspace_business_manifest_registry",
+          "artifactType": "data_workspace_business_manifest_registry",
+          "ownerSubsystem": "Prometheus Data",
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
+          "schema": "RouteIqWorkspaceBusinessArtifactManifestRegistryV1",
+          "writeAllowed": [
+            "Prometheus Data"
+          ],
+          "readAllowed": [
+            "Prometheus Administration",
+            "Prometheus Dashboard",
+            "Prometheus Intelligence Engine",
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
           "productionConsumer": true,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
@@ -795,129 +754,190 @@
       ],
       "consumerContracts": {
         "dashboard": {
-          "consumerSubsystem": "Prometheus Dashboard",
-          "allowedReadPaths": [
-            "overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json",
-            "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json",
-            "overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json",
-            "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-            "intelligence/profiles/operating-profiles.json",
-            "intelligence/contracts/operating-profile-contracts.json",
-            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
-            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
-          ],
-          "requiredSourcePaths": ["index.html", "deploy/cloudflare-pages/index.html"],
-          "writeProhibitedPaths": ["research/workspaces/smoothie-depot/", "crm/", "intelligence/", "data/"],
-          "mustPreserveFounderRepBoundary": true,
-          "mustPreserveAnthonyRepOnlyAccess": true,
-          "mustFailClosedOnMissingRuntimeArtifacts": true,
-          "mustNotUseSmoothieDepotData": true,
-          "mustNotUseFixtureData": true
+          "configurationDriven": true,
+          "embeddedCatalogAllowed": false,
+          "roleBindingRequired": true
         },
-        "crm": {
-          "consumerSubsystem": "Prometheus CRM",
-          "ownedWritePaths": ["crm/crm-foundation.mjs"],
-          "allowedReadPaths": [
-            "overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json",
-            "overwatch/artifact-contracts/workspaces/fitness-connection/crm-consumer-contract-v1.json",
-            "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-            "data/qualified-prospects/google-qualified-businesses-v2/founder-15-mile-pool.json",
-            "data/qualified-prospects/google-qualified-businesses-v2/anthony-25-mile-pool.json",
-            "intelligence/profiles/operating-profiles.json",
-            "intelligence/contracts/operating-profile-contracts.json"
-          ],
-          "requiredEntryPoint": "consumeWorkspaceLeadIntakeHandoff",
-          "mustRejectUnknownWorkspace": true,
-          "mustRejectCrossWorkspaceContamination": true,
-          "mustPreserveFitnessOperatingProfile": true
+        "data": {
+          "approvedManifestRequired": true,
+          "freshnessCeilingHours": 24
         },
         "intelligence": {
-          "consumerSubsystem": "Prometheus Intelligence Engine",
-          "ownedWritePaths": [
-            "intelligence/profiles/operating-profiles.json",
-            "intelligence/contracts/operating-profile-contracts.json",
-            "intelligence/contracts/adaptive-intelligence-contracts.json",
-            "intelligence/contracts/field-learning-loop-contracts.json",
-            "intelligence/contracts/recommendation-explainability-contracts.json",
-            "intelligence/contracts/customer-intelligence-graph-contracts.json",
-            "intelligence/contracts/route-business-hours-eligibility-contracts.json",
-            "intelligence/contracts/read-only-field-session-learning-contracts.json",
-            "intelligence/config/read-only-field-session-learning-policy-v1.json",
-            "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
-            "intelligence/shadow-decision-readiness.mjs",
-            "intelligence/contracts/shadow-decision-readiness-contracts.json",
-            "intelligence/config/shadow-decision-readiness-v1.json",
-            "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/shadow-ledger-v1.json",
-            "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
-            "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.md"
-          ],
-          "allowedReadPaths": [
-            "overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json",
-            "overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json",
-            "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-            "intelligence/contracts/route-business-hours-eligibility-contracts.json",
-            "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
-            "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
-            "intelligence/contracts/read-only-field-session-learning-contracts.json",
-            "intelligence/config/read-only-field-session-learning-policy-v1.json",
-            "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
-            "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
-            "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/manifest.json",
-            "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json",
-            "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/calculated-metrics.json",
-            "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/history-updates.json",
-            "crm/crm-foundation.mjs",
-            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
-            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
-            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json"
-          ],
-          "mustNotActivateProductionScoringWithoutHandoff": true,
-          "mustNotInfluenceSmoothieDepot": true,
-          "mustNotMutateDashboardCrmOrData": true
+          "freshVerifiedOpenOnly": true,
+          "recommendationInfluence": "OFF"
         },
-        "mobile": {
-          "consumerSubsystem": "Prometheus Mobile",
-          "allowedReadPaths": [
-            "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-            "data/qualified-prospects/google-qualified-businesses-v2/anthony-25-mile-pool.json",
-            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
-          ],
-          "mayConsumeOnlyRoleWorkspaceScopedLeadArtifacts": true,
-          "mustUseFitnessWorkspaceScope": true,
-          "mustNotUseSmoothieDepotData": true,
-          "mustFailClosedOnMissingRuntimeArtifacts": true
+        "crm": {
+          "crossWorkspaceContaminationRejected": true
         },
-        "overwatch": {
-          "consumerSubsystem": "Prometheus Overwatch",
-          "allowedReadPaths": ["*"],
-          "validationScript": "scripts/verify-cross-subsystem-artifact-contracts.mjs",
-          "mustVerifySourceAndDeployParity": true,
-          "mustVerifyCanonicalPathsExist": true,
-          "mustVerifyWorkspaceIsolation": true,
-          "mustVerifyRoleAccessBoundary": true,
-          "mustVerifyFixtureDataProhibition": true
+        "infrastructure": {
+          "runtimeProjectionOnly": true,
+          "commitMarkerWrittenLast": true
         }
       },
       "auditFindings": {
         "brokenLinksIdentified": [],
         "incompleteLinksIdentified": [
-          "Authenticated production browser smoke still requires Cloudflare Access cookie or CDP session outside this contract.",
-          "Durable CRM persistence beyond current library handoff remains future CRM-owned work."
+          "production_approved_roster_pending_founder_authorization",
+          "production_daily_refresh_activation_not_authorized"
         ],
+        "fixtureDataLocationsIdentified": []
+      }
+    },
+    {
+      "workspaceId": "northstar_outside_sales_synthetic",
+      "companyId": "northstar_field_supply_company_synthetic",
+      "workspaceName": "Northstar Field Supply (Synthetic)",
+      "operatingProfileId": "general_outside_sales",
+      "intelligenceDomain": "route_intelligence",
+      "lifecycleState": "synthetic_validation_only",
+      "relationshipClassification": "SYNTHETIC_VALIDATION_FIXTURE",
+      "normalOperationVisible": false,
+      "productionActivationAuthorized": false,
+      "publicRelationshipClaimsAllowed": false,
+      "workspaceIsolationRules": {
+        "approvedTenantCompanySourceRequired": true,
+        "crossWorkspaceDataAllowed": false,
+        "crossCompanyDataAllowed": false,
+        "crossProfileDataAllowed": false,
+        "crossRepresentativeDataAllowed": false,
+        "fixtureDataAllowedInProduction": false,
+        "missingArtifactFailsClosed": true
+      },
+      "canonicalArtifacts": [
+        {
+          "artifactId": "northstar_outside_sales_synthetic_configuration",
+          "artifactType": "administration_workspace_configuration",
+          "ownerSubsystem": "Prometheus Administration",
+          "path": "administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json",
+          "schema": "RouteIqWorkspaceConfigurationV2",
+          "writeAllowed": [
+            "Prometheus Administration"
+          ],
+          "readAllowed": [
+            "Prometheus Dashboard",
+            "Prometheus Data",
+            "Prometheus Intelligence Engine",
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "northstar_outside_sales_synthetic",
+          "requiredOperatingProfileId": "general_outside_sales",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "northstar_outside_sales_synthetic_business_fixture",
+          "artifactType": "synthetic_approved_business_fixture",
+          "ownerSubsystem": "Prometheus Data",
+          "path": "data/route-iq-commercial-readiness-v1/fixtures/general-outside-sales-synthetic-approved-businesses-v1.json",
+          "schema": "RouteIqSyntheticApprovedBusinessesV1",
+          "writeAllowed": [
+            "Prometheus Data"
+          ],
+          "readAllowed": [
+            "Prometheus Dashboard",
+            "Prometheus Intelligence Engine",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "northstar_outside_sales_synthetic",
+          "requiredOperatingProfileId": "general_outside_sales",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "northstar_outside_sales_synthetic_manifest_registry",
+          "artifactType": "data_workspace_business_manifest_registry",
+          "ownerSubsystem": "Prometheus Data",
+          "path": "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
+          "schema": "RouteIqWorkspaceBusinessArtifactManifestRegistryV1",
+          "writeAllowed": [
+            "Prometheus Data"
+          ],
+          "readAllowed": [
+            "Prometheus Administration",
+            "Prometheus Dashboard",
+            "Prometheus Intelligence Engine",
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "northstar_outside_sales_synthetic",
+          "requiredOperatingProfileId": "general_outside_sales",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "northstar_outside_sales_synthetic_dashboard_platform",
+          "artifactType": "generic_dashboard_source",
+          "ownerSubsystem": "Prometheus Dashboard",
+          "path": "dashboard/route-iq-dashboard-platform.mjs",
+          "schema": "RouteIqConfigurableDashboardV2",
+          "writeAllowed": [
+            "Prometheus Dashboard"
+          ],
+          "readAllowed": [
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "northstar_outside_sales_synthetic",
+          "requiredOperatingProfileId": "general_outside_sales",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "northstar_outside_sales_synthetic_intelligence_contract",
+          "artifactType": "intelligence_business_hours_contract",
+          "ownerSubsystem": "Prometheus Intelligence Engine",
+          "path": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+          "schema": "RouteIqBusinessHoursEligibilityContractsV2",
+          "writeAllowed": [
+            "Prometheus Intelligence Engine"
+          ],
+          "readAllowed": [
+            "Prometheus Dashboard",
+            "Prometheus Infrastructure",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "northstar_outside_sales_synthetic",
+          "requiredOperatingProfileId": "general_outside_sales",
+          "failClosedIfMissing": true
+        }
+      ],
+      "consumerContracts": {
+        "dashboard": {
+          "configurationDriven": true,
+          "customerSpecificComponentRequired": false
+        },
+        "data": {
+          "classification": "SYNTHETIC_NONCANONICAL"
+        },
+        "intelligence": {
+          "productionInfluenceAllowed": false
+        },
+        "infrastructure": {
+          "productionProjectionAllowed": false
+        }
+      },
+      "auditFindings": {
+        "brokenLinksIdentified": [],
+        "incompleteLinksIdentified": [],
         "fixtureDataLocationsIdentified": [
           {
-            "path": "intelligence/fixtures/field-visit-evidence-fixtures.json",
-            "status": "allowed_offline_validation_only",
-            "productionConsumerAllowed": false
-          },
-          {
-            "path": "demo-dashboard/index.html",
-            "status": "allowed_demo_surface_only",
+            "path": "data/route-iq-commercial-readiness-v1/fixtures/general-outside-sales-synthetic-approved-businesses-v1.json",
             "productionConsumerAllowed": false
           }
-        ],
-        "futureFeatureWorkGate": "Future Fitness Connection work must use this workspace contract and registered canonical artifact paths."
+        ]
       }
     }
-  ]
+  ],
+  "releaseGate": {
+    "exactWorkspaceIds": [
+      "fitness_connection",
+      "northstar_outside_sales_synthetic"
+    ],
+    "genericPwaRequired": true,
+    "customerSpecificReusableCodeAllowed": false,
+    "productionDemoFallbackAllowed": false,
+    "globalRetiredBusinessDenyGateRequired": true
+  }
 }

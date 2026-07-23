@@ -1,0 +1,119 @@
+{
+  "governanceId": "route-iq-cross-industry-dashboard-regression-v1",
+  "batchId": "BATCH-20260723-001",
+  "status": "ENGINEERING_IN_PROGRESS",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "startingRepositoryState": {
+    "branch": "codex/research-cross-industry-dashboard-regression",
+    "commit": "b32e18c5ed4a07edd41ea824ca4f934789192f5d",
+    "tree": "4e3b186cec2fe4fc1f290ac1b67f6c92c7777220"
+  },
+  "rootCauses": [
+    {
+      "id": "DUPLICATE_EMBEDDED_BUSINESS_CATALOGS",
+      "finding": "The Dashboard contained embedded business arrays and silently used them after governed runtime-load failures.",
+      "repair": "Business records now originate only from the Data manifest selected by the authenticated Administration workspace."
+    },
+    {
+      "id": "CUSTOMER_WORKSPACE_REMAINED_CANONICAL",
+      "finding": "The cross-subsystem registry continued authorizing an inactive customer-specific workspace and its generated artifacts.",
+      "repair": "The canonical registry now contains only Founder research and a nonproduction synthetic outside-sales validation profile."
+    },
+    {
+      "id": "STALE_HOURS_TREATED_AS_ROUTE_COVERAGE",
+      "finding": "Prior eligibility logic treated any state other than verified closed as eligible and used a 168-hour freshness policy.",
+      "repair": "The v2 policy separates coverage from immediate eligibility and caps freshness at 24 hours."
+    },
+    {
+      "id": "STATIC_HOURS_PROJECTION_WITHOUT_RUNTIME_REFRESH",
+      "finding": "Availability existed only as a build-time artifact with no governed refresh store, outbox, monitoring, or scheduler package.",
+      "repair": "Infrastructure owns an idempotent default-OFF runtime refresh projection and activation package."
+    },
+    {
+      "id": "CACHE_AND_CONFIGURATION_PRECEDENCE_UNGOVERNED",
+      "finding": "Old service-worker and browser state could outlive a configuration or business-manifest transition.",
+      "repair": "The generic PWA uses versioned cache/storage migration and network-only governed runtime assets."
+    }
+  ],
+  "authoritativeFlow": [
+    "authenticated_server_session",
+    "administration_workspace_configuration",
+    "data_business_manifest",
+    "data_normalized_availability",
+    "intelligence_immediate_eligibility",
+    "infrastructure_projection",
+    "dashboard_generic_rendering"
+  ],
+  "runtimeAssetKeys": [
+    "workspaceConfiguration",
+    "businessManifestRegistry",
+    "businessRoster",
+    "businessHours"
+  ],
+  "verifiedProfiles": [
+    {
+      "workspaceId": "fitness_connection",
+      "companyId": "fitness_connection_research",
+      "operatingProfileId": "fitness",
+      "classification": "FOUNDER_FIELD_RESEARCH",
+      "productionActivationAuthorized": false
+    },
+    {
+      "workspaceId": "northstar_outside_sales_synthetic",
+      "companyId": "northstar_field_supply_company_synthetic",
+      "operatingProfileId": "general_outside_sales",
+      "classification": "SYNTHETIC_NONCANONICAL",
+      "productionActivationAuthorized": false
+    }
+  ],
+  "availabilityBoundary": {
+    "freshnessCeilingHours": 24,
+    "immediateEligibleStates": [
+      "OPEN_VERIFIED",
+      "VERIFIED_ACCESS_WINDOW"
+    ],
+    "immediateIneligibleStates": [
+      "CLOSED_VERIFIED",
+      "HOURS_STALE",
+      "HOURS_UNKNOWN",
+      "SPECIAL_HOURS_UNVERIFIED",
+      "PROVIDER_FAILURE",
+      "INVALID"
+    ],
+    "appointmentOnlyRequiresVerifiedCurrentAccessWindow": true,
+    "providerFailureMayPromoteStaleData": false,
+    "operatingHoursAndVisitDurationSeparate": true
+  },
+  "releaseBlockingGate": {
+    "verifier": "scripts/verify-overwatch-route-iq-cross-industry-dashboard-regression.mjs",
+    "tests": [
+      "tests/overwatch-route-iq-cross-industry-dashboard-regression.test.mjs",
+      "tests/cross-subsystem-artifact-contracts.test.mjs",
+      "tests/dashboard-cross-industry-platform.test.mjs"
+    ],
+    "singleNegativeEvidencePath": "tests/cross-subsystem-artifact-contracts.test.mjs",
+    "retiredIdentityAllowedOutsideNegativeEvidence": false,
+    "unapprovedBusinessAllowedInDeployableAssets": false,
+    "productionDemoFallbackAllowed": false,
+    "customerSpecificReusableDashboardCodeAllowed": false,
+    "crossWorkspaceOrCompanyDataAllowed": false,
+    "staleOrUnavailableImmediateRecommendationAllowed": false
+  },
+  "productionBoundaries": {
+    "deploymentAuthorized": false,
+    "schedulerActivationAuthorized": false,
+    "migrationOrCachePurgeAuthorized": false,
+    "externalProviderCredentialAuthorized": false,
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "anthonyMappingStatus": "UNMAPPED",
+    "existingCrmReceiptMutationAuthorized": false
+  },
+  "knownProductionIdentity": {
+    "source": "FOUNDER_DIRECTIVE_REPORTED_NOT_REQUERIED_BY_ENGINEERING_BATCH",
+    "publicWorkerVersion": "28c6ffbc-86dc-4037-aaff-5c74f5fe990e",
+    "privateWorkerVersion": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+    "trafficPercent": 100
+  }
+}

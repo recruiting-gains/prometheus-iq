@@ -10,7 +10,7 @@ Starting repository state: commit `8f0484ea4edbab086db8d4d5f2424acf9c8bee74`, tr
 
 Route IQ is the only active Prometheus product. This gate binds the configuration-driven product, Route IQ-only Dashboard, governed evidence, read-only Founder intelligence, Codex evidence delivery, public website request flow, and durable CRM lifecycle into one independently verified release candidate.
 
-Fitness Connection evidence is `FOUNDER_FIELD_RESEARCH`; no customer, partner, sponsor, pilot, or endorsement claim is allowed. Smoothie Depot remains historical and preserved but is invisible in normal Route IQ operation. The synthetic roofing workspace proves configuration-only onboarding and is not production-authorized.
+Fitness Connection evidence is `FOUNDER_FIELD_RESEARCH`; no customer, partner, sponsor, pilot, or endorsement claim is allowed. Retired customer history is noncanonical and invisible in normal Route IQ operation. The synthetic outside-sales workspace proves configuration-only onboarding and is not production-authorized.
 
 Founder intelligence requires Data's exact immutable Cruz principal. Anthony remains denied until an exact authenticated identity is mapped. Display names and representative roles never authorize Founder intelligence.
 

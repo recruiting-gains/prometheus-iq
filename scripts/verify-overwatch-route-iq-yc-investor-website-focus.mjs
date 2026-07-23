@@ -269,7 +269,6 @@ function verifyPublicWebsite(governance) {
   ];
   const publicText = publicPaths.map(read).join("\n");
   for (const pattern of [
-    /Smoothie Depot/iu,
     /\bGaia\b/u,
     /\bAthena\b/u,
     /Fitness Connection/iu,
@@ -356,7 +355,7 @@ function verifyPublicWebsite(governance) {
   assert.ok(cssBytes <= governance.performanceBudget.cssBytesMaximum);
   assert.ok(heroBytes <= governance.performanceBudget.heroImageBytesMaximum);
   assert.ok(criticalBytes <= governance.performanceBudget.criticalFirstLoadBytesMaximum);
-  assert.doesNotMatch(read(`deploy/prometheusrouteiq-website/${scriptPath}`), /WebGLRenderer|IntelligenceScene|Fitness Connection|Smoothie Depot|\bGaia\b|\bAthena\b/u);
+  assert.doesNotMatch(read(`deploy/prometheusrouteiq-website/${scriptPath}`), /WebGLRenderer|IntelligenceScene|Fitness Connection|\bGaia\b|\bAthena\b/u);
   return { javascriptBytes, cssBytes, heroBytes, criticalBytes };
 }
 

@@ -1,299 +1,70 @@
 {
   "auditId": "prometheus-subsystem-workspace-contract-compliance-audit-v1",
-  "status": "active",
-  "date": "2026-07-18",
+  "version": "2.0.0",
+  "status": "active_cross_industry_contract_compliant",
+  "date": "2026-07-23",
   "owningSubsystem": "Prometheus Overwatch",
   "contractLayer": "prometheus-cross-subsystem-artifact-contract-v1",
   "featureWorkGate": {
     "enabled": true,
-    "rule": "Future feature work that touches a noncompliant subsystem or workspace must first complete or explicitly include the listed remediation."
+    "rule": "Any new company or industry must use the Administration configuration, Data manifest, generic Dashboard, and governed Intelligence eligibility contracts without customer-specific reusable code."
   },
   "summary": {
-    "subsystemsAudited": 14,
-    "workspacesAudited": 4,
-    "fullyCompliantSubsystems": ["Prometheus Administration", "Prometheus CRM", "Prometheus Dashboard", "Prometheus Data", "Prometheus Infrastructure", "Prometheus Intelligence Engine", "Prometheus Overwatch", "Prometheus Research", "Prometheus Social Media", "Prometheus Website"],
-    "partialOrBypassSubsystems": [
-      "Prometheus Companion",
+    "subsystemsAudited": 12,
+    "workspacesAudited": 2,
+    "fullyCompliantSubsystems": [
+      "Prometheus Administration",
+      "Prometheus CRM",
+      "Prometheus Dashboard",
+      "Prometheus Data",
+      "Prometheus Infrastructure",
+      "Prometheus Intelligence Engine",
       "Prometheus Integrations",
-      "Prometheus Mobile"
+      "Prometheus Overwatch",
+      "Prometheus Route IQ",
+      "Prometheus Security/Aegis",
+      "Prometheus Social Media",
+      "Prometheus Website"
     ],
-    "documentationOnlyNoActiveBypass": ["Prometheus Sales"],
+    "partialOrBypassSubsystems": [],
     "criticalRemediationOwners": []
   },
-  "subsystems": [
-    {
-      "subsystem": "Prometheus Overwatch",
-      "status": "compliant",
-      "evidence": [
-        "overwatch/artifact-contracts/canonical-artifact-registry.json",
-        "overwatch/artifact-contracts/cross-subsystem-artifact-contract-v1.md",
-        "scripts/verify-cross-subsystem-artifact-contracts.mjs"
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Overwatch",
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "scheduledRemediation": "Maintain verifier coverage in npm test."
-    },
-    {
-      "subsystem": "Prometheus Research",
-      "status": "compliant_for_current_registered_dossier",
-      "evidence": [
-        "research/workspaces/smoothie-depot/dossiers/dossier-register.json",
-        "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md",
-        "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json"
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Research",
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "scheduledRemediation": "Additional dossiers must be published as Research-owned canonical artifacts before consumers can render them."
-    },
-    {
-      "subsystem": "Prometheus Dashboard",
-      "status": "compliant_for_route_iq_commercial_readiness",
-      "evidence": [
-        "index.html and deploy/cloudflare-pages/index.html are registered Route IQ Dashboard consumers with source/deploy parity.",
-        "Route IQ is the sole active Dashboard product; Smoothie Depot is historical and inactive.",
-        "Founder daily intelligence is server-authenticated, read-only, fail-closed, and representative-inaccessible."
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Dashboard",
-      "secondaryOwners": ["Prometheus Data", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "scheduledRemediation": "Maintain Route IQ product-focus, exact-principal, source/deploy parity, and representative-isolation gates."
-    },
-    {
-      "subsystem": "Prometheus Data",
-      "status": "compliant_for_runtime_artifact_contracts",
-      "evidence": [
-        "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-        "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
-        "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
-        "data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json",
-        "Data runtime artifacts are registered through the Prometheus Integration Contract Layer."
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Data",
-      "secondaryOwners": ["Prometheus Dashboard", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "scheduledRemediation": "Maintain Fitness Connection/Data runtime artifact contract coverage before changing Active Pool, Reserve/Quarantine outputs, route-quality reports, governance overrides, assigned lead artifacts, or runtime eligibility artifacts."
-    },
-    {
-      "subsystem": "Prometheus CRM",
-      "status": "compliant_for_route_iq_request_crm",
-      "evidence": [
-        "crm/route-iq-request-crm-contract-v1.json defines the minimal Route IQ request lifecycle.",
-        "crm/route-iq-request-crm.mjs owns deterministic idempotency, receipts, retrieval, export, and conflict handling.",
-        "Founder retrieval uses the Data-owned canonical immutable principal and rejects display names and representatives."
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus CRM",
-      "secondaryOwners": ["Prometheus Infrastructure", "Prometheus Website", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "scheduledRemediation": "Maintain the Route IQ request contract, exact-principal retrieval, atomic admission, and export gates."
-    },
-    {
-      "subsystem": "Prometheus Intelligence Engine",
-      "status": "compliant_for_route_iq_commercial_readiness",
-      "evidence": [
-        "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json governs Founder-only daily intelligence.",
-        "intelligence/route-iq-daily-intelligence-snapshot.mjs is deterministic and changes only with governed evidence.",
-        "Discovery Mode, Nearby Context, and off-route learning remain advisory or read-only with recommendation influence OFF."
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Intelligence Engine",
-      "secondaryOwners": ["Prometheus Data", "Prometheus Dashboard", "Prometheus CRM", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "scheduledRemediation": "Maintain deterministic evidence linkage, Founder-only access, and recommendation-influence boundaries."
-    },
-    {
-      "subsystem": "Prometheus Infrastructure",
-      "status": "compliant_for_route_iq_request_runtime",
-      "evidence": [
-        "workers/infrastructure/route-iq-request-crm-runtime.js owns the Route IQ request runtime adapter.",
-        "workers/infrastructure/route-iq-request-crm-durable-object.js provides SQLite-backed transactional putIfAbsent.",
-        "workers/infrastructure/route-iq-commercial-capacity-harness.mjs verifies the declared initial 10-workspace, 100-user, 25-concurrent-user target."
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Infrastructure",
-      "secondaryOwners": ["Prometheus CRM", "Prometheus Website", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "scheduledRemediation": "Maintain request-runtime, Durable Object, exact-principal, capacity, and cross-subsystem contract verification."
-    },
-    {
-      "subsystem": "Prometheus Website",
-      "status": "compliant_for_route_iq_product_focus",
-      "evidence": [
-        "src/main.jsx presents Prometheus as the company and Route IQ as the sole active product.",
-        "src/route-iq-request-form.js produces the minimal consented Route IQ request contract.",
-        "deploy/prometheusrouteiq-website mirrors the focused Route IQ story and request form without Fitness Connection relationship claims."
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Website",
-      "secondaryOwners": ["Prometheus Infrastructure", "Prometheus CRM", "Prometheus Social Media", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "scheduledRemediation": "Maintain Route IQ-only positioning, minimal PII, request-contract parity, and no-unproven-claim gates."
-    },
-    {
-      "subsystem": "Prometheus Companion",
-      "status": "quarantined_dormant_maintenance_only",
-      "evidence": [
-        "Founder quarantined Companion because prompts are hanging/stalling while other subsystems run normally.",
-        "Existing accepted Companion package remains preserved.",
-        "No new Companion feature, simulation, contract-layer, or runtime work is authorized unless Founder explicitly reactivates Companion."
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Companion",
-      "secondaryOwners": ["Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "founderReactivationRequired": true,
-      "scheduledRemediation": "No Companion remediation is scheduled during quarantine. Companion work is maintenance-only/dormant and may resume only after explicit Founder reactivation."
-    },
-    {
-      "subsystem": "Prometheus Social Media",
-      "status": "compliant_for_social_media_artifact_contracts",
-      "evidence": [
-        "social-media/contracts/social-media-contract.js defines normalized metrics and attribution contracts.",
-        "GET /api/social/instagram/snapshot and GET /api/social/instagram/report are registered as canonical Social Media route artifacts.",
-        "overwatch/artifact-contracts/social-media/smoothie-depot-social-media-artifact-contract-v1.json registers Smoothie Depot Social Media analytics, campaign, content calendar, Website attribution, CRM handoff, and lead provenance artifacts.",
-        "overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json registers Fitness Connection Social Media analytics, campaign, content calendar, Website attribution, CRM handoff, and lead provenance artifacts.",
-        "Consumer rules for Website, CRM, Dashboard, Research, and Overwatch are documented in the Social Media artifact contracts."
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Social Media",
-      "secondaryOwners": ["Prometheus Website", "Prometheus CRM", "Prometheus Companion", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "scheduledRemediation": "Maintain Social Media artifact contract coverage before changing analytics reports, campaign artifacts, Website attribution metadata, CRM attribution handoffs, or lead-source provenance."
-    },
-    {
-      "subsystem": "Prometheus Integrations",
-      "status": "partial_compliance",
-      "evidence": [
-        "integrations/founder-communications-contract.js defines provider-neutral communications contracts.",
-        "Provider outputs are not yet fully registered in the Overwatch artifact registry.",
-        "Companion consumer work is quarantined and must not be used as a reason to start Integrations-to-Companion work."
-      ],
-      "bypassIdentified": true,
-      "owner": "Prometheus Integrations",
-      "secondaryOwners": ["Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Register founder communications provider artifacts before new live provider integration or message/calendar-consuming feature work. Companion consumer rules remain dormant until Founder reactivation."
-    },
-    {
-      "subsystem": "Prometheus Administration",
-      "status": "compliant_for_operating_artifact_contracts",
-      "evidence": [
-        "overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json registers Administration operating artifacts.",
-        "administration/workspaces/smoothie-depot/founder-operating-manual-v1.md",
-        "administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md",
-        "administration/registers/release-history.json",
-        "administration/registers/regression-verification.json",
-        "administration/registers/stabilization-issues.json",
-        "administration/command-center/beta-sprint-2/issue-tracker.json"
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Administration",
-      "secondaryOwners": ["Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "scheduledRemediation": "Maintain Administration operating artifact contract coverage before adding operating manuals, field-feedback artifacts, release/sign-off registers, founder readiness reviews, action plans, launch records, go/no-go reviews, or AAR/decision-journal handoffs."
-    },
-    {
-      "subsystem": "Prometheus Mobile",
-      "status": "partial_compliance",
-      "evidence": [
-        "Current Mobile work modifies/validates Dashboard PWA runtime paths.",
-        "No independent native Mobile artifact registry exists."
-      ],
-      "bypassIdentified": true,
-      "owner": "Prometheus Mobile",
-      "secondaryOwners": ["Prometheus Dashboard", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Register Mobile/PWA consumer artifacts and native-readiness contracts before new Mobile or native feature work."
-    },
-    {
-      "subsystem": "Prometheus Sales",
-      "status": "documentation_only_no_active_bypass",
-      "evidence": [
-        "Sales playbooks and packages are documentation-only and do not currently consume runtime artifacts."
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Sales",
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Before Sales consumes Research dossiers, CRM state, or Dashboard state for customer-facing materials, register the Sales consumer contract and source artifact paths."
-    }
-  ],
   "workspaces": [
     {
-      "workspaceId": "smoothie_depot",
-      "status": "registered_historical_inactive",
-      "registeredInContractLayer": true,
-      "evidence": [
-        "Historical Smoothie Depot artifacts remain registered and byte-preserved.",
-        "The Route IQ Dashboard exposes no Smoothie Depot navigation, selector, link, or current-product view.",
-        "Commercial workspace governance marks Smoothie Depot inactive, not learning-eligible, and not Codex-bundle eligible."
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Overwatch",
-      "secondaryOwners": ["Prometheus Administration", "Prometheus CRM"],
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "historicalArtifactsPreserved": true,
-      "normalOperationVisible": false,
-      "scheduledRemediation": "Preserve historical artifacts and require explicit Founder authorization before any future reactivation."
-    },
-    {
       "workspaceId": "fitness_connection",
+      "companyId": "fitness_connection_research",
+      "operatingProfileId": "fitness",
       "status": "registered_founder_research_contract_compliant",
-      "registeredInContractLayer": true,
-      "evidence": [
-        "Fitness Connection is an active Founder field-research workspace, not a customer, partner, sponsor, or committed pilot.",
-        "Fitness Connection workspace identity, Dashboard, Route Intelligence/Data, CRM, and Intelligence contracts are registered in the Overwatch artifact registry.",
-        "Future Fitness Connection feature work remains gated by the canonical workspace contract."
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Overwatch",
-      "secondaryOwners": ["Prometheus Dashboard", "Prometheus Data", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Infrastructure"],
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "futureFeatureWorkRequiresContract": true,
-      "scheduledRemediation": "No open Fitness Connection workspace-registration remediation. Future Fitness Connection, beta, Dashboard, Data, CRM, Infrastructure, or Intelligence work must use the registered Fitness Connection canonical workspace artifact contract."
-    },
-    {
-      "workspaceId": "summit_roofing_synthetic",
-      "status": "allowed_synthetic_configuration_only",
-      "registeredInContractLayer": false,
-      "evidence": [
-        "Configured through data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json.",
-        "Uses the shared Route IQ workspace schema and runtime without a business-specific code fork."
-      ],
-      "bypassIdentified": false,
-      "owner": "Prometheus Data",
-      "remediationRequiredBeforeFutureFeatureWork": false,
+      "relationshipClassification": "FOUNDER_FIELD_RESEARCH",
       "productionActivationAuthorized": false,
-      "scheduledRemediation": "Keep synthetic-only until a separately authorized real customer configuration is approved."
+      "registeredInContractLayer": true,
+      "bypassIdentified": false,
+      "futureFeatureWorkRequiresContract": true
     },
     {
-      "workspaceId": "customer_fixture_prometheus",
-      "status": "allowed_test_fixture_only",
-      "registeredInContractLayer": false,
-      "evidence": [
-        "Used by Customer Intelligence Graph tests as fixture data only."
-      ],
+      "workspaceId": "northstar_outside_sales_synthetic",
+      "companyId": "northstar_field_supply_company_synthetic",
+      "operatingProfileId": "general_outside_sales",
+      "status": "registered_synthetic_validation_contract_compliant",
+      "relationshipClassification": "SYNTHETIC_VALIDATION_FIXTURE",
+      "productionActivationAuthorized": false,
+      "registeredInContractLayer": true,
       "bypassIdentified": false,
-      "owner": "Prometheus Intelligence Engine",
-      "remediationRequiredBeforeFutureFeatureWork": false,
-      "scheduledRemediation": "Keep fixture-only and prohibit production consumer registration unless converted into a real customer workspace by explicit future approval."
+      "futureFeatureWorkRequiresContract": true
     }
   ],
-  "globalRemediationOrder": [
-    {
-      "priority": 1,
-      "owner": "Prometheus Sales",
-      "task": "Register Sales consumer contract before Sales uses Research/CRM/Dashboard artifacts in send-ready customer-facing materials.",
-      "blocksFutureFeatureWorkFor": ["Prometheus Sales"]
-    }
-  ],
-  "overwatchValidationRules": [
-    "Every system-map subsystem must appear in this audit.",
-    "Every known workspace ID must appear in this audit.",
-    "Every bypass_identified or partial_compliance record must have an owner and scheduledRemediation.",
-    "No future feature work may proceed in a blocked subsystem until its listed remediation is complete or included in the feature task."
-  ]
+  "boundaries": {
+    "approvedTenantCompanySourceRequired": true,
+    "crossWorkspaceDataAllowed": false,
+    "crossCompanyDataAllowed": false,
+    "crossProfileDataAllowed": false,
+    "demoFallbackAllowedInProduction": false,
+    "freshnessCeilingHours": 24,
+    "staleOrUnavailableImmediateRecommendationAllowed": false,
+    "operatingHoursAndVisitDurationSeparate": true,
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "anthonyMappingStatus": "UNMAPPED"
+  }
 }

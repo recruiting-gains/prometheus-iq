@@ -1,57 +1,50 @@
 {
   "contractId": "fitness-connection-workspace-identity-contract-v1",
-  "status": "active",
+  "contractVersion": "2.0.0",
+  "status": "active_founder_research",
   "owningSubsystem": "Prometheus Overwatch",
   "workspaceId": "fitness_connection",
-  "workspaceName": "Fitness Connection",
+  "companyId": "fitness_connection_research",
+  "workspaceName": "Fitness Connection Founder Field Research",
   "operatingProfileId": "fitness",
-  "operatingProfileLabel": "Fitness",
   "intelligenceDomain": "route_intelligence",
-  "workspacePurpose": "Fitness Connection is an active Founder field-research workspace for Route IQ field workflows, governed evidence, manager visibility, and Founder oversight. It is not a customer, partner, sponsor, or committed pilot.",
   "relationshipClassification": "FOUNDER_FIELD_RESEARCH",
-  "publicRelationshipClaimsAllowed": false,
-  "protectedWorkspaceIds": ["smoothie_depot"],
-  "allowedSharedLayers": [
-    "shared_platform_code",
-    "shared_operating_profile_engine",
-    "shared_cloudflare_access_protection",
-    "shared_route_iq_product_shell",
-    "shared_overwatch_validation"
-  ],
+  "customerRelationshipClaimAllowed": false,
+  "partnerRelationshipClaimAllowed": false,
+  "sponsorRelationshipClaimAllowed": false,
+  "pilotRelationshipClaimAllowed": false,
+  "publicEndorsementClaimAllowed": false,
+  "canonicalConfiguration": {
+    "registryPath": "administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json",
+    "schemaPath": "administration/contracts/route-iq-workspace-configuration-v2.schema.json",
+    "validatorPath": "administration/contracts/route-iq-workspace-configuration-v2-validation.mjs",
+    "authority": "prometheus_administration"
+  },
   "workspaceIsolationRules": {
-    "smoothieDepotDataUsed": false,
-    "smoothieDepotCandidateDataUsed": false,
-    "smoothieDepotFranchiseLearningInfluenceAllowed": false,
+    "approvedTenantCompanySourceRequired": true,
+    "crossWorkspaceDataAllowed": false,
+    "crossCompanyDataAllowed": false,
+    "crossProfileDataAllowed": false,
+    "crossRepresentativeDataAllowed": false,
     "globalCustomerStateAllowed": false,
-    "wrongOperatingProfileAllowed": false,
     "fixtureDataAllowedInProduction": false,
     "missingArtifactFailsClosed": true
   },
-  "roleBoundary": {
-    "founderRole": {
-      "sessionRole": "founder",
-      "allowedMode": "owner",
-      "canSwitchWorkspaces": false,
-      "canViewOwnerTabs": true,
-      "canViewAdminControls": true
-    },
-    "repRole": {
-      "sessionRole": "rep",
-      "defaultRepId": "anthony",
-      "allowedMode": "rep",
-      "canSwitchWorkspaces": false,
-      "canViewOwnerTabs": false,
-      "canViewAdminControls": false
-    },
-    "managerRole": {
-      "sessionRole": "manager",
-      "allowedMode": "owner",
-      "canSwitchWorkspaces": false,
-      "requiresExplicitFutureAuthorization": true
-    }
+  "identityBoundary": {
+    "founderUserId": "user_cruz_founder",
+    "founderAttendanceMode": "CRUZ_ONLY_ATTENDED",
+    "displayNameAuthorizationAllowed": false,
+    "anthonyMappingStatus": "UNMAPPED",
+    "externalTesterAccessAuthorized": false
+  },
+  "safety": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "representativeFacingShadowOutput": false
   },
   "futureFeatureWorkGate": {
     "enabled": true,
-    "rule": "Future Fitness Connection dashboard, CRM, route, rep, manager, enterprise, or Intelligence work must use this workspace contract and the registered canonical artifact paths."
+    "rule": "Future Route IQ workspace work must use the canonical Administration configuration, Data manifest, role, territory, and provenance contracts."
   }
 }

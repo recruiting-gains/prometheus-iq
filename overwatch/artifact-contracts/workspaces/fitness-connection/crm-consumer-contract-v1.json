@@ -1,38 +1,32 @@
 {
   "contractId": "fitness-connection-crm-consumer-contract-v1",
-  "status": "active",
+  "contractVersion": "2.0.0",
+  "status": "active_founder_research",
   "owningSubsystem": "Prometheus Overwatch",
   "consumerSubsystem": "Prometheus CRM",
   "workspaceId": "fitness_connection",
-  "workspaceName": "Fitness Connection",
   "operatingProfileId": "fitness",
   "canonicalCrmPaths": {
-    "crmFoundation": "crm/crm-foundation.mjs",
-    "crmFoundationTests": "tests/crm-foundation.test.mjs"
-  },
-  "entryPoints": {
-    "workspaceLeadIntakeConsumer": "consumeWorkspaceLeadIntakeHandoff",
-    "supportedWorkspaceMap": "supportedWorkspaceLeadIntakeWorkspaces.fitness_connection"
-  },
-  "leadActivityContracts": {
-    "targetType": "fitness_connection_lead",
-    "pipeline": "fitness_growth_lead_pipeline",
-    "operatingProfileId": "fitness",
-    "allowedCrmStages": ["Gym Prospect", "Visited", "Manager Reached", "Trial/Tour", "Membership Sold", "Not Fit"],
-    "allowedOutcomeUnits": ["membership", "trial_pass", "tour", "referral", "conversation", "follow_up"]
+    "foundation": "crm/crm-foundation.mjs",
+    "requestLifecycle": "crm/route-iq-request-crm.mjs",
+    "requestContract": "crm/route-iq-request-crm-contract-v1.json"
   },
   "writeRules": {
-    "crmOwnsLeadRecords": true,
-    "crmOwnsActivityRecords": true,
+    "crmOwnsLeadAndActivityRecords": true,
     "dashboardWritesCrmRecords": false,
     "intelligenceWritesCrmRecords": false,
-    "websiteWritesCrmRecordsDirectly": false,
     "unknownWorkspaceFailsClosed": true,
-    "crossWorkspaceContaminationRejected": true
+    "crossWorkspaceContaminationRejected": true,
+    "fixtureRecordsMayEnterProduction": false
   },
-  "productionRules": {
-    "smoothieDepotCandidateDataAllowed": false,
-    "fixtureDataAllowed": false,
-    "missingArtifactFailsClosed": true
+  "identityRules": {
+    "workspaceProfileRepresentativeBindingRequired": true,
+    "displayNameAuthorizationAllowed": false,
+    "anthonyMappingStatus": "UNMAPPED"
+  },
+  "safety": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF"
   }
 }
