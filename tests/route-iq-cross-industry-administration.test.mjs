@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -10,6 +11,11 @@ import {
   resolveAdmittedWorkspaceConfiguration,
   validateRouteIqWorkspaceConfigurationRegistry
 } from "../administration/contracts/route-iq-workspace-configuration-v2.mjs";
+import {
+  authorizeConfiguredUserFromRegistry,
+  resolveAdmittedWorkspaceConfigurationFromRegistry,
+  validateRouteIqWorkspaceConfigurationRegistry as validateBrowserSafeWorkspaceRegistry
+} from "../administration/contracts/route-iq-workspace-configuration-v2-validation.mjs";
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -23,7 +29,101 @@ function expectCode(expectedCode, action) {
   });
 }
 
+function captureConfigurationError(action) {
+  try {
+    action();
+  } catch (error) {
+    assert.ok(error instanceof RouteIqWorkspaceConfigurationError);
+    return {
+      name: error.name,
+      code: error.code,
+      message: error.message,
+      details: error.details
+    };
+  }
+  assert.fail("Expected RouteIqWorkspaceConfigurationError.");
+}
+
 const canonical = loadRouteIqWorkspaceConfigurationRegistry();
+
+test("Node compatibility facade preserves the established export surface", async () => {
+  const nodeFacade = await import(
+    "../administration/contracts/route-iq-workspace-configuration-v2.mjs"
+  );
+  assert.deepEqual(Object.keys(nodeFacade).sort(), [
+    "ROUTE_IQ_FITNESS_WORKSPACE_ID",
+    "ROUTE_IQ_MAX_COMPANIES",
+    "ROUTE_IQ_MAX_NAMED_USERS",
+    "ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID",
+    "ROUTE_IQ_WORKSPACE_CONFIGURATION_AUTHORITY",
+    "ROUTE_IQ_WORKSPACE_CONFIGURATION_SCHEMA_VERSION",
+    "RouteIqWorkspaceConfigurationError",
+    "authorizeConfiguredUser",
+    "loadRouteIqWorkspaceConfigurationRegistry",
+    "resolveAdmittedWorkspaceConfiguration",
+    "validateRouteIqWorkspaceConfigurationRegistry"
+  ]);
+});
+
+test("browser-safe validator has no Node imports and matches the Node loader byte-for-byte", () => {
+  const pureSource = readFileSync(
+    "administration/contracts/route-iq-workspace-configuration-v2-validation.mjs",
+    "utf8"
+  );
+  const rawRegistry = JSON.parse(
+    readFileSync(
+      "administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json",
+      "utf8"
+    )
+  );
+
+  assert.doesNotMatch(
+    pureSource,
+    /(?:from\s*["']node:|import\s*["']node:|import\s*\(\s*["']node:)/u
+  );
+  const browserValidated = validateBrowserSafeWorkspaceRegistry(rawRegistry);
+  assert.deepEqual(
+    Buffer.from(JSON.stringify(browserValidated)),
+    Buffer.from(JSON.stringify(canonical))
+  );
+  assert.equal(Object.isFrozen(browserValidated), true);
+  assert.equal(Object.isFrozen(browserValidated.workspaces[0]), true);
+});
+
+test("browser-safe validation and Node compatibility facade preserve error behavior", () => {
+  const invalid = clone(canonical);
+  invalid.safety.collection = "ON";
+
+  assert.deepEqual(
+    captureConfigurationError(() => validateBrowserSafeWorkspaceRegistry(invalid)),
+    captureConfigurationError(() => validateRouteIqWorkspaceConfigurationRegistry(invalid))
+  );
+});
+
+test("Node compatibility APIs delegate to equivalent pure registry operations", () => {
+  const nodeWorkspace = resolveAdmittedWorkspaceConfiguration(
+    ROUTE_IQ_FITNESS_WORKSPACE_ID,
+    { registry: canonical, allowFounderResearch: true }
+  );
+  const browserWorkspace = resolveAdmittedWorkspaceConfigurationFromRegistry(
+    ROUTE_IQ_FITNESS_WORKSPACE_ID,
+    canonical,
+    { allowFounderResearch: true }
+  );
+  assert.deepEqual(browserWorkspace, nodeWorkspace);
+
+  const input = {
+    workspaceId: ROUTE_IQ_FITNESS_WORKSPACE_ID,
+    operatingProfileId: "fitness",
+    userId: "user_cruz_founder",
+    roleId: "fitness_founder_research_operator",
+    territoryId: "houston_founder_research_territory"
+  };
+  assert.deepEqual(
+    authorizeConfiguredUserFromRegistry(input, canonical),
+    authorizeConfiguredUser(input, { registry: canonical })
+  );
+});
 
 test("canonical v2 registry validates two isolated configurable industries", () => {
   assert.equal(canonical.schemaVersion, "route-iq-workspace-configuration-v2");

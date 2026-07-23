@@ -8,12 +8,23 @@ import {
   ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID,
   loadRouteIqWorkspaceConfigurationRegistry
 } from "../administration/contracts/route-iq-workspace-configuration-v2.mjs";
+import {
+  validateRouteIqWorkspaceConfigurationRegistry as validateBrowserSafeWorkspaceRegistry
+} from "../administration/contracts/route-iq-workspace-configuration-v2-validation.mjs";
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const administrationRoot = resolve(repoRoot, "administration");
 const schemaPath = resolve(
   administrationRoot,
   "contracts/route-iq-workspace-configuration-v2.schema.json"
+);
+const pureValidationPath = resolve(
+  administrationRoot,
+  "contracts/route-iq-workspace-configuration-v2-validation.mjs"
+);
+const registryPath = resolve(
+  administrationRoot,
+  "workspace-configurations/route-iq-cross-industry-workspaces-v2.json"
 );
 const retiredWorkspaceArtifactRoot = resolve(administrationRoot, "workspaces");
 const dataManifestRegistryPath =
@@ -33,10 +44,24 @@ function listFiles(directory) {
 
 const schema = JSON.parse(readFileSync(schemaPath, "utf8"));
 const registry = loadRouteIqWorkspaceConfigurationRegistry();
+const pureValidationSource = readFileSync(pureValidationPath, "utf8");
+const browserValidatedRegistry = validateBrowserSafeWorkspaceRegistry(
+  JSON.parse(readFileSync(registryPath, "utf8"))
+);
 const dataManifestRegistry = JSON.parse(
   readFileSync(resolve(repoRoot, dataManifestRegistryPath), "utf8")
 );
 
+assert.doesNotMatch(
+  pureValidationSource,
+  /(?:from\s*["']node:|import\s*["']node:|import\s*\(\s*["']node:)/u,
+  "The pure Administration validation module must not import Node built-ins."
+);
+assert.deepEqual(
+  Buffer.from(JSON.stringify(browserValidatedRegistry)),
+  Buffer.from(JSON.stringify(registry)),
+  "Browser-safe and Node-loaded registry projections must be byte-equivalent."
+);
 assert.equal(schema.$schema, "https://json-schema.org/draft/2020-12/schema");
 assert.equal(schema.additionalProperties, false);
 assert.equal(schema.properties.workspaces.maxItems, 2);
