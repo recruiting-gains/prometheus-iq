@@ -32,6 +32,16 @@ const crossIndustryAdoptionPath =
 const crossIndustryAdoptionCommit = "5215ad7f261590f5901dc84a3b8e59d9bde6ce8b";
 const crossIndustryAdoptionTree = "0812759b11d783b845cdaf9db3ce0a7c166452c0";
 const crossIndustryAdoptionParent = "49ca63efb2d2a57e7b40ae17f504b27b399ec4c5";
+const crossIndustryAdoptionSha256 =
+  "4d57223d3c00c6d56b3fa0b076ce04ae06b68fd3ca014da76d1a955e7f0bee60";
+const crossIndustryAdoptionCorrectionCommit =
+  "894ea7843e084369acf7bf6158a3ea5088deb431";
+const crossIndustryAdoptionCorrectionTree =
+  "9770f7e2293ecb0f30e6cf0324cfd40da40f1897";
+const crossIndustryAdoptionCorrectionParent =
+  "036bc342a7f2ea0dfaec9bd482175fb1e88e59c7";
+const crossIndustryAdoptionCorrectionSha256 =
+  "a89539353c221b061cd39d97130764de3bbd2add03432a4c284017f483504b06";
 const crossIndustryAdoptionPaths = Object.freeze([
   "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
   "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
@@ -182,8 +192,47 @@ export function verifyAugust1ProtectedBehaviorBaselines(contract) {
     "Cross-industry Intelligence adoption file set changed.");
   assert.equal(
     hashBytes(git(["show", `${crossIndustryAdoptionCommit}:${crossIndustryAdoptionPath}`], null)),
+    crossIndustryAdoptionSha256,
+    "Cross-industry Intelligence adoption record changed at its owner commit."
+  );
+  const correctionFields = git([
+    "show", "-s", "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+    crossIndustryAdoptionCorrectionCommit
+  ]).trim().split("\n");
+  const correctionPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    crossIndustryAdoptionCorrectionCommit
+  ]).trim().split("\n").filter(Boolean).sort();
+  assert.deepEqual(correctionFields, [
+    crossIndustryAdoptionCorrectionCommit,
+    crossIndustryAdoptionCorrectionTree,
+    crossIndustryAdoptionCorrectionParent,
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "intelligence: remove retired identity from successor record"
+  ], "Cross-industry Intelligence adoption correction changed.");
+  assert.deepEqual(correctionPaths, [crossIndustryAdoptionPath],
+    "Cross-industry Intelligence adoption correction file set changed.");
+  assert.equal(
+    hashBytes(git([
+      "show",
+      `${crossIndustryAdoptionCorrectionCommit}^:${crossIndustryAdoptionPath}`
+    ], null)),
+    crossIndustryAdoptionSha256,
+    "Cross-industry Intelligence adoption correction predecessor changed."
+  );
+  assert.equal(
+    hashBytes(git([
+      "show",
+      `${crossIndustryAdoptionCorrectionCommit}:${crossIndustryAdoptionPath}`
+    ], null)),
+    crossIndustryAdoptionCorrectionSha256,
+    "Cross-industry Intelligence adoption correction output changed."
+  );
+  assert.equal(
     sha256(crossIndustryAdoptionPath),
-    "Cross-industry Intelligence adoption record changed."
+    crossIndustryAdoptionCorrectionSha256,
+    "Cross-industry Intelligence adoption record changed after its correction."
   );
   assert.equal(adoption.status, "OWNER_REVIEWED_AND_SYNCHRONIZED_PENDING_OVERWATCH");
   assert.equal(adoption.ownerSubsystem, "Prometheus Intelligence Engine");
