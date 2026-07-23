@@ -92,7 +92,9 @@ test("public claims consume the governed evidence-to-human-decision boundary", (
   assert.match(source, /does not prove causal uplift or recommendation superiority/);
   assert.match(source, /recommendation influence is off/);
   assert.match(source, /prospective collection is off and active cohorts are zero/);
-  assert.doesNotMatch(publicText, /Fitness Connection|Smoothie Depot|Gaia|Athena|franchise(?:e|ing)?|committed pilot|customer endorsement/i);
+  assert.match(source, /<SectionLabel>One governed product<\/SectionLabel>/);
+  assert.doesNotMatch(publicText, /Fitness Connection|Gaia|Athena|franchise(?:e|ing)?|committed pilot/i);
+  assert.doesNotMatch(publicText, /\b(?:customer|client|partner|pilot|sponsor|endorser)\s+(?:logo|testimonial|story|spotlight|case study|showcase|endorsement)\b|\b(?:trusted by|used by|deployed (?:at|with)|launch customer|design partner|official partner|active pilot|current customer)\b/i);
   assert.doesNotMatch(publicText, /AI operating system|automatic route improvement|better field direction|next route improves|proven recommendation superiority|guaranteed outcome/i);
 });
 
@@ -159,7 +161,9 @@ test("production build lazy-loads the governed 3D scene without restoring obsole
   assert.doesNotMatch(entryBundle, /WebGLRenderer/);
   assert.match(sceneBundle, /WebGLRenderer/);
   assert.match(sceneBundle, /FIELD INTELLIGENCE CORE/);
-  assert.doesNotMatch(`${entryBundle}\n${sceneBundle}`, /AI operating system|Fitness Connection|Gaia|Athena|Smoothie Depot/i);
+  assert.match(entryBundle, /One governed product/);
+  assert.doesNotMatch(`${entryBundle}\n${sceneBundle}`, /AI operating system|Fitness Connection|Gaia|Athena/i);
+  assert.doesNotMatch(`${entryBundle}\n${sceneBundle}`, /\b(?:customer|client|partner|pilot|sponsor|endorser)\s+(?:logo|testimonial|story|spotlight|case study|showcase|endorsement)\b|\b(?:trusted by|used by|deployed (?:at|with)|launch customer|design partner|official partner|active pilot|current customer)\b/i);
 });
 
 test("supported-device critical assets, fallback image, and lazy 3D bundle stay within separate budgets", () => {
