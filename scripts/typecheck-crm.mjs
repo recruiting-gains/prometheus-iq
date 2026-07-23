@@ -10,7 +10,6 @@ import {
   persistWorkspaceLeadIntakeHandoff,
   dashboardRuntimeRecordsFromActivePool,
   leadStatuses,
-  loadRuntimeActivePool,
   recordRouteVisit,
   attachWebsiteAttributionToLead,
   buildCrmOperatingProfile,
@@ -36,17 +35,55 @@ import {
 
 const root = resolve(import.meta.dirname, "..");
 const enterpriseModel = JSON.parse(readFileSync(resolve(root, "crm/enterprise-lifecycle-model.json"), "utf8"));
-const activePool = loadRuntimeActivePool();
-const runtimeRecords = dashboardRuntimeRecordsFromActivePool(activePool, { repId: "anthony" });
+const syntheticActivePool = {
+  generatedAt: "2026-06-30T08:00:00.000Z",
+  sourceDatasetVersion: "synthetic-crm-typecheck-v1",
+  segmentationVersion: "synthetic-crm-typecheck-segmentation-v1",
+  workspaceId: "synthetic_field_services_workspace",
+  operatingProfileId: "general_outside_sales",
+  dataClassification: "SYNTHETIC_NONCANONICAL",
+  approvalState: "APPROVED_SYNTHETIC_VALIDATION",
+  productionEvidenceEligible: false,
+  pool: "active",
+  count: 1,
+  records: [{
+    businessName: "Synthetic Field Services Company",
+    category: "General Outside Sales",
+    window: "Midday",
+    estimatedDistanceMiles: 1.2,
+    priority: 100,
+    address: "100 Example Avenue, Test City, TX 75000",
+    latitude: 32.9501,
+    longitude: -96.8201,
+    permission: "Approved synthetic validation",
+    accessType: "Walk-in",
+    askFor: "Operations Manager",
+    googlePlaceId: "synthetic_google_place_crm_typecheck_001",
+    googleMapsUrl: "https://example.invalid/maps/synthetic-google-place-crm-typecheck-001",
+    sourceType: "synthetic_noncanonical_fixture",
+    qualityClass: "Synthetic validation only",
+    qualityScore: 100,
+    runtimeProfiles: [{
+      runtimeId: "synthetic_runtime_crm_typecheck_001",
+      repProfileId: "synthetic_rep",
+      priority: 100,
+      qualityClass: "Synthetic validation only",
+      qualityScore: 100,
+      seedRouteOrder: 1
+    }]
+  }]
+};
+const runtimeRecords = dashboardRuntimeRecordsFromActivePool(syntheticActivePool, { repId: "synthetic_rep" });
+assert.equal(runtimeRecords.length, 1);
 const state = createCrmState({ now: "2026-06-30T09:00:00.000Z" });
 const lead = createLeadFromRuntimeRecord(state, runtimeRecords[0], {
-  ownerRepId: "anthony",
+  ownerRepId: "synthetic_rep",
   priority: "high"
 });
 
 recordRouteVisit(state, {
   leadId: lead.id,
-  repId: "anthony",
+  repId: "synthetic_rep",
   routeRecordId: runtimeRecords[0].id,
   outcome: "follow_up_requested",
   visitedAt: "2026-06-30T10:00:00.000Z",
@@ -92,7 +129,7 @@ assert.equal(typeof state.contacts[0].id, "string");
 assert.equal(typeof state.leads[0].status, "string");
 assert.equal(typeof queue[0].dueAt, "string");
 assert.equal(typeof reports.founderActivitySummary.visibleContacts, "number");
-assert.equal(reports.anthonyBetaActivity.every(activity => activity.founderVisible), true);
+assert.equal(state.betaActivity.every(activity => activity.founderVisible), true);
 assert.equal(state.attributionEvents[0].target, "crm_lead");
 assert.equal(state.leads[0].attribution.campaignId, "typecheck-campaign");
 assert.equal(state.operatingProfile.profileId, "fitness");
@@ -112,7 +149,6 @@ assert.equal(crmWorkspaceLeadStoreBinding, "CRM_WORKSPACE_LEAD_STORE");
 assert.equal(crmWorkspaceLeadStoreTechnology, "cloudflare_workers_kv");
 assert.equal(supportedWorkspaceLeadIntakeWorkspaces.fitness_connection.runtimePersistenceAllowed, true);
 assert.deepEqual(Object.keys(supportedWorkspaceLeadIntakeWorkspaces), ["fitness_connection"]);
-assert.equal(Object.hasOwn(supportedWorkspaceLeadIntakeWorkspaces, "retired_customer_workspace"), false);
 
 const kvBinding = {
   async get() { return null; },

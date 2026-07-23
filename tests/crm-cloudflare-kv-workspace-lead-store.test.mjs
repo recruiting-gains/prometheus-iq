@@ -28,6 +28,21 @@ import {
   createSharedLeadIntakeSubmission
 } from "../workers/infrastructure/shared-lead-intake-pipeline.js";
 
+const syntheticWorkspaceRegistry = {
+  schemaVersion: "route-iq-shared-lead-workspace-registry-v2",
+  sourceRegistryVersion: "synthetic-crm-production-adapter-tests-v1",
+  workspaces: [{
+    workspaceId: "fitness_connection",
+    workspaceName: "Fitness Connection",
+    operatingProfileId: "fitness",
+    operatingProfileLabel: "Fitness",
+    crmWorkspacePath: "crm://workspace/fitness_connection/leads",
+    aliases: ["fitness_connection", "fitness connection"],
+    active: true,
+    intakeAuthorized: true
+  }]
+};
+
 function kvBinding() {
   const data = new Map();
   const writes = [];
@@ -82,7 +97,10 @@ async function intakeRecord(workspaceId = "fitness_connection", suffix = "defaul
       method: "POST",
       headers: { "content-type": "application/json" }
     }),
-    env: { SHARED_LEAD_INTAKE_STORE: kvBinding() },
+    env: {
+      SHARED_LEAD_INTAKE_STORE: kvBinding(),
+      ROUTE_IQ_SHARED_LEAD_WORKSPACE_REGISTRY: JSON.stringify(syntheticWorkspaceRegistry)
+    },
     now: new Date("2026-07-10T12:01:00.000Z"),
     idFactory: () => `sub_crm_production_${suffix}`
   });
@@ -205,26 +223,26 @@ test("production CRM adapter rejects an unknown workspace before durable writes"
   assert.equal(binding.data.size, 0);
 });
 
-test("production CRM adapter rejects a retired customer workspace before durable writes", async () => {
+test("production CRM adapter rejects an unregistered workspace before durable writes", async () => {
   const binding = kvBinding();
-  const record = await intakeRecord("fitness_connection", "retired_governance");
-  const retiredWorkspaceId = "retired_customer_workspace";
-  record.workspace.workspaceId = retiredWorkspaceId;
-  record.workspace.workspaceName = "Retired Customer Workspace";
+  const record = await intakeRecord("fitness_connection", "unregistered_governance");
+  const unregisteredWorkspaceId = "unregistered_workspace";
+  record.workspace.workspaceId = unregisteredWorkspaceId;
+  record.workspace.workspaceName = "Unregistered Workspace";
   record.operatingProfile.id = "general_outside_sales";
   record.operatingProfile.label = "General Outside Sales";
-  record.crmHandoff.workspaceId = retiredWorkspaceId;
-  record.crmHandoff.crmWorkspacePath = `crm://workspace/${retiredWorkspaceId}/leads`;
-  record.crmHandoff.packet.lead.workspaceId = retiredWorkspaceId;
-  record.crmHandoff.packet.lead.workspaceName = "Retired Customer Workspace";
+  record.crmHandoff.workspaceId = unregisteredWorkspaceId;
+  record.crmHandoff.crmWorkspacePath = `crm://workspace/${unregisteredWorkspaceId}/leads`;
+  record.crmHandoff.packet.lead.workspaceId = unregisteredWorkspaceId;
+  record.crmHandoff.packet.lead.workspaceName = "Unregistered Workspace";
   record.crmHandoff.packet.lead.operatingProfile.profileId = "general_outside_sales";
   record.crmHandoff.packet.lead.operatingProfile.crmProfileId = "general_outside_sales";
-  record.crmHandoff.packet.crmIntegration.workspaceId = retiredWorkspaceId;
+  record.crmHandoff.packet.crmIntegration.workspaceId = unregisteredWorkspaceId;
   record.crmHandoff.packet.crmIntegration.operatingProfileId = "general_outside_sales";
 
   await assert.rejects(() => persistWorkspaceLeadIntakeWithProductionStore(record, {
     env: { [crmWorkspaceLeadStoreBinding]: binding }
-  }), /Unknown CRM workspace intake workspace: retired_customer_workspace/);
+  }), /Unknown CRM workspace intake workspace: unregistered_workspace/);
   assert.equal(binding.data.size, 0);
 });
 

@@ -15,7 +15,6 @@ import {
   createFollowUp,
   createLeadFromRuntimeRecord,
   dashboardRuntimeRecordsFromActivePool,
-  loadRuntimeActivePool,
   recordProfileOutcomeForLead,
   recordRouteVisit,
   persistWorkspaceLeadIntakeHandoff,
@@ -249,16 +248,57 @@ function canonicalWorkspaceIntakeRecord(input = {}) {
   };
 }
 
-function anthonyRuntimeRecord(index = 0) {
-  const activePool = loadRuntimeActivePool();
-  const records = dashboardRuntimeRecordsFromActivePool(activePool, { repId: "anthony" });
-  assert.ok(records.length > index, "Anthony runtime records must exist");
-  return records[index];
+const syntheticRuntimeActivePool = {
+  generatedAt: "2026-06-30T08:00:00.000Z",
+  sourceDatasetVersion: "synthetic-crm-foundation-tests-v1",
+  segmentationVersion: "synthetic-crm-foundation-segmentation-v1",
+  workspaceId: "synthetic_field_services_workspace",
+  operatingProfileId: "general_outside_sales",
+  dataClassification: "SYNTHETIC_NONCANONICAL",
+  approvalState: "APPROVED_SYNTHETIC_VALIDATION",
+  productionEvidenceEligible: false,
+  pool: "active",
+  count: 5,
+  records: Array.from({ length: 5 }, (_, index) => ({
+    businessName: `Synthetic Field Services Company ${index + 1}`,
+    category: "General Outside Sales",
+    window: "Midday",
+    estimatedDistanceMiles: 1 + (index / 10),
+    priority: 100 - index,
+    address: `${100 + index} Example Avenue, Test City, TX 75000`,
+    latitude: 32.9501 + (index / 1000),
+    longitude: -96.8201 - (index / 1000),
+    permission: "Approved synthetic validation",
+    accessType: "Walk-in",
+    askFor: "Operations Manager",
+    googlePlaceId: `synthetic_google_place_crm_foundation_${index + 1}`,
+    googleMapsUrl: `https://example.invalid/maps/synthetic-google-place-crm-foundation-${index + 1}`,
+    sourceType: "synthetic_noncanonical_fixture",
+    qualityClass: "Synthetic validation only",
+    qualityScore: 100 - index,
+    runtimeProfiles: [{
+      runtimeId: `synthetic_runtime_crm_foundation_${index + 1}`,
+      repProfileId: "anthony",
+      priority: 100 - index,
+      qualityClass: "Synthetic validation only",
+      qualityScore: 100 - index,
+      seedRouteOrder: index + 1
+    }]
+  }))
+};
+const syntheticRuntimeRecords = dashboardRuntimeRecordsFromActivePool(
+  syntheticRuntimeActivePool,
+  { repId: "anthony" }
+);
+
+function syntheticRuntimeRecord(index = 0) {
+  assert.ok(syntheticRuntimeRecords.length > index, "Synthetic CRM runtime records must exist");
+  return syntheticRuntimeRecords[index];
 }
 
 test("contact creation converts a dashboard runtime record into a CRM contact and lead", () => {
   const state = createCrmState({ now: "2026-06-30T09:00:00.000Z" });
-  const runtimeRecord = anthonyRuntimeRecord();
+  const runtimeRecord = syntheticRuntimeRecord();
 
   const lead = createLeadFromRuntimeRecord(state, runtimeRecord, {
     ownerRepId: "anthony",
@@ -277,7 +317,7 @@ test("contact creation converts a dashboard runtime record into a CRM contact an
 
 test("lead progression follows the CRM pipeline and records sales activity", () => {
   const state = createCrmState({ now: "2026-06-30T09:00:00.000Z" });
-  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord());
+  const lead = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord());
 
   transitionLead(state, lead.id, "Contacted", {
     actorId: "anthony",
@@ -319,7 +359,7 @@ test("lead progression follows the CRM pipeline and records sales activity", () 
 
 test("follow-up generation creates matching follow-up and rep task from route visit outcome", () => {
   const state = createCrmState({ now: "2026-06-30T09:00:00.000Z" });
-  const runtimeRecord = anthonyRuntimeRecord();
+  const runtimeRecord = syntheticRuntimeRecord();
   const lead = createLeadFromRuntimeRecord(state, runtimeRecord, { priority: "medium" });
 
   const visit = recordRouteVisit(state, {
@@ -346,9 +386,9 @@ test("follow-up generation creates matching follow-up and rep task from route vi
 
 test("follow-up queue orders overdue and high-priority items before lower-risk work", () => {
   const state = createCrmState({ now: "2026-06-30T12:00:00.000Z" });
-  const first = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord(0));
-  const second = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord(1));
-  const third = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord(2));
+  const first = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord(0));
+  const second = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord(1));
+  const third = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord(2));
 
   createFollowUp(state, {
     leadId: first.id,
@@ -382,7 +422,7 @@ test("follow-up queue orders overdue and high-priority items before lower-risk w
 
 test("task assignment supports founder and rep queues with completion status", () => {
   const state = createCrmState({ now: "2026-06-30T09:00:00.000Z" });
-  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord());
+  const lead = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord());
   const repFollowUp = createFollowUp(state, {
     leadId: lead.id,
     assignedTo: "anthony",
@@ -415,7 +455,7 @@ test("task assignment supports founder and rep queues with completion status", (
 
 test("visit history integrity keeps contact and lead histories aligned", () => {
   const state = createCrmState({ now: "2026-06-30T09:00:00.000Z" });
-  const runtimeRecord = anthonyRuntimeRecord();
+  const runtimeRecord = syntheticRuntimeRecord();
   const lead = createLeadFromRuntimeRecord(state, runtimeRecord);
   const contact = state.contacts[0];
 
@@ -444,8 +484,8 @@ test("visit history integrity keeps contact and lead histories aligned", () => {
 
 test("CRM reports expose today's follow-ups, overdue follow-ups, Anthony activity, and pipeline counts", () => {
   const state = createCrmState({ now: "2026-06-30T09:00:00.000Z" });
-  const todayLead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord(0));
-  const overdueLead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord(1));
+  const todayLead = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord(0));
+  const overdueLead = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord(1));
 
   createFollowUp(state, {
     leadId: todayLead.id,
@@ -479,7 +519,7 @@ test("CRM reports expose today's follow-ups, overdue follow-ups, Anthony activit
 
 test("CRM attaches Website/Social attribution output to lead records", () => {
   const state = createCrmState({ now: "2026-07-01T09:00:00.000Z" });
-  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord());
+  const lead = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord());
   const websiteSession = canonicalWebsiteAttributionSession({
     visitorId: "web_visitor_crm_attribution",
     sessionId: "web_session_crm_attribution",
@@ -537,7 +577,7 @@ test("CRM preserves first-touch and last-touch attribution from Website sessions
     }
   });
 
-  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord(1), {
+  const lead = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord(1), {
     attribution: secondSession,
     attributionManualNotes: "Lead created after second campaign touch."
   });
@@ -553,7 +593,7 @@ test("CRM preserves first-touch and last-touch attribution from Website sessions
 
 test("CRM rejects non-Website attribution targets instead of creating a parallel attribution model", () => {
   const state = createCrmState({ now: "2026-07-01T09:00:00.000Z" });
-  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord());
+  const lead = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord());
 
   assert.throws(() => attachWebsiteAttributionToLead(state, lead.id, {
     id: "not_website",
@@ -567,7 +607,7 @@ test("CRM rejects non-Website attribution targets instead of creating a parallel
 
 test("CRM preserves Fitness as the default operating profile", () => {
   const state = createCrmState({ now: "2026-07-02T09:00:00.000Z" });
-  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord());
+  const lead = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord());
 
   assert.equal(state.operatingProfile.profileId, "fitness");
   assert.equal(state.operatingProfile.profileLabel, "Fitness");
@@ -630,7 +670,7 @@ test("CRM consumes Intelligence Operating Profile contracts for required example
       now: "2026-07-02T09:00:00.000Z",
       operatingProfileId: item.profileId
     });
-    const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord(index), {
+    const lead = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord(index), {
       operatingProfileId: item.profileId
     });
     const operatingProfile = buildCrmOperatingProfile(item.profileId);
@@ -660,7 +700,7 @@ test("CRM consumes Intelligence Operating Profile contracts for required example
 
 test("CRM can apply a new operating profile to an existing lead without duplicate lead creation", () => {
   const state = createCrmState({ now: "2026-07-02T09:00:00.000Z" });
-  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord());
+  const lead = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord());
 
   applyCrmOperatingProfileToLead(state, lead.id, "roofing", {
     occurredAt: "2026-07-02T09:15:00.000Z"
@@ -678,7 +718,7 @@ test("CRM rejects stages outside the active operating profile", () => {
     now: "2026-07-02T09:00:00.000Z",
     operatingProfileId: "medical"
   });
-  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord(), {
+  const lead = createLeadFromRuntimeRecord(state, syntheticRuntimeRecord(), {
     operatingProfileId: "medical"
   });
 
@@ -814,34 +854,34 @@ test("CRM persists Fitness Connection workspace lead records durably", async () 
   assert.equal(state.workspaceLeadPersistenceRecords.length, 1);
 });
 
-test("retired customer-specific workspaces cannot become active CRM routes without approved configuration", async () => {
+test("unregistered workspaces cannot become active CRM routes without approved configuration", async () => {
   const state = createCrmState({ now: "2026-07-04T15:10:00.000Z" });
   const store = memoryKvStore();
   const record = canonicalWorkspaceIntakeRecord({
     companyName: "Northstar Field Services",
     contactName: "Riley Operator",
     contactMethod: "7135550101",
-    campaignId: "retired-workspace-intake",
+    campaignId: "unregistered-workspace-intake",
     locationCount: "4"
   });
-  const retiredWorkspaceId = "retired_customer_workspace";
-  record.workspace.workspaceId = retiredWorkspaceId;
-  record.workspace.workspaceName = "Retired Customer Workspace";
+  const unregisteredWorkspaceId = "unregistered_workspace";
+  record.workspace.workspaceId = unregisteredWorkspaceId;
+  record.workspace.workspaceName = "Unregistered Workspace";
   record.operatingProfile.id = "general_outside_sales";
   record.operatingProfile.label = "General Outside Sales";
-  record.crmHandoff.workspaceId = retiredWorkspaceId;
-  record.crmHandoff.crmWorkspacePath = `crm://workspace/${retiredWorkspaceId}/leads`;
-  record.crmHandoff.packet.lead.workspaceId = retiredWorkspaceId;
-  record.crmHandoff.packet.lead.workspaceName = "Retired Customer Workspace";
+  record.crmHandoff.workspaceId = unregisteredWorkspaceId;
+  record.crmHandoff.crmWorkspacePath = `crm://workspace/${unregisteredWorkspaceId}/leads`;
+  record.crmHandoff.packet.lead.workspaceId = unregisteredWorkspaceId;
+  record.crmHandoff.packet.lead.workspaceName = "Unregistered Workspace";
   record.crmHandoff.packet.lead.operatingProfile.profileId = "general_outside_sales";
   record.crmHandoff.packet.lead.operatingProfile.crmProfileId = "general_outside_sales";
-  record.crmHandoff.packet.crmIntegration.workspaceId = retiredWorkspaceId;
+  record.crmHandoff.packet.crmIntegration.workspaceId = unregisteredWorkspaceId;
   record.crmHandoff.packet.crmIntegration.operatingProfileId = "general_outside_sales";
 
   await assert.rejects(() => persistWorkspaceLeadIntakeHandoff(state, record, {
     store,
     persistedAt: "2026-07-04T15:15:00.000Z"
-  }), /Unknown CRM workspace intake workspace: retired_customer_workspace/);
+  }), /Unknown CRM workspace intake workspace: unregistered_workspace/);
 
   assert.equal(store.items.size, 0);
   assert.equal(state.contacts.length, 0);
