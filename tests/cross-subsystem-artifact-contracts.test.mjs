@@ -189,6 +189,29 @@ test("Cross-subsystem artifact contracts verify canonical paths and consumers", 
   ]);
 });
 
+test("Fitness Dashboard contract pins the secure workspace fallback and current owner revalidation", () => {
+  const contract = JSON.parse(fs.readFileSync(
+    "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json",
+    "utf8"
+  ));
+  const dashboardSource = fs.readFileSync("index.html", "utf8");
+  const exactFallback =
+    'const defaultWorkspaceId = routeIqCustomerPwaSession?.workspaceId || "fitness_connection";';
+  const alignment = contract.repViewContract.placesAccess.alignmentEvidence;
+
+  assert.equal(contract.requiredDashboardMarkers.includes(exactFallback), true);
+  assert.equal(contract.requiredDashboardMarkers.includes('defaultWorkspaceId = "fitness_connection"'), false);
+  assert.equal(dashboardSource.includes(exactFallback), true);
+  assert.equal(alignment.dashboardCommit, "f612e394b3af75e63cc07232d64bbd3dd1adb817");
+  assert.equal(alignment.dashboardOwnerRevalidationCommit, "f612e394b3af75e63cc07232d64bbd3dd1adb817");
+  assert.equal(alignment.dashboardSourceSha256, createHash("sha256").update(dashboardSource).digest("hex"));
+  assert.equal(alignment.savedPlacesFeatureOriginCommit, "de51401774dc54034418b5feab4cdb2d255cc0ba");
+  assert.equal(alignment.decisionContextFeatureOriginCommit, "2774d91456e4b1734eb1caa13deaa84de2248f8f");
+  assert.equal(alignment.prospectiveShadowSeamCommit, "6c7671cb3f9387fdac29961432412dfe70088b2e");
+  assert.equal(alignment.prospectiveCollectionOffSuppressionCommit, "555dc6e87b1d2f884f1e18b3a06e1c62dfbd73dd");
+  assert.equal(alignment.routeIqProductFocusCommit, "82d1e6f23ca3a75c0073c051531477913258a98f");
+});
+
 test("Cross-subsystem artifact registry records current incomplete links and fixture policy", () => {
   const result = verifyCrossSubsystemArtifactContracts();
   const smoothieDepot = result.registry.workspaces.find(workspace => workspace.workspaceId === "smoothie_depot");
@@ -643,6 +666,13 @@ test("Fitness shadow decision readiness remains Founder-only, complete, and zero
       label: "missing protected baseline",
       mutate: input => { delete input.readinessContract.protectedBehaviorBaselines.worker; },
       expected: /missing or undeclared keys/
+    },
+    {
+      label: "rewritten historical protected baseline",
+      mutate: input => {
+        input.readinessContract.protectedBehaviorBaselines.dashboardSource.sha256 = "0".repeat(64);
+      },
+      expected: /protected predecessor changed/
     },
     {
       label: "incomplete opportunity disposition",

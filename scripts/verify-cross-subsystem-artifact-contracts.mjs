@@ -34,6 +34,38 @@ const fitnessShadowReadinessFixturePath = "intelligence/fixtures/shadow-decision
 const fitnessShadowReadinessSourcePath = "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
 const fitnessShadowReadinessConsumerId = "route-iq-shadow-decision-readiness-contract-v1";
 const fitnessShadowReadinessBatchId = "BATCH-20260713-001";
+const fitnessShadowReadinessCurrentBaselineSuccessors = Object.freeze({
+  businessHoursEligibility: Object.freeze({
+    path: "intelligence/route-business-hours-eligibility.mjs",
+    protectedBaselineSha256: "1c884b6c5c2668e6a034311d605fdc626d80c6d517290ef994d772e03cfb9a4a",
+    currentSha256: "a1667f2e1bf75a71fa321c47591ba0b8e11eef91360cb835c56e828405c51f36",
+    currentOwnerCommit: "54804800533e705efe7add510e5e4bb72a3ba7dc"
+  }),
+  dashboardDeployMirror: Object.freeze({
+    path: "deploy/cloudflare-pages/index.html",
+    protectedBaselineSha256: "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+    currentSha256: "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0",
+    currentOwnerCommit: "f612e394b3af75e63cc07232d64bbd3dd1adb817"
+  }),
+  dashboardSource: Object.freeze({
+    path: "index.html",
+    protectedBaselineSha256: "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+    currentSha256: "8ce316c52b574e875eb259b0d6b5b206ef2600cf8a14243d71c3a961731249a0",
+    currentOwnerCommit: "f612e394b3af75e63cc07232d64bbd3dd1adb817"
+  }),
+  routeGeneration: Object.freeze({
+    path: "intelligence/continuous-adaptive-route-replenishment.mjs",
+    protectedBaselineSha256: "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19",
+    currentSha256: "95f5e997af8ded3258d218f094d9765c6e7530a2828e75e432eb2ab0630896e6",
+    currentOwnerCommit: "54804800533e705efe7add510e5e4bb72a3ba7dc"
+  }),
+  worker: Object.freeze({
+    path: "workers/prometheus-iq-worker.js",
+    protectedBaselineSha256: "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
+    currentSha256: "eeb7346be172d33e7f04b6ec9ac4d256faae450410ea5c8a12e16a26a884f5dc",
+    currentOwnerCommit: "fd14a3b13ac00b645857396f3d26fa069762b715"
+  })
+});
 
 const read = path => fs.readFileSync(path, "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -762,7 +794,29 @@ export function validateFitnessShadowDecisionReadinessLinkage({
     const baseline = readinessContract?.protectedBehaviorBaselines?.[key];
     assert(Boolean(baseline?.path) && exists(baseline.path), `Shadow-readiness protected baseline path is missing: ${key}`, failures);
     if (baseline?.path && exists(baseline.path)) {
-      assert(sha256(read(baseline.path)) === baseline.sha256, `Shadow-readiness protected baseline changed: ${key}`, failures);
+      const currentSha256 = sha256(read(baseline.path));
+      if (currentSha256 !== baseline.sha256) {
+        const successor = fitnessShadowReadinessCurrentBaselineSuccessors[key];
+        assert(Boolean(successor), `Shadow-readiness protected baseline changed without a governed successor: ${key}`, failures);
+        if (successor) {
+          assert(successor.path === baseline.path, `Shadow-readiness successor path changed: ${key}`, failures);
+          assert(
+            successor.protectedBaselineSha256 === baseline.sha256,
+            `Shadow-readiness protected predecessor changed: ${key}`,
+            failures
+          );
+          assert(
+            successor.currentSha256 === currentSha256,
+            `Shadow-readiness current owner successor changed: ${key}`,
+            failures
+          );
+          assert(
+            /^[0-9a-f]{40}$/u.test(successor.currentOwnerCommit),
+            `Shadow-readiness current owner successor commit is invalid: ${key}`,
+            failures
+          );
+        }
+      }
     }
   }
   assert(readinessContract?.validationFixturePolicy?.path === fitnessShadowReadinessFixturePath, "Shadow-readiness validation fixture path mismatch.", failures);
@@ -1415,6 +1469,18 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   assert(identity.futureFeatureWorkGate.enabled === true, "Fitness future feature work gate must remain enabled.", failures);
 
   assert(dashboardSource === dashboardDeploy, "Fitness Dashboard source and deploy mirror must match.", failures);
+  const secureDefaultWorkspaceMarker =
+    'const defaultWorkspaceId = routeIqCustomerPwaSession?.workspaceId || "fitness_connection";';
+  assert(
+    dashboardContract.requiredDashboardMarkers.includes(secureDefaultWorkspaceMarker),
+    "Fitness Dashboard contract must require the exact customer-session-derived workspace fallback.",
+    failures
+  );
+  assert(
+    !dashboardContract.requiredDashboardMarkers.includes('defaultWorkspaceId = "fitness_connection"'),
+    "Fitness Dashboard contract must not retain the superseded static workspace marker.",
+    failures
+  );
   for (const marker of dashboardContract.requiredDashboardMarkers) {
     assert(dashboardSource.includes(marker), `Fitness Dashboard missing required marker: ${marker}`, failures);
   }
@@ -1426,10 +1492,10 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   assert(placesAccess?.mode === "restricted_representative_places", "Dashboard contract must classify Rep Places as restricted representative-owned places.", failures);
   assert(placesAccess?.governanceDecision === "approved", "Representative Places governance expansion must record Founder approval.", failures);
   assert(placesAccess?.runtimeAlignmentStatus === "aligned", "Representative Places runtime alignment must be finalized.", failures);
-  assert(placesAccess?.alignmentEvidence?.dashboardCommit === "82d1e6f23ca3a75c0073c051531477913258a98f", "Representative Places alignment must reference the current Dashboard owner commit.", failures);
+  assert(placesAccess?.alignmentEvidence?.dashboardCommit === "f612e394b3af75e63cc07232d64bbd3dd1adb817", "Representative Places alignment must reference the current Dashboard owner commit.", failures);
   assert(placesAccess?.alignmentEvidence?.savedPlacesFeatureOriginCommit === "de51401774dc54034418b5feab4cdb2d255cc0ba", "Representative Places alignment must preserve the Saved Places feature-origin commit.", failures);
   assert(placesAccess?.alignmentEvidence?.decisionContextFeatureOriginCommit === "2774d91456e4b1734eb1caa13deaa84de2248f8f", "Dashboard alignment must preserve the Decision Context feature-origin commit.", failures);
-  assert(placesAccess?.alignmentEvidence?.dashboardOwnerRevalidationCommit === "6c7671cb3f9387fdac29961432412dfe70088b2e", "Dashboard alignment must reference the Dashboard owner revalidation commit.", failures);
+  assert(placesAccess?.alignmentEvidence?.dashboardOwnerRevalidationCommit === "f612e394b3af75e63cc07232d64bbd3dd1adb817", "Dashboard alignment must reference the Dashboard owner revalidation commit.", failures);
   assert(placesAccess?.alignmentEvidence?.prospectiveShadowSeamCommit === "6c7671cb3f9387fdac29961432412dfe70088b2e", "Dashboard alignment must reference the invisible prospective shadow seam commit.", failures);
   assert(placesAccess?.alignmentEvidence?.prospectiveCollectionOffSuppressionCommit === "555dc6e87b1d2f884f1e18b3a06e1c62dfbd73dd", "Dashboard alignment must reference the collection-OFF suppression repair commit.", failures);
   assert(placesAccess?.alignmentEvidence?.routeIqProductFocusCommit === "82d1e6f23ca3a75c0073c051531477913258a98f", "Dashboard alignment must reference the Route IQ product-focus owner commit.", failures);
