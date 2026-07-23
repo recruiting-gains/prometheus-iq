@@ -6,7 +6,7 @@
   <title>Route IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-gTn5kOmeI8hvBfWXr/YiII5gJTEg7WGSZF3z2qH9K/c='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-JbyShD2hMgziGlA0j0DuRImkcm+rsXuXnl0JuqjZ/gg='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Route IQ">
@@ -1897,6 +1897,13 @@
         "expiresAt",
         "safety"
       ].sort();
+      const capabilityKeys = [
+        "operateOwnRoute",
+        "readWorkspaceOperations",
+        "administerWorkspaceRoster",
+        "founderIntelligence",
+        "founderCrm"
+      ].sort();
       if (!value || typeof value !== "object" || Array.isArray(value)
         || JSON.stringify(Object.keys(value).sort()) !== JSON.stringify(exactKeys)
         || value.contractVersion !== "route-iq-customer-pwa-session-v2"
@@ -1905,10 +1912,14 @@
         || !/^[a-z][a-z0-9_]{2,127}$/u.test(value.operatingProfileId || "")
         || !/^[a-z][a-z0-9_]{2,127}$/u.test(value.userId || "")
         || !/^[a-z][a-z0-9_]{2,127}$/u.test(value.representativeId || "")
-        || !["customer_owner", "customer_manager", "customer_representative"].includes(value.roleId)
+        || !/^[a-z][a-z0-9_]{2,127}$/u.test(value.roleId || "")
         || typeof value.workspaceLabel !== "string" || !value.workspaceLabel.trim() || value.workspaceLabel.length > 160
         || typeof value.displayName !== "string" || !value.displayName.trim() || value.displayName.length > 120
-        || !value.capabilities || value.capabilities.founderIntelligence !== false || value.capabilities.founderCrm !== false
+        || !value.capabilities
+        || JSON.stringify(Object.keys(value.capabilities).sort()) !== JSON.stringify(capabilityKeys)
+        || Object.values(value.capabilities).some(capability => typeof capability !== "boolean")
+        || value.capabilities.founderIntelligence !== false
+        || value.capabilities.founderCrm !== false
         || !value.runtimeAssets
         || JSON.stringify(Object.keys(value.runtimeAssets).sort()) !== JSON.stringify([
           "businessHours",
@@ -2363,12 +2374,16 @@
           [routeIqCustomerPwaSession.representativeId]: {
             id: routeIqCustomerPwaSession.representativeId,
             name: routeIqCustomerPwaSession.displayName,
-            role: routeIqCustomerPwaSession.roleId === "customer_owner"
+            role: routeIqCustomerPwaSession.capabilities.administerWorkspaceRoster
               ? "Owner"
-              : routeIqCustomerPwaSession.roleId === "customer_manager"
+              : routeIqCustomerPwaSession.capabilities.readWorkspaceOperations
                 ? "Manager"
                 : "Field representative",
-            mode: routeIqCustomerPwaSession.roleId === "customer_representative" ? "rep" : "owner",
+            mode: routeIqCustomerPwaSession.capabilities.operateOwnRoute
+              && !routeIqCustomerPwaSession.capabilities.readWorkspaceOperations
+              && !routeIqCustomerPwaSession.capabilities.administerWorkspaceRoster
+              ? "rep"
+              : "owner",
             explorationTarget: .4
           }
         }
@@ -2456,11 +2471,11 @@
 
     const isLocalPreview = location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
     const safeParam = value => String(value || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 60);
-    const routeIqCustomerSessionRole = routeIqCustomerPwaSession?.roleId === "customer_owner"
+    const routeIqCustomerSessionRole = routeIqCustomerPwaSession?.capabilities?.administerWorkspaceRoster
       ? "owner"
-      : routeIqCustomerPwaSession?.roleId === "customer_manager"
+      : routeIqCustomerPwaSession?.capabilities?.readWorkspaceOperations
         ? "manager"
-        : routeIqCustomerPwaSession?.roleId === "customer_representative"
+        : routeIqCustomerPwaSession?.capabilities?.operateOwnRoute
           ? "rep"
           : "";
     const requestedOperatingProfileId = routeIqCustomerPwaSession?.operatingProfileId
@@ -2558,12 +2573,13 @@
     }
 
     function dashboardCapabilityEnabled(capabilityId) {
-      return Boolean(activeWorkspaceConfiguration
-        && routeIqDashboardPlatformApi?.dashboardCapabilityEnabled(activeWorkspaceConfiguration, capabilityId));
+      return Boolean(activeDashboardPlatform
+        && routeIqDashboardPlatformApi?.dashboardCapabilityEnabled(activeDashboardPlatform, capabilityId));
     }
 
     function dashboardActionLabel(actionId, fallback) {
-      return routeIqDashboardPlatformApi?.dashboardActionLabel(activeWorkspaceConfiguration, actionId, fallback)
+      if (!dashboardCapabilityEnabled(actionId)) return "";
+      return routeIqDashboardPlatformApi?.dashboardActionLabel(activeDashboardPlatform, actionId, fallback)
         || fallback;
     }
 
@@ -2732,13 +2748,15 @@
           label: "Route IQ",
           source: operatingProfileSource,
           contractVersion: "route-iq-workspace-configuration-v2",
-          status: "configuration_required",
+          status: "configuration_unavailable",
           scoringChanged: false,
           activePoolChanged: false,
           mobileBetaChanged: false,
           errorCode: cleanText(error?.code || "route_iq_dashboard_configuration_unavailable", 100)
         };
-        applyDashboardConfigurationPresentation();
+        routeIqProspectiveBootstrapWindowOpen = false;
+        disableRouteIqProspectiveAdmission("workspace_configuration_unavailable");
+        renderRouteIqCustomerPwaSessionBlocked("configuration_unavailable");
         return false;
       }
     }
@@ -8160,16 +8178,13 @@
     (async () => {
       try {
         const operatingProfileLoaded = await loadOperatingProfileDefinitions();
-        await loadRuntimeProductionDataset();
         if (!operatingProfileLoaded) {
-          routeIqProspectiveBootstrapWindowOpen = false;
-          disableRouteIqProspectiveAdmission("workspace_configuration_unavailable");
           window.prometheusDebugState.lastStage = "customer-configuration-unavailable";
-          render();
-          window.prometheusDebugState.startupCompleted = true;
+          window.prometheusDebugState.startupCompleted = false;
           updateFounderDebugPanel({ stage: "customer-configuration-unavailable" });
           return;
         }
+        await loadRuntimeProductionDataset();
         window.prometheusDebugState.customerStartup.profileAccepted = true;
         window.prometheusDebugState.customerStartup.operationalWorkflowStarted = true;
         await loadRouteReplenishmentEngine();

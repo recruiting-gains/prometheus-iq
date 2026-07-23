@@ -16,7 +16,8 @@ import {
   projectConfiguredBusinessCard,
   revalidateImmediateRouteQueue,
   routeIqDashboardCacheName,
-  routeIqDashboardPlatformVersion
+  routeIqDashboardPlatformVersion,
+  validateDashboardWorkspaceRegistry
 } from "../dashboard/route-iq-dashboard-platform.mjs";
 import {
   buildRouteBusinessHoursIndex,
@@ -47,58 +48,24 @@ function sha256(value) {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
-function dashboardConfiguration(profileId) {
-  return {
-    terminology: {
-      opportunity: profileId === "fitness" ? "fitness business" : "sales opportunity",
-      visit: "field visit",
-      outcome: "visit outcome",
-      success: profileId === "fitness" ? "qualified conversation" : "qualified opportunity",
-      followUp: "follow-up"
-    },
-    capabilities: [
-      "view_route",
-      "view_operating_hours",
-      "open_directions",
-      "record_visit",
-      "correct_visit",
-      "add_place",
-      "save_place",
-      "end_route",
-      "end_day",
-      "export_manual_report"
-    ],
-    cardFields: [
-      { fieldId: "business_name", label: "Business", required: true },
-      { fieldId: "business_type", label: "Business type", required: true },
-      { fieldId: "operating_hours", label: "Operating hours", required: true },
-      { fieldId: "availability_status", label: "Availability", required: true },
-      { fieldId: "next_opening", label: "Next opening", required: false },
-      { fieldId: "distance", label: "Distance", required: true },
-      { fieldId: "estimated_visit_duration", label: "Estimated visit", required: true },
-      profileId === "fitness"
-        ? { fieldId: "unit_potential", label: "Unit potential", required: false }
-        : { fieldId: "opportunity_stage", label: "Opportunity stage", required: false }
-    ],
-    filters: [{ filterId: "availability", label: "Availability", fieldId: "availability_status" }],
-    sorts: [{ sortId: "distance", label: "Nearest", fieldId: "distance", direction: "asc" }],
-    actions: [{ actionId: "open_directions", label: "Directions", allowedOutcomeIds: ["visited"] }],
-    outcomes: [{ outcomeId: "visited", label: "Visited", classification: "OBSERVATION" }],
-    kpis: [{ kpiId: "visits", label: "Visits", aggregation: "COUNT", sourceOutcomeIds: ["visited"] }]
-  };
-}
+const canonicalWorkspaceConfiguration = JSON.parse(
+  read("administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json")
+);
 
 function harness({
   workspaceId = "fitness_connection",
-  profileId = "fitness",
-  classification = "FOUNDER_FIELD_RESEARCH",
   identityField = "recordId",
   recordId = "synthetic_business_001"
 } = {}) {
-  const territoryId = `${workspaceId}_territory`;
-  const userId = `${workspaceId}_user`;
-  const representativeId = `${workspaceId}_representative`;
-  const rosterPath = `/data/fixtures/${workspaceId}-approved-roster.json`;
+  const configuration = structuredClone(canonicalWorkspaceConfiguration);
+  const workspace = configuration.workspaces.find(candidate => candidate.workspaceId === workspaceId);
+  assert.ok(workspace, `Unknown test workspace: ${workspaceId}`);
+  const profileId = workspace.operatingProfile.profileId;
+  const user = workspace.users[0];
+  const territoryId = user.territoryIds[0];
+  const source = workspace.opportunitySources[0];
+  const classification = source.classification;
+  const rosterPath = `/data/route-iq-commercial-readiness-v1/validation/${workspaceId}-approved-roster.json`;
   const roster = {
     records: [{
       recordId,
@@ -111,116 +78,17 @@ function harness({
     }]
   };
   const rosterDigest = sha256(roster);
-  const configuration = {
-    schemaVersion: "route-iq-workspace-configuration-v2",
-    registryVersion: "route-iq-cross-industry-workspaces-v2.1.0",
-    product: "route_iq",
-    authority: "prometheus_administration",
-    limits: { maxCompanies: 2, maxNamedUsers: 40 },
-    founderBoundary: {
-      attendanceMode: "CRUZ_ONLY_ATTENDED",
-      founderUserId: userId,
-      anthonyMappingStatus: "UNMAPPED",
-      externalTesterAccessAuthorized: false
-    },
-    safety: { collection: "OFF", activeCohorts: 0, recommendationInfluence: "OFF" },
-    workspaces: [{
-      workspaceId,
-      companyId: workspaceId,
-      lifecycle: classification === "SYNTHETIC_NONCANONICAL" ? "synthetic_validation_only" : "founder_research",
-      admission: {
-        status: classification === "SYNTHETIC_NONCANONICAL" ? "SYNTHETIC_VALIDATION_ONLY" : "FOUNDER_RESEARCH_ONLY",
-        productionAuthorized: false,
-        customerAuthorizationRef: null
-      },
-      company: {
-        displayName: `${profileId} validation`,
-        businessType: profileId,
-        relationshipClassification: classification === "SYNTHETIC_NONCANONICAL" ? "SYNTHETIC_VALIDATION_FIXTURE" : "FOUNDER_FIELD_RESEARCH",
-        publicRelationshipClaimsAllowed: false,
-        brand: { productLabel: "Route IQ", primaryColor: "#102A43", accentColor: "#E11D48" }
-      },
-      operatingProfile: {
-        profileId,
-        profileVersion: "operating-profile-v2",
-        industryId: profileId
-      },
-      locations: [{
-        locationId: `${workspaceId}_location`,
-        displayName: "Validation Location",
-        territoryIds: [territoryId],
-        active: true
-      }],
-      territories: [{
-        territoryId,
-        displayName: "Validation Territory",
-        timezone: "America/Chicago",
-        active: true
-      }],
-      roles: [{
-        roleId: `${workspaceId}_role`,
-        displayName: "Field Representative",
-        capabilities: dashboardConfiguration(profileId).capabilities
-      }],
-      users: [{
-        userId,
-        representativeId,
-        displayName: "Synthetic Representative",
-        identityClass: classification === "SYNTHETIC_NONCANONICAL" ? "SYNTHETIC_NONCANONICAL" : "FOUNDER_ATTENDED",
-        principalMappingStatus: classification === "SYNTHETIC_NONCANONICAL" ? "SYNTHETIC_ONLY" : "ATTENDED_REQUIRED",
-        roleId: `${workspaceId}_role`,
-        territoryIds: [territoryId],
-        active: true
-      }],
-      dashboard: dashboardConfiguration(profileId),
-      availabilityPolicy: {
-        timezoneSource: "BUSINESS_LOCAL_IANA",
-        freshnessCeilingHours: 24,
-        immediateRecommendationRule: "FRESH_VERIFIED_OPEN_OR_ACCESS_WINDOW_ONLY",
-        verifiedClosedRule: "INELIGIBLE_WITH_NEXT_OPENING",
-        uncertainRule: "NON_RECOMMENDED_VERIFICATION_REQUIRED",
-        appointmentOnlyRule: "VERIFIED_APPOINTMENT_OR_ACCESS_WINDOW_REQUIRED",
-        providerFailureRule: "PRESERVE_PRIOR_EVIDENCE_AND_EXPIRE_NORMALLY",
-        refreshMode: "GOVERNED_RUNTIME_ARTIFACT"
-      },
-      opportunitySources: [{
-        sourceId: `${workspaceId}_approved_roster`,
-        adapterId: "workspace_business_manifest_adapter_v1",
-        manifestRegistryPath: "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
-        manifestId: `${workspaceId}_approved_business_roster`,
-        artifactPath: rosterPath.slice(1),
-        artifactSchemaVersion: "route-iq-approved-opportunity-artifact-v1",
-        workspaceId,
-        profileId,
-        providerId: "synthetic_owner_fixture_provider",
-        classification,
-        manifestApprovalState: classification === "SYNTHETIC_NONCANONICAL"
-          ? "APPROVED_SYNTHETIC_VALIDATION"
-          : "APPROVED",
-        productionUseAuthorized: false
-      }],
-      fallbackPolicy: {
-        mode: "FAIL_CLOSED",
-        demoCatalogAllowed: false,
-        embeddedBusinessCatalogAllowed: false,
-        crossWorkspaceFallbackAllowed: false,
-        missingSourceState: "CONFIGURATION_REQUIRED_EMPTY"
-      },
-      retention: {
-        maximumCalendarMonths: 18,
-        customerMayShorten: true,
-        customerMayExpand: false,
-        legalHoldSupported: true,
-        dispositionMode: "APPEND_ONLY_AUDITABLE_DATA_OWNED"
-      },
-      provenance: {
-        owner: "prometheus_administration",
-        configurationVersion: "v2.1.0",
-        sourceRefs: ["test-only"],
-        approvalState: classification === "SYNTHETIC_NONCANONICAL" ? "SYNTHETIC_VALIDATION_ONLY" : "FOUNDER_RESEARCH_BOUNDARY_RECORDED"
-      }
-    }]
-  };
+  Object.assign(source, {
+    sourceId: `${workspaceId}_approved_roster`,
+    adapterId: "workspace_business_manifest_adapter_v1",
+    manifestId: `${workspaceId}_approved_business_roster`,
+    artifactPath: rosterPath.slice(1),
+    artifactSchemaVersion: "route-iq-approved-opportunity-artifact-v1",
+    providerId: "synthetic_owner_fixture_provider",
+    manifestApprovalState: classification === "SYNTHETIC_NONCANONICAL"
+      ? "APPROVED_SYNTHETIC_VALIDATION"
+      : "APPROVED"
+  });
   const manifest = {
     schemaVersion: "route-iq-workspace-business-artifact-manifest-v1",
     registryVersion: "route-iq-workspace-business-artifact-manifest-registry-v1",
@@ -264,10 +132,10 @@ function harness({
     workspaceId,
     workspaceLabel: `${profileId} validation`,
     operatingProfileId: profileId,
-    userId,
-    representativeId,
-    displayName: "Synthetic Representative",
-    roleId: "customer_representative",
+    userId: user.userId,
+    representativeId: user.representativeId,
+    displayName: user.displayName,
+    roleId: user.roleId,
     capabilities: {
       operateOwnRoute: true,
       readWorkspaceOperations: false,
@@ -414,7 +282,7 @@ test("Dashboard, hours, and route replenishment share one manifest-authenticated
       userId: "northstar_synthetic_user_01",
       representativeId: "northstar_synthetic_rep_01",
       displayName: "Synthetic Representative",
-      roleId: "outside_sales_representative",
+      roleId: "northstar_synthetic_representative",
       capabilities: {
         operateOwnRoute: true,
         readWorkspaceOperations: false,
@@ -557,8 +425,42 @@ test("missing, malformed, mismatched, and stale runtime sources fail closed", as
       fetchFn: crossFetch,
       now: "2026-07-23T12:30:00.000Z"
     }),
-    error => error.code === "route_iq_dashboard_workspace_unknown"
+    error => error.code === "route_iq_dashboard_workspace_registry_invalid"
   );
+});
+
+test("complete registry validation and exact configured role binding fail closed", async () => {
+  const valid = harness();
+  const unknownField = structuredClone(valid.configuration);
+  unknownField.unexpected = true;
+  assert.throws(
+    () => validateDashboardWorkspaceRegistry(unknownField, valid.session),
+    error => error.code === "route_iq_dashboard_workspace_registry_invalid"
+  );
+
+  const roleMismatch = {
+    ...valid.session,
+    roleId: "unauthorized_synthetic_role"
+  };
+  assert.throws(
+    () => validateDashboardWorkspaceRegistry(valid.configuration, roleMismatch),
+    error => error.code === "route_iq_dashboard_role_scope_invalid"
+  );
+
+  const reducedRole = structuredClone(valid.configuration);
+  const workspace = reducedRole.workspaces.find(candidate =>
+    candidate.workspaceId === valid.session.workspaceId
+  );
+  const role = workspace.roles.find(candidate => candidate.roleId === valid.session.roleId);
+  role.capabilities = role.capabilities.filter(capability => capability !== "open_directions");
+  const authorization = validateDashboardWorkspaceRegistry(reducedRole, valid.session);
+  const platform = {
+    workspace: authorization.workspace,
+    effectiveCapabilities: authorization.effectiveCapabilities
+  };
+  assert.equal(workspace.dashboard.capabilities.includes("open_directions"), true);
+  assert.equal(dashboardCapabilityEnabled(platform, "open_directions"), false);
+  assert.equal(dashboardActionLabel(platform, "open_directions", "Open map"), "");
 });
 
 test("operating-time labels and estimated visit duration are distinct", () => {
@@ -608,7 +510,16 @@ test("persisted route entries are removed unless hours are freshly verified open
 
 test("card projection hides unsupported profile fields and labels hours separately", () => {
   const fitness = harness();
-  const workspace = fitness.configuration.workspaces[0];
+  const workspace = fitness.configuration.workspaces.find(candidate =>
+    candidate.workspaceId === fitness.session.workspaceId
+  );
+  const role = workspace.roles.find(candidate => candidate.roleId === fitness.session.roleId);
+  const platform = {
+    workspace,
+    effectiveCapabilities: role.capabilities.filter(capability =>
+      workspace.dashboard.capabilities.includes(capability)
+    )
+  };
   const place = {
     name: "Synthetic Wellness Center",
     category: "Fitness",
@@ -623,9 +534,9 @@ test("card projection hides unsupported profile fields and labels hours separate
   assert.equal(card.estimated_visit_duration, "Estimated visit: 5–9 min");
   assert.equal(Object.hasOwn(card, "opportunity_stage"), false);
   assert.equal(card.unit_potential, 3);
-  assert.equal(dashboardCapabilityEnabled(workspace, "open_directions"), true);
-  assert.equal(dashboardCapabilityEnabled(workspace, "unsupported_capability"), false);
-  assert.equal(dashboardActionLabel(workspace, "open_directions", "Open map"), "Directions");
+  assert.equal(dashboardCapabilityEnabled(platform, "open_directions"), true);
+  assert.equal(dashboardCapabilityEnabled(platform, "unsupported_capability"), false);
+  assert.equal(dashboardActionLabel(platform, "open_directions", "Open map"), "Directions");
 });
 
 test("cross-workspace and unauthorized-territory records are rejected before rendering", async () => {
@@ -746,6 +657,6 @@ test("Dashboard source contains no embedded business catalog or full-pool fallba
   assert.doesNotMatch(worker, /intelligence\/(?:continuous-adaptive-route-replenishment|route-business-hours-eligibility)/u);
   assert.match(worker, /event\.request\.method !== "GET" && event\.request\.method !== "HEAD"/u);
   assert.match(worker, /isGovernedNetworkOnlyPath\(requestUrl\.pathname\)/u);
-  assert.equal(existsSync(new URL("../smoothie-depot-dashboard/index.html", import.meta.url)), false);
+  assert.equal(existsSync(new URL("../retired-customer-dashboard/index.html", import.meta.url)), false);
   assert.equal(existsSync(new URL("../demo-dashboard/index.html", import.meta.url)), false);
 });

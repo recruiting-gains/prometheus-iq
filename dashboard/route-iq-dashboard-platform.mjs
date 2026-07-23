@@ -1,3 +1,7 @@
+import {
+  validateRouteIqWorkspaceConfigurationRegistry
+} from "../administration/contracts/route-iq-workspace-configuration-v2-validation.mjs";
+
 export const routeIqDashboardPlatformVersion = "route-iq-configurable-dashboard-v2";
 export const routeIqDashboardStorageVersion = "route-iq-dashboard-storage-v2";
 export const routeIqDashboardCacheName = "prometheus-v50-route-iq-configurable-dashboard";
@@ -28,6 +32,13 @@ const supportedCardFields = new Set([
 const productionClassifications = new Set([
   "FOUNDER_FIELD_RESEARCH",
   "CUSTOMER_GOVERNED_DATA"
+]);
+const sessionCapabilityKeys = Object.freeze([
+  "operateOwnRoute",
+  "readWorkspaceOperations",
+  "administerWorkspaceRoster",
+  "founderIntelligence",
+  "founderCrm"
 ]);
 const unavailableStatuses = new Set([
   "HOURS_UNKNOWN",
@@ -100,6 +111,11 @@ function assertSession(session) {
     || !strictId.test(session.operatingProfileId || "")
     || !strictId.test(session.userId || "")
     || !strictId.test(session.representativeId || "")
+    || !strictId.test(session.roleId || "")
+    || !exactKeys(session.capabilities, sessionCapabilityKeys)
+    || Object.values(session.capabilities).some(value => typeof value !== "boolean")
+    || session.capabilities.founderIntelligence !== false
+    || session.capabilities.founderCrm !== false
     || session.safety?.prospectiveCollection !== "OFF"
     || session.safety?.activeCohorts !== 0
     || session.safety?.recommendationInfluence !== "OFF") {
@@ -143,17 +159,13 @@ function assertDashboardConfiguration(workspace) {
 
 export function validateDashboardWorkspaceRegistry(registry, session, { allowSynthetic = false } = {}) {
   assertSession(session);
-  if (!registry
-    || registry.schemaVersion !== "route-iq-workspace-configuration-v2"
-    || !/^route-iq-cross-industry-workspaces-v2\.[0-9]+\.[0-9]+$/u.test(registry.registryVersion || "")
-    || registry.authority !== "prometheus_administration"
-    || registry.safety?.collection !== "OFF"
-    || registry.safety?.activeCohorts !== 0
-    || registry.safety?.recommendationInfluence !== "OFF"
-    || !Array.isArray(registry.workspaces)) {
+  let validatedRegistry;
+  try {
+    validatedRegistry = validateRouteIqWorkspaceConfigurationRegistry(registry);
+  } catch {
     fail("route_iq_dashboard_workspace_registry_invalid", "The workspace configuration registry is invalid.");
   }
-  const matches = registry.workspaces.filter(workspace => workspace?.workspaceId === session.workspaceId);
+  const matches = validatedRegistry.workspaces.filter(workspace => workspace.workspaceId === session.workspaceId);
   if (matches.length !== 1) {
     fail("route_iq_dashboard_workspace_unknown", "The authenticated workspace has no unique Dashboard configuration.");
   }
@@ -180,16 +192,29 @@ export function validateDashboardWorkspaceRegistry(registry, session, { allowSyn
   if (users.length !== 1) {
     fail("route_iq_dashboard_representative_scope_invalid", "The authenticated representative is not uniquely authorized.");
   }
+  if (users[0].roleId !== session.roleId) {
+    fail("route_iq_dashboard_role_scope_invalid", "The authenticated role does not match the configured user.");
+  }
+  const roles = (workspace.roles || []).filter(role => role?.roleId === session.roleId);
+  if (roles.length !== 1) {
+    fail("route_iq_dashboard_role_scope_invalid", "The authenticated role is not uniquely authorized.");
+  }
   const territories = new Set(users[0].territoryIds || []);
   if (!territories.size
     || [...territories].some(territoryId => !(workspace.territories || []).some(territory => territory?.territoryId === territoryId && territory?.active === true))) {
     fail("route_iq_dashboard_territory_scope_invalid", "The representative territory binding is invalid.");
   }
   assertDashboardConfiguration(workspace);
+  const dashboardCapabilities = new Set(workspace.dashboard.capabilities);
+  const effectiveCapabilities = roles[0].capabilities.filter(capability =>
+    dashboardCapabilities.has(capability)
+  );
   return Object.freeze({
-    registryVersion: registry.registryVersion,
+    registryVersion: validatedRegistry.registryVersion,
     workspace,
     user: users[0],
+    role: roles[0],
+    effectiveCapabilities: Object.freeze(effectiveCapabilities),
     territoryIds: Object.freeze([...territories])
   });
 }
@@ -423,6 +448,8 @@ export async function loadGovernedDashboardPlatform({
     sourceArtifactSha256: digest,
     workspace: configuration.workspace,
     user: configuration.user,
+    role: configuration.role,
+    effectiveCapabilities: configuration.effectiveCapabilities,
     territoryIds: configuration.territoryIds,
     manifest,
     status: projection.status,
@@ -502,12 +529,14 @@ export function configuredCardFieldSet(workspace) {
   return new Set((workspace?.dashboard?.cardFields || []).map(field => field.fieldId));
 }
 
-export function dashboardCapabilityEnabled(workspace, capabilityId) {
-  return (workspace?.dashboard?.capabilities || []).includes(capabilityId);
+export function dashboardCapabilityEnabled(platform, capabilityId) {
+  return Array.isArray(platform?.effectiveCapabilities)
+    && platform.effectiveCapabilities.includes(capabilityId);
 }
 
-export function dashboardActionLabel(workspace, actionId, fallback = "") {
-  const action = (workspace?.dashboard?.actions || []).find(item => item?.actionId === actionId);
+export function dashboardActionLabel(platform, actionId, fallback = "") {
+  if (!dashboardCapabilityEnabled(platform, actionId)) return "";
+  const action = (platform?.workspace?.dashboard?.actions || []).find(item => item?.actionId === actionId);
   return cleanText(action?.label, 80) || cleanText(fallback, 80);
 }
 

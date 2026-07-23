@@ -199,7 +199,7 @@ const customerPwaSessionFixture = Object.freeze({
   userId: "northstar_synthetic_user_01",
   representativeId: "northstar_synthetic_rep_01",
   displayName: "Synthetic Representative 01",
-  roleId: "customer_representative",
+  roleId: "northstar_synthetic_representative",
   capabilities: Object.freeze({
     operateOwnRoute: true,
     readWorkspaceOperations: false,
@@ -2105,7 +2105,7 @@ async function verifyDecisionContextProducer(cdp) {
         visitId: "decision-source-cross-workspace",
         placeId: alternative.id,
         capturedAt: Date.now(),
-        workspaceId: "smoothie_depot"
+        workspaceId: "retired_customer_workspace"
       });
     } catch (error) {
       workspaceBlocked = /outside Fitness Connection/.test(error.message);
@@ -2588,7 +2588,7 @@ async function verifyAddPlaceImmediateOutcomeCapture(cdp) {
     closeModal();
 
     const previousWorkspace = document.body.dataset.workspaceId;
-    document.body.dataset.workspaceId = "smoothie_depot";
+    document.body.dataset.workspaceId = "retired_customer_workspace";
     const beforeIsolationPlaces = state.places.length;
     const isolated = await submitPlace({ key: "Cross Workspace", outcome: "lead" });
     const workspaceIsolation = {
@@ -3112,8 +3112,8 @@ async function verifyProspectiveBootstrapValidation(cdp) {
       }),
       overlong: admits({ ...base, expiresAt: new Date(now + 60 * 1000).toISOString() }),
       future: admits({ ...base, issuedAt: new Date(now + 1000).toISOString() }),
-      unauthorizedWorkspace: admits({ ...base, workspaceId: "smoothie_depot" }),
-      unauthorizedProfile: admits({ ...base, operatingProfileId: "franchise_development" }),
+      unauthorizedWorkspace: admits({ ...base, workspaceId: "unauthorized_synthetic_workspace" }),
+      unauthorizedProfile: admits({ ...base, operatingProfileId: "unauthorized_synthetic_profile" }),
       unauthorizedRepresentative: admits({ ...base, representativeId: "cruz" }),
       inactiveCohort: admits({ ...base, activeCohort: false }),
       unsupportedOpportunity: admits({ ...base, supportedOpportunityTypes: ["other"] }),
@@ -3350,10 +3350,10 @@ async function runHarness() {
       title: document.querySelector(".brand h1")?.textContent?.trim() || "",
       bodyText: document.body.innerText,
       workspaceControls: document.querySelectorAll("[data-workspace-select]").length,
-      smoothieLinks: [...document.querySelectorAll("a[href]")].filter(link => link.getAttribute("href")?.includes("smoothie-depot")).length
+      retiredProductLinks: document.querySelectorAll("[data-retired-product], a[href*='/legacy-customer-dashboard/']").length
     }))()`);
     assertWorkflow("Route IQ workspace default", switcherSnap.workspaceId === "fitness_connection" && switcherSnap.workspaceOperatingProfileId === "fitness", `workspace ${switcherSnap.workspaceId}, profile ${switcherSnap.workspaceOperatingProfileId}`, JSON.stringify({ workspaceId: switcherSnap.workspaceId, workspaceName: switcherSnap.workspaceName, debug: switcherSnap.debug.workspace }));
-    assertWorkflow("Route IQ only active Dashboard product", productFocus.title === "Route IQ" && productFocus.workspaceControls === 0 && productFocus.smoothieLinks === 0 && !/Smoothie Depot|\bGaia\b|\bAthena\b/.test(productFocus.bodyText), "Route IQ renders without inactive-product navigation or current-product labels", JSON.stringify(productFocus));
+    assertWorkflow("Route IQ only active Dashboard product", productFocus.title === "Route IQ" && productFocus.workspaceControls === 0 && productFocus.retiredProductLinks === 0 && !/\bGaia\b|\bAthena\b/.test(productFocus.bodyText), "Route IQ renders without inactive-product navigation or current-product labels", JSON.stringify(productFocus));
     assertWorkflow("Founder snapshot fails closed without server principal", !switcherSnap.founderDailyIntelligenceVisible && switcherSnap.debug.founderDailyIntelligence.authorized === false, switcherSnap.debug.founderDailyIntelligence.status, JSON.stringify(switcherSnap.debug.founderDailyIntelligence));
     await switcher.cdp.close();
 

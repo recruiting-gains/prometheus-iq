@@ -402,7 +402,7 @@ test("Dashboard producer fails closed when the Data binding is missing", async (
 test("Dashboard producer rejects unknown and protected workspaces before writes", async () => {
   for (const [workspaceId, operatingProfileId] of [
     ["unknown_workspace", "fitness"],
-    ["smoothie_depot", "franchise_development"]
+    ["retired_customer_workspace", "retired_customer_profile"]
   ]) {
     const binding = kvBinding();
     const response = await submit(payload({ workspaceId, operatingProfileId }), productionEnv(binding));

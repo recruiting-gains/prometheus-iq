@@ -102,8 +102,8 @@ test("Route IQ is the only active Dashboard product", () => {
 });
 
 test("obsolete customer-specific Dashboard entry points are absent from current source", () => {
-  assert.equal(existsSync(new URL("../smoothie-depot-dashboard/index.html", import.meta.url)), false);
-  assert.equal(existsSync(new URL("../smoothie-depot-dashboard/command-center.js", import.meta.url)), false);
+  assert.equal(existsSync(new URL("../retired-customer-dashboard/index.html", import.meta.url)), false);
+  assert.equal(existsSync(new URL("../retired-customer-dashboard/command-center.js", import.meta.url)), false);
   assert.equal(existsSync(new URL("../demo-dashboard/index.html", import.meta.url)), false);
 });
 

@@ -44,6 +44,8 @@ test("customer territory presentation is applied only after authenticated config
 });
 
 test("customer sessions cannot expose Founder intelligence, Founder CRM, collection, cohorts, or recommendations", () => {
+  assert.match(dashboard, /!\/\^\[a-z\]\[a-z0-9_\]\{2,127\}\$\/u\.test\(value\.roleId \|\| ""\)/u);
+  assert.match(dashboard, /Object\.keys\(value\.capabilities\)\.sort\(\)/u);
   assert.match(dashboard, /value\.capabilities\.founderIntelligence !== false/u);
   assert.match(dashboard, /value\.capabilities\.founderCrm !== false/u);
   assert.match(dashboard, /value\.safety\?\.prospectiveCollection !== "OFF"/u);
@@ -55,9 +57,18 @@ test("customer sessions cannot expose Founder intelligence, Founder CRM, collect
 test("a missing customer operating profile blocks startup without falling back to Fitness", () => {
   assert.match(dashboard, /operatingProfileSource = "configuration-unavailable"/u);
   assert.match(dashboard, /runtimeDatasetSource = \{\s*label: "governed-runtime-unavailable",\s*status: "configuration-required"/u);
-  assert.match(dashboard, /const operatingProfileLoaded = await loadOperatingProfileDefinitions\(\);[\s\S]*?await loadRuntimeProductionDataset\(\);[\s\S]*?if \(!operatingProfileLoaded\) \{[\s\S]*?disableRouteIqProspectiveAdmission\("workspace_configuration_unavailable"\)[\s\S]*?return;[\s\S]*?\}[\s\S]*?await loadRouteReplenishmentEngine\(\);/u);
+  assert.match(dashboard, /disableRouteIqProspectiveAdmission\("workspace_configuration_unavailable"\);[\s\S]*?renderRouteIqCustomerPwaSessionBlocked\("configuration_unavailable"\);[\s\S]*?return false;/u);
+  assert.match(dashboard, /const operatingProfileLoaded = await loadOperatingProfileDefinitions\(\);[\s\S]*?if \(!operatingProfileLoaded\) \{[\s\S]*?startupCompleted = false;[\s\S]*?return;[\s\S]*?\}[\s\S]*?await loadRuntimeProductionDataset\(\);[\s\S]*?await loadRouteReplenishmentEngine\(\);/u);
   assert.match(dashboard, /customerStartup\.operationalWorkflowStarted = true;[\s\S]*?await loadRouteReplenishmentEngine\(\);[\s\S]*?initializeRouteIqProspectiveClient\(\);/u);
   assert.doesNotMatch(dashboard, /embeddedOperatingProfile|embeddedBusinessCatalog/u);
+});
+
+test("Dashboard capabilities and action labels use the configured role intersection", () => {
+  assert.match(dashboardPlatform, /validateRouteIqWorkspaceConfigurationRegistry\(registry\)/u);
+  assert.match(dashboardPlatform, /users\[0\]\.roleId !== session\.roleId/u);
+  assert.match(dashboardPlatform, /roles\[0\]\.capabilities\.filter\(capability =>[\s\S]*dashboardCapabilities\.has\(capability\)/u);
+  assert.match(dashboard, /dashboardCapabilityEnabled\(activeDashboardPlatform, capabilityId\)/u);
+  assert.match(dashboard, /dashboardActionLabel\(activeDashboardPlatform, actionId, fallback\)/u);
 });
 
 test("navigation and session expiry fail closed without caching an authenticated app document", () => {
