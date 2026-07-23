@@ -1043,8 +1043,17 @@ const MANIFEST_REPAIR_SUCCESSOR_FILES = Object.freeze([
   PUBLIC_INTEGRITY_READINESS_PATH,
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs"
 ]);
+const PROVENANCE_CLOSURE_SUCCESSOR_FILES = Object.freeze([
+  "overwatch/governance/public-deployment-workflow-v2.json",
+  PUBLIC_INTEGRITY_READINESS_PATH,
+  "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+  "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+  "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+  "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+]);
 const CURRENT_OVERWATCH_SUCCESSOR_FILES = Object.freeze([
   "overwatch/governance/public-deployment-workflow-v2.json",
+  "overwatch/governance/public-deployment-workflow-v2.md",
   PUBLIC_INTEGRITY_READINESS_PATH,
   "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
@@ -1100,10 +1109,19 @@ const MANIFEST_REPAIR_SUCCESSOR = Object.freeze({
   committer: "Prometheus Overwatch <overwatch@prometheus.local>",
   files: MANIFEST_REPAIR_SUCCESSOR_FILES
 });
-const OVERWATCH_SUCCESSOR = Object.freeze({
-  classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
+const PROVENANCE_CLOSURE_SUCCESSOR = Object.freeze({
+  commit: "899e4bbad0a74d2cf9514eda5ba5875b69aa6636",
+  tree: "5fb40124e155e07f89f05c607dc5f2cd346684c0",
   parent: MANIFEST_REPAIR_SUCCESSOR.commit,
   subject: "overwatch: close August 1 successor provenance",
+  author: "Prometheus Overwatch <overwatch@prometheus.local>",
+  committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+  files: PROVENANCE_CLOSURE_SUCCESSOR_FILES
+});
+const OVERWATCH_SUCCESSOR = Object.freeze({
+  classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
+  parent: PROVENANCE_CLOSURE_SUCCESSOR.commit,
+  subject: "overwatch: refresh August 1 workflow pins",
   author: "Prometheus Overwatch <overwatch@prometheus.local>",
   committer: "Prometheus Overwatch <overwatch@prometheus.local>",
   files: CURRENT_OVERWATCH_SUCCESSOR_FILES
@@ -1146,6 +1164,17 @@ const CURRENT_INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
       committerEmail: "overwatch@prometheus.local",
       subject: MANIFEST_REPAIR_SUCCESSOR.subject,
       files: MANIFEST_REPAIR_SUCCESSOR.files
+    }),
+    Object.freeze({
+      commit: PROVENANCE_CLOSURE_SUCCESSOR.commit,
+      tree: PROVENANCE_CLOSURE_SUCCESSOR.tree,
+      parent: PROVENANCE_CLOSURE_SUCCESSOR.parent,
+      authorName: "Prometheus Overwatch",
+      authorEmail: "overwatch@prometheus.local",
+      committerName: "Prometheus Overwatch",
+      committerEmail: "overwatch@prometheus.local",
+      subject: PROVENANCE_CLOSURE_SUCCESSOR.subject,
+      files: PROVENANCE_CLOSURE_SUCCESSOR.files
     })
   ]),
   august1LaunchCloseoutAdmissionSuccessor: Object.freeze({
@@ -2211,6 +2240,10 @@ export function validatePublicIntegrityReadiness(governance) {
       {
         ...MANIFEST_REPAIR_SUCCESSOR,
         files: [...MANIFEST_REPAIR_SUCCESSOR.files]
+      },
+      {
+        ...PROVENANCE_CLOSURE_SUCCESSOR,
+        files: [...PROVENANCE_CLOSURE_SUCCESSOR.files]
       }
     ],
     overwatchSuccessor: {
@@ -2276,7 +2309,8 @@ function verifyCurrentOwnerSuccessor(root, requireCommittedOverwatch) {
     ROLLBACK_SUCCESSOR,
     PROVENANCE_ADMISSION,
     INITIAL_OVERWATCH_SUCCESSOR,
-    MANIFEST_REPAIR_SUCCESSOR
+    MANIFEST_REPAIR_SUCCESSOR,
+    PROVENANCE_CLOSURE_SUCCESSOR
   ]) {
     verifyExactCommit(root, expected);
   }

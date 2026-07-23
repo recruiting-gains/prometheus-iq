@@ -1752,16 +1752,33 @@
           "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
           "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs"
         ]
+      },
+      {
+        "commit": "899e4bbad0a74d2cf9514eda5ba5875b69aa6636",
+        "tree": "5fb40124e155e07f89f05c607dc5f2cd346684c0",
+        "parent": "59fab7bc5f307336fba52d15bc73181cb1a20b04",
+        "subject": "overwatch: close August 1 successor provenance",
+        "author": "Prometheus Overwatch <overwatch@prometheus.local>",
+        "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
+        "files": [
+          "overwatch/governance/public-deployment-workflow-v2.json",
+          "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+          "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+          "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+          "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+        ]
       }
     ],
     "overwatchSuccessor": {
       "classification": "DYNAMIC_EXACT_HEAD_SUCCESSOR",
-      "parent": "59fab7bc5f307336fba52d15bc73181cb1a20b04",
-      "subject": "overwatch: close August 1 successor provenance",
+      "parent": "899e4bbad0a74d2cf9514eda5ba5875b69aa6636",
+      "subject": "overwatch: refresh August 1 workflow pins",
       "author": "Prometheus Overwatch <overwatch@prometheus.local>",
       "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
       "files": [
         "overwatch/governance/public-deployment-workflow-v2.json",
+        "overwatch/governance/public-deployment-workflow-v2.md",
         "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
         "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
         "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",

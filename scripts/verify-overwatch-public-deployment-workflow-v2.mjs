@@ -67,7 +67,7 @@ const ROUTE_IQ_3D_GOVERNANCE_ID = "route-iq-3d-visual-continuity-v1";
 const PACKAGE_PATH = "package.json";
 const HISTORICAL_PACKAGE_SHA256 = "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d";
 const HISTORICAL_3D_PACKAGE_SHA256 = "f34246136a294d5a7180d76a452ff8c9c69bb7d1d35419c1115426b8ea4e0247";
-const CURRENT_PACKAGE_SHA256 = "8bf7f51f8dbb6310031b6d26736dfe5209b2c74d42e5e56de475592f36bb7b51";
+const CURRENT_PACKAGE_SHA256 = "8ddf429fc08acd45eca4f59638324f06a80acab9c949168325299e5b73199e2f";
 const WORKFLOW_V2_TAIL_ANCHOR = "5b5b59509206578336b9671582669b600d0c74d4";
 const WORKFLOW_V2_TAIL_PARENT = "0d828948968b8cedf3b1961c5320c74c03a8e18c";
 const WORKFLOW_V2_TAIL_PATHS = Object.freeze([
@@ -174,8 +174,17 @@ const AUGUST1_MANIFEST_REPAIR_SUCCESSOR_FILES = Object.freeze([
   HISTORICAL_READINESS_GOVERNANCE_PATH,
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs"
 ]);
+const AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR_FILES = Object.freeze([
+  GOVERNANCE_PATH,
+  HISTORICAL_READINESS_GOVERNANCE_PATH,
+  "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+  "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+  "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+  "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+]);
 const AUGUST1_CURRENT_OVERWATCH_SUCCESSOR_FILES = Object.freeze([
   GOVERNANCE_PATH,
+  DOCUMENTATION_PATH,
   HISTORICAL_READINESS_GOVERNANCE_PATH,
   "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
@@ -230,10 +239,19 @@ const AUGUST1_MANIFEST_REPAIR_SUCCESSOR = Object.freeze({
   committer: OVERWATCH_IDENTITY,
   files: AUGUST1_MANIFEST_REPAIR_SUCCESSOR_FILES
 });
-const AUGUST1_OVERWATCH_SUCCESSOR = Object.freeze({
-  classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
+const AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR = Object.freeze({
+  commit: "899e4bbad0a74d2cf9514eda5ba5875b69aa6636",
+  tree: "5fb40124e155e07f89f05c607dc5f2cd346684c0",
   parent: AUGUST1_MANIFEST_REPAIR_SUCCESSOR.commit,
   subject: "overwatch: close August 1 successor provenance",
+  author: OVERWATCH_IDENTITY,
+  committer: OVERWATCH_IDENTITY,
+  files: AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR_FILES
+});
+const AUGUST1_OVERWATCH_SUCCESSOR = Object.freeze({
+  classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
+  parent: AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR.commit,
+  subject: "overwatch: refresh August 1 workflow pins",
   author: OVERWATCH_IDENTITY,
   committer: OVERWATCH_IDENTITY,
   files: AUGUST1_CURRENT_OVERWATCH_SUCCESSOR_FILES
@@ -256,7 +274,8 @@ const AUGUST1_LAUNCH_CLOSEOUT_SUCCESSOR = Object.freeze({
   }),
   overwatchPredecessors: Object.freeze([
     AUGUST1_INITIAL_OVERWATCH_SUCCESSOR,
-    AUGUST1_MANIFEST_REPAIR_SUCCESSOR
+    AUGUST1_MANIFEST_REPAIR_SUCCESSOR,
+    AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR
   ]),
   overwatchSuccessor: AUGUST1_OVERWATCH_SUCCESSOR,
   currentReleaseIdentities: Object.freeze({
@@ -386,8 +405,8 @@ export function evaluatePublicDeploymentWorkflowV2Governance({
       historicalSha256: HISTORICAL_PACKAGE_SHA256,
       successorSha256: CURRENT_PACKAGE_SHA256,
       owner: "Prometheus Overwatch",
-      ownerCommit: "ee80a44b8a28847d4a4acfc3fae8574697661edc",
-      classification: "OVERWATCH_RELEASE_GATE_REGISTRATION_ONLY"
+      ownerCommit: "610383c4e845789859946122283e8014dae35600",
+      classification: "OVERWATCH_AUGUST_1_RELEASE_GATE_REGISTRATION_ONLY"
     },
     {
       predecessorGovernanceId: ROUTE_IQ_3D_GOVERNANCE_ID,
@@ -395,8 +414,8 @@ export function evaluatePublicDeploymentWorkflowV2Governance({
       historicalSha256: HISTORICAL_3D_PACKAGE_SHA256,
       successorSha256: CURRENT_PACKAGE_SHA256,
       owner: "Prometheus Overwatch",
-      ownerCommit: "ee80a44b8a28847d4a4acfc3fae8574697661edc",
-      classification: "OVERWATCH_RELEASE_GATE_REGISTRATION_ONLY"
+      ownerCommit: "610383c4e845789859946122283e8014dae35600",
+      classification: "OVERWATCH_AUGUST_1_RELEASE_GATE_REGISTRATION_ONLY"
     }
   ]), "Protected predecessor successor mapping drifted.");
 
@@ -671,7 +690,8 @@ function verifyAugust1LaunchCloseoutSuccessor(governance) {
     AUGUST1_ROLLBACK_SUCCESSOR,
     AUGUST1_PROVENANCE_ADMISSION,
     AUGUST1_INITIAL_OVERWATCH_SUCCESSOR,
-    AUGUST1_MANIFEST_REPAIR_SUCCESSOR
+    AUGUST1_MANIFEST_REPAIR_SUCCESSOR,
+    AUGUST1_PROVENANCE_CLOSURE_SUCCESSOR
   ]) verifyExactCommit(expected);
 
   const head = git(["rev-parse", "HEAD"]);

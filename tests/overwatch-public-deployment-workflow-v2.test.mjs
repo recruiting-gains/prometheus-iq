@@ -54,13 +54,15 @@ test("historical Workflow v2 evidence remains historical beside exact current ow
     current.overwatchPredecessors.map(item => item.commit),
     [
       "5c20b551820c21b02a0c25c9d38c93474457fd23",
-      "59fab7bc5f307336fba52d15bc73181cb1a20b04"
+      "59fab7bc5f307336fba52d15bc73181cb1a20b04",
+      "899e4bbad0a74d2cf9514eda5ba5875b69aa6636"
     ]
   );
   assert.equal(current.overwatchPredecessors[0].parent, current.provenanceAdmission.commit);
   assert.equal(current.overwatchPredecessors[1].parent, current.overwatchPredecessors[0].commit);
-  assert.equal(current.overwatchSuccessor.parent, current.overwatchPredecessors[1].commit);
-  assert.equal(current.overwatchSuccessor.files.length, 6);
+  assert.equal(current.overwatchPredecessors[2].parent, current.overwatchPredecessors[1].commit);
+  assert.equal(current.overwatchSuccessor.parent, current.overwatchPredecessors[2].commit);
+  assert.equal(current.overwatchSuccessor.files.length, 7);
 });
 
 test("governance fails closed on ownership or production-boundary drift", () => {

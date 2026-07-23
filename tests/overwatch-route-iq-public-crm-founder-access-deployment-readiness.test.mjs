@@ -176,14 +176,16 @@ test("current owner evidence is pinned independently from historical readiness",
     successor.overwatchPredecessors.map(item => item.commit),
     [
       "5c20b551820c21b02a0c25c9d38c93474457fd23",
-      "59fab7bc5f307336fba52d15bc73181cb1a20b04"
+      "59fab7bc5f307336fba52d15bc73181cb1a20b04",
+      "899e4bbad0a74d2cf9514eda5ba5875b69aa6636"
     ]
   );
   assert.equal(successor.overwatchPredecessors[0].parent, successor.provenanceAdmission.commit);
   assert.equal(successor.overwatchPredecessors[1].parent, successor.overwatchPredecessors[0].commit);
-  assert.equal(successor.overwatchSuccessor.parent, successor.overwatchPredecessors[1].commit);
-  assert.equal(successor.overwatchSuccessor.subject, "overwatch: close August 1 successor provenance");
-  assert.equal(successor.overwatchSuccessor.files.length, 6);
+  assert.equal(successor.overwatchPredecessors[2].parent, successor.overwatchPredecessors[1].commit);
+  assert.equal(successor.overwatchSuccessor.parent, successor.overwatchPredecessors[2].commit);
+  assert.equal(successor.overwatchSuccessor.subject, "overwatch: refresh August 1 workflow pins");
+  assert.equal(successor.overwatchSuccessor.files.length, 7);
   assert.deepEqual(successor.currentReleaseIdentities, {
     deploymentAssetsSha256: "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1",
     rollbackContractSha256: "b7be296f51db1b8e8a305a068ebc1b0aa7652813de7b5378b96ac292af8af012",
