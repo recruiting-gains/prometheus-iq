@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "route-iq-business-availability-activation-template-v1",
+  "ownerSubsystem": "Prometheus Infrastructure",
+  "targetWorker": "prometheus-iq",
+  "defaultState": "OFF",
+  "productionActivationAuthorized": false,
+  "schedule": {
+    "cron": "0 4 * * *",
+    "declaredInWrangler": false,
+    "automaticRefreshActive": false,
+    "maximumRefreshIntervalHours": 24
+  },
+  "runtime": {
+    "modeVariable": "ROUTE_IQ_BUSINESS_AVAILABILITY_MODE",
+    "activationVariable": "ROUTE_IQ_BUSINESS_AVAILABILITY_ACTIVATION",
+    "coordinatorBinding": "ROUTE_IQ_BUSINESS_AVAILABILITY_COORDINATOR",
+    "coordinatorClass": "RouteIqBusinessAvailabilityCoordinator",
+    "migrationTag": "route-iq-business-availability-sqlite-v1",
+    "dataProducerBinding": "ROUTE_IQ_BUSINESS_AVAILABILITY_DATA_PRODUCER"
+  },
+  "requiredActivationChecks": [
+    "separate Founder activation authorization",
+    "canonical Administration workspace and operating-profile IDs",
+    "production-authorized Data manifest and approved record roster",
+    "authenticated principal territory assignment",
+    "Data producer service binding",
+    "approved provider identifier and contract allowlist",
+    "provider credential provisioned outside source control",
+    "daily trigger source declaration",
+    "budget and monitoring review",
+    "forward-compatible rollback artifact qualification"
+  ],
+  "prohibitedUntilActivation": [
+    "provider request",
+    "Durable Object instantiation",
+    "runtime storage write",
+    "scheduled trigger",
+    "recommendation influence",
+    "prospective collection",
+    "active cohort"
+  ],
+  "safety": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "demoFallbackAllowed": false,
+    "crossWorkspaceFallbackAllowed": false,
+    "publicWorkerAffected": false
+  }
+}

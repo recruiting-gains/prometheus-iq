@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "route-iq-business-availability-forward-rollback-v1",
+  "ownerSubsystem": "Prometheus Infrastructure",
+  "targetWorker": "prometheus-iq",
+  "deploymentAuthorized": false,
+  "nativeCloudflareRollbackAllowed": false,
+  "finalBundleDeferred": true,
+  "inertRuntime": {
+    "mode": "OFF",
+    "scheduledTriggerPresent": false,
+    "readState": "INACTIVE_FAIL_CLOSED",
+    "providerRequestsAllowed": false,
+    "storageWritesAllowed": false
+  },
+  "statefulCompatibility": {
+    "binding": "ROUTE_IQ_BUSINESS_AVAILABILITY_COORDINATOR",
+    "class": "RouteIqBusinessAvailabilityCoordinator",
+    "migrationTag": "route-iq-business-availability-sqlite-v1",
+    "preserveBinding": true,
+    "preserveClassExport": true,
+    "preserveMigrationHistory": true,
+    "preserveNamespace": true,
+    "preserveAcceptedSnapshots": true,
+    "deletedClassesMigrationAllowed": false
+  },
+  "existingPrivateStatePreserved": {
+    "prospectiveCoordinatorBinding": "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR",
+    "prospectiveCoordinatorClass": "RouteIqProspectiveShadowCoordinator",
+    "prospectiveMigrationTag": "route-iq-prospective-shadow-sqlite-v1",
+    "existingBindingsAndSecrets": true,
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF"
+  },
+  "rollbackProcedure": [
+    "qualify a new forward deployment from the retained application baseline",
+    "retain both Durable Object class exports, bindings, and additive migration history",
+    "set ROUTE_IQ_BUSINESS_AVAILABILITY_MODE to OFF",
+    "omit the business-availability scheduled trigger",
+    "retain accepted SQLite records without reading, deleting, or rewriting them",
+    "run private-Worker GET and HEAD smoke verification",
+    "confirm the public Worker is unchanged"
+  ]
+}

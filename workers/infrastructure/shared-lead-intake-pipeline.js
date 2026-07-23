@@ -3,42 +3,111 @@ import {
 } from "./shared-lead-intake-packet.js";
 
 const SHARED_LEAD_INTAKE_VERSION = "shared-workspace-lead-intake.v1";
+const SHARED_LEAD_WORKSPACE_REGISTRY_VERSION = "route-iq-shared-lead-workspace-registry-v2";
 const PARTNER_INTAKE_PATH = "/api/partner-intake";
 const STORAGE_PREFIX = "shared-lead-intake";
 const MAX_BODY_BYTES = 64 * 1024;
+const WORKSPACE_REGISTRY_ENV = "ROUTE_IQ_SHARED_LEAD_WORKSPACE_REGISTRY";
+const ID_PATTERN = /^[a-z][a-z0-9_]{2,127}$/u;
+const CRM_PATH_PATTERN = /^crm:\/\/workspace\/[a-z][a-z0-9_]{2,127}\/[a-z][a-z0-9_/-]{1,127}$/u;
 
-const WORKSPACES = Object.freeze({
-  fitness_connection: Object.freeze({
-    workspaceId: "fitness_connection",
-    workspaceName: "Fitness Connection",
-    operatingProfileId: "fitness",
-    operatingProfileLabel: "Fitness",
-    crmWorkspacePath: "crm://workspace/fitness_connection/leads",
-    aliases: Object.freeze([
-      "fitness_connection",
-      "fitness-connection",
-      "fitness connection",
-      "fitness",
-      "fc",
-      "fitness_connection_partner_intake"
-    ])
-  }),
-  smoothie_depot: Object.freeze({
-    workspaceId: "smoothie_depot",
-    workspaceName: "Smoothie Depot",
-    operatingProfileId: "franchise_development",
-    operatingProfileLabel: "Franchise Development",
-    crmWorkspacePath: "crm://workspace/smoothie_depot/candidate_pipeline",
-    aliases: Object.freeze([
-      "smoothie_depot",
-      "smoothie-depot",
-      "smoothie depot",
-      "smoothie",
-      "sd",
-      "smoothie_depot_partner_intake"
-    ])
-  })
-});
+class SharedLeadWorkspaceRegistryError extends Error {
+  constructor() {
+    super("Shared lead workspace configuration is unavailable.");
+    this.name = "SharedLeadWorkspaceRegistryError";
+    this.code = "shared_lead_workspace_registry_invalid";
+  }
+}
+
+function failWorkspaceRegistry() {
+  throw new SharedLeadWorkspaceRegistryError();
+}
+
+function exactKeys(value, expected) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) failWorkspaceRegistry();
+  const actual = Object.keys(value).sort();
+  const wanted = [...expected].sort();
+  if (actual.length !== wanted.length || actual.some((key, index) => key !== wanted[index])) {
+    failWorkspaceRegistry();
+  }
+}
+
+function validateWorkspaceRegistry(source) {
+  let registry = source;
+  if (typeof source === "string") {
+    if (new TextEncoder().encode(source).byteLength > 64 * 1024) failWorkspaceRegistry();
+    try {
+      registry = JSON.parse(source);
+    } catch {
+      failWorkspaceRegistry();
+    }
+  }
+  exactKeys(registry, ["schemaVersion", "sourceRegistryVersion", "workspaces"]);
+  if (registry.schemaVersion !== SHARED_LEAD_WORKSPACE_REGISTRY_VERSION
+    || typeof registry.sourceRegistryVersion !== "string"
+    || registry.sourceRegistryVersion.length < 1
+    || registry.sourceRegistryVersion.length > 128
+    || !Array.isArray(registry.workspaces)
+    || registry.workspaces.length < 1
+    || registry.workspaces.length > 10) {
+    failWorkspaceRegistry();
+  }
+  const workspaceIds = new Set();
+  const aliases = new Set();
+  const workspaces = registry.workspaces.map(workspace => {
+    exactKeys(workspace, [
+      "workspaceId",
+      "workspaceName",
+      "operatingProfileId",
+      "operatingProfileLabel",
+      "crmWorkspacePath",
+      "aliases",
+      "active",
+      "intakeAuthorized"
+    ]);
+    if (!ID_PATTERN.test(workspace.workspaceId || "")
+      || !ID_PATTERN.test(workspace.operatingProfileId || "")
+      || workspaceIds.has(workspace.workspaceId)
+      || typeof workspace.workspaceName !== "string"
+      || workspace.workspaceName.length < 1
+      || workspace.workspaceName.length > 120
+      || /[\u0000-\u001F\u007F]/u.test(workspace.workspaceName)
+      || typeof workspace.operatingProfileLabel !== "string"
+      || workspace.operatingProfileLabel.length < 1
+      || workspace.operatingProfileLabel.length > 120
+      || /[\u0000-\u001F\u007F]/u.test(workspace.operatingProfileLabel)
+      || !CRM_PATH_PATTERN.test(workspace.crmWorkspacePath || "")
+      || workspace.active !== true
+      || workspace.intakeAuthorized !== true
+      || !Array.isArray(workspace.aliases)
+      || workspace.aliases.length < 1
+      || workspace.aliases.length > 16) {
+      failWorkspaceRegistry();
+    }
+    workspaceIds.add(workspace.workspaceId);
+    const normalizedAliases = workspace.aliases.map(alias => normalizeText(alias, 120).toLowerCase());
+    const aliasSlugs = new Set(normalizedAliases.map(slug));
+    if (normalizedAliases.some(alias => !alias)
+      || new Set(normalizedAliases).size !== normalizedAliases.length
+      || [...aliasSlugs].some(alias => aliases.has(alias))) {
+      failWorkspaceRegistry();
+    }
+    aliasSlugs.forEach(alias => aliases.add(alias));
+    return Object.freeze({
+      workspaceId: workspace.workspaceId,
+      workspaceName: workspace.workspaceName,
+      operatingProfileId: workspace.operatingProfileId,
+      operatingProfileLabel: workspace.operatingProfileLabel,
+      crmWorkspacePath: workspace.crmWorkspacePath,
+      aliases: Object.freeze(normalizedAliases)
+    });
+  });
+  return Object.freeze({
+    schemaVersion: registry.schemaVersion,
+    sourceRegistryVersion: registry.sourceRegistryVersion,
+    workspaces: Object.freeze(workspaces)
+  });
+}
 
 function nowIso(now = new Date()) {
   const date = now instanceof Date ? now : new Date(now);
@@ -74,8 +143,8 @@ function stableHash(value) {
   return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
-function workspaceRegistry() {
-  return Object.values(WORKSPACES).map(workspace => ({
+function workspaceRegistry(registrySource) {
+  return validateWorkspaceRegistry(registrySource).workspaces.map(workspace => ({
     workspaceId: workspace.workspaceId,
     workspaceName: workspace.workspaceName,
     operatingProfileId: workspace.operatingProfileId,
@@ -84,7 +153,8 @@ function workspaceRegistry() {
   }));
 }
 
-function resolveWorkspace(input = {}) {
+function resolveWorkspace(input = {}, registrySource) {
+  const registry = validateWorkspaceRegistry(registrySource);
   const candidates = [
     input.workspaceId,
     input.workspace_id,
@@ -102,7 +172,7 @@ function resolveWorkspace(input = {}) {
 
   for (const candidate of candidates) {
     const candidateSlug = slug(candidate);
-    const match = Object.values(WORKSPACES).find(workspace => {
+    const match = registry.workspaces.find(workspace => {
       return workspace.aliases.some(alias => alias === candidate || slug(alias) === candidateSlug);
     });
     if (match) return match;
@@ -446,16 +516,30 @@ async function createSharedLeadIntakeSubmission({
   request,
   env = {},
   now = new Date(),
-  idFactory
+  idFactory,
+  workspaceRegistrySource
 }) {
   const submittedAt = nowIso(now);
-  const workspace = resolveWorkspace(input);
+  const registrySource = workspaceRegistrySource || env?.[WORKSPACE_REGISTRY_ENV];
+  let workspace;
+  let availableWorkspaces;
+  try {
+    workspace = resolveWorkspace(input, registrySource);
+    availableWorkspaces = workspaceRegistry(registrySource);
+  } catch (error) {
+    if (!(error instanceof SharedLeadWorkspaceRegistryError)) throw error;
+    return {
+      ok: false,
+      status: 503,
+      errors: ["Shared lead workspace configuration is unavailable."]
+    };
+  }
   if (!workspace) {
     return {
       ok: false,
       status: 400,
       errors: ["Unknown or missing workspace. Intake submissions must target a registered isolated workspace."],
-      workspaceRegistry: workspaceRegistry()
+      workspaceRegistry: availableWorkspaces
     };
   }
 
@@ -686,11 +770,13 @@ async function handlePartnerIntakeRequest(request, env) {
 export {
   PARTNER_INTAKE_PATH,
   SHARED_LEAD_INTAKE_VERSION,
-  WORKSPACES,
+  SHARED_LEAD_WORKSPACE_REGISTRY_VERSION,
+  WORKSPACE_REGISTRY_ENV,
   createSharedLeadIntakeSubmission,
   handlePartnerIntakeRequest,
   publicSubmissionResponse,
   resolveWorkspace,
+  validateWorkspaceRegistry,
   validateSubmission,
   workspaceRegistry
 };

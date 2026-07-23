@@ -20,6 +20,10 @@
       {
         "name": "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR",
         "class_name": "RouteIqProspectiveShadowCoordinator"
+      },
+      {
+        "name": "ROUTE_IQ_BUSINESS_AVAILABILITY_COORDINATOR",
+        "class_name": "RouteIqBusinessAvailabilityCoordinator"
       }
     ]
   },
@@ -28,6 +32,12 @@
       "tag": "route-iq-prospective-shadow-sqlite-v1",
       "new_sqlite_classes": [
         "RouteIqProspectiveShadowCoordinator"
+      ]
+    },
+    {
+      "tag": "route-iq-business-availability-sqlite-v1",
+      "new_sqlite_classes": [
+        "RouteIqBusinessAvailabilityCoordinator"
       ]
     }
   ],
@@ -40,6 +50,7 @@
     "INSTAGRAM_CONNECTION_VERIFIED_AT": "2026-07-01T23:18:58.005Z",
     "INSTAGRAM_GRANTED_SCOPES": "instagram_business_basic,instagram_business_manage_insights",
     "INSTAGRAM_ACCOUNT_HANDLE": "@prometheus.iq",
+    "ROUTE_IQ_BUSINESS_AVAILABILITY_MODE": "OFF",
     "FOUNDER_NOTIFICATION_FROM": "intake@prometheusrouteiq.com",
     "FOUNDER_NOTIFICATION_TO": "prometheusrouteiq@gmail.com"
   },

@@ -36,6 +36,12 @@ import {
   routeIqCustomerPwaErrorResponse
 } from "./infrastructure/route-iq-august-1-customer-pwa-runtime.js";
 import {
+  ROUTE_IQ_BUSINESS_AVAILABILITY_PATH,
+  handleRouteIqBusinessAvailabilityRequest,
+  handleRouteIqBusinessAvailabilityScheduled,
+  isRouteIqBusinessAvailabilityPath
+} from "./infrastructure/route-iq-business-availability-runtime.js";
+import {
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
   getRouteIqProspectiveActivation,
   handleRouteIqProspectiveShadowRequest,
@@ -963,6 +969,9 @@ async function handleRouteIqCustomerAwareFieldSessionRequest(request, env, execu
 
 async function handleApiRequest(request, env, executionContext, { dailySnapshotTestHooks } = {}) {
   const url = new URL(request.url);
+  if (isRouteIqBusinessAvailabilityPath(url.pathname)) {
+    return handleRouteIqBusinessAvailabilityRequest(request, env);
+  }
   if (url.pathname === ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH) {
     return handleRouteIqFounderDailySnapshot(request, env, { testHooks: dailySnapshotTestHooks });
   }
@@ -1031,6 +1040,9 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
 export default {
   async fetch(request, env, executionContext) {
     return handlePrometheusIqWorkerRequest(request, env, executionContext);
+  },
+  async scheduled(event, env, executionContext) {
+    return handleRouteIqBusinessAvailabilityScheduled(event, env, executionContext);
   }
 };
 
@@ -1045,11 +1057,14 @@ export {
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PRINCIPAL_ID,
+  ROUTE_IQ_BUSINESS_AVAILABILITY_PATH,
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
   ROUTE_IQ_REQUEST_CRM_PATH,
   STATUS_PATH,
   TOKEN_STORE_KEY,
   handleRouteIqRequestCrmRuntimeRequest,
+  handleRouteIqBusinessAvailabilityRequest,
+  handleRouteIqBusinessAvailabilityScheduled,
   handleRouteIqFounderDailySnapshot,
   handleRouteIqFieldSessionHandoff,
   handleRouteIqProspectiveShadowRequest,
@@ -1064,3 +1079,7 @@ export {
 export {
   RouteIqRequestCrmCoordinator
 } from "./infrastructure/route-iq-request-crm-durable-object.js";
+
+export {
+  RouteIqBusinessAvailabilityCoordinator
+} from "./infrastructure/route-iq-business-availability-durable-object.js";
