@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "route-iq-business-availability-refresh-package-v1",
+  "ownerSubsystem": "Prometheus Infrastructure",
+  "targetWorker": "prometheus-iq",
+  "defaultState": "OFF",
+  "productionActivationAuthorized": false,
+  "noCredentialProvisioningPerformed": true,
+  "runtime": {
+    "modeVariable": "ROUTE_IQ_BUSINESS_AVAILABILITY_MODE",
+    "activationVariable": "ROUTE_IQ_BUSINESS_AVAILABILITY_ACTIVATION",
+    "coordinatorBinding": "ROUTE_IQ_BUSINESS_AVAILABILITY_COORDINATOR",
+    "coordinatorClass": "RouteIqBusinessAvailabilityCoordinator",
+    "migrationTag": "route-iq-business-availability-sqlite-v1",
+    "dataProducerBinding": "ROUTE_IQ_BUSINESS_AVAILABILITY_DATA_PRODUCER",
+    "scheduledHandler": "handleRouteIqBusinessAvailabilityScheduled"
+  },
+  "schedule": {
+    "cron": "0 4 * * *",
+    "declaredInWrangler": false,
+    "automaticRefreshActive": false,
+    "idempotencyKey": "configurationVersion + scheduledAt + workspaceId + operatingProfileId + manifestId + manifestArtifactSha256",
+    "maximumRefreshIntervalHours": 24
+  },
+  "monitoring": {
+    "fixedEvent": "ROUTE_IQ_AVAILABILITY_SCHEDULED_REFRESH",
+    "summaryMethod": "readMonitoringSummary",
+    "failureReceiptMethod": "recordRefreshFailure",
+    "reasonCodes": [
+      "PROVIDER_TIMEOUT",
+      "PROVIDER_NETWORK_FAILED",
+      "PROVIDER_AUTHORIZATION_DENIED",
+      "PROVIDER_RATE_LIMITED",
+      "PROVIDER_UNAVAILABLE",
+      "PROVIDER_RESPONSE_INVALID",
+      "DATA_PROJECTION_INVALID",
+      "DATA_PRODUCER_UNAVAILABLE"
+    ]
+  },
+  "failureHandling": {
+    "providerFailureCannotPromoteStaleData": true,
+    "runtimeRetryPolicy": "NONE",
+    "durableConflictsRecorded": true,
+    "projectionCommitMarkerWrittenLast": true,
+    "refreshOutboxRecoveryIdempotent": true
+  },
+  "activationInstructions": {
+    "documentation": "docs/route-iq-business-availability-infrastructure-v1.md",
+    "template": "workers/infrastructure/route-iq-business-availability-activation-template-v1.json",
+    "separateFounderAuthorizationRequired": true,
+    "separateCredentialProvisioningRequired": true,
+    "separateSchedulerActivationRequired": true,
+    "separateDeploymentRequired": true
+  },
+  "tests": {
+    "verifier": "scripts/verify-route-iq-business-availability-refresh-package.mjs",
+    "regression": "tests/route-iq-business-availability-refresh-package.test.mjs",
+    "dryRun": "tests/route-iq-business-availability-infrastructure.test.mjs"
+  },
+  "safety": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "publicWorkerAffected": false,
+    "demoFallbackAllowed": false,
+    "crossWorkspaceFallbackAllowed": false
+  }
+}

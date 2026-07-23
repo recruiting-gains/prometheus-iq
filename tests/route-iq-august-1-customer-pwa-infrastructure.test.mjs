@@ -40,12 +40,14 @@ const now = new Date("2026-08-01T14:00:00.000Z");
 const nowSeconds = Math.floor(now.getTime() / 1000);
 const issuer = "https://prometheus-customer-test.cloudflareaccess.com";
 const audience = "route-iq-customer-pwa-test-audience";
-const runtimeAssets = Object.freeze({
+const legacyLaunchRuntimeAssets = Object.freeze({
   fullPool: "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
   activePool: "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
   quarantinePool: "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
   businessHours: "/data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json"
 });
+const workspaceConfigurationPath = "/administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json";
+const businessManifestRegistryPath = "/data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json";
 const dashboardSource = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
 const primaryKeys = generateKeyPairSync("rsa", { modulusLength: 2048 });
@@ -113,13 +115,112 @@ function activeEnvelope(registry) {
       workspaceId: workspace.workspaceId,
       operatingProfileId: workspace.operatingProfileId,
       authorizedUserIds: workspace.users.map(user => user.userId),
-      runtimeAssets
+      runtimeAssets: legacyLaunchRuntimeAssets
     }))
   };
 }
 
 const canonicalRegistry = activeCustomerRegistry();
 const canonicalEnvelope = activeEnvelope(canonicalRegistry);
+
+function trustedRuntimeBindings(registry = canonicalRegistry) {
+  const workspaces = registry.workspaces.map(workspace => {
+    const manifestId = `${workspace.workspaceId}_approved_business_roster`;
+    const artifactPath = `data/route-iq-commercial-readiness-v1/fixtures/${workspace.workspaceId}-approved-businesses-v1.json`;
+    return {
+      workspaceId: workspace.workspaceId,
+      operatingProfile: { profileId: workspace.operatingProfileId },
+      roles: workspace.roles.map(role => ({ roleId: role.roleId })),
+      users: workspace.users.map(user => ({
+        userId: user.userId,
+        representativeId: user.representativeId,
+        roleId: user.roleId,
+        active: user.active
+      })),
+      fallbackPolicy: {
+        mode: "FAIL_CLOSED",
+        demoCatalogAllowed: false,
+        embeddedBusinessCatalogAllowed: false,
+        crossWorkspaceFallbackAllowed: false
+      },
+      opportunitySources: [{
+        workspaceId: workspace.workspaceId,
+        profileId: workspace.operatingProfileId,
+        manifestId,
+        manifestRegistryPath: businessManifestRegistryPath.slice(1),
+        artifactPath,
+        classification: "CUSTOMER_GOVERNED_DATA",
+        manifestApprovalState: "APPROVED",
+        productionUseAuthorized: true
+      }]
+    };
+  });
+  const manifests = workspaces.map((workspace, index) => ({
+    manifestId: workspace.opportunitySources[0].manifestId,
+    manifestVersion: "route-iq-workspace-business-artifact-manifest-v1",
+    workspaceId: workspace.workspaceId,
+    operatingProfileId: workspace.operatingProfile.profileId,
+    artifactPath: workspace.opportunitySources[0].artifactPath,
+    artifactSha256: String(index + 1).repeat(64).slice(0, 64),
+    classification: workspace.opportunitySources[0].classification,
+    approvalState: "APPROVED",
+    productionUseAuthorized: true,
+    demoFallbackAllowed: false,
+    crossWorkspaceFallbackAllowed: false
+  }));
+  return {
+    workspaceConfiguration: {
+      path: workspaceConfigurationPath,
+      registry: {
+        schemaVersion: "route-iq-workspace-configuration-v2",
+        authority: "prometheus_administration",
+        safety: {
+          collection: "OFF",
+          activeCohorts: 0,
+          recommendationInfluence: "OFF"
+        },
+        workspaces
+      }
+    },
+    businessManifestRegistry: {
+      path: businessManifestRegistryPath,
+      registry: {
+        schemaVersion: "route-iq-workspace-business-artifact-manifest-v1",
+        registryVersion: "route-iq-workspace-business-artifact-manifest-registry-v1",
+        fallbackPolicy: "FAIL_CLOSED_NO_DEMO_OR_CROSS_WORKSPACE_FALLBACK",
+        manifests
+      }
+    },
+    businessHours: workspaces.map(workspace => ({
+      workspaceId: workspace.workspaceId,
+      operatingProfileId: workspace.operatingProfile.profileId,
+      path: `/data/route-iq-commercial-readiness-v1/fixtures/${workspace.workspaceId}-business-hours-v1.json`,
+      artifact: {
+        schemaVersion: "prometheus-data-business-hours-v1",
+        workspaceId: workspace.workspaceId,
+        operatingProfileId: workspace.operatingProfile.profileId,
+        freshnessPolicy: {
+          providerRefreshIntervalHours: 24,
+          freshnessThresholdHours: 24
+        },
+        records: []
+      }
+    }))
+  };
+}
+
+function expectedRuntimeAssets(registry = canonicalRegistry, workspaceIndex = 0) {
+  const bindings = trustedRuntimeBindings(registry);
+  const workspace = bindings.workspaceConfiguration.registry.workspaces[workspaceIndex];
+  const manifest = bindings.businessManifestRegistry.registry.manifests[workspaceIndex];
+  const hours = bindings.businessHours[workspaceIndex];
+  return {
+    workspaceConfiguration: workspaceConfigurationPath,
+    businessManifestRegistry: businessManifestRegistryPath,
+    businessRoster: `/${manifest.artifactPath}`,
+    businessHours: hours.path
+  };
+}
 
 function testHooks(overrides = {}) {
   return {
@@ -128,6 +229,7 @@ function testHooks(overrides = {}) {
     keyResolver: primaryKeyResolver,
     envelope: canonicalEnvelope,
     registry: canonicalRegistry,
+    runtimeBindings: trustedRuntimeBindings(),
     ...overrides
   };
 }
@@ -247,6 +349,7 @@ test("Infrastructure contract exports the exact synchronous session marker and r
   assert.equal(contract.sessionContract.htmlElement, "template#routeIqCustomerPwaSession");
   assert.equal(contract.sessionContract.injectionMode, "REPLACE_EXACT_MARKER_TEXT_INSIDE_EXISTING_TEMPLATE");
   assert.equal(contract.sessionContract.additionalElementCreated, false);
+  assert.equal(contract.contractVersion, "route-iq-august-1-customer-pwa-runtime-v2");
   assert.deepEqual(contract.sessionContract.responseKeys, ROUTE_IQ_CUSTOMER_PWA_SESSION_RESPONSE_KEYS);
   assert.deepEqual(contract.sessionContract.sessionKeys, ROUTE_IQ_CUSTOMER_PWA_SESSION_KEYS);
   assert.deepEqual(contract.sessionContract.capabilityKeys, ROUTE_IQ_CUSTOMER_PWA_SESSION_CAPABILITY_KEYS);
@@ -308,6 +411,11 @@ test("valid exact Access principal receives only the bounded 2-company 40-user s
   assert.equal(body.session.representativeId, canonicalRegistry.workspaces[0].users[0].representativeId);
   assert.equal(body.session.displayName, canonicalRegistry.workspaces[0].users[0].displayName);
   assert.equal(body.session.roleId, "customer_owner");
+  assert.deepEqual(body.session.runtimeAssets, expectedRuntimeAssets());
+  assert.equal(Object.hasOwn(body.session.runtimeAssets, "fullPool"), false);
+  assert.equal(Object.hasOwn(body.session.runtimeAssets, "activePool"), false);
+  assert.equal(Object.hasOwn(body.session.runtimeAssets, "quarantinePool"), false);
+  assert.notDeepEqual(body.session.runtimeAssets, legacyLaunchRuntimeAssets);
   assert.equal(body.session.expiresAt, new Date((nowSeconds + 300) * 1000).toISOString());
   assert.equal(body.session.capabilities.founderIntelligence, false);
   assert.equal(body.session.capabilities.founderCrm, false);
@@ -523,6 +631,76 @@ test("role and workspace contract mismatches cannot produce a customer session",
   assert.equal((await profileResponse.json()).code, ROUTE_IQ_CUSTOMER_PWA_FAILURES.launchInvalid);
 });
 
+test("trusted Administration and Data bindings exclusively derive role and runtime assets", async t => {
+  const token = await accessToken();
+
+  await t.test("legacy launch asset paths cannot alter the emitted session", async () => {
+    const envelope = clone(canonicalEnvelope);
+    envelope.workspaceAdmissions[0].runtimeAssets = {
+      fullPool: "/data/untrusted/legacy-full-pool.json",
+      activePool: "/data/untrusted/legacy-active-pool.json",
+      quarantinePool: "/data/untrusted/legacy-quarantine-pool.json",
+      businessHours: "/data/untrusted/legacy-business-hours.json"
+    };
+    const response = await handleRouteIqCustomerPwaRequest(
+      customerRequest(ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH, token),
+      enabledEnv(),
+      { testHooks: testHooks({ envelope }) }
+    );
+    assert.equal(response.status, 200);
+    assert.deepEqual((await response.json()).session.runtimeAssets, expectedRuntimeAssets());
+  });
+
+  await t.test("Administration role mismatch fails closed", async () => {
+    const bindings = clone(trustedRuntimeBindings());
+    bindings.workspaceConfiguration.registry.workspaces[0].users[0].roleId = "customer_manager";
+    const response = await handleRouteIqCustomerPwaRequest(
+      customerRequest(ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH, token),
+      enabledEnv(),
+      { testHooks: testHooks({ runtimeBindings: bindings }) }
+    );
+    assert.equal(response.status, 403);
+    assert.equal((await response.json()).code, ROUTE_IQ_CUSTOMER_PWA_FAILURES.roleUnauthorized);
+  });
+
+  await t.test("manifest and approved-roster mismatch fails closed", async () => {
+    const bindings = clone(trustedRuntimeBindings());
+    bindings.businessManifestRegistry.registry.manifests[0].artifactPath =
+      "data/route-iq-commercial-readiness-v1/fixtures/unbound-approved-businesses-v1.json";
+    const response = await handleRouteIqCustomerPwaRequest(
+      customerRequest(ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH, token),
+      enabledEnv(),
+      { testHooks: testHooks({ runtimeBindings: bindings }) }
+    );
+    assert.equal(response.status, 503);
+    assert.equal((await response.json()).code, ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid);
+  });
+
+  await t.test("cross-profile business-hours binding fails closed", async () => {
+    const bindings = clone(trustedRuntimeBindings());
+    bindings.businessHours[0].operatingProfileId = "wrong_profile";
+    const response = await handleRouteIqCustomerPwaRequest(
+      customerRequest(ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH, token),
+      enabledEnv(),
+      { testHooks: testHooks({ runtimeBindings: bindings }) }
+    );
+    assert.equal(response.status, 503);
+    assert.equal((await response.json()).code, ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid);
+  });
+
+  await t.test("hours beyond the 24-hour ceiling fail closed", async () => {
+    const bindings = clone(trustedRuntimeBindings());
+    bindings.businessHours[0].artifact.freshnessPolicy.freshnessThresholdHours = 25;
+    const response = await handleRouteIqCustomerPwaRequest(
+      customerRequest(ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH, token),
+      enabledEnv(),
+      { testHooks: testHooks({ runtimeBindings: bindings }) }
+    );
+    assert.equal(response.status, 503);
+    assert.equal((await response.json()).code, ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid);
+  });
+});
+
 test("customer launch mode binds field-session writes to the verified workspace and representative", async () => {
   const token = await accessToken({ subject: fixtureSubject(1, 3) });
   const principalWorkspace = canonicalRegistry.workspaces[0];
@@ -582,7 +760,8 @@ test("test-only clock and key injection cannot be enabled incompletely", async (
   const token = await accessToken();
   for (const incomplete of [
     { enabled: true, currentDate: now },
-    { enabled: true, keyResolver: primaryKeyResolver }
+    { enabled: true, keyResolver: primaryKeyResolver },
+    { enabled: true, currentDate: now, keyResolver: primaryKeyResolver }
   ]) {
     const response = await handleRouteIqCustomerPwaRequest(
       customerRequest(ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH, token),

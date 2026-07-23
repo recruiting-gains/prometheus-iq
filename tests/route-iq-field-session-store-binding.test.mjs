@@ -154,8 +154,8 @@ test("conflicting evidence and cross-workspace access fail closed without mutati
 
   const writesBeforeIsolationChecks = binding.writes.length;
   await assert.rejects(() => readRouteIqFieldSessionArchive({
-    workspaceId: "smoothie_depot",
-    operatingProfileId: "franchise_development",
+    workspaceId: "synthetic_distribution",
+    operatingProfileId: "outside_sales",
     sessionId: SESSION_ID
   }, { env: { [routeIqFieldSessionStoreBinding]: binding } }), /Unknown field-session workspace/);
   await assert.rejects(() => readRouteIqFieldSessionArchive({

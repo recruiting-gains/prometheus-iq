@@ -1,7 +1,13 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
+import workspaceConfigurationRegistry from "../../administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json" with { type: "json" };
+import {
+  validateRouteIqWorkspaceConfigurationRegistry
+} from "../../administration/contracts/route-iq-workspace-configuration-v2-validation.mjs";
 import launchEnvelope from "../../data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope-v1.json" with { type: "json" };
 import commercialWorkspaceRegistry from "../../data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json" with { type: "json" };
+import businessManifestRegistry from "../../data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json" with { type: "json" };
+import fitnessConnectionBusinessHours from "../../data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json" with { type: "json" };
 import {
   assertRouteIqAugust1LaunchResourceAccess,
   authorizeRouteIqAugust1LaunchPrincipal,
@@ -16,7 +22,7 @@ export const ROUTE_IQ_CUSTOMER_PWA_TRAILING_SLASH_PATH = "/app/";
 export const ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH = "/api/dashboard/route-iq/customer/session";
 export const ROUTE_IQ_CUSTOMER_PWA_SESSION_MARKER = "__ROUTE_IQ_CUSTOMER_PWA_SESSION__";
 export const ROUTE_IQ_CUSTOMER_PWA_SESSION_TEMPLATE_ID = "routeIqCustomerPwaSession";
-export const ROUTE_IQ_CUSTOMER_PWA_SESSION_CONTRACT_VERSION = "route-iq-customer-pwa-session-v1";
+export const ROUTE_IQ_CUSTOMER_PWA_SESSION_CONTRACT_VERSION = "route-iq-customer-pwa-session-v2";
 export const ROUTE_IQ_CUSTOMER_PWA_ENV = Object.freeze({
   enabled: "ROUTE_IQ_CUSTOMER_PWA_LAUNCH_ENABLED",
   workerName: "ROUTE_IQ_CUSTOMER_PWA_WORKER_NAME",
@@ -47,9 +53,9 @@ export const ROUTE_IQ_CUSTOMER_PWA_SESSION_CAPABILITY_KEYS = Object.freeze([
   "founderCrm"
 ]);
 export const ROUTE_IQ_CUSTOMER_PWA_SESSION_RUNTIME_ASSET_KEYS = Object.freeze([
-  "fullPool",
-  "activePool",
-  "quarantinePool",
+  "workspaceConfiguration",
+  "businessManifestRegistry",
+  "businessRoster",
   "businessHours"
 ]);
 export const ROUTE_IQ_CUSTOMER_PWA_SESSION_SAFETY_KEYS = Object.freeze([
@@ -79,6 +85,7 @@ export const ROUTE_IQ_CUSTOMER_PWA_FAILURES = Object.freeze({
   roleUnauthorized: "route_iq_customer_pwa_role_unauthorized",
   scopeMismatch: "route_iq_customer_pwa_scope_mismatch",
   crossUserWriteDenied: "route_iq_customer_pwa_cross_user_write_denied",
+  runtimeBindingInvalid: "route_iq_customer_pwa_runtime_binding_invalid",
   assetUnavailable: "route_iq_customer_pwa_asset_unavailable",
   routeNotFound: "route_iq_customer_pwa_route_not_found",
   methodNotAllowed: "route_iq_customer_pwa_method_not_allowed"
@@ -89,6 +96,18 @@ const MAX_ASSERTION_BYTES = 16 * 1024;
 const MAX_APP_HTML_BYTES = 4 * 1024 * 1024;
 const REQUIRED_ACCESS_CLAIMS = Object.freeze(["sub", "iat", "exp"]);
 const FIXED_ERROR_MESSAGE = "Route IQ customer access is unavailable.";
+const STRICT_ID = /^[a-z][a-z0-9_]{2,127}$/u;
+const LOCAL_JSON_ASSET_PATH = /^\/(?:administration|data)\/[A-Za-z0-9._/-]+\.json$/u;
+const WORKSPACE_CONFIGURATION_ASSET_PATH = "/administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json";
+const BUSINESS_MANIFEST_REGISTRY_ASSET_PATH = "/data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json";
+const PRODUCTION_BUSINESS_HOURS_BINDINGS = Object.freeze([
+  Object.freeze({
+    workspaceId: fitnessConnectionBusinessHours.workspaceId,
+    operatingProfileId: fitnessConnectionBusinessHours.operatingProfileId,
+    path: "/data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+    artifact: fitnessConnectionBusinessHours
+  })
+]);
 const JSON_ESCAPE = Object.freeze({
   "<": "\\u003c",
   ">": "\\u003e",
@@ -189,6 +208,153 @@ function exactConfigString(value, maxLength) {
   return value;
 }
 
+function localJsonAssetPath(value, requiredPrefix) {
+  if (typeof value !== "string"
+    || !LOCAL_JSON_ASSET_PATH.test(value)
+    || value.includes("..")
+    || value.includes("//")
+    || !value.startsWith(requiredPrefix)) {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+  }
+  return value;
+}
+
+function validateRuntimeWorkspaceRegistry(registry, { noncanonicalTest = false } = {}) {
+  let validated = registry;
+  if (!noncanonicalTest) {
+    try {
+      validated = validateRouteIqWorkspaceConfigurationRegistry(registry);
+    } catch {
+      fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+    }
+  }
+  if (validated?.schemaVersion !== "route-iq-workspace-configuration-v2"
+    || validated?.authority !== "prometheus_administration"
+    || validated?.safety?.collection !== "OFF"
+    || validated?.safety?.activeCohorts !== 0
+    || validated?.safety?.recommendationInfluence !== "OFF"
+    || !Array.isArray(validated?.workspaces)) {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+  }
+  return validated;
+}
+
+function resolveExactRuntimeAssets(principal, bindings, { noncanonicalTest = false } = {}) {
+  if (!principal?.authorized
+    || !STRICT_ID.test(principal.workspaceId || "")
+    || !STRICT_ID.test(principal.operatingProfileId || "")
+    || !STRICT_ID.test(principal.userId || "")
+    || !STRICT_ID.test(principal.representativeId || "")
+    || !STRICT_ID.test(principal.roleId || "")
+    || !bindings
+    || typeof bindings !== "object") {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+  }
+
+  const workspaceConfigurationPath = localJsonAssetPath(
+    bindings.workspaceConfiguration?.path,
+    "/administration/"
+  );
+  const manifestRegistryPath = localJsonAssetPath(
+    bindings.businessManifestRegistry?.path,
+    "/data/"
+  );
+  if (workspaceConfigurationPath !== WORKSPACE_CONFIGURATION_ASSET_PATH
+    || manifestRegistryPath !== BUSINESS_MANIFEST_REGISTRY_ASSET_PATH) {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+  }
+
+  const registry = validateRuntimeWorkspaceRegistry(
+    bindings.workspaceConfiguration?.registry,
+    { noncanonicalTest }
+  );
+  const workspaceMatches = registry.workspaces.filter(
+    workspace => workspace?.workspaceId === principal.workspaceId
+  );
+  if (workspaceMatches.length !== 1) {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+  }
+  const workspace = workspaceMatches[0];
+  if (workspace.operatingProfile?.profileId !== principal.operatingProfileId
+    || workspace.fallbackPolicy?.mode !== "FAIL_CLOSED"
+    || workspace.fallbackPolicy?.demoCatalogAllowed !== false
+    || workspace.fallbackPolicy?.embeddedBusinessCatalogAllowed !== false
+    || workspace.fallbackPolicy?.crossWorkspaceFallbackAllowed !== false) {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+  }
+
+  const userMatches = (workspace.users || []).filter(user =>
+    user?.userId === principal.userId
+      && user?.representativeId === principal.representativeId
+      && user?.roleId === principal.roleId
+      && user?.active === true
+  );
+  const roleMatches = (workspace.roles || []).filter(role => role?.roleId === principal.roleId);
+  if (userMatches.length !== 1 || roleMatches.length !== 1) {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.roleUnauthorized);
+  }
+
+  const manifestRegistry = bindings.businessManifestRegistry?.registry;
+  if (manifestRegistry?.schemaVersion !== "route-iq-workspace-business-artifact-manifest-v1"
+    || manifestRegistry?.registryVersion !== "route-iq-workspace-business-artifact-manifest-registry-v1"
+    || manifestRegistry?.fallbackPolicy !== "FAIL_CLOSED_NO_DEMO_OR_CROSS_WORKSPACE_FALLBACK"
+    || !Array.isArray(manifestRegistry?.manifests)) {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+  }
+  const manifestMatches = manifestRegistry.manifests.filter(manifest =>
+    manifest?.workspaceId === principal.workspaceId
+      && manifest?.operatingProfileId === principal.operatingProfileId
+  );
+  if (manifestMatches.length !== 1) {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+  }
+  const manifest = manifestMatches[0];
+  const sources = (workspace.opportunitySources || []).filter(source =>
+    source?.workspaceId === principal.workspaceId
+      && source?.profileId === principal.operatingProfileId
+      && source?.manifestId === manifest.manifestId
+      && source?.manifestRegistryPath === manifestRegistryPath.slice(1)
+      && source?.artifactPath === manifest.artifactPath
+  );
+  if (sources.length !== 1
+    || manifest.manifestVersion !== "route-iq-workspace-business-artifact-manifest-v1"
+    || typeof manifest.artifactPath !== "string"
+    || manifest.demoFallbackAllowed !== false
+    || manifest.crossWorkspaceFallbackAllowed !== false
+    || sources[0].classification !== manifest.classification
+    || sources[0].manifestApprovalState !== manifest.approvalState
+    || sources[0].productionUseAuthorized !== manifest.productionUseAuthorized) {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+  }
+  const businessRosterPath = localJsonAssetPath(`/${manifest.artifactPath}`, "/data/");
+
+  const hoursMatches = (Array.isArray(bindings.businessHours) ? bindings.businessHours : []).filter(
+    binding => binding?.workspaceId === principal.workspaceId
+      && binding?.operatingProfileId === principal.operatingProfileId
+  );
+  if (hoursMatches.length !== 1) {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+  }
+  const hoursBinding = hoursMatches[0];
+  const businessHoursPath = localJsonAssetPath(hoursBinding.path, "/data/");
+  const hoursArtifact = hoursBinding.artifact;
+  if (hoursArtifact?.schemaVersion !== "prometheus-data-business-hours-v1"
+    || hoursArtifact.workspaceId !== principal.workspaceId
+    || hoursArtifact.operatingProfileId !== principal.operatingProfileId
+    || Number(hoursArtifact.freshnessPolicy?.providerRefreshIntervalHours) > 24
+    || Number(hoursArtifact.freshnessPolicy?.freshnessThresholdHours) > 24
+    || !Array.isArray(hoursArtifact.records)) {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+  }
+
+  return deepFreeze({
+    workspaceConfiguration: workspaceConfigurationPath,
+    businessManifestRegistry: manifestRegistryPath,
+    businessRoster: businessRosterPath,
+    businessHours: businessHoursPath
+  });
+}
+
 export function getRouteIqCustomerPwaLaunchMode(env = {}) {
   const value = env?.[ROUTE_IQ_CUSTOMER_PWA_ENV.enabled];
   if (value === undefined || value === null || value === "" || value === "OFF") return "OFF";
@@ -268,21 +434,38 @@ async function sha256(value) {
 
 function launchInputs(testHooks) {
   if (testHooks?.enabled === true) {
-    if (!(testHooks.currentDate instanceof Date) || typeof testHooks.keyResolver !== "function") {
+    if (!(testHooks.currentDate instanceof Date)
+      || typeof testHooks.keyResolver !== "function"
+      || !testHooks.runtimeBindings
+      || typeof testHooks.runtimeBindings !== "object") {
       fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.configurationInvalid, 503);
     }
     return {
       envelope: testHooks.envelope || launchEnvelope,
       registry: testHooks.registry || commercialWorkspaceRegistry,
       currentDate: testHooks.currentDate,
-      keyResolver: testHooks.keyResolver
+      keyResolver: testHooks.keyResolver,
+      runtimeBindings: testHooks.runtimeBindings,
+      noncanonicalTest: true
     };
   }
   return {
     envelope: launchEnvelope,
     registry: commercialWorkspaceRegistry,
     currentDate: undefined,
-    keyResolver: undefined
+    keyResolver: undefined,
+    runtimeBindings: {
+      workspaceConfiguration: {
+        path: WORKSPACE_CONFIGURATION_ASSET_PATH,
+        registry: workspaceConfigurationRegistry
+      },
+      businessManifestRegistry: {
+        path: BUSINESS_MANIFEST_REGISTRY_ASSET_PATH,
+        registry: businessManifestRegistry
+      },
+      businessHours: PRODUCTION_BUSINESS_HOURS_BINDINGS
+    },
+    noncanonicalTest: false
   };
 }
 
@@ -392,15 +575,19 @@ export async function authorizeRouteIqCustomerPwaRequest(request, env = {}, { te
   } catch (error) {
     throw mapLaunchFailure(error);
   }
+  const runtimeAssets = resolveExactRuntimeAssets(principal, inputs.runtimeBindings, {
+    noncanonicalTest: inputs.noncanonicalTest
+  });
   return deepFreeze({
     launch,
     principal,
+    runtimeAssets,
     accessExpiresAt: new Date(payload.exp * 1000).toISOString()
   });
 }
 
 export function createRouteIqCustomerPwaSession(authorization) {
-  const { accessExpiresAt, launch, principal } = authorization || {};
+  const { accessExpiresAt, launch, principal, runtimeAssets } = authorization || {};
   if (!launch || !principal?.authorized) fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.authenticationRequired);
   if (!Number.isInteger(launch.verifiedCapacity?.companies)
     || launch.verifiedCapacity.companies < 1
@@ -426,7 +613,7 @@ export function createRouteIqCustomerPwaSession(authorization) {
     displayName: principal.displayName,
     roleId: principal.roleId,
     capabilities: clone(principal.capabilities),
-    runtimeAssets: clone(principal.runtimeAssets),
+    runtimeAssets: clone(runtimeAssets),
     expiresAt: new Date(Math.min(accessExpiresAtMs, launchExpiresAtMs)).toISOString(),
     safety: clone(principal.safety)
   };

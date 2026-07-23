@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "route-iq-synthetic-approved-businesses-v1",
+  "artifactVersion": "general-outside-sales-synthetic-approved-businesses-v1",
+  "workspaceId": "northstar_outside_sales_synthetic",
+  "operatingProfileId": "general_outside_sales",
+  "classification": "SYNTHETIC_NONCANONICAL",
+  "generatedAt": "2026-07-23T12:00:00.000Z",
+  "recordCount": 3,
+  "records": [
+    {
+      "recordId": "synthetic_outside_sales_opportunity_001",
+      "businessName": "Northstar Office Supply",
+      "address": "100 Validation Way, Example City, TX 77001",
+      "category": "Office",
+      "territoryId": "synthetic_north_territory",
+      "approvalState": "APPROVED_SYNTHETIC_VALIDATION"
+    },
+    {
+      "recordId": "synthetic_outside_sales_opportunity_002",
+      "businessName": "Meridian Equipment Services",
+      "address": "200 Validation Way, Example City, TX 77001",
+      "category": "Business Services",
+      "territoryId": "synthetic_north_territory",
+      "approvalState": "APPROVED_SYNTHETIC_VALIDATION"
+    },
+    {
+      "recordId": "synthetic_outside_sales_opportunity_003",
+      "businessName": "Harbor Commercial Printing",
+      "address": "300 Validation Way, Example City, TX 77001",
+      "category": "Business",
+      "territoryId": "synthetic_north_territory",
+      "approvalState": "APPROVED_SYNTHETIC_VALIDATION"
+    }
+  ]
+}

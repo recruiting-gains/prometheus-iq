@@ -1,0 +1,106 @@
+{
+  "contractId": "route-iq-private-forward-compatible-rollback-candidate-v3",
+  "product": "Route IQ",
+  "owner": "Prometheus Infrastructure",
+  "status": "PREPARED_NOT_DEPLOYED",
+  "target": {
+    "worker": "prometheus-iq",
+    "environment": "production_private",
+    "publicWorker": "prometheusrouteiq-website",
+    "publicWorkerExcluded": true
+  },
+  "currentPrivateProduction": {
+    "workerVersion": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+    "trafficPercent": 100,
+    "evidence": "FOUNDER_CONFIRMED_REQUIRES_READ_ONLY_PREFLIGHT_BEFORE_ANY_FUTURE_DEPLOYMENT"
+  },
+  "applicationBehaviorSource": {
+    "commit": "dec2ba1b137b0123b6f072ada4b3dd184f88c80d",
+    "tree": "61258b4edcafe2af6e94f76b9e011e2486cb2fe6",
+    "workerVersion": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+    "workerSourceSha256": "140fdf73b01f1d0e1113971e93c2ef0f63fbd52317f0617b5c4f8121a85b35ea",
+    "dashboardAssetSha256": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
+  },
+  "statefulCompatibility": {
+    "storageBackend": "sqlite",
+    "coordinators": [
+      {
+        "binding": "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR",
+        "className": "RouteIqProspectiveShadowCoordinator",
+        "migrationTag": "route-iq-prospective-shadow-sqlite-v1"
+      },
+      {
+        "binding": "ROUTE_IQ_BUSINESS_AVAILABILITY_COORDINATOR",
+        "className": "RouteIqBusinessAvailabilityCoordinator",
+        "migrationTag": "route-iq-business-availability-sqlite-v1"
+      }
+    ],
+    "migrationHistoryPreserved": true,
+    "newMigrationAdded": false,
+    "deletedClassesAllowed": false,
+    "namespaceDeletionAllowed": false,
+    "bindingRemovalAllowed": false,
+    "classExportRemovalAllowed": false,
+    "nativeCloudflareRollbackAllowed": false,
+    "scheduleTriggerDeclared": false,
+    "deploymentMode": "future_normal_forward_deployment"
+  },
+  "protectedRuntimeConfiguration": {
+    "keepVars": true,
+    "knownRequiredSecretNames": [
+      "ROUTE_IQ_PROSPECTIVE_SHADOW_AUTHORITY_KEY",
+      "ROUTE_IQ_PROSPECTIVE_SHADOW_AUTHORITY_KEY_VERSION"
+    ],
+    "allExistingSecretBindingsPreserved": true,
+    "secretValuesInRepository": false,
+    "secretsFileAllowed": false,
+    "secretCreateUpdateDeleteAllowed": false,
+    "customerAccessConfigurationPreservedButUnusedWhileOff": true
+  },
+  "runtimeBoundary": {
+    "customerPwaLaunch": "OFF",
+    "customerPwaRoutesPresent": false,
+    "prospectiveCollection": "OFF",
+    "businessAvailabilityMode": "OFF",
+    "businessAvailabilityScheduleActive": false,
+    "effectiveActiveCohortCount": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutput": false,
+    "durableObjectWrites": false,
+    "durableObjectReads": false,
+    "operationalInfluence": false
+  },
+  "candidatePackage": {
+    "builder": "scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs",
+    "configurationTemplate": "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json",
+    "inertClassSource": "workers/infrastructure/route-iq-private-forward-rollback-inert-durable-object-v3.js",
+    "generatedEntrypoint": "workers/prometheus-iq-worker.js",
+    "retainedEntrypoint": "workers/prometheus-iq-retained-version-55.js",
+    "generatedManifest": "route-iq-private-forward-rollback-build-manifest-v3.json",
+    "publicWorkerConfigurationIncluded": false,
+    "releaseCandidateCommitAndTreePinnedInGeneratedManifest": true,
+    "canonicalQualificationRequiresCommittedCleanRef": true,
+    "worktreeBuildIsNoncanonicalTestOnly": true
+  },
+  "artifactIdentity": {
+    "algorithm": "sha256",
+    "configSha256": "PENDING_GENERATION",
+    "inertClassSha256": "PENDING_GENERATION",
+    "generatedEntrypointSha256": "PENDING_GENERATION",
+    "contentTreeSha256": "PENDING_GENERATION"
+  },
+  "monitoringAndCost": {
+    "observabilityPreserved": true,
+    "expectedIncrementalDurableObjectRequests": 0,
+    "expectedIncrementalDurableObjectStorageWrites": 0,
+    "expectedIncrementalMonthlyCostUsd": 0,
+    "budgetControl": "No retained application route resolves the inert coordinators and all launch, collection, and availability controls remain OFF."
+  },
+  "authorization": {
+    "candidatePreparationAuthorized": true,
+    "deploymentAuthorized": false,
+    "trafficChangeAuthorized": false,
+    "productionMutationAuthorized": false,
+    "productionDataMutationAuthorized": false
+  }
+}

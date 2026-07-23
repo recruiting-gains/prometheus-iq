@@ -1,0 +1,111 @@
+name: Qualify Route IQ Private Dashboard Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_commit:
+        description: Exact pushed commit at current origin/main (40 lowercase hex)
+        required: true
+        type: string
+      candidate_tree:
+        description: Exact tree for the pushed commit (40 lowercase hex)
+        required: true
+        type: string
+      batch_id:
+        description: Qualification batch ID (BATCH-YYYYMMDD-NNN)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: qualify-route-iq-private-dashboard-${{ inputs.candidate_commit }}
+  cancel-in-progress: false
+
+jobs:
+  qualify:
+    name: Verify and freeze one immutable private dashboard qualification artifact
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' &&
+        github.repository == 'PrometheusRouteIQ/prometheus-iq' &&
+        github.actor == 'PrometheusRouteIQ' &&
+        github.triggering_actor == 'PrometheusRouteIQ' &&
+        github.ref == 'refs/heads/main' &&
+        github.ref_name == 'main' &&
+        github.ref_type == 'branch' &&
+        github.workflow == 'Qualify Route IQ Private Dashboard Release' &&
+        github.workflow_ref == 'PrometheusRouteIQ/prometheus-iq/.github/workflows/qualify-route-iq-private-dashboard-release.yml@refs/heads/main' &&
+        github.run_attempt == 1
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    outputs:
+      qualification_artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      qualification_transport_digest: ${{ steps.upload.outputs.artifact-digest }}
+      qualified_artifact_sha256: ${{ steps.freeze.outputs.qualified_artifact_sha256 }}
+      qualified_manifest_sha256: ${{ steps.freeze.outputs.qualified_manifest_sha256 }}
+      rollback_bundle_sha256: ${{ steps.freeze.outputs.rollback_bundle_sha256 }}
+    steps:
+      - name: Checkout exact main repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Set up exact qualification Node runtime
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Install exact locked dependencies
+        run: npm ci
+
+      - name: Build deterministic source and run complete cross-industry suite
+        run: |
+          npm run build
+          npm test
+          npm run lint
+          npm run typecheck
+          npm run security:check
+          node scripts/check-cloudflare-unattended-secret-presence.mjs --source=environment
+          npm run security:aegis:verify
+          node scripts/sync-route-iq-private-dashboard-deploy-assets.mjs
+          node scripts/verify-route-iq-business-availability-refresh-package.mjs
+          node scripts/verify-route-iq-business-availability-infrastructure.mjs
+          node scripts/verify-route-iq-field-session-store-binding.mjs
+          node scripts/verify-route-iq-request-crm-infrastructure.mjs
+          node scripts/verify-github-actions-route-iq-private-dashboard-qualification.mjs
+
+      - name: Freeze the private dashboard qualification artifact exactly once
+        id: freeze
+        env:
+          PROMETHEUS_CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+          PROMETHEUS_CANDIDATE_TREE: ${{ inputs.candidate_tree }}
+          PROMETHEUS_BATCH_ID: ${{ inputs.batch_id }}
+          PROMETHEUS_QUALIFIED_RELEASE_OUTPUT: ${{ runner.temp }}/route-iq-private-dashboard-qualified-release
+        run: node scripts/run-route-iq-private-dashboard-qualification.mjs
+
+      - name: Upload immutable qualification artifact
+        id: upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: route-iq-private-dashboard-qualified-${{ inputs.candidate_commit }}
+          path: ${{ runner.temp }}/route-iq-private-dashboard-qualified-release
+          if-no-files-found: error
+          include-hidden-files: true
+          compression-level: 0
+          retention-days: 30
+
+      - name: Require unchanged exact repository after qualification
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"

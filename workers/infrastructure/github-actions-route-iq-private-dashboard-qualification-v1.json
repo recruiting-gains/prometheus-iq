@@ -1,0 +1,29 @@
+{
+  "contractVersion": "github-actions-route-iq-private-dashboard-qualification-v1",
+  "owner": "Prometheus Infrastructure",
+  "workflowPath": ".github/workflows/qualify-route-iq-private-dashboard-release.yml",
+  "runnerPath": "scripts/run-route-iq-private-dashboard-qualification.mjs",
+  "verifierPath": "scripts/verify-github-actions-route-iq-private-dashboard-qualification.mjs",
+  "testPath": "tests/github-actions-route-iq-private-dashboard-qualification.test.mjs",
+  "trigger": "workflow_dispatch",
+  "repository": "PrometheusRouteIQ/prometheus-iq",
+  "branch": "main",
+  "actor": "PrometheusRouteIQ",
+  "automaticTriggerAllowed": false,
+  "cloudflareCredentialsAllowed": false,
+  "deploymentStepsAllowed": false,
+  "artifactUploadRequired": true,
+  "qualificationArtifact": {
+    "schemaVersion": "route-iq-private-dashboard-qualification-v1",
+    "includesExactCommitAndTree": true,
+    "includesRollbackV3Digests": true,
+    "includesArtifactDigest": true
+  },
+  "safety": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "privateWorkerDeploymentPerformed": false,
+    "publicWorkerDeploymentPerformed": false
+  }
+}

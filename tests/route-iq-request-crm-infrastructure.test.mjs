@@ -900,12 +900,13 @@ test("missing durable binding, unsupported methods, and malformed exports fail c
 
 test("normalization fixes the public request to Route IQ commercial scope", async () => {
   const normalized = await normalizePublicRouteIqRequest(publicPayload(), { now });
+  const retiredWorkspaceId = "synthetic_retired_business";
   assert.equal(normalized.workspaceId, "prometheus_route_iq");
   assert.equal(normalized.operatingProfileId, "route_iq_commercial");
   assert.equal(normalized.businessType, "Commercial field services");
   assert.equal(normalized.acquisitionSource, "route_iq_website");
   assert.equal(JSON.stringify(normalized).includes("fitness_connection"), false);
-  assert.equal(JSON.stringify(normalized).includes("smoothie_depot"), false);
+  assert.equal(JSON.stringify(normalized).includes(retiredWorkspaceId), false);
 });
 
 test("governed initial capacity target passes at 10 workspaces, 100 users, and 25 concurrent users", async () => {

@@ -35,7 +35,7 @@ Each refresh is bound to:
 
 Identical retries return the existing receipt. Changed retries for the same batch are durably recorded as conflicts. The accepted snapshot, transition history, and recovery outbox are committed atomically. The projection marker is written last; pending markers recover idempotently after interruption.
 
-Provider failure records a fixed nonsecret audit code and never replaces or upgrades the last accepted evidence. Runtime snapshot freshness is at most 24 hours. The read view reports fresh or stale state without making a recommendation decision.
+Provider failure records a fixed nonsecret audit code and never replaces or upgrades the last accepted evidence. The maximum 24-hour freshness ceiling is enforced for every runtime snapshot. The read view reports fresh or stale state without making a recommendation decision.
 
 ## Limits
 
@@ -69,3 +69,22 @@ No credential, paid provider, Google dependency, scheduled trigger, deployment, 
 ## Rollback
 
 Rollback is a forward deployment. It retains the Durable Object export, binding, namespace, additive migration history, and accepted records; forces the runtime OFF; and omits the scheduled trigger. Native rollback and deleted-class migrations are prohibited.
+
+## Refresh package
+
+The no-credential Infrastructure scheduler package is recorded in:
+
+- `workers/infrastructure/route-iq-business-availability-refresh-package-v1.json`
+- `scripts/verify-route-iq-business-availability-refresh-package.mjs`
+- `tests/route-iq-business-availability-refresh-package.test.mjs`
+
+That package prepares automatic daily refresh while staying default OFF. It declares the daily `0 4 * * *` target schedule without activating it in Wrangler, records the fixed monitoring and failure-code boundary, and preserves the idempotent refresh key:
+
+- `configurationVersion`
+- `scheduledAt`
+- `workspaceId`
+- `operatingProfileId`
+- `manifestId`
+- `manifestArtifactSha256`
+
+Activation still requires a separate Founder decision, provider credential provisioning outside source control, a production-authorized Data producer binding, scheduler declaration, deployment, and post-deployment monitoring review.

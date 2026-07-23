@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "route-iq-workspace-business-artifact-manifest-v1",
+  "registryVersion": "route-iq-workspace-business-artifact-manifest-registry-v1",
+  "generatedAt": "2026-07-23T12:00:00.000Z",
+  "fallbackPolicy": "FAIL_CLOSED_NO_DEMO_OR_CROSS_WORKSPACE_FALLBACK",
+  "manifests": [
+    {
+      "manifestId": "fitness_connection_approved_business_roster",
+      "manifestVersion": "route-iq-workspace-business-artifact-manifest-v1",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "configurationVersion": "route-iq-commercial-workspace-registry-v1",
+      "artifactType": "approved_business_opportunity_roster",
+      "artifactPath": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json",
+      "artifactSha256": "4ab9f5e1c6a2ef2e2f828ad4ac07861c5bde3e9618a08894ff978358bcdf0870",
+      "recordIdentityField": "google_place_id",
+      "recordCount": 398,
+      "approvedRecordCount": 0,
+      "approvedRecordIds": [],
+      "approvalState": "PENDING_FOUNDER_APPROVAL",
+      "classification": "FOUNDER_FIELD_RESEARCH",
+      "sourceProvenance": {
+        "producer": "Prometheus Data",
+        "producerVersion": "google-qualified-businesses-v2",
+        "sourceSystem": "Google Places API Refresh Engine",
+        "sourceRetrievedAt": "2026-06-30T03:02:47.830Z"
+      },
+      "freshness": {
+        "maximumAgeHours": 24,
+        "evaluatedAt": "2026-07-23T12:00:00.000Z",
+        "expiresAt": "2026-07-01T03:02:47.830Z",
+        "state": "STALE"
+      },
+      "productionUseAuthorized": false,
+      "demoFallbackAllowed": false,
+      "crossWorkspaceFallbackAllowed": false
+    },
+    {
+      "manifestId": "northstar_outside_sales_synthetic_approved_business_roster",
+      "manifestVersion": "route-iq-workspace-business-artifact-manifest-v1",
+      "workspaceId": "northstar_outside_sales_synthetic",
+      "operatingProfileId": "general_outside_sales",
+      "configurationVersion": "route-iq-commercial-workspace-registry-v1",
+      "artifactType": "approved_business_opportunity_roster",
+      "artifactPath": "data/route-iq-commercial-readiness-v1/fixtures/general-outside-sales-synthetic-approved-businesses-v1.json",
+      "artifactSha256": "50847e34c126b7d1945396d93a657fd98b565396c2809b98d8a8b5c97ea28bfe",
+      "recordIdentityField": "recordId",
+      "recordCount": 3,
+      "approvedRecordCount": 3,
+      "approvedRecordIds": [
+        "synthetic_outside_sales_opportunity_001",
+        "synthetic_outside_sales_opportunity_002",
+        "synthetic_outside_sales_opportunity_003"
+      ],
+      "approvalState": "APPROVED_SYNTHETIC_VALIDATION",
+      "classification": "SYNTHETIC_NONCANONICAL",
+      "sourceProvenance": {
+        "producer": "Prometheus Data",
+        "producerVersion": "general-outside-sales-synthetic-approved-businesses-v1",
+        "sourceSystem": "deterministic_synthetic_fixture",
+        "sourceRetrievedAt": "2026-07-23T12:00:00.000Z"
+      },
+      "freshness": {
+        "maximumAgeHours": 24,
+        "evaluatedAt": "2026-07-23T12:00:00.000Z",
+        "expiresAt": "2026-07-24T12:00:00.000Z",
+        "state": "SYNTHETIC"
+      },
+      "productionUseAuthorized": false,
+      "demoFallbackAllowed": false,
+      "crossWorkspaceFallbackAllowed": false
+    }
+  ]
+}

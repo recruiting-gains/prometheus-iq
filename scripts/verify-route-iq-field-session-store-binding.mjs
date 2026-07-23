@@ -136,7 +136,7 @@ export function inspectRouteIqFieldSessionStoreBinding() {
   assert.equal(dataContract.automaticEndOfDayHandoffContract.productionActivationVerification.automaticReplayActivated, false);
   assert.equal(dataContract.automaticEndOfDayHandoffContract.productionActivationVerification.customerDataBackfillActivated, false);
   assert.deepEqual(Object.keys(supportedFieldSessionWorkspaces), ["fitness_connection"]);
-  assert.deepEqual(supportedFieldSessionWorkspaces.fitness_connection.protectedWorkspaceIds, ["smoothie_depot"]);
+  assert.deepEqual(supportedFieldSessionWorkspaces.fitness_connection.protectedWorkspaceIds, []);
   assert.equal(workerSource.includes("routeIqEndOfDayHandoffContractId"), true, "Dashboard field-session handoff contract must be active in the private Worker.");
   assert.equal(workerSource.includes("validateFieldSessionStoreBinding(env)"), true, "Dashboard field-session handoff must validate the production Data binding.");
 

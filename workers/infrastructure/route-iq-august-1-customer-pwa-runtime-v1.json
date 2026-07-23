@@ -1,5 +1,5 @@
 {
-  "contractVersion": "route-iq-august-1-customer-pwa-runtime-v1",
+  "contractVersion": "route-iq-august-1-customer-pwa-runtime-v2",
   "ownerSubsystem": "Prometheus Infrastructure",
   "worker": "prometheus-iq",
   "state": "INERT_DEFAULT_OFF",
@@ -73,7 +73,25 @@
       "founderIntelligence",
       "founderCrm"
     ],
-    "runtimeAssetKeys": ["fullPool", "activePool", "quarantinePool", "businessHours"],
+    "runtimeAssetKeys": [
+      "workspaceConfiguration",
+      "businessManifestRegistry",
+      "businessRoster",
+      "businessHours"
+    ],
+    "runtimeAssetAuthority": {
+      "workspaceConfiguration": "prometheus_administration",
+      "businessManifestRegistry": "prometheus_data",
+      "businessRoster": "exact_manifest_bound_data_artifact",
+      "businessHours": "exact_workspace_profile_bound_data_artifact",
+      "launchEnvelopeRuntimeAssetsAuthoritative": false,
+      "browserRuntimeAssetOverrideAllowed": false
+    },
+    "roleAuthority": {
+      "source": "exact_authenticated_principal_plus_prometheus_administration",
+      "strictRoleMatchRequired": true,
+      "browserRoleOverrideAllowed": false
+    },
     "safetyKeys": ["prospectiveCollection", "activeCohorts", "recommendationInfluence"],
     "errorResponseKeys": ["ok", "code", "message"],
     "serializationEscapes": ["<", ">", "&", "U+2028", "U+2029"],
