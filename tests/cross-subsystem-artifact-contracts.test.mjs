@@ -53,7 +53,7 @@ test("unknown configuration fields fail closed before Dashboard admission", () =
   tampered.workspaces[0].customerSpecificFallback = true;
   assert.throws(
     () => validateRouteIqWorkspaceConfigurationRegistry(tampered),
-    error => error.code === "route_iq_admin_configuration_unknown_field"
+    error => error.code === "route_iq_admin_configuration_fields_invalid"
   );
 });
 
@@ -102,7 +102,9 @@ test("cross-workspace manifest substitution is rejected", () => {
 test("hours and visit duration remain semantically distinct", () => {
   assert.equal(formatAvailabilityLabel({
     status: "OPEN_VERIFIED",
-    display: "Open now · closes 7:00 PM"
+    nextClosing: {
+      displayTime: "7:00 PM"
+    }
   }), "Open now · closes 7:00 PM");
   assert.equal(formatAvailabilityLabel({
     status: "HOURS_STALE"
@@ -130,8 +132,19 @@ test("Dashboard validation does not relabel one workspace as another", () => {
     representativeId: user.representativeId,
     roleId: user.roleId,
     territoryId: user.territoryIds[0],
-    capabilities: {},
-    runtimeAssets: {},
+    capabilities: {
+      operateOwnRoute: true,
+      readWorkspaceOperations: false,
+      administerWorkspaceRoster: false,
+      founderIntelligence: false,
+      founderCrm: false
+    },
+    runtimeAssets: {
+      workspaceConfiguration: "/administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json",
+      businessManifestRegistry: "/data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
+      businessRoster: "/data/route-iq-commercial-readiness-v1/founder-research/fitness-connection-approved-roster.json",
+      businessHours: "/data/route-iq-business-hours-v2.json"
+    },
     expiresAt: "2026-07-24T12:00:00.000Z",
     safety: {
       prospectiveCollection: "OFF",
