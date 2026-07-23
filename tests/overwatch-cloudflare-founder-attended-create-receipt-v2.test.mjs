@@ -89,6 +89,11 @@ test("Overwatch independently verifies the Infrastructure-owned v2 repair", () =
   assert.equal(result.implementationOwner, "Prometheus Infrastructure");
   assert.equal(result.verificationOwner, "Prometheus Overwatch");
   assert.equal(result.focusedOwnerTests, 68);
+  assert.deepEqual([...result.currentOverwatchVerifierSuccessorCommits], [
+    "6db68f845e91c967e34f3b825e4cbc2372cef6d8",
+    "4fb815a7e03f745685a36e24e847dbc1f109a7df",
+    "1a1e130b9ffe63948ceaf7fc7d5cfff647431e3e"
+  ]);
   assert.equal(result.cloudflareApiContacted, false);
   assert.equal(result.realKeychainValuesRead, false);
 });
