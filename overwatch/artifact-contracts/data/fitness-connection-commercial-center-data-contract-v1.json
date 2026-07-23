@@ -5,8 +5,30 @@
   "owningSubsystem": "Prometheus Data",
   "workspaceId": "fitness_connection",
   "operatingProfileId": "fitness",
-  "purpose": "Govern commercial-center, shopping-center, walkability, and business relationship evidence without changing Route IQ recommendations, scoring, or consumers.",
+  "relationshipClassification": "FOUNDER_FIELD_RESEARCH",
+  "publicCustomerRelationshipClaimsAllowed": false,
+  "purpose": "Govern Founder-research commercial-center, shopping-center, walkability, and business relationship evidence without changing Route IQ recommendations, scoring, or consumers.",
   "artifactVersion": "commercial-center-intelligence-v1",
+  "workspaceManifestBinding": {
+    "administrationConfigurationPath": "administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json",
+    "administrationSchemaVersion": "route-iq-workspace-configuration-v2",
+    "administrationRegistryVersion": "route-iq-cross-industry-workspaces-v2.1.0",
+    "administrationConfigurationSha256": "00d7b2e8676185c703bb2aa855ca489528feb5d39dccd6bbec371c806043e6bb",
+    "dataManifestRegistryPath": "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
+    "dataManifestRegistryVersion": "route-iq-workspace-business-artifact-manifest-registry-v1",
+    "dataManifestRegistrySha256": "fb5533b8ca1ab8e07f6796d219341294f89626dba822b5c944177ba849d34605",
+    "manifestId": "fitness_connection_approved_business_roster",
+    "manifestVersion": "route-iq-workspace-business-artifact-manifest-v1",
+    "manifestConfigurationVersion": "route-iq-commercial-workspace-registry-v1",
+    "classification": "FOUNDER_FIELD_RESEARCH",
+    "approvalState": "PENDING_FOUNDER_APPROVAL",
+    "approvedRecordCount": 0,
+    "productionUseAuthorized": false,
+    "approvedRosterRequired": true,
+    "missingOrUnapprovedManifestFailsClosed": true,
+    "demoFallbackAllowed": false,
+    "crossWorkspaceFallbackAllowed": false
+  },
   "canonicalArtifacts": {
     "commercialCenterDataset": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/commercial-centers.json",
     "walkabilityDataset": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/walkability-groups.json",
@@ -110,7 +132,11 @@
     "tier2Count": 0,
     "tier3Count": 0,
     "tier4Count": 1,
-    "tier5Count": 1
+    "tier5Count": 1,
+    "activePoolRecords": 0,
+    "reservePoolRecords": 0,
+    "quarantinePoolRecords": 398,
+    "approvedRosterRecords": 0
   },
   "consumerAuthorization": {
     "dashboardReadAuthorized": false,
@@ -124,9 +150,17 @@
   "workspaceIsolation": {
     "requiredWorkspaceId": "fitness_connection",
     "requiredOperatingProfileId": "fitness",
+    "requiredAdministrationSchemaVersion": "route-iq-workspace-configuration-v2",
+    "requiredManifestRegistryVersion": "route-iq-workspace-business-artifact-manifest-registry-v1",
+    "requiredManifestId": "fitness_connection_approved_business_roster",
+    "approvedRosterRequiredForConsumption": true,
+    "unapprovedManifestRecordsAllowed": false,
     "unknownWorkspaceFailsClosed": true,
-    "smoothieDepotFailsClosed": true,
+    "unknownOperatingProfileFailsClosed": true,
     "crossWorkspaceRecordsAllowed": false,
+    "crossProfileRecordsAllowed": false,
+    "crossWorkspaceFallbackAllowed": false,
+    "crossProfileFallbackAllowed": false,
     "globalCommercialCenterStateAllowed": false
   },
   "preservationRules": {

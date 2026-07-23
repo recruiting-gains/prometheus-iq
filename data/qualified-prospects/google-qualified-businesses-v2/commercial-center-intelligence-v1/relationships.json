@@ -39,7 +39,7 @@
     },
     "dataContract": {
       "path": "overwatch/artifact-contracts/data/fitness-connection-commercial-center-data-contract-v1.json",
-      "sha256": "deeeb0a777bc4d70872ce427b812086d4c26f162dac7b19ede63a53ed0e56785"
+      "sha256": "308eb268ebd8a5beb8463e1c35f15d762af5d297f512a5a6b56584ddab1c6d82"
     }
   },
   "runtimeActivation": {
