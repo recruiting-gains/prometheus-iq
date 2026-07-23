@@ -146,6 +146,45 @@ const MAX_GIT_BYTES = 2_000_000;
 const MAX_GIT_FSCK_BYTES = 128 * 1024;
 const GIT_TIMEOUT_MS = 30_000;
 const SAFE_DIAGNOSTIC = /^[A-Z][A-Z0-9_]*(?:=[A-Z0-9_,.-]+)?$/u;
+const PUBLIC_FORWARD_ROLLBACK_STATEFUL_OWNERS = Object.freeze({
+  "wrangler.prometheusrouteiq-website.jsonc": Object.freeze({
+    subsystem: "Prometheus Infrastructure",
+    author: "Prometheus Infrastructure <infrastructure@prometheus.local>"
+  }),
+  "workers/prometheus-iq-worker.js": Object.freeze({
+    subsystem: "Prometheus Infrastructure",
+    author: "Prometheus Infrastructure <infrastructure@prometheus.local>"
+  }),
+  "workers/infrastructure/prometheusrouteiq-website-entry.mjs": Object.freeze({
+    subsystem: "Prometheus Infrastructure",
+    author: "Prometheus Infrastructure <infrastructure@prometheus.local>"
+  }),
+  "workers/infrastructure/route-iq-request-crm-durable-object.js": Object.freeze({
+    subsystem: "Prometheus Infrastructure",
+    author: "Prometheus Infrastructure <infrastructure@prometheus.local>"
+  }),
+  "workers/infrastructure/route-iq-request-crm-runtime.js": Object.freeze({
+    subsystem: "Prometheus Infrastructure",
+    author: "Prometheus Infrastructure <infrastructure@prometheus.local>"
+  }),
+  "workers/infrastructure/route-iq-request-crm-runtime-v1.json": Object.freeze({
+    subsystem: "Prometheus Infrastructure",
+    author: "Prometheus Infrastructure <infrastructure@prometheus.local>"
+  }),
+  "crm/route-iq-request-crm.mjs": Object.freeze({
+    subsystem: "Prometheus CRM",
+    author: "Prometheus CRM <crm@prometheus.local>"
+  }),
+  "crm/route-iq-request-crm-contract-v1.json": Object.freeze({
+    subsystem: "Prometheus CRM",
+    author: "Prometheus CRM <crm@prometheus.local>"
+  })
+});
+const PUBLIC_FORWARD_ROLLBACK_PROVENANCE_FIELDS = Object.freeze([
+  "sha256",
+  "sourceCommit",
+  "sourceOwnerSubsystem"
+]);
 const CLOUDFLARE_READ_PHASES = new Set(Object.values(PUBLIC_CLOUDFLARE_READ_PHASE));
 const WRANGLER_FAILURE_REASONS = new Set(Object.values(PUBLIC_WRANGLER_FAILURE_REASON));
 const WORKER_STARTUP_FAILURE_REASONS = new Set(Object.values(PUBLIC_WORKER_STARTUP_FAILURE_REASON));
@@ -341,6 +380,26 @@ function runGit(root, argumentsList, { allowExitOne = false } = {}) {
     fail(PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_IDENTITY_MISMATCH);
   }
   return String(result.stdout || "").trim();
+}
+
+function runGitBuffer(root, argumentsList) {
+  const result = spawnSync("git", argumentsList, {
+    cwd: root,
+    encoding: null,
+    stdio: ["ignore", "pipe", "pipe"],
+    maxBuffer: MAX_GIT_BYTES,
+    timeout: GIT_TIMEOUT_MS,
+    env: {
+      PATH: process.env.PATH,
+      HOME: process.env.HOME,
+      GIT_CONFIG_NOSYSTEM: "1",
+      GIT_TERMINAL_PROMPT: "0"
+    }
+  });
+  if (result.status !== 0 || result.error || result.signal || !Buffer.isBuffer(result.stdout)) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_IDENTITY_MISMATCH);
+  }
+  return result.stdout;
 }
 
 export function readPublicRepositoryIdentity(root) {
@@ -582,8 +641,33 @@ function parseContract(root, path) {
   }
 }
 
-function sha256File(root, path) {
-  return createHash("sha256").update(readFileSync(resolve(root, path))).digest("hex");
+function validGitRelativePath(path) {
+  return typeof path === "string"
+    && path.length > 0
+    && path.length <= 512
+    && !path.startsWith("/")
+    && !path.endsWith("/")
+    && !path.includes("\\")
+    && !path.includes("\0")
+    && path.split("/").every(segment => segment.length > 0 && segment !== "." && segment !== "..");
+}
+
+function sha256GitShow(root, commit, path) {
+  if (!LOWER_HEX_40.test(commit || "") || !validGitRelativePath(path)) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
+  }
+  const content = runGitBuffer(root, ["show", `${commit}:${path}`]);
+  if (content.length < 1 || content.length > MAX_FILE_BYTES) {
+    content.fill(0);
+    fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
+  }
+  let sha256;
+  try {
+    sha256 = createHash("sha256").update(content).digest("hex");
+  } finally {
+    content.fill(0);
+  }
+  return sha256;
 }
 
 function sha256Directory(root, relativeDirectory) {
@@ -616,6 +700,10 @@ function sha256Directory(root, relativeDirectory) {
 
 export function verifyPublicForwardRollbackContract(root) {
   const contract = parseContract(root, PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath);
+  const expectedStatefulPaths = Object.keys(PUBLIC_FORWARD_ROLLBACK_STATEFUL_OWNERS)
+    .sort((left, right) => left.localeCompare(right));
+  const actualStatefulPaths = Object.keys(contract.candidateStatefulFiles || {})
+    .sort((left, right) => left.localeCompare(right));
   if (contract.version !== "route-iq-public-forward-rollback-v1"
     || contract.owner !== "Prometheus Infrastructure"
     || contract.target !== PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker
@@ -628,6 +716,7 @@ export function verifyPublicForwardRollbackContract(root) {
     || !LOWER_HEX_40.test(contract.sourceWebsiteTree || "")
     || contract.candidateWebsiteCommit === contract.sourceWebsiteCommit
     || contract.candidateWebsiteTree === contract.sourceWebsiteTree
+    || JSON.stringify(actualStatefulPaths) !== JSON.stringify(expectedStatefulPaths)
     || contract.websiteAssetPath !== "deploy/prometheusrouteiq-website"
     || contract.statefulCompatibility?.publicEntrypoint !== PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint
     || JSON.stringify(contract.statefulCompatibility?.publicEntrypointExports)
@@ -640,11 +729,11 @@ export function verifyPublicForwardRollbackContract(root) {
     || contract.statefulCompatibility?.deletedClassesAllowed !== false
     || contract.statefulCompatibility?.productionDataRewriteAllowed !== false
     || contract.artifact?.construction !== "canonical_deployable_bundle_with_prior_public_assets"
-    || contract.artifact?.identityVersion !== "route-iq-public-forward-rollback-artifact-v3"
+    || contract.artifact?.identityVersion !== "route-iq-public-forward-rollback-artifact-v4"
     || JSON.stringify(contract.artifact?.identityScope) !== JSON.stringify([
       "candidate_website_owner_identity",
       "candidate_deployment_assets_sha256",
-      "candidate_stateful_file_manifest",
+      "candidate_stateful_file_provenance",
       "wrangler_configuration",
       "prior_public_assets",
       "generated_worker_bundle",
@@ -675,8 +764,33 @@ export function verifyPublicForwardRollbackContract(root) {
   if (sha256Directory(root, contract.websiteAssetPath) !== contract.candidateDeploymentAssetsSha256) {
     fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
   }
-  for (const [path, expected] of Object.entries(contract.candidateStatefulFiles || {})) {
-    if (!LOWER_HEX_64.test(expected) || sha256File(root, path) !== expected) {
+  for (const path of expectedStatefulPaths) {
+    const provenance = contract.candidateStatefulFiles[path];
+    if (!provenance
+      || typeof provenance !== "object"
+      || Array.isArray(provenance)
+      || JSON.stringify(Object.keys(provenance).sort((left, right) => left.localeCompare(right)))
+        !== JSON.stringify(PUBLIC_FORWARD_ROLLBACK_PROVENANCE_FIELDS)
+      || !LOWER_HEX_64.test(provenance.sha256 || "")
+      || !LOWER_HEX_40.test(provenance.sourceCommit || "")
+      || provenance.sourceOwnerSubsystem
+        !== PUBLIC_FORWARD_ROLLBACK_STATEFUL_OWNERS[path].subsystem) {
+      fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
+    }
+    let sourceOwner;
+    try {
+      sourceOwner = runGit(root, ["show", "-s", "--format=%an <%ae>", provenance.sourceCommit]);
+      runGit(root, [
+        "merge-base",
+        "--is-ancestor",
+        provenance.sourceCommit,
+        "HEAD"
+      ]);
+    } catch {
+      fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
+    }
+    if (sourceOwner !== PUBLIC_FORWARD_ROLLBACK_STATEFUL_OWNERS[path].author
+      || sha256GitShow(root, provenance.sourceCommit, path) !== provenance.sha256) {
       fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
     }
   }

@@ -110,7 +110,7 @@ export function verifyGithubActionsPublicWorkerDeployment() {
 
   assert.equal(rollbackContract.strategy, "new_forward_deployment");
   assert.equal(rollbackContract.nativeCloudflareRollbackAllowed, false);
-  assert.equal(rollbackContract.artifact.identityVersion, "route-iq-public-forward-rollback-artifact-v3");
+  assert.equal(rollbackContract.artifact.identityVersion, "route-iq-public-forward-rollback-artifact-v4");
   assert.equal(rollbackContract.statefulCompatibility.migrationHistoryPreserved, true);
   assert.equal(rollbackContract.statefulCompatibility.acceptedRecordsPreserved, true);
   assert.equal(rollbackContract.statefulCompatibility.deletedClassesAllowed, false);

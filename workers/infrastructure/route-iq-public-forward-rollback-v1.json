@@ -12,14 +12,46 @@
   "sourceWebsiteTree": "ccd8356a5f820df14c574ff2be5196459422acbe",
   "websiteAssetPath": "deploy/prometheusrouteiq-website",
   "candidateStatefulFiles": {
-    "wrangler.prometheusrouteiq-website.jsonc": "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0",
-    "workers/prometheus-iq-worker.js": "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
-    "workers/infrastructure/prometheusrouteiq-website-entry.mjs": "045c768163e043b1429d51dacf33f842966a323eb080d0e1cf45debfc7ccebf5",
-    "workers/infrastructure/route-iq-request-crm-durable-object.js": "70d3e7a46d207f12a3689191784cc2984ae42897190ee1b0ded54f1baa6f2ec6",
-    "workers/infrastructure/route-iq-request-crm-runtime.js": "7726770982fe39bb4030a24b8117dfb2cac69954c4279a8876282e4b8e1adac8",
-    "workers/infrastructure/route-iq-request-crm-runtime-v1.json": "7103fba8dacc1fd966b44d6d02d175e46c8842cd802b6d1791952958724d9849",
-    "crm/route-iq-request-crm.mjs": "05405c79698db0eeb378be37195128adb04c78da0e9720a345b757490d015825",
-    "crm/route-iq-request-crm-contract-v1.json": "fb7ee1af5559f145c5e6eddf73b33e8367d584f748d60e8fe1a5a6651b2b0476"
+    "wrangler.prometheusrouteiq-website.jsonc": {
+      "sha256": "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0",
+      "sourceCommit": "94061fea1c238ca854bde9d17a860e1375af9c52",
+      "sourceOwnerSubsystem": "Prometheus Infrastructure"
+    },
+    "workers/prometheus-iq-worker.js": {
+      "sha256": "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
+      "sourceCommit": "11ac0668b87ed347c22bf963938b8d650370cfdb",
+      "sourceOwnerSubsystem": "Prometheus Infrastructure"
+    },
+    "workers/infrastructure/prometheusrouteiq-website-entry.mjs": {
+      "sha256": "045c768163e043b1429d51dacf33f842966a323eb080d0e1cf45debfc7ccebf5",
+      "sourceCommit": "94061fea1c238ca854bde9d17a860e1375af9c52",
+      "sourceOwnerSubsystem": "Prometheus Infrastructure"
+    },
+    "workers/infrastructure/route-iq-request-crm-durable-object.js": {
+      "sha256": "70d3e7a46d207f12a3689191784cc2984ae42897190ee1b0ded54f1baa6f2ec6",
+      "sourceCommit": "7b6e7a3423e1d1cae3068b99cc46bd3be6afb162",
+      "sourceOwnerSubsystem": "Prometheus Infrastructure"
+    },
+    "workers/infrastructure/route-iq-request-crm-runtime.js": {
+      "sha256": "7726770982fe39bb4030a24b8117dfb2cac69954c4279a8876282e4b8e1adac8",
+      "sourceCommit": "b7ab413a298d62806f7274d5ef63e6cb63bddf2c",
+      "sourceOwnerSubsystem": "Prometheus Infrastructure"
+    },
+    "workers/infrastructure/route-iq-request-crm-runtime-v1.json": {
+      "sha256": "7103fba8dacc1fd966b44d6d02d175e46c8842cd802b6d1791952958724d9849",
+      "sourceCommit": "b7ab413a298d62806f7274d5ef63e6cb63bddf2c",
+      "sourceOwnerSubsystem": "Prometheus Infrastructure"
+    },
+    "crm/route-iq-request-crm.mjs": {
+      "sha256": "05405c79698db0eeb378be37195128adb04c78da0e9720a345b757490d015825",
+      "sourceCommit": "3bea33b463ac941ad9fc7d88a1776d6b5de5d9b5",
+      "sourceOwnerSubsystem": "Prometheus CRM"
+    },
+    "crm/route-iq-request-crm-contract-v1.json": {
+      "sha256": "fb7ee1af5559f145c5e6eddf73b33e8367d584f748d60e8fe1a5a6651b2b0476",
+      "sourceCommit": "3bea33b463ac941ad9fc7d88a1776d6b5de5d9b5",
+      "sourceOwnerSubsystem": "Prometheus CRM"
+    }
   },
   "statefulCompatibility": {
     "publicEntrypoint": "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
@@ -37,11 +69,11 @@
   },
   "artifact": {
     "construction": "canonical_deployable_bundle_with_prior_public_assets",
-    "identityVersion": "route-iq-public-forward-rollback-artifact-v3",
+    "identityVersion": "route-iq-public-forward-rollback-artifact-v4",
     "identityScope": [
       "candidate_website_owner_identity",
       "candidate_deployment_assets_sha256",
-      "candidate_stateful_file_manifest",
+      "candidate_stateful_file_provenance",
       "wrangler_configuration",
       "prior_public_assets",
       "generated_worker_bundle",
