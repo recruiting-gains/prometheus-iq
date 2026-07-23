@@ -50,8 +50,17 @@ test("historical Workflow v2 evidence remains historical beside exact current ow
     current.currentReleaseIdentities.infrastructureIntegrityContractSha256,
     "0582bc185ccf6f5e0825de25ce5fef8c65240fb0ee3b68c22bc5ba14865350c5"
   );
-  assert.equal(current.overwatchSuccessor.parent, "a558df528f0c472d28afb1c3b3041a067ca86c4b");
-  assert.equal(current.overwatchSuccessor.files.length, 11);
+  assert.deepEqual(
+    current.overwatchPredecessors.map(item => item.commit),
+    [
+      "5c20b551820c21b02a0c25c9d38c93474457fd23",
+      "59fab7bc5f307336fba52d15bc73181cb1a20b04"
+    ]
+  );
+  assert.equal(current.overwatchPredecessors[0].parent, current.provenanceAdmission.commit);
+  assert.equal(current.overwatchPredecessors[1].parent, current.overwatchPredecessors[0].commit);
+  assert.equal(current.overwatchSuccessor.parent, current.overwatchPredecessors[1].commit);
+  assert.equal(current.overwatchSuccessor.files.length, 6);
 });
 
 test("governance fails closed on ownership or production-boundary drift", () => {
@@ -75,6 +84,18 @@ test("governance fails closed on ownership or production-boundary drift", () => 
           ...sources.governance.august1LaunchCloseoutSuccessor.provenanceAdmission,
           commit: "0".repeat(40)
         }
+      }
+    },
+    {
+      august1LaunchCloseoutSuccessor: {
+        ...sources.governance.august1LaunchCloseoutSuccessor,
+        overwatchPredecessors: [
+          {
+            ...sources.governance.august1LaunchCloseoutSuccessor.overwatchPredecessors[0],
+            tree: "0".repeat(40)
+          },
+          sources.governance.august1LaunchCloseoutSuccessor.overwatchPredecessors[1]
+        ]
       }
     },
     {

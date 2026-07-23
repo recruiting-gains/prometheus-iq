@@ -887,7 +887,6 @@ const WORKFLOW_V2_OVERWATCH_TAIL_PATHS = Object.freeze([
   "scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs",
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
   "scripts/verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs",
-  "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs",
   "tests/overwatch-public-deployment-workflow-v2.test.mjs",
   "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
   "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
@@ -1027,7 +1026,7 @@ const PROVENANCE_ADMISSION_FILES = Object.freeze([
     sha256: CURRENT_INFRASTRUCTURE_CONTRACT_SHA256
   })
 ]);
-const OVERWATCH_SUCCESSOR_FILES = Object.freeze([
+const INITIAL_OVERWATCH_SUCCESSOR_FILES = Object.freeze([
   "overwatch/governance/public-deployment-workflow-v2.json",
   "overwatch/governance/public-deployment-workflow-v2.md",
   PUBLIC_INTEGRITY_READINESS_PATH,
@@ -1038,6 +1037,18 @@ const OVERWATCH_SUCCESSOR_FILES = Object.freeze([
   "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs",
   "tests/overwatch-public-deployment-workflow-v2.test.mjs",
   "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
+  "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+]);
+const MANIFEST_REPAIR_SUCCESSOR_FILES = Object.freeze([
+  PUBLIC_INTEGRITY_READINESS_PATH,
+  "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs"
+]);
+const CURRENT_OVERWATCH_SUCCESSOR_FILES = Object.freeze([
+  "overwatch/governance/public-deployment-workflow-v2.json",
+  PUBLIC_INTEGRITY_READINESS_PATH,
+  "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+  "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+  "tests/overwatch-public-deployment-workflow-v2.test.mjs",
   "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
 ]);
 const WEBSITE_SUCCESSOR = Object.freeze({
@@ -1071,13 +1082,31 @@ const PROVENANCE_ADMISSION = Object.freeze({
   committer: "Prometheus Infrastructure <infrastructure@prometheus.local>",
   files: PROVENANCE_ADMISSION_FILES
 });
-const OVERWATCH_SUCCESSOR = Object.freeze({
-  classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
+const INITIAL_OVERWATCH_SUCCESSOR = Object.freeze({
+  commit: "5c20b551820c21b02a0c25c9d38c93474457fd23",
+  tree: "f0e388d52dfbe0fa9576a86551e20ef501f8c5cf",
   parent: PROVENANCE_ADMISSION.commit,
   subject: "overwatch: admit August 1 public release successors",
   author: "Prometheus Overwatch <overwatch@prometheus.local>",
   committer: "Prometheus Overwatch <overwatch@prometheus.local>",
-  files: OVERWATCH_SUCCESSOR_FILES
+  files: INITIAL_OVERWATCH_SUCCESSOR_FILES
+});
+const MANIFEST_REPAIR_SUCCESSOR = Object.freeze({
+  commit: "59fab7bc5f307336fba52d15bc73181cb1a20b04",
+  tree: "659a243b314a1dfbd811ba395f3c87485e50ccd6",
+  parent: INITIAL_OVERWATCH_SUCCESSOR.commit,
+  subject: "overwatch: complete August 1 successor manifest",
+  author: "Prometheus Overwatch <overwatch@prometheus.local>",
+  committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+  files: MANIFEST_REPAIR_SUCCESSOR_FILES
+});
+const OVERWATCH_SUCCESSOR = Object.freeze({
+  classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
+  parent: MANIFEST_REPAIR_SUCCESSOR.commit,
+  subject: "overwatch: close August 1 successor provenance",
+  author: "Prometheus Overwatch <overwatch@prometheus.local>",
+  committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+  files: CURRENT_OVERWATCH_SUCCESSOR_FILES
 });
 const HISTORICAL_PRESERVATION_TERMINAL_COMMIT =
   "d3bda9d86a388462dd5cab0fa789081eee59b541";
@@ -1095,6 +1124,28 @@ const CURRENT_INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
       committerEmail: "infrastructure@prometheus.local",
       subject: PROVENANCE_ADMISSION.subject,
       files: Object.freeze(PROVENANCE_ADMISSION_FILES.map(item => item.path))
+    }),
+    Object.freeze({
+      commit: INITIAL_OVERWATCH_SUCCESSOR.commit,
+      tree: INITIAL_OVERWATCH_SUCCESSOR.tree,
+      parent: INITIAL_OVERWATCH_SUCCESSOR.parent,
+      authorName: "Prometheus Overwatch",
+      authorEmail: "overwatch@prometheus.local",
+      committerName: "Prometheus Overwatch",
+      committerEmail: "overwatch@prometheus.local",
+      subject: INITIAL_OVERWATCH_SUCCESSOR.subject,
+      files: INITIAL_OVERWATCH_SUCCESSOR.files
+    }),
+    Object.freeze({
+      commit: MANIFEST_REPAIR_SUCCESSOR.commit,
+      tree: MANIFEST_REPAIR_SUCCESSOR.tree,
+      parent: MANIFEST_REPAIR_SUCCESSOR.parent,
+      authorName: "Prometheus Overwatch",
+      authorEmail: "overwatch@prometheus.local",
+      committerName: "Prometheus Overwatch",
+      committerEmail: "overwatch@prometheus.local",
+      subject: MANIFEST_REPAIR_SUCCESSOR.subject,
+      files: MANIFEST_REPAIR_SUCCESSOR.files
     })
   ]),
   august1LaunchCloseoutAdmissionSuccessor: Object.freeze({
@@ -1104,7 +1155,7 @@ const CURRENT_INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerName: "Prometheus Overwatch",
     committerEmail: "overwatch@prometheus.local",
     subject: OVERWATCH_SUCCESSOR.subject,
-    files: OVERWATCH_SUCCESSOR_FILES
+    files: CURRENT_OVERWATCH_SUCCESSOR_FILES
   })
 });
 const HISTORICAL_CLASSIFICATION = Object.freeze([
@@ -2152,6 +2203,16 @@ export function validatePublicIntegrityReadiness(governance) {
       ...PROVENANCE_ADMISSION,
       files: PROVENANCE_ADMISSION.files.map(item => ({ ...item }))
     },
+    overwatchPredecessors: [
+      {
+        ...INITIAL_OVERWATCH_SUCCESSOR,
+        files: [...INITIAL_OVERWATCH_SUCCESSOR.files]
+      },
+      {
+        ...MANIFEST_REPAIR_SUCCESSOR,
+        files: [...MANIFEST_REPAIR_SUCCESSOR.files]
+      }
+    ],
     overwatchSuccessor: {
       ...OVERWATCH_SUCCESSOR,
       files: [...OVERWATCH_SUCCESSOR.files]
@@ -2210,7 +2271,13 @@ function verifyExactCommit(root, expected) {
 }
 
 function verifyCurrentOwnerSuccessor(root, requireCommittedOverwatch) {
-  for (const expected of [WEBSITE_SUCCESSOR, ROLLBACK_SUCCESSOR, PROVENANCE_ADMISSION]) {
+  for (const expected of [
+    WEBSITE_SUCCESSOR,
+    ROLLBACK_SUCCESSOR,
+    PROVENANCE_ADMISSION,
+    INITIAL_OVERWATCH_SUCCESSOR,
+    MANIFEST_REPAIR_SUCCESSOR
+  ]) {
     verifyExactCommit(root, expected);
   }
   const ownerBoundary = verifyInfrastructureOwnerBoundary(

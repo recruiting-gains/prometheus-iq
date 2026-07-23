@@ -172,9 +172,18 @@ test("current owner evidence is pinned independently from historical readiness",
   assert.equal(successor.websiteSuccessor.commit, "710ad8a1428dd7621c5363a16fffaae828cc3421");
   assert.equal(successor.rollbackSuccessor.commit, "18fbe9906064bad8a0ae8e6fc224e2af0bf1a594");
   assert.equal(successor.provenanceAdmission.commit, "a558df528f0c472d28afb1c3b3041a067ca86c4b");
-  assert.equal(successor.overwatchSuccessor.parent, successor.provenanceAdmission.commit);
-  assert.equal(successor.overwatchSuccessor.subject, "overwatch: admit August 1 public release successors");
-  assert.equal(successor.overwatchSuccessor.files.length, 11);
+  assert.deepEqual(
+    successor.overwatchPredecessors.map(item => item.commit),
+    [
+      "5c20b551820c21b02a0c25c9d38c93474457fd23",
+      "59fab7bc5f307336fba52d15bc73181cb1a20b04"
+    ]
+  );
+  assert.equal(successor.overwatchPredecessors[0].parent, successor.provenanceAdmission.commit);
+  assert.equal(successor.overwatchPredecessors[1].parent, successor.overwatchPredecessors[0].commit);
+  assert.equal(successor.overwatchSuccessor.parent, successor.overwatchPredecessors[1].commit);
+  assert.equal(successor.overwatchSuccessor.subject, "overwatch: close August 1 successor provenance");
+  assert.equal(successor.overwatchSuccessor.files.length, 6);
   assert.deepEqual(successor.currentReleaseIdentities, {
     deploymentAssetsSha256: "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1",
     rollbackContractSha256: "b7be296f51db1b8e8a305a068ebc1b0aa7652813de7b5378b96ac292af8af012",
