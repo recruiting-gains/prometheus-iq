@@ -11,6 +11,9 @@ import {
 import {
   verifyCloudflareFounderAttendedServiceTokenArchitecture
 } from "./verify-cloudflare-founder-attended-service-token.mjs";
+import {
+  hasGovernedPublicDeploymentWorkflowV2PackageSuccessor
+} from "./verify-overwatch-public-deployment-workflow-v2.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const contractPath = "workers/infrastructure/cloudflare-founder-attended-service-token-v1.json";
@@ -463,7 +466,12 @@ function verifyPackageReleaseWiring() {
     || keychainTransition?.successorSha256 !== githubDeploymentTransition?.previousSha256
     || githubDeploymentTransition?.successorSha256 !== routeIq3dTransition?.previousSha256
     || routeIq3dTransition?.successorSha256 !== workflowV2Transition?.historicalSha256
-    || workflowV2Transition?.successorSha256 !== sha256(read("package.json"))
+    || !hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+      governance: publicDeploymentWorkflowV2Governance,
+      predecessorGovernanceId: "route-iq-3d-visual-continuity-v1",
+      historicalSha256: routeIq3dTransition?.successorSha256,
+      successorSha256: sha256(read("package.json"))
+    })
     || packageTransition?.owner !== "Prometheus Overwatch"
     || keychainTransition?.owner !== "Prometheus Overwatch"
     || githubDeploymentTransition?.owner !== "Prometheus Overwatch"

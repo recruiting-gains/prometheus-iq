@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
@@ -12,6 +13,7 @@ import {
 } from "../scripts/verify-overwatch-public-deployment-workflow-v2.mjs";
 
 const read = path => readFileSync(path, "utf8");
+const sha256 = value => createHash("sha256").update(value).digest("hex");
 const sources = Object.freeze({
   governance: JSON.parse(read("overwatch/governance/public-deployment-workflow-v2.json")),
   ownerContract: JSON.parse(read("workers/infrastructure/github-actions-public-worker-deployment-v2.json")),
@@ -232,6 +234,12 @@ test("historical gates accept only an exact governed Workflow v2 package success
     historicalSha256: transition.historicalSha256,
     successorSha256: transition.successorSha256
   }), true);
+  assert.equal(hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+    governance: sources.governance,
+    predecessorGovernanceId: transition.predecessorGovernanceId,
+    historicalSha256: transition.historicalSha256,
+    successorSha256: sha256(read("package.json"))
+  }), true);
 
   for (const patch of [
     { predecessorGovernanceId: "wrong-governance" },
@@ -269,7 +277,7 @@ test("historical verifier successors preserve path ownership across unrelated ow
   assert.equal(hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
     path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
     historicalSha256: "766abafe2ef2d8d30b862b8b635424d622faad526732eb4893f1645b3186bf94",
-    successorSha256: "07a1ca72b14418cf1665e4ab239b4521256bc7723bc439a4789186f262c73f5f"
+    successorSha256: "9254d7c9ebe2bab6c948627597f921572a6b6f9ad64977e67261d790d13fb1fd"
   }), true);
   for (const patch of [
     { path: "src/App.jsx" },
@@ -279,7 +287,7 @@ test("historical verifier successors preserve path ownership across unrelated ow
     assert.equal(hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
       path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
       historicalSha256: "766abafe2ef2d8d30b862b8b635424d622faad526732eb4893f1645b3186bf94",
-      successorSha256: "07a1ca72b14418cf1665e4ab239b4521256bc7723bc439a4789186f262c73f5f",
+      successorSha256: "9254d7c9ebe2bab6c948627597f921572a6b6f9ad64977e67261d790d13fb1fd",
       ...patch
     }), false);
   }

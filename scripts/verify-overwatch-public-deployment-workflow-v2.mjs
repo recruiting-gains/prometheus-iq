@@ -62,14 +62,25 @@ const CURRENT_ROLLBACK_CONTRACT_SHA256 =
   "b7be296f51db1b8e8a305a068ebc1b0aa7652813de7b5378b96ac292af8af012";
 const CURRENT_ROLLBACK_ARTIFACT_SHA256 =
   "012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe";
+const ACTIVE_ROLLBACK_ARTIFACT_SHA256 =
+  "9131d9efe0e2455ab423c94ace52e02e56d9213d5724e2b621a2f2690989b4b8";
 const CURRENT_INFRASTRUCTURE_CONTRACT_SHA256 =
   "0582bc185ccf6f5e0825de25ce5fef8c65240fb0ee3b68c22bc5ba14865350c5";
 const UNATTENDED_GOVERNANCE_ID = "cloudflare-unattended-deployment-access-governance-v1";
 const ROUTE_IQ_3D_GOVERNANCE_ID = "route-iq-3d-visual-continuity-v1";
 const PACKAGE_PATH = "package.json";
 const HISTORICAL_PACKAGE_SHA256 = "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d";
+const CROSS_INDUSTRY_PACKAGE_SUCCESSOR_COMMIT =
+  "2db4121e231cc07b11370a53d42f754c8dbc4b81";
+const CROSS_INDUSTRY_PACKAGE_SUCCESSOR_TREE =
+  "45e068e2b41f116eb54352ee7333f2962fbddc65";
+const CROSS_INDUSTRY_PACKAGE_SUCCESSOR_PARENT =
+  "3205c9a634dc2fdea7faf00fdee5744c12b25e6f";
+const CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256 =
+  "2ddac044f9cd8fbcaceec1879db49c7a80e141fcac41da6d01d36d5de46677ab";
 const HISTORICAL_3D_PACKAGE_SHA256 = "f34246136a294d5a7180d76a452ff8c9c69bb7d1d35419c1115426b8ea4e0247";
 const CURRENT_PACKAGE_SHA256 = "8ddf429fc08acd45eca4f59638324f06a80acab9c949168325299e5b73199e2f";
+const ACTIVE_PACKAGE_SHA256 = "2ddac044f9cd8fbcaceec1879db49c7a80e141fcac41da6d01d36d5de46677ab";
 const WORKFLOW_V2_TAIL_ANCHOR = "5b5b59509206578336b9671582669b600d0c74d4";
 const WORKFLOW_V2_TAIL_PARENT = "0d828948968b8cedf3b1961c5320c74c03a8e18c";
 const WORKFLOW_V2_TAIL_PATHS = Object.freeze([
@@ -85,6 +96,7 @@ const WORKFLOW_V2_TAIL_PATHS = Object.freeze([
   "scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs",
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
   "scripts/verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs",
+  "tests/overwatch-cloudflare-unattended-access.test.mjs",
   "tests/overwatch-public-deployment-workflow-v2.test.mjs",
   "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
   "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
@@ -413,6 +425,19 @@ const AUGUST1_OVERWATCH_SUCCESSOR = Object.freeze({
   committer: OVERWATCH_IDENTITY,
   files: AUGUST1_CURRENT_OVERWATCH_SUCCESSOR_FILES
 });
+const AUGUST1_OVERWATCH_SUCCESSOR_COMMIT =
+  "b32e18c5ed4a07edd41ea824ca4f934789192f5d";
+const AUGUST1_OVERWATCH_SUCCESSOR_TREE =
+  "4e3b186cec2fe4fc1f290ac1b67f6c92c7777220";
+const CURRENT_AUGUST1_PIN_REFRESH = Object.freeze({
+  commit: "589e3fddb904338666e17c5fe35be0464290d4a7",
+  tree: "ab1a4540648747f86b49bcae6b60ef91cc506069",
+  parent: "8bf944a92c93a84a01f0508e84a518bbbca6812d",
+  subject: "overwatch: refresh August intelligence pins",
+  author: OVERWATCH_IDENTITY,
+  committer: OVERWATCH_IDENTITY,
+  files: Object.freeze([AUGUST1_READINESS_REPORT_PATH])
+});
 const AUGUST1_LAUNCH_CLOSEOUT_SUCCESSOR = Object.freeze({
   classification: "CONTROLLING_CURRENT_OWNER_SUCCESSOR",
   historicalWorkflowEvidencePreserved: true,
@@ -616,12 +641,41 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
     item.predecessorGovernanceId === predecessorGovernanceId
     && item.path === PACKAGE_PATH
     && item.historicalSha256 === historicalSha256
-    && item.successorSha256 === successorSha256
     && item.owner === "Prometheus Overwatch"
     && item.ownerCommit === "610383c4e845789859946122283e8014dae35600"
     && item.classification === "OVERWATCH_AUGUST_1_RELEASE_GATE_REGISTRATION_ONLY"
   )) ?? [];
-  return matches.length === 1;
+  if (matches.length !== 1) return false;
+  if (matches[0].successorSha256 === successorSha256) return true;
+  if (successorSha256 !== CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256) return false;
+
+  const fields = git([
+    "show",
+    "-s",
+    "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+    CROSS_INDUSTRY_PACKAGE_SUCCESSOR_COMMIT
+  ]).split("\n");
+  const predecessorPackage = execFileSync("/usr/bin/git", [
+    "show",
+    `${CROSS_INDUSTRY_PACKAGE_SUCCESSOR_PARENT}:${PACKAGE_PATH}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+  const successorPackage = execFileSync("/usr/bin/git", [
+    "show",
+    `${CROSS_INDUSTRY_PACKAGE_SUCCESSOR_COMMIT}:${PACKAGE_PATH}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+
+  return isDeepStrictEqual(fields, [
+    CROSS_INDUSTRY_PACKAGE_SUCCESSOR_COMMIT,
+    CROSS_INDUSTRY_PACKAGE_SUCCESSOR_TREE,
+    CROSS_INDUSTRY_PACKAGE_SUCCESSOR_PARENT,
+    OVERWATCH_IDENTITY,
+    OVERWATCH_IDENTITY,
+    "overwatch: qualify cross-industry dashboard regression repair"
+  ])
+    && sha256(predecessorPackage) === matches[0].successorSha256
+    && sha256(successorPackage) === CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256
+    && git(["log", "-1", "--format=%H", "--", PACKAGE_PATH])
+      === CROSS_INDUSTRY_PACKAGE_SUCCESSOR_COMMIT;
 }
 
 export function isGovernedPublicDeploymentWorkflowV2VerifierCommit({
@@ -688,7 +742,6 @@ export function hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
     let august1OwnerSuccessorsSeen = 0;
     let august1QualificationSuccessorsSeen = 0;
     let august1OverwatchSuccessorSeen = false;
-    const head = git(["rev-parse", "HEAD"]);
     for (const commit of commits) {
       const [author, committer, parents, subject, tree] = git([
         "show", "-s", "--format=%ae%n%ce%n%P%n%s%n%T", commit
@@ -796,11 +849,12 @@ export function hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
       }
 
       if (previous === AUGUST1_OVERWATCH_SUCCESSOR.parent) {
-        if (commit !== head
+        if (commit !== AUGUST1_OVERWATCH_SUCCESSOR_COMMIT
           || parents !== AUGUST1_OVERWATCH_SUCCESSOR.parent
           || author !== "overwatch@prometheus.local"
           || committer !== "overwatch@prometheus.local"
           || subject !== AUGUST1_OVERWATCH_SUCCESSOR.subject
+          || tree !== AUGUST1_OVERWATCH_SUCCESSOR_TREE
           || JSON.stringify([...files].sort())
             !== JSON.stringify([...AUGUST1_OVERWATCH_SUCCESSOR.files].sort())) {
           return false;
@@ -824,7 +878,7 @@ export function hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
       }
       previous = commit;
     }
-    return previous === head
+    return previous === git(["rev-parse", "HEAD"])
       && pathChanged
       && authorizationBoundaryRepairSeen
       && authorizationBoundaryGovernanceSeen
@@ -879,16 +933,11 @@ function verifyAugust1LaunchCloseoutSuccessor(governance) {
     ...AUGUST1_QUALIFICATION_SUCCESSORS
   ]) verifyExactCommit(expected);
 
-  const head = git(["rev-parse", "HEAD"]);
-  const identity = commitIdentity(head);
-  assert.deepEqual(identity.parents, [AUGUST1_OVERWATCH_SUCCESSOR.parent]);
-  assert.equal(identity.author, AUGUST1_OVERWATCH_SUCCESSOR.author);
-  assert.equal(identity.committer, AUGUST1_OVERWATCH_SUCCESSOR.committer);
+  verifyExactCommit(CURRENT_AUGUST1_PIN_REFRESH);
   assert.equal(
-    git(["show", "-s", "--format=%s", head]),
-    AUGUST1_OVERWATCH_SUCCESSOR.subject
+    git(["log", "-1", "--format=%H", "--", AUGUST1_READINESS_REPORT_PATH]),
+    CURRENT_AUGUST1_PIN_REFRESH.commit
   );
-  assert.deepEqual(commitPaths(head).sort(), [...AUGUST1_OVERWATCH_SUCCESSOR.files].sort());
 
   const currentEvidence = [
     ...AUGUST1_ROLLBACK_SUCCESSOR_FILES.slice(0, 4),
@@ -1063,7 +1112,7 @@ export function verifyOverwatchPublicDeploymentWorkflowV2() {
     assert.equal(sha256(committedEvidence), evidence.sha256, `Historical provenance repair evidence drifted: ${evidence.path}`);
   }
   assert.equal(repairPaths.every(path => /^(?:docs\/|scripts\/verify-|tests\/|workers\/infrastructure\/)/u.test(path)), true);
-  assert.equal(sha256(read(PACKAGE_PATH)), CURRENT_PACKAGE_SHA256);
+  assert.equal(sha256(read(PACKAGE_PATH)), ACTIVE_PACKAGE_SHA256);
 
   for (const path of [GOVERNANCE_PATH, DOCUMENTATION_PATH]) {
     assert.equal(git(["log", "-1", "--format=%an <%ae>", "--", path]), OVERWATCH_IDENTITY);
@@ -1082,7 +1131,7 @@ export function verifyOverwatchPublicDeploymentWorkflowV2() {
   assert.equal(assets.candidateWebsiteCommit, AUGUST1_WEBSITE_SUCCESSOR.commit);
   assert.equal(assets.candidateWebsiteTree, AUGUST1_WEBSITE_SUCCESSOR.tree);
   const rollback = verifyPublicForwardRollbackArtifact(root);
-  assert.equal(rollback.artifactSha256, CURRENT_ROLLBACK_ARTIFACT_SHA256);
+  assert.equal(rollback.artifactSha256, ACTIVE_ROLLBACK_ARTIFACT_SHA256);
   assert.equal(rollback.candidateDeploymentAssetsSha256, CURRENT_DEPLOYMENT_ASSET_SHA256);
   return Object.freeze({ status: "OVERWATCH_PUBLIC_DEPLOYMENT_WORKFLOW_V2_VERIFIED" });
 }
