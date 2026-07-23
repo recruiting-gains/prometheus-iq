@@ -505,6 +505,7 @@
       "files": [
         "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
         "overwatch/governance/public-deployment-workflow-v2.json",
+        "overwatch/governance/route-iq-august-1-launch-closeout-v1.json",
         "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
         "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
         "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
@@ -1902,12 +1903,30 @@
           "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
           "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
         ]
+      },
+      {
+        "commit": "0cffd6afb7b660e61049baff330bf3b231077a89",
+        "tree": "46866ff57ceb022cc4a3212771c63fd1b9f275ba",
+        "parent": "95f367e03160bfeae98b722d99b6ca67d4424d72",
+        "subject": "overwatch: close August 1 qualification chain",
+        "author": "Prometheus Overwatch <overwatch@prometheus.local>",
+        "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
+        "files": [
+          "overwatch/governance/public-deployment-workflow-v2.json",
+          "overwatch/governance/public-deployment-workflow-v2.md",
+          "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+          "overwatch/governance/route-iq-august-1-launch-closeout-v1.json",
+          "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+          "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+          "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+        ]
       }
     ],
     "overwatchSuccessor": {
       "classification": "DYNAMIC_EXACT_HEAD_SUCCESSOR",
-      "parent": "95f367e03160bfeae98b722d99b6ca67d4424d72",
-      "subject": "overwatch: close August 1 qualification chain",
+      "parent": "0cffd6afb7b660e61049baff330bf3b231077a89",
+      "subject": "overwatch: align August 1 tail boundary",
       "author": "Prometheus Overwatch <overwatch@prometheus.local>",
       "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
       "files": [

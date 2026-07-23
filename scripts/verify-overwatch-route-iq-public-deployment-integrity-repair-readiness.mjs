@@ -879,6 +879,7 @@ const WORKFLOW_V2_RELEASE_WIRING_CLOSURE = Object.freeze({
 const WORKFLOW_V2_OVERWATCH_TAIL_PATHS = Object.freeze([
   PUBLIC_INTEGRITY_READINESS_PATH,
   "overwatch/governance/public-deployment-workflow-v2.json",
+  AUGUST1_READINESS_REPORT_PATH,
   "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
   "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
   "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
@@ -1246,12 +1247,21 @@ const QUALIFICATION_SUCCESSORS = Object.freeze([
       "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
     ])
+  }),
+  Object.freeze({
+    commit: "0cffd6afb7b660e61049baff330bf3b231077a89",
+    tree: "46866ff57ceb022cc4a3212771c63fd1b9f275ba",
+    parent: "95f367e03160bfeae98b722d99b6ca67d4424d72",
+    subject: "overwatch: close August 1 qualification chain",
+    author: "Prometheus Overwatch <overwatch@prometheus.local>",
+    committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+    files: CURRENT_OVERWATCH_SUCCESSOR_FILES
   })
 ]);
 const OVERWATCH_SUCCESSOR = Object.freeze({
   classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
   parent: QUALIFICATION_SUCCESSORS.at(-1).commit,
-  subject: "overwatch: close August 1 qualification chain",
+  subject: "overwatch: align August 1 tail boundary",
   author: "Prometheus Overwatch <overwatch@prometheus.local>",
   committer: "Prometheus Overwatch <overwatch@prometheus.local>",
   files: CURRENT_OVERWATCH_SUCCESSOR_FILES

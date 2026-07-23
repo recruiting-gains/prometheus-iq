@@ -196,7 +196,8 @@ test("current owner evidence is pinned independently from historical readiness",
       "affd4548054ca5f2c73521820d3bd3b82afa7545",
       "325c50c4c33f18dea07f16d6214a4decdcc46c29",
       "e34259fa62a3530b0a24e9dbae3a015593c08a22",
-      "95f367e03160bfeae98b722d99b6ca67d4424d72"
+      "95f367e03160bfeae98b722d99b6ca67d4424d72",
+      "0cffd6afb7b660e61049baff330bf3b231077a89"
     ]
   );
   assert.equal(successor.qualificationPredecessors[0].parent, successor.overwatchPredecessors[3].commit);
@@ -207,7 +208,7 @@ test("current owner evidence is pinned independently from historical readiness",
     );
   }
   assert.equal(successor.overwatchSuccessor.parent, successor.qualificationPredecessors.at(-1).commit);
-  assert.equal(successor.overwatchSuccessor.subject, "overwatch: close August 1 qualification chain");
+  assert.equal(successor.overwatchSuccessor.subject, "overwatch: align August 1 tail boundary");
   assert.equal(successor.overwatchSuccessor.files.length, 8);
   assert.deepEqual(successor.currentReleaseIdentities, {
     deploymentAssetsSha256: "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1",

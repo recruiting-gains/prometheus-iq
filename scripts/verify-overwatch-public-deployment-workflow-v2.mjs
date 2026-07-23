@@ -377,12 +377,21 @@ const AUGUST1_QUALIFICATION_SUCCESSORS = Object.freeze([
       "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
     ])
+  }),
+  Object.freeze({
+    commit: "0cffd6afb7b660e61049baff330bf3b231077a89",
+    tree: "46866ff57ceb022cc4a3212771c63fd1b9f275ba",
+    parent: "95f367e03160bfeae98b722d99b6ca67d4424d72",
+    subject: "overwatch: close August 1 qualification chain",
+    author: OVERWATCH_IDENTITY,
+    committer: OVERWATCH_IDENTITY,
+    files: AUGUST1_CURRENT_OVERWATCH_SUCCESSOR_FILES
   })
 ]);
 const AUGUST1_OVERWATCH_SUCCESSOR = Object.freeze({
   classification: "DYNAMIC_EXACT_HEAD_SUCCESSOR",
   parent: AUGUST1_QUALIFICATION_SUCCESSORS.at(-1).commit,
-  subject: "overwatch: close August 1 qualification chain",
+  subject: "overwatch: align August 1 tail boundary",
   author: OVERWATCH_IDENTITY,
   committer: OVERWATCH_IDENTITY,
   files: AUGUST1_CURRENT_OVERWATCH_SUCCESSOR_FILES
