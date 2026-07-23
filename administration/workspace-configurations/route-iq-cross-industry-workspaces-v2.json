@@ -1,0 +1,643 @@
+{
+  "schemaVersion": "route-iq-workspace-configuration-v2",
+  "registryVersion": "route-iq-cross-industry-workspaces-v2.1.0",
+  "product": "route_iq",
+  "authority": "prometheus_administration",
+  "limits": {
+    "maxCompanies": 2,
+    "maxNamedUsers": 40
+  },
+  "founderBoundary": {
+    "attendanceMode": "CRUZ_ONLY_ATTENDED",
+    "founderUserId": "user_cruz_founder",
+    "anthonyMappingStatus": "UNMAPPED",
+    "externalTesterAccessAuthorized": false
+  },
+  "safety": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF"
+  },
+  "workspaces": [
+    {
+      "workspaceId": "fitness_connection_founder_research",
+      "companyId": "fitness_connection_research",
+      "lifecycle": "founder_research",
+      "admission": {
+        "status": "FOUNDER_RESEARCH_ONLY",
+        "productionAuthorized": false,
+        "customerAuthorizationRef": null
+      },
+      "company": {
+        "displayName": "Fitness Connection Founder Field Research",
+        "businessType": "fitness",
+        "relationshipClassification": "FOUNDER_FIELD_RESEARCH",
+        "publicRelationshipClaimsAllowed": false,
+        "brand": {
+          "productLabel": "Route IQ",
+          "primaryColor": "#102A43",
+          "accentColor": "#E11D48"
+        }
+      },
+      "operatingProfile": {
+        "profileId": "fitness",
+        "profileVersion": "operating-profile-v2",
+        "industryId": "fitness"
+      },
+      "locations": [
+        {
+          "locationId": "houston_founder_research_base",
+          "displayName": "Houston Founder Research Base",
+          "territoryIds": [
+            "houston_founder_research_territory"
+          ],
+          "active": true
+        }
+      ],
+      "territories": [
+        {
+          "territoryId": "houston_founder_research_territory",
+          "displayName": "Houston Founder Research Territory",
+          "timezone": "America/Chicago",
+          "active": true
+        }
+      ],
+      "roles": [
+        {
+          "roleId": "fitness_founder_research_operator",
+          "displayName": "Founder Research Operator",
+          "capabilities": [
+            "view_route",
+            "view_operating_hours",
+            "open_directions",
+            "record_visit",
+            "correct_visit",
+            "add_place",
+            "save_place",
+            "end_route",
+            "end_day",
+            "export_manual_report",
+            "manage_workspace_configuration",
+            "view_founder_read_only_intelligence"
+          ]
+        }
+      ],
+      "users": [
+        {
+          "userId": "user_cruz_founder",
+          "representativeId": "representative_cruz_founder",
+          "displayName": "Cruz Garza",
+          "identityClass": "FOUNDER_ATTENDED",
+          "principalMappingStatus": "ATTENDED_REQUIRED",
+          "roleId": "fitness_founder_research_operator",
+          "territoryIds": [
+            "houston_founder_research_territory"
+          ],
+          "active": true
+        }
+      ],
+      "dashboard": {
+        "terminology": {
+          "opportunity": "fitness business",
+          "visit": "field visit",
+          "outcome": "visit result",
+          "success": "qualified conversation",
+          "followUp": "follow-up"
+        },
+        "capabilities": [
+          "view_route",
+          "view_operating_hours",
+          "open_directions",
+          "record_visit",
+          "correct_visit",
+          "add_place",
+          "save_place",
+          "end_route",
+          "end_day",
+          "export_manual_report",
+          "manage_workspace_configuration",
+          "view_founder_read_only_intelligence"
+        ],
+        "cardFields": [
+          {
+            "fieldId": "business_name",
+            "label": "Business",
+            "required": true
+          },
+          {
+            "fieldId": "business_type",
+            "label": "Business type",
+            "required": true
+          },
+          {
+            "fieldId": "operating_hours",
+            "label": "Operating hours",
+            "required": true
+          },
+          {
+            "fieldId": "availability_status",
+            "label": "Availability",
+            "required": true
+          },
+          {
+            "fieldId": "next_opening",
+            "label": "Next opening",
+            "required": false
+          },
+          {
+            "fieldId": "distance",
+            "label": "Distance",
+            "required": true
+          },
+          {
+            "fieldId": "estimated_visit_duration",
+            "label": "Estimated visit",
+            "required": true
+          },
+          {
+            "fieldId": "visit_count",
+            "label": "Visits",
+            "required": false
+          },
+          {
+            "fieldId": "last_outcome",
+            "label": "Last outcome",
+            "required": false
+          },
+          {
+            "fieldId": "unit_potential",
+            "label": "Unit potential",
+            "required": false
+          }
+        ],
+        "filters": [
+          {
+            "filterId": "availability_filter",
+            "label": "Availability",
+            "fieldId": "availability_status"
+          },
+          {
+            "filterId": "business_type_filter",
+            "label": "Business type",
+            "fieldId": "business_type"
+          }
+        ],
+        "sorts": [
+          {
+            "sortId": "distance_nearest",
+            "label": "Nearest first",
+            "fieldId": "distance",
+            "direction": "asc"
+          },
+          {
+            "sortId": "unit_potential_highest",
+            "label": "Highest unit potential",
+            "fieldId": "unit_potential",
+            "direction": "desc"
+          }
+        ],
+        "actions": [
+          {
+            "actionId": "open_directions",
+            "label": "Directions",
+            "allowedOutcomeIds": [
+              "visited",
+              "manager_reached",
+              "qualified_conversation",
+              "follow_up",
+              "closed_business"
+            ]
+          },
+          {
+            "actionId": "record_visit",
+            "label": "Log result",
+            "allowedOutcomeIds": [
+              "visited",
+              "manager_reached",
+              "qualified_conversation",
+              "follow_up",
+              "closed_business"
+            ]
+          }
+        ],
+        "outcomes": [
+          {
+            "outcomeId": "visited",
+            "label": "Visited",
+            "classification": "OBSERVATION"
+          },
+          {
+            "outcomeId": "manager_reached",
+            "label": "Manager reached",
+            "classification": "PROGRESS"
+          },
+          {
+            "outcomeId": "qualified_conversation",
+            "label": "Qualified conversation",
+            "classification": "SUCCESS"
+          },
+          {
+            "outcomeId": "follow_up",
+            "label": "Follow-up",
+            "classification": "FOLLOW_UP"
+          },
+          {
+            "outcomeId": "closed_business",
+            "label": "Business closed",
+            "classification": "EXCLUSION"
+          }
+        ],
+        "kpis": [
+          {
+            "kpiId": "visits_completed",
+            "label": "Visits completed",
+            "aggregation": "COUNT",
+            "sourceOutcomeIds": [
+              "visited",
+              "manager_reached",
+              "qualified_conversation",
+              "follow_up"
+            ]
+          },
+          {
+            "kpiId": "managers_reached",
+            "label": "Managers reached",
+            "aggregation": "COUNT",
+            "sourceOutcomeIds": [
+              "manager_reached",
+              "qualified_conversation"
+            ]
+          },
+          {
+            "kpiId": "qualified_conversations",
+            "label": "Qualified conversations",
+            "aggregation": "COUNT",
+            "sourceOutcomeIds": [
+              "qualified_conversation"
+            ]
+          }
+        ]
+      },
+      "availabilityPolicy": {
+        "timezoneSource": "BUSINESS_LOCAL_IANA",
+        "freshnessCeilingHours": 24,
+        "immediateRecommendationRule": "FRESH_VERIFIED_OPEN_OR_ACCESS_WINDOW_ONLY",
+        "verifiedClosedRule": "INELIGIBLE_WITH_NEXT_OPENING",
+        "uncertainRule": "NON_RECOMMENDED_VERIFICATION_REQUIRED",
+        "appointmentOnlyRule": "VERIFIED_APPOINTMENT_OR_ACCESS_WINDOW_REQUIRED",
+        "providerFailureRule": "PRESERVE_PRIOR_EVIDENCE_AND_EXPIRE_NORMALLY",
+        "refreshMode": "GOVERNED_RUNTIME_ARTIFACT"
+      },
+      "opportunitySources": [
+        {
+          "sourceId": "fitness_founder_research_approved_roster",
+          "adapterId": "google_qualified_businesses_v2",
+          "artifactPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+          "artifactSchemaVersion": "google-qualified-runtime-pool-segmentation-v1",
+          "workspaceId": "fitness_connection_founder_research",
+          "profileId": "fitness",
+          "providerId": "google_places_existing_governed_artifact",
+          "classification": "FOUNDER_RESEARCH_APPROVED_ROSTER",
+          "admissionStatus": "ADMITTED_FOR_FOUNDER_RESEARCH",
+          "productionEligible": false,
+          "provenanceRef": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json"
+        }
+      ],
+      "fallbackPolicy": {
+        "mode": "FAIL_CLOSED",
+        "demoCatalogAllowed": false,
+        "embeddedBusinessCatalogAllowed": false,
+        "crossWorkspaceFallbackAllowed": false,
+        "missingSourceState": "CONFIGURATION_REQUIRED_EMPTY"
+      },
+      "retention": {
+        "maximumCalendarMonths": 18,
+        "customerMayShorten": true,
+        "customerMayExpand": false,
+        "legalHoldSupported": true,
+        "dispositionMode": "APPEND_ONLY_AUDITABLE_DATA_OWNED"
+      },
+      "provenance": {
+        "owner": "prometheus_administration",
+        "configurationVersion": "v2.1.0",
+        "sourceRefs": [
+          "FOUNDER RETENTION DECISION",
+          "Route IQ cross-industry Dashboard regression directive"
+        ],
+        "approvalState": "FOUNDER_RESEARCH_BOUNDARY_RECORDED"
+      }
+    },
+    {
+      "workspaceId": "northstar_field_supply_synthetic",
+      "companyId": "northstar_field_supply_synthetic",
+      "lifecycle": "synthetic_validation_only",
+      "admission": {
+        "status": "SYNTHETIC_VALIDATION_ONLY",
+        "productionAuthorized": false,
+        "customerAuthorizationRef": null
+      },
+      "company": {
+        "displayName": "Northstar Field Supply (Synthetic)",
+        "businessType": "general_outside_sales",
+        "relationshipClassification": "SYNTHETIC_VALIDATION_FIXTURE",
+        "publicRelationshipClaimsAllowed": false,
+        "brand": {
+          "productLabel": "Route IQ",
+          "primaryColor": "#243B53",
+          "accentColor": "#0F766E"
+        }
+      },
+      "operatingProfile": {
+        "profileId": "general_outside_sales",
+        "profileVersion": "operating-profile-v2",
+        "industryId": "general_outside_sales"
+      },
+      "locations": [
+        {
+          "locationId": "northstar_houston_synthetic",
+          "displayName": "Houston Sales Office (Synthetic)",
+          "territoryIds": [
+            "northstar_central_synthetic"
+          ],
+          "active": true
+        }
+      ],
+      "territories": [
+        {
+          "territoryId": "northstar_central_synthetic",
+          "displayName": "Central Territory (Synthetic)",
+          "timezone": "America/Chicago",
+          "active": true
+        }
+      ],
+      "roles": [
+        {
+          "roleId": "northstar_synthetic_representative",
+          "displayName": "Field Representative (Synthetic)",
+          "capabilities": [
+            "view_route",
+            "view_operating_hours",
+            "open_directions",
+            "record_visit",
+            "correct_visit",
+            "add_place",
+            "save_place",
+            "end_route",
+            "end_day",
+            "export_manual_report"
+          ]
+        }
+      ],
+      "users": [
+        {
+          "userId": "northstar_synthetic_user_01",
+          "representativeId": "northstar_synthetic_rep_01",
+          "displayName": "Synthetic Representative 01",
+          "identityClass": "SYNTHETIC_NONCANONICAL",
+          "principalMappingStatus": "SYNTHETIC_ONLY",
+          "roleId": "northstar_synthetic_representative",
+          "territoryIds": [
+            "northstar_central_synthetic"
+          ],
+          "active": false
+        }
+      ],
+      "dashboard": {
+        "terminology": {
+          "opportunity": "sales opportunity",
+          "visit": "field visit",
+          "outcome": "visit outcome",
+          "success": "qualified opportunity",
+          "followUp": "follow-up"
+        },
+        "capabilities": [
+          "view_route",
+          "view_operating_hours",
+          "open_directions",
+          "record_visit",
+          "correct_visit",
+          "add_place",
+          "save_place",
+          "end_route",
+          "end_day",
+          "export_manual_report"
+        ],
+        "cardFields": [
+          {
+            "fieldId": "business_name",
+            "label": "Business",
+            "required": true
+          },
+          {
+            "fieldId": "business_type",
+            "label": "Business type",
+            "required": true
+          },
+          {
+            "fieldId": "operating_hours",
+            "label": "Operating hours",
+            "required": true
+          },
+          {
+            "fieldId": "availability_status",
+            "label": "Availability",
+            "required": true
+          },
+          {
+            "fieldId": "next_opening",
+            "label": "Next opening",
+            "required": false
+          },
+          {
+            "fieldId": "distance",
+            "label": "Distance",
+            "required": true
+          },
+          {
+            "fieldId": "estimated_visit_duration",
+            "label": "Estimated visit",
+            "required": true
+          },
+          {
+            "fieldId": "decision_maker_role",
+            "label": "Decision maker",
+            "required": false
+          },
+          {
+            "fieldId": "opportunity_stage",
+            "label": "Opportunity stage",
+            "required": false
+          },
+          {
+            "fieldId": "last_outcome",
+            "label": "Last outcome",
+            "required": false
+          }
+        ],
+        "filters": [
+          {
+            "filterId": "availability_filter",
+            "label": "Availability",
+            "fieldId": "availability_status"
+          },
+          {
+            "filterId": "opportunity_stage_filter",
+            "label": "Opportunity stage",
+            "fieldId": "opportunity_stage"
+          }
+        ],
+        "sorts": [
+          {
+            "sortId": "distance_nearest",
+            "label": "Nearest first",
+            "fieldId": "distance",
+            "direction": "asc"
+          },
+          {
+            "sortId": "opportunity_stage_ascending",
+            "label": "Opportunity stage",
+            "fieldId": "opportunity_stage",
+            "direction": "asc"
+          }
+        ],
+        "actions": [
+          {
+            "actionId": "open_directions",
+            "label": "Directions",
+            "allowedOutcomeIds": [
+              "visited",
+              "decision_maker_reached",
+              "qualified_opportunity",
+              "follow_up",
+              "closed_business"
+            ]
+          },
+          {
+            "actionId": "record_visit",
+            "label": "Log outcome",
+            "allowedOutcomeIds": [
+              "visited",
+              "decision_maker_reached",
+              "qualified_opportunity",
+              "follow_up",
+              "closed_business"
+            ]
+          }
+        ],
+        "outcomes": [
+          {
+            "outcomeId": "visited",
+            "label": "Visited",
+            "classification": "OBSERVATION"
+          },
+          {
+            "outcomeId": "decision_maker_reached",
+            "label": "Decision maker reached",
+            "classification": "PROGRESS"
+          },
+          {
+            "outcomeId": "qualified_opportunity",
+            "label": "Qualified opportunity",
+            "classification": "SUCCESS"
+          },
+          {
+            "outcomeId": "follow_up",
+            "label": "Follow-up",
+            "classification": "FOLLOW_UP"
+          },
+          {
+            "outcomeId": "closed_business",
+            "label": "Business closed",
+            "classification": "EXCLUSION"
+          }
+        ],
+        "kpis": [
+          {
+            "kpiId": "visits_completed",
+            "label": "Visits completed",
+            "aggregation": "COUNT",
+            "sourceOutcomeIds": [
+              "visited",
+              "decision_maker_reached",
+              "qualified_opportunity",
+              "follow_up"
+            ]
+          },
+          {
+            "kpiId": "decision_makers_reached",
+            "label": "Decision makers reached",
+            "aggregation": "COUNT",
+            "sourceOutcomeIds": [
+              "decision_maker_reached",
+              "qualified_opportunity"
+            ]
+          },
+          {
+            "kpiId": "qualified_opportunities",
+            "label": "Qualified opportunities",
+            "aggregation": "COUNT",
+            "sourceOutcomeIds": [
+              "qualified_opportunity"
+            ]
+          }
+        ]
+      },
+      "availabilityPolicy": {
+        "timezoneSource": "BUSINESS_LOCAL_IANA",
+        "freshnessCeilingHours": 24,
+        "immediateRecommendationRule": "FRESH_VERIFIED_OPEN_OR_ACCESS_WINDOW_ONLY",
+        "verifiedClosedRule": "INELIGIBLE_WITH_NEXT_OPENING",
+        "uncertainRule": "NON_RECOMMENDED_VERIFICATION_REQUIRED",
+        "appointmentOnlyRule": "VERIFIED_APPOINTMENT_OR_ACCESS_WINDOW_REQUIRED",
+        "providerFailureRule": "PRESERVE_PRIOR_EVIDENCE_AND_EXPIRE_NORMALLY",
+        "refreshMode": "GOVERNED_RUNTIME_ARTIFACT"
+      },
+      "opportunitySources": [
+        {
+          "sourceId": "northstar_general_sales_owner_artifact",
+          "adapterId": "generic_approved_opportunity_adapter_v1",
+          "artifactPath": "data/route-iq-cross-industry-validation-v1/northstar-general-sales-opportunities.json",
+          "artifactSchemaVersion": "route-iq-approved-opportunity-artifact-v1",
+          "workspaceId": "northstar_field_supply_synthetic",
+          "profileId": "general_outside_sales",
+          "providerId": "synthetic_owner_fixture_provider",
+          "classification": "SYNTHETIC_NONCANONICAL",
+          "admissionStatus": "PENDING_DATA_OWNER_ARTIFACT",
+          "productionEligible": false,
+          "provenanceRef": "pending Data-owned synthetic validation artifact"
+        }
+      ],
+      "fallbackPolicy": {
+        "mode": "FAIL_CLOSED",
+        "demoCatalogAllowed": false,
+        "embeddedBusinessCatalogAllowed": false,
+        "crossWorkspaceFallbackAllowed": false,
+        "missingSourceState": "CONFIGURATION_REQUIRED_EMPTY"
+      },
+      "retention": {
+        "maximumCalendarMonths": 18,
+        "customerMayShorten": true,
+        "customerMayExpand": false,
+        "legalHoldSupported": true,
+        "dispositionMode": "APPEND_ONLY_AUDITABLE_DATA_OWNED"
+      },
+      "provenance": {
+        "owner": "prometheus_administration",
+        "configurationVersion": "v2.1.0",
+        "sourceRefs": [
+          "Route IQ cross-industry Dashboard regression directive"
+        ],
+        "approvalState": "SYNTHETIC_VALIDATION_ONLY"
+      }
+    }
+  ],
+  "provenance": {
+    "owner": "prometheus_administration",
+    "configurationVersion": "v2.1.0",
+    "sourceRefs": [
+      "Route IQ cross-industry Dashboard regression directive",
+      "FOUNDER RETENTION DECISION"
+    ],
+    "approvalState": "FOUNDER_RESEARCH_BOUNDARY_RECORDED"
+  }
+}

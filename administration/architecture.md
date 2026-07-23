@@ -21,11 +21,16 @@ Administration owns the operational state around beta activity:
 - Which positive feedback, workflow observations, route quality observations, and performance observations were captured.
 - Which release, regression, and tester sign-off records support closure.
 - Which pilot companies are active or being evaluated.
+- Which Route IQ companies and workspaces are admitted for Founder research, synthetic validation, pending customer approval, or customer operation.
+- Which named users, roles, capabilities, locations, and territories are administratively admitted.
+- Which versioned company configuration is current and where its Data and Intelligence owner artifacts must come from.
 - Which dashboard requirements a future admin surface must satisfy.
 
 Other subsystems continue to own implementation:
 
 - Dashboard owns app UI and field workflows.
+- Data owns business facts, opportunity records, provider observations, freshness, and provenance.
+- Intelligence owns operating-profile semantics, route eligibility, and ranking.
 - Infrastructure owns Cloudflare Access, deployment, authentication, and production verification.
 - CRM owns outbound communication systems.
 - Integrations owns third-party service connections.
@@ -57,6 +62,14 @@ Recommended scale stages:
 - Stage 2: up to 10 testers, weekly register review, strict device tracking, and issue routing discipline.
 - Stage 3: up to 100 testers, required intake owner, release assignment, session history, regression verification, and weekly bug/request triage.
 - Stage 4: enterprise pilots, controlled company profiles, approved user rosters, manager review cadence, legal/agreement tracking, and secure backend migration planning before adding live centralized beta data.
+
+## Route IQ Configuration Authority
+
+`contracts/route-iq-workspace-configuration-v2.schema.json` and its validator define the Administration-owned admission boundary. The registry names companies, workspace lifecycle, operating-profile references, locations, territories, users, roles, capabilities, reusable card fields, filters, sorts, actions, outcomes, KPIs, availability policy, owner artifact references, retention, fallback behavior, and provenance.
+
+Administration does not copy business records into configuration. A workspace references a Data-owned approved opportunity artifact and an Intelligence-owned operating-profile contract. Missing, pending, mismatched, synthetic, cross-workspace, demo, or fallback sources fail closed.
+
+The launch envelope remains a maximum of two companies and 40 named users. Cruz is the only attended Founder identity. Anthony is unmapped. Collection remains `OFF`, active cohorts remain `0`, and recommendation influence remains `OFF`.
 
 ## Founder Admin Dashboard Requirements
 

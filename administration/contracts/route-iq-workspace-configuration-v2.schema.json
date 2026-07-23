@@ -1,0 +1,852 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prometheus.local/administration/contracts/route-iq-workspace-configuration-v2.schema.json",
+  "title": "Route IQ Workspace Configuration Registry v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registryVersion",
+    "product",
+    "authority",
+    "limits",
+    "founderBoundary",
+    "safety",
+    "workspaces",
+    "provenance"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "route-iq-workspace-configuration-v2"
+    },
+    "registryVersion": {
+      "type": "string",
+      "pattern": "^route-iq-cross-industry-workspaces-v2\\.[0-9]+\\.[0-9]+$"
+    },
+    "product": {
+      "const": "route_iq"
+    },
+    "authority": {
+      "const": "prometheus_administration"
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxCompanies",
+        "maxNamedUsers"
+      ],
+      "properties": {
+        "maxCompanies": {
+          "const": 2
+        },
+        "maxNamedUsers": {
+          "const": 40
+        }
+      }
+    },
+    "founderBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "attendanceMode",
+        "founderUserId",
+        "anthonyMappingStatus",
+        "externalTesterAccessAuthorized"
+      ],
+      "properties": {
+        "attendanceMode": {
+          "const": "CRUZ_ONLY_ATTENDED"
+        },
+        "founderUserId": {
+          "const": "user_cruz_founder"
+        },
+        "anthonyMappingStatus": {
+          "const": "UNMAPPED"
+        },
+        "externalTesterAccessAuthorized": {
+          "const": false
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "collection",
+        "activeCohorts",
+        "recommendationInfluence"
+      ],
+      "properties": {
+        "collection": {
+          "const": "OFF"
+        },
+        "activeCohorts": {
+          "const": 0
+        },
+        "recommendationInfluence": {
+          "const": "OFF"
+        }
+      }
+    },
+    "workspaces": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "$ref": "#/$defs/workspace"
+      }
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    }
+  },
+  "$defs": {
+    "opaqueId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{2,127}$"
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "artifactPath": {
+      "type": "string",
+      "pattern": "^(administration|data|intelligence)/[A-Za-z0-9._/-]+$",
+      "maxLength": 320
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "configurationVersion",
+        "sourceRefs",
+        "approvalState"
+      ],
+      "properties": {
+        "owner": {
+          "const": "prometheus_administration"
+        },
+        "configurationVersion": {
+          "type": "string",
+          "pattern": "^v2\\.[0-9]+\\.[0-9]+$"
+        },
+        "sourceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 320
+          }
+        },
+        "approvalState": {
+          "enum": [
+            "FOUNDER_RESEARCH_BOUNDARY_RECORDED",
+            "SYNTHETIC_VALIDATION_ONLY",
+            "PENDING_FOUNDER_AND_CUSTOMER_APPROVAL",
+            "CUSTOMER_APPROVED"
+          ]
+        }
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspaceId",
+        "companyId",
+        "lifecycle",
+        "admission",
+        "company",
+        "operatingProfile",
+        "locations",
+        "territories",
+        "roles",
+        "users",
+        "dashboard",
+        "availabilityPolicy",
+        "opportunitySources",
+        "fallbackPolicy",
+        "retention",
+        "provenance"
+      ],
+      "properties": {
+        "workspaceId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "companyId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "lifecycle": {
+          "enum": [
+            "founder_research",
+            "synthetic_validation_only",
+            "pending_customer_approval",
+            "active_customer"
+          ]
+        },
+        "admission": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "productionAuthorized",
+            "customerAuthorizationRef"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "FOUNDER_RESEARCH_ONLY",
+                "SYNTHETIC_VALIDATION_ONLY",
+                "PENDING_CUSTOMER_APPROVAL",
+                "CUSTOMER_APPROVED"
+              ]
+            },
+            "productionAuthorized": {
+              "type": "boolean"
+            },
+            "customerAuthorizationRef": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "maxLength": 240
+            }
+          }
+        },
+        "company": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "displayName",
+            "businessType",
+            "relationshipClassification",
+            "publicRelationshipClaimsAllowed",
+            "brand"
+          ],
+          "properties": {
+            "displayName": {
+              "$ref": "#/$defs/label"
+            },
+            "businessType": {
+              "$ref": "#/$defs/opaqueId"
+            },
+            "relationshipClassification": {
+              "enum": [
+                "FOUNDER_FIELD_RESEARCH",
+                "SYNTHETIC_VALIDATION_FIXTURE",
+                "PENDING_CUSTOMER",
+                "CUSTOMER"
+              ]
+            },
+            "publicRelationshipClaimsAllowed": {
+              "type": "boolean"
+            },
+            "brand": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "productLabel",
+                "primaryColor",
+                "accentColor"
+              ],
+              "properties": {
+                "productLabel": {
+                  "$ref": "#/$defs/label"
+                },
+                "primaryColor": {
+                  "type": "string",
+                  "pattern": "^#[A-Fa-f0-9]{6}$"
+                },
+                "accentColor": {
+                  "type": "string",
+                  "pattern": "^#[A-Fa-f0-9]{6}$"
+                }
+              }
+            }
+          }
+        },
+        "operatingProfile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profileId",
+            "profileVersion",
+            "industryId"
+          ],
+          "properties": {
+            "profileId": {
+              "$ref": "#/$defs/opaqueId"
+            },
+            "profileVersion": {
+              "type": "string",
+              "pattern": "^operating-profile-v[0-9]+$"
+            },
+            "industryId": {
+              "$ref": "#/$defs/opaqueId"
+            }
+          }
+        },
+        "locations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "locationId",
+              "displayName",
+              "territoryIds",
+              "active"
+            ],
+            "properties": {
+              "locationId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "displayName": {
+                "$ref": "#/$defs/label"
+              },
+              "territoryIds": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/opaqueId"
+                }
+              },
+              "active": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "territories": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "territoryId",
+              "displayName",
+              "timezone",
+              "active"
+            ],
+            "properties": {
+              "territoryId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "displayName": {
+                "$ref": "#/$defs/label"
+              },
+              "timezone": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "active": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "roleId",
+              "displayName",
+              "capabilities"
+            ],
+            "properties": {
+              "roleId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "displayName": {
+                "$ref": "#/$defs/label"
+              },
+              "capabilities": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/opaqueId"
+                }
+              }
+            }
+          }
+        },
+        "users": {
+          "type": "array",
+          "maxItems": 40,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "userId",
+              "representativeId",
+              "displayName",
+              "identityClass",
+              "principalMappingStatus",
+              "roleId",
+              "territoryIds",
+              "active"
+            ],
+            "properties": {
+              "userId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "representativeId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "displayName": {
+                "$ref": "#/$defs/label"
+              },
+              "identityClass": {
+                "enum": [
+                  "FOUNDER_ATTENDED",
+                  "CUSTOMER_NAMED_USER",
+                  "SYNTHETIC_NONCANONICAL"
+                ]
+              },
+              "principalMappingStatus": {
+                "enum": [
+                  "ATTENDED_REQUIRED",
+                  "EXACT_PRINCIPAL_MAPPED",
+                  "UNMAPPED",
+                  "SYNTHETIC_ONLY"
+                ]
+              },
+              "roleId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "territoryIds": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/opaqueId"
+                }
+              },
+              "active": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "dashboard": {
+          "$ref": "#/$defs/dashboard"
+        },
+        "availabilityPolicy": {
+          "$ref": "#/$defs/availabilityPolicy"
+        },
+        "opportunitySources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/opportunitySource"
+          }
+        },
+        "fallbackPolicy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "demoCatalogAllowed",
+            "embeddedBusinessCatalogAllowed",
+            "crossWorkspaceFallbackAllowed",
+            "missingSourceState"
+          ],
+          "properties": {
+            "mode": {
+              "const": "FAIL_CLOSED"
+            },
+            "demoCatalogAllowed": {
+              "const": false
+            },
+            "embeddedBusinessCatalogAllowed": {
+              "const": false
+            },
+            "crossWorkspaceFallbackAllowed": {
+              "const": false
+            },
+            "missingSourceState": {
+              "const": "CONFIGURATION_REQUIRED_EMPTY"
+            }
+          }
+        },
+        "retention": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "maximumCalendarMonths",
+            "customerMayShorten",
+            "customerMayExpand",
+            "legalHoldSupported",
+            "dispositionMode"
+          ],
+          "properties": {
+            "maximumCalendarMonths": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 18
+            },
+            "customerMayShorten": {
+              "const": true
+            },
+            "customerMayExpand": {
+              "const": false
+            },
+            "legalHoldSupported": {
+              "const": true
+            },
+            "dispositionMode": {
+              "const": "APPEND_ONLY_AUDITABLE_DATA_OWNED"
+            }
+          }
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        }
+      }
+    },
+    "dashboard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "terminology",
+        "capabilities",
+        "cardFields",
+        "filters",
+        "sorts",
+        "actions",
+        "outcomes",
+        "kpis"
+      ],
+      "properties": {
+        "terminology": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "opportunity",
+            "visit",
+            "outcome",
+            "success",
+            "followUp"
+          ],
+          "properties": {
+            "opportunity": {
+              "$ref": "#/$defs/label"
+            },
+            "visit": {
+              "$ref": "#/$defs/label"
+            },
+            "outcome": {
+              "$ref": "#/$defs/label"
+            },
+            "success": {
+              "$ref": "#/$defs/label"
+            },
+            "followUp": {
+              "$ref": "#/$defs/label"
+            }
+          }
+        },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/opaqueId"
+          }
+        },
+        "cardFields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "fieldId",
+              "label",
+              "required"
+            ],
+            "properties": {
+              "fieldId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "label": {
+                "$ref": "#/$defs/label"
+              },
+              "required": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "filterId",
+              "label",
+              "fieldId"
+            ],
+            "properties": {
+              "filterId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "label": {
+                "$ref": "#/$defs/label"
+              },
+              "fieldId": {
+                "$ref": "#/$defs/opaqueId"
+              }
+            }
+          }
+        },
+        "sorts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "sortId",
+              "label",
+              "fieldId",
+              "direction"
+            ],
+            "properties": {
+              "sortId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "label": {
+                "$ref": "#/$defs/label"
+              },
+              "fieldId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "direction": {
+                "enum": [
+                  "asc",
+                  "desc"
+                ]
+              }
+            }
+          }
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "actionId",
+              "label",
+              "allowedOutcomeIds"
+            ],
+            "properties": {
+              "actionId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "label": {
+                "$ref": "#/$defs/label"
+              },
+              "allowedOutcomeIds": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/opaqueId"
+                }
+              }
+            }
+          }
+        },
+        "outcomes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "outcomeId",
+              "label",
+              "classification"
+            ],
+            "properties": {
+              "outcomeId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "label": {
+                "$ref": "#/$defs/label"
+              },
+              "classification": {
+                "enum": [
+                  "OBSERVATION",
+                  "PROGRESS",
+                  "SUCCESS",
+                  "EXCLUSION",
+                  "FOLLOW_UP"
+                ]
+              }
+            }
+          }
+        },
+        "kpis": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kpiId",
+              "label",
+              "aggregation",
+              "sourceOutcomeIds"
+            ],
+            "properties": {
+              "kpiId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "label": {
+                "$ref": "#/$defs/label"
+              },
+              "aggregation": {
+                "enum": [
+                  "COUNT",
+                  "RATE",
+                  "SUM"
+                ]
+              },
+              "sourceOutcomeIds": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/opaqueId"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "availabilityPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timezoneSource",
+        "freshnessCeilingHours",
+        "immediateRecommendationRule",
+        "verifiedClosedRule",
+        "uncertainRule",
+        "appointmentOnlyRule",
+        "providerFailureRule",
+        "refreshMode"
+      ],
+      "properties": {
+        "timezoneSource": {
+          "const": "BUSINESS_LOCAL_IANA"
+        },
+        "freshnessCeilingHours": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "immediateRecommendationRule": {
+          "const": "FRESH_VERIFIED_OPEN_OR_ACCESS_WINDOW_ONLY"
+        },
+        "verifiedClosedRule": {
+          "const": "INELIGIBLE_WITH_NEXT_OPENING"
+        },
+        "uncertainRule": {
+          "const": "NON_RECOMMENDED_VERIFICATION_REQUIRED"
+        },
+        "appointmentOnlyRule": {
+          "const": "VERIFIED_APPOINTMENT_OR_ACCESS_WINDOW_REQUIRED"
+        },
+        "providerFailureRule": {
+          "const": "PRESERVE_PRIOR_EVIDENCE_AND_EXPIRE_NORMALLY"
+        },
+        "refreshMode": {
+          "const": "GOVERNED_RUNTIME_ARTIFACT"
+        }
+      }
+    },
+    "opportunitySource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "adapterId",
+        "artifactPath",
+        "artifactSchemaVersion",
+        "workspaceId",
+        "profileId",
+        "providerId",
+        "classification",
+        "admissionStatus",
+        "productionEligible",
+        "provenanceRef"
+      ],
+      "properties": {
+        "sourceId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "adapterId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "artifactPath": {
+          "$ref": "#/$defs/artifactPath"
+        },
+        "artifactSchemaVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "workspaceId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "profileId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "providerId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "classification": {
+          "enum": [
+            "FOUNDER_RESEARCH_APPROVED_ROSTER",
+            "SYNTHETIC_NONCANONICAL",
+            "CUSTOMER_APPROVED_ROSTER"
+          ]
+        },
+        "admissionStatus": {
+          "enum": [
+            "ADMITTED_FOR_FOUNDER_RESEARCH",
+            "PENDING_DATA_OWNER_ARTIFACT",
+            "PENDING_CUSTOMER_APPROVAL",
+            "ADMITTED_FOR_CUSTOMER_OPERATION"
+          ]
+        },
+        "productionEligible": {
+          "type": "boolean"
+        },
+        "provenanceRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 320
+        }
+      }
+    }
+  }
+}

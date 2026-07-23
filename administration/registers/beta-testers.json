@@ -5,12 +5,12 @@
     {
       "testerId": "tester-anthony-001",
       "displayName": "Anthony",
-      "context": "First production field tester for Prometheus IQ private beta.",
-      "status": "active",
+      "context": "Historical private-beta tester record. No current Route IQ runtime access is authorized.",
+      "status": "paused_unmapped",
       "profile": {
         "testerType": "individual_private_beta_tester",
         "companyId": "company-fitness-connection-almeda-001",
-        "betaStage": "one_tester",
+        "betaStage": "paused",
         "primaryUseCase": "outside sales field testing",
         "approvedDataBoundary": "Prometheus IQ beta activity only; no employer-confidential or private customer data unless written permission exists."
       },
@@ -21,24 +21,26 @@
         "notes": "Existing legal draft exists. Signed status is not verified in this repository."
       },
       "onboarding": {
-        "status": "partially_verified",
+        "status": "identity_mapping_not_authorized",
         "source": "docs/beta-sharing-plan.md",
         "remaining": [
-          "Verify Anthony's own device and email session after each production-impacting beta release.",
-          "Record device inventory with exact browser/PWA context."
+          "A separate Founder authorization is required before exact authenticated identity mapping.",
+          "A current approved company, territory, role, capability, and release assignment is required before access."
         ]
       },
       "permissions": {
         "roleId": "rep_beta_tester",
         "mustOpenInRepMode": true,
-        "ownerAdminControlsAllowed": false
+        "ownerAdminControlsAllowed": false,
+        "authenticatedPrincipalMapped": false,
+        "runtimeAccessAuthorized": false
       },
       "devices": [
         "device-anthony-primary-phone"
       ],
       "releaseAssignment": {
         "currentReleaseId": "release-administration-foundation-v1",
-        "notes": "Administration tracking release only; no product runtime change."
+        "notes": "Historical Administration tracking reference only; no current runtime release is assigned."
       },
       "sessionHistory": [
         "session-anthony-beta-stabilization-sprint-1"

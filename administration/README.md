@@ -2,7 +2,7 @@
 
 Purpose: make Administration the operational control center for Prometheus beta operations.
 
-Administration owns operating procedures, beta records, pilot records, documentation indexes, release operations, and founder administrative requirements. It does not own product engineering, runtime route logic, data refresh infrastructure, CRM automation, Companion behavior, external integrations, or deployment configuration.
+Administration owns operating procedures, beta records, company and workspace lifecycle, named-user admission, roles, capabilities, territories, documentation indexes, release operations, and founder administrative requirements. It does not own product engineering, business facts, runtime route logic, data refresh infrastructure, CRM automation, Companion behavior, external integrations, or deployment configuration.
 
 ## Operating Boundary
 
@@ -19,6 +19,8 @@ Administration may create and maintain:
 - Positive feedback, workflow observations, route quality observations, and performance observations.
 - Release verification, regression verification, subsystem routing, and tester sign-off records.
 - Pilot company records.
+- Versioned Route IQ workspace and company configuration admission.
+- Approved named-user, role, capability, location, and territory configuration.
 - Founder administrative dashboard requirements.
 - Beta documentation and internal procedures.
 
@@ -38,6 +40,8 @@ Administration must not modify:
 - `workflows/`: reusable procedures for beta operations.
 - `templates/`: reusable intake and operating templates.
 - `schemas/`: lightweight register contract documentation.
+- `contracts/`: strict versioned Administration configuration contracts and validators.
+- `workspace-configurations/`: admitted Founder-research and synthetic validation configurations.
 - `../overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json`: canonical Integration Contract Layer registration for Administration operating artifacts.
 
 ## Integration Contract Boundary
@@ -69,8 +73,8 @@ node scripts/validate-administration-foundation.mjs
 node --test tests/administration-foundation.test.mjs
 ```
 
-## Current Beta Truth
+## Current Route IQ Truth
 
-Prometheus IQ is in private beta. Anthony is the first production field tester. Existing beta evidence and release procedures remain in `docs/beta-sharing-plan.md`, `docs/pilot-support-system.md`, `docs/prometheus-release-checklist.md`, `docs/prometheus-pilot-execution-playbook.md`, and `legal/README.md`.
+Route IQ is the only active Prometheus product. Fitness Connection is Founder field research, not a customer, partner, sponsor, or committed pilot. Cruz is the only attended Founder identity in the v2 configuration boundary. Anthony remains unmapped and has no current runtime access authorization. Collection is `OFF`, active cohorts are `0`, and recommendation influence is `OFF`.
 
 This subsystem indexes and operationalizes those sources. It does not replace them and does not claim legal, deployment, or product status that has not been verified.

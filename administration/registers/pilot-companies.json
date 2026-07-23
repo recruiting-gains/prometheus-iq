@@ -5,17 +5,17 @@
     {
       "companyId": "company-fitness-connection-almeda-001",
       "name": "Fitness Connection Almeda",
-      "status": "discussion",
+      "status": "founder_research_only",
       "profile": {
-        "companyType": "first_validation_environment",
-        "marketBoundary": "Gym sales is the first production validation environment, not the market definition.",
-        "administrationUse": "Pilot company context for tester records, agreement status, data restrictions, and success metric tracking."
+        "companyType": "founder_field_research_context",
+        "marketBoundary": "Fitness field research is an initial validation context, not the Route IQ market definition.",
+        "administrationUse": "Founder research configuration only. Fitness Connection is not a Prometheus customer, partner, sponsor, or committed pilot."
       },
-      "pilotType": "field_sales_lsm",
-      "approvedUsersCount": 0,
+      "pilotType": "not_a_customer_pilot",
+      "approvedUsersCount": 1,
       "agreement": {
-        "path": "business_pilot_agreement",
-        "status": "draft_available",
+        "path": "not_applicable_founder_research",
+        "status": "not_a_customer_agreement",
         "source": "legal/README.md"
       },
       "successMetrics": [
@@ -29,6 +29,7 @@
         "Route usefulness"
       ],
       "dataRestrictions": [
+        "Founder field research only; do not represent this record as a customer or pilot authorization.",
         "Do not enter employer-confidential data unless written permission exists.",
         "Do not enter private customer data unless explicitly approved."
       ],
