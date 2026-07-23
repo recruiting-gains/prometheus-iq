@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import test from "node:test";
 
 const root = resolve(import.meta.dirname, "..");
@@ -8,6 +8,15 @@ const dashboard = readFileSync(resolve(root, "index.html"), "utf8");
 const manifest = JSON.parse(readFileSync(resolve(root, "manifest.webmanifest"), "utf8"));
 const serviceWorker = readFileSync(resolve(root, "sw.js"), "utf8");
 const runtimeWorkflowHarness = readFileSync(resolve(root, "scripts/verify-dashboard-runtime-workflows.mjs"), "utf8");
+const generatedIntelligenceRoot = resolve(root, "deploy/cloudflare-pages/intelligence");
+
+function generatedModules(directory) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
+    const path = resolve(directory, entry.name);
+    if (entry.isDirectory()) return generatedModules(path);
+    return entry.isFile() && entry.name.endsWith(".mjs") ? [path] : [];
+  });
+}
 
 test("the customer PWA is one generic Route IQ app with a server-verified entry path", () => {
   assert.equal(manifest.name, "Route IQ");
@@ -83,6 +92,24 @@ test("the browser harness uses governed Northstar Intelligence provenance withou
   assert.match(runtimeWorkflowHarness, /!customerPwaRequestedPaths\.has\(activePoolPath\)/u);
   assert.match(runtimeWorkflowHarness, /!customerPwaRequestedPaths\.has\(fullPoolPath\)/u);
   assert.doesNotMatch(runtimeWorkflowHarness, /customerPwaSessionFixture[\s\S]{0,1800}business-hours-v1\/business-hours\.json/u);
+});
+
+test("generated Dashboard Intelligence modules retain source parity and resolvable imports", () => {
+  const governedScopeSource = readFileSync(resolve(root, "intelligence/route-iq-governed-runtime-scope.mjs"));
+  const governedScopeDeploy = readFileSync(resolve(generatedIntelligenceRoot, "route-iq-governed-runtime-scope.mjs"));
+  assert.deepEqual(governedScopeDeploy, governedScopeSource);
+
+  const staticRelativeImport = /\bimport\s+(?:[\s\S]*?\s+from\s+)?["'](\.{1,2}\/[^"']+)["'];/gu;
+  for (const modulePath of generatedModules(generatedIntelligenceRoot)) {
+    const moduleSource = readFileSync(modulePath, "utf8");
+    for (const match of moduleSource.matchAll(staticRelativeImport)) {
+      assert.equal(
+        existsSync(resolve(dirname(modulePath), match[1])),
+        true,
+        `${modulePath} imports missing generated dependency ${match[1]}`
+      );
+    }
+  }
 });
 
 test("the browser harness proves a missing customer profile stops before operational startup", () => {
