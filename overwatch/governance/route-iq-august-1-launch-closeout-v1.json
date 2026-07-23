@@ -228,7 +228,7 @@
     "secretValuesAccessed": false
   },
   "artifactPins": [
-    {"path":"_headers","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"0b61c2c3701ea76eb832ae3b27577799fd7d55277617fe38bf3f51ce14aafc4c"},
+    {"path":"_headers","owner":"Prometheus Infrastructure","classification":"CONTROLLING_CURRENT","required":true,"sha256":"0d05b128df09723931745ae50422b46f39510ec47b89a3afe43c25bb42c463d5"},
     {"path":"administration/launch-operations/route-iq-2026-08-01-production-activation-v1.md","owner":"Prometheus Administration","classification":"CONTROLLING_CURRENT","required":true,"sha256":"8bbaa92b81901e3087d68333b57b8be2bb5aa39245c4f14bc0fecb8cbf14177c"},
     {"path":"administration/workflows/route-iq-production-support-triage-v1.md","owner":"Prometheus Administration","classification":"CONTROLLING_CURRENT","required":true,"sha256":"625b8635bc0aedf1bed79823b11acc8e97ceff3b0b4b7c851e7caf1ff04327ee"},
     {"path":"crm/route-iq-request-crm-contract-v1.json","owner":"Prometheus CRM","classification":"CONTROLLING_CURRENT","required":true,"sha256":"36f9f5a33e8fd3e6f472a26df1256e3509c450567a4fb56855d045922a948f5b"},
@@ -239,7 +239,7 @@
     {"path":"data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json","owner":"Prometheus Data","classification":"CONTROLLING_CURRENT","required":true,"sha256":"bdf5e0098097d5613f1735df4a9b1691037e698d532408a4b887f64aae03a4a5"},
     {"path":"data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry.mjs","owner":"Prometheus Data","classification":"CONTROLLING_CURRENT","required":true,"sha256":"535a72415f1bf85816ca78f9402e2f0caa3c940970490e414dedfb1db4d64803"},
     {"path":"data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-v1.schema.json","owner":"Prometheus Data","classification":"CONTROLLING_CURRENT","required":true,"sha256":"ae62f65f433ca14c2c3997857eda331ab61f24ca27398379148c5557e08af7c9"},
-    {"path":"deploy/cloudflare-pages/_headers","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"0b61c2c3701ea76eb832ae3b27577799fd7d55277617fe38bf3f51ce14aafc4c"},
+    {"path":"deploy/cloudflare-pages/_headers","owner":"Prometheus Infrastructure","classification":"CONTROLLING_CURRENT","required":true,"sha256":"0d05b128df09723931745ae50422b46f39510ec47b89a3afe43c25bb42c463d5"},
     {"path":"deploy/cloudflare-pages/index.html","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108"},
     {"path":"deploy/cloudflare-pages/intelligence/continuous-adaptive-route-replenishment.mjs","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"4b0f583ce97e8301fc2a67096a448995fa576e7f82ebbc474ca6c6348a432f0c"},
     {"path":"deploy/cloudflare-pages/intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json","owner":"Prometheus Dashboard","classification":"CONTROLLING_CURRENT","required":true,"sha256":"d469c7f552e1f6718e38bd5c1216d464fffce5b5825abed87b8bff0feb47f318"},
