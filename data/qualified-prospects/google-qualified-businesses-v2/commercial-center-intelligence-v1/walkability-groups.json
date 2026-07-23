@@ -15,19 +15,19 @@
     },
     "activePool": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
-      "sha256": "ae5612f34965014c7022e6ef44da95ca7a4c0c049001192e525855b27dad1ec1"
+      "sha256": "d692b31e4ef46a79c84cc6c53a8b668d6b65172251a3626dfb8166cfd380dd44"
     },
     "reservePool": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
-      "sha256": "2b4726377af6ff33b31ddeee3196899e32a6d01de7aa9c82a92f028c9daec6c1"
+      "sha256": "6e288a50739f5d0c851d716f3261afdedbfd8a6b8d0fc5210afbe41d06cb2df5"
     },
     "quarantinePool": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
-      "sha256": "13582777692f720f560da65ca6a5b26de44607fdce833a830a80583e5cf2e509"
+      "sha256": "e005d4ff528512ccd482b624a324ab06c53175ad11dfdd8917dc70d627c22dc2"
     },
     "businessHours": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
-      "sha256": "539187bf7c20023fa5b56e60e0ceef86fc51ca9e00dbd42d997a602bdd0d0ffd"
+      "sha256": "e6a500ad4c946ddcd091ac8fb13b87971913919b802cd6c8897c9b999d997ba6"
     },
     "stressTestEvidence": {
       "path": "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json",
@@ -60,7 +60,7 @@
         {
           "googlePlaceId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
           "businessName": "Texans Auto Repair - Blackhawk",
-          "sourcePool": "active",
+          "sourcePool": "quarantine",
           "membershipRole": "ANCHOR"
         },
         {
@@ -106,7 +106,7 @@
         {
           "googlePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
           "businessName": "Christian Brothers Automotive Pearland",
-          "sourcePool": "active",
+          "sourcePool": "quarantine",
           "membershipRole": "ANCHOR"
         }
       ],

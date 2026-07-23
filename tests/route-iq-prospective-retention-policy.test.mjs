@@ -338,7 +338,7 @@ test("malformed, expanded, expired, cross-scope, and source-outliving projection
   const cases = [
     [prospectiveEnvelope(retentionBoundary, { collectionState: "off" }), "collection_not_on"],
     [prospectiveEnvelope(retentionBoundary, { retentionBoundary: null }), "retention_boundary_missing"],
-    [prospectiveEnvelope(retentionBoundary, { workspaceId: "smoothie_depot" }), "scope_unauthorized"],
+    [prospectiveEnvelope(retentionBoundary, { workspaceId: "synthetic_unauthorized_workspace" }), "scope_unauthorized"],
     [prospectiveEnvelope(retentionBoundary, { representativeId: "unknown" }), "representative_unauthorized"],
     [prospectiveEnvelope(retentionBoundary, { recordOrigin: "synthetic" }), "record_origin_noncanonical"],
     [prospectiveEnvelope(retentionBoundary, { recommendationInfluence: "on" }), "recommendation_influence_not_off"],

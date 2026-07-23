@@ -444,7 +444,7 @@ test("privacy allowlist rejects sensitive and client-authoritative fields withou
 
 test("scope contamination and unregistered representatives fail before cross-scope writes", async () => {
   for (const scopeOverride of [
-    { workspaceId: "smoothie_depot" },
+    { workspaceId: "synthetic_unauthorized_workspace" },
     { workspaceId: "unknown_workspace" },
     { operatingProfileId: "franchise_development" },
     { representativeId: "external_person" }
@@ -460,12 +460,12 @@ test("scope contamination and unregistered representatives fail before cross-sco
 
   const h = harness();
   const crossField = snapshot("1502");
-  crossField.scope.otherWorkspaceId = "smoothie_depot";
+  crossField.scope.otherWorkspaceId = "synthetic_unauthorized_workspace";
   await assert.rejects(() => captureRouteIqProspectiveOpportunitySnapshot(crossField, {
     store: h.adapter(),
     serverContext: trusted("2026-07-13T13:00:00.000Z", { cutoff: "2026-07-13T13:00:00.000Z" })
   }));
-  assert.equal([...h.data.values()].some(item => item.value.includes("smoothie_depot")), false);
+  assert.equal([...h.data.values()].some(item => item.value.includes("synthetic_unauthorized_workspace")), false);
 });
 
 test("concurrent identical invalid submissions preserve one immutable governed exclusion", async () => {

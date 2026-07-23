@@ -35,7 +35,7 @@ test("offline generation covers every uniquely governed qualified business", () 
   assert.ok(records.every(record => record.businessHoursReference?.googlePlaceId === record.googlePlaceId));
 });
 
-test("business identity fields and existing runtime pool assignments remain unchanged", () => {
+test("business identity fields remain unchanged while current fail-closed pool assignments propagate", () => {
   const result = generated();
   const production = json(commercialCenterPaths.productionDataset).production_candidates;
   const productionById = new Map(production.map(record => [record.google_place_id, record]));
@@ -51,7 +51,7 @@ test("business identity fields and existing runtime pool assignments remain unch
     counts[record.sourcePool] += 1;
   }
 
-  assert.deepEqual(counts, { active: 297, reserve: 44, quarantine: 57 });
+  assert.deepEqual(counts, { active: 0, reserve: 0, quarantine: 398 });
 });
 
 test("unknown center, parcel, parking, building, entrance, tenant, and walking facts remain unknown", () => {
@@ -79,7 +79,7 @@ test("Texans field evidence resolves only the uniquely governed Blackhawk identi
 
   assert.equal(tier4.relationshipType, "WALKABLE_NEARBY");
   assert.equal(tier4.leftBusiness.businessName, "Texans Auto Repair - Blackhawk");
-  assert.equal(tier4.leftBusiness.sourcePool, "active");
+  assert.equal(tier4.leftBusiness.sourcePool, "quarantine");
   assert.equal(tier4.rightBusiness.businessName, "Blackhawk Dental");
   assert.equal(tier4.rightBusiness.sourcePool, "quarantine");
   assert.equal(tier4.verificationStatus, "FOUNDER_OBSERVED_NAME_MATCH_CORROBORATED");
@@ -152,7 +152,7 @@ test("required fields, provenance, source hashes, and non-activation metadata ar
 
 test("unknown, protected, and wrong-profile workspace requests fail closed", () => {
   assert.throws(() => buildCommercialCenterArtifacts({ workspaceId: "unknown_workspace" }), /not authorized/);
-  assert.throws(() => buildCommercialCenterArtifacts({ workspaceId: "smoothie_depot" }), /not authorized/);
+  assert.throws(() => buildCommercialCenterArtifacts({ workspaceId: "synthetic_unauthorized_workspace" }), /not authorized/);
   assert.throws(() => buildCommercialCenterArtifacts({ workspaceId: null }), /not authorized/);
   assert.throws(() => buildCommercialCenterArtifacts({ workspaceId: "" }), /not authorized/);
   assert.throws(() => buildCommercialCenterArtifacts({ operatingProfileId: "franchise_development" }), /profile mismatch/);
@@ -175,7 +175,7 @@ test("canonical Data contracts register artifacts without authorizing a consumer
   assert.equal(runtimeContract.consumerRules.intelligence.commercialCenterConsumptionAuthorized, false);
   assert.equal(runtimeContract.qualityGates.commercialCenterRuntimeConsumptionActivated, false);
   assert.equal(runtimeContract.qualityGates.nearbyContextDashboardConsumptionActivated, false);
-  assert.equal(runtimeContract.workspaceIsolationRules.smoothieDepotMayConsumeFitnessCommercialCenterData, false);
+  assert.equal(runtimeContract.workspaceIsolationRules.unknownCommercialCenterWorkspaceFailsClosed, true);
   assert.ok(canonicalPaths.includes(runtimeContract.canonicalCommercialCenterArtifacts.commercialCenterDataset));
   for (const path of Object.values(runtimeContract.canonicalCommercialCenterArtifacts).filter(value => value.endsWith(".json"))) {
     assert.equal(intelligencePaths.includes(path), false, `Intelligence unexpectedly authorized for ${path}`);

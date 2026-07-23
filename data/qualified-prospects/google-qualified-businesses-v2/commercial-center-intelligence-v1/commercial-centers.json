@@ -15,19 +15,19 @@
     },
     "activePool": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
-      "sha256": "ae5612f34965014c7022e6ef44da95ca7a4c0c049001192e525855b27dad1ec1"
+      "sha256": "d692b31e4ef46a79c84cc6c53a8b668d6b65172251a3626dfb8166cfd380dd44"
     },
     "reservePool": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
-      "sha256": "2b4726377af6ff33b31ddeee3196899e32a6d01de7aa9c82a92f028c9daec6c1"
+      "sha256": "6e288a50739f5d0c851d716f3261afdedbfd8a6b8d0fc5210afbe41d06cb2df5"
     },
     "quarantinePool": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
-      "sha256": "13582777692f720f560da65ca6a5b26de44607fdce833a830a80583e5cf2e509"
+      "sha256": "e005d4ff528512ccd482b624a324ab06c53175ad11dfdd8917dc70d627c22dc2"
     },
     "businessHours": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
-      "sha256": "539187bf7c20023fa5b56e60e0ceef86fc51ca9e00dbd42d997a602bdd0d0ffd"
+      "sha256": "e6a500ad4c946ddcd091ac8fb13b87971913919b802cd6c8897c9b999d997ba6"
     },
     "stressTestEvidence": {
       "path": "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json",
@@ -63,8 +63,8 @@
       "category": "Auto",
       "latitude": 29.612022300000003,
       "longitude": -95.22473989999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJeX6hkOGZQIYR3wYTYOv4eO8"
@@ -108,8 +108,8 @@
       "category": "Auto",
       "latitude": 29.6200845,
       "longitude": -95.2215785,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJd7g1Uh2ZQIYRRIQTRPd5-AQ"
@@ -153,8 +153,8 @@
       "category": "Auto",
       "latitude": 29.6119288,
       "longitude": -95.2255271,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJv7MA7eGZQIYRINIvMqp85nU"
@@ -198,8 +198,8 @@
       "category": "Auto",
       "latitude": 29.6279847,
       "longitude": -95.2258437,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJO3NxhbyZQIYREU1NBpI6tgg"
@@ -243,8 +243,8 @@
       "category": "Auto",
       "latitude": 29.633163000000003,
       "longitude": -95.22753000000002,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJTefH_reXQIYRNwxKltXtHDI"
@@ -288,8 +288,8 @@
       "category": "Auto",
       "latitude": 29.620808900000004,
       "longitude": -95.2302478,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJbal6C2GXQIYRmpm3VfpXXTc"
@@ -333,8 +333,8 @@
       "category": "Auto",
       "latitude": 29.6236314,
       "longitude": -95.2254734,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJI93NBQCZQIYRF5V9bvKzXJM"
@@ -378,8 +378,8 @@
       "category": "Auto",
       "latitude": 29.6221775,
       "longitude": -95.22436169999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ2yL4fwCZQIYR6WaHTbj6DVE"
@@ -423,8 +423,8 @@
       "category": "Auto",
       "latitude": 29.6200143,
       "longitude": -95.2161294,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJq9P1dwCZQIYRZSmkMzn8X38"
@@ -468,8 +468,8 @@
       "category": "Auto",
       "latitude": 29.619653899999996,
       "longitude": -95.2184242,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJY6Zv_tyZQIYRdCRcyHj0YEE"
@@ -513,8 +513,8 @@
       "category": "Auto",
       "latitude": 29.612224699999995,
       "longitude": -95.2245894,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ1QsomuGZQIYR7Fri-jqAKGg"
@@ -558,8 +558,8 @@
       "category": "Auto",
       "latitude": 29.620559099999998,
       "longitude": -95.221811,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJW4FsIQCZQIYRr2oEBbrF9uk"
@@ -603,8 +603,8 @@
       "category": "Auto",
       "latitude": 29.6107318,
       "longitude": -95.22762999999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJvUYdrliXQIYROvZ-oMwdpoo"
@@ -648,8 +648,8 @@
       "category": "Auto",
       "latitude": 29.617547700000003,
       "longitude": -95.2161546,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJu2SeWQCZQIYRH2jRsKeACrk"
@@ -693,8 +693,8 @@
       "category": "Auto",
       "latitude": 29.621101099999997,
       "longitude": -95.2296819,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJF_53cmGXQIYRg97yhmQZCmU"
@@ -738,8 +738,8 @@
       "category": "Auto",
       "latitude": 29.618367499999998,
       "longitude": -95.2145618,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJq7FOLwCZQIYR0J9pbcu64-U"
@@ -783,8 +783,8 @@
       "category": "Auto",
       "latitude": 29.6178927,
       "longitude": -95.2302972,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJC6t4JgCXQIYRBgz3rJu-V3c"
@@ -828,8 +828,8 @@
       "category": "Auto",
       "latitude": 29.634958500000003,
       "longitude": -95.2289351,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJcz3Aj36XQIYRfpKaVM3b69o"
@@ -873,8 +873,8 @@
       "category": "Auto",
       "latitude": 29.642058799999997,
       "longitude": -95.21637450000001,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJGYKirzKYQIYRIvEi7ZgHKy8"
@@ -918,8 +918,8 @@
       "category": "Auto",
       "latitude": 29.592928999999994,
       "longitude": -95.2442437,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJI13UBweRQIYRmwr6qAnoIz0"
@@ -975,8 +975,8 @@
       "category": "Auto",
       "latitude": 29.614934899999994,
       "longitude": -95.2201309,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJoUpYheyZQIYRHX_u7gVQdBo"
@@ -1020,8 +1020,8 @@
       "category": "Auto",
       "latitude": 29.601675699999994,
       "longitude": -95.2292233,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJHZTkVQCXQIYRWYAgfeQ2qeI"
@@ -1065,8 +1065,8 @@
       "category": "Auto",
       "latitude": 29.627331,
       "longitude": -95.23175599999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJoTvHWWOXQIYR6lcB3Z1093Q"
@@ -1110,8 +1110,8 @@
       "category": "Auto",
       "latitude": 29.6373805,
       "longitude": -95.24058529999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJsemXpXeXQIYRcuzxvjQcz_0"
@@ -1155,8 +1155,8 @@
       "category": "Auto",
       "latitude": 29.631660699999998,
       "longitude": -95.228369,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJyTJLMiiWQIYRNEHJfDU7UyQ"
@@ -1200,8 +1200,8 @@
       "category": "Auto",
       "latitude": 29.626763499999996,
       "longitude": -95.2510607,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJXya8cRKXQIYRdMb2MCRmgTU"
@@ -1245,8 +1245,8 @@
       "category": "Auto",
       "latitude": 29.6351423,
       "longitude": -95.24647,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ3xJ5x3SXQIYR7EzH3UE9RMk"
@@ -1290,8 +1290,8 @@
       "category": "Auto",
       "latitude": 29.621351500000003,
       "longitude": -95.199342,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJl8ghUeW9QIYRV7G2n5pvzik"
@@ -1335,8 +1335,8 @@
       "category": "Auto",
       "latitude": 29.626039199999997,
       "longitude": -95.20144529999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJiUdHcLmZQIYRHveJU_FlwXk"
@@ -1380,8 +1380,8 @@
       "category": "Auto",
       "latitude": 29.6388635,
       "longitude": -95.2422077,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJlWTGXrqXQIYR-vrvZpMxQtQ"
@@ -1425,8 +1425,8 @@
       "category": "Auto",
       "latitude": 29.6262831,
       "longitude": -95.25996479999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ5QnzguGXQIYRBj3DRt1qxSU"
@@ -1470,8 +1470,8 @@
       "category": "Auto",
       "latitude": 29.6112786,
       "longitude": -95.2789816,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJx3_bt6eXQIYRVAbbUfaOpTo"
@@ -1515,8 +1515,8 @@
       "category": "Auto",
       "latitude": 29.626398499999997,
       "longitude": -95.27709259999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ-_fyy_qWQIYRHYOFl3TvG3Y"
@@ -1560,8 +1560,8 @@
       "category": "Auto",
       "latitude": 29.669625099999998,
       "longitude": -95.2637439,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ5UAhMcyXQIYRPphvHuSC8X0"
@@ -1605,8 +1605,8 @@
       "category": "Auto",
       "latitude": 29.6219486,
       "longitude": -95.2851464,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJZX29PuyWQIYR-Oa9pnCf6o8"
@@ -1650,8 +1650,8 @@
       "category": "Auto",
       "latitude": 29.611114,
       "longitude": -95.2271463,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ56yfy0iXQIYRnEO2z1oEUZg"
@@ -1695,8 +1695,8 @@
       "category": "Auto",
       "latitude": 29.611782500000004,
       "longitude": -95.2259232,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ-1DE7-GZQIYRhYNdqb02Kak"
@@ -1740,8 +1740,8 @@
       "category": "Auto",
       "latitude": 29.6240277,
       "longitude": -95.2215146,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJY-qeX9mZQIYRcHxzXcYL_tY"
@@ -1785,8 +1785,8 @@
       "category": "Auto",
       "latitude": 29.621502999999997,
       "longitude": -95.2037118,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ5Y-b4r6ZQIYREEEk1gSVM3s"
@@ -1830,8 +1830,8 @@
       "category": "Car Wash",
       "latitude": 29.6271685,
       "longitude": -95.2355721,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJccUFOWWXQIYRqiWK4uTVU14"
@@ -1875,8 +1875,8 @@
       "category": "Auto",
       "latitude": 29.6235994,
       "longitude": -95.2224997,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ04moHdmZQIYRSz8Fz6bsa5E"
@@ -1920,8 +1920,8 @@
       "category": "Auto",
       "latitude": 29.625688099999998,
       "longitude": -95.2252075,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJx26i1h2ZQIYRJgytB2wesAk"
@@ -1965,8 +1965,8 @@
       "category": "Auto",
       "latitude": 29.631416599999998,
       "longitude": -95.2273452,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ1_yFCJKXQIYRoew2JHktsFg"
@@ -2010,8 +2010,8 @@
       "category": "Auto",
       "latitude": 29.664319,
       "longitude": -95.21030999999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJHbIc8BWYQIYRA_pP6-76RD4"
@@ -2055,8 +2055,8 @@
       "category": "Car Wash",
       "latitude": 29.6134566,
       "longitude": -95.2206303,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJVaUCWxyZQIYRfKwZzuq3tLM"
@@ -2100,8 +2100,8 @@
       "category": "Car Wash",
       "latitude": 29.627995699999996,
       "longitude": -95.23932549999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJnZs3jUGXQIYReOv3oXJJJL0"
@@ -2145,8 +2145,8 @@
       "category": "Car Wash",
       "latitude": 29.611133100000004,
       "longitude": -95.2268567,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJiSw-VF-XQIYRNXPa-F34zcY"
@@ -2190,8 +2190,8 @@
       "category": "Car Wash",
       "latitude": 29.610882399999994,
       "longitude": -95.23673029999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJjXX-KbiXQIYRrWY6PPB6kdI"
@@ -2235,8 +2235,8 @@
       "category": "Car Wash",
       "latitude": 29.6267642,
       "longitude": -95.20195,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ46zqkPGZQIYRf0_18g9rwkw"
@@ -2280,8 +2280,8 @@
       "category": "Car Wash",
       "latitude": 29.6275291,
       "longitude": -95.24555199999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJsVRHhHKXQIYRCv9FyZndgpc"
@@ -2325,8 +2325,8 @@
       "category": "Car Wash",
       "latitude": 29.6269016,
       "longitude": -95.24736879999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJq07JUm2XQIYR4zDnGPJfxy4"
@@ -2370,8 +2370,8 @@
       "category": "Car Wash",
       "latitude": 29.626903600000002,
       "longitude": -95.2478055,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJMb3z65zrQIYRiqwl5D-AoBQ"
@@ -2415,8 +2415,8 @@
       "category": "Car Wash",
       "latitude": 29.6043534,
       "longitude": -95.2664157,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJOb3DqQOXQIYR6p6FPwU08s4"
@@ -2460,8 +2460,8 @@
       "category": "Car Wash",
       "latitude": 29.596145900000003,
       "longitude": -95.22805280000001,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ9-pdC1WXQIYRJxowgkIewe4"
@@ -2505,8 +2505,8 @@
       "category": "Car Wash",
       "latitude": 29.5975319,
       "longitude": -95.1988806,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJB-oujYCZQIYRMzRjIWcO3r4"
@@ -2550,8 +2550,8 @@
       "category": "Car Wash",
       "latitude": 29.612855099999997,
       "longitude": -95.2250363,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJmyQy7GSZQIYRxiDyvF_eI_M"
@@ -2595,8 +2595,8 @@
       "category": "Car Wash",
       "latitude": 29.637038,
       "longitude": -95.2119817,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ-60f9q2ZQIYRodJJOLGzVro"
@@ -2640,8 +2640,8 @@
       "category": "Auto",
       "latitude": 29.588613899999995,
       "longitude": -95.2080692,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJo6PG1BiaQIYRFfbLjEWDbKs"
@@ -2685,8 +2685,8 @@
       "category": "Car Wash",
       "latitude": 29.6511606,
       "longitude": -95.1902099,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJod4-2XqZQIYRV9xJ7C43nxM"
@@ -2730,8 +2730,8 @@
       "category": "Auto",
       "latitude": 29.617213800000002,
       "longitude": -95.22615789999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJU_4z0N6ZQIYRmkasCHfZsKA"
@@ -2775,8 +2775,8 @@
       "category": "Restaurant",
       "latitude": 29.6225102,
       "longitude": -95.2201304,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJkV4HtM2ZQIYRALwgv0BXq8s"
@@ -2820,8 +2820,8 @@
       "category": "Restaurant",
       "latitude": 29.619995199999998,
       "longitude": -95.2267902,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJiStQ_umXQIYRfwGt_7S9H1U"
@@ -2865,8 +2865,8 @@
       "category": "Restaurant",
       "latitude": 29.617909100000002,
       "longitude": -95.21963629999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJScG3ot2ZQIYR0vW7n0O_7KY"
@@ -2910,8 +2910,8 @@
       "category": "Restaurant",
       "latitude": 29.618639299999995,
       "longitude": -95.2292994,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJAeYjG9SXQIYRe_tZTFXkN8w"
@@ -2955,8 +2955,8 @@
       "category": "Restaurant",
       "latitude": 29.614731300000003,
       "longitude": -95.21838609999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJlfH-rueZQIYR8AFLVRWHTwM"
@@ -3000,8 +3000,8 @@
       "category": "Restaurant",
       "latitude": 29.614636800000003,
       "longitude": -95.21562949999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJv0BmY-iZQIYRdJ_TcboQoho"
@@ -3045,8 +3045,8 @@
       "category": "Restaurant",
       "latitude": 29.614090999999995,
       "longitude": -95.220697,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJvy6mD8SZQIYRbFZwMEZP5NE"
@@ -3090,8 +3090,8 @@
       "category": "Restaurant",
       "latitude": 29.6233455,
       "longitude": -95.2277599,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJT4yW59iZQIYRBr27QlDLrss"
@@ -3135,8 +3135,8 @@
       "category": "Restaurant",
       "latitude": 29.6231576,
       "longitude": -95.2278214,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJv24FXxqXQIYRkWVUejJkaGY"
@@ -3180,8 +3180,8 @@
       "category": "Restaurant",
       "latitude": 29.620504699999994,
       "longitude": -95.21087779999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ-TAm0qSZQIYRvt6gvEMLv3g"
@@ -3225,8 +3225,8 @@
       "category": "Restaurant",
       "latitude": 29.614106699999997,
       "longitude": -95.2162125,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJme6lCQGZQIYR9YEQMSI6EXs"
@@ -3270,8 +3270,8 @@
       "category": "Restaurant",
       "latitude": 29.613214499999998,
       "longitude": -95.2113023,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ8QdtYemZQIYRJIExruEiN7w"
@@ -3315,8 +3315,8 @@
       "category": "Restaurant",
       "latitude": 29.6195201,
       "longitude": -95.2218094,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJKQ6T-96ZQIYRLkLbQ5GZCYQ"
@@ -3360,8 +3360,8 @@
       "category": "Restaurant",
       "latitude": 29.6244244,
       "longitude": -95.2261079,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ_Tkcat-ZQIYRZ-9XaNvCbBM"
@@ -3405,8 +3405,8 @@
       "category": "Restaurant",
       "latitude": 29.620229700000003,
       "longitude": -95.22689609999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJswEudACXQIYRhBQuIpEl5Vg"
@@ -3450,8 +3450,8 @@
       "category": "Restaurant",
       "latitude": 29.6139766,
       "longitude": -95.2197952,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ24Gq4eaZQIYRDwKw4kS0XTI"
@@ -3495,8 +3495,8 @@
       "category": "Restaurant",
       "latitude": 29.613496599999998,
       "longitude": -95.214394,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ36JrFtGZQIYRrATFzwFHAWA"
@@ -3540,8 +3540,8 @@
       "category": "Restaurant",
       "latitude": 29.6163759,
       "longitude": -95.2179425,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJpwzCjeeZQIYR8lxtMpfL9-g"
@@ -3585,8 +3585,8 @@
       "category": "Apartment",
       "latitude": 29.6216314,
       "longitude": -95.2203114,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJsSHWVgCZQIYRtldNk9VaA08"
@@ -3630,8 +3630,8 @@
       "category": "Apartment",
       "latitude": 29.618598799999994,
       "longitude": -95.2248899,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ--7Ksd-ZQIYRxNrP4dxKM04"
@@ -3675,8 +3675,8 @@
       "category": "Apartment",
       "latitude": 29.6213984,
       "longitude": -95.2176637,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJXbjE6dyZQIYRNOqE_jx8rtc"
@@ -3720,8 +3720,8 @@
       "category": "Apartment",
       "latitude": 29.6155797,
       "longitude": -95.222733,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJXX61U-CZQIYRHPBOvkK7mkg"
@@ -3765,8 +3765,8 @@
       "category": "Apartment",
       "latitude": 29.6219907,
       "longitude": -95.21688329999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJQzns05mZQIYRfFsu2XHBR_k"
@@ -3810,8 +3810,8 @@
       "category": "Apartment",
       "latitude": 29.614966799999998,
       "longitude": -95.2252613,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJyclcb-CZQIYRCYJsVdGi2Bk"
@@ -3855,8 +3855,8 @@
       "category": "Apartment",
       "latitude": 29.607504999999996,
       "longitude": -95.2142889,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJtYz5yu-ZQIYRbXgjsscutLg"
@@ -3900,8 +3900,8 @@
       "category": "Apartment",
       "latitude": 29.6104164,
       "longitude": -95.22488349999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJl9wc9OGZQIYRSpncszmjTRE"
@@ -3945,8 +3945,8 @@
       "category": "Apartment",
       "latitude": 29.619097500000002,
       "longitude": -95.20991889999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJP1IJjsGZQIYRZf6tvoodIc4"
@@ -3990,8 +3990,8 @@
       "category": "Apartment",
       "latitude": 29.636391500000002,
       "longitude": -95.23601649999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJVRNKuXmXQIYRY8PJPj-uggw"
@@ -4035,8 +4035,8 @@
       "category": "Apartment",
       "latitude": 29.611375799999998,
       "longitude": -95.2201461,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ1SBWpSyZQIYRPMTwxCQc3-Q"
@@ -4080,8 +4080,8 @@
       "category": "Apartment",
       "latitude": 29.605739200000002,
       "longitude": -95.2146834,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ-zpzPfCZQIYRA-cR5HVCFqo"
@@ -4125,8 +4125,8 @@
       "category": "Apartment",
       "latitude": 29.6268045,
       "longitude": -95.23641769999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ2eXnwP6XQIYRVTq_9R-TPcI"
@@ -5835,8 +5835,8 @@
       "category": "Business Services",
       "latitude": 29.6207286,
       "longitude": -95.22249070000001,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ6UPMER-ZQIYR-7SYI-ZHrnM"
@@ -5880,8 +5880,8 @@
       "category": "Business Services",
       "latitude": 29.621867899999998,
       "longitude": -95.2243517,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJr2TqFZyZQIYR11m_qFMRqxg"
@@ -5925,8 +5925,8 @@
       "category": "Business Services",
       "latitude": 29.6139548,
       "longitude": -95.2122172,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJHYZbUOiZQIYR6AKiRujdH2o"
@@ -5970,8 +5970,8 @@
       "category": "Business Services",
       "latitude": 29.617189699999997,
       "longitude": -95.21353719999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJMW5YDCiZQIYRvgNezLPOzIo"
@@ -6015,8 +6015,8 @@
       "category": "Business Services",
       "latitude": 29.620608299999997,
       "longitude": -95.21153699999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJI841TwOZQIYRaZKYjZ187QU"
@@ -6060,8 +6060,8 @@
       "category": "Business Services",
       "latitude": 29.611019100000004,
       "longitude": -95.22826189999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJtST-VOaXQIYRjzBjdVUVLPI"
@@ -6105,8 +6105,8 @@
       "category": "Business Services",
       "latitude": 29.5931961,
       "longitude": -95.2223604,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ0b330gGaQIYROiv0rrGGx4w"
@@ -6150,8 +6150,8 @@
       "category": "Business Services",
       "latitude": 29.6024344,
       "longitude": -95.2168013,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJGdiUOCiZQIYRAPILZxNMIqU"
@@ -6195,8 +6195,8 @@
       "category": "Business Services",
       "latitude": 29.63067,
       "longitude": -95.237579,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ_cUcfnqXQIYREtGFrdTkqyA"
@@ -6240,8 +6240,8 @@
       "category": "Business Services",
       "latitude": 29.625986200000003,
       "longitude": -95.2656633,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJHRGBJx2XQIYRdJBP9pKiBPc"
@@ -6285,8 +6285,8 @@
       "category": "Business Services",
       "latitude": 29.6101679,
       "longitude": -95.224357,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJbcxYBf6ZQIYRGECq_oyr0qA"
@@ -6330,8 +6330,8 @@
       "category": "Business Services",
       "latitude": 29.650188,
       "longitude": -95.2083459,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJPfvdmDeYQIYRChuC-tUV7U4"
@@ -6375,8 +6375,8 @@
       "category": "Business Services",
       "latitude": 29.6222076,
       "longitude": -95.22982929999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJYZpBd2GXQIYRar1TLNsRs_Q"
@@ -6420,8 +6420,8 @@
       "category": "Business Services",
       "latitude": 29.613070999999994,
       "longitude": -95.2191445,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ12MB9OaZQIYRZMP_cv46dYU"
@@ -6465,8 +6465,8 @@
       "category": "Business Services",
       "latitude": 29.6490492,
       "longitude": -95.2198921,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJRVYp-2K9QIYRUs4UdV5Y0CI"
@@ -6510,8 +6510,8 @@
       "category": "Business Services",
       "latitude": 29.6387888,
       "longitude": -95.239869,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJnbMGuneXQIYRNX4Uk0D9918"
@@ -6555,8 +6555,8 @@
       "category": "Barber",
       "latitude": 29.621922200000004,
       "longitude": -95.22444229999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJVWrQa-W9QIYRqt3vxrvR5F4"
@@ -6600,8 +6600,8 @@
       "category": "Barber",
       "latitude": 29.619518,
       "longitude": -95.2268843,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJyT26K2CXQIYRp2MTmO2WTv4"
@@ -6645,8 +6645,8 @@
       "category": "Barber",
       "latitude": 29.61952,
       "longitude": -95.221809,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJn2_E_0CZQIYRj9b3w-aFQ3Y"
@@ -6690,8 +6690,8 @@
       "category": "Barber",
       "latitude": 29.6179471,
       "longitude": -95.2218554,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJAd3o1sGZQIYROcashZRHExA"
@@ -6735,8 +6735,8 @@
       "category": "Barber",
       "latitude": 29.6138309,
       "longitude": -95.2122529,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ0WNSxeCXQIYRzeCVTlzK0RA"
@@ -6780,8 +6780,8 @@
       "category": "Barber",
       "latitude": 29.6132979,
       "longitude": -95.22323,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJCfUU8BOZQIYRCFljCmlK_iU"
@@ -6825,8 +6825,8 @@
       "category": "Barber",
       "latitude": 29.6212335,
       "longitude": -95.2227577,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ4e1yi0qZQIYR1C-E6mg7Sns"
@@ -6870,8 +6870,8 @@
       "category": "Barber",
       "latitude": 29.6374915,
       "longitude": -95.24066529999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ5Qc_X5aXQIYRCU7k0z1m12k"
@@ -6915,8 +6915,8 @@
       "category": "Barber",
       "latitude": 29.6138309,
       "longitude": -95.2122529,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ1Z7Lb0CZQIYRzBRcuqxYjPM"
@@ -6960,8 +6960,8 @@
       "category": "Barber",
       "latitude": 29.623219000000002,
       "longitude": -95.2301748,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ5V7i2ByXQIYRXMMrfCC6554"
@@ -7005,8 +7005,8 @@
       "category": "Barber",
       "latitude": 29.6180359,
       "longitude": -95.23012419999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJLbS2u2CXQIYRbGwtk8auD5g"
@@ -7050,8 +7050,8 @@
       "category": "Barber",
       "latitude": 29.626708800000003,
       "longitude": -95.2413102,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ-wJcqtiXQIYR4wYj5atb5PA"
@@ -7095,8 +7095,8 @@
       "category": "Barber",
       "latitude": 29.6138309,
       "longitude": -95.2122529,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJb4YQ2rCZQIYRZCmKV2Kc7Fs"
@@ -7140,8 +7140,8 @@
       "category": "Salon",
       "latitude": 29.6495466,
       "longitude": -95.24862759999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJYTFbfuyXQIYRX_XFt2z9s08"
@@ -7185,8 +7185,8 @@
       "category": "Barber",
       "latitude": 29.610903099999998,
       "longitude": -95.2273099,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJC0GASV-XQIYRjvz21NqhsY8"
@@ -7230,8 +7230,8 @@
       "category": "Barber",
       "latitude": 29.5886096,
       "longitude": -95.183403,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJpVIDadObQIYRiNn8nYha7I4"
@@ -7275,8 +7275,8 @@
       "category": "Salon",
       "latitude": 29.640002900000002,
       "longitude": -95.2400703,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ5dwuMHaXQIYRhKIkLFOg374"
@@ -7365,8 +7365,8 @@
       "category": "Barber",
       "latitude": 29.6620394,
       "longitude": -95.21301969999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ9dTEO06ZQIYRakUuEVrnAGk"
@@ -7410,8 +7410,8 @@
       "category": "Barber",
       "latitude": 29.619571099999995,
       "longitude": -95.2219346,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJw7r5h4SZQIYRZVVI72FmJ30"
@@ -7455,8 +7455,8 @@
       "category": "Salon",
       "latitude": 29.6143531,
       "longitude": -95.2152336,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJv0BmY-iZQIYRYA5YgOcX3fA"
@@ -7500,8 +7500,8 @@
       "category": "Salon",
       "latitude": 29.622410599999995,
       "longitude": -95.2304426,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ5eJ6EJeXQIYRRMeCsbv34JY"
@@ -7545,8 +7545,8 @@
       "category": "Barber",
       "latitude": 29.6442782,
       "longitude": -95.24695469999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJBa7n_QuXQIYR4ifXJ2ClMAQ"
@@ -7590,8 +7590,8 @@
       "category": "Barber",
       "latitude": 29.619517000000002,
       "longitude": -95.2268833,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJt1lrMSyXQIYREF_6C3gjXd8"
@@ -7635,8 +7635,8 @@
       "category": "Salon",
       "latitude": 29.618800000000004,
       "longitude": -95.221441,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJSYmp2N2ZQIYR7QO1pAzEXao"
@@ -7680,8 +7680,8 @@
       "category": "Salon",
       "latitude": 29.613570799999998,
       "longitude": -95.22337549999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ6wsYFeGZQIYRPTiSbo2nmiM"
@@ -7725,8 +7725,8 @@
       "category": "Salon",
       "latitude": 29.610626600000003,
       "longitude": -95.223654,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJF8vibuGZQIYRwDvtFvUnmzU"
@@ -7770,8 +7770,8 @@
       "category": "Salon",
       "latitude": 29.610682299999997,
       "longitude": -95.2282797,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJk5Hx0liXQIYRrFd6OyUGQyM"
@@ -7815,8 +7815,8 @@
       "category": "Salon",
       "latitude": 29.617836099999998,
       "longitude": -95.2303472,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJg3eaumCXQIYRlIUFZypreME"
@@ -7860,8 +7860,8 @@
       "category": "Barber",
       "latitude": 29.628864999999998,
       "longitude": -95.2215088,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJn5zT_ASZQIYRqW_v-a-4BNc"
@@ -7905,8 +7905,8 @@
       "category": "Salon",
       "latitude": 29.6214008,
       "longitude": -95.20233909999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJi_IM_L6ZQIYRkyXqEmNBIc0"
@@ -7950,8 +7950,8 @@
       "category": "Salon",
       "latitude": 29.6195201,
       "longitude": -95.2218094,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJJw0FfN6ZQIYR15IsD9xeCbg"
@@ -7995,8 +7995,8 @@
       "category": "Salon",
       "latitude": 29.611669100000004,
       "longitude": -95.2221508,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJla6Uh2mZQIYRNnoKwL44FIk"
@@ -8040,8 +8040,8 @@
       "category": "Small Retail",
       "latitude": 29.613969299999997,
       "longitude": -95.2171726,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJUWQoipGZQIYR15Iu-IQshbc"
@@ -8085,8 +8085,8 @@
       "category": "Small Retail",
       "latitude": 29.613697799999997,
       "longitude": -95.21985699999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJZZ-zf4KZQIYR_iuq8sIRhKE"
@@ -8130,8 +8130,8 @@
       "category": "Small Retail",
       "latitude": 29.6223305,
       "longitude": -95.22004079999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJHXwOvy-ZQIYRZ0hMpZ_rXLg"
@@ -8175,8 +8175,8 @@
       "category": "Small Retail",
       "latitude": 29.629296599999996,
       "longitude": -95.23153029999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJO1TS4aWXQIYRGHbIGtn-7R0"
@@ -8220,8 +8220,8 @@
       "category": "Small Retail",
       "latitude": 29.6442782,
       "longitude": -95.24695469999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ-6Z9k8mXQIYR3kHm7xwGMS8"
@@ -8265,8 +8265,8 @@
       "category": "Small Retail",
       "latitude": 29.630841399999998,
       "longitude": -95.23378439999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJLdfY1BuXQIYRY3L5dwKjXnA"
@@ -8310,8 +8310,8 @@
       "category": "Small Retail",
       "latitude": 29.6075345,
       "longitude": -95.2178028,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJGQVQYuGZQIYRS_mTGpzSmF4"
@@ -8355,8 +8355,8 @@
       "category": "Small Retail",
       "latitude": 29.6471262,
       "longitude": -95.2484698,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJGbJkct-XQIYRb5FY2p7TKKM"
@@ -8400,8 +8400,8 @@
       "category": "Small Retail",
       "latitude": 29.617908999999997,
       "longitude": -95.22023899999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJnaTY7t2ZQIYRQfuOdzvB9c4"
@@ -8445,8 +8445,8 @@
       "category": "Small Retail",
       "latitude": 29.597605999999995,
       "longitude": -95.1794546,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJCwlYPvyZQIYR9CDm5Cpw5PI"
@@ -8490,8 +8490,8 @@
       "category": "Small Retail",
       "latitude": 29.6396905,
       "longitude": -95.23992419999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJH2uikJqXQIYRleNN9iHQH_Y"
@@ -8535,8 +8535,8 @@
       "category": "Small Retail",
       "latitude": 29.5886064,
       "longitude": -95.1834141,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ3zx1h92bQIYRFZPnQ54zUI0"
@@ -8580,8 +8580,8 @@
       "category": "Small Retail",
       "latitude": 29.6210876,
       "longitude": -95.2233792,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJSZv3ae6ZQIYRNbhQy1JZTQE"
@@ -8625,8 +8625,8 @@
       "category": "Small Retail",
       "latitude": 29.613360500000002,
       "longitude": -95.22280359999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJQUkeUAuZQIYRqGFBgDyAtMc"
@@ -8670,8 +8670,8 @@
       "category": "Small Retail",
       "latitude": 29.644866,
       "longitude": -95.23366209999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJU2AoBl-XQIYR5mLIN7VJBHc"
@@ -8715,8 +8715,8 @@
       "category": "Small Retail",
       "latitude": 29.622352199999998,
       "longitude": -95.22006119999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJi29SBXGZQIYRYnnnsek7hJ8"
@@ -8760,8 +8760,8 @@
       "category": "Small Retail",
       "latitude": 29.6229344,
       "longitude": -95.22694729999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJq6qqqh6XQIYRfLHOpmoS8lU"
@@ -8805,8 +8805,8 @@
       "category": "Auto",
       "latitude": 29.6397129,
       "longitude": -95.240804,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJEwHyyneXQIYRdGykis7ozuc"
@@ -8850,8 +8850,8 @@
       "category": "Small Retail",
       "latitude": 29.629316399999997,
       "longitude": -95.23166619999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJfXwUoXyXQIYRTTWnWz_DyFg"
@@ -8895,8 +8895,8 @@
       "category": "Small Retail",
       "latitude": 29.620632399999998,
       "longitude": -95.222617,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJqRNSlt6ZQIYRfV1ZR0w2dUw"
@@ -8940,8 +8940,8 @@
       "category": "Small Retail",
       "latitude": 29.628833399999998,
       "longitude": -95.22824399999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJjzvGA6TDQIYRpjWPoAKipd4"
@@ -8985,8 +8985,8 @@
       "category": "Other Storefront",
       "latitude": 29.6211608,
       "longitude": -95.30393749999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJmWZw0_2fZYYR8qiORcad-ms"
@@ -9030,8 +9030,8 @@
       "category": "Other Storefront",
       "latitude": 29.623599299999995,
       "longitude": -95.22795169999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJv24FXxqXQIYRN5wqa04fIMw"
@@ -9075,8 +9075,8 @@
       "category": "Other Storefront",
       "latitude": 29.625602100000002,
       "longitude": -95.26591309999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ60STIx2XQIYRnVI5ZMTQn34"
@@ -9120,8 +9120,8 @@
       "category": "Other Storefront",
       "latitude": 29.630804200000004,
       "longitude": -95.22832319999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJwYnPaQOXQIYRrcB3i3CVipA"
@@ -9165,8 +9165,8 @@
       "category": "Other Storefront",
       "latitude": 29.6229506,
       "longitude": -95.2301446,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJz_RHYGSXQIYRcXFwpRS_qf0"
@@ -9210,8 +9210,8 @@
       "category": "Other Storefront",
       "latitude": 29.627209599999997,
       "longitude": -95.2310932,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJkzTPmx2XQIYR2HKIgHispig"
@@ -9255,8 +9255,8 @@
       "category": "Other Storefront",
       "latitude": 29.6299629,
       "longitude": -95.23257439999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJTTu2Y3uXQIYRB47YBEeQwMk"
@@ -9300,8 +9300,8 @@
       "category": "Other Storefront",
       "latitude": 29.6243753,
       "longitude": -95.22042429999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJT7-awduZQIYRZ_r-uiORguQ"
@@ -9345,8 +9345,8 @@
       "category": "Other Storefront",
       "latitude": 29.6264209,
       "longitude": -95.280599,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJmdvcmCmXQIYRU9ZP-KE2Im0"
@@ -9390,8 +9390,8 @@
       "category": "Other Storefront",
       "latitude": 29.6674869,
       "longitude": -95.38184799999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJk761gSWVQIYRMUGo7mdhVB4"
@@ -9435,8 +9435,8 @@
       "category": "Other Storefront",
       "latitude": 29.625693000000002,
       "longitude": -95.2780669,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJv-GHw06XQIYRtZgAJ-tlsts"
@@ -9480,8 +9480,8 @@
       "category": "Auto",
       "latitude": 29.5923809,
       "longitude": -95.191948,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJG2VxAUibQIYR4ayVbntYkiY"
@@ -9525,8 +9525,8 @@
       "category": "Auto",
       "latitude": 29.6272305,
       "longitude": -95.2309294,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJbc1LNQCXQIYR1RC6sBZ4f_s"
@@ -9570,8 +9570,8 @@
       "category": "Auto",
       "latitude": 29.589063000000003,
       "longitude": -95.1841947,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJDQYzRCuaQIYRUB2eAX_d6Ss"
@@ -9615,8 +9615,8 @@
       "category": "Auto",
       "latitude": 29.622608000000003,
       "longitude": -95.1992719,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ7Xk3E7yZQIYRP2NJKo9Fn2Q"
@@ -9660,8 +9660,8 @@
       "category": "Auto",
       "latitude": 29.622069000000003,
       "longitude": -95.22993910000001,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ210tWQCXQIYR6BIlGidFukY"
@@ -9705,8 +9705,8 @@
       "category": "Auto",
       "latitude": 29.610870300000002,
       "longitude": -95.23677409999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJi5b7NECWQIYRvwfqI8lSpks"
@@ -9750,8 +9750,8 @@
       "category": "Auto",
       "latitude": 29.615110999999995,
       "longitude": -95.2200233,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJjVAWsgCZQIYRaTx5B37C5IE"
@@ -9795,8 +9795,8 @@
       "category": "Auto",
       "latitude": 29.613949800000004,
       "longitude": -95.2185181,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ_zoeQtGZQIYRGFASfbCvtuA"
@@ -9840,8 +9840,8 @@
       "category": "Auto",
       "latitude": 29.626765299999995,
       "longitude": -95.2495752,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJNwsy8BSXQIYRAI_6tNaXiVg"
@@ -9885,8 +9885,8 @@
       "category": "Auto",
       "latitude": 29.5992285,
       "longitude": -95.21648900000001,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ4bxB_fmZQIYR2dllTgLzYQM"
@@ -9930,8 +9930,8 @@
       "category": "Auto",
       "latitude": 29.612008699999997,
       "longitude": -95.22556850000001,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJX5q17eGZQIYRkCCnrr6ikk4"
@@ -9975,8 +9975,8 @@
       "category": "Auto",
       "latitude": 29.621101099999997,
       "longitude": -95.2296819,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJS9lIAsiXQIYRbdm45-qM65w"
@@ -10020,8 +10020,8 @@
       "category": "Auto",
       "latitude": 29.593888900000003,
       "longitude": -95.2030556,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ84naiSCaQIYRQzi-atsNW4Q"
@@ -10065,8 +10065,8 @@
       "category": "Auto",
       "latitude": 29.626557799999997,
       "longitude": -95.2536246,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJIfd97xGXQIYRqQ70PQe8XZU"
@@ -10110,8 +10110,8 @@
       "category": "Auto",
       "latitude": 29.634961200000003,
       "longitude": -95.2420566,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJZ67G3XiXQIYROkNVFezBH9U"
@@ -10155,8 +10155,8 @@
       "category": "Auto",
       "latitude": 29.627186199999997,
       "longitude": -95.2311136,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ0XEweACXQIYRvhdkRl26ebk"
@@ -10200,8 +10200,8 @@
       "category": "Auto",
       "latitude": 29.615284700000004,
       "longitude": -95.21294569999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ--61SuCXQIYR2MPuYBN5iOA"
@@ -10245,8 +10245,8 @@
       "category": "Auto",
       "latitude": 29.6292331,
       "longitude": -95.2265044,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJF3f9CKSZQIYRA7gtW41aykw"
@@ -10290,8 +10290,8 @@
       "category": "Auto",
       "latitude": 29.6210237,
       "longitude": -95.2296806,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJhVrfIACXQIYR5fVQz7qew70"
@@ -10335,8 +10335,8 @@
       "category": "Auto",
       "latitude": 29.6580746,
       "longitude": -95.2439935,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJZ2E5zZaXQIYRYDa9otRGiCU"
@@ -10380,8 +10380,8 @@
       "category": "Auto",
       "latitude": 29.6211044,
       "longitude": -95.22361670000001,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJUfoS596ZQIYRgRf56Ez4Usc"
@@ -10425,8 +10425,8 @@
       "category": "Auto",
       "latitude": 29.611839399999994,
       "longitude": -95.22635679999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJjc3ZH7SZQIYRBEOeXkVVLkA"
@@ -10470,8 +10470,8 @@
       "category": "Auto",
       "latitude": 29.626706100000003,
       "longitude": -95.2806647,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJdyQJJ_CWQIYRX_5EAouXnqY"
@@ -10515,8 +10515,8 @@
       "category": "Auto",
       "latitude": 29.61476,
       "longitude": -95.2202243,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJZR-KXamZQIYRNU3Ka58Huc4"
@@ -10560,8 +10560,8 @@
       "category": "Auto",
       "latitude": 29.622947699999997,
       "longitude": -95.206255,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJD5GD5YyXQIYRxO9bnNjQbKw"
@@ -10605,8 +10605,8 @@
       "category": "Auto",
       "latitude": 29.631738100000003,
       "longitude": -95.22844649999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJVVVFgqSiQIYRnVdkGPdSOrk"
@@ -10650,8 +10650,8 @@
       "category": "Auto",
       "latitude": 29.611248399999997,
       "longitude": -95.2130479,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJD9lUXLmZQIYRNb1tXP0U-qs"
@@ -10695,8 +10695,8 @@
       "category": "Auto",
       "latitude": 29.6239609,
       "longitude": -95.2211691,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJP8GlEWCZQIYRj9SSYxXlBj0"
@@ -10740,8 +10740,8 @@
       "category": "Auto",
       "latitude": 29.6452564,
       "longitude": -95.2356683,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJm9Yw7k2XQIYRGZsZiz66YBk"
@@ -10785,8 +10785,8 @@
       "category": "Auto",
       "latitude": 29.650533000000003,
       "longitude": -95.1851834,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJmcIg1FeYQIYR7GchwNO1qpk"
@@ -10830,8 +10830,8 @@
       "category": "Auto",
       "latitude": 29.602220799999998,
       "longitude": -95.2027133,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJHXoqZ4yZQIYR3tMnmxD7Cdo"
@@ -10875,8 +10875,8 @@
       "category": "Auto",
       "latitude": 29.6217871,
       "longitude": -95.2213194,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJT4yW59iZQIYR1X_XRXn-jQM"
@@ -10920,8 +10920,8 @@
       "category": "Auto",
       "latitude": 29.620103000000004,
       "longitude": -95.2184918,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJC2g2EdyZQIYRscyv10-3rWs"
@@ -10965,8 +10965,8 @@
       "category": "Auto",
       "latitude": 29.592333999999997,
       "longitude": -95.2232745,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJR5kvuAGaQIYRbeP1x3tbCsI"
@@ -11010,8 +11010,8 @@
       "category": "Auto",
       "latitude": 29.623498899999998,
       "longitude": -95.2224655,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJW9N1_deZQIYROyhRGNPsD-U"
@@ -11055,8 +11055,8 @@
       "category": "Auto",
       "latitude": 29.635018199999998,
       "longitude": -95.2282793,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ6boecnSXQIYR8VSTIZAPeDQ"
@@ -11100,8 +11100,8 @@
       "category": "Auto",
       "latitude": 29.615194,
       "longitude": -95.24820460000001,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJNfkIbLWXQIYRj6-jothhvuU"
@@ -11145,8 +11145,8 @@
       "category": "Auto",
       "latitude": 29.651803599999997,
       "longitude": -95.1839072,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJWQqTFPiYQIYRHS8qGqfnHxE"
@@ -11190,8 +11190,8 @@
       "category": "Auto",
       "latitude": 29.664932399999994,
       "longitude": -95.21780249999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJwRnXQRiYQIYRLn87L7u-mNU"
@@ -11235,8 +11235,8 @@
       "category": "Auto",
       "latitude": 29.618973399999998,
       "longitude": -95.2180552,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ1x-0nbGZQIYRMBYpBhnmwDg"
@@ -11280,8 +11280,8 @@
       "category": "Auto",
       "latitude": 29.6013715,
       "longitude": -95.2522438,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0"
@@ -11337,8 +11337,8 @@
       "category": "Auto",
       "latitude": 29.5912737,
       "longitude": -95.20550879999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJWz2HUxabQIYR7FN6Vk_s_RA"
@@ -11382,8 +11382,8 @@
       "category": "Auto",
       "latitude": 29.6320834,
       "longitude": -95.23569309999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJNRUkOHqXQIYRhg7fB2Iu9MQ"
@@ -11427,8 +11427,8 @@
       "category": "Car Wash",
       "latitude": 29.5964544,
       "longitude": -95.2669032,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ408BdA2XQIYRkmWY7TOPyz4"
@@ -11472,8 +11472,8 @@
       "category": "Car Wash",
       "latitude": 29.5996932,
       "longitude": -95.1770572,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJBedCxYWZQIYRcS5TCOsZBJQ"
@@ -11517,8 +11517,8 @@
       "category": "Car Wash",
       "latitude": 29.659042699999993,
       "longitude": -95.2417785,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJN3yHNOOXQIYR_tFeP25rgWU"
@@ -11562,8 +11562,8 @@
       "category": "Car Wash",
       "latitude": 29.608348499999998,
       "longitude": -95.2575657,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJdx0N8ESXQIYR7XkH6myTq74"
@@ -11607,8 +11607,8 @@
       "category": "Car Wash",
       "latitude": 29.660069500000002,
       "longitude": -95.2113564,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ3YpJLzyYQIYRwzrlkiR0Ai8"
@@ -11652,8 +11652,8 @@
       "category": "Car Wash",
       "latitude": 29.664802899999998,
       "longitude": -95.22099639999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJIf77yBiYQIYRs6ri_bMBi-M"
@@ -11697,8 +11697,8 @@
       "category": "Car Wash",
       "latitude": 29.622346399999994,
       "longitude": -95.22005809999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJNWgVc9yZQIYRSPqsveGjNf8"
@@ -11742,8 +11742,8 @@
       "category": "Car Wash",
       "latitude": 29.658160900000002,
       "longitude": -95.2431404,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJe25sbZSXQIYRIUpfq30rAgo"
@@ -11787,8 +11787,8 @@
       "category": "Car Wash",
       "latitude": 29.6241465,
       "longitude": -95.25622969999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJG4nWySKXQIYRFP24b5TZ3Vs"
@@ -11832,8 +11832,8 @@
       "category": "Car Wash",
       "latitude": 29.597558799999998,
       "longitude": -95.24767419999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ15Xh8zWXQIYRxLDRM52CeF4"
@@ -11877,8 +11877,8 @@
       "category": "Car Wash",
       "latitude": 29.595437499999996,
       "longitude": -95.2207344,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJG7HiZLOZQIYRESARsfH80GE"
@@ -11922,8 +11922,8 @@
       "category": "Car Wash",
       "latitude": 29.6280131,
       "longitude": -95.2140563,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ7-tr_bClQIYRoUcH_fYMFvM"
@@ -11967,8 +11967,8 @@
       "category": "Car Wash",
       "latitude": 29.59745,
       "longitude": -95.198968,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJAVotoYmZQIYRXoCUKukwa3c"
@@ -12012,8 +12012,8 @@
       "category": "Car Wash",
       "latitude": 29.660298200000003,
       "longitude": -95.2335147,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJmxxg8YyXQIYRBB9lruGOpSA"
@@ -12057,8 +12057,8 @@
       "category": "Car Wash",
       "latitude": 29.611968099999995,
       "longitude": -95.22502320000001,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJM34mkuGZQIYRrMDpkli7wjM"
@@ -12102,8 +12102,8 @@
       "category": "Car Wash",
       "latitude": 29.623106,
       "longitude": -95.22771809999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJT4yW59iZQIYRT72OtY1sWBk"
@@ -12147,8 +12147,8 @@
       "category": "Restaurant",
       "latitude": 29.6309251,
       "longitude": -95.23372499999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ3ZJ0msOXQIYRSzlgbrhwCxU"
@@ -12192,8 +12192,8 @@
       "category": "Restaurant",
       "latitude": 29.628864999999998,
       "longitude": -95.2215088,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJH2Y2qOOZQIYRK_LHkMWWZlM"
@@ -12237,8 +12237,8 @@
       "category": "Restaurant",
       "latitude": 29.633507800000004,
       "longitude": -95.2365327,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJl2p8GA6XQIYRH3jwt9ACUEU"
@@ -12282,8 +12282,8 @@
       "category": "Restaurant",
       "latitude": 29.629308199999997,
       "longitude": -95.2316683,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJw-52yrqXQIYR1Kt-BZk98Mc"
@@ -12327,8 +12327,8 @@
       "category": "Restaurant",
       "latitude": 29.6235894,
       "longitude": -95.22764629999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJv6EmTUSXQIYRSqCw4kPut2M"
@@ -12372,8 +12372,8 @@
       "category": "Restaurant",
       "latitude": 29.627281399999998,
       "longitude": -95.2354806,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJbxa9ewCXQIYRrOp_algclEw"
@@ -12417,8 +12417,8 @@
       "category": "Restaurant",
       "latitude": 29.613925300000002,
       "longitude": -95.2173292,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJJRP3NXGZQIYRwYC1PgNPiZE"
@@ -12462,8 +12462,8 @@
       "category": "Restaurant",
       "latitude": 29.614216499999998,
       "longitude": -95.21512059999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJv0BmY-iZQIYR9XaRELLpjkw"
@@ -12507,8 +12507,8 @@
       "category": "Restaurant",
       "latitude": 29.655605800000004,
       "longitude": -95.254915,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJCacE0buXQIYRkwVfX3EkR9A"
@@ -12552,8 +12552,8 @@
       "category": "Restaurant",
       "latitude": 29.618247999999994,
       "longitude": -95.21443,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJgf7Rj8KZQIYRZ1Ie9P9yCR4"
@@ -12597,8 +12597,8 @@
       "category": "Restaurant",
       "latitude": 29.6142785,
       "longitude": -95.220019,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ_bhF_-aZQIYRVkDjE3qhFsQ"
@@ -12642,8 +12642,8 @@
       "category": "Restaurant",
       "latitude": 29.613925000000002,
       "longitude": -95.21732899999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJGwjdbB6ZQIYRRhw76TUnN_4"
@@ -12687,8 +12687,8 @@
       "category": "Restaurant",
       "latitude": 29.604317199999997,
       "longitude": -95.2102914,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJjRClSHuZQIYRtF8e_W0g4VU"
@@ -12732,8 +12732,8 @@
       "category": "Restaurant",
       "latitude": 29.614237999999997,
       "longitude": -95.212795,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJJZUBCemZQIYRRqsJEg5bvU4"
@@ -12777,8 +12777,8 @@
       "category": "Restaurant",
       "latitude": 29.613361299999998,
       "longitude": -95.2232379,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJa5TLQOGZQIYR3EZwdXH9Gjk"
@@ -12822,8 +12822,8 @@
       "category": "Restaurant",
       "latitude": 29.6105712,
       "longitude": -95.2237927,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJBVBUL9mZQIYRA2_npJzDh94"
@@ -12867,8 +12867,8 @@
       "category": "Restaurant",
       "latitude": 29.613277900000003,
       "longitude": -95.22289529999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ9zxsR-GZQIYRWnU_N6h-FxM"
@@ -12912,8 +12912,8 @@
       "category": "Restaurant",
       "latitude": 29.6234009,
       "longitude": -95.2298737,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJJWwrYuCXQIYRkx8ndteGa2E"
@@ -12957,8 +12957,8 @@
       "category": "Restaurant",
       "latitude": 29.623254799999994,
       "longitude": -95.22800559999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJeYRxGmKXQIYR8o50RVlPFqI"
@@ -13002,8 +13002,8 @@
       "category": "Restaurant",
       "latitude": 29.6258849,
       "longitude": -95.28402520000002,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJsX0Dar-XQIYRhpMkxCq_i5k"
@@ -13047,8 +13047,8 @@
       "category": "Restaurant",
       "latitude": 29.615941300000003,
       "longitude": -95.21375680000001,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ03Iq3emZQIYRFqH6Aw05bqo"
@@ -13092,8 +13092,8 @@
       "category": "Restaurant",
       "latitude": 29.592770899999998,
       "longitude": -95.2220159,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJNVwxzoyZQIYRhshbEY-p9_U"
@@ -13137,8 +13137,8 @@
       "category": "Restaurant",
       "latitude": 29.6281641,
       "longitude": -95.2310141,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJp5cys3yXQIYRWGJA2RDc5NY"
@@ -13182,8 +13182,8 @@
       "category": "Restaurant",
       "latitude": 29.619156699999998,
       "longitude": -95.2302364,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJIz3I8YGXQIYR9MAt8Z92GaI"
@@ -13227,8 +13227,8 @@
       "category": "Restaurant",
       "latitude": 29.610868999999997,
       "longitude": -95.23763609999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJj45AiGyXQIYRWAsgmMUUmVI"
@@ -13272,8 +13272,8 @@
       "category": "Restaurant",
       "latitude": 29.623936399999998,
       "longitude": -95.2301682,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJQ-kvogCXQIYRtHz9mdGqElg"
@@ -13317,8 +13317,8 @@
       "category": "Restaurant",
       "latitude": 29.6259771,
       "longitude": -95.2011836,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJyV-7e7mZQIYRTZQLrZKbO_M"
@@ -13362,8 +13362,8 @@
       "category": "Restaurant",
       "latitude": 29.615712999999996,
       "longitude": -95.214249,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJPw50SOiZQIYR7MqKps8MzJQ"
@@ -13407,8 +13407,8 @@
       "category": "Restaurant",
       "latitude": 29.619156699999998,
       "longitude": -95.2302364,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJraCPnBWXQIYR32Q8i6aQBMw"
@@ -13452,8 +13452,8 @@
       "category": "Restaurant",
       "latitude": 29.611148500000002,
       "longitude": -95.224594,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJC8eiLBOZQIYRh2AyuPl9cD8"
@@ -13497,8 +13497,8 @@
       "category": "Restaurant",
       "latitude": 29.613804,
       "longitude": -95.2168679,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJwWcOmp-ZQIYRLeV6ic_OJzU"
@@ -13542,8 +13542,8 @@
       "category": "Restaurant",
       "latitude": 29.6132747,
       "longitude": -95.22297689999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJdwE6rWGZQIYRWZ3WgsHVaHc"
@@ -13587,8 +13587,8 @@
       "category": "Restaurant",
       "latitude": 29.622215999999998,
       "longitude": -95.2298414,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJo40id2GXQIYRZD5QJTkWJlw"
@@ -13632,8 +13632,8 @@
       "category": "Restaurant",
       "latitude": 29.6112667,
       "longitude": -95.2243278,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJpyLNheGZQIYRAHrGG7frsY0"
@@ -13677,8 +13677,8 @@
       "category": "Restaurant",
       "latitude": 29.613756000000002,
       "longitude": -95.21773669999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJrzwXg-GZQIYRdk9DizYw6JQ"
@@ -14499,8 +14499,8 @@
       "category": "Barber",
       "latitude": 29.5961911,
       "longitude": -95.2287423,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJV3MAdYuXQIYR2Ru6lHxw_fA"
@@ -14544,8 +14544,8 @@
       "category": "Barber",
       "latitude": 29.640002900000002,
       "longitude": -95.2400703,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJmU_cLhWXQIYRFZfqRjUNwMA"
@@ -14589,8 +14589,8 @@
       "category": "Barber",
       "latitude": 29.5994108,
       "longitude": -95.2152191,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJexwRoQ-bQIYR9k07z4Vwsl4"
@@ -14634,8 +14634,8 @@
       "category": "Barber",
       "latitude": 29.6687624,
       "longitude": -95.2614033,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJc1drI12XQIYRCg-MmaMX0io"
@@ -14679,8 +14679,8 @@
       "category": "Barber",
       "latitude": 29.6761295,
       "longitude": -95.2694485,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJVVndKDSXQIYR8xprR6X1bP4"
@@ -14724,8 +14724,8 @@
       "category": "Barber",
       "latitude": 29.625792299999997,
       "longitude": -95.26595209999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJQYn6Xh6XQIYRSQ5iOWNxfls"
@@ -14769,8 +14769,8 @@
       "category": "Barber",
       "latitude": 29.6257643,
       "longitude": -95.277324,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ3wW6eqGXQIYR0rrJWECHDOQ"
@@ -14859,8 +14859,8 @@
       "category": "Barber",
       "latitude": 29.606904500000002,
       "longitude": -95.2615089,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJxW4MMACXQIYRyF5nM67hml0"
@@ -14904,8 +14904,8 @@
       "category": "Barber",
       "latitude": 29.643463099999995,
       "longitude": -95.2378202,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJUT8-UQCXQIYRD3qaAdVntis"
@@ -14949,8 +14949,8 @@
       "category": "Barber",
       "latitude": 29.671474,
       "longitude": -95.20759489999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJx1VgCB2ZQIYRd7NBuxB1CxI"
@@ -14994,8 +14994,8 @@
       "category": "Barber",
       "latitude": 29.6568663,
       "longitude": -95.2076749,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ964x1WmZQIYRc1UvkXV2Y80"
@@ -15039,8 +15039,8 @@
       "category": "Barber",
       "latitude": 29.610260699999998,
       "longitude": -95.2508297,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJe8M2PlqXQIYRG7eykLJe0po"
@@ -15129,8 +15129,8 @@
       "category": "Salon",
       "latitude": 29.611581500000003,
       "longitude": -95.23667309999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJw-mwaEOXQIYRFZQ7tWUt-mA"
@@ -15174,8 +15174,8 @@
       "category": "Salon",
       "latitude": 29.6106913,
       "longitude": -95.2378292,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJj4lxeEOXQIYRJHCvVRN0OQc"
@@ -15219,8 +15219,8 @@
       "category": "Barber",
       "latitude": 29.650712700000003,
       "longitude": -95.2520698,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJCaPErdmXQIYRRqKYf7UwTJM"
@@ -15264,8 +15264,8 @@
       "category": "Barber",
       "latitude": 29.611524700000004,
       "longitude": -95.2393833,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJg3gZd0OXQIYR0L0DRHiLtA4"
@@ -15309,8 +15309,8 @@
       "category": "Barber",
       "latitude": 29.6138309,
       "longitude": -95.2122529,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJN_7LWASZQIYRwxlRs22Uum4"
@@ -15354,8 +15354,8 @@
       "category": "Salon",
       "latitude": 29.6243292,
       "longitude": -95.2260558,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJAUhwgVaZQIYRljWYRHv1fA4"
@@ -15399,8 +15399,8 @@
       "category": "Barber",
       "latitude": 29.6431343,
       "longitude": -95.2386294,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJAwxXEueXQIYR9CX0sAFfjmM"
@@ -15444,8 +15444,8 @@
       "category": "Salon",
       "latitude": 29.6206063,
       "longitude": -95.22197779999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ8wHj9kSZQIYRShEClIzydFo"
@@ -15489,8 +15489,8 @@
       "category": "Salon",
       "latitude": 29.623058999999998,
       "longitude": -95.22727599999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ_Tkcat-ZQIYRQhzG5dXIHY0"
@@ -15534,8 +15534,8 @@
       "category": "Salon",
       "latitude": 29.602434499999998,
       "longitude": -95.21679929999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJE_qeXjmZQIYRuCgChjGMul0"
@@ -15579,8 +15579,8 @@
       "category": "Salon",
       "latitude": 29.6492864,
       "longitude": -95.21952979999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJAegWAy-YQIYRhl83za3u0ZA"
@@ -15624,8 +15624,8 @@
       "category": "Salon",
       "latitude": 29.5932301,
       "longitude": -95.22246179999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJb_Ij0wGaQIYRbrL-jm4Uhww"
@@ -15669,8 +15669,8 @@
       "category": "Salon",
       "latitude": 29.613936999999996,
       "longitude": -95.22106029999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJWQVQdpebQIYRDhVTnr57TgU"
@@ -15714,8 +15714,8 @@
       "category": "Barber",
       "latitude": 29.6200632,
       "longitude": -95.23922979999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJjYz2c6uXQIYRs34L17Mo9ZU"
@@ -15759,8 +15759,8 @@
       "category": "Salon",
       "latitude": 29.5866933,
       "longitude": -95.21269099999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJI-F3g8CbQIYRcvvWKQjZ4aY"
@@ -15804,8 +15804,8 @@
       "category": "Salon",
       "latitude": 29.650884700000002,
       "longitude": -95.2159369,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJuw5Wwy-YQIYRBy5T-K-U3Uk"
@@ -15849,8 +15849,8 @@
       "category": "Salon",
       "latitude": 29.629421400000002,
       "longitude": -95.23291739999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJZcBaQXuXQIYRV3wlXHCc0N4"
@@ -15894,8 +15894,8 @@
       "category": "Barber",
       "latitude": 29.626972300000002,
       "longitude": -95.2346206,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJZ1srFvqXQIYR1nJce5aeUQY"
@@ -15939,8 +15939,8 @@
       "category": "Salon",
       "latitude": 29.644547799999998,
       "longitude": -95.2354364,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJU-LHYIOXQIYR94wV1p14Gt0"
@@ -15984,8 +15984,8 @@
       "category": "Salon",
       "latitude": 29.6446063,
       "longitude": -95.2353902,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ5wxWb4OXQIYRSOY0VzSbty8"
@@ -16029,8 +16029,8 @@
       "category": "Barber",
       "latitude": 29.635627500000002,
       "longitude": -95.2429827,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJY5XYTH-XQIYRau-N-OqLAg0"
@@ -16074,8 +16074,8 @@
       "category": "Salon",
       "latitude": 29.6393572,
       "longitude": -95.23993829999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJua3nNHaXQIYRyAsSDbuTNco"
@@ -16119,8 +16119,8 @@
       "category": "Barber",
       "latitude": 29.599885200000003,
       "longitude": -95.2294708,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJHx40h1aXQIYRNREN9WdYG_U"
@@ -16164,8 +16164,8 @@
       "category": "Salon",
       "latitude": 29.618875699999997,
       "longitude": -95.21493369999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJk-9b1RybQIYRoURJTpMoORM"
@@ -16209,8 +16209,8 @@
       "category": "Salon",
       "latitude": 29.597728900000003,
       "longitude": -95.1794985,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJjU4pyX2ZQIYRKbQjIIC9oGU"
@@ -16254,8 +16254,8 @@
       "category": "Salon",
       "latitude": 29.584339699999997,
       "longitude": -95.2147486,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJGU-97BqaQIYRrcNhETqCE1w"
@@ -16299,8 +16299,8 @@
       "category": "Salon",
       "latitude": 29.6266885,
       "longitude": -95.26840670000001,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJT2bVquKWQIYR4l1Oh8cBqec"
@@ -16344,8 +16344,8 @@
       "category": "Salon",
       "latitude": 29.614055200000003,
       "longitude": -95.21207629999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJJ5z-UOiZQIYRwrfHYUg0DwM"
@@ -16389,8 +16389,8 @@
       "category": "Salon",
       "latitude": 29.611669100000004,
       "longitude": -95.2221508,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJCe4DawCZQIYRMwubMJVys1o"
@@ -16434,8 +16434,8 @@
       "category": "Salon",
       "latitude": 29.611669100000004,
       "longitude": -95.2221508,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJc7enc7CZQIYRSFNExbNUQcw"
@@ -16479,8 +16479,8 @@
       "category": "Salon",
       "latitude": 29.5956395,
       "longitude": -95.20255639999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJdb31ZYqZQIYRR-qOqKAU7qk"
@@ -16524,8 +16524,8 @@
       "category": "Restaurant",
       "latitude": 29.617945699999996,
       "longitude": -95.2212554,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ_SN-8suZQIYRMvP-wvzJKbw"
@@ -16569,8 +16569,8 @@
       "category": "Small Retail",
       "latitude": 29.6075357,
       "longitude": -95.2853832,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJiTmi7GaXQIYRKnQpVLlqfro"
@@ -16614,8 +16614,8 @@
       "category": "Small Retail",
       "latitude": 29.5915826,
       "longitude": -95.2061275,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJBRrygR-aQIYRIdHYOsFfLXE"
@@ -16659,8 +16659,8 @@
       "category": "Other Storefront",
       "latitude": 29.627209599999997,
       "longitude": -95.2310932,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJL-_gRGOXQIYRzUCVTm6Gpl0"
@@ -16704,8 +16704,8 @@
       "category": "Other Storefront",
       "latitude": 29.6243643,
       "longitude": -95.2204391,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ_3SPwduZQIYRQS6okCxagnE"
@@ -16749,8 +16749,8 @@
       "category": "Other Storefront",
       "latitude": 29.6293348,
       "longitude": -95.23539559999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJU1n0koCXQIYR-LG-bEvL3a0"
@@ -16794,8 +16794,8 @@
       "category": "Other Storefront",
       "latitude": 29.6197569,
       "longitude": -95.3232748,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJa5k6pjuUQIYR_m0zp4tSWLA"
@@ -16839,8 +16839,8 @@
       "category": "Other Storefront",
       "latitude": 29.742077000000002,
       "longitude": -95.4568952,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJG-B_M2vBQIYRsZjW-geHpj8"
@@ -16884,8 +16884,8 @@
       "category": "Other Storefront",
       "latitude": 29.627485,
       "longitude": -95.2229357,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ6TfkwtmZQIYRCGAYCk-W8sU"
@@ -16929,8 +16929,8 @@
       "category": "Other Storefront",
       "latitude": 29.621867899999998,
       "longitude": -95.2243517,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJxXCCMCibQIYRgAMFLdK49fg"
@@ -16974,8 +16974,8 @@
       "category": "Other Storefront",
       "latitude": 29.627209599999997,
       "longitude": -95.2310932,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ_eP7lpiXQIYRgrKvjPBP5gQ"
@@ -17019,8 +17019,8 @@
       "category": "Other Storefront",
       "latitude": 29.621083499999997,
       "longitude": -95.2234089,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJFfRA0t6ZQIYRxk7YPCnC5xw"
@@ -17064,8 +17064,8 @@
       "category": "Other Storefront",
       "latitude": 29.623708199999996,
       "longitude": -95.2276117,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJVVVVEWKXQIYRHSpaEBdcfLQ"
@@ -17109,8 +17109,8 @@
       "category": "Other Storefront",
       "latitude": 29.622232899999997,
       "longitude": -95.2023665,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJVVVVwr6ZQIYRmwj1hIig89U"
@@ -17154,8 +17154,8 @@
       "category": "Other Storefront",
       "latitude": 29.5967291,
       "longitude": -95.1937779,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJx0SN6YeZQIYRY0NOppnaU1E"
@@ -17199,8 +17199,8 @@
       "category": "Other Storefront",
       "latitude": 29.6257661,
       "longitude": -95.26915799999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJuQAEpLqXQIYRGafBF-yeHUw"
@@ -17244,8 +17244,8 @@
       "category": "Other Storefront",
       "latitude": 29.6623488,
       "longitude": -95.2590578,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ__-_GciXQIYRFUb1GSUwkOk"
@@ -17289,8 +17289,8 @@
       "category": "Other Storefront",
       "latitude": 29.6243949,
       "longitude": -95.22613539999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJY-XHyfxhP4YRA3SzntPGSKQ"
@@ -17334,8 +17334,8 @@
       "category": "Other Storefront",
       "latitude": 29.627215199999995,
       "longitude": -95.23113359999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJseHmRGOXQIYRUGVRkovThHs"
@@ -17379,8 +17379,8 @@
       "category": "Other Storefront",
       "latitude": 29.631980999999996,
       "longitude": -95.23249530000001,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJcXURt3uXQIYRs2QDJq1yxuc"
@@ -17424,8 +17424,8 @@
       "category": "Other Storefront",
       "latitude": 29.6473317,
       "longitude": -95.2488005,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJqRVtp32XQIYRwVTTiY3bdKE"
@@ -17469,8 +17469,8 @@
       "category": "Other Storefront",
       "latitude": 29.623310699999998,
       "longitude": -95.22987309999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJZwHSxGOXQIYRLlTISxqyy3E"
@@ -17514,8 +17514,8 @@
       "category": "Other Storefront",
       "latitude": 29.774367499999997,
       "longitude": -95.2301234,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJu2sfMk-9QIYROjDWa6_No5w"
@@ -17559,8 +17559,8 @@
       "category": "Other Storefront",
       "latitude": 29.6136442,
       "longitude": -95.37985669999999,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJHU8h5caUQIYRwlg8pqEaiag"
@@ -17604,8 +17604,8 @@
       "category": "Other Storefront",
       "latitude": 29.626384299999998,
       "longitude": -95.2223243,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ964Pl9mZQIYRPGeoMgV2QkE"
@@ -17649,8 +17649,8 @@
       "category": "Other Storefront",
       "latitude": 29.6253024,
       "longitude": -95.23461089999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJA7AXVmSXQIYRNMN-76qoTMU"
@@ -17694,8 +17694,8 @@
       "category": "Other Storefront",
       "latitude": 29.613485299999997,
       "longitude": -95.2222518,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ7w0QOuGZQIYRWqzmIjvCo3M"
@@ -17739,8 +17739,8 @@
       "category": "Other Storefront",
       "latitude": 29.6260905,
       "longitude": -95.2321139,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJNXKBGd-XQIYRRwzXJtUVr8g"
@@ -17784,8 +17784,8 @@
       "category": "Other Storefront",
       "latitude": 29.6243468,
       "longitude": -95.2277373,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ_Tkcat-ZQIYR_Qd07sSrefo"
@@ -17829,8 +17829,8 @@
       "category": "Other Storefront",
       "latitude": 29.624449700000003,
       "longitude": -95.23361109999999,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ-XgfVheXQIYR3ZePVXNjjig"
@@ -17874,8 +17874,8 @@
       "category": "Other Storefront",
       "latitude": 29.6459801,
       "longitude": -95.407339,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJVVVF4cTqQIYR56gFhXGzEEQ"
@@ -17919,8 +17919,8 @@
       "category": "Other Storefront",
       "latitude": 29.749227899999998,
       "longitude": -95.3716984,
-      "sourcePool": "reserve",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJiVfPSDq_QIYRyItssxUujYQ"
@@ -17964,8 +17964,8 @@
       "category": "Other Storefront",
       "latitude": 29.6181484,
       "longitude": -95.229921,
-      "sourcePool": "active",
-      "poolProductionSafe": true,
+      "sourcePool": "quarantine",
+      "poolProductionSafe": false,
       "businessHoursReference": {
         "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
         "googlePlaceId": "ChIJ-adg7WCXQIYR4Ahl4xZpgzw"
