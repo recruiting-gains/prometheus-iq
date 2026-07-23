@@ -19,6 +19,9 @@ import {
   validateReadOnlyFieldSessionLearningContract,
   validateReadOnlyFieldSessionLearningPolicy
 } from "../intelligence/read-only-field-session-learning.mjs";
+import {
+  verifyAugust1ProtectedBehaviorBaselines
+} from "./verify-read-only-field-session-learning.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const writeSnapshot = process.argv.includes("--write");
@@ -53,9 +56,19 @@ export function verifyOffRouteLearningIntelligence(options = {}) {
   assert.deepEqual(validateReadOnlyFieldSessionLearningContract(upstreamContract, dataContract), []);
   assert.equal(sha256(contract.upstreamReadOnlyLearning.contractPath), contract.upstreamReadOnlyLearning.contractSha256, "Upstream read-only learning contract changed.");
   assert.equal(sha256(contract.upstreamReadOnlyLearning.policyPath), contract.upstreamReadOnlyLearning.policySha256, "Upstream read-only learning policy changed.");
-  for (const [name, baseline] of Object.entries(contract.protectedBehaviorBaselines)) {
-    assert.equal(sha256(baseline.path), baseline.sha256, `Protected behavior baseline changed: ${name}`);
-  }
+  const protectedBehaviorSuccessors = verifyAugust1ProtectedBehaviorBaselines({
+    protectedBehaviorBaselines: Object.fromEntries(
+      Object.entries(contract.protectedBehaviorBaselines).map(([name, baseline]) => [
+        name, baseline.sha256
+      ])
+    ),
+    protectedBehaviorBaselinePaths: Object.fromEntries(
+      Object.entries(contract.protectedBehaviorBaselines).map(([name, baseline]) => [
+        name, baseline.path
+      ])
+    ),
+    protectedBehaviorBaselineSuccessor: contract.protectedBehaviorBaselineSuccessor
+  });
 
   const beforeSourceHashes = canonicalSourceHashes(upstreamContract);
   assert.deepEqual(beforeSourceHashes, upstreamContract.canonicalSourceSha256, "Canonical Data source hashes changed.");
@@ -115,6 +128,7 @@ export function verifyOffRouteLearningIntelligence(options = {}) {
     recommendationInfluenceActive: snapshot.safety.recommendationInfluenceActive,
     recommendationScoringChanged: snapshot.safety.recommendationScoringChanged,
     routeGenerationChanged: snapshot.safety.routeGenerationChanged,
+    protectedBehaviorSuccessors,
     dataMutation: snapshot.safety.dataChanged,
     sourceHashes: afterSourceHashes
   };

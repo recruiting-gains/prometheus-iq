@@ -79,7 +79,7 @@ function verifySourceTransition({ commit, tree, subject, ownerSubsystem, paths, 
   }
 }
 
-function verifyProtectedBehaviorBaselines(contract) {
+export function verifyAugust1ProtectedBehaviorBaselines(contract) {
   const successor = readJson(currentBaselineSuccessorPath);
   const fields = git([
     "show", "-s", "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
@@ -146,11 +146,22 @@ function verifyProtectedBehaviorBaselines(contract) {
       path: successor.sourceTransitions.dashboard.paths[0],
       ...successor.sourceTransitions.dashboard
     }],
+    ["dashboardSource", {
+      path: successor.sourceTransitions.dashboard.paths[0],
+      ...successor.sourceTransitions.dashboard
+    }],
     ["dashboardDeployMirrorSha256", {
       path: successor.sourceTransitions.dashboard.paths[1],
       ...successor.sourceTransitions.dashboard
     }],
+    ["dashboardDeployMirror", {
+      path: successor.sourceTransitions.dashboard.paths[1],
+      ...successor.sourceTransitions.dashboard
+    }],
     ["adaptiveRouteEngineSha256", {
+      ...successor.sourceTransitions.intelligenceRuntime.routeGeneration
+    }],
+    ["routeGeneration", {
       ...successor.sourceTransitions.intelligenceRuntime.routeGeneration
     }],
     ["businessHoursEligibilitySha256", {
@@ -187,7 +198,7 @@ export function verifyReadOnlyFieldSessionLearning(options = {}) {
   assert.deepEqual(validateReadOnlyFieldSessionLearningPolicy(policy), []);
   assert.deepEqual(validateReadOnlyFieldSessionLearningContract(contract, dataContract), []);
   assert.deepEqual(beforeHashes, contract.canonicalSourceSha256, "Canonical Data field-session source hashes changed.");
-  const protectedBehaviorSuccessors = verifyProtectedBehaviorBaselines(contract);
+  const protectedBehaviorSuccessors = verifyAugust1ProtectedBehaviorBaselines(contract);
 
   assert.equal(dataContract.intelligenceFieldSessionLearningHandoff.status, "defined_not_authorized");
   assert.equal(dataContract.intelligenceFieldSessionLearningHandoff.independentAuthorizationRequiredBeforeConsumption, true);

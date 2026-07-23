@@ -62,6 +62,7 @@ test("off-route learning verifier passes against canonical read-only evidence", 
   assert.equal(result.recommendationInfluenceActive, false);
   assert.equal(result.recommendationScoringChanged, false);
   assert.equal(result.routeGenerationChanged, false);
+  assert.equal(result.protectedBehaviorSuccessors, 3);
   assert.equal(result.dataMutation, false);
 });
 
@@ -314,9 +315,13 @@ test("projection is deterministic, deeply frozen, read-only, and matches the can
   assert.throws(() => { first.status = "mutated"; }, TypeError);
 });
 
-test("protected Dashboard, Data, route scoring, and route generation baselines remain unchanged", () => {
+test("protected Dashboard and route-generation successors are governed while Data and scoring stay unchanged", () => {
   const { contract } = fixtures();
-  for (const [name, baseline] of Object.entries(contract.protectedBehaviorBaselines)) {
+  const result = verifyOffRouteLearningIntelligence();
+
+  assert.equal(result.protectedBehaviorSuccessors, 3);
+  for (const name of ["dataArchiveRuntime", "dataRuntimeContract", "routeScoring"]) {
+    const baseline = contract.protectedBehaviorBaselines[name];
     assert.equal(sha256(baseline.path), baseline.sha256, name);
   }
   assert.equal(contract.readOnlySafety.modifyData, false);
