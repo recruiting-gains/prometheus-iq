@@ -49,12 +49,27 @@
         "success_measurements",
         "data_retention",
         "intelligence_eligibility"
-      ]
+      ],
+      "productionRegistryAdmission": {
+        "allowedWorkspaceStates": [
+          "active_founder_research",
+          "active_customer",
+          "synthetic_validation_only"
+        ],
+        "deniedWorkspaceStates": [
+          "inactive_historical"
+        ],
+        "activeCustomerRequiresExplicitProductionAuthorization": true,
+        "inactiveHistoricalWorkspaceAdmissionAllowed": false,
+        "syntheticProductionActivationAllowed": false,
+        "syntheticNormalOperationVisibilityAllowed": false,
+        "demoOrFallbackWorkspaceAdmissionAllowed": false
+      }
     },
     "syntheticNonFitnessProof": {
-      "workspaceId": "summit_roofing_synthetic",
-      "businessType": "roofing_outside_sales",
-      "operatingProfileId": "roofing",
+      "workspaceId": "northstar_outside_sales_synthetic",
+      "businessType": "general_outside_sales",
+      "operatingProfileId": "general_outside_sales",
       "state": "synthetic_validation_only",
       "productionActivationAuthorized": false,
       "codeForkRequired": false

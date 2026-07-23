@@ -90,14 +90,54 @@ test("customer-specific forks and relationship claims cannot be removed from pro
   );
 });
 
-test("Smoothie Depot cannot return to normal operation through product configuration", () => {
+test("retired workspaces cannot enter the production registry or bypass activation rules", () => {
   const artifacts = clone(loadRouteIqCommercialProductArtifacts());
-  const smoothie = artifacts.workspaceRegistry.workspaces.find(workspace => workspace.workspaceId === "smoothie_depot");
-  smoothie.normalOperationVisible = true;
+  const retired = clone(artifacts.workspaceRegistry.workspaces.find(
+    workspace => workspace.workspaceState === "synthetic_validation_only"
+  ));
+  retired.workspaceId = "retired_customer_workspace";
+  retired.workspaceState = "inactive_historical";
+  retired.normalOperationVisible = false;
+  retired.productionActivationAuthorized = false;
+  artifacts.workspaceRegistry.workspaces.push(retired);
   assert.throws(
     () => validateRouteIqCommercialProductContract(artifacts),
-    error => error.code === "route_iq_product_historical_workspace_invalid"
+    error => error.code === "route_iq_product_registry_workspace_state_invalid"
   );
+
+  const syntheticActivation = clone(loadRouteIqCommercialProductArtifacts());
+  const synthetic = syntheticActivation.workspaceRegistry.workspaces.find(
+    workspace => workspace.workspaceState === "synthetic_validation_only"
+  );
+  synthetic.productionActivationAuthorized = true;
+  assert.throws(
+    () => validateRouteIqCommercialProductContract(syntheticActivation),
+    error => error.code === "route_iq_product_registry_activation_invalid"
+  );
+
+  const researchActivation = clone(loadRouteIqCommercialProductArtifacts());
+  const founderResearch = researchActivation.workspaceRegistry.workspaces.find(
+    workspace => workspace.workspaceState === "active_founder_research"
+  );
+  founderResearch.productionActivationAuthorized = true;
+  assert.throws(
+    () => validateRouteIqCommercialProductContract(researchActivation),
+    error => error.code === "route_iq_product_registry_activation_invalid"
+  );
+});
+
+test("production registry contains only governed current and synthetic configurations", () => {
+  const artifacts = loadRouteIqCommercialProductArtifacts();
+  const admission = artifacts.contract.commercialArchitecture.configuration.productionRegistryAdmission;
+  const allowed = new Set(admission.allowedWorkspaceStates);
+  assert.deepEqual(admission.deniedWorkspaceStates, ["inactive_historical"]);
+  assert.ok(artifacts.workspaceRegistry.workspaces.every(workspace => allowed.has(workspace.workspaceState)));
+  assert.equal(
+    artifacts.workspaceRegistry.workspaces.some(workspace => admission.deniedWorkspaceStates.includes(workspace.workspaceState)),
+    false
+  );
+  assert.ok(artifacts.workspaceRegistry.workspaces.some(workspace => workspace.workspaceState === "active_founder_research"));
+  assert.ok(artifacts.workspaceRegistry.workspaces.some(workspace => workspace.workspaceState === "synthetic_validation_only"));
 });
 
 test("recommendation, prospective collection, and shadow output boundaries fail closed", () => {

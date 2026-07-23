@@ -125,7 +125,7 @@ export function validateRouteIqPublicPositioningClaims({ contract, commercialPro
   requireExact(contract.portfolio?.soleActiveProduct?.name, "Route IQ", "route_iq_positioning_portfolio_invalid", "sole active product name");
   requireExact(contract.portfolio?.soleActiveProduct?.state, "active", "route_iq_positioning_portfolio_invalid", "sole active product state");
   requireValue(Array.isArray(contract.portfolio?.inactiveProductsPromotedPublicly) && contract.portfolio.inactiveProductsPromotedPublicly.length === 0, "route_iq_positioning_portfolio_invalid", "inactive products cannot be publicly promoted");
-  requireExact(contract.portfolio?.smoothieDepotPromotedPublicly, false, "route_iq_positioning_portfolio_invalid", "Smoothie Depot promotion");
+  requireExact(contract.portfolio?.retiredCustomerWorkspacesPromotedPublicly, false, "route_iq_positioning_portfolio_invalid", "retired customer workspace promotion");
   requireExact(contract.portfolio?.franchiseExpansionIsPrimaryMessage, false, "route_iq_positioning_portfolio_invalid", "franchise expansion message");
   requireExact(commercialProductContract.productPortfolio?.soleActiveProduct, "route_iq", "route_iq_positioning_commercial_contract_drift", "commercial sole active product");
 

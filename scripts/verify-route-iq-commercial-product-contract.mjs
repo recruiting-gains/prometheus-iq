@@ -28,6 +28,12 @@ export const routeIqCommercialRuntimePaths = Object.freeze({
 });
 
 const founderDailySnapshotEndpoint = "/api/dashboard/route-iq/intelligence/daily-snapshot";
+const governedProductionWorkspaceStates = Object.freeze([
+  "active_founder_research",
+  "active_customer",
+  "synthetic_validation_only"
+]);
+const deniedProductionWorkspaceStates = Object.freeze(["inactive_historical"]);
 
 export class RouteIqCommercialProductContractError extends Error {
   constructor(code, detail) {
@@ -135,7 +141,34 @@ export function validateRouteIqCommercialProductContract(artifacts) {
     "data_retention",
     "intelligence_eligibility"
   ], "route_iq_product_configuration_incomplete", "commercial configuration dimensions");
-  requireExact(contract.commercialArchitecture?.syntheticNonFitnessProof?.workspaceId, "summit_roofing_synthetic", "route_iq_product_synthetic_proof_invalid", "synthetic workspace");
+  const registryAdmission = contract.commercialArchitecture?.configuration?.productionRegistryAdmission;
+  requireValue(
+    Array.isArray(registryAdmission?.allowedWorkspaceStates)
+      && JSON.stringify(registryAdmission.allowedWorkspaceStates) === JSON.stringify(governedProductionWorkspaceStates),
+    "route_iq_product_registry_admission_invalid",
+    "production registry allowed workspace states"
+  );
+  requireValue(
+    Array.isArray(registryAdmission?.deniedWorkspaceStates)
+      && JSON.stringify(registryAdmission.deniedWorkspaceStates) === JSON.stringify(deniedProductionWorkspaceStates),
+    "route_iq_product_registry_admission_invalid",
+    "production registry denied workspace states"
+  );
+  for (const [field, expected] of Object.entries({
+    activeCustomerRequiresExplicitProductionAuthorization: true,
+    inactiveHistoricalWorkspaceAdmissionAllowed: false,
+    syntheticProductionActivationAllowed: false,
+    syntheticNormalOperationVisibilityAllowed: false,
+    demoOrFallbackWorkspaceAdmissionAllowed: false
+  })) {
+    requireExact(registryAdmission?.[field], expected, "route_iq_product_registry_admission_invalid", field);
+  }
+  requireValue(
+    typeof contract.commercialArchitecture?.syntheticNonFitnessProof?.workspaceId === "string"
+      && contract.commercialArchitecture.syntheticNonFitnessProof.workspaceId.length > 0,
+    "route_iq_product_synthetic_proof_invalid",
+    "synthetic workspace"
+  );
   requireExact(contract.commercialArchitecture?.syntheticNonFitnessProof?.codeForkRequired, false, "route_iq_product_synthetic_proof_invalid", "synthetic code-fork boundary");
 
   const lifecycle = contract.crossSubsystemLifecycle;
@@ -195,7 +228,7 @@ export function validateRouteIqCommercialProductContract(artifacts) {
     "PROSPECTIVE_COLLECTION_ACTIVATION",
     "RAW_UNCONTROLLED_CODEX_UPLOAD",
     "HISTORICAL_EVIDENCE_REWRITE",
-    "SMOOTHIE_DEPOT_ACTIVE_OPERATION",
+    "INACTIVE_HISTORICAL_WORKSPACE_ACTIVE_OPERATION",
     "GAIA_OPERATIONAL_ACTIVATION",
     "ATHENA_OPERATIONAL_ACTIVATION"
   ], "route_iq_product_prohibition_missing", "product prohibitions");
@@ -255,8 +288,39 @@ export function validateRouteIqCommercialProductContract(artifacts) {
   requireExact(workspaceRegistry.activeProduct, true, "route_iq_product_data_contract_invalid", "registry active product");
   requireExact(workspaceRegistry.recommendationInfluence, "OFF", "route_iq_product_data_contract_invalid", "registry recommendation influence");
   requireExact(workspaceRegistry.prospectiveCollection, "OFF", "route_iq_product_data_contract_invalid", "registry prospective collection");
+  requireValue(Array.isArray(workspaceRegistry.workspaces) && workspaceRegistry.workspaces.length > 0, "route_iq_product_registry_empty", "workspace registry");
+  requireValue(
+    new Set(workspaceRegistry.workspaces.map(workspace => workspace.workspaceId)).size === workspaceRegistry.workspaces.length,
+    "route_iq_product_registry_duplicate_workspace",
+    "workspace IDs must be unique"
+  );
+  const allowedWorkspaceStates = new Set(registryAdmission.allowedWorkspaceStates);
+  const deniedWorkspaceStates = new Set(registryAdmission.deniedWorkspaceStates);
+  for (const workspace of workspaceRegistry.workspaces) {
+    requireValue(
+      allowedWorkspaceStates.has(workspace.workspaceState) && !deniedWorkspaceStates.has(workspace.workspaceState),
+      "route_iq_product_registry_workspace_state_invalid",
+      `${workspace.workspaceId}: ${workspace.workspaceState}`
+    );
+    requireExact(workspace.business?.publicRelationshipClaimsAllowed, false, "route_iq_product_registry_public_claim_invalid", workspace.workspaceId);
+    requireExact(workspace.evidenceGovernance?.crossWorkspaceEvidenceAllowed, false, "route_iq_product_registry_isolation_invalid", workspace.workspaceId);
+    requireExact(workspace.intelligenceEligibility?.recommendationInfluence, "OFF", "route_iq_product_registry_influence_invalid", workspace.workspaceId);
+    requireExact(workspace.intelligenceEligibility?.prospectiveCollection, "OFF", "route_iq_product_registry_collection_invalid", workspace.workspaceId);
 
-  const fitness = workspaceById(workspaceRegistry, "fitness_connection");
+    if (workspace.workspaceState === "synthetic_validation_only") {
+      requireExact(workspace.productionActivationAuthorized, false, "route_iq_product_registry_activation_invalid", workspace.workspaceId);
+      requireExact(workspace.normalOperationVisible, false, "route_iq_product_registry_visibility_invalid", workspace.workspaceId);
+    } else {
+      requireExact(workspace.normalOperationVisible, true, "route_iq_product_registry_visibility_invalid", workspace.workspaceId);
+      if (workspace.workspaceState === "active_customer") {
+        requireExact(workspace.productionActivationAuthorized, true, "route_iq_product_registry_activation_invalid", workspace.workspaceId);
+      } else {
+        requireExact(workspace.productionActivationAuthorized, false, "route_iq_product_registry_activation_invalid", workspace.workspaceId);
+      }
+    }
+  }
+
+  const fitness = workspaceById(workspaceRegistry, contract.fitnessConnectionEvidenceBoundary?.workspaceId);
   requireExact(fitness.workspaceState, "active_founder_research", "route_iq_product_fitness_boundary_invalid", "Fitness Connection workspace state");
   requireExact(fitness.business?.relationshipClassification, "FOUNDER_FIELD_RESEARCH", "route_iq_product_fitness_boundary_invalid", "Fitness Connection classification");
   requireExact(fitness.business?.publicRelationshipClaimsAllowed, false, "route_iq_product_fitness_boundary_invalid", "Fitness Connection public claims");
@@ -268,17 +332,25 @@ export function validateRouteIqCommercialProductContract(artifacts) {
   requireExact(contract.accessControl?.founderIntelligence?.cruzCanonicalPrincipalId, cruz.authenticatedPrincipalId, "route_iq_product_identity_authority_invalid", "product canonical Cruz principal");
   requireValue(anthony?.identityMappingStatus === "pending_exact_authenticated_identity" && anthony.authenticatedPrincipalId === null, "route_iq_product_founder_identity_invalid", "Anthony must fail closed until mapped");
 
-  const smoothie = workspaceById(workspaceRegistry, "smoothie_depot");
-  requireExact(smoothie.workspaceState, "inactive_historical", "route_iq_product_historical_workspace_invalid", "Smoothie Depot state");
-  requireExact(smoothie.normalOperationVisible, false, "route_iq_product_historical_workspace_invalid", "Smoothie Depot normal operation visibility");
-  requireExact(smoothie.intelligenceEligibility?.governedEvidenceLearningEligible, false, "route_iq_product_historical_workspace_invalid", "Smoothie Depot learning eligibility");
-  requireExact(smoothie.codexEvidence?.bundleAuthorized, false, "route_iq_product_historical_workspace_invalid", "Smoothie Depot Codex eligibility");
+  const historicalBoundary = contract.inactiveHistoricalWorkspaceBoundary;
+  requireExact(historicalBoundary?.appliesTo, "all_retired_customer_workspaces", "route_iq_product_historical_workspace_invalid", "retired workspace boundary");
+  requireExact(historicalBoundary?.state, "inactive_historical", "route_iq_product_historical_workspace_invalid", "retired workspace state");
+  for (const [field, expected] of Object.entries({
+    normalOperationVisible: false,
+    activeNavigationVisible: false,
+    historicalDeletionAllowed: false,
+    learningEligible: false,
+    codexBundleEligible: false
+  })) {
+    requireExact(historicalBoundary?.[field], expected, "route_iq_product_historical_workspace_invalid", field);
+  }
 
-  const synthetic = workspaceById(workspaceRegistry, "summit_roofing_synthetic");
-  requireExact(synthetic.workspaceState, "synthetic_validation_only", "route_iq_product_synthetic_proof_invalid", "synthetic state");
-  requireExact(synthetic.business?.businessType, "roofing_outside_sales", "route_iq_product_synthetic_proof_invalid", "synthetic business type");
-  requireExact(synthetic.operatingProfileId, "roofing", "route_iq_product_synthetic_proof_invalid", "synthetic operating profile");
-  requireExact(synthetic.productionActivationAuthorized, false, "route_iq_product_synthetic_proof_invalid", "synthetic production activation");
+  const syntheticProof = contract.commercialArchitecture.syntheticNonFitnessProof;
+  const synthetic = workspaceById(workspaceRegistry, syntheticProof.workspaceId);
+  requireExact(synthetic.workspaceState, syntheticProof.state, "route_iq_product_synthetic_proof_invalid", "synthetic state");
+  requireExact(synthetic.business?.businessType, syntheticProof.businessType, "route_iq_product_synthetic_proof_invalid", "synthetic business type");
+  requireExact(synthetic.operatingProfileId, syntheticProof.operatingProfileId, "route_iq_product_synthetic_proof_invalid", "synthetic operating profile");
+  requireExact(synthetic.productionActivationAuthorized, syntheticProof.productionActivationAuthorized, "route_iq_product_synthetic_proof_invalid", "synthetic production activation");
   for (const requiredField of ["business", "locations", "territories", "roles", "users", "goals", "terminology", "successMeasurements", "retention", "intelligenceEligibility"]) {
     requireValue(synthetic[requiredField] !== undefined, "route_iq_product_synthetic_configuration_incomplete", requiredField);
   }
