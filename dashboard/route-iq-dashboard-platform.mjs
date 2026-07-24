@@ -5,6 +5,10 @@ import {
 export const routeIqDashboardPlatformVersion = "route-iq-configurable-dashboard-v2";
 export const routeIqDashboardStorageVersion = "route-iq-dashboard-storage-v2";
 export const routeIqDashboardCacheName = "prometheus-v50-route-iq-configurable-dashboard";
+export const routeIqFounderWorkspaceAccessContractVersion = "route-iq-founder-workspace-access-v1";
+export const routeIqFounderWorkspaceSwitchContractVersion = "route-iq-founder-workspace-switch-receipt-v1";
+export const routeIqFounderWorkspaceAccessPath = "/api/dashboard/route-iq/founder/workspaces";
+export const routeIqFounderWorkspaceSwitchPath = "/api/dashboard/route-iq/founder/workspace-session";
 
 export const routeIqDashboardRuntimeAssetKeys = Object.freeze([
   "workspaceConfiguration",
@@ -15,6 +19,9 @@ export const routeIqDashboardRuntimeAssetKeys = Object.freeze([
 
 const strictId = /^[a-z][a-z0-9_]{2,127}$/u;
 const sha256Pattern = /^[a-f0-9]{64}$/u;
+const usZipCodePattern = /^[0-9]{5}$/u;
+const zipCoverageVersionPattern = /^territory-zip-coverage-v1\.[0-9]+\.[0-9]+$/u;
+const zipCoverageRegistryVersionPattern = /^route-iq-cross-industry-workspaces-v2\.(\d+)\.(\d+)$/u;
 const supportedCardFields = new Set([
   "business_name",
   "business_type",
@@ -47,6 +54,7 @@ const unavailableStatuses = new Set([
   "PROVIDER_FAILURE",
   "HOURS_INVALID"
 ]);
+const loadedFounderWorkspaceAccesses = new WeakSet();
 
 export class RouteIqDashboardPlatformError extends Error {
   constructor(code, message) {
@@ -75,6 +83,11 @@ function validTimestamp(value) {
   if (typeof value !== "string") return false;
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) && new Date(parsed).toISOString() === value;
+}
+
+function registrySupportsZipCoverage(registryVersion) {
+  const match = zipCoverageRegistryVersionPattern.exec(registryVersion || "");
+  return Boolean(match) && Number(match[1]) >= 2;
 }
 
 function localAssetPath(value) {
@@ -209,13 +222,74 @@ export function validateDashboardWorkspaceRegistry(registry, session, { allowSyn
   const effectiveCapabilities = roles[0].capabilities.filter(capability =>
     dashboardCapabilities.has(capability)
   );
+  const territoryZipCoverage = registrySupportsZipCoverage(validatedRegistry.registryVersion)
+    ? projectDashboardTerritoryZipCoverage(workspace, users[0])
+    : null;
   return Object.freeze({
     registryVersion: validatedRegistry.registryVersion,
     workspace,
     user: users[0],
     role: roles[0],
     effectiveCapabilities: Object.freeze(effectiveCapabilities),
-    territoryIds: Object.freeze([...territories])
+    territoryIds: Object.freeze([...territories]),
+    territoryZipCoverage
+  });
+}
+
+export function projectDashboardTerritoryZipCoverage(workspace, user) {
+  if (!strictId.test(workspace?.workspaceId || "")
+    || !strictId.test(workspace?.companyId || "")
+    || !Array.isArray(workspace?.territories)
+    || !Array.isArray(user?.territoryIds)
+    || !user.territoryIds.length) {
+    fail("route_iq_dashboard_zip_coverage_invalid", "The governed territory ZIP coverage is invalid.");
+  }
+  const assignedTerritories = new Set(user.territoryIds);
+  const workspaceZipAssignments = new Map();
+  const projected = [];
+  for (const territory of workspace.territories) {
+    const coverage = territory?.zipCoverage;
+    if (!strictId.test(territory?.territoryId || "")
+      || !coverage
+      || !zipCoverageVersionPattern.test(coverage.coverageVersion || "")
+      || coverage.workspaceId !== workspace.workspaceId
+      || coverage.companyId !== workspace.companyId
+      || coverage.territoryId !== territory.territoryId
+      || !Array.isArray(coverage.postalCodes)
+      || !coverage.postalCodes.length
+      || coverage.postalCodes.some(zipCode => typeof zipCode !== "string" || !usZipCodePattern.test(zipCode))
+      || new Set(coverage.postalCodes).size !== coverage.postalCodes.length) {
+      fail("route_iq_dashboard_zip_coverage_invalid", "The governed territory ZIP coverage is invalid.");
+    }
+    for (const zipCode of coverage.postalCodes) {
+      if (workspaceZipAssignments.has(zipCode)) {
+        fail("route_iq_dashboard_zip_assignment_conflict", "A ZIP code is assigned to more than one territory.");
+      }
+      workspaceZipAssignments.set(zipCode, territory.territoryId);
+    }
+    if (!assignedTerritories.has(territory.territoryId)) continue;
+    if (territory.active !== true) {
+      fail("route_iq_dashboard_zip_coverage_territory_inactive", "The representative ZIP scope includes an inactive territory.");
+    }
+    projected.push(Object.freeze({
+      workspaceId: workspace.workspaceId,
+      companyId: workspace.companyId,
+      territoryId: territory.territoryId,
+      displayName: cleanText(territory.displayName, 160),
+      timezone: cleanText(territory.timezone, 80),
+      coverageVersion: coverage.coverageVersion,
+      zipCodes: Object.freeze([...coverage.postalCodes])
+    }));
+  }
+  if (projected.length !== assignedTerritories.size) {
+    fail("route_iq_dashboard_zip_coverage_scope_mismatch", "The representative ZIP scope is incomplete.");
+  }
+  return Object.freeze({
+    workspaceId: workspace.workspaceId,
+    companyId: workspace.companyId,
+    configurationVersion: cleanText(workspace.provenance?.configurationVersion, 120),
+    territories: Object.freeze(projected),
+    zipCodes: Object.freeze(projected.flatMap(territory => territory.zipCodes))
   });
 }
 
@@ -316,6 +390,7 @@ function normalizedRosterPlace(record, manifest, workspace, user) {
   const address = cleanText(record?.full_address || record?.address, 300);
   const category = cleanText(record?.category, 80) || "Other";
   const territoryId = cleanText(record?.territoryId, 127) || user.territoryIds[0];
+  const postalCode = cleanText(record?.postal_code || record?.postalCode, 10);
   if (!recordId || !name || !address) {
     fail("route_iq_dashboard_business_roster_record_invalid", "An approved business record is incomplete.");
   }
@@ -323,12 +398,23 @@ function normalizedRosterPlace(record, manifest, workspace, user) {
     || !(workspace.territories || []).some(territory => territory?.territoryId === territoryId && territory?.active === true)) {
     fail("route_iq_dashboard_business_roster_territory_invalid", "An approved business record is outside the representative territory.");
   }
+  if ((workspace.territories || []).some(territory => Object.hasOwn(territory || {}, "zipCoverage"))) {
+    const zipCoverage = projectDashboardTerritoryZipCoverage(workspace, user);
+    const assignedTerritory = zipCoverage.territories.find(territory => territory.territoryId === territoryId);
+    if (!usZipCodePattern.test(postalCode)) {
+      fail("route_iq_dashboard_business_roster_zip_invalid", "An approved business record has no governed five-digit ZIP code.");
+    }
+    if (!assignedTerritory?.zipCodes.includes(postalCode)) {
+      fail("route_iq_dashboard_business_roster_zip_unauthorized", "An approved business record is outside the representative ZIP scope.");
+    }
+  }
   return Object.freeze({
     id: `governed-${recordId}`,
     recordId,
     manifestRecordId: recordId,
     name,
     address,
+    postalCode,
     category,
     distance: Number.isFinite(Number(record?.estimated_distance_miles))
       ? `${Number(record.estimated_distance_miles).toFixed(1)} mi`
@@ -451,9 +537,154 @@ export async function loadGovernedDashboardPlatform({
     role: configuration.role,
     effectiveCapabilities: configuration.effectiveCapabilities,
     territoryIds: configuration.territoryIds,
+    territoryZipCoverage: configuration.territoryZipCoverage,
     manifest,
     status: projection.status,
     places: projection.places
+  });
+}
+
+function founderWorkspaceSwitchEligible(session) {
+  assertSession(session);
+  return session.capabilities.readWorkspaceOperations === true
+    && session.capabilities.administerWorkspaceRoster === true;
+}
+
+export function validateFounderWorkspaceAccessEnvelope(envelope, session) {
+  if (!founderWorkspaceSwitchEligible(session)) {
+    fail("route_iq_dashboard_founder_workspace_access_forbidden", "Workspace switching is unavailable.");
+  }
+  if (!exactKeys(envelope, [
+    "contractVersion",
+    "authorizationState",
+    "principalAuthorization",
+    "currentWorkspaceId",
+    "currentOperatingProfileId",
+    "authorizedWorkspaceSummaries"
+  ])
+    || envelope.contractVersion !== routeIqFounderWorkspaceAccessContractVersion
+    || envelope.authorizationState !== "server_verified"
+    || envelope.principalAuthorization !== "IMMUTABLE_FOUNDER_PRINCIPAL_VERIFIED"
+    || envelope.currentWorkspaceId !== session.workspaceId
+    || envelope.currentOperatingProfileId !== session.operatingProfileId
+    || !Array.isArray(envelope.authorizedWorkspaceSummaries)
+    || envelope.authorizedWorkspaceSummaries.length < 1
+    || envelope.authorizedWorkspaceSummaries.length > 2) {
+    fail("route_iq_dashboard_founder_workspace_access_invalid", "The Founder workspace access response is invalid.");
+  }
+  const summaries = envelope.authorizedWorkspaceSummaries.map(summary => {
+    if (!exactKeys(summary, ["workspaceId", "workspaceLabel", "operatingProfileId"])
+      || !strictId.test(summary.workspaceId || "")
+      || !strictId.test(summary.operatingProfileId || "")
+      || !cleanText(summary.workspaceLabel, 160)) {
+      fail("route_iq_dashboard_founder_workspace_summary_invalid", "A Founder workspace summary is invalid.");
+    }
+    return Object.freeze({
+      workspaceId: summary.workspaceId,
+      workspaceLabel: cleanText(summary.workspaceLabel, 160),
+      operatingProfileId: summary.operatingProfileId
+    });
+  });
+  if (new Set(summaries.map(summary => summary.workspaceId)).size !== summaries.length
+    || summaries.filter(summary => summary.workspaceId === session.workspaceId
+      && summary.operatingProfileId === session.operatingProfileId).length !== 1) {
+    fail("route_iq_dashboard_founder_workspace_summary_scope_invalid", "The Founder workspace summaries do not match the current session.");
+  }
+  return Object.freeze({
+    contractVersion: envelope.contractVersion,
+    currentWorkspaceId: session.workspaceId,
+    currentOperatingProfileId: session.operatingProfileId,
+    authorizedWorkspaceSummaries: Object.freeze(summaries)
+  });
+}
+
+export async function loadFounderWorkspaceAccess({
+  session,
+  fetchFn = globalThis.fetch
+} = {}) {
+  if (!founderWorkspaceSwitchEligible(session)) {
+    return Object.freeze({
+      status: "SINGLE_WORKSPACE",
+      currentWorkspaceId: session.workspaceId,
+      authorizedWorkspaceSummaries: Object.freeze([])
+    });
+  }
+  if (typeof fetchFn !== "function") {
+    fail("route_iq_dashboard_founder_workspace_fetch_unavailable", "Founder workspace access is unavailable.");
+  }
+  const result = await governedJson(fetchFn, routeIqFounderWorkspaceAccessPath);
+  const access = validateFounderWorkspaceAccessEnvelope(result.value, session);
+  const loaded = Object.freeze({ status: "READY", ...access });
+  loadedFounderWorkspaceAccesses.add(loaded);
+  return loaded;
+}
+
+export async function requestFounderWorkspaceSwitch({
+  session,
+  access,
+  requestedWorkspaceId,
+  fetchFn = globalThis.fetch
+} = {}) {
+  if (!access || !loadedFounderWorkspaceAccesses.has(access)) {
+    fail("route_iq_dashboard_founder_workspace_access_untrusted", "Workspace switching requires a fresh authenticated server response.");
+  }
+  const validatedAccess = validateFounderWorkspaceAccessEnvelope({
+    contractVersion: access?.contractVersion,
+    authorizationState: "server_verified",
+    principalAuthorization: "IMMUTABLE_FOUNDER_PRINCIPAL_VERIFIED",
+    currentWorkspaceId: access?.currentWorkspaceId,
+    currentOperatingProfileId: access?.currentOperatingProfileId,
+    authorizedWorkspaceSummaries: access?.authorizedWorkspaceSummaries
+  }, session);
+  if (!strictId.test(requestedWorkspaceId || "")
+    || requestedWorkspaceId === session.workspaceId
+    || !validatedAccess.authorizedWorkspaceSummaries.some(summary => summary.workspaceId === requestedWorkspaceId)) {
+    fail("route_iq_dashboard_founder_workspace_switch_unauthorized", "The requested workspace is not server authorized.");
+  }
+  if (typeof fetchFn !== "function") {
+    fail("route_iq_dashboard_founder_workspace_fetch_unavailable", "Founder workspace switching is unavailable.");
+  }
+  const response = await fetchFn(routeIqFounderWorkspaceSwitchPath, {
+    method: "POST",
+    mode: "same-origin",
+    credentials: "same-origin",
+    cache: "no-store",
+    redirect: "error",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ requestedWorkspaceId })
+  });
+  if (!response?.ok
+    || response.redirected === true
+    || !String(response.headers?.get?.("content-type") || "").toLowerCase().includes("application/json")) {
+    fail("route_iq_dashboard_founder_workspace_switch_failed", "The server did not establish the requested workspace session.");
+  }
+  let receipt;
+  try {
+    receipt = await response.json();
+  } catch {
+    fail("route_iq_dashboard_founder_workspace_switch_failed", "The server did not establish the requested workspace session.");
+  }
+  if (!exactKeys(receipt, [
+    "contractVersion",
+    "authorizationState",
+    "requestedWorkspaceId",
+    "sessionState",
+    "reloadPath"
+  ])
+    || receipt.contractVersion !== routeIqFounderWorkspaceSwitchContractVersion
+    || receipt.authorizationState !== "server_verified"
+    || receipt.requestedWorkspaceId !== requestedWorkspaceId
+    || receipt.sessionState !== "FRESH_SINGLE_WORKSPACE_SESSION_BOUND"
+    || receipt.reloadPath !== "/app") {
+    fail("route_iq_dashboard_founder_workspace_switch_receipt_invalid", "The server workspace switch receipt is invalid.");
+  }
+  return Object.freeze({
+    requestedWorkspaceId,
+    reloadPath: receipt.reloadPath,
+    reloadRequired: true
   });
 }
 

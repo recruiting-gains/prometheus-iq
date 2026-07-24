@@ -63,6 +63,8 @@ function harness({
   const profileId = workspace.operatingProfile.profileId;
   const user = workspace.users[0];
   const territoryId = user.territoryIds[0];
+  const postalCode = workspace.territories.find(territory => territory.territoryId === territoryId)
+    ?.zipCoverage?.postalCodes?.[0];
   const source = workspace.opportunitySources[0];
   const classification = source.classification;
   const rosterPath = `/data/route-iq-commercial-readiness-v1/validation/${workspaceId}-approved-roster.json`;
@@ -71,6 +73,7 @@ function harness({
       recordId,
       businessName: `${profileId} Synthetic Business`,
       address: "100 Validation Way, Example City, TX 77001",
+      postalCode,
       category: profileId === "fitness" ? "Fitness" : "Business Services",
       territoryId,
       expectedVisitDuration: "5-9",
@@ -272,54 +275,10 @@ test("Fitness and general outside sales use the same configuration-driven Dashbo
 });
 
 test("Dashboard, hours, and route replenishment share one manifest-authenticated runtime scope", async () => {
-  const fixture = {
-    session: {
-      contractVersion: "route-iq-customer-pwa-session-v2",
-      authorizationState: "server_verified",
-      workspaceId: "northstar_outside_sales_synthetic",
-      workspaceLabel: "Northstar Outside Sales Synthetic",
-      operatingProfileId: "general_outside_sales",
-      userId: "northstar_synthetic_user_01",
-      representativeId: "northstar_synthetic_rep_01",
-      displayName: "Synthetic Representative",
-      roleId: "northstar_synthetic_representative",
-      capabilities: {
-        operateOwnRoute: true,
-        readWorkspaceOperations: false,
-        administerWorkspaceRoster: false,
-        founderIntelligence: false,
-        founderCrm: false
-      },
-      runtimeAssets: {
-        workspaceConfiguration: "/administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json",
-        businessManifestRegistry: "/data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
-        businessRoster: "/data/route-iq-commercial-readiness-v1/fixtures/general-outside-sales-synthetic-approved-businesses-v1.json",
-        businessHours: "/data/route-iq-commercial-readiness-v1/fixtures/general-outside-sales-synthetic-business-hours-v1.json"
-      },
-      expiresAt: "2026-07-24T12:00:00.000Z",
-      safety: { prospectiveCollection: "OFF", activeCohorts: 0, recommendationInfluence: "OFF" }
-    }
-  };
-  const sourceByPath = new Map([
-    [
-      fixture.session.runtimeAssets.workspaceConfiguration,
-      read("administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json")
-    ],
-    [
-      fixture.session.runtimeAssets.businessManifestRegistry,
-      read("data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json")
-    ],
-    [
-      fixture.session.runtimeAssets.businessRoster,
-      read("data/route-iq-commercial-readiness-v1/fixtures/general-outside-sales-synthetic-approved-businesses-v1.json")
-    ]
-  ]);
-  fixture.fetchFn = async path => sourceByPath.has(path)
-    ? new Response(sourceByPath.get(path), {
-        status: 200,
-        headers: { "cache-control": "private, no-store", "content-type": "application/json" }
-      })
-    : new Response(null, { status: 404 });
+  const fixture = harness({
+    workspaceId: "northstar_outside_sales_synthetic",
+    recordId: "synthetic_sales_business_001"
+  });
   const platform = await loadGovernedDashboardPlatform({
     session: fixture.session,
     fetchFn: fixture.fetchFn,

@@ -160,6 +160,33 @@
       color: var(--command);
     }
 
+    .workspace-switch {
+      display: grid;
+      gap: 3px;
+      min-width: min(260px, 32vw);
+    }
+
+    .workspace-switch label,
+    .workspace-switch small {
+      color: rgba(255,255,255,.72);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .workspace-switch select {
+      width: 100%;
+      min-width: 0;
+      height: 38px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 5px;
+      background: rgba(255,255,255,.1);
+      color: white;
+      padding: 0 30px 0 10px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
     main {
       width: 100%;
       max-width: 1080px;
@@ -1451,6 +1478,12 @@
         width: 100%;
       }
 
+      .workspace-switch {
+        grid-column: 1 / -1;
+        min-width: 0;
+        width: 100%;
+      }
+
       .mode-switch:not(#repProfileSwitch) {
         grid-column: 1 / 2;
       }
@@ -1507,6 +1540,11 @@
         <div class="brand">
           <h1>Route IQ</h1>
           <p id="todayLabel">Field intelligence</p>
+        </div>
+        <div class="workspace-switch" id="founderWorkspaceSwitch" hidden>
+          <label for="founderWorkspaceSelect">Authorized workspace</label>
+          <select id="founderWorkspaceSelect" aria-describedby="founderWorkspaceStatus"></select>
+          <small id="founderWorkspaceStatus" role="status">Current workspace</small>
         </div>
         <div class="mode-switch" aria-label="App mode">
           <button data-mode-select="rep">Rep</button>
@@ -2455,6 +2493,7 @@
     let routeIqDashboardPlatformApi = null;
     let activeDashboardPlatform = null;
     let activeWorkspaceConfiguration = null;
+    let founderWorkspaceAccess = null;
     let runtimeDatasetPlaces = [];
     let runtimeDatasetSource = {
       label: "governed-runtime-pending",
@@ -2626,6 +2665,70 @@
       }
     }
 
+    async function initializeFounderWorkspaceSwitching() {
+      const container = document.getElementById("founderWorkspaceSwitch");
+      const select = document.getElementById("founderWorkspaceSelect");
+      const status = document.getElementById("founderWorkspaceStatus");
+      if (!container || !select || !status || !routeIqCustomerPwaSession || !routeIqDashboardPlatformApi) return;
+      container.hidden = true;
+      founderWorkspaceAccess = null;
+      window.prometheusDebugState.founderWorkspaceSwitch = {
+        status: "single_workspace",
+        authorizedWorkspaceCount: 0,
+        currentWorkspaceId: routeIqCustomerPwaSession.workspaceId
+      };
+      try {
+        const access = await routeIqDashboardPlatformApi.loadFounderWorkspaceAccess({
+          session: routeIqCustomerPwaSession,
+          fetchFn: fetch
+        });
+        if (access.status !== "READY" || access.authorizedWorkspaceSummaries.length < 2) return;
+        founderWorkspaceAccess = access;
+        select.innerHTML = access.authorizedWorkspaceSummaries.map(summary =>
+          `<option value="${escapeAttr(summary.workspaceId)}"${summary.workspaceId === routeIqCustomerPwaSession.workspaceId ? " selected" : ""}>${escapeHtml(summary.workspaceLabel)}</option>`
+        ).join("");
+        status.textContent = "Switching starts a fresh workspace session";
+        container.hidden = false;
+        window.prometheusDebugState.founderWorkspaceSwitch = {
+          status: "ready",
+          authorizedWorkspaceCount: access.authorizedWorkspaceSummaries.length,
+          currentWorkspaceId: access.currentWorkspaceId
+        };
+        select.addEventListener("change", async () => {
+          const requestedWorkspaceId = select.value;
+          if (requestedWorkspaceId === routeIqCustomerPwaSession.workspaceId) return;
+          select.disabled = true;
+          status.textContent = "Establishing secure workspace session...";
+          try {
+            const receipt = await routeIqDashboardPlatformApi.requestFounderWorkspaceSwitch({
+              session: routeIqCustomerPwaSession,
+              access: founderWorkspaceAccess,
+              requestedWorkspaceId,
+              fetchFn: fetch
+            });
+            location.assign(receipt.reloadPath);
+          } catch (error) {
+            select.value = routeIqCustomerPwaSession.workspaceId;
+            select.disabled = false;
+            status.textContent = "Workspace switch unavailable";
+            window.prometheusDebugState.founderWorkspaceSwitch = {
+              status: "failed",
+              authorizedWorkspaceCount: access.authorizedWorkspaceSummaries.length,
+              currentWorkspaceId: access.currentWorkspaceId,
+              errorCode: cleanText(error?.code || "route_iq_dashboard_founder_workspace_switch_failed", 100)
+            };
+          }
+        });
+      } catch (error) {
+        window.prometheusDebugState.founderWorkspaceSwitch = {
+          status: "unavailable",
+          authorizedWorkspaceCount: 0,
+          currentWorkspaceId: routeIqCustomerPwaSession.workspaceId,
+          errorCode: cleanText(error?.code || "route_iq_dashboard_founder_workspace_access_unavailable", 100)
+        };
+      }
+    }
+
     function readLaunchContext() {
       try {
         const parsed = JSON.parse(localStorage.getItem(launchContextStoreKey) || "{}");
@@ -2688,6 +2791,9 @@
         );
         if (activeTerritoryProfile && activeTerritory) {
           activeTerritoryProfile.label = activeTerritory.displayName;
+          activeTerritoryProfile.zipCodes = activeDashboardPlatform.territoryZipCoverage?.territories
+            ?.find(territory => territory.territoryId === activeTerritory.territoryId)
+            ?.zipCodes?.slice() || [];
         }
         operatingProfileRegistry = {
           version: activeDashboardPlatform.configurationVersion,
@@ -2734,6 +2840,7 @@
           mobileBetaChanged: false
         };
         applyDashboardConfigurationPresentation();
+        await initializeFounderWorkspaceSwitching();
         return true;
       } catch (error) {
         routeIqDashboardPlatformApi = null;
@@ -6640,7 +6747,10 @@
       document.getElementById("territoryCurrentRing").textContent = `Ring ${current.index}`;
       document.getElementById("territoryCoverageProgress").textContent = `${coverage.percent}%`;
       document.getElementById("territoryRepresentativeRadius").textContent = representativeRadius;
-      document.getElementById("territoryHomeBase").textContent = `${config.homeBase} · ${config.homeAddress}`;
+      const zipCoverage = Array.isArray(config.zipCodes) && config.zipCodes.length
+        ? `ZIP coverage: ${config.zipCodes.join(", ")}`
+        : "ZIP coverage requires governed configuration";
+      document.getElementById("territoryHomeBase").textContent = `${config.homeBase} · ${zipCoverage}`;
       renderTerritoryPolicyControls(config, coverage);
       document.getElementById("territoryRingList").innerHTML = coverage.rows.map(row => {
         const outer = Math.min(row.index * territoryRingSizeMiles, config.maxRadiusMiles);
