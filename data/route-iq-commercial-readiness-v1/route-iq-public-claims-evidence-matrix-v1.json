@@ -35,7 +35,7 @@
     {
       "sourceId": "commercial_workspace_registry",
       "path": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
-      "sha256": "95bc998fd3d04ef2eac5090d825a19d7da7a4e2936412e3fc12c02b76a6f02ca"
+      "sha256": "bdf5e0098097d5613f1735df4a9b1691037e698d532408a4b887f64aae03a4a5"
     },
     {
       "sourceId": "fitness_connection_preservation_manifest",
