@@ -1,5 +1,5 @@
 {
-  "contractVersion": "route-iq-august-1-customer-pwa-runtime-v2",
+  "contractVersion": "route-iq-august-1-customer-pwa-runtime-v3",
   "ownerSubsystem": "Prometheus Infrastructure",
   "worker": "prometheus-iq",
   "state": "INERT_DEFAULT_OFF",
@@ -42,6 +42,29 @@
     "callerIdentityFieldsAccepted": false,
     "clientSessionExpiry": "EARLIER_OF_VERIFIED_ACCESS_EXP_AND_LAUNCH_ENVELOPE_EXPIRY",
     "clientSessionExpiryFormat": "ISO_8601_ONLY"
+  },
+  "workspaceSelection": {
+    "requestParameter": "workspaceId",
+    "requestParameterCount": "ZERO_OR_ONE",
+    "requestParameterFormat": "STRICT_OPAQUE_ID",
+    "authorizationOwner": "Prometheus Data",
+    "authorizationFunction": "authorizeRouteIqAugust1LaunchPrincipal",
+    "allowlistSource": "SERVER_DERIVED_EXACT_AUTHENTICATED_PRINCIPAL",
+    "requestedWorkspaceMustEqualReturnedWorkspace": true,
+    "infrastructureAllowlistAllowed": false,
+    "displayNameAuthorizationAllowed": false,
+    "callerIdentityAuthorizationAllowed": false,
+    "representativeWorkspaceEnumerationAllowed": false,
+    "clientSessionWorkspaceCount": 1
+  },
+  "zipCoverage": {
+    "authority": "prometheus_administration",
+    "source": "workspace.territories[].zipCodes",
+    "format": "US_FIVE_DIGIT",
+    "duplicateAssignmentAllowed": false,
+    "missingInvalidOrUnauthorized": "FAIL_CLOSED",
+    "projectionVisibility": "SERVER_INTERNAL",
+    "hardcodedBusinessIdentityAllowed": false
   },
   "sessionContract": {
     "marker": "__ROUTE_IQ_CUSTOMER_PWA_SESSION__",

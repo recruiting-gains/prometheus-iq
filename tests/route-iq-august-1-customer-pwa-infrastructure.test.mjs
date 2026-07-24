@@ -124,17 +124,29 @@ const canonicalRegistry = activeCustomerRegistry();
 const canonicalEnvelope = activeEnvelope(canonicalRegistry);
 
 function trustedRuntimeBindings(registry = canonicalRegistry) {
-  const workspaces = registry.workspaces.map(workspace => {
+  const workspaces = registry.workspaces.map((workspace, workspaceIndex) => {
     const manifestId = `${workspace.workspaceId}_approved_business_roster`;
     const artifactPath = `data/route-iq-commercial-readiness-v1/fixtures/${workspace.workspaceId}-approved-businesses-v1.json`;
     return {
       workspaceId: workspace.workspaceId,
       operatingProfile: { profileId: workspace.operatingProfileId },
+      provenance: {
+        owner: "prometheus_administration",
+        configurationVersion: "v2.2.0"
+      },
+      territories: workspace.territories.map((territory, territoryIndex) => ({
+        territoryId: territory.territoryId,
+        active: territory.active,
+        zipCodes: [
+          String(75000 + (workspaceIndex * 100) + territoryIndex).padStart(5, "0")
+        ]
+      })),
       roles: workspace.roles.map(role => ({ roleId: role.roleId })),
       users: workspace.users.map(user => ({
         userId: user.userId,
         representativeId: user.representativeId,
         roleId: user.roleId,
+        territoryIds: [...(user.territoryIds || [workspace.territories[0].territoryId])].sort(),
         active: user.active
       })),
       fallbackPolicy: {
@@ -219,6 +231,36 @@ function expectedRuntimeAssets(registry = canonicalRegistry, workspaceIndex = 0)
     businessManifestRegistry: businessManifestRegistryPath,
     businessRoster: `/${manifest.artifactPath}`,
     businessHours: hours.path
+  };
+}
+
+function dataAuthorizedPrincipalForWorkspace(registry, workspaceIndex) {
+  const workspace = registry.workspaces[workspaceIndex];
+  const user = workspace.users[0];
+  return {
+    authorized: true,
+    companyId: workspace.workspaceId,
+    workspaceId: workspace.workspaceId,
+    workspaceLabel: workspace.business.brand.displayName,
+    operatingProfileId: workspace.operatingProfileId,
+    userId: user.userId,
+    representativeId: user.representativeId,
+    displayName: user.displayName,
+    roleId: user.roleId,
+    capabilities: {
+      operateOwnRoute: true,
+      readWorkspaceOperations: true,
+      administerWorkspaceRoster: true,
+      founderIntelligence: false,
+      founderCrm: false
+    },
+    runtimeAssets: canonicalEnvelope.workspaceAdmissions[workspaceIndex].runtimeAssets,
+    expiresAt: canonicalEnvelope.expiresAt,
+    safety: {
+      prospectiveCollection: "OFF",
+      activeCohorts: 0,
+      recommendationInfluence: "OFF"
+    }
   };
 }
 
@@ -349,7 +391,12 @@ test("Infrastructure contract exports the exact synchronous session marker and r
   assert.equal(contract.sessionContract.htmlElement, "template#routeIqCustomerPwaSession");
   assert.equal(contract.sessionContract.injectionMode, "REPLACE_EXACT_MARKER_TEXT_INSIDE_EXISTING_TEMPLATE");
   assert.equal(contract.sessionContract.additionalElementCreated, false);
-  assert.equal(contract.contractVersion, "route-iq-august-1-customer-pwa-runtime-v2");
+  assert.equal(contract.contractVersion, "route-iq-august-1-customer-pwa-runtime-v3");
+  assert.equal(contract.workspaceSelection.authorizationOwner, "Prometheus Data");
+  assert.equal(contract.workspaceSelection.infrastructureAllowlistAllowed, false);
+  assert.equal(contract.workspaceSelection.clientSessionWorkspaceCount, 1);
+  assert.equal(contract.zipCoverage.missingInvalidOrUnauthorized, "FAIL_CLOSED");
+  assert.equal(contract.zipCoverage.projectionVisibility, "SERVER_INTERNAL");
   assert.deepEqual(contract.sessionContract.responseKeys, ROUTE_IQ_CUSTOMER_PWA_SESSION_RESPONSE_KEYS);
   assert.deepEqual(contract.sessionContract.sessionKeys, ROUTE_IQ_CUSTOMER_PWA_SESSION_KEYS);
   assert.deepEqual(contract.sessionContract.capabilityKeys, ROUTE_IQ_CUSTOMER_PWA_SESSION_CAPABILITY_KEYS);
@@ -476,6 +523,121 @@ test("valid exact Access principal receives only the bounded 2-company 40-user s
   );
   assert.equal(writeMethod.status, 405);
   assert.equal((await writeMethod.json()).code, ROUTE_IQ_CUSTOMER_PWA_FAILURES.methodNotAllowed);
+});
+
+test("Infrastructure delegates explicit Founder workspace selection to Data and emits one scoped session", async () => {
+  const exactFounderPrincipal = canonicalRegistry.workspaces[0].users[0].authenticatedPrincipalId;
+  const calls = [];
+  const dataAuthorizePrincipal = input => {
+    calls.push(input);
+    assert.equal(input.authenticatedPrincipalId, exactFounderPrincipal);
+    assert.equal(Object.hasOwn(input, "displayName"), false);
+    assert.equal(Object.hasOwn(input, "callerId"), false);
+    const workspaceIndex = canonicalRegistry.workspaces.findIndex(
+      workspace => workspace.workspaceId === input.requestedWorkspaceId
+    );
+    if (workspaceIndex < 0) {
+      const error = new Error("Workspace selection denied.");
+      error.code = "route_iq_launch_requested_workspace_unauthorized";
+      throw error;
+    }
+    return dataAuthorizedPrincipalForWorkspace(canonicalRegistry, workspaceIndex);
+  };
+  const token = await accessToken();
+  for (const workspaceIndex of [0, 1]) {
+    const workspaceId = canonicalRegistry.workspaces[workspaceIndex].workspaceId;
+    const response = await handleRouteIqCustomerPwaRequest(
+      customerRequest(
+        `${ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH}?workspaceId=${workspaceId}`,
+        token
+      ),
+      enabledEnv(),
+      { testHooks: testHooks({ dataAuthorizePrincipal }) }
+    );
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    exactKeys(body.session, ROUTE_IQ_CUSTOMER_PWA_SESSION_KEYS);
+    exactKeys(body.session.runtimeAssets, ROUTE_IQ_CUSTOMER_PWA_SESSION_RUNTIME_ASSET_KEYS);
+    assert.equal(body.session.workspaceId, workspaceId);
+    assert.deepEqual(body.session.runtimeAssets, expectedRuntimeAssets(canonicalRegistry, workspaceIndex));
+    assert.equal(Object.hasOwn(body.session, "authorizedWorkspaceIds"), false);
+    assert.equal(Object.hasOwn(body.session, "zipCoverage"), false);
+  }
+  assert.deepEqual(
+    calls.map(call => call.requestedWorkspaceId),
+    canonicalRegistry.workspaces.map(workspace => workspace.workspaceId)
+  );
+});
+
+test("unknown, malformed, representative, display-name, and Anthony workspace selection fail closed", async () => {
+  const exactFounderPrincipal = canonicalRegistry.workspaces[0].users[0].authenticatedPrincipalId;
+  const representativePrincipal = canonicalRegistry.workspaces[0].users[2].authenticatedPrincipalId;
+  const denied = input => {
+    if (input.authenticatedPrincipalId === exactFounderPrincipal
+      && input.requestedWorkspaceId === canonicalRegistry.workspaces[0].workspaceId) {
+      return dataAuthorizedPrincipalForWorkspace(canonicalRegistry, 0);
+    }
+    const error = new Error("Workspace selection denied.");
+    error.code = "route_iq_launch_requested_workspace_unauthorized";
+    throw error;
+  };
+  const cases = [
+    {
+      name: "unknown",
+      subject: fixtureSubject(1, 1),
+      query: "unknown_workspace"
+    },
+    {
+      name: "representative cross-company",
+      subject: fixtureSubject(1, 3),
+      query: canonicalRegistry.workspaces[1].workspaceId,
+      expectedPrincipal: representativePrincipal
+    },
+    {
+      name: "display name",
+      subject: canonicalRegistry.workspaces[0].users[0].displayName,
+      query: canonicalRegistry.workspaces[0].workspaceId
+    },
+    {
+      name: "Anthony",
+      subject: "anthony",
+      query: canonicalRegistry.workspaces[0].workspaceId
+    }
+  ];
+  for (const item of cases) {
+    const response = await handleRouteIqCustomerPwaRequest(
+      customerRequest(
+        `${ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH}?workspaceId=${item.query}`,
+        await accessToken({ subject: item.subject })
+      ),
+      enabledEnv(),
+      { testHooks: testHooks({
+        dataAuthorizePrincipal(input) {
+          if (item.expectedPrincipal) {
+            assert.equal(input.authenticatedPrincipalId, item.expectedPrincipal);
+          }
+          return denied(input);
+        }
+      }) }
+    );
+    assert.equal(response.status, 403, item.name);
+    const body = await response.json();
+    assert.equal(body.code, ROUTE_IQ_CUSTOMER_PWA_FAILURES.scopeMismatch, item.name);
+    assert.equal(JSON.stringify(body).includes(item.query), false, item.name);
+  }
+
+  for (const query of [
+    "workspaceId=Fitness%20Connection",
+    "workspaceId=first_workspace&workspaceId=second_workspace"
+  ]) {
+    const response = await handleRouteIqCustomerPwaRequest(
+      customerRequest(`${ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH}?${query}`, await accessToken()),
+      enabledEnv(),
+      { testHooks: testHooks({ dataAuthorizePrincipal: denied }) }
+    );
+    assert.equal(response.status, 403);
+    assert.equal((await response.json()).code, ROUTE_IQ_CUSTOMER_PWA_FAILURES.scopeMismatch);
+  }
 });
 
 test("issuer, audience, algorithm, signing key, signature, time, and required claims fail closed", async t => {

@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "route-iq-72-hour-onboarding-runtime-v1",
+  "ownerSubsystem": "Prometheus Infrastructure",
+  "targetWorker": "prometheus-iq",
+  "deploymentAuthorized": false,
+  "runtimeAssetKeys": [
+    "workspaceConfiguration",
+    "businessManifestRegistry",
+    "businessRoster",
+    "businessHours"
+  ],
+  "workspaceSelection": {
+    "requestSignal": "workspaceId",
+    "authorizationOwner": "Prometheus Data",
+    "allowlistSource": "exact_authenticated_principal_server_mapping",
+    "infrastructureMayConstructAllowlist": false,
+    "displayNameAuthorizationAllowed": false,
+    "callerIdentifierAuthorizationAllowed": false,
+    "representativeEnumerationAllowed": false,
+    "sessionWorkspaceCount": 1
+  },
+  "zipCoverageProjection": {
+    "authority": "Prometheus Administration",
+    "source": "workspace.territories[].zipCodes",
+    "format": "US_FIVE_DIGIT",
+    "missingInvalidDuplicateOrUnauthorized": "FAIL_CLOSED",
+    "crossWorkspaceFallbackAllowed": false,
+    "hardcodedBusinessIdentityAllowed": false
+  },
+  "elapsedEvidence": {
+    "maximumTargetSeconds": 259200,
+    "automatedConfigurationSecondsRecorded": true,
+    "totalElapsedSecondsRecorded": true,
+    "humanInputSeparated": true,
+    "externalCredentialsSeparated": true,
+    "availabilityVerificationSeparated": true,
+    "founderAttendedAcceptanceSeparated": true
+  },
+  "laterAvailabilityActivationOrder": [
+    "FOUNDER_APPROVES_PRODUCTION_BUSINESS_MANIFEST",
+    "FOUNDER_AUTHORIZES_PROVIDER_AND_CREDENTIAL_PROVISIONING",
+    "INFRASTRUCTURE_BINDS_AUTHORIZED_DATA_PRODUCER",
+    "DATA_ACCEPTS_INITIAL_FRESH_NORMALIZED_SNAPSHOT",
+    "FOUNDER_AUTHORIZES_DAILY_SCHEDULER_AND_MONITORING",
+    "DATA_VALIDATES_AND_MOVES_ELIGIBLE_RECORDS_TO_ACTIVE_OR_RESERVE"
+  ],
+  "currentDataBoundary": {
+    "active": 0,
+    "reserve": 0,
+    "quarantine": 398
+  },
+  "rollbackImpact": "STATELESS_RUNTIME_ONLY_EXISTING_FORWARD_ROLLBACK_V3_REMAINS_COMPATIBLE",
+  "safety": {
+    "availabilityProviders": "OFF",
+    "dailyScheduler": "OFF",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "anthonyMapped": false,
+    "publicWorkerAffected": false,
+    "productionMutationPerformed": false
+  }
+}
