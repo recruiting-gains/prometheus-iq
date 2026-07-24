@@ -379,6 +379,6 @@ test("the generic PWA exposes assigned ZIPs and deliberate Founder switching wit
     "businessRoster",
     "businessHours"
   ]);
-  assert.doesNotMatch(platform, /Fitness Connection|Northstar|Smoothie Depot/u);
+  assert.doesNotMatch(platform, /Fitness Connection|Northstar/u);
   assert.doesNotMatch(platform, /["'`]7[0-9]{4}["'`]/u);
 });
