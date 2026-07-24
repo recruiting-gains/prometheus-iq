@@ -21,7 +21,14 @@
   },
   "zipCoverageProjection": {
     "authority": "Prometheus Administration",
-    "source": "workspace.territories[].zipCodes",
+    "source": "workspace.territories[].zipCoverage",
+    "postalCodeSource": "workspace.territories[].zipCoverage.postalCodes",
+    "requiredOwnershipFields": [
+      "workspaceId",
+      "companyId",
+      "territoryId"
+    ],
+    "coverageVersion": "territory-zip-coverage-v1.0.0",
     "format": "US_FIVE_DIGIT",
     "missingInvalidDuplicateOrUnauthorized": "FAIL_CLOSED",
     "crossWorkspaceFallbackAllowed": false,

@@ -51,6 +51,9 @@ export function verifyGithubActionsRouteIqPrivateDashboardQualification() {
   assert.match(runner, /private_dashboard_deploy_parity_invalid/u);
   assert.match(runner, /buildRouteIqPrivateForwardRollbackCandidateV3/u);
   assert.match(runner, /rollback-v3/u);
+  assert.match(runner, /canonicalZipCoverageIntegration/u);
+  assert.match(runner, /route-iq-cross-industry-workspaces-v2\.json/u);
+  assert.match(runner, /route-iq-multi-company-runtime-authorization\.js/u);
   assert.match(runner, /qualified_artifact_sha256/u);
   assert.doesNotMatch(runner, /wrangler(?:\.js)?\s+deploy/u);
   assert.doesNotMatch(runner, /process\.env\.CLOUDFLARE_|environment\.CLOUDFLARE_/u);
@@ -70,6 +73,8 @@ export function verifyGithubActionsRouteIqPrivateDashboardQualification() {
   assert.equal(contract.artifactUploadRequired, true);
   assert.equal(contract.qualificationArtifact.includesExactCommitAndTree, true);
   assert.equal(contract.qualificationArtifact.includesRollbackV3Digests, true);
+  assert.equal(contract.qualificationArtifact.includesCanonicalZipCoverageIntegrationDigests, true);
+  assert.equal(contract.qualificationArtifact.includesDeployMirrorParityDigest, true);
   assert.equal(contract.qualificationArtifact.includesArtifactDigest, true);
 
   return Object.freeze({ status: "PASS", workflowPath, runnerPath });

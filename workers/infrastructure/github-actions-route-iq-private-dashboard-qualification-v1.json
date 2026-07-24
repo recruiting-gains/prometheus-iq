@@ -17,6 +17,8 @@
     "schemaVersion": "route-iq-private-dashboard-qualification-v1",
     "includesExactCommitAndTree": true,
     "includesRollbackV3Digests": true,
+    "includesCanonicalZipCoverageIntegrationDigests": true,
+    "includesDeployMirrorParityDigest": true,
     "includesArtifactDigest": true
   },
   "safety": {

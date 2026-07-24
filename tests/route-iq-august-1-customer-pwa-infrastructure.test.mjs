@@ -129,6 +129,7 @@ function trustedRuntimeBindings(registry = canonicalRegistry) {
     const artifactPath = `data/route-iq-commercial-readiness-v1/fixtures/${workspace.workspaceId}-approved-businesses-v1.json`;
     return {
       workspaceId: workspace.workspaceId,
+      companyId: `${workspace.workspaceId}_owner`,
       operatingProfile: { profileId: workspace.operatingProfileId },
       provenance: {
         owner: "prometheus_administration",
@@ -137,9 +138,15 @@ function trustedRuntimeBindings(registry = canonicalRegistry) {
       territories: workspace.territories.map((territory, territoryIndex) => ({
         territoryId: territory.territoryId,
         active: territory.active,
-        zipCodes: [
-          String(75000 + (workspaceIndex * 100) + territoryIndex).padStart(5, "0")
-        ]
+        zipCoverage: {
+          coverageVersion: "territory-zip-coverage-v1.0.0",
+          workspaceId: workspace.workspaceId,
+          companyId: `${workspace.workspaceId}_owner`,
+          territoryId: territory.territoryId,
+          postalCodes: [
+            String(75000 + (workspaceIndex * 100) + territoryIndex).padStart(5, "0")
+          ]
+        }
       })),
       roles: workspace.roles.map(role => ({ roleId: role.roleId })),
       users: workspace.users.map(user => ({
@@ -188,11 +195,16 @@ function trustedRuntimeBindings(registry = canonicalRegistry) {
         authority: "prometheus_administration",
         safety: {
           collection: "OFF",
-          activeCohorts: 0,
-          recommendationInfluence: "OFF"
-        },
-        workspaces
-      }
+        activeCohorts: 0,
+        recommendationInfluence: "OFF"
+      },
+      founderBoundary: {
+        founderUserId: "fixture_founder_user",
+        founderPrincipalMappingStatus: "EXACT_PRINCIPAL_MAPPED",
+        authorizedWorkspaceIds: workspaces.map(workspace => workspace.workspaceId)
+      },
+      workspaces
+    }
     },
     businessManifestRegistry: {
       path: businessManifestRegistryPath,
@@ -397,6 +409,11 @@ test("Infrastructure contract exports the exact synchronous session marker and r
   assert.equal(contract.workspaceSelection.clientSessionWorkspaceCount, 1);
   assert.equal(contract.zipCoverage.missingInvalidOrUnauthorized, "FAIL_CLOSED");
   assert.equal(contract.zipCoverage.projectionVisibility, "SERVER_INTERNAL");
+  assert.equal(contract.zipCoverage.source, "workspace.territories[].zipCoverage");
+  assert.equal(
+    contract.zipCoverage.postalCodeSource,
+    "workspace.territories[].zipCoverage.postalCodes"
+  );
   assert.deepEqual(contract.sessionContract.responseKeys, ROUTE_IQ_CUSTOMER_PWA_SESSION_RESPONSE_KEYS);
   assert.deepEqual(contract.sessionContract.sessionKeys, ROUTE_IQ_CUSTOMER_PWA_SESSION_KEYS);
   assert.deepEqual(contract.sessionContract.capabilityKeys, ROUTE_IQ_CUSTOMER_PWA_SESSION_CAPABILITY_KEYS);

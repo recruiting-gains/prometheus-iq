@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
@@ -41,6 +41,23 @@ test("qualification builder freezes exact commit/tree with rollback v3 digests",
     assert.equal(result.status, "ROUTE_IQ_PRIVATE_DASHBOARD_QUALIFICATION_PASSED");
     assert.match(result.artifactSha256, /^[a-f0-9]{64}$/u);
     assert.match(result.manifestSha256, /^[a-f0-9]{64}$/u);
+    const manifest = JSON.parse(readFileSync(join(
+      outputDirectory,
+      "route-iq-private-dashboard-qualification-manifest.json"
+    ), "utf8"));
+    assert.deepEqual(
+      Object.keys(manifest.canonicalZipCoverageIntegration).sort(),
+      [
+        "customerPwaRuntime",
+        "dashboardPlatform",
+        "infrastructureAuthorization",
+        "workspaceConfiguration"
+      ]
+    );
+    for (const entry of Object.values(manifest.canonicalZipCoverageIntegration)) {
+      assert.match(entry.sha256, /^[a-f0-9]{64}$/u);
+    }
+    assert.match(manifest.deployParitySha256, /^[a-f0-9]{64}$/u);
   } finally {
     rmSync(outputDirectory, { recursive: true, force: true });
   }

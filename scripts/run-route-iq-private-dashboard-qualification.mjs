@@ -25,6 +25,12 @@ const rollbackContractPath = "workers/infrastructure/route-iq-private-forward-ro
 const rollbackWranglerPath = "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json";
 const rollbackInertPath = "workers/infrastructure/route-iq-private-forward-rollback-inert-durable-object-v3.js";
 const rollbackBuilderPath = "scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs";
+const canonicalZipIntegrationPaths = Object.freeze({
+  workspaceConfiguration: "administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json",
+  dashboardPlatform: "dashboard/route-iq-dashboard-platform.mjs",
+  customerPwaRuntime: "workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js",
+  infrastructureAuthorization: "workers/infrastructure/route-iq-multi-company-runtime-authorization.js"
+});
 const qualificationManifestName = "route-iq-private-dashboard-qualification-manifest.json";
 const deployParityName = "route-iq-private-dashboard-deploy-parity.json";
 const secretNames = Object.freeze([
@@ -155,6 +161,12 @@ export function buildRouteIqPrivateDashboardQualification({ environment = proces
       generatedEntrypointSha256: rollback.manifest.generatedEntrypointSha256,
       generatedConfigSha256: rollback.manifest.configSha256
     },
+    canonicalZipCoverageIntegration: Object.fromEntries(
+      Object.entries(canonicalZipIntegrationPaths).map(([name, path]) => [
+        name,
+        { path, sha256: sha256File(path) }
+      ])
+    ),
     deployParitySha256: sha256(readFileSync(join(outputDirectory, deployParityName))),
     workflow: {
       path: workflowContract.workflowPath,

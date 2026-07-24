@@ -660,7 +660,11 @@ export function createRouteIqCustomerPwaSession(authorization) {
     representativeId: principal.representativeId,
     displayName: principal.displayName,
     roleId: principal.roleId,
-    capabilities: clone(principal.capabilities),
+    capabilities: {
+      ...clone(principal.capabilities),
+      founderIntelligence: false,
+      founderCrm: false
+    },
     runtimeAssets: clone(runtimeAssets),
     expiresAt: new Date(Math.min(accessExpiresAtMs, launchExpiresAtMs)).toISOString(),
     safety: clone(principal.safety)

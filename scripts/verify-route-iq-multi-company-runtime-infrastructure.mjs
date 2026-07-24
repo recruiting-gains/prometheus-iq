@@ -35,6 +35,11 @@ assert.equal(contract.workspaceSelection.callerIdentifierAuthorizationAllowed, f
 assert.equal(contract.workspaceSelection.representativeEnumerationAllowed, false);
 assert.equal(contract.workspaceSelection.sessionWorkspaceCount, 1);
 assert.equal(contract.zipCoverageProjection.authority, "Prometheus Administration");
+assert.equal(contract.zipCoverageProjection.source, "workspace.territories[].zipCoverage");
+assert.equal(
+  contract.zipCoverageProjection.postalCodeSource,
+  "workspace.territories[].zipCoverage.postalCodes"
+);
 assert.equal(contract.zipCoverageProjection.missingInvalidDuplicateOrUnauthorized, "FAIL_CLOSED");
 assert.deepEqual(contract.currentDataBoundary, { active: 0, reserve: 0, quarantine: 398 });
 assert.equal(contract.safety.availabilityProviders, "OFF");
@@ -53,9 +58,12 @@ assert.match(runtime, /ROUTE_IQ_CUSTOMER_PWA_SESSION_RUNTIME_ASSET_KEYS/u);
 assert.doesNotMatch(runtime, /authorizedWorkspaceIds/u);
 assert.doesNotMatch(runtime, /displayName.*authorize/iu);
 assert.match(authorization, /workspace\.territories/u);
-assert.match(authorization, /territory\.zipCodes/u);
+assert.match(authorization, /territory\?\.zipCoverage/u);
+assert.match(authorization, /coverage\.postalCodes/u);
+assert.match(authorization, /authorizeFounderWorkspaceAccessFromRegistry/u);
 assert.match(authorization, /US_ZIP_CODE/u);
 assert.match(authorization, /prometheus_administration_projected_by_infrastructure/u);
+assert.doesNotMatch(authorization, /territory\.zipCodes/u);
 assert.match(onboarding, /seventyTwoHourStandardProven:\s*false/u);
 assert.match(onboarding, /EXACT_390_X_844_MOBILE_ACCEPTANCE/u);
 assert.match(documentation, /active `0`, reserve `0`, quarantine `398`/u);

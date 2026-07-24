@@ -19,9 +19,9 @@ Each successful browser session still represents exactly one workspace and exact
 
 ## ZIP projection
 
-Infrastructure consumes Administration-owned `territories[].zipCodes` after the workspace and user have been authorized. ZIPs must be sorted, unique US five-digit values. Territory IDs and ZIPs must be unique inside the workspace. Missing, invalid, duplicate, cross-workspace, cross-user, inactive, or unauthorized coverage fails closed.
+Infrastructure consumes the canonical Administration registry and its ownership-bearing `territories[].zipCoverage` objects after Data has authorized the exact workspace. Each coverage object must carry the matching `coverageVersion`, `workspaceId`, `companyId`, and `territoryId`; postal coverage comes only from `zipCoverage.postalCodes`. Postal codes must be unique US five-digit values. Territory IDs and postal codes must be unique inside the workspace. Missing, malformed, duplicate, cross-owner, cross-workspace, cross-user, inactive, or unauthorized coverage fails closed.
 
-The ZIP projection remains server-internal. It supplies territory authorization to Infrastructure runtimes without widening the client session contract or hard-coding any business identity.
+The Data-authorized Founder read-only mode may project all active territories only after the canonical Administration Founder boundary confirms the selected workspace. Representatives remain limited to the exact Administration user and territory assignment. The ZIP projection remains server-internal; it supplies territory authorization to Infrastructure runtimes without widening the exact four-asset client session contract or hard-coding any business identity.
 
 ## 72-hour evidence
 
@@ -39,3 +39,5 @@ The current boundary remains active `0`, reserve `0`, quarantine `398`; provider
 6. Data validates eligibility and moves only fresh approved records into active or reserve pools.
 
 Provider failure, missing credentials, stale evidence, invalid ZIP coverage, or incomplete monitoring keeps records quarantined and route-ineligible. No deployment, provider, credential, scheduler, migration, cache purge, or production mutation is authorized by this package.
+
+The existing private forward rollback v3 remains compatible without a contract mutation: it forces the customer PWA launch OFF and exposes no customer PWA routes, so multi-company selection and canonical ZIP projection are unreachable. It preserves the private-only target, existing stateful classes, bindings, migrations, namespaces, and secrets.

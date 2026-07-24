@@ -1,3 +1,11 @@
+import {
+  ROUTE_IQ_TERRITORY_ZIP_COVERAGE_VERSION,
+  authorizeFounderWorkspaceAccessFromRegistry
+} from "../../administration/contracts/route-iq-workspace-configuration-v2-validation.mjs";
+import {
+  routeIqAugust1FounderAccessRole
+} from "../../data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs";
+
 export const ROUTE_IQ_REQUESTED_WORKSPACE_PARAMETER = "workspaceId";
 export const ROUTE_IQ_ZIP_COVERAGE_VERSION = "route-iq-runtime-zip-coverage-v1";
 export const ROUTE_IQ_ZIP_COVERAGE_LIMITS = Object.freeze({
@@ -77,7 +85,8 @@ export function projectRouteIqWorkspaceZipCoverage({ principal, workspaceRegistr
   );
   if (workspaces.length !== 1) fail(ROUTE_IQ_MULTI_COMPANY_FAILURES.projectionInvalid);
   const workspace = workspaces[0];
-  if (workspace.operatingProfile?.profileId !== principal.operatingProfileId
+  if (!strictId(workspace.companyId)
+    || workspace.operatingProfile?.profileId !== principal.operatingProfileId
     || workspace.provenance?.owner !== "prometheus_administration"
     || !CONFIGURATION_VERSION.test(workspace.provenance?.configurationVersion || "")
     || !Array.isArray(workspace.territories)
@@ -86,53 +95,79 @@ export function projectRouteIqWorkspaceZipCoverage({ principal, workspaceRegistr
     fail(ROUTE_IQ_MULTI_COMPANY_FAILURES.projectionInvalid);
   }
 
-  const users = (workspace.users || []).filter(user => (
-    user?.userId === principal.userId
-    && user?.representativeId === principal.representativeId
-    && user?.roleId === principal.roleId
-    && user?.active === true
-  ));
-  if (users.length !== 1
-    || !Array.isArray(users[0].territoryIds)
-    || users[0].territoryIds.length < 1
-    || !unique(users[0].territoryIds)) {
-    fail(ROUTE_IQ_MULTI_COMPANY_FAILURES.projectionInvalid);
+  const founderAccess = principal.accessMode === "founder_explicit_workspace_read_only"
+    && principal.roleId === routeIqAugust1FounderAccessRole
+    && principal.capabilities?.operateOwnRoute === false
+    && principal.capabilities?.readWorkspaceOperations === true;
+  let assignedTerritoryIds;
+  if (founderAccess) {
+    try {
+      authorizeFounderWorkspaceAccessFromRegistry({
+        founderUserId: workspaceRegistry.founderBoundary?.founderUserId,
+        workspaceId: principal.workspaceId
+      }, workspaceRegistry);
+    } catch {
+      fail(ROUTE_IQ_MULTI_COMPANY_FAILURES.projectionInvalid);
+    }
+    assignedTerritoryIds = workspace.territories
+      .filter(territory => territory?.active === true)
+      .map(territory => territory.territoryId);
+  } else {
+    const users = (workspace.users || []).filter(user => (
+      user?.userId === principal.userId
+      && user?.representativeId === principal.representativeId
+      && user?.roleId === principal.roleId
+      && user?.active === true
+    ));
+    if (users.length !== 1
+      || !Array.isArray(users[0].territoryIds)
+      || users[0].territoryIds.length < 1
+      || !unique(users[0].territoryIds)) {
+      fail(ROUTE_IQ_MULTI_COMPANY_FAILURES.projectionInvalid);
+    }
+    assignedTerritoryIds = users[0].territoryIds;
   }
 
   if (principal.territoryIds !== undefined
     && (!Array.isArray(principal.territoryIds)
       || !unique(principal.territoryIds)
-      || principal.territoryIds.length !== users[0].territoryIds.length
+      || principal.territoryIds.length !== assignedTerritoryIds.length
       || [...principal.territoryIds].sort().some((territoryId, index) => (
-        territoryId !== [...users[0].territoryIds].sort()[index]
+        territoryId !== [...assignedTerritoryIds].sort()[index]
       )))) {
     fail(ROUTE_IQ_MULTI_COMPANY_FAILURES.projectionInvalid);
   }
 
-  const assignedTerritories = new Set(users[0].territoryIds);
+  const assignedTerritories = new Set(assignedTerritoryIds);
   const seenTerritoryIds = new Set();
-  const seenZipCodes = new Set();
+  const seenPostalCodes = new Set();
   const territories = [];
   for (const territory of workspace.territories) {
+    const coverage = territory?.zipCoverage;
     if (!strictId(territory?.territoryId)
       || seenTerritoryIds.has(territory.territoryId)
       || territory.active !== true
-      || !Array.isArray(territory.zipCodes)
-      || territory.zipCodes.length < 1
-      || territory.zipCodes.length > ROUTE_IQ_ZIP_COVERAGE_LIMITS.zipCodesPerTerritory
-      || !unique(territory.zipCodes)
-      || territory.zipCodes.some(zipCode => !US_ZIP_CODE.test(zipCode))) {
+      || coverage?.coverageVersion !== ROUTE_IQ_TERRITORY_ZIP_COVERAGE_VERSION
+      || coverage?.workspaceId !== workspace.workspaceId
+      || coverage?.companyId !== workspace.companyId
+      || coverage?.territoryId !== territory.territoryId
+      || !Array.isArray(coverage?.postalCodes)
+      || coverage.postalCodes.length < 1
+      || coverage.postalCodes.length > ROUTE_IQ_ZIP_COVERAGE_LIMITS.zipCodesPerTerritory
+      || !unique(coverage.postalCodes)
+      || coverage.postalCodes.some(postalCode => !US_ZIP_CODE.test(postalCode))) {
       fail(ROUTE_IQ_MULTI_COMPANY_FAILURES.projectionInvalid);
     }
     seenTerritoryIds.add(territory.territoryId);
-    for (const zipCode of territory.zipCodes) {
-      if (seenZipCodes.has(zipCode)) fail(ROUTE_IQ_MULTI_COMPANY_FAILURES.projectionInvalid);
-      seenZipCodes.add(zipCode);
+    for (const postalCode of coverage.postalCodes) {
+      if (seenPostalCodes.has(postalCode)) fail(ROUTE_IQ_MULTI_COMPANY_FAILURES.projectionInvalid);
+      seenPostalCodes.add(postalCode);
     }
     if (assignedTerritories.has(territory.territoryId)) {
       territories.push({
         territoryId: territory.territoryId,
-        zipCodes: [...territory.zipCodes].sort()
+        coverageVersion: coverage.coverageVersion,
+        postalCodes: [...coverage.postalCodes].sort()
       });
     }
   }
@@ -143,17 +178,18 @@ export function projectRouteIqWorkspaceZipCoverage({ principal, workspaceRegistr
 
   territories.sort((left, right) => left.territoryId.localeCompare(right.territoryId));
   const territoryIds = territories.map(territory => territory.territoryId);
-  const zipCodes = territories.flatMap(territory => territory.zipCodes).sort();
+  const postalCodes = territories.flatMap(territory => territory.postalCodes).sort();
   return deepFreeze({
     contractVersion: ROUTE_IQ_ZIP_COVERAGE_VERSION,
     authority: "prometheus_administration_projected_by_infrastructure",
     configurationVersion: workspace.provenance.configurationVersion,
     workspaceId: principal.workspaceId,
+    companyId: workspace.companyId,
     operatingProfileId: principal.operatingProfileId,
     userId: principal.userId,
     representativeId: principal.representativeId,
     territoryIds,
-    zipCodes,
+    postalCodes,
     territories
   });
 }
@@ -171,7 +207,7 @@ export function assertRouteIqRuntimeZipAuthorization(projection, input) {
   const territory = projection.territories.find(
     candidate => candidate.territoryId === input.territoryId
   );
-  if (!territory || !territory.zipCodes.includes(input.zipCode)) {
+  if (!territory || !territory.postalCodes.includes(input.zipCode)) {
     fail(ROUTE_IQ_MULTI_COMPANY_FAILURES.zipUnauthorized);
   }
   return true;
