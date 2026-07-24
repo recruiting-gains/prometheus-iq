@@ -33,7 +33,8 @@ test("canonical Public Deployment Workflow v2 governance verifies", () => {
 
 test("historical Workflow v2 evidence remains historical beside exact current owner evidence", () => {
   const historical = sources.governance.workflowV2FixtureRepairSuccessor;
-  const current = sources.governance.august1LaunchCloseoutSuccessor;
+  const august1 = sources.governance.august1LaunchCloseoutSuccessor;
+  const current = sources.governance.routeIqWebsitePositioningSuccessor;
   assert.equal(
     sources.governance.productContinuity.deploymentAssetSha256,
     "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15"
@@ -42,18 +43,18 @@ test("historical Workflow v2 evidence remains historical beside exact current ow
     historical.files.at(-1).sha256,
     "76c56b86ff9c8a16ae585d3e3dd30a213e199dc937c678cd7aaeefb26e6924fc"
   );
-  assert.equal(current.historicalWorkflowEvidencePreserved, true);
-  assert.equal(current.historicalHashesAreCurrent, false);
+  assert.equal(august1.historicalWorkflowEvidencePreserved, true);
+  assert.equal(august1.historicalHashesAreCurrent, false);
   assert.equal(
-    current.currentReleaseIdentities.deploymentAssetSha256,
+    august1.currentReleaseIdentities.deploymentAssetSha256,
     "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1"
   );
   assert.equal(
-    current.currentReleaseIdentities.infrastructureIntegrityContractSha256,
+    august1.currentReleaseIdentities.infrastructureIntegrityContractSha256,
     "0582bc185ccf6f5e0825de25ce5fef8c65240fb0ee3b68c22bc5ba14865350c5"
   );
   assert.deepEqual(
-    current.overwatchPredecessors.map(item => item.commit),
+    august1.overwatchPredecessors.map(item => item.commit),
     [
       "5c20b551820c21b02a0c25c9d38c93474457fd23",
       "59fab7bc5f307336fba52d15bc73181cb1a20b04",
@@ -61,12 +62,12 @@ test("historical Workflow v2 evidence remains historical beside exact current ow
       "bc5c03392580470c3549c8e3fe510458e5cdc196"
     ]
   );
-  assert.equal(current.overwatchPredecessors[0].parent, current.provenanceAdmission.commit);
-  assert.equal(current.overwatchPredecessors[1].parent, current.overwatchPredecessors[0].commit);
-  assert.equal(current.overwatchPredecessors[2].parent, current.overwatchPredecessors[1].commit);
-  assert.equal(current.overwatchPredecessors[3].parent, current.overwatchPredecessors[2].commit);
+  assert.equal(august1.overwatchPredecessors[0].parent, august1.provenanceAdmission.commit);
+  assert.equal(august1.overwatchPredecessors[1].parent, august1.overwatchPredecessors[0].commit);
+  assert.equal(august1.overwatchPredecessors[2].parent, august1.overwatchPredecessors[1].commit);
+  assert.equal(august1.overwatchPredecessors[3].parent, august1.overwatchPredecessors[2].commit);
   assert.deepEqual(
-    current.qualificationPredecessors.map(item => item.commit),
+    august1.qualificationPredecessors.map(item => item.commit),
     [
       "f464a6bc19e8d2e52cab258dd2cbdd7511a18a21",
       "4fb815a7e03f745685a36e24e847dbc1f109a7df",
@@ -82,15 +83,37 @@ test("historical Workflow v2 evidence remains historical beside exact current ow
       "943baa9c48a85f8b0a57d5a371ff64d486926f8d"
     ]
   );
-  assert.equal(current.qualificationPredecessors[0].parent, current.overwatchPredecessors[3].commit);
-  for (let index = 1; index < current.qualificationPredecessors.length; index += 1) {
+  assert.equal(august1.qualificationPredecessors[0].parent, august1.overwatchPredecessors[3].commit);
+  for (let index = 1; index < august1.qualificationPredecessors.length; index += 1) {
     assert.equal(
-      current.qualificationPredecessors[index].parent,
-      current.qualificationPredecessors[index - 1].commit
+      august1.qualificationPredecessors[index].parent,
+      august1.qualificationPredecessors[index - 1].commit
     );
   }
-  assert.equal(current.overwatchSuccessor.parent, current.qualificationPredecessors.at(-1).commit);
-  assert.equal(current.overwatchSuccessor.files.length, 8);
+  assert.equal(august1.overwatchSuccessor.parent, august1.qualificationPredecessors.at(-1).commit);
+  assert.equal(august1.overwatchSuccessor.files.length, 8);
+
+  assert.equal(current.classification, "CONTROLLING_PUBLIC_RELEASE_SUCCESSOR");
+  assert.equal(current.historicalAugust1EvidencePreserved, true);
+  assert.equal(current.historicalAugust1HashesAreCurrent, false);
+  assert.equal(current.websiteSource.commit, "b83bcaf064ee7b57b28116ffb5e64cbf270605a0");
+  assert.deepEqual(
+    current.dataProvenanceSuccessors.map(item => item.commit),
+    [
+      "db70e304b77164c31fa0f95c25050fb61ea393c1",
+      "c7e6a90ffc93bb7ae270365a198c740a4dc47126",
+      "e1e7279e925acae69f7e32608475b98eff2c6023",
+      "6e62887506e39f9dc936766ea7da4d70f688c0e4"
+    ]
+  );
+  assert.equal(current.websiteAssets.commit, "72f3f5733f35a4ab56ae528f3a3616b455bd9ee6");
+  assert.equal(current.infrastructure.commit, "a370836879b160e88c0e7e821003e66759cc97c4");
+  assert.deepEqual(current.currentReleaseIdentities, {
+    deploymentAssetSha256: "ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e",
+    rollbackContractSha256: "df9a90e39076df62bb6c3ec521a9dd86afe8d65f0836645237dbc2d08c69302d",
+    rollbackArtifactSha256: "f8fceee62838c182a4e093d4d8bc57c71bf5ec8dbe71707db76c63ecd7a4b1eb",
+    workflowContractSha256: "17ac6ac53220f77fe2d49339e7a93566c7c2419bb19c462200a2077f1df34ca7"
+  });
 });
 
 test("governance fails closed on ownership or production-boundary drift", () => {
@@ -113,6 +136,15 @@ test("governance fails closed on ownership or production-boundary drift", () => 
         provenanceAdmission: {
           ...sources.governance.august1LaunchCloseoutSuccessor.provenanceAdmission,
           commit: "0".repeat(40)
+        }
+      }
+    },
+    {
+      routeIqWebsitePositioningSuccessor: {
+        ...sources.governance.routeIqWebsitePositioningSuccessor,
+        currentReleaseIdentities: {
+          ...sources.governance.routeIqWebsitePositioningSuccessor.currentReleaseIdentities,
+          rollbackArtifactSha256: "0".repeat(64)
         }
       }
     },

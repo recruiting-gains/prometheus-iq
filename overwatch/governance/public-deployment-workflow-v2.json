@@ -433,6 +433,121 @@
     "deploymentPerformed": false,
     "productionMutationPerformed": false
   },
+  "routeIqWebsitePositioningSuccessor": {
+    "batchId": "BATCH-20260723-006",
+    "directive": "OVERWATCH DIRECTIVE - RESTORE ROUTE IQ WEBSITE POSITIONING",
+    "classification": "CONTROLLING_PUBLIC_RELEASE_SUCCESSOR",
+    "historicalAugust1EvidencePreserved": true,
+    "historicalAugust1HashesAreCurrent": false,
+    "websiteSource": {
+      "commit": "b83bcaf064ee7b57b28116ffb5e64cbf270605a0",
+      "tree": "8aab7fc3b918c50e85a78c5f5b6270846d3941e4",
+      "parent": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
+      "subject": "website: restore Route IQ customer positioning",
+      "author": "Prometheus Website <website@prometheus.local>",
+      "committer": "Prometheus Website <website@prometheus.local>",
+      "files": [
+        "landing.html",
+        "src/main.jsx",
+        "src/styles.css",
+        "tests/website-route-iq-3d-visual-continuity.test.mjs",
+        "tests/website-route-iq-product-focus.test.mjs"
+      ]
+    },
+    "dataProvenanceSuccessors": [
+      {
+        "commit": "db70e304b77164c31fa0f95c25050fb61ea393c1",
+        "tree": "74f118516067c6c52b71c5d683ae111dec4e0511",
+        "parent": "b83bcaf064ee7b57b28116ffb5e64cbf270605a0",
+        "subject": "data: reconcile public claims workspace provenance",
+        "author": "Prometheus Data <data@prometheus.local>",
+        "committer": "Prometheus Data <data@prometheus.local>",
+        "files": [
+          "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json"
+        ]
+      },
+      {
+        "commit": "c7e6a90ffc93bb7ae270365a198c740a4dc47126",
+        "tree": "df1b0bcbe6d69db54e40c952e6839d6a8700fd48",
+        "parent": "db70e304b77164c31fa0f95c25050fb61ea393c1",
+        "subject": "data: reconcile Route IQ claims provenance successor",
+        "author": "Prometheus Data <data@prometheus.local>",
+        "committer": "Prometheus Data <data@prometheus.local>",
+        "files": [
+          "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json"
+        ]
+      },
+      {
+        "commit": "e1e7279e925acae69f7e32608475b98eff2c6023",
+        "tree": "62aafe56be5198e2ab65720b26a5d4fe1681ded3",
+        "parent": "c7e6a90ffc93bb7ae270365a198c740a4dc47126",
+        "subject": "data: reconcile Intelligence claims provenance successor",
+        "author": "Prometheus Data <data@prometheus.local>",
+        "committer": "Prometheus Data <data@prometheus.local>",
+        "files": [
+          "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json"
+        ]
+      },
+      {
+        "commit": "6e62887506e39f9dc936766ea7da4d70f688c0e4",
+        "tree": "7134b123df4456cb1c8f3cc250a6c331f3ebf40b",
+        "parent": "e1e7279e925acae69f7e32608475b98eff2c6023",
+        "subject": "data: refresh Intelligence claims successor fixture",
+        "author": "Prometheus Data <data@prometheus.local>",
+        "committer": "Prometheus Data <data@prometheus.local>",
+        "files": [
+          "tests/route-iq-public-claims-data.test.mjs"
+        ]
+      }
+    ],
+    "websiteAssets": {
+      "commit": "72f3f5733f35a4ab56ae528f3a3616b455bd9ee6",
+      "tree": "6fa5e855c0ae14e97186b219073c1aa0ae5d9381",
+      "parent": "6e62887506e39f9dc936766ea7da4d70f688c0e4",
+      "subject": "website: regenerate public deployment assets",
+      "author": "Prometheus Website <website@prometheus.local>",
+      "committer": "Prometheus Website <website@prometheus.local>",
+      "files": [
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-C_J7bBXb.js",
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-DUlz-ixy.js",
+        "deploy/prometheusrouteiq-website/assets/landing-DL0VmnXB.js",
+        "deploy/prometheusrouteiq-website/assets/landing-Dfjv-fGW.js",
+        "deploy/prometheusrouteiq-website/assets/landing-SxUmzID1.css",
+        "deploy/prometheusrouteiq-website/assets/landing-y4RbxV9s.css",
+        "deploy/prometheusrouteiq-website/index.html"
+      ]
+    },
+    "infrastructure": {
+      "commit": "a370836879b160e88c0e7e821003e66759cc97c4",
+      "tree": "86abecdcbce0ed7ec5bbe77114affaad2f9fd1be",
+      "parent": "72f3f5733f35a4ab56ae528f3a3616b455bd9ee6",
+      "subject": "infrastructure: advance website positioning rollback package",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "files": [
+        {
+          "path": "tests/github-actions-public-worker-deployment.test.mjs",
+          "sha256": "3638984564da4e580170a87f9f728c0724edd3c4b5b7f667c6ce38b98eb9d38c"
+        },
+        {
+          "path": "tests/github-actions-public-worker-workflow-v2.test.mjs",
+          "sha256": "03c35afd5c6c8d627b1dfa77b292bb0e947a78427bdaa673f535df19e6aa51b9"
+        },
+        {
+          "path": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+          "sha256": "df9a90e39076df62bb6c3ec521a9dd86afe8d65f0836645237dbc2d08c69302d"
+        }
+      ]
+    },
+    "currentReleaseIdentities": {
+      "deploymentAssetSha256": "ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e",
+      "rollbackContractSha256": "df9a90e39076df62bb6c3ec521a9dd86afe8d65f0836645237dbc2d08c69302d",
+      "rollbackArtifactSha256": "f8fceee62838c182a4e093d4d8bc57c71bf5ec8dbe71707db76c63ecd7a4b1eb",
+      "workflowContractSha256": "17ac6ac53220f77fe2d49339e7a93566c7c2419bb19c462200a2077f1df34ca7"
+    },
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  },
   "provenanceRepair": {
     "ownerCommit": "3743db6f883f44b6d1d1dd69bc1a9c79f6d8b6de",
     "ownerTree": "7cc6670f1599f32a1d7283a353495866930784fd",

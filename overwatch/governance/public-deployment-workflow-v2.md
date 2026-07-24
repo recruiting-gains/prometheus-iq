@@ -38,3 +38,13 @@ Website commit `710ad8a1428dd7621c5363a16fffaae828cc3421` regenerated the approv
 The active owner-successor identities are deployment assets `48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1`, rollback contract `b7be296f51db1b8e8a305a068ebc1b0aa7652813de7b5378b96ac292af8af012`, deterministic rollback bundle `012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe`, and Infrastructure integrity contract `0582bc185ccf6f5e0825de25ce5fef8c65240fb0ee3b68c22bc5ba14865350c5`.
 
 The release chain is exact and append-only. The four established Overwatch predecessors end at `bc5c03392580470c3549c8e3fe510458e5cdc196`; the governed qualification sequence then pins every subsequent Overwatch, Dashboard, and Intelligence commit through the exact-tail finalization `943baa9c48a85f8b0a57d5a371ff64d486926f8d`. One terminal Overwatch successor refreshes the final verifier fixture and may modify only the eight governance and verification paths enumerated in the JSON record. This preserves each subsystem's actual author and committer identity instead of treating unrelated owner work as Overwatch implementation. The current `package.json` hash resolves through Overwatch commit `610383c4e845789859946122283e8014dae35600`, which registered the August 1 verification commands. No deployment or production mutation is authorized by this successor chain.
+
+## Route IQ Website Positioning Successor
+
+The August 1 records remain immutable historical evidence. They are no longer treated as current Website, deployment-asset, or rollback pins.
+
+Website commit `b83bcaf064ee7b57b28116ffb5e64cbf270605a0` restores customer-facing Route IQ positioning while retaining the governed 3D experience, public request flow, legal protections, and supported claims. Four subsequent Data commits reconcile only the claims-evidence provenance used by release gates. Website commit `72f3f5733f35a4ab56ae528f3a3616b455bd9ee6` regenerates the exact public deployment assets. Infrastructure commit `a370836879b160e88c0e7e821003e66759cc97c4` advances only the rollback contract and its Workflow v2 fixtures.
+
+The controlling release identities are deployment assets `ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e`, rollback contract `df9a90e39076df62bb6c3ec521a9dd86afe8d65f0836645237dbc2d08c69302d`, deterministic rollback bundle `f8fceee62838c182a4e093d4d8bc57c71bf5ec8dbe71707db76c63ecd7a4b1eb`, and Workflow v2 contract `17ac6ac53220f77fe2d49339e7a93566c7c2419bb19c462200a2077f1df34ca7`.
+
+This successor records release provenance and independent verification only. It does not request or grant deployment authorization, contact Cloudflare, mutate production, submit a CRM request, send a notification, or change the private Worker.

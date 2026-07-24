@@ -62,10 +62,16 @@ const CURRENT_ROLLBACK_CONTRACT_SHA256 =
   "b7be296f51db1b8e8a305a068ebc1b0aa7652813de7b5378b96ac292af8af012";
 const CURRENT_ROLLBACK_ARTIFACT_SHA256 =
   "012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe";
-const ACTIVE_ROLLBACK_ARTIFACT_SHA256 =
-  "fa33144dfe6e1b24e301cce93b626ee75beb91e2d3ddb4575e982097af436fd9";
 const CURRENT_INFRASTRUCTURE_CONTRACT_SHA256 =
   "0582bc185ccf6f5e0825de25ce5fef8c65240fb0ee3b68c22bc5ba14865350c5";
+const WEBSITE_POSITIONING_DEPLOYMENT_ASSET_SHA256 =
+  "ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e";
+const WEBSITE_POSITIONING_ROLLBACK_CONTRACT_SHA256 =
+  "df9a90e39076df62bb6c3ec521a9dd86afe8d65f0836645237dbc2d08c69302d";
+const WEBSITE_POSITIONING_ROLLBACK_ARTIFACT_SHA256 =
+  "f8fceee62838c182a4e093d4d8bc57c71bf5ec8dbe71707db76c63ecd7a4b1eb";
+const WEBSITE_POSITIONING_WORKFLOW_CONTRACT_SHA256 =
+  "17ac6ac53220f77fe2d49339e7a93566c7c2419bb19c462200a2077f1df34ca7";
 const UNATTENDED_GOVERNANCE_ID = "cloudflare-unattended-deployment-access-governance-v1";
 const ROUTE_IQ_3D_GOVERNANCE_ID = "route-iq-3d-visual-continuity-v1";
 const PACKAGE_PATH = "package.json";
@@ -492,6 +498,119 @@ const AUGUST1_LAUNCH_CLOSEOUT_SUCCESSOR = Object.freeze({
   deploymentPerformed: false,
   productionMutationPerformed: false
 });
+const ROUTE_IQ_WEBSITE_POSITIONING_SUCCESSOR = Object.freeze({
+  batchId: "BATCH-20260723-006",
+  directive: "OVERWATCH DIRECTIVE - RESTORE ROUTE IQ WEBSITE POSITIONING",
+  classification: "CONTROLLING_PUBLIC_RELEASE_SUCCESSOR",
+  historicalAugust1EvidencePreserved: true,
+  historicalAugust1HashesAreCurrent: false,
+  websiteSource: Object.freeze({
+    commit: "b83bcaf064ee7b57b28116ffb5e64cbf270605a0",
+    tree: "8aab7fc3b918c50e85a78c5f5b6270846d3941e4",
+    parent: "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
+    subject: "website: restore Route IQ customer positioning",
+    author: "Prometheus Website <website@prometheus.local>",
+    committer: "Prometheus Website <website@prometheus.local>",
+    files: Object.freeze([
+      "landing.html",
+      "src/main.jsx",
+      "src/styles.css",
+      "tests/website-route-iq-3d-visual-continuity.test.mjs",
+      "tests/website-route-iq-product-focus.test.mjs"
+    ])
+  }),
+  dataProvenanceSuccessors: Object.freeze([
+    Object.freeze({
+      commit: "db70e304b77164c31fa0f95c25050fb61ea393c1",
+      tree: "74f118516067c6c52b71c5d683ae111dec4e0511",
+      parent: "b83bcaf064ee7b57b28116ffb5e64cbf270605a0",
+      subject: "data: reconcile public claims workspace provenance",
+      author: "Prometheus Data <data@prometheus.local>",
+      committer: "Prometheus Data <data@prometheus.local>",
+      files: Object.freeze([
+        "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json"
+      ])
+    }),
+    Object.freeze({
+      commit: "c7e6a90ffc93bb7ae270365a198c740a4dc47126",
+      tree: "df1b0bcbe6d69db54e40c952e6839d6a8700fd48",
+      parent: "db70e304b77164c31fa0f95c25050fb61ea393c1",
+      subject: "data: reconcile Route IQ claims provenance successor",
+      author: "Prometheus Data <data@prometheus.local>",
+      committer: "Prometheus Data <data@prometheus.local>",
+      files: Object.freeze([
+        "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json"
+      ])
+    }),
+    Object.freeze({
+      commit: "e1e7279e925acae69f7e32608475b98eff2c6023",
+      tree: "62aafe56be5198e2ab65720b26a5d4fe1681ded3",
+      parent: "c7e6a90ffc93bb7ae270365a198c740a4dc47126",
+      subject: "data: reconcile Intelligence claims provenance successor",
+      author: "Prometheus Data <data@prometheus.local>",
+      committer: "Prometheus Data <data@prometheus.local>",
+      files: Object.freeze([
+        "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json"
+      ])
+    }),
+    Object.freeze({
+      commit: "6e62887506e39f9dc936766ea7da4d70f688c0e4",
+      tree: "7134b123df4456cb1c8f3cc250a6c331f3ebf40b",
+      parent: "e1e7279e925acae69f7e32608475b98eff2c6023",
+      subject: "data: refresh Intelligence claims successor fixture",
+      author: "Prometheus Data <data@prometheus.local>",
+      committer: "Prometheus Data <data@prometheus.local>",
+      files: Object.freeze(["tests/route-iq-public-claims-data.test.mjs"])
+    })
+  ]),
+  websiteAssets: Object.freeze({
+    commit: "72f3f5733f35a4ab56ae528f3a3616b455bd9ee6",
+    tree: "6fa5e855c0ae14e97186b219073c1aa0ae5d9381",
+    parent: "6e62887506e39f9dc936766ea7da4d70f688c0e4",
+    subject: "website: regenerate public deployment assets",
+    author: "Prometheus Website <website@prometheus.local>",
+    committer: "Prometheus Website <website@prometheus.local>",
+    files: Object.freeze([
+      "deploy/prometheusrouteiq-website/assets/IntelligenceScene-C_J7bBXb.js",
+      "deploy/prometheusrouteiq-website/assets/IntelligenceScene-DUlz-ixy.js",
+      "deploy/prometheusrouteiq-website/assets/landing-DL0VmnXB.js",
+      "deploy/prometheusrouteiq-website/assets/landing-Dfjv-fGW.js",
+      "deploy/prometheusrouteiq-website/assets/landing-SxUmzID1.css",
+      "deploy/prometheusrouteiq-website/assets/landing-y4RbxV9s.css",
+      "deploy/prometheusrouteiq-website/index.html"
+    ])
+  }),
+  infrastructure: Object.freeze({
+    commit: "a370836879b160e88c0e7e821003e66759cc97c4",
+    tree: "86abecdcbce0ed7ec5bbe77114affaad2f9fd1be",
+    parent: "72f3f5733f35a4ab56ae528f3a3616b455bd9ee6",
+    subject: "infrastructure: advance website positioning rollback package",
+    author: OWNER_IDENTITY,
+    committer: OWNER_IDENTITY,
+    files: Object.freeze([
+      Object.freeze({
+        path: "tests/github-actions-public-worker-deployment.test.mjs",
+        sha256: "3638984564da4e580170a87f9f728c0724edd3c4b5b7f667c6ce38b98eb9d38c"
+      }),
+      Object.freeze({
+        path: "tests/github-actions-public-worker-workflow-v2.test.mjs",
+        sha256: "03c35afd5c6c8d627b1dfa77b292bb0e947a78427bdaa673f535df19e6aa51b9"
+      }),
+      Object.freeze({
+        path: "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+        sha256: WEBSITE_POSITIONING_ROLLBACK_CONTRACT_SHA256
+      })
+    ])
+  }),
+  currentReleaseIdentities: Object.freeze({
+    deploymentAssetSha256: WEBSITE_POSITIONING_DEPLOYMENT_ASSET_SHA256,
+    rollbackContractSha256: WEBSITE_POSITIONING_ROLLBACK_CONTRACT_SHA256,
+    rollbackArtifactSha256: WEBSITE_POSITIONING_ROLLBACK_ARTIFACT_SHA256,
+    workflowContractSha256: WEBSITE_POSITIONING_WORKFLOW_CONTRACT_SHA256
+  }),
+  deploymentPerformed: false,
+  productionMutationPerformed: false
+});
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -578,6 +697,13 @@ export function evaluatePublicDeploymentWorkflowV2Governance({
   require(
     isDeepStrictEqual(governance.august1LaunchCloseoutSuccessor, AUGUST1_LAUNCH_CLOSEOUT_SUCCESSOR),
     "August 1 launch closeout successor drifted."
+  );
+  require(
+    isDeepStrictEqual(
+      governance.routeIqWebsitePositioningSuccessor,
+      ROUTE_IQ_WEBSITE_POSITIONING_SUCCESSOR
+    ),
+    "Route IQ website positioning successor drifted."
   );
   require(governance.architecture?.qualificationContactsCloudflare === false, "Qualification can contact Cloudflare.");
   require(governance.architecture?.qualificationAccessesProtectedSecrets === false, "Qualification can access secrets.");
@@ -987,18 +1113,19 @@ function verifyAugust1LaunchCloseoutSuccessor(governance) {
   ]) verifyExactCommit(expected);
 
   verifyExactCommit(CURRENT_AUGUST1_PIN_REFRESH);
+}
 
-  const currentEvidence = [
-    ...AUGUST1_ROLLBACK_SUCCESSOR_FILES.slice(0, 4),
-    ...AUGUST1_PROVENANCE_ADMISSION_FILES
-  ];
-  for (const evidence of currentEvidence) {
-    assert.equal(
-      sha256(read(evidence.path)),
-      evidence.sha256,
-      `Current August 1 owner evidence drifted: ${evidence.path}`
-    );
+function verifyRouteIqWebsitePositioningSuccessor(governance) {
+  assert.deepEqual(
+    governance.routeIqWebsitePositioningSuccessor,
+    ROUTE_IQ_WEBSITE_POSITIONING_SUCCESSOR
+  );
+  verifyExactCommit(ROUTE_IQ_WEBSITE_POSITIONING_SUCCESSOR.websiteSource);
+  for (const successor of ROUTE_IQ_WEBSITE_POSITIONING_SUCCESSOR.dataProvenanceSuccessors) {
+    verifyExactCommit(successor);
   }
+  verifyExactCommit(ROUTE_IQ_WEBSITE_POSITIONING_SUCCESSOR.websiteAssets);
+  verifyExactCommit(ROUTE_IQ_WEBSITE_POSITIONING_SUCCESSOR.infrastructure);
 }
 
 export function verifyOverwatchPublicDeploymentWorkflowV2() {
@@ -1016,6 +1143,7 @@ export function verifyOverwatchPublicDeploymentWorkflowV2() {
   });
   assert.equal(result.ok, true, result.failures.join("\n"));
   verifyAugust1LaunchCloseoutSuccessor(governance);
+  verifyRouteIqWebsitePositioningSuccessor(governance);
 
   const identity = commitIdentity(OWNER_COMMIT);
   assert.equal(identity.author, OWNER_IDENTITY);
@@ -1176,12 +1304,21 @@ export function verifyOverwatchPublicDeploymentWorkflowV2() {
   verifyAutomaticCommitPushGovernance();
   verifyGithubActionsPublicWorkerWorkflowV2();
   const assets = verifyRouteIqPublicDeploymentAssets({ build: false });
-  assert.equal(assets.deploymentAssetsSha256, CURRENT_DEPLOYMENT_ASSET_SHA256);
-  assert.equal(assets.candidateWebsiteCommit, AUGUST1_WEBSITE_SUCCESSOR.commit);
-  assert.equal(assets.candidateWebsiteTree, AUGUST1_WEBSITE_SUCCESSOR.tree);
+  assert.equal(assets.deploymentAssetsSha256, WEBSITE_POSITIONING_DEPLOYMENT_ASSET_SHA256);
+  assert.equal(
+    assets.candidateWebsiteCommit,
+    ROUTE_IQ_WEBSITE_POSITIONING_SUCCESSOR.websiteAssets.commit
+  );
+  assert.equal(
+    assets.candidateWebsiteTree,
+    ROUTE_IQ_WEBSITE_POSITIONING_SUCCESSOR.websiteAssets.tree
+  );
   const rollback = verifyPublicForwardRollbackArtifact(root);
-  assert.equal(rollback.artifactSha256, ACTIVE_ROLLBACK_ARTIFACT_SHA256);
-  assert.equal(rollback.candidateDeploymentAssetsSha256, CURRENT_DEPLOYMENT_ASSET_SHA256);
+  assert.equal(rollback.artifactSha256, WEBSITE_POSITIONING_ROLLBACK_ARTIFACT_SHA256);
+  assert.equal(
+    rollback.candidateDeploymentAssetsSha256,
+    WEBSITE_POSITIONING_DEPLOYMENT_ASSET_SHA256
+  );
   return Object.freeze({ status: "OVERWATCH_PUBLIC_DEPLOYMENT_WORKFLOW_V2_VERIFIED" });
 }
 
