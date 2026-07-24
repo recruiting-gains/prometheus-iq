@@ -75,15 +75,16 @@ test("stable responsive scene framing keeps copy, CTA, and touch scrolling indep
 test("current product claims, synthetic ProductView, and CRM request UX remain intact", () => {
   const source = read("src/main.jsx");
 
-  assert.match(source, /Prometheus \/ Field decision intelligence/);
-  assert.match(source, /Turn field evidence into decision-ready intelligence/);
-  assert.match(source, /field operations leader accountable for distributed teams/);
-  assert.match(source, /not another route planner, CRM, map, or generic AI assistant/);
+  assert.match(source, /U\.S\. PATENT PENDING TECHNOLOGY/);
+  assert.match(source, /Prometheus Field Decision Intelligence/);
+  assert.match(source, /Field decision intelligence for outside-sales teams/);
+  assert.match(source, /outside-sales leaders and representatives/);
+  assert.match(source, /More than businesses on a map/);
   assert.match(source, /Synthetic product view\. No customer or representative data is shown\./);
-  assert.match(source, /<SectionLabel>One governed product<\/SectionLabel>/);
+  assert.match(source, /<SectionLabel>Cross-industry configuration<\/SectionLabel>/);
   assert.match(source, /Success appears only after durable acceptance/);
-  assert.match(source, /unique receipt confirms the accepted request/);
-  assert.doesNotMatch(source, /Prometheus \/ Active Product|Plan the field day|Tell us how your field organization works/);
+  assert.match(source, /You will receive a unique receipt/);
+  assert.doesNotMatch(source, /Prometheus \/ Active Product|Probability is a governed method|Credibility starts with saying what is not proven/);
   assert.doesNotMatch(source, /Fitness Connection|\bGaia\b|\bAthena\b|franchise/i);
   assert.doesNotMatch(source, /\b(?:customer|client|partner|pilot|sponsor|endorser)\s+(?:logo|testimonial|story|spotlight|case study|showcase|endorsement)\b|\b(?:trusted by|used by|deployed (?:at|with)|launch customer|design partner|official partner|active pilot|current customer)\b/i);
 });

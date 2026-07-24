@@ -127,7 +127,7 @@ function SectionLabel({ children }) {
 function ProductView() {
   const stops = [
     ["01", "North district", "Visited", "Outcome recorded"],
-    ["02", "Service corridor", "Next", "Verified open"],
+    ["02", "Service corridor", "Available", "Verified open"],
     ["03", "Market center", "Queued", "Context ready"],
     ["04", "West territory", "Queued", "Hours verified"]
   ];
@@ -142,7 +142,7 @@ function ProductView() {
       <div className="product-body">
         <div className="product-route">
           <div className="product-route-head">
-            <div><span className="product-kicker">Representative workflow</span><h3 id="product-view-title">A governed field day</h3></div>
+            <div><span className="product-kicker">Representative workflow</span><h3 id="product-view-title">A focused field day</h3></div>
             <span className="product-count">15 stops</span>
           </div>
           <div className="route-list">
@@ -156,17 +156,13 @@ function ProductView() {
           </div>
         </div>
         <div className="product-intelligence">
-          <div className="product-intelligence-head"><span>Leader view</span><strong>Evidence health</strong></div>
-          <div className="quality-gauge" aria-label="Evidence quality is governed and measured">
-            <span>Coverage</span><i style={{ "--value": "72%" }} /><b>Measured</b>
+          <div className="product-intelligence-head"><span>Leader view</span><strong>Field visibility</strong></div>
+          <div className="visibility-list" aria-label="Field activity context is organized for review">
+            <p><span>Territory activity</span><b>Available for review</b></p>
+            <p><span>Outcome context</span><b>Connected to visits</b></p>
+            <p><span>Learning state</span><b>Evidence dependent</b></p>
           </div>
-          <div className="quality-gauge">
-            <span>Freshness</span><i style={{ "--value": "84%" }} /><b>Current</b>
-          </div>
-          <div className="quality-gauge">
-            <span>Confidence</span><i style={{ "--value": "39%" }} /><b>Insufficient</b>
-          </div>
-          <div className="boundary-note"><span>Human decision</span><p>Evidence is organized for review. No automatic route change or recommendation is shown.</p></div>
+          <div className="boundary-note"><span>Human decision</span><p>Route IQ organizes context so a person can compare approved opportunities.</p></div>
         </div>
       </div>
       <figcaption>Synthetic product view. No customer or representative data is shown.</figcaption>
@@ -299,18 +295,29 @@ function App() {
   const { scrollYProgress } = useScroll();
   const sceneScale = useTransform(scrollYProgress, [0, 0.22], [1, 0.92]);
   const sceneOpacity = useTransform(scrollYProgress, [0, 0.28], [1, 0.58]);
-  const lifecycle = [
-    ["01", "Governed field evidence", "Authorized records retain source, time, schema, quality, exclusions, and integrity context."],
-    ["02", "Governed intelligence", "Leaders can review coverage, freshness, trends, and learning state without changing a representative's workflow."],
-    ["03", "Qualified probability", "Only sufficient, chronologically valid evidence may support a versioned estimate with confidence and limitations."],
-    ["04", "Human decision", "A person remains responsible for the operational choice. Route IQ does not act automatically."]
+  const intelligenceLoop = [
+    ["01", "Observe", "Capture approved opportunity context, timing, field activity, and outcomes as the work happens."],
+    ["02", "Connect", "Keep each action connected to the representative, territory, conditions, and result that shaped it."],
+    ["03", "Learn", "When evidence quality and coverage support it, governed outcomes can contribute to authorized patterns over time."],
+    ["04", "Support", "Make approved field context easier to compare while keeping the representative and leader in control."]
+  ];
+
+  const capabilities = [
+    ["Opportunity focus", "Bring approved opportunities and the context needed to choose among them into one field workflow."],
+    ["Timing and availability", "Help representatives avoid wasted stops by keeping operating windows and visit timing visible."],
+    ["Territory awareness", "Connect field activity to the territory, account context, and local conditions surrounding it."],
+    ["Representative context", "Keep representative-specific evidence isolated so authorized patterns can be evaluated over time when quality and coverage support them."],
+    ["Fast outcome capture", "Record what happened while the visit is still fresh, with the context needed to learn from it later."],
+    ["Leadership visibility", "Show field coverage, outcomes, and emerging patterns without turning the product into employee surveillance."]
   ];
 
   const differences = [
-    ["Route planner", "Orders stops and manages travel.", "Route IQ preserves the evidence, context, chronology, and outcomes around field decisions."],
-    ["CRM", "Records contacts, pipeline, and interactions.", "Route IQ connects field actions to territory context, evidence quality, and a governed learning loop."],
-    ["Maps", "Shows locations and navigation.", "Route IQ records why an opportunity was available, what happened, and what the evidence supports."],
-    ["Generic AI", "Generates open-ended responses from broad context.", "Route IQ uses allowlisted, versioned, isolated evidence with explicit exclusions and human control."]
+    ["CRM", "Records accounts, pipeline, and interactions.", "Route IQ complements the CRM by supporting the decision and action that happen between one field record and the next."],
+    ["Lead list", "Presents names and contact details.", "Route IQ connects approved opportunities to territory, timing, availability, field activity, and outcomes."],
+    ["Map", "Shows locations and navigation.", "Route IQ organizes context so a person can compare approved opportunities."],
+    ["Distance-only routing", "Optimizes travel around proximity.", "Route IQ brings broader field context into the comparison without assuming the nearest stop should come first."],
+    ["Generic AI advice", "Produces broad suggestions from a prompt.", "Route IQ works from governed business context and field evidence inside a defined operating workflow."],
+    ["Surveillance", "Measures people primarily to watch them.", "Route IQ supports representatives and gives leaders operational insight without reducing field work to monitoring."]
   ];
 
   return (
@@ -322,7 +329,7 @@ function App() {
           <span className="brand-lockup"><strong>Prometheus</strong><small>Route IQ</small></span>
         </a>
         <nav aria-label="Primary navigation">
-          <a href="#how-it-works">How it works</a>
+          <a href="#teams">For teams</a>
           <a href="#different">Why Route IQ</a>
           <a className="header-action" href="#request">REQUEST ROUTE IQ</a>
         </nav>
@@ -345,20 +352,21 @@ function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.72 }}
         >
-          <SectionLabel>Prometheus / Field decision intelligence</SectionLabel>
+          <p className="patent-label">U.S. PATENT PENDING TECHNOLOGY</p>
+          <SectionLabel>Prometheus Field Decision Intelligence</SectionLabel>
           <h1>Route IQ</h1>
-          <p className="hero-statement">Turn field evidence into decision-ready intelligence.</p>
-          <p className="hero-detail">Built for the field operations leader accountable for distributed teams, and the representative visiting businesses or locations every day.</p>
-          <p className="hero-difference">Route IQ connects representatives, territories, customer context, and outcomes. It is not another route planner, CRM, map, or generic AI assistant.</p>
+          <p className="hero-statement">Field decision intelligence for outside-sales teams.</p>
+          <p className="hero-detail">Route IQ brings approved business context, territory, timing, availability, field activity, and governed outcome context together so outside-sales leaders and representatives can compare opportunities with better information.</p>
+          <p className="hero-difference">More than businesses on a map, Route IQ supports the action between one CRM record and the next while keeping people in control.</p>
           <div className="hero-actions">
             <a className="button primary" href="#request">REQUEST ROUTE IQ</a>
             <a className="button secondary" href="#how-it-works">See How Route IQ Works</a>
           </div>
         </motion.div>
-        <div className="hero-proof" aria-label="Route IQ operating principles">
-          <span><b>Evidence</b> with provenance</span>
-          <span><b>Intelligence</b> with limitations</span>
-          <span><b>Decisions</b> remain human</span>
+        <div className="hero-proof" aria-label="Route IQ customer value">
+          <span><b>Representatives</b> get clearer field context</span>
+          <span><b>Leaders</b> see execution patterns</span>
+          <span><b>People</b> make the decision</span>
         </div>
       </section>
 
@@ -366,20 +374,32 @@ function App() {
         <div className="shell problem-layout">
           <div>
             <SectionLabel>The operating problem</SectionLabel>
-            <h2>The field knows more than the systems do.</h2>
+            <h2>The most important field decision often happens between systems.</h2>
           </div>
           <div className="problem-copy">
-            <p>Routes get planned and visits get logged, but the evidence stays fragmented across people, territories, customer context, and outcomes.</p>
-            <p>Route IQ governs that evidence as one decision-support lifecycle, so leaders can see what is known, what is stale, what is missing, and what remains uncertain.</p>
+            <p>A CRM preserves account history. A map shows locations. A route planner can shorten the drive. The representative still has to compare approved opportunities and decide what to do next.</p>
+            <p>Route IQ brings field context and outcomes together so representatives can act with better information and leaders can understand what execution is teaching the organization.</p>
           </div>
         </div>
       </section>
 
-      <section className="section product-section">
+      <section id="teams" className="section product-section">
         <div className="shell section-intro">
-          <SectionLabel>The product</SectionLabel>
-          <h2>A field workflow representatives can use. An evidence system leaders can trust.</h2>
-          <p>Representatives plan, visit, and record outcomes through role-appropriate workflows. Leaders review governed evidence quality and trends. Protected intelligence stays separate from representative operations.</p>
+          <SectionLabel>For the field team</SectionLabel>
+          <h2>Support the representative in the moment. Help leadership improve the system around them.</h2>
+          <p>Route IQ pairs a practical field workflow with a leadership view of coverage, outcomes, and patterns. Each role gets the context it needs without exposing protected intelligence or turning the workday into surveillance.</p>
+        </div>
+        <div className="shell support-grid">
+          <article className="support-card">
+            <span>For representatives</span>
+            <h3>More context for the field decision.</h3>
+            <p>Compare approved opportunities with relevant business context, timing, availability, and territory information in one place. Capture the result quickly, then keep moving.</p>
+          </article>
+          <article className="support-card">
+            <span>For leadership</span>
+            <h3>A clearer view of field execution.</h3>
+            <p>Understand territory coverage, visit outcomes, changing conditions, and where the team may need stronger support, coaching, or operating context.</p>
+          </article>
         </div>
         <motion.div
           className="shell"
@@ -392,14 +412,14 @@ function App() {
         </motion.div>
       </section>
 
-      <section className="section lifecycle-section">
+      <section className="section intelligence-loop-section">
         <div className="shell section-intro compact-intro">
-          <SectionLabel>Evidence to decision</SectionLabel>
-          <h2>Probability is a governed method, not a promise.</h2>
-          <p>When evidence is insufficient, Route IQ says so. Observational evidence does not prove causal uplift or recommendation superiority.</p>
+          <SectionLabel>The intelligence loop</SectionLabel>
+          <h2>Governed field outcomes can improve the context available over time.</h2>
+          <p>Route IQ connects what the representative saw, what they did, and what happened next. When authorized evidence has sufficient quality and coverage, it can contribute to patterns that help the organization understand field execution.</p>
         </div>
-        <div className="shell lifecycle-grid">
-          {lifecycle.map(([number, title, body], index) => (
+        <div className="shell intelligence-loop-grid">
+          {intelligenceLoop.map(([number, title, body], index) => (
             <motion.article
               key={number}
               initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
@@ -413,12 +433,28 @@ function App() {
         </div>
       </section>
 
+      <section className="section capabilities-section">
+        <div className="shell section-intro">
+          <SectionLabel>Route IQ capabilities</SectionLabel>
+          <h2>Built around the decisions that shape an outside-sales day.</h2>
+          <p>Route IQ organizes the context surrounding field action without replacing the judgment of the people closest to the work.</p>
+        </div>
+        <div className="shell capability-grid">
+          {capabilities.map(([title, body]) => (
+            <article key={title}>
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section id="different" className="section difference-section">
         <div className="shell difference-layout">
           <div className="difference-heading">
             <SectionLabel>Why Route IQ</SectionLabel>
-            <h2>The evidence layer between field activity and the next human decision.</h2>
-            <p>Route IQ complements the systems a field organization already uses. Its differentiated job is governing the context those systems usually leave disconnected.</p>
+            <h2>Field action intelligence, not another place to store the same data.</h2>
+            <p>Route IQ complements the systems an outside-sales organization already uses. Its job is to make the next field decision more informed and the resulting execution easier to understand.</p>
           </div>
           <div className="comparison-table" role="table" aria-label="Route IQ product differentiation">
             {differences.map(([category, categoryPurpose, routeIqPurpose]) => (
@@ -432,34 +468,19 @@ function App() {
         </div>
       </section>
 
-      <section className="section boundary-section">
-        <div className="shell boundary-layout">
-          <div>
-            <SectionLabel>Current boundary</SectionLabel>
-            <h2>Credibility starts with saying what is not proven.</h2>
-          </div>
-          <div className="boundary-list">
-            <p><strong>Current readiness:</strong> insufficient evidence for recommendation readiness.</p>
-            <p><strong>Operational influence:</strong> recommendation influence is off; Route IQ does not silently reorder, notify, or act.</p>
-            <p><strong>Evidence collection:</strong> prospective collection is off and active cohorts are zero.</p>
-            <p><strong>Market evidence:</strong> shared configuration is verified; performance across industries is not yet proven.</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="section configuration-section">
+      <section id="industries" className="section configuration-section">
         <div className="shell configuration-layout">
           <div className="configuration-copy">
-            <SectionLabel>One governed product</SectionLabel>
-            <h2>Configured for the operating model, not forked for each customer.</h2>
-            <p>Route IQ uses shared workspace and operating-profile configuration for business identity, territories, users, roles, terminology, measures, retention, and intelligence eligibility.</p>
-            <p>Configuration does not remove the need for governed setup, authorization, territory design, or evidence work. It creates a reusable foundation without pretending every industry is already validated.</p>
+            <SectionLabel>Cross-industry configuration</SectionLabel>
+            <h2>One Route IQ platform, configured for each field business.</h2>
+            <p>Outside-sales organizations use different language, territories, opportunity types, workflows, outcomes, and success measures. Route IQ adapts those operating details through validated configuration instead of a separate product for every industry.</p>
+            <p>The shared foundation keeps the experience consistent while each organization retains its own approved businesses, roles, territory rules, and field priorities.</p>
           </div>
           <dl className="configuration-list">
-            <div><dt>Workspace</dt><dd>Business and data boundary</dd></div>
-            <div><dt>Operating profile</dt><dd>Workflow, language, and goals</dd></div>
-            <div><dt>Evidence policy</dt><dd>Retention, quality, and eligibility</dd></div>
-            <div><dt>Access</dt><dd>Role and representative isolation</dd></div>
+            <div><dt>Business language</dt><dd>Terminology that matches the team</dd></div>
+            <div><dt>Territories</dt><dd>Approved opportunities and operating areas</dd></div>
+            <div><dt>Field workflow</dt><dd>Roles, actions, and outcomes</dd></div>
+            <div><dt>Success measures</dt><dd>Goals and performance context</dd></div>
           </dl>
         </div>
       </section>
@@ -468,13 +489,12 @@ function App() {
         <div className="shell request-layout">
           <div className="request-copy">
             <SectionLabel>Request Route IQ</SectionLabel>
-            <h2>Bring us the field problem you cannot see clearly today.</h2>
-            <p>Tell Prometheus how your field organization operates, who uses it, and what decision context is missing.</p>
+            <h2>See what Route IQ could clarify for your field team.</h2>
+            <p>Tell Prometheus how your outside-sales organization operates, where field decisions break down, and what representatives or leaders need to understand more clearly.</p>
             <ol className="request-steps">
-              <li><span>1</span><p><strong>Validate</strong> The server normalizes and checks the request.</p></li>
-              <li><span>2</span><p><strong>Store</strong> Success is reported only after durable acceptance.</p></li>
-              <li><span>3</span><p><strong>Receipt</strong> A unique receipt confirms the accepted request.</p></li>
-              <li><span>4</span><p><strong>Review</strong> The Founder reviews the request and may follow up.</p></li>
+              <li><span>1</span><p><strong>Share the field problem</strong> Describe the team, territory, and decision that needs better context.</p></li>
+              <li><span>2</span><p><strong>Receive a receipt</strong> The request is confirmed only after durable acceptance.</p></li>
+              <li><span>3</span><p><strong>Founder review</strong> Prometheus reviews the fit and may follow up about the next step.</p></li>
             </ol>
           </div>
           <RouteIqRequestForm />
@@ -493,7 +513,7 @@ function App() {
             <a href={`mailto:${contactEmail}`}>Contact</a>
             <a href={instagramUrl}>Instagram</a>
           </div>
-          <p className="footer-note">Route IQ provides governed decision support for human review. It does not claim to outperform people or existing tools, and it does not make autonomous decisions.</p>
+          <p className="footer-note">Route IQ complements the CRM and mapping tools an outside-sales organization already uses. It brings field context, activity, and outcomes together to support better-informed human decisions.</p>
           <p className="footer-designation"><span>PROMETHEUS ROUTE IQ&trade;</span><span>U.S. PATENT PENDING</span></p>
         </div>
       </footer>

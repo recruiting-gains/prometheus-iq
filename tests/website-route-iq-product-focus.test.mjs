@@ -63,17 +63,20 @@ test("five-second positioning names one product, buyer, user, problem, differenc
   const metadata = read("landing.html");
 
   assert.match(source, /<h1>Route IQ<\/h1>/);
-  assert.match(source, /Prometheus \/ Field decision intelligence/);
-  assert.match(source, /field operations leader accountable for distributed teams/);
-  assert.match(source, /representative visiting businesses or locations/);
-  assert.match(source, /field knows more than the systems do/);
-  assert.match(source, /not another route planner, CRM, map, or generic AI assistant/);
+  assert.match(
+    source,
+    /<p className="patent-label">U\.S\. PATENT PENDING TECHNOLOGY<\/p>\s*<SectionLabel>Prometheus Field Decision Intelligence<\/SectionLabel>/
+  );
+  assert.match(source, /Field decision intelligence for outside-sales teams/);
+  assert.match(source, /outside-sales leaders and representatives/);
+  assert.match(source, /most important field decision often happens between systems/);
+  assert.match(source, /More than businesses on a map/);
   assert.match(source, />REQUEST ROUTE IQ</);
   assert.match(source, />See How Route IQ Works</);
-  assert.match(metadata, /Route IQ \| Field Evidence to Decision Intelligence/);
+  assert.match(metadata, /Route IQ \| Field Decision Intelligence for Outside Sales/);
 });
 
-test("public claims consume the governed evidence-to-human-decision boundary", () => {
+test("public claims explain the governed intelligence loop without publishing internal-report copy", () => {
   const source = read("src/main.jsx");
   const publicText = [
     source,
@@ -84,25 +87,66 @@ test("public claims consume the governed evidence-to-human-decision boundary", (
     read("public-site-static/site.webmanifest")
   ].join("\n");
 
-  assert.match(source, /Governed field evidence/);
-  assert.match(source, /Governed intelligence/);
-  assert.match(source, /Qualified probability/);
-  assert.match(source, /Human decision/);
-  assert.match(source, /When evidence is insufficient, Route IQ says so/);
-  assert.match(source, /does not prove causal uplift or recommendation superiority/);
-  assert.match(source, /recommendation influence is off/);
-  assert.match(source, /prospective collection is off and active cohorts are zero/);
-  assert.match(source, /<SectionLabel>One governed product<\/SectionLabel>/);
+  assert.match(source, /<SectionLabel>The intelligence loop<\/SectionLabel>/);
+  assert.match(source, /When evidence quality and coverage support it, governed outcomes can contribute to authorized patterns over time/);
+  assert.match(source, /representative and leader in control/);
+  assert.match(source, /Route IQ organizes context so a person can compare approved opportunities/);
+  assert.match(source, /<SectionLabel>Cross-industry configuration<\/SectionLabel>/);
+  assert.doesNotMatch(source, /Probability is a governed method, not a promise/);
+  assert.doesNotMatch(source, /Credibility starts with saying what is not proven/);
+  assert.doesNotMatch(source, /Current readiness|recommendation influence|prospective collection|causal uplift|recommendation superiority/i);
+  assert.doesNotMatch(source, /efficient data|methodology|qualification report|governance report/i);
   assert.doesNotMatch(publicText, /Fitness Connection|Gaia|Athena|franchise(?:e|ing)?|committed pilot/i);
   assert.doesNotMatch(publicText, /\b(?:customer|client|partner|pilot|sponsor|endorser)\s+(?:logo|testimonial|story|spotlight|case study|showcase|endorsement)\b|\b(?:trusted by|used by|deployed (?:at|with)|launch customer|design partner|official partner|active pilot|current customer)\b/i);
   assert.doesNotMatch(publicText, /AI operating system|automatic route improvement|better field direction|next route improves|proven recommendation superiority|guaranteed outcome/i);
 });
 
+test("public positioning supports human comparison without implying active selection or synthetic performance evidence", () => {
+  const source = read("src/main.jsx");
+
+  assert.match(source, /organizes context so a person can compare approved opportunities/);
+  assert.match(source, /authorized evidence has sufficient quality and coverage/);
+  assert.doesNotMatch(source, /Route IQ (?:selects|reorders|ranks)|which opportunity deserves attention|best next decision/i);
+  assert.doesNotMatch(source, /every field outcome|where teams perform well|where they struggle/i);
+  assert.doesNotMatch(source, /--value|72%|84%|39%/);
+  assert.match(source, /Evidence dependent/);
+});
+
 test("Route IQ is explicitly differentiated without claiming to replace adjacent systems", () => {
   const source = read("src/main.jsx");
-  for (const category of ["Route planner", "CRM", "Maps", "Generic AI"]) assert.match(source, new RegExp(category));
-  assert.match(source, /Route IQ complements the systems a field organization already uses/);
+  for (const category of ["CRM", "Lead list", "Map", "Distance-only routing", "Generic AI advice", "Surveillance"]) {
+    assert.match(source, new RegExp(category));
+  }
+  assert.match(source, /Route IQ complements the systems an outside-sales organization already uses/);
+  assert.match(source, /without reducing field work to monitoring/);
   assert.doesNotMatch(source, /replace(?:s|d)? (?:a |your )?(?:route planner|CRM|maps)/i);
+});
+
+test("the customer-facing section order stays concise and all navigation anchors resolve", () => {
+  const source = read("src/main.jsx");
+  const styles = read("src/styles.css");
+  const order = [
+    'id="top"',
+    'id="how-it-works"',
+    'id="teams"',
+    "<SectionLabel>The intelligence loop</SectionLabel>",
+    "<SectionLabel>Route IQ capabilities</SectionLabel>",
+    'id="different"',
+    'id="industries"',
+    'id="request"'
+  ];
+  let position = -1;
+  for (const marker of order) {
+    const next = source.indexOf(marker);
+    assert.ok(next > position, `${marker} must appear in the customer journey order.`);
+    position = next;
+  }
+  const ids = new Set([...source.matchAll(/id="([^"]+)"/gu)].map(match => match[1]));
+  for (const href of [...source.matchAll(/href="#([^"]+)"/gu)].map(match => match[1])) {
+    assert.equal(ids.has(href), true, `Navigation anchor #${href} must resolve.`);
+  }
+  assert.match(styles, /section\[id\] \{ scroll-margin-top: 72px; \}/);
+  assert.match(styles, /@media \(max-width: 700px\)[\s\S]*section\[id\] \{ scroll-margin-top: 66px; \}/);
 });
 
 test("metadata, social preview, canonical URL, and structured data describe only Route IQ", () => {
@@ -156,12 +200,15 @@ test("production build lazy-loads the governed 3D scene without restoring obsole
   const entryBundle = read(`dist-public/${scriptPath}`);
   const sceneBundle = read(`dist-public/assets/${scenePath}`);
   assert.match(entryBundle, /REQUEST ROUTE IQ/);
-  assert.match(entryBundle, /Qualified probability/);
+  assert.match(entryBundle, /Field decision intelligence for outside-sales teams/);
+  assert.match(entryBundle, /U\.S\. PATENT PENDING TECHNOLOGY/);
+  assert.match(entryBundle, /Governed field outcomes can improve the context available over time/);
   assert.match(entryBundle, /IntelligenceScene-/);
   assert.doesNotMatch(entryBundle, /WebGLRenderer/);
   assert.match(sceneBundle, /WebGLRenderer/);
   assert.match(sceneBundle, /FIELD INTELLIGENCE CORE/);
-  assert.match(entryBundle, /One governed product/);
+  assert.match(entryBundle, /Cross-industry configuration/);
+  assert.doesNotMatch(entryBundle, /Probability is a governed method|Credibility starts with saying what is not proven/);
   assert.doesNotMatch(`${entryBundle}\n${sceneBundle}`, /AI operating system|Fitness Connection|Gaia|Athena/i);
   assert.doesNotMatch(`${entryBundle}\n${sceneBundle}`, /\b(?:customer|client|partner|pilot|sponsor|endorser)\s+(?:logo|testimonial|story|spotlight|case study|showcase|endorsement)\b|\b(?:trusted by|used by|deployed (?:at|with)|launch customer|design partner|official partner|active pilot|current customer)\b/i);
 });
@@ -212,9 +259,9 @@ test("Route IQ request UI captures only governed fields and explains durable acc
     "estimatedUserCount", "territory", "primaryProblem", "desiredTimeline", "consent", "websiteUrl"
   ];
   for (const name of expected) assert.match(source, new RegExp(`name="${name}"`));
-  assert.match(source, /Success is reported only after durable acceptance/);
-  assert.match(source, /unique receipt confirms the accepted request/);
-  assert.match(source, /Founder reviews the request and may follow up/);
+  assert.match(source, /Success appears only after durable acceptance/);
+  assert.match(source, /You will receive a unique receipt/);
+  assert.match(source, /Prometheus then reviews the request and may follow up/);
   assert.match(source, /role="status"/);
   assert.match(source, /Receipt <strong>/);
   assert.equal(ROUTE_IQ_REQUEST_ENDPOINT, "/api/partner-intake");
