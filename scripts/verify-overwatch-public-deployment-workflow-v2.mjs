@@ -63,7 +63,7 @@ const CURRENT_ROLLBACK_CONTRACT_SHA256 =
 const CURRENT_ROLLBACK_ARTIFACT_SHA256 =
   "012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe";
 const ACTIVE_ROLLBACK_ARTIFACT_SHA256 =
-  "9131d9efe0e2455ab423c94ace52e02e56d9213d5724e2b621a2f2690989b4b8";
+  "fa33144dfe6e1b24e301cce93b626ee75beb91e2d3ddb4575e982097af436fd9";
 const CURRENT_INFRASTRUCTURE_CONTRACT_SHA256 =
   "0582bc185ccf6f5e0825de25ce5fef8c65240fb0ee3b68c22bc5ba14865350c5";
 const UNATTENDED_GOVERNANCE_ID = "cloudflare-unattended-deployment-access-governance-v1";
@@ -78,9 +78,17 @@ const CROSS_INDUSTRY_PACKAGE_SUCCESSOR_PARENT =
   "3205c9a634dc2fdea7faf00fdee5744c12b25e6f";
 const CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256 =
   "2ddac044f9cd8fbcaceec1879db49c7a80e141fcac41da6d01d36d5de46677ab";
+const PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_COMMIT =
+  "a44d5432dfc18a783b31732968956be5cddc3f7d";
+const PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_TREE =
+  "1e2e5de6738a4bdea68dbab333b40a304986479e";
+const PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_PARENT =
+  "56aaf2ec155e1f4054526473591af6b81cb2465b";
+const PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_SHA256 =
+  "d56cb9d33de962fb7d636fbb5919e6f8c06a69c9c6c64b954d6f7641e1f27331";
 const HISTORICAL_3D_PACKAGE_SHA256 = "f34246136a294d5a7180d76a452ff8c9c69bb7d1d35419c1115426b8ea4e0247";
 const CURRENT_PACKAGE_SHA256 = "8ddf429fc08acd45eca4f59638324f06a80acab9c949168325299e5b73199e2f";
-const ACTIVE_PACKAGE_SHA256 = "2ddac044f9cd8fbcaceec1879db49c7a80e141fcac41da6d01d36d5de46677ab";
+const ACTIVE_PACKAGE_SHA256 = PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_SHA256;
 const WORKFLOW_V2_TAIL_ANCHOR = "5b5b59509206578336b9671582669b600d0c74d4";
 const WORKFLOW_V2_TAIL_PARENT = "0d828948968b8cedf3b1961c5320c74c03a8e18c";
 const WORKFLOW_V2_TAIL_PATHS = Object.freeze([
@@ -660,7 +668,8 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
   )) ?? [];
   if (matches.length !== 1) return false;
   if (matches[0].successorSha256 === successorSha256) return true;
-  if (successorSha256 !== CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256) return false;
+  if (![CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256,
+    PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_SHA256].includes(successorSha256)) return false;
 
   const fields = git([
     "show",
@@ -677,7 +686,7 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
     `${CROSS_INDUSTRY_PACKAGE_SUCCESSOR_COMMIT}:${PACKAGE_PATH}`
   ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
 
-  return isDeepStrictEqual(fields, [
+  const crossIndustrySuccessorValid = isDeepStrictEqual(fields, [
     CROSS_INDUSTRY_PACKAGE_SUCCESSOR_COMMIT,
     CROSS_INDUSTRY_PACKAGE_SUCCESSOR_TREE,
     CROSS_INDUSTRY_PACKAGE_SUCCESSOR_PARENT,
@@ -686,9 +695,40 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
     "overwatch: qualify cross-industry dashboard regression repair"
   ])
     && sha256(predecessorPackage) === matches[0].successorSha256
-    && sha256(successorPackage) === CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256
+    && sha256(successorPackage) === CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256;
+  if (!crossIndustrySuccessorValid
+    || successorSha256 === CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256) {
+    return crossIndustrySuccessorValid;
+  }
+
+  const privateDashboardFields = git([
+    "show",
+    "-s",
+    "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+    PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_COMMIT
+  ]).split("\n");
+  const privateDashboardPredecessorPackage = execFileSync("/usr/bin/git", [
+    "show",
+    `${PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_PARENT}:${PACKAGE_PATH}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+  const privateDashboardSuccessorPackage = execFileSync("/usr/bin/git", [
+    "show",
+    `${PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_COMMIT}:${PACKAGE_PATH}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+
+  return isDeepStrictEqual(privateDashboardFields, [
+    PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_COMMIT,
+    PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_TREE,
+    PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_PARENT,
+    OVERWATCH_IDENTITY,
+    OVERWATCH_IDENTITY,
+    "overwatch: qualify private dashboard founder repairs"
+  ])
+    && sha256(privateDashboardPredecessorPackage) === CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256
+    && sha256(privateDashboardSuccessorPackage)
+      === PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_SHA256
     && git(["log", "-1", "--format=%H", "--", PACKAGE_PATH])
-      === CROSS_INDUSTRY_PACKAGE_SUCCESSOR_COMMIT;
+      === PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_COMMIT;
 }
 
 export function isGovernedPublicDeploymentWorkflowV2VerifierCommit({
