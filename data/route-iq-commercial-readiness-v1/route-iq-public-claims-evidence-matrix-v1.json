@@ -71,10 +71,10 @@
   "crossOwnerCorroborationSources": [
     {
       "ownerSubsystem": "Prometheus Route IQ",
-      "ownerCommit": "1172cd763e2ec81e45e647e338dbd77e0308bc13",
-      "ownerTree": "0cd0a777bae9a74a87943eeea4ddfa4f05810ab2",
+      "ownerCommit": "4d53a8a32766f8c7c88f2daa9593f7c262a8f33b",
+      "ownerTree": "3c684bec02163e5f08a6e4336b62c78bbbc926fd",
       "path": "docs/route-iq-public-positioning-claims-contract-v1.json",
-      "sha256": "cc25bf5f67e0753575d119611f28735bb3bf2749fbbda9008a21f89caa50e08f",
+      "sha256": "bc58a923de66d27e67a99f8a8f12891814f7d12e65b53cab7f4d1ffcd77b3958",
       "corroborationResult": "COMPATIBLE_ONLY_WITH_EXPLICIT_QUALIFICATIONS"
     },
     {
