@@ -17,6 +17,10 @@ function clone(value) {
   return structuredClone(value);
 }
 
+function readJson(path) {
+  return JSON.parse(readFileSync(resolve(repoRoot, path), "utf8"));
+}
+
 test("workspace manifests bind each profile to one immutable approved-business source", () => {
   const registry = loadWorkspaceBusinessArtifactManifestRegistry({ repoRoot });
   assert.equal(registry.fallbackPolicy, workspaceBusinessArtifactFallbackPolicy);
@@ -46,13 +50,10 @@ test("workspace manifests bind each profile to one immutable approved-business s
 });
 
 test("synthetic outside-sales data is isolated and visibly noncanonical", () => {
-  const fixture = JSON.parse(readFileSync(
-    resolve(
-      repoRoot,
-      "data/route-iq-commercial-readiness-v1/fixtures/general-outside-sales-synthetic-approved-businesses-v1.json"
-    ),
-    "utf8"
-  ));
+  const fixture = readJson(
+    "data/route-iq-commercial-readiness-v1/fixtures/"
+      + "general-outside-sales-synthetic-approved-businesses-v1.json"
+  );
   const registry = loadWorkspaceBusinessArtifactManifestRegistry({ repoRoot });
   const fitness = getWorkspaceBusinessArtifactManifest("fitness_connection", { registry });
   const syntheticIds = new Set(fixture.records.map(record => record.recordId));
@@ -62,6 +63,45 @@ test("synthetic outside-sales data is isolated and visibly noncanonical", () => 
   assert.equal(fixture.classification, "SYNTHETIC_NONCANONICAL");
   assert.equal(fixture.records.every(record => record.approvalState === "APPROVED_SYNTHETIC_VALIDATION"), true);
   assert.equal(fitness.approvedRecordIds.some(id => syntheticIds.has(id)), false);
+});
+
+test("Northstar roster ZIPs match canonical territory coverage without changing production pools", () => {
+  const fixture = readJson(
+    "data/route-iq-commercial-readiness-v1/fixtures/"
+      + "general-outside-sales-synthetic-approved-businesses-v1.json"
+  );
+  const configuration = readJson(
+    "administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json"
+  );
+  const workspace = configuration.workspaces.find(
+    candidate => candidate.workspaceId === fixture.workspaceId
+  );
+  assert.ok(workspace);
+  const territories = new Map(workspace.territories.map(territory => [
+    territory.territoryId,
+    territory
+  ]));
+  assert.equal(fixture.records.every(record => {
+    const territory = territories.get(record.territoryId);
+    return territory?.zipCoverage?.workspaceId === fixture.workspaceId
+      && territory.zipCoverage.companyId === workspace.companyId
+      && territory.zipCoverage.territoryId === record.territoryId
+      && territory.zipCoverage.postalCodes.includes(record.postalCode);
+  }), true);
+
+  const segmentationRoot = "data/qualified-prospects/google-qualified-businesses-v2/"
+    + "runtime-pool-segmentation-v1/";
+  const poolManifest = readJson(`${segmentationRoot}runtime-pool-manifest.json`);
+  const active = readJson(`${segmentationRoot}active-pool.json`);
+  const reserve = readJson(`${segmentationRoot}reserve-pool.json`);
+  const quarantine = readJson(`${segmentationRoot}quarantine-pool.json`);
+  assert.deepEqual(poolManifest.counts, { active: 0, reserve: 0, quarantine: 398 });
+  assert.equal(active.count, 0);
+  assert.equal(active.records.length, 0);
+  assert.equal(reserve.count, 0);
+  assert.equal(reserve.records.length, 0);
+  assert.equal(quarantine.count, 398);
+  assert.equal(quarantine.records.length, 398);
 });
 
 test("manifest validation fails closed on pending approvals, fallbacks, drift, and unknown workspaces", () => {

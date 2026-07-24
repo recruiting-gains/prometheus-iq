@@ -43,7 +43,7 @@
       "configurationVersion": "route-iq-commercial-workspace-registry-v1",
       "artifactType": "approved_business_opportunity_roster",
       "artifactPath": "data/route-iq-commercial-readiness-v1/fixtures/general-outside-sales-synthetic-approved-businesses-v1.json",
-      "artifactSha256": "50847e34c126b7d1945396d93a657fd98b565396c2809b98d8a8b5c97ea28bfe",
+      "artifactSha256": "a6e43c8cd555d1496dbbc3e6da8646fd07e461894ee40d95096992a071e14792",
       "recordIdentityField": "recordId",
       "recordCount": 3,
       "approvedRecordCount": 3,
