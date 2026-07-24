@@ -51,6 +51,8 @@
       "required": [
         "attendanceMode",
         "founderUserId",
+        "founderPrincipalMappingStatus",
+        "authorizedWorkspaceIds",
         "anthonyMappingStatus",
         "externalTesterAccessAuthorized"
       ],
@@ -60,6 +62,18 @@
         },
         "founderUserId": {
           "const": "user_cruz_founder"
+        },
+        "founderPrincipalMappingStatus": {
+          "const": "EXACT_PRINCIPAL_MAPPED"
+        },
+        "authorizedWorkspaceIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/opaqueId"
+          }
         },
         "anthonyMappingStatus": {
           "const": "UNMAPPED"
@@ -335,7 +349,8 @@
               "territoryId",
               "displayName",
               "timezone",
-              "active"
+              "active",
+              "zipCoverage"
             ],
             "properties": {
               "territoryId": {
@@ -351,6 +366,9 @@
               },
               "active": {
                 "type": "boolean"
+              },
+              "zipCoverage": {
+                "$ref": "#/$defs/territoryZipCoverage"
               }
             }
           }
@@ -514,6 +532,41 @@
         },
         "provenance": {
           "$ref": "#/$defs/provenance"
+        }
+      }
+    },
+    "territoryZipCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coverageVersion",
+        "workspaceId",
+        "companyId",
+        "territoryId",
+        "postalCodes"
+      ],
+      "properties": {
+        "coverageVersion": {
+          "type": "string",
+          "pattern": "^territory-zip-coverage-v1\\.[0-9]+\\.[0-9]+$"
+        },
+        "workspaceId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "companyId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "territoryId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "postalCodes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9]{5}$"
+          }
         }
       }
     },

@@ -4,11 +4,14 @@ export const ROUTE_IQ_MAX_COMPANIES = 2;
 export const ROUTE_IQ_MAX_NAMED_USERS = 40;
 export const ROUTE_IQ_FITNESS_WORKSPACE_ID = "fitness_connection";
 export const ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID = "northstar_outside_sales_synthetic";
+export const ROUTE_IQ_TERRITORY_ZIP_COVERAGE_VERSION = "territory-zip-coverage-v1.0.0";
 
 const STRICT_ID = /^[a-z][a-z0-9_]{2,127}$/;
 const PROFILE_VERSION = /^operating-profile-v[0-9]+$/;
 const REGISTRY_VERSION = /^route-iq-cross-industry-workspaces-v2\.[0-9]+\.[0-9]+$/;
 const CONFIGURATION_VERSION = /^v2\.[0-9]+\.[0-9]+$/;
+const ZIP_COVERAGE_VERSION = /^territory-zip-coverage-v1\.[0-9]+\.[0-9]+$/;
+const US_ZIP_CODE = /^[0-9]{5}$/;
 const COLOR = /^#[A-Fa-f0-9]{6}$/;
 const DATA_MANIFEST_PATH = /^data\/[A-Za-z0-9._/-]+\.json$/;
 const FORBIDDEN_SOURCE_TERM = /(?:^|[._/-])(demo|fallback)(?:$|[._/-])/i;
@@ -181,6 +184,12 @@ function assertTimezone(value, scope) {
   }
 }
 
+function assertUsZipCode(value, scope) {
+  if (typeof value !== "string" || !US_ZIP_CODE.test(value)) {
+    fail("route_iq_admin_configuration_zip_invalid", `${scope} must be a five-digit US ZIP code.`);
+  }
+}
+
 function validateProvenance(provenance, scope) {
   assertExactKeys(provenance, [
     "owner",
@@ -272,16 +281,64 @@ function validateCompany(company, lifecycle, scope) {
 
 function validateTerritoriesAndLocations(workspace, scope) {
   assertArray(workspace.territories, `${scope}.territories`, { min: 1 });
+  const workspaceZipCodes = [];
   const territoryIds = workspace.territories.map((territory, index) => {
     const territoryScope = `${scope}.territories[${index}]`;
-    assertExactKeys(territory, ["territoryId", "displayName", "timezone", "active"], territoryScope);
+    assertExactKeys(territory, [
+      "territoryId",
+      "displayName",
+      "timezone",
+      "active",
+      "zipCoverage"
+    ], territoryScope);
     assertId(territory.territoryId, `${territoryScope}.territoryId`);
     assertLabel(territory.displayName, `${territoryScope}.displayName`);
     assertTimezone(territory.timezone, `${territoryScope}.timezone`);
     assertBoolean(territory.active, `${territoryScope}.active`);
+    assertExactKeys(territory.zipCoverage, [
+      "coverageVersion",
+      "workspaceId",
+      "companyId",
+      "territoryId",
+      "postalCodes"
+    ], `${territoryScope}.zipCoverage`);
+    if (!ZIP_COVERAGE_VERSION.test(territory.zipCoverage.coverageVersion)) {
+      fail(
+        "route_iq_admin_configuration_zip_coverage_version_invalid",
+        `${territoryScope}.zipCoverage has an invalid version.`
+      );
+    }
+    if (territory.zipCoverage.workspaceId !== workspace.workspaceId
+      || territory.zipCoverage.companyId !== workspace.companyId
+      || territory.zipCoverage.territoryId !== territory.territoryId) {
+      fail(
+        "route_iq_admin_configuration_zip_coverage_ownership_mismatch",
+        `${territoryScope}.zipCoverage crosses an ownership boundary.`
+      );
+    }
+    assertArray(territory.zipCoverage.postalCodes, `${territoryScope}.zipCoverage.postalCodes`, {
+      min: 1
+    });
+    territory.zipCoverage.postalCodes.forEach((postalCode, postalCodeIndex) => {
+      assertUsZipCode(
+        postalCode,
+        `${territoryScope}.zipCoverage.postalCodes[${postalCodeIndex}]`
+      );
+    });
+    assertUnique(
+      territory.zipCoverage.postalCodes,
+      `${territoryScope}.zipCoverage.postalCodes`
+    );
+    workspaceZipCodes.push(...territory.zipCoverage.postalCodes);
     return territory.territoryId;
   });
   assertUnique(territoryIds, `${scope}.territories`);
+  if (new Set(workspaceZipCodes).size !== workspaceZipCodes.length) {
+    fail(
+      "route_iq_admin_configuration_zip_coverage_duplicate",
+      `${scope}.territories assign a ZIP code to more than one territory.`
+    );
+  }
   const territorySet = new Set(territoryIds);
 
   assertArray(workspace.locations, `${scope}.locations`, { min: 1 });
@@ -355,7 +412,8 @@ function validateRolesAndUsers(workspace, territorySet, globalContext, scope) {
       fail("route_iq_admin_configuration_territory_mismatch", `${userScope} references another or unknown territory.`);
     }
     if (user.identityClass === "FOUNDER_ATTENDED"
-      && (user.userId !== "user_cruz_founder" || user.principalMappingStatus !== "ATTENDED_REQUIRED")) {
+      && (user.userId !== "user_cruz_founder"
+        || user.principalMappingStatus !== "EXACT_PRINCIPAL_MAPPED")) {
       fail("route_iq_admin_configuration_founder_boundary_invalid", `${userScope} violates the attended Founder boundary.`);
     }
     if (user.identityClass === "SYNTHETIC_NONCANONICAL"
@@ -716,15 +774,30 @@ export function validateRouteIqWorkspaceConfigurationRegistry(registry) {
   assertExactKeys(registry.founderBoundary, [
     "attendanceMode",
     "founderUserId",
+    "founderPrincipalMappingStatus",
+    "authorizedWorkspaceIds",
     "anthonyMappingStatus",
     "externalTesterAccessAuthorized"
   ], "registry.founderBoundary");
   if (registry.founderBoundary.attendanceMode !== "CRUZ_ONLY_ATTENDED"
     || registry.founderBoundary.founderUserId !== "user_cruz_founder"
+    || registry.founderBoundary.founderPrincipalMappingStatus !== "EXACT_PRINCIPAL_MAPPED"
     || registry.founderBoundary.anthonyMappingStatus !== "UNMAPPED"
     || registry.founderBoundary.externalTesterAccessAuthorized !== false) {
     fail("route_iq_admin_configuration_founder_boundary_invalid", "Founder attendance boundary is invalid.");
   }
+  assertArray(
+    registry.founderBoundary.authorizedWorkspaceIds,
+    "registry.founderBoundary.authorizedWorkspaceIds",
+    { min: 1, max: ROUTE_IQ_MAX_COMPANIES }
+  );
+  registry.founderBoundary.authorizedWorkspaceIds.forEach((workspaceId, index) =>
+    assertId(workspaceId, `registry.founderBoundary.authorizedWorkspaceIds[${index}]`)
+  );
+  assertUnique(
+    registry.founderBoundary.authorizedWorkspaceIds,
+    "registry.founderBoundary.authorizedWorkspaceIds"
+  );
   assertExactKeys(registry.safety, [
     "collection",
     "activeCohorts",
@@ -765,17 +838,37 @@ export function validateRouteIqWorkspaceConfigurationRegistry(registry) {
   const founderUsers = registry.workspaces
     .flatMap(workspace => workspace.users)
     .filter(user => user.identityClass === "FOUNDER_ATTENDED");
+  const workspacesById = new Map(
+    registry.workspaces.map(workspace => [workspace.workspaceId, workspace])
+  );
+  for (const workspaceId of registry.founderBoundary.authorizedWorkspaceIds) {
+    const workspace = workspacesById.get(workspaceId);
+    if (!workspace) {
+      fail(
+        "route_iq_admin_configuration_founder_workspace_unknown",
+        "Founder workspace authorization references an unknown workspace."
+      );
+    }
+    if (!["founder_research", "synthetic_validation_only"].includes(workspace.lifecycle)
+      || workspace.admission.productionAuthorized !== false) {
+      fail(
+        "route_iq_admin_configuration_founder_workspace_ineligible",
+        "Founder workspace authorization exceeds the nonproduction proof boundary."
+      );
+    }
+  }
   if (!founderResearch
     || founderResearch.workspaceId !== ROUTE_IQ_FITNESS_WORKSPACE_ID
     || founderResearch.operatingProfile.profileId !== "fitness"
     || founderResearch.company.relationshipClassification !== "FOUNDER_FIELD_RESEARCH"
     || founderResearch.company.publicRelationshipClaimsAllowed !== false
     || founderUsers.length !== 1
-    || founderUsers[0].userId !== "user_cruz_founder") {
+    || founderUsers[0].userId !== "user_cruz_founder"
+    || founderUsers[0].principalMappingStatus !== "EXACT_PRINCIPAL_MAPPED"
+    || !registry.founderBoundary.authorizedWorkspaceIds.includes(founderResearch.workspaceId)) {
     fail("route_iq_admin_configuration_founder_research_invalid", "Fitness Founder research boundary is missing.");
   }
   if (!syntheticGeneral
-    || syntheticGeneral.workspaceId !== ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID
     || syntheticGeneral.company.relationshipClassification !== "SYNTHETIC_VALIDATION_FIXTURE"
     || syntheticGeneral.admission.productionAuthorized !== false) {
     fail("route_iq_admin_configuration_cross_industry_proof_missing", "Synthetic general outside-sales proof is missing.");
@@ -836,6 +929,112 @@ export function authorizeConfiguredUserFromRegistry(input, registry) {
     representativeId: user.representativeId,
     roleId: user.roleId,
     territoryId: input.territoryId,
+    recommendationInfluence: "OFF"
+  });
+}
+
+export function resolveTerritoryZipCoverageFromRegistry(input, registry) {
+  assertExactKeys(input, [
+    "workspaceId",
+    "companyId",
+    "territoryId",
+    "postalCode"
+  ], "zipCoverageInput");
+  assertId(input.workspaceId, "zipCoverageInput.workspaceId");
+  assertId(input.companyId, "zipCoverageInput.companyId");
+  assertId(input.territoryId, "zipCoverageInput.territoryId");
+  assertUsZipCode(input.postalCode, "zipCoverageInput.postalCode");
+
+  const workspace = registry.workspaces.find(candidate => candidate.workspaceId === input.workspaceId);
+  if (!workspace) {
+    fail("route_iq_admin_configuration_workspace_unknown", "Workspace configuration is not registered.");
+  }
+  if (workspace.companyId !== input.companyId) {
+    fail("route_iq_admin_configuration_company_mismatch", "Company does not own this workspace.");
+  }
+  const territory = workspace.territories.find(
+    candidate => candidate.territoryId === input.territoryId
+  );
+  if (!territory || !territory.active) {
+    fail("route_iq_admin_configuration_territory_mismatch", "Territory is not active in this workspace.");
+  }
+  if (!territory.zipCoverage.postalCodes.includes(input.postalCode)) {
+    fail(
+      "route_iq_admin_configuration_zip_coverage_unauthorized",
+      "ZIP code is not authorized for this territory."
+    );
+  }
+  return deepFreeze({
+    authorized: true,
+    workspaceId: workspace.workspaceId,
+    companyId: workspace.companyId,
+    territoryId: territory.territoryId,
+    postalCode: input.postalCode,
+    coverageVersion: territory.zipCoverage.coverageVersion
+  });
+}
+
+export function authorizeConfiguredUserForZipCoverageFromRegistry(input, registry) {
+  assertExactKeys(input, [
+    "workspaceId",
+    "companyId",
+    "operatingProfileId",
+    "userId",
+    "roleId",
+    "territoryId",
+    "postalCode"
+  ], "zipAuthorizationInput");
+  const userAuthorization = authorizeConfiguredUserFromRegistry({
+    workspaceId: input.workspaceId,
+    operatingProfileId: input.operatingProfileId,
+    userId: input.userId,
+    roleId: input.roleId,
+    territoryId: input.territoryId
+  }, registry);
+  const zipAuthorization = resolveTerritoryZipCoverageFromRegistry({
+    workspaceId: input.workspaceId,
+    companyId: input.companyId,
+    territoryId: input.territoryId,
+    postalCode: input.postalCode
+  }, registry);
+  return deepFreeze({
+    ...userAuthorization,
+    postalCode: zipAuthorization.postalCode,
+    coverageVersion: zipAuthorization.coverageVersion
+  });
+}
+
+export function authorizeFounderWorkspaceAccessFromRegistry(input, registry) {
+  assertExactKeys(input, ["founderUserId", "workspaceId"], "founderAuthorizationInput");
+  assertId(input.founderUserId, "founderAuthorizationInput.founderUserId");
+  assertId(input.workspaceId, "founderAuthorizationInput.workspaceId");
+  if (input.founderUserId !== registry.founderBoundary.founderUserId
+    || registry.founderBoundary.founderPrincipalMappingStatus !== "EXACT_PRINCIPAL_MAPPED") {
+    fail(
+      "route_iq_admin_configuration_founder_unauthorized",
+      "Founder identity is not exactly mapped."
+    );
+  }
+  if (!registry.founderBoundary.authorizedWorkspaceIds.includes(input.workspaceId)) {
+    fail(
+      "route_iq_admin_configuration_founder_workspace_unauthorized",
+      "Founder is not authorized for this workspace."
+    );
+  }
+  const workspace = registry.workspaces.find(candidate => candidate.workspaceId === input.workspaceId);
+  if (!workspace) {
+    fail(
+      "route_iq_admin_configuration_founder_workspace_unknown",
+      "Founder workspace authorization references an unknown workspace."
+    );
+  }
+  return deepFreeze({
+    authorized: true,
+    founderUserId: input.founderUserId,
+    workspaceId: workspace.workspaceId,
+    companyId: workspace.companyId,
+    operatingProfileId: workspace.operatingProfile.profileId,
+    principalMappingStatus: registry.founderBoundary.founderPrincipalMappingStatus,
     recommendationInfluence: "OFF"
   });
 }

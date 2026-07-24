@@ -1,6 +1,6 @@
 {
   "schemaVersion": "route-iq-workspace-configuration-v2",
-  "registryVersion": "route-iq-cross-industry-workspaces-v2.1.0",
+  "registryVersion": "route-iq-cross-industry-workspaces-v2.2.0",
   "product": "route_iq",
   "authority": "prometheus_administration",
   "limits": {
@@ -10,6 +10,11 @@
   "founderBoundary": {
     "attendanceMode": "CRUZ_ONLY_ATTENDED",
     "founderUserId": "user_cruz_founder",
+    "founderPrincipalMappingStatus": "EXACT_PRINCIPAL_MAPPED",
+    "authorizedWorkspaceIds": [
+      "fitness_connection",
+      "northstar_outside_sales_synthetic"
+    ],
     "anthonyMappingStatus": "UNMAPPED",
     "externalTesterAccessAuthorized": false
   },
@@ -59,7 +64,17 @@
           "territoryId": "houston_founder_research_territory",
           "displayName": "Houston Founder Research Territory",
           "timezone": "America/Chicago",
-          "active": true
+          "active": true,
+          "zipCoverage": {
+            "coverageVersion": "territory-zip-coverage-v1.0.0",
+            "workspaceId": "fitness_connection",
+            "companyId": "fitness_connection_research",
+            "territoryId": "houston_founder_research_territory",
+            "postalCodes": [
+              "77001",
+              "77002"
+            ]
+          }
         }
       ],
       "roles": [
@@ -88,7 +103,7 @@
           "representativeId": "representative_cruz_founder",
           "displayName": "Cruz Garza",
           "identityClass": "FOUNDER_ATTENDED",
-          "principalMappingStatus": "ATTENDED_REQUIRED",
+          "principalMappingStatus": "EXACT_PRINCIPAL_MAPPED",
           "roleId": "fitness_founder_research_operator",
           "territoryIds": [
             "houston_founder_research_territory"
@@ -320,7 +335,7 @@
       },
       "provenance": {
         "owner": "prometheus_administration",
-        "configurationVersion": "v2.1.0",
+        "configurationVersion": "v2.2.0",
         "sourceRefs": [
           "FOUNDER RETENTION DECISION",
           "Route IQ cross-industry Dashboard regression directive"
@@ -368,7 +383,16 @@
           "territoryId": "synthetic_north_territory",
           "displayName": "North Territory (Synthetic)",
           "timezone": "America/Chicago",
-          "active": true
+          "active": true,
+          "zipCoverage": {
+            "coverageVersion": "territory-zip-coverage-v1.0.0",
+            "workspaceId": "northstar_outside_sales_synthetic",
+            "companyId": "northstar_field_supply_company_synthetic",
+            "territoryId": "synthetic_north_territory",
+            "postalCodes": [
+              "77003"
+            ]
+          }
         }
       ],
       "roles": [
@@ -625,7 +649,7 @@
       },
       "provenance": {
         "owner": "prometheus_administration",
-        "configurationVersion": "v2.1.0",
+        "configurationVersion": "v2.2.0",
         "sourceRefs": [
           "Route IQ cross-industry Dashboard regression directive"
         ],
@@ -635,7 +659,7 @@
   ],
   "provenance": {
     "owner": "prometheus_administration",
-    "configurationVersion": "v2.1.0",
+    "configurationVersion": "v2.2.0",
     "sourceRefs": [
       "Route IQ cross-industry Dashboard regression directive",
       "FOUNDER RETENTION DECISION"

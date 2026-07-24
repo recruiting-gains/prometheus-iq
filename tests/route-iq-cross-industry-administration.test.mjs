@@ -55,12 +55,16 @@ test("Node compatibility facade preserves the established export surface", async
     "ROUTE_IQ_MAX_COMPANIES",
     "ROUTE_IQ_MAX_NAMED_USERS",
     "ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID",
+    "ROUTE_IQ_TERRITORY_ZIP_COVERAGE_VERSION",
     "ROUTE_IQ_WORKSPACE_CONFIGURATION_AUTHORITY",
     "ROUTE_IQ_WORKSPACE_CONFIGURATION_SCHEMA_VERSION",
     "RouteIqWorkspaceConfigurationError",
     "authorizeConfiguredUser",
+    "authorizeConfiguredUserForZipCoverage",
+    "authorizeFounderWorkspaceAccess",
     "loadRouteIqWorkspaceConfigurationRegistry",
     "resolveAdmittedWorkspaceConfiguration",
+    "resolveTerritoryZipCoverage",
     "validateRouteIqWorkspaceConfigurationRegistry"
   ]);
 });
@@ -140,6 +144,11 @@ test("canonical v2 registry validates two isolated configurable industries", () 
   assert.equal(canonical.safety.activeCohorts, 0);
   assert.equal(canonical.safety.recommendationInfluence, "OFF");
   assert.equal(canonical.founderBoundary.attendanceMode, "CRUZ_ONLY_ATTENDED");
+  assert.equal(canonical.founderBoundary.founderPrincipalMappingStatus, "EXACT_PRINCIPAL_MAPPED");
+  assert.deepEqual(canonical.founderBoundary.authorizedWorkspaceIds, [
+    ROUTE_IQ_FITNESS_WORKSPACE_ID,
+    ROUTE_IQ_SYNTHETIC_OUTSIDE_SALES_WORKSPACE_ID
+  ]);
   assert.equal(canonical.founderBoundary.anthonyMappingStatus, "UNMAPPED");
   assert.equal(canonical.founderBoundary.externalTesterAccessAuthorized, false);
   assert.ok(Object.isFrozen(canonical));

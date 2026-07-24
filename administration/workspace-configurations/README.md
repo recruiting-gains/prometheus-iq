@@ -2,6 +2,8 @@
 
 Administration owns admission of companies, workspaces, named users, roles, capabilities, territories, and configuration versions. Data owns business facts and provider evidence. Intelligence owns route eligibility and ranking. Dashboard owns reusable rendering. Infrastructure owns authenticated enforcement and runtime delivery.
 
+Each territory carries versioned US ZIP coverage bound explicitly to its workspace, company, and territory. Coverage accepts one or more five-digit ZIP codes, rejects duplicate or cross-owner assignments, and can be added, removed, or reassigned by changing validated configuration only. Runtime consumers must use the governed ZIP authorization projection and fail closed when coverage is missing, invalid, inactive, or unauthorized.
+
 The v2 registry proves two different industries without a customer-specific code fork:
 
 - Fitness is recorded only as Founder field research. It is not a customer, partner, sponsor, or committed pilot.
@@ -13,6 +15,7 @@ The registry is intentionally dark:
 - Active cohorts are `0`.
 - Recommendation influence is `OFF`.
 - Cruz is the only attended Founder identity.
+- Cruz's exact-principal mapping status and authorized workspace IDs are recorded once at the Founder boundary. Raw principal material remains outside Administration.
 - Anthony is unmapped and has no admitted v2 user record.
 - No external tester access is authorized.
 
@@ -34,3 +37,5 @@ node --test tests/route-iq-cross-industry-administration.test.mjs
 ```
 
 The validator and schema are versioned under `administration/contracts/`. Runtime owners must consume an immutable resolved projection and must not silently substitute embedded, demo, fallback, or another workspace's business catalog.
+
+`route-iq-72-hour-onboarding-rehearsal-v1.json` is a separate, synthetic, nonproduction rehearsal. Tests replace the existing synthetic slot with that workspace so the exercise never exceeds the canonical two-company limit. It demonstrates terminology, roles, workspace-local users, Founder-boundary access, territories and ZIPs, card fields, actions, outcomes, KPIs, availability policy, retention, training, support, and incident metadata without adding a customer-specific application path.

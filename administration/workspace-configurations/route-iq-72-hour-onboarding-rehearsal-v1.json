@@ -1,0 +1,391 @@
+{
+  "fixtureVersion": "route-iq-72-hour-onboarding-rehearsal-v1.0.0",
+  "classification": "SYNTHETIC_NONPRODUCTION_REHEARSAL",
+  "productionAuthorized": false,
+  "maximumElapsedHours": 72,
+  "canonicalReplacementWorkspaceId": "northstar_outside_sales_synthetic",
+  "workspaceConfiguration": {
+    "workspaceId": "summit_outside_sales_rehearsal_synthetic",
+    "companyId": "summit_service_supply_rehearsal_synthetic",
+    "lifecycle": "synthetic_validation_only",
+    "admission": {
+      "status": "SYNTHETIC_VALIDATION_ONLY",
+      "productionAuthorized": false,
+      "customerAuthorizationRef": null
+    },
+    "company": {
+      "displayName": "Summit Service Supply (Synthetic Rehearsal)",
+      "businessType": "general_outside_sales",
+      "relationshipClassification": "SYNTHETIC_VALIDATION_FIXTURE",
+      "publicRelationshipClaimsAllowed": false,
+      "brand": {
+        "productLabel": "Route IQ",
+        "primaryColor": "#1F2937",
+        "accentColor": "#047857"
+      }
+    },
+    "operatingProfile": {
+      "profileId": "general_outside_sales",
+      "profileVersion": "operating-profile-v2",
+      "industryId": "general_outside_sales"
+    },
+    "locations": [
+      {
+        "locationId": "summit_dallas_rehearsal_office",
+        "displayName": "Dallas Field Office (Synthetic)",
+        "territoryIds": [
+          "summit_dallas_rehearsal_territory"
+        ],
+        "active": true
+      }
+    ],
+    "territories": [
+      {
+        "territoryId": "summit_dallas_rehearsal_territory",
+        "displayName": "Dallas Rehearsal Territory (Synthetic)",
+        "timezone": "America/Chicago",
+        "active": true,
+        "zipCoverage": {
+          "coverageVersion": "territory-zip-coverage-v1.0.0",
+          "workspaceId": "summit_outside_sales_rehearsal_synthetic",
+          "companyId": "summit_service_supply_rehearsal_synthetic",
+          "territoryId": "summit_dallas_rehearsal_territory",
+          "postalCodes": [
+            "75201",
+            "75202"
+          ]
+        }
+      }
+    ],
+    "roles": [
+      {
+        "roleId": "summit_rehearsal_founder_operator",
+        "displayName": "Founder Operator (Synthetic)",
+        "capabilities": [
+          "view_route",
+          "view_operating_hours",
+          "open_directions",
+          "record_visit",
+          "correct_visit",
+          "add_place",
+          "save_place",
+          "end_route",
+          "end_day",
+          "export_manual_report",
+          "manage_workspace_configuration",
+          "view_founder_read_only_intelligence"
+        ]
+      },
+      {
+        "roleId": "summit_rehearsal_representative",
+        "displayName": "Field Representative (Synthetic)",
+        "capabilities": [
+          "view_route",
+          "view_operating_hours",
+          "open_directions",
+          "record_visit",
+          "correct_visit",
+          "add_place",
+          "save_place",
+          "end_route",
+          "end_day",
+          "export_manual_report"
+        ]
+      }
+    ],
+    "users": [
+      {
+        "userId": "summit_rehearsal_founder_operator",
+        "representativeId": "summit_rehearsal_founder_operator_identity",
+        "displayName": "Synthetic Founder Operator",
+        "identityClass": "SYNTHETIC_NONCANONICAL",
+        "principalMappingStatus": "SYNTHETIC_ONLY",
+        "roleId": "summit_rehearsal_founder_operator",
+        "territoryIds": [
+          "summit_dallas_rehearsal_territory"
+        ],
+        "active": true
+      },
+      {
+        "userId": "summit_rehearsal_rep_01",
+        "representativeId": "summit_rehearsal_rep_identity_01",
+        "displayName": "Synthetic Representative 01",
+        "identityClass": "SYNTHETIC_NONCANONICAL",
+        "principalMappingStatus": "SYNTHETIC_ONLY",
+        "roleId": "summit_rehearsal_representative",
+        "territoryIds": [
+          "summit_dallas_rehearsal_territory"
+        ],
+        "active": true
+      }
+    ],
+    "dashboard": {
+      "terminology": {
+        "opportunity": "service account",
+        "visit": "field visit",
+        "outcome": "visit outcome",
+        "success": "qualified account",
+        "followUp": "follow-up"
+      },
+      "capabilities": [
+        "view_route",
+        "view_operating_hours",
+        "open_directions",
+        "record_visit",
+        "correct_visit",
+        "add_place",
+        "save_place",
+        "end_route",
+        "end_day",
+        "export_manual_report",
+        "manage_workspace_configuration",
+        "view_founder_read_only_intelligence"
+      ],
+      "cardFields": [
+        {
+          "fieldId": "business_name",
+          "label": "Account",
+          "required": true
+        },
+        {
+          "fieldId": "business_type",
+          "label": "Account type",
+          "required": true
+        },
+        {
+          "fieldId": "operating_hours",
+          "label": "Operating hours",
+          "required": true
+        },
+        {
+          "fieldId": "availability_status",
+          "label": "Availability",
+          "required": true
+        },
+        {
+          "fieldId": "next_opening",
+          "label": "Next opening",
+          "required": false
+        },
+        {
+          "fieldId": "distance",
+          "label": "Distance",
+          "required": true
+        },
+        {
+          "fieldId": "estimated_visit_duration",
+          "label": "Estimated visit",
+          "required": true
+        },
+        {
+          "fieldId": "decision_maker_role",
+          "label": "Decision maker",
+          "required": false
+        },
+        {
+          "fieldId": "opportunity_stage",
+          "label": "Account stage",
+          "required": false
+        }
+      ],
+      "filters": [
+        {
+          "filterId": "availability_filter",
+          "label": "Availability",
+          "fieldId": "availability_status"
+        },
+        {
+          "filterId": "account_stage_filter",
+          "label": "Account stage",
+          "fieldId": "opportunity_stage"
+        }
+      ],
+      "sorts": [
+        {
+          "sortId": "distance_nearest",
+          "label": "Nearest first",
+          "fieldId": "distance",
+          "direction": "asc"
+        }
+      ],
+      "actions": [
+        {
+          "actionId": "open_directions",
+          "label": "Directions",
+          "allowedOutcomeIds": [
+            "visited",
+            "decision_maker_reached",
+            "qualified_account",
+            "follow_up",
+            "closed_business"
+          ]
+        },
+        {
+          "actionId": "record_visit",
+          "label": "Log outcome",
+          "allowedOutcomeIds": [
+            "visited",
+            "decision_maker_reached",
+            "qualified_account",
+            "follow_up",
+            "closed_business"
+          ]
+        }
+      ],
+      "outcomes": [
+        {
+          "outcomeId": "visited",
+          "label": "Visited",
+          "classification": "OBSERVATION"
+        },
+        {
+          "outcomeId": "decision_maker_reached",
+          "label": "Decision maker reached",
+          "classification": "PROGRESS"
+        },
+        {
+          "outcomeId": "qualified_account",
+          "label": "Qualified account",
+          "classification": "SUCCESS"
+        },
+        {
+          "outcomeId": "follow_up",
+          "label": "Follow-up",
+          "classification": "FOLLOW_UP"
+        },
+        {
+          "outcomeId": "closed_business",
+          "label": "Business closed",
+          "classification": "EXCLUSION"
+        }
+      ],
+      "kpis": [
+        {
+          "kpiId": "visits_completed",
+          "label": "Visits completed",
+          "aggregation": "COUNT",
+          "sourceOutcomeIds": [
+            "visited",
+            "decision_maker_reached",
+            "qualified_account",
+            "follow_up"
+          ]
+        },
+        {
+          "kpiId": "qualified_accounts",
+          "label": "Qualified accounts",
+          "aggregation": "COUNT",
+          "sourceOutcomeIds": [
+            "qualified_account"
+          ]
+        }
+      ]
+    },
+    "availabilityPolicy": {
+      "timezoneSource": "BUSINESS_LOCAL_IANA",
+      "freshnessCeilingHours": 24,
+      "immediateRecommendationRule": "FRESH_VERIFIED_OPEN_OR_ACCESS_WINDOW_ONLY",
+      "verifiedClosedRule": "INELIGIBLE_WITH_NEXT_OPENING",
+      "uncertainRule": "NON_RECOMMENDED_VERIFICATION_REQUIRED",
+      "appointmentOnlyRule": "VERIFIED_APPOINTMENT_OR_ACCESS_WINDOW_REQUIRED",
+      "providerFailureRule": "PRESERVE_PRIOR_EVIDENCE_AND_EXPIRE_NORMALLY",
+      "refreshMode": "GOVERNED_RUNTIME_ARTIFACT"
+    },
+    "opportunitySources": [
+      {
+        "sourceId": "summit_rehearsal_manifest_binding",
+        "adapterId": "workspace_business_manifest_adapter_v1",
+        "manifestRegistryPath": "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
+        "manifestId": "summit_rehearsal_synthetic_approved_business_roster",
+        "artifactPath": "data/route-iq-onboarding-rehearsal-v1/summit-synthetic-businesses-v1.json",
+        "artifactSchemaVersion": "route-iq-synthetic-approved-businesses-v1",
+        "workspaceId": "summit_outside_sales_rehearsal_synthetic",
+        "profileId": "general_outside_sales",
+        "providerId": "synthetic_owner_fixture_provider",
+        "classification": "SYNTHETIC_NONCANONICAL",
+        "manifestApprovalState": "APPROVED_SYNTHETIC_VALIDATION",
+        "productionUseAuthorized": false
+      }
+    ],
+    "fallbackPolicy": {
+      "mode": "FAIL_CLOSED",
+      "demoCatalogAllowed": false,
+      "embeddedBusinessCatalogAllowed": false,
+      "crossWorkspaceFallbackAllowed": false,
+      "missingSourceState": "CONFIGURATION_REQUIRED_EMPTY"
+    },
+    "retention": {
+      "maximumCalendarMonths": 18,
+      "customerMayShorten": true,
+      "customerMayExpand": false,
+      "legalHoldSupported": true,
+      "dispositionMode": "APPEND_ONLY_AUDITABLE_DATA_OWNED"
+    },
+    "provenance": {
+      "owner": "prometheus_administration",
+      "configurationVersion": "v2.2.0",
+      "sourceRefs": [
+        "Route IQ ZIP coverage and 72-hour onboarding repair directive"
+      ],
+      "approvalState": "SYNTHETIC_VALIDATION_ONLY"
+    }
+  },
+  "rehearsalPlan": {
+    "terminologyConfigured": true,
+    "founderAccess": {
+      "mode": "BOUNDARY_AUTHORIZED_WORKSPACE",
+      "exactPrincipalMappingRequired": true,
+      "duplicateFounderUserRecordAllowed": false
+    },
+    "representativeAccess": {
+      "workspaceLocalUsersRequired": true,
+      "roleAndTerritoryBindingRequired": true
+    },
+    "territoryCoverage": {
+      "configurationOnly": true,
+      "addRemoveReassignSupported": true,
+      "coverageVersionRequired": true
+    },
+    "hoursPolicy": {
+      "freshnessCeilingHours": 24,
+      "staleOrMissingRouteEligible": false
+    },
+    "retention": {
+      "maximumCalendarMonths": 18,
+      "customerMayOnlyShorten": true,
+      "legalHoldSupported": true
+    },
+    "training": {
+      "owner": "prometheus_administration",
+      "sessions": [
+        "founder_configuration_review",
+        "representative_field_workflow"
+      ],
+      "completionEvidenceRequired": true
+    },
+    "support": {
+      "owner": "prometheus_administration",
+      "channel": "founder_attended_support",
+      "coverage": "BUSINESS_HOURS_WITH_INCIDENT_ESCALATION"
+    },
+    "incident": {
+      "owner": "prometheus_administration",
+      "triageContract": "administration/workflows/route-iq-production-support-triage-v1.md",
+      "rollbackEscalationRequired": true
+    },
+    "phases": [
+      {
+        "elapsedHours": 24,
+        "exitGate": "CONFIGURATION_VALIDATED"
+      },
+      {
+        "elapsedHours": 48,
+        "exitGate": "ACCESS_AND_WORKFLOW_REHEARSED"
+      },
+      {
+        "elapsedHours": 72,
+        "exitGate": "FOUNDER_REVIEW_PACKAGE_READY"
+      }
+    ]
+  }
+}
