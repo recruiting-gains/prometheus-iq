@@ -63,6 +63,35 @@
           }
         }
       }
+    },
+    "founderAccess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "identityAuthority",
+        "roleId",
+        "accessMode",
+        "authenticatedPrincipalId",
+        "authorizedWorkspaceIds"
+      ],
+      "properties": {
+        "contractVersion": { "const": "route-iq-founder-multi-company-access-v1" },
+        "identityAuthority": { "const": "commercial_workspace_registry_exact_principal" },
+        "roleId": { "const": "founder_multi_company_read_only" },
+        "accessMode": { "const": "EXPLICIT_WORKSPACE_SELECTION_ONLY" },
+        "authenticatedPrincipalId": {
+          "type": "string",
+          "pattern": "^riq_principal_[a-f0-9]{64}$"
+        },
+        "authorizedWorkspaceIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]{2,127}$" }
+        }
+      }
     }
   }
 }

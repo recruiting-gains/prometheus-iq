@@ -6,6 +6,9 @@ export const routeIqAugust1LaunchRoles = Object.freeze([
   "customer_manager",
   "customer_representative"
 ]);
+export const routeIqAugust1FounderAccessContractVersion = "route-iq-founder-multi-company-access-v1";
+export const routeIqAugust1FounderAccessRole = "founder_multi_company_read_only";
+export const routeIqAugust1FounderAccessMode = "EXPLICIT_WORKSPACE_SELECTION_ONLY";
 
 const ID_PATTERN = /^[a-z][a-z0-9_]{2,127}$/u;
 const PRINCIPAL_PATTERN = /^riq_principal_[a-f0-9]{64}$/u;
@@ -78,7 +81,7 @@ function validateRuntimeAssets(value, path) {
 }
 
 function validateHeader(envelope) {
-  exactKeys(envelope, [
+  const fields = [
     "version",
     "state",
     "classification",
@@ -87,7 +90,9 @@ function validateHeader(envelope) {
     "limits",
     "safety",
     "workspaceAdmissions"
-  ], "launchEnvelope");
+  ];
+  if (Object.hasOwn(envelope || {}, "founderAccess")) fields.push("founderAccess");
+  exactKeys(envelope, fields, "launchEnvelope");
   if (envelope.version !== routeIqAugust1LaunchEnvelopeVersion
     || !["OFF", "ACTIVE"].includes(envelope.state)
     || envelope.classification !== "PRODUCTION_ACTIVATION") {
@@ -126,10 +131,75 @@ function workspaceById(registry, workspaceId) {
   return registry.workspaces.find(workspace => workspace.workspaceId === workspaceId);
 }
 
+function governedFounderUser(registry, authenticatedPrincipalId) {
+  const matches = registry.workspaces.flatMap(workspace => (workspace.users || [])
+    .filter(user => user.authenticatedPrincipalId === authenticatedPrincipalId)
+    .map(user => ({ user, workspace })));
+  if (matches.length !== 1) {
+    fail("route_iq_launch_founder_identity_invalid", "The Founder principal must have one exact governed identity anchor.");
+  }
+  const { user, workspace } = matches[0];
+  if (user.active !== true
+    || user.identityMappingStatus !== "exact_authenticated_identity_mapped"
+    || user.founderIntelligenceEligibility !== true
+    || user.representativeId !== "cruz"
+    || !ID_PATTERN.test(user.userId || "")
+    || !ID_PATTERN.test(workspace.workspaceId || "")) {
+    fail("route_iq_launch_founder_identity_invalid", "The Founder principal identity anchor is not authorized.");
+  }
+  return { user, workspace };
+}
+
+function validateFounderAccess(value, registry, admissions, admittedPrincipalIds) {
+  exactKeys(value, [
+    "contractVersion",
+    "identityAuthority",
+    "roleId",
+    "accessMode",
+    "authenticatedPrincipalId",
+    "authorizedWorkspaceIds"
+  ], "launchEnvelope.founderAccess");
+  if (value.contractVersion !== routeIqAugust1FounderAccessContractVersion
+    || value.identityAuthority !== "commercial_workspace_registry_exact_principal"
+    || value.roleId !== routeIqAugust1FounderAccessRole
+    || value.accessMode !== routeIqAugust1FounderAccessMode
+    || !PRINCIPAL_PATTERN.test(value.authenticatedPrincipalId || "")
+    || !Array.isArray(value.authorizedWorkspaceIds)
+    || value.authorizedWorkspaceIds.length < 1
+    || value.authorizedWorkspaceIds.length > routeIqAugust1LaunchMaximumCompanies) {
+    fail("route_iq_launch_founder_access_invalid", "The Founder access contract is invalid.");
+  }
+  if (admittedPrincipalIds.has(value.authenticatedPrincipalId)) {
+    fail("route_iq_launch_founder_principal_conflated", "The Founder principal cannot be admitted as a customer user.");
+  }
+  governedFounderUser(registry, value.authenticatedPrincipalId);
+  const admittedWorkspaceIds = new Set(admissions.map(admission => admission.workspaceId));
+  const authorizedWorkspaceIds = value.authorizedWorkspaceIds.map((workspaceIdValue, index) => {
+    const workspaceId = id(
+      workspaceIdValue,
+      `launchEnvelope.founderAccess.authorizedWorkspaceIds[${index}]`
+    );
+    if (!admittedWorkspaceIds.has(workspaceId)) {
+      fail("route_iq_launch_founder_workspace_not_admitted", "Founder access cannot exceed admitted workspaces.");
+    }
+    return workspaceId;
+  });
+  if (new Set(authorizedWorkspaceIds).size !== authorizedWorkspaceIds.length) {
+    fail("route_iq_launch_founder_workspace_duplicate", "A Founder workspace was allowlisted more than once.");
+  }
+  return {
+    ...clone(value),
+    authorizedWorkspaceIds
+  };
+}
+
 export function validateRouteIqAugust1LaunchEnvelope(envelope, registry, { now = new Date() } = {}) {
   validateHeader(envelope);
   if (envelope.state === "OFF") {
-    if (envelope.issuedAt !== null || envelope.expiresAt !== null || envelope.workspaceAdmissions.length !== 0) {
+    if (envelope.issuedAt !== null
+      || envelope.expiresAt !== null
+      || envelope.workspaceAdmissions.length !== 0
+      || Object.hasOwn(envelope, "founderAccess")) {
       fail("route_iq_launch_off_state_invalid", "The OFF launch envelope cannot admit workspaces or carry an activation window.");
     }
     return freeze(clone(envelope));
@@ -212,9 +282,17 @@ export function validateRouteIqAugust1LaunchEnvelope(envelope, registry, { now =
   if (namedUsers > routeIqAugust1LaunchMaximumNamedUsers) {
     fail("route_iq_launch_user_limit_exceeded", "The bounded launch named-user limit was exceeded.");
   }
+  const founderAccess = Object.hasOwn(envelope, "founderAccess")
+    ? validateFounderAccess(envelope.founderAccess, registry, admissions, principalIds)
+    : null;
+  if (founderAccess) namedUsers += 1;
+  if (namedUsers > routeIqAugust1LaunchMaximumNamedUsers) {
+    fail("route_iq_launch_user_limit_exceeded", "The bounded launch named-user limit was exceeded.");
+  }
   return freeze({
     ...clone(envelope),
     workspaceAdmissions: admissions,
+    ...(founderAccess ? { founderAccess } : {}),
     verifiedCapacity: {
       companies: admissions.length,
       namedUsers
@@ -222,13 +300,63 @@ export function validateRouteIqAugust1LaunchEnvelope(envelope, registry, { now =
   });
 }
 
-export function authorizeRouteIqAugust1LaunchPrincipal({ envelope, registry, authenticatedPrincipalId, now }) {
+export function authorizeRouteIqAugust1LaunchPrincipal({
+  envelope,
+  registry,
+  authenticatedPrincipalId,
+  requestedWorkspaceId,
+  now
+}) {
   if (!PRINCIPAL_PATTERN.test(authenticatedPrincipalId || "")) {
     fail("route_iq_launch_authentication_required", "An exact authenticated principal is required.");
   }
   const launch = validateRouteIqAugust1LaunchEnvelope(envelope, registry, { now });
   if (launch.state !== "ACTIVE") fail("route_iq_launch_inactive", "Bounded customer production is inactive.");
+  if (launch.founderAccess?.authenticatedPrincipalId === authenticatedPrincipalId) {
+    if (requestedWorkspaceId === undefined) {
+      fail("route_iq_launch_workspace_selection_required", "Founder access requires an explicit workspace selection.");
+    }
+    const selectedWorkspaceId = id(requestedWorkspaceId, "requestedWorkspaceId");
+    if (!launch.founderAccess.authorizedWorkspaceIds.includes(selectedWorkspaceId)) {
+      fail("route_iq_launch_workspace_selection_unauthorized", "The selected workspace is outside Founder access.");
+    }
+    const admission = launch.workspaceAdmissions.find(
+      candidate => candidate.workspaceId === selectedWorkspaceId
+    );
+    if (!admission) {
+      fail("route_iq_launch_workspace_selection_unauthorized", "The selected workspace is not admitted.");
+    }
+    const workspace = workspaceById(registry, selectedWorkspaceId);
+    const founder = governedFounderUser(registry, authenticatedPrincipalId).user;
+    return freeze({
+      authorized: true,
+      accessMode: "founder_explicit_workspace_read_only",
+      companyId: workspace.workspaceId,
+      workspaceId: workspace.workspaceId,
+      workspaceLabel: workspace.business.brand.displayName,
+      operatingProfileId: workspace.operatingProfileId,
+      userId: founder.userId,
+      representativeId: founder.representativeId,
+      displayName: founder.displayName,
+      roleId: routeIqAugust1FounderAccessRole,
+      capabilities: {
+        operateOwnRoute: false,
+        readWorkspaceOperations: true,
+        administerWorkspaceRoster: false,
+        founderIntelligence: true,
+        founderCrm: false
+      },
+      runtimeAssets: admission.runtimeAssets,
+      expiresAt: launch.expiresAt,
+      safety: {
+        prospectiveCollection: "OFF",
+        activeCohorts: 0,
+        recommendationInfluence: "OFF"
+      }
+    });
+  }
   for (const admission of launch.workspaceAdmissions) {
+    if (requestedWorkspaceId !== undefined && admission.workspaceId !== requestedWorkspaceId) continue;
     const workspace = workspaceById(registry, admission.workspaceId);
     const user = workspace.users.find(candidate => admission.authorizedUserIds.includes(candidate.userId)
       && candidate.authenticatedPrincipalId === authenticatedPrincipalId);
@@ -239,6 +367,7 @@ export function authorizeRouteIqAugust1LaunchPrincipal({ envelope, registry, aut
     }
     return freeze({
       authorized: true,
+      accessMode: "customer_workspace_operational",
       companyId: workspace.workspaceId,
       workspaceId: workspace.workspaceId,
       workspaceLabel: workspace.business.brand.displayName,
@@ -263,6 +392,9 @@ export function authorizeRouteIqAugust1LaunchPrincipal({ envelope, registry, aut
       }
     });
   }
+  if (requestedWorkspaceId !== undefined) {
+    fail("route_iq_launch_workspace_selection_unauthorized", "The selected workspace is outside the principal's authorization.");
+  }
   fail("route_iq_launch_principal_unmapped", "The authenticated principal is not admitted to the bounded launch.");
 }
 
@@ -270,6 +402,10 @@ export function assertRouteIqAugust1LaunchResourceAccess(principal, resource) {
   exactKeys(resource, ["workspaceId", "representativeId", "operation"], "resource");
   if (!principal?.authorized || resource.workspaceId !== principal.workspaceId) {
     fail("route_iq_launch_cross_workspace_denied", "The resource crosses the authorized workspace.");
+  }
+  if (principal.accessMode === "founder_explicit_workspace_read_only"
+    && resource.operation !== "read_route") {
+    fail("route_iq_launch_founder_write_denied", "Founder multi-company access is read-only.");
   }
   if (resource.operation === "write_route" && resource.representativeId !== principal.representativeId) {
     fail("route_iq_launch_cross_user_write_denied", "A user cannot write another representative's route.");

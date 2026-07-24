@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "route-iq-72-hour-onboarding-rehearsal-roster-v1",
+  "artifactVersion": "cobalt-facility-supply-rehearsal-roster-v1",
+  "rehearsalId": "route_iq_72_hour_onboarding_rehearsal_v1",
+  "workspaceId": "cobalt_facility_supply_rehearsal",
+  "companyId": "cobalt_facility_supply_synthetic",
+  "operatingProfileId": "general_outside_sales",
+  "classification": "SYNTHETIC_NONCANONICAL_REHEARSAL_ONLY",
+  "approvalState": "APPROVED_SYNTHETIC_REHEARSAL_ONLY",
+  "productionUseAuthorized": false,
+  "canonicalManifestAdmissionAllowed": false,
+  "generatedAt": "2026-07-23T12:00:00.000Z",
+  "sourceProvenance": {
+    "producer": "Prometheus Data",
+    "producerVersion": "route-iq-72-hour-onboarding-rehearsal-v1",
+    "sourceSystem": "deterministic_rehearsal_fixture",
+    "sourceRetrievedAt": "2026-07-23T12:00:00.000Z"
+  },
+  "recordCount": 4,
+  "records": [
+    {
+      "recordId": "rehearsal_cobalt_opportunity_001",
+      "businessName": "Cobalt Synthetic Facility Supply North",
+      "address": "100 Rehearsal Plaza, Example City, TX 77001",
+      "postalCode": "77001",
+      "territoryId": "rehearsal_central_territory",
+      "locationId": "rehearsal_houston_location",
+      "businessTimezone": "America/Chicago",
+      "category": "Facility supplies",
+      "approvalState": "APPROVED_SYNTHETIC_REHEARSAL_ONLY",
+      "hoursRecordId": "rehearsal_cobalt_opportunity_001"
+    },
+    {
+      "recordId": "rehearsal_cobalt_opportunity_002",
+      "businessName": "Cobalt Synthetic Commercial Services East",
+      "address": "200 Rehearsal Plaza, Example City, TX 77002",
+      "postalCode": "77002",
+      "territoryId": "rehearsal_east_territory",
+      "locationId": "rehearsal_houston_location",
+      "businessTimezone": "America/Chicago",
+      "category": "Commercial services",
+      "approvalState": "APPROVED_SYNTHETIC_REHEARSAL_ONLY",
+      "hoursRecordId": "rehearsal_cobalt_opportunity_002"
+    },
+    {
+      "recordId": "rehearsal_cobalt_opportunity_003",
+      "businessName": "Cobalt Synthetic Equipment Care Central",
+      "address": "300 Rehearsal Plaza, Example City, TX 77001",
+      "postalCode": "77001",
+      "territoryId": "rehearsal_central_territory",
+      "locationId": "rehearsal_houston_location",
+      "businessTimezone": "America/Chicago",
+      "category": "Equipment services",
+      "approvalState": "APPROVED_SYNTHETIC_REHEARSAL_ONLY",
+      "hoursRecordId": "rehearsal_cobalt_opportunity_003"
+    },
+    {
+      "recordId": "rehearsal_cobalt_opportunity_004",
+      "businessName": "Cobalt Synthetic Workplace Products East",
+      "address": "400 Rehearsal Plaza, Example City, TX 77002",
+      "postalCode": "77002",
+      "territoryId": "rehearsal_east_territory",
+      "locationId": "rehearsal_houston_location",
+      "businessTimezone": "America/Chicago",
+      "category": "Workplace products",
+      "approvalState": "APPROVED_SYNTHETIC_REHEARSAL_ONLY",
+      "hoursRecordId": "rehearsal_cobalt_opportunity_004"
+    }
+  ]
+}

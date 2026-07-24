@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "route-iq-72-hour-onboarding-rehearsal-hours-v1",
+  "artifactVersion": "cobalt-facility-supply-rehearsal-hours-v1",
+  "projectionVersion": "route-iq-business-availability-v2",
+  "rehearsalId": "route_iq_72_hour_onboarding_rehearsal_v1",
+  "workspaceId": "cobalt_facility_supply_rehearsal",
+  "companyId": "cobalt_facility_supply_synthetic",
+  "operatingProfileId": "general_outside_sales",
+  "classification": "SYNTHETIC_NONCANONICAL_REHEARSAL_ONLY",
+  "productionUseAuthorized": false,
+  "canonicalManifestAdmissionAllowed": false,
+  "statusEvaluatedAt": "2026-07-23T12:00:00.000Z",
+  "providerMode": "NO_EXTERNAL_PROVIDER_REHEARSAL",
+  "freshnessPolicy": {
+    "maximumAgeHours": 24,
+    "freshStatus": "FRESH",
+    "staleStatus": "HOURS_STALE",
+    "missingStatus": "HOURS_UNKNOWN",
+    "invalidStatus": "HOURS_INVALID",
+    "providerFailureStatus": "PROVIDER_FAILURE",
+    "unverifiedStatusesRouteEligible": false
+  },
+  "sourceProvenance": {
+    "producer": "Prometheus Data",
+    "producerVersion": "route-iq-72-hour-onboarding-rehearsal-v1",
+    "sourceSystem": "deterministic_rehearsal_fixture",
+    "sourceRetrievedAt": "2026-07-23T12:00:00.000Z"
+  },
+  "recordCount": 4,
+  "records": [
+    {
+      "recordId": "rehearsal_cobalt_opportunity_001",
+      "territoryId": "rehearsal_central_territory",
+      "postalCode": "77001",
+      "businessTimezone": "America/Chicago",
+      "weeklySchedule": {
+        "mondayToFriday": "08:00-17:00",
+        "saturday": null,
+        "sunday": null
+      },
+      "verifiedAt": "2026-07-23T11:00:00.000Z",
+      "expiresAt": "2026-07-24T11:00:00.000Z",
+      "freshnessState": "FRESH",
+      "availabilityStatus": "OPEN_VERIFIED",
+      "nextOpeningAt": null,
+      "nextClosingAt": "2026-07-23T22:00:00.000Z",
+      "providerFailure": false,
+      "rehearsalImmediateRouteEligible": true
+    },
+    {
+      "recordId": "rehearsal_cobalt_opportunity_002",
+      "territoryId": "rehearsal_east_territory",
+      "postalCode": "77002",
+      "businessTimezone": "America/Chicago",
+      "weeklySchedule": {
+        "mondayToFriday": "09:00-18:00",
+        "saturday": null,
+        "sunday": null
+      },
+      "verifiedAt": "2026-07-23T11:00:00.000Z",
+      "expiresAt": "2026-07-24T11:00:00.000Z",
+      "freshnessState": "FRESH",
+      "availabilityStatus": "CLOSED_VERIFIED",
+      "nextOpeningAt": "2026-07-24T14:00:00.000Z",
+      "nextClosingAt": null,
+      "providerFailure": false,
+      "rehearsalImmediateRouteEligible": false
+    },
+    {
+      "recordId": "rehearsal_cobalt_opportunity_003",
+      "territoryId": "rehearsal_central_territory",
+      "postalCode": "77001",
+      "businessTimezone": "America/Chicago",
+      "weeklySchedule": {
+        "mondayToFriday": "07:30-16:30",
+        "saturday": null,
+        "sunday": null
+      },
+      "verifiedAt": "2026-07-21T11:00:00.000Z",
+      "expiresAt": "2026-07-22T11:00:00.000Z",
+      "freshnessState": "HOURS_STALE",
+      "availabilityStatus": "HOURS_STALE",
+      "nextOpeningAt": null,
+      "nextClosingAt": null,
+      "providerFailure": false,
+      "rehearsalImmediateRouteEligible": false
+    },
+    {
+      "recordId": "rehearsal_cobalt_opportunity_004",
+      "territoryId": "rehearsal_east_territory",
+      "postalCode": "77002",
+      "businessTimezone": "America/Chicago",
+      "weeklySchedule": null,
+      "verifiedAt": null,
+      "expiresAt": null,
+      "freshnessState": "HOURS_UNKNOWN",
+      "availabilityStatus": "HOURS_UNKNOWN",
+      "nextOpeningAt": null,
+      "nextClosingAt": null,
+      "providerFailure": true,
+      "rehearsalImmediateRouteEligible": false
+    }
+  ]
+}

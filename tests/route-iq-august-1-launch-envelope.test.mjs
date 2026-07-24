@@ -10,6 +10,9 @@ import {
 import {
   assertRouteIqAugust1LaunchResourceAccess,
   authorizeRouteIqAugust1LaunchPrincipal,
+  routeIqAugust1FounderAccessContractVersion,
+  routeIqAugust1FounderAccessMode,
+  routeIqAugust1FounderAccessRole,
   routeIqAugust1LaunchEnvelopeVersion,
   validateRouteIqAugust1LaunchEnvelope
 } from "../data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs";
@@ -70,6 +73,33 @@ function envelope(registry) {
       runtimeAssets
     }))
   };
+}
+
+function founderMultiCompanyFixture() {
+  const customerRegistry = activeCustomerRegistry({ workspaceCount: 2, usersPerWorkspace: 2 });
+  const registry = clone(customerRegistry);
+  const founderPrincipal = `riq_principal_${"f".repeat(64)}`;
+  registry.workspaces[0].users.push({
+    userId: "founder_cruz_multi_company",
+    representativeId: "cruz",
+    displayName: "Founder fixture",
+    roleId: "founder_identity_anchor",
+    authenticatedPrincipalId: founderPrincipal,
+    identityMappingStatus: "exact_authenticated_identity_mapped",
+    analysisPseudonym: "riq_rep_founder_fixture",
+    active: true,
+    founderIntelligenceEligibility: true
+  });
+  const launchEnvelope = envelope(customerRegistry);
+  launchEnvelope.founderAccess = {
+    contractVersion: routeIqAugust1FounderAccessContractVersion,
+    identityAuthority: "commercial_workspace_registry_exact_principal",
+    roleId: routeIqAugust1FounderAccessRole,
+    accessMode: routeIqAugust1FounderAccessMode,
+    authenticatedPrincipalId: founderPrincipal,
+    authorizedWorkspaceIds: registry.workspaces.map(workspace => workspace.workspaceId)
+  };
+  return { founderPrincipal, launchEnvelope, registry };
 }
 
 test("checked-in August 1 launch envelope is default OFF and admits nobody", () => {
@@ -230,5 +260,149 @@ test("principal authorization and role boundaries isolate workspace and represen
       operation: "write_route"
     }),
     error => error.code === "route_iq_launch_cross_user_write_denied"
+  );
+});
+
+test("exact Founder principal selects one server-admitted workspace without merging company data", () => {
+  const fixture = founderMultiCompanyFixture();
+  const validated = validateRouteIqAugust1LaunchEnvelope(
+    fixture.launchEnvelope,
+    fixture.registry,
+    { now }
+  );
+  assert.deepEqual(validated.verifiedCapacity, { companies: 2, namedUsers: 5 });
+  assert.deepEqual(
+    validated.founderAccess.authorizedWorkspaceIds,
+    fixture.registry.workspaces.map(workspace => workspace.workspaceId)
+  );
+
+  assert.throws(
+    () => authorizeRouteIqAugust1LaunchPrincipal({
+      envelope: fixture.launchEnvelope,
+      registry: fixture.registry,
+      authenticatedPrincipalId: fixture.founderPrincipal,
+      now
+    }),
+    error => error.code === "route_iq_launch_workspace_selection_required"
+  );
+
+  const firstWorkspaceId = fixture.registry.workspaces[0].workspaceId;
+  const secondWorkspaceId = fixture.registry.workspaces[1].workspaceId;
+  const first = authorizeRouteIqAugust1LaunchPrincipal({
+    envelope: fixture.launchEnvelope,
+    registry: fixture.registry,
+    authenticatedPrincipalId: fixture.founderPrincipal,
+    requestedWorkspaceId: firstWorkspaceId,
+    now
+  });
+  const second = authorizeRouteIqAugust1LaunchPrincipal({
+    envelope: fixture.launchEnvelope,
+    registry: fixture.registry,
+    authenticatedPrincipalId: fixture.founderPrincipal,
+    requestedWorkspaceId: secondWorkspaceId,
+    now
+  });
+  assert.equal(first.accessMode, "founder_explicit_workspace_read_only");
+  assert.equal(first.roleId, routeIqAugust1FounderAccessRole);
+  assert.equal(first.workspaceId, firstWorkspaceId);
+  assert.equal(second.workspaceId, secondWorkspaceId);
+  assert.equal(Object.hasOwn(first, "authorizedWorkspaceIds"), false);
+  assert.equal(Object.hasOwn(first, "workspaces"), false);
+  assert.equal(first.capabilities.operateOwnRoute, false);
+  assert.equal(first.capabilities.readWorkspaceOperations, true);
+  assert.equal(first.capabilities.founderIntelligence, true);
+
+  assert.equal(assertRouteIqAugust1LaunchResourceAccess(first, {
+    workspaceId: firstWorkspaceId,
+    representativeId: fixture.registry.workspaces[0].users[0].representativeId,
+    operation: "read_route"
+  }), true);
+  assert.throws(
+    () => assertRouteIqAugust1LaunchResourceAccess(first, {
+      workspaceId: secondWorkspaceId,
+      representativeId: fixture.registry.workspaces[1].users[0].representativeId,
+      operation: "read_route"
+    }),
+    error => error.code === "route_iq_launch_cross_workspace_denied"
+  );
+  assert.throws(
+    () => assertRouteIqAugust1LaunchResourceAccess(first, {
+      workspaceId: firstWorkspaceId,
+      representativeId: "cruz",
+      operation: "write_route"
+    }),
+    error => error.code === "route_iq_launch_founder_write_denied"
+  );
+});
+
+test("Founder allowlist rejects display-name auth, Anthony, conflation, drift, and caller workspace bypass", () => {
+  const fixture = founderMultiCompanyFixture();
+  assert.throws(
+    () => authorizeRouteIqAugust1LaunchPrincipal({
+      envelope: fixture.launchEnvelope,
+      registry: fixture.registry,
+      displayName: "Founder fixture",
+      requestedWorkspaceId: fixture.registry.workspaces[0].workspaceId,
+      now
+    }),
+    error => error.code === "route_iq_launch_authentication_required"
+  );
+  assert.throws(
+    () => authorizeRouteIqAugust1LaunchPrincipal({
+      envelope: fixture.launchEnvelope,
+      registry: fixture.registry,
+      authenticatedPrincipalId: fixture.founderPrincipal,
+      requestedWorkspaceId: "caller_selected_workspace",
+      now
+    }),
+    error => error.code === "route_iq_launch_workspace_selection_unauthorized"
+  );
+
+  const anthony = clone(fixture.registry);
+  anthony.workspaces[0].users.at(-1).representativeId = "anthony";
+  assert.throws(
+    () => validateRouteIqAugust1LaunchEnvelope(fixture.launchEnvelope, anthony, { now }),
+    error => error.code === "route_iq_launch_founder_identity_invalid"
+  );
+
+  const duplicateAnchor = clone(fixture.registry);
+  duplicateAnchor.workspaces[1].users.push(clone(duplicateAnchor.workspaces[0].users.at(-1)));
+  duplicateAnchor.workspaces[1].users.at(-1).userId = "duplicate_founder_anchor";
+  assert.throws(
+    () => validateRouteIqAugust1LaunchEnvelope(fixture.launchEnvelope, duplicateAnchor, { now }),
+    error => error.code === "route_iq_launch_founder_identity_invalid"
+  );
+
+  const conflated = clone(fixture.registry);
+  conflated.workspaces[1].users[0].authenticatedPrincipalId = fixture.founderPrincipal;
+  assert.throws(
+    () => validateRouteIqAugust1LaunchEnvelope(fixture.launchEnvelope, conflated, { now }),
+    error => error.code === "route_iq_launch_founder_principal_conflated"
+  );
+
+  const duplicateCustomerPrincipal = clone(fixture.registry);
+  duplicateCustomerPrincipal.workspaces[1].users[0].authenticatedPrincipalId =
+    duplicateCustomerPrincipal.workspaces[0].users[0].authenticatedPrincipalId;
+  assert.throws(
+    () => validateRouteIqAugust1LaunchEnvelope(
+      fixture.launchEnvelope,
+      duplicateCustomerPrincipal,
+      { now }
+    ),
+    error => error.code === "route_iq_launch_principal_duplicate"
+  );
+
+  const unadmitted = clone(fixture.launchEnvelope);
+  unadmitted.founderAccess.authorizedWorkspaceIds.push("not_admitted_workspace");
+  assert.throws(
+    () => validateRouteIqAugust1LaunchEnvelope(unadmitted, fixture.registry, { now }),
+    error => error.code === "route_iq_launch_founder_access_invalid"
+  );
+
+  const wrongRole = clone(fixture.launchEnvelope);
+  wrongRole.founderAccess.roleId = "customer_owner";
+  assert.throws(
+    () => validateRouteIqAugust1LaunchEnvelope(wrongRole, fixture.registry, { now }),
+    error => error.code === "route_iq_launch_founder_access_invalid"
   );
 });
