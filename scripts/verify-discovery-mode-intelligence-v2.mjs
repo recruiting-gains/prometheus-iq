@@ -17,6 +17,9 @@ import {
   buildRouteBusinessHoursIndex,
   routeBusinessHoursEligibilityVersion
 } from "../intelligence/route-business-hours-eligibility.mjs";
+import {
+  verifyCrossIndustryZipFounderAccessAdoption
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 import { expandActivePool } from "./lib/route-intelligence-quality-gate.mjs";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
@@ -139,6 +142,7 @@ export function verifyDiscoveryModeIntelligenceV2({
   writeArtifact = false,
   checkProtectedBaselines = true
 } = {}) {
+  const zipFounderAdoption = verifyCrossIndustryZipFounderAccessAdoption();
   const config = loadDiscoveryModeConfig();
   const contract = loadDiscoveryModeContract();
   const governanceReport = readJson(discoveryModeVerificationPaths.governanceReport);
@@ -161,11 +165,13 @@ export function verifyDiscoveryModeIntelligenceV2({
   const canonical = existsSync(canonicalPath) ? readJson(discoveryModeVerificationPaths.canonicalArtifact) : null;
   const baselineResults = Object.fromEntries(Object.entries(contract.protectedBehaviorBaselines).map(([name, baseline]) => {
     const actualSha256 = sha256(baseline.path);
+    const expectedSha256 = zipFounderAdoption.resolveBaseline(baseline.path, baseline.sha256);
     return [name, {
       path: baseline.path,
-      expectedSha256: baseline.sha256,
+      historicalExpectedSha256: baseline.sha256,
+      expectedSha256,
       actualSha256,
-      passed: actualSha256 === baseline.sha256
+      passed: actualSha256 === expectedSha256
     }];
   }));
   const entries = first.queuePlan.entries;

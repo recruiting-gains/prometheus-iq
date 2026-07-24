@@ -14,6 +14,9 @@ import {
   validateReadOnlyFieldSessionLearningPolicy,
   validateReadOnlyFieldSessionLearningSnapshot
 } from "../intelligence/read-only-field-session-learning.mjs";
+import {
+  verifyCrossIndustryZipFounderAccessAdoption
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const writeSnapshot = process.argv.includes("--write");
@@ -110,6 +113,7 @@ function verifySourceTransition({ commit, tree, subject, ownerSubsystem, paths, 
 export function verifyAugust1ProtectedBehaviorBaselines(contract) {
   const successor = readJson(currentBaselineSuccessorPath);
   const adoption = readJson(crossIndustryAdoptionPath);
+  const zipFounderAdoption = verifyCrossIndustryZipFounderAccessAdoption();
   const fields = git([
     "show", "-s", "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
     currentBaselineSuccessorCommit
@@ -263,8 +267,16 @@ export function verifyAugust1ProtectedBehaviorBaselines(contract) {
     transition
   ]));
   for (const transition of adoptionTransitions) {
-    assert.equal(sha256(transition.path), transition.currentSha256,
-      `Cross-industry protected source changed: ${transition.path}`);
+    const latestTransition = zipFounderAdoption.transitionByPath.get(transition.path);
+    if (latestTransition) {
+      assert.equal(latestTransition.previousSha256, transition.currentSha256,
+        `Cross-industry ZIP/Founder predecessor changed: ${transition.path}`);
+      assert.equal(sha256(transition.path), latestTransition.currentSha256,
+        `Cross-industry ZIP/Founder protected source changed: ${transition.path}`);
+    } else {
+      assert.equal(sha256(transition.path), transition.currentSha256,
+        `Cross-industry protected source changed: ${transition.path}`);
+    }
   }
   const governedTransitionNames = new Set([
     "dashboardSourceSha256",
@@ -280,9 +292,10 @@ export function verifyAugust1ProtectedBehaviorBaselines(contract) {
     const path = contract.protectedBehaviorBaselinePaths[name];
     const currentHash = sha256(path);
     const transition = transitionByPath.get(path);
-    assert.equal(expectedHash, transition?.currentSha256 || currentHash,
+    const latestHash = zipFounderAdoption.resolveBaseline(path, expectedHash);
+    assert.equal(expectedHash, transition?.currentSha256 || expectedHash,
       `Protected behavior predecessor changed: ${name}`);
-    assert.equal(currentHash, expectedHash,
+    assert.equal(currentHash, latestHash,
       `Protected behavior successor changed: ${name}`);
     if (transition && governedTransitionNames.has(name)) successorCount += 1;
   }

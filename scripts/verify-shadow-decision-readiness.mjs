@@ -30,6 +30,9 @@ import {
   routeIqProspectiveIntelligenceRetentionAdmissionVersion,
   validateRouteIqProspectiveRetentionPolicy,
 } from "../intelligence/route-iq-prospective-retention-admission.mjs";
+import {
+  verifyCrossIndustryZipFounderAccessAdoption,
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const crossIndustryShadowReadinessCoherenceSuccessorPath =
@@ -435,6 +438,7 @@ export function validateShadowDecisionContractCoherence(contract, config) {
       "utf8",
     ),
   );
+  const zipFounderAdoption = verifyCrossIndustryZipFounderAccessAdoption();
   assert.equal(
     dashboardCoherenceSuccessor.version,
     "route-iq-intelligence-cross-industry-shadow-readiness-coherence-v1",
@@ -565,10 +569,17 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     dashboardDeployBaseline,
   ]) {
     const currentTransition = currentDashboardTransitions[dashboardBaseline.path];
+    const latestTransition =
+      zipFounderAdoption.transitionByPath.get(dashboardBaseline.path);
     assert.ok(currentTransition);
+    assert.ok(latestTransition);
     assert.equal(currentTransition.previousSha256, dashboardBaseline.sha256);
     assert.equal(
+      latestTransition.previousSha256,
       currentTransition.currentSha256,
+    );
+    assert.equal(
+      latestTransition.currentSha256,
       sha256File(dashboardBaseline.path),
     );
   }
@@ -589,8 +600,10 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     "1ab2f617d77fa590ed39b7f5e7cb5ebb425f86a7",
   );
   assert.equal(
-    currentDashboardTransitions[dashboardSourceBaseline.path].currentSha256,
-    currentDashboardTransitions[dashboardDeployBaseline.path].currentSha256,
+    zipFounderAdoption.transitionByPath.get(dashboardSourceBaseline.path)
+      .currentSha256,
+    zipFounderAdoption.transitionByPath.get(dashboardDeployBaseline.path)
+      .currentSha256,
   );
   assert.deepEqual(dashboardCoherenceSuccessor.coherenceRule, {
     historicalContractBaselineRewritten: false,
@@ -1250,6 +1263,7 @@ export function verifyShadowDecisionReadiness({
       ...crossIndustryCoherenceSuccessor.intelligenceRuntimeTransitions,
     ].map((transition) => [transition.path, transition]),
   );
+  const zipFounderAdoption = verifyCrossIndustryZipFounderAccessAdoption();
   for (const [name, baseline] of Object.entries(
     contract.protectedBehaviorBaselines,
   )) {
@@ -1258,14 +1272,23 @@ export function verifyShadowDecisionReadiness({
       .digest("hex");
     const transition = currentProtectedSuccessors[baseline.path];
     if (transition) {
+      const latestTransition =
+        zipFounderAdoption.transitionByPath.get(baseline.path);
       assert.equal(
         transition.previousSha256,
         baseline.sha256,
         `Protected zero-influence predecessor changed: ${name}`,
       );
+      if (latestTransition) {
+        assert.equal(
+          latestTransition.previousSha256,
+          transition.currentSha256,
+          `Protected ZIP/Founder predecessor changed: ${name}`,
+        );
+      }
       assert.equal(
         actual,
-        transition.currentSha256,
+        latestTransition?.currentSha256 || transition.currentSha256,
         `Protected zero-influence successor changed: ${name}`,
       );
     } else {

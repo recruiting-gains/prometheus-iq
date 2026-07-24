@@ -414,6 +414,9 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   const crossIndustryRetentionSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json",
   );
+  const zipFounderAccessSuccessor = readJson(
+    "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+  );
   const coordinatorSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
   );
@@ -730,7 +733,14 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     assert.notEqual(artifact.previousSha256, artifact.currentSha256, artifact.path);
   }
   for (const transition of crossIndustryRetentionSuccessor.upstreamOwnerTransitions) {
-    assert.equal(sha256(transition.path), transition.currentSha256, transition.path);
+    const latestTransition = zipFounderAccessSuccessor.protectedBaselineSuccessors
+      .find((candidate) => candidate.path === transition.path);
+    if (latestTransition) {
+      assert.equal(latestTransition.previousSha256, transition.currentSha256, transition.path);
+      assert.equal(sha256(transition.path), latestTransition.currentSha256, transition.path);
+    } else {
+      assert.equal(sha256(transition.path), transition.currentSha256, transition.path);
+    }
     assert.notEqual(transition.previousSha256, transition.currentSha256, transition.path);
   }
   for (const artifact of crossIndustryRetentionSuccessor.intelligenceOwnerRuntimeTransition.artifacts) {

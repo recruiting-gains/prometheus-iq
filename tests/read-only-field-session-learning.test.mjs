@@ -13,6 +13,9 @@ import {
   validateReadOnlyFieldSessionLearningPolicy,
   validateReadOnlyFieldSessionLearningSnapshot
 } from "../intelligence/read-only-field-session-learning.mjs";
+import {
+  verifyCrossIndustryZipFounderAccessAdoption
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 import { verifyReadOnlyFieldSessionLearning } from "../scripts/verify-read-only-field-session-learning.mjs";
 
 const root = new URL("../", import.meta.url);
@@ -56,13 +59,32 @@ test("read-only field-session learning verifier passes against canonical archive
   assert.equal(result.protectedBehaviorSuccessors, 4);
 });
 
+test("approved ZIP and Founder Dashboard output advances only the protected presentation baseline", () => {
+  const { adoption, transitionByPath } =
+    verifyCrossIndustryZipFounderAccessAdoption();
+
+  assert.equal(adoption.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(transitionByPath.get("index.html").transitions[0].ownerSubsystem,
+    "Prometheus Dashboard");
+  assert.equal(transitionByPath.get("index.html").transitions[1].ownerSubsystem,
+    "Prometheus Infrastructure");
+  assert.equal(
+    transitionByPath.get("index.html").currentSha256,
+    transitionByPath.get("deploy/cloudflare-pages/index.html").currentSha256
+  );
+  assert.equal(adoption.intelligenceRuntimeIntegrity.runtimeFilesChangedSinceComparisonBase, false);
+  assert.equal(adoption.intelligenceRuntimeIntegrity.routeOrderingChanged, false);
+  assert.equal(adoption.intelligenceRuntimeIntegrity.routeScoringChanged, false);
+  assert.equal(adoption.boundaries.recommendationInfluence, "OFF");
+});
+
 test("read-only learning rejects an ungoverned protected-behavior successor", () => {
   const { contract } = fixtures();
   const changed = clone(contract);
   changed.protectedBehaviorBaselines.dashboardSourceSha256 = "0".repeat(64);
   assert.throws(
     () => verifyReadOnlyFieldSessionLearning({ contract: changed }),
-    /Protected behavior predecessor changed/u
+    /ZIP\/Founder protected predecessor mismatch/u
   );
 });
 

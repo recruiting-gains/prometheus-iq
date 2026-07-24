@@ -1283,6 +1283,18 @@ test("cross-industry Dashboard successor preserves the historical shadow baselin
       "utf8",
     ),
   );
+  const zipFounderSuccessor = JSON.parse(
+    readFileSync(
+      "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+      "utf8",
+    ),
+  );
+  const zipFounderTransitions = Object.fromEntries(
+    zipFounderSuccessor.protectedBaselineSuccessors.map((transition) => [
+      transition.path,
+      transition,
+    ]),
+  );
   const transitionEntries = [
     ...successor.dashboardTransitions,
     ...successor.infrastructureTransitions,
@@ -1313,7 +1325,16 @@ test("cross-industry Dashboard successor preserves the historical shadow baselin
     const transition = transitions[baseline.path];
     assert.ok(transition);
     assert.equal(transition.previousSha256, baseline.sha256);
-    assert.equal(transition.currentSha256, digest(readFileSync(baseline.path)));
+    const zipFounderTransition = zipFounderTransitions[baseline.path];
+    if (zipFounderTransition) {
+      assert.equal(zipFounderTransition.previousSha256, transition.currentSha256);
+      assert.equal(
+        zipFounderTransition.currentSha256,
+        digest(readFileSync(baseline.path)),
+      );
+    } else {
+      assert.equal(transition.currentSha256, digest(readFileSync(baseline.path)));
+    }
   }
   assert.deepEqual(
     Object.keys(transitions).sort(),
@@ -1322,8 +1343,8 @@ test("cross-industry Dashboard successor preserves the historical shadow baselin
       .sort(),
   );
   assert.equal(
-    transitions["index.html"].currentSha256,
-    transitions["deploy/cloudflare-pages/index.html"].currentSha256,
+    zipFounderTransitions["index.html"].currentSha256,
+    zipFounderTransitions["deploy/cloudflare-pages/index.html"].currentSha256,
   );
   for (const baselineKey of [
     "routeGeneration",

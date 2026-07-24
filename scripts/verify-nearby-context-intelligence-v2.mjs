@@ -19,6 +19,9 @@ import {
   buildRouteBusinessHoursIndex,
   routeBusinessHoursEligibilityVersion
 } from "../intelligence/route-business-hours-eligibility.mjs";
+import {
+  verifyCrossIndustryZipFounderAccessAdoption
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const paths = {
@@ -445,6 +448,7 @@ export function verifyNearbyContextIntelligenceV2({
   writeArtifact = false,
   checkProtectedBaselines = true
 } = {}) {
+  const zipFounderAdoption = verifyCrossIndustryZipFounderAccessAdoption();
   const config = loadNearbyContextConfig();
   const contract = loadNearbyContextContract();
   const governanceReport = readJson(paths.governanceReport);
@@ -467,11 +471,13 @@ export function verifyNearbyContextIntelligenceV2({
   const canonical = existsSync(canonicalPath) ? readJson(paths.canonicalArtifact) : null;
   const baselineResults = Object.fromEntries(Object.entries(contract.protectedBehaviorBaselines).map(([name, baseline]) => {
     const actualSha256 = sha256(baseline.path);
+    const expectedSha256 = zipFounderAdoption.resolveBaseline(baseline.path, baseline.sha256);
     return [name, {
       path: baseline.path,
-      expectedSha256: baseline.sha256,
+      historicalExpectedSha256: baseline.sha256,
+      expectedSha256,
       actualSha256,
-      passed: actualSha256 === baseline.sha256
+      passed: actualSha256 === expectedSha256
     }];
   }));
   const [texans, christian] = first.stressContexts;

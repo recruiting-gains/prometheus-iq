@@ -1,0 +1,118 @@
+{
+  "version": "route-iq-intelligence-cross-industry-zip-founder-access-v1",
+  "directive": "ZIP Coverage, Multi-Company Founder Access, and 72-Hour Onboarding",
+  "status": "OWNER_REVIEWED_PROTECTED_BASELINE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Adopt the approved Dashboard and Infrastructure ZIP-coverage and Founder workspace-switching output as the current protected presentation baseline without rewriting historical Intelligence checkpoints or changing Intelligence runtime behavior.",
+  "predecessors": [
+    {
+      "path": "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json",
+      "sha256": "a89539353c221b061cd39d97130764de3bbd2add03432a4c284017f483504b06",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    {
+      "path": "intelligence/provenance/protected-baseline-synchronization-cross-industry-shadow-readiness-coherence-v1.json",
+      "sha256": "107a620588542075168c91447e378b480a6cb197350c1f91b41d4382438619ad",
+      "remainsHistorical": true,
+      "rewritten": false
+    }
+  ],
+  "protectedBaselineSuccessors": [
+    {
+      "path": "index.html",
+      "previousSha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108",
+      "currentSha256": "2f156319b08a5f463682815deb6db93be2344f751afaa93ea3db00bbacd97d91",
+      "transitions": [
+        {
+          "ownerSubsystem": "Prometheus Dashboard",
+          "commit": "8b3270cfa5b2c9296ff2cba94ce909aef061522b",
+          "tree": "489b1a301a1639b48ee42c1a0cf1fa85f8a3f704",
+          "subject": "dashboard: enforce ZIP scope and Founder switching",
+          "previousSha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108",
+          "currentSha256": "217b4fcd4a2fd32451c654d70c568531e27cfb8952149491ad69e2c52ea88417"
+        },
+        {
+          "ownerSubsystem": "Prometheus Infrastructure",
+          "commit": "0b8509197d255c01708ad3dac6a4f80b7bef869c",
+          "tree": "928fe180e22c77a2cd5d78db286dc54b5a23ca6f",
+          "subject": "infrastructure: integrate canonical ZIP coverage runtime",
+          "previousSha256": "217b4fcd4a2fd32451c654d70c568531e27cfb8952149491ad69e2c52ea88417",
+          "currentSha256": "2f156319b08a5f463682815deb6db93be2344f751afaa93ea3db00bbacd97d91"
+        }
+      ]
+    },
+    {
+      "path": "deploy/cloudflare-pages/index.html",
+      "previousSha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108",
+      "currentSha256": "2f156319b08a5f463682815deb6db93be2344f751afaa93ea3db00bbacd97d91",
+      "transitions": [
+        {
+          "ownerSubsystem": "Prometheus Infrastructure",
+          "commit": "0b8509197d255c01708ad3dac6a4f80b7bef869c",
+          "tree": "928fe180e22c77a2cd5d78db286dc54b5a23ca6f",
+          "subject": "infrastructure: integrate canonical ZIP coverage runtime",
+          "previousSha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108",
+          "currentSha256": "2f156319b08a5f463682815deb6db93be2344f751afaa93ea3db00bbacd97d91"
+        }
+      ]
+    }
+  ],
+  "approvedDashboardOutput": {
+    "founderWorkspaceSwitching": "exact_mapped_founder_only",
+    "territoryZipCoverage": "canonical_configuration_only",
+    "sourceDeployParityRequired": true,
+    "reusableCrossIndustryDashboardPreserved": true,
+    "representativeWorkspaceEnumerationAllowed": false,
+    "recommendationBehaviorChanged": false
+  },
+  "intelligenceRuntimeIntegrity": {
+    "comparisonBase": "37fd948bd7b05cfa88155ea42b49ea84b1cd8a2b",
+    "artifacts": [
+      {
+        "path": "intelligence/continuous-adaptive-route-replenishment.mjs",
+        "sha256": "4b0f583ce97e8301fc2a67096a448995fa576e7f82ebbc474ca6c6348a432f0c"
+      },
+      {
+        "path": "intelligence/route-business-hours-eligibility.mjs",
+        "sha256": "7889082c5bb9bbc34b481021452c56c5ac40b28c549cae3db37b8352eff82c3c"
+      },
+      {
+        "path": "intelligence/read-only-field-session-learning.mjs",
+        "sha256": "affa6e4c27c944fdba525442eb950d75eebc5aaccc8cf40c82269433ef7c0046"
+      },
+      {
+        "path": "intelligence/off-route-learning-intelligence.mjs",
+        "sha256": "cfb0ea2ab1ce69a9e614d402b60bd7cc21ee88df97914c4e558a070ff27403bd"
+      },
+      {
+        "path": "intelligence/discovery-mode-intelligence-v2.mjs",
+        "sha256": "993b20573283f8ff05448ece5218c403208f2a84575253bbd5596441be43835e"
+      },
+      {
+        "path": "intelligence/nearby-context-intelligence-v2.mjs",
+        "sha256": "c65f20334c60afa86b8204df39178dee3f0e2c89ec7750d11aaa5bd14d094fab"
+      },
+      {
+        "path": "scripts/lib/route-intelligence-quality-gate.mjs",
+        "sha256": "e4e4f77a52cfdd08af81c790e6a6fd6c47ebd6056ca5896f6b38752f7e533ba9"
+      }
+    ],
+    "runtimeFilesChangedSinceComparisonBase": false,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "businessHoursEligibilityChanged": false,
+    "readOnlyLearningChanged": false,
+    "discoveryOrNearbyRuntimeChanged": false
+  },
+  "boundaries": {
+    "readinessState": "INSUFFICIENT_EVIDENCE",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}
