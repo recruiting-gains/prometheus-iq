@@ -33,6 +33,8 @@ const currentCrossIndustryIntelligenceSuccessorCommit =
   "5215ad7f261590f5901dc84a3b8e59d9bde6ce8b";
 const currentCrossIndustryIntelligenceSuccessorPath =
   "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json";
+const currentCrossIndustryIntelligenceClaimsPath =
+  "intelligence/contracts/route-iq-public-intelligence-claims-v1.json";
 const currentCrossIndustryCoherenceCommit =
   "41adcee256f2b46970709542875e90a6dd711c19";
 const currentCrossIndustryCoherencePaths = new Map([
@@ -922,10 +924,40 @@ export function verifyReleaseProvenanceRepair() {
   const intelligenceCorroboration = publicClaimsEvidenceMatrix.crossOwnerCorroborationSources.find(
     source => source.ownerSubsystem === "Prometheus Intelligence Engine"
   );
-  assert.equal(intelligenceCorroboration.ownerCommit, restored3dRouteQualitySuccessorCommit);
+  assert.equal(
+    intelligenceCorroboration.ownerCommit === restored3dRouteQualitySuccessorCommit
+      || intelligenceCorroboration.ownerCommit === currentCrossIndustryIntelligenceSuccessorCommit,
+    true
+  );
+  if (intelligenceCorroboration.ownerCommit === currentCrossIndustryIntelligenceSuccessorCommit) {
+    assert.equal(intelligenceCorroboration.path, currentCrossIndustryIntelligenceClaimsPath);
+    assert.deepEqual(
+      git(
+        "show",
+        "-s",
+        "--format=%an <%ae>%n%cn <%ce>",
+        currentCrossIndustryIntelligenceSuccessorCommit
+      ).split("\n"),
+      [
+        "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+        "Prometheus Intelligence Engine <intelligence@prometheus.local>"
+      ]
+    );
+    assert.equal(
+      changedPaths(currentCrossIndustryIntelligenceSuccessorCommit)
+        .includes(currentCrossIndustryIntelligenceClaimsPath),
+      true
+    );
+    assert.doesNotThrow(() => git(
+      "merge-base",
+      "--is-ancestor",
+      currentCrossIndustryIntelligenceSuccessorCommit,
+      "HEAD"
+    ));
+  }
   assert.equal(
     intelligenceCorroboration.ownerTree,
-    git("rev-parse", `${restored3dRouteQualitySuccessorCommit}^{tree}`)
+    git("rev-parse", `${intelligenceCorroboration.ownerCommit}^{tree}`)
   );
   assert.equal(
     intelligenceCorroboration.sha256,
