@@ -11,6 +11,7 @@
       "recordId": "synthetic_outside_sales_opportunity_001",
       "businessName": "Northstar Office Supply",
       "address": "100 Validation Way, Example City, TX 77001",
+      "postalCode": "77003",
       "category": "Office",
       "territoryId": "synthetic_north_territory",
       "approvalState": "APPROVED_SYNTHETIC_VALIDATION"
@@ -19,6 +20,7 @@
       "recordId": "synthetic_outside_sales_opportunity_002",
       "businessName": "Meridian Equipment Services",
       "address": "200 Validation Way, Example City, TX 77001",
+      "postalCode": "77003",
       "category": "Business Services",
       "territoryId": "synthetic_north_territory",
       "approvalState": "APPROVED_SYNTHETIC_VALIDATION"
@@ -27,6 +29,7 @@
       "recordId": "synthetic_outside_sales_opportunity_003",
       "businessName": "Harbor Commercial Printing",
       "address": "300 Validation Way, Example City, TX 77001",
+      "postalCode": "77003",
       "category": "Business",
       "territoryId": "synthetic_north_territory",
       "approvalState": "APPROVED_SYNTHETIC_VALIDATION"
