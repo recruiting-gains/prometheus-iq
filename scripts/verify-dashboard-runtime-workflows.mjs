@@ -43,7 +43,8 @@ const customerPwaRuntimeRecords = Object.freeze(Array.from({ length: 20 }, (_, o
   return Object.freeze({
     recordId: `synthetic_outside_sales_opportunity_${String(sequence).padStart(3, "0")}`,
     businessName: `Synthetic Outside Sales Opportunity ${sequence}`,
-    address: `${sequence}00 Validation Way, Example City, TX 77001`,
+    address: `${sequence}00 Validation Way, Example City, TX 77003`,
+    postalCode: "77003",
     category: sequence % 2 ? "Business Services" : "Office",
     territoryId: "synthetic_north_territory",
     approvalState: "APPROVED_SYNTHETIC_VALIDATION",
@@ -3261,6 +3262,23 @@ export function installHarnessSignalCleanup(cleanup, {
 
 async function runHarness() {
   verifyRouteUpdateStatusContract();
+  const customerPwaTerritory = customerPwaWorkspaceConfiguration.territories.find(
+    territory => territory.territoryId === "synthetic_north_territory"
+  );
+  assertWorkflow(
+    "Customer PWA governed ZIP fixture",
+    customerPwaRuntimeRecords.every(record =>
+      record.territoryId === customerPwaTerritory?.territoryId
+        && record.postalCode === "77003"
+        && customerPwaTerritory.zipCoverage.postalCodes.includes(record.postalCode)
+    ),
+    `${customerPwaRuntimeRecords.length} synthetic runtime records carry the Administration-authorized territory ZIP`,
+    JSON.stringify({
+      recordCount: customerPwaRuntimeRecords.length,
+      territoryId: customerPwaTerritory?.territoryId || "",
+      postalCodes: [...new Set(customerPwaRuntimeRecords.map(record => record.postalCode))]
+    })
+  );
   const chromeExecutable = resolveChromeExecutable();
   const resources = [];
   let interruptedSignal;
