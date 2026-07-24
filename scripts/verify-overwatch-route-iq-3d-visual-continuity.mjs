@@ -11,6 +11,8 @@ import { verifyOverwatchPublicDeploymentIntegrityRepairReadiness } from "./verif
 import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
 
 export const ROUTE_IQ_3D_GOVERNANCE_PATH = "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
+const PUBLIC_DEPLOYMENT_GOVERNANCE_PATH =
+  "overwatch/governance/public-deployment-workflow-v2.json";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const STARTING_COMMIT = "08b452c4cc187fd3b8bd957e6bedef3aed12ac01";
@@ -312,8 +314,10 @@ function verifyWebsiteAndClaims(root) {
     "connection?.saveData",
     "data-visual-fallback=\"field-operations\"",
     ">REQUEST ROUTE IQ<",
-    "Turn field evidence into decision-ready intelligence",
-    "does not prove causal uplift or recommendation superiority"
+    "U.S. PATENT PENDING TECHNOLOGY",
+    "Field decision intelligence for outside-sales teams.",
+    "organizes context so a person can compare approved opportunities",
+    "When evidence quality and coverage support it"
   ]) assert.ok(`${source}\n${styles}`.includes(value), `Website invariant missing: ${value}`);
 
   for (const value of [
@@ -336,9 +340,10 @@ function verifyWebsiteAndClaims(root) {
     /proven recommendation superiority/iu,
     /guaranteed outcome/iu
   ]) assert.doesNotMatch(publicText, pattern);
+  assert.doesNotMatch(`${source}\n${landing}`, /causal uplift|recommendation superiority/iu);
 
   assert.doesNotMatch(landing, /<link[^>]+rel="preload"[^>]+route-iq-field-operations\.jpg/iu);
-  assert.match(landing, /Route IQ \| Field Evidence to Decision Intelligence/u);
+  assert.match(landing, /Route IQ \| Field Decision Intelligence for Outside Sales/u);
   assert.match(landing, /route-iq-field-operations-social\.jpg/u);
   for (const removed of [
     "deploy/prometheusrouteiq-website/enterprise-lead-intake.js",
@@ -388,24 +393,32 @@ export function verifyOverwatchRouteIq3dVisualContinuity({
   requireCommittedOverwatch = true
 } = {}) {
   const governance = validateRouteIq3dVisualContinuityGovernance(readJson(root, ROUTE_IQ_3D_GOVERNANCE_PATH));
-  const authoritativeSuccessor = verifyOverwatchPublicDeploymentIntegrityRepairReadiness({
+  const historicalReadiness = verifyOverwatchPublicDeploymentIntegrityRepairReadiness({
     root,
     build: false,
     requireClean,
     requireCommittedOverwatch
   });
+  const activeRelease = readJson(
+    root,
+    PUBLIC_DEPLOYMENT_GOVERNANCE_PATH
+  ).routeIqWebsitePositioningSuccessor;
+  assert.equal(activeRelease?.classification, "CONTROLLING_PUBLIC_RELEASE_SUCCESSOR");
+  assert.equal(activeRelease?.historicalAugust1EvidencePreserved, true);
+  assert.equal(activeRelease?.deploymentPerformed, false);
+  assert.equal(activeRelease?.productionMutationPerformed, false);
   const commits = verifyOwnership(root, governance);
   verifyWebsiteAndClaims(root);
   verifyCrmAndIsolation(root);
 
   assert.equal(
     sha256File(root, governance.rollback.contractPath),
-    authoritativeSuccessor.rollbackContractSha256
+    activeRelease.currentReleaseIdentities.rollbackContractSha256
   );
   const deployment = verifyRouteIqPublicDeploymentAssets({ build });
   assert.equal(
     deployment.deploymentAssetsSha256,
-    authoritativeSuccessor.deploymentAssetsSha256
+    activeRelease.currentReleaseIdentities.deploymentAssetSha256
   );
   for (const path of [
     "overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json"
@@ -425,14 +438,15 @@ export function verifyOverwatchRouteIq3dVisualContinuity({
     ownerCommits: commits.slice(0, EXPECTED_OWNER_ORDER.length),
     deploymentAssetsSha256: deployment.deploymentAssetsSha256,
     historicalDeploymentAssetsSha256: governance.generatedAssets.deploymentAssetsSha256,
-    rollbackArtifactSha256: authoritativeSuccessor.rollbackBundleSha256,
+    rollbackArtifactSha256: activeRelease.currentReleaseIdentities.rollbackArtifactSha256,
     historicalRollbackArtifactSha256: governance.rollback.artifactSha256,
     initialCriticalBytes: deployment.initialCriticalBytes,
     lazy3dBytes: deployment.sizes.lazy3d,
     recommendationInfluence: governance.safetyState.recommendationInfluence,
     prospectiveCollection: governance.safetyState.prospectiveCollection,
     activeCohorts: governance.safetyState.activeCohorts,
-    readinessStatus: authoritativeSuccessor.status,
+    readinessStatus: activeRelease.classification,
+    historicalReadinessStatus: historicalReadiness.status,
     deploymentPerformed: false
   });
 }

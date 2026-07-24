@@ -15,11 +15,11 @@ test("Overwatch verifies the owned 3D successor, generated assets, CRM boundary,
   assert.equal(result.status, "ROUTE_IQ_3D_VISUAL_CONTINUITY_VERIFIED");
   assert.equal(result.batchId, "BATCH-20260719-006");
   assert.equal(result.ownerCommits.length, 7);
-  assert.equal(result.deploymentAssetsSha256, "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1");
+  assert.equal(result.deploymentAssetsSha256, "ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e");
   assert.equal(result.historicalDeploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
-  assert.equal(result.rollbackArtifactSha256, "012552cf90827482c7f1309f50e492304d9094e1c53f0c7ee6b44a5e0c4e9fbe");
+  assert.equal(result.rollbackArtifactSha256, "f8fceee62838c182a4e093d4d8bc57c71bf5ec8dbe71707db76c63ecd7a4b1eb");
   assert.equal(result.historicalRollbackArtifactSha256, "381b471ed3fa0a1fdab0b612600be2f2b6e77b45d3b9c02418a056e0eb500b5a");
-  assert.equal(result.initialCriticalBytes, 456512);
+  assert.equal(result.initialCriticalBytes, 459699);
   assert.equal(result.lazy3dBytes, 892213);
   assert.equal(result.recommendationInfluence, "OFF");
   assert.equal(result.prospectiveCollection, "OFF");
@@ -30,22 +30,22 @@ test("Overwatch verifies the owned 3D successor, generated assets, CRM boundary,
 test("historical 3D release evidence remains historical beside the current candidate", () => {
   const historical = governance();
   const current = JSON.parse(readFileSync(
-    "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+    "overwatch/governance/public-deployment-workflow-v2.json",
     "utf8"
-  )).august1LaunchCloseoutSuccessor;
+  )).routeIqWebsitePositioningSuccessor;
   assert.equal(
     historical.generatedAssets.deploymentAssetsSha256,
     "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15"
   );
   assert.equal(
-    current.currentReleaseIdentities.deploymentAssetsSha256,
-    "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1"
+    current.currentReleaseIdentities.deploymentAssetSha256,
+    "ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e"
   );
-  assert.equal(current.historicalReadinessPreserved, true);
-  assert.equal(current.historicalReleaseIdentitiesRemainNoncurrent, true);
+  assert.equal(current.historicalAugust1EvidencePreserved, true);
+  assert.equal(current.historicalAugust1HashesAreCurrent, false);
   assert.notEqual(
     historical.generatedAssets.deploymentAssetsSha256,
-    current.currentReleaseIdentities.deploymentAssetsSha256
+    current.currentReleaseIdentities.deploymentAssetSha256
   );
 });
 
