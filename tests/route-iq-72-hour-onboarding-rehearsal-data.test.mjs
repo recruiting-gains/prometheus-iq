@@ -222,4 +222,20 @@ test("territory drift, production admission, and immutable artifact drift fail c
     () => validateRouteIq72HourOnboardingRehearsal(hashDrift, { repoRoot }),
     error => error.code === "route_iq_rehearsal_artifact_hash_mismatch"
   );
+
+  const productionArtifactDrift = isolatedFixture();
+  const activePoolPath = canonicalPaths.find(path => path.endsWith("/active-pool.json"));
+  const activePool = readJson(activePoolPath, productionArtifactDrift.root);
+  activePool.generatedAt = "2026-07-23T12:00:01.000Z";
+  writeFileSync(
+    resolve(productionArtifactDrift.root, activePoolPath),
+    stableRouteIq72HourOnboardingJson(activePool)
+  );
+  assert.throws(
+    () => validateRouteIq72HourOnboardingRehearsal(
+      productionArtifactDrift.registry,
+      { repoRoot: productionArtifactDrift.root }
+    ),
+    error => error.code === "route_iq_rehearsal_production_baseline_drift"
+  );
 });

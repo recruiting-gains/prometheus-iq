@@ -8,7 +8,7 @@
   "fallbackPolicy": "FAIL_CLOSED_REHEARSAL_ONLY_NO_CANONICAL_ADMISSION",
   "canonicalProductionBaseline": {
     "manifestRegistryPath": "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
-    "manifestRegistrySha256": "fb5533b8ca1ab8e07f6796d219341294f89626dba822b5c944177ba849d34605",
+    "manifestRegistrySha256": "7f4d408462ce723290ad4b3453488d80dc957c50c2d769195002b0916d18917f",
     "runtimePoolManifestPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json",
     "runtimePoolManifestSha256": "f0643f445ed5fad7e6e88e2b6965e9f36a55252bb615b5382486a6275cb616d5",
     "activePoolPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
