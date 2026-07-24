@@ -16,6 +16,12 @@ import {
   validateRouteIqAugust1LaunchEnvelope
 } from "../../data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs";
 import { AEGIS_API_HEADERS } from "./aegis-security-controls.js";
+import {
+  ROUTE_IQ_MULTI_COMPANY_FAILURES,
+  RouteIqMultiCompanyRuntimeAuthorizationError,
+  projectRouteIqWorkspaceZipCoverage,
+  requestedRouteIqWorkspaceId
+} from "./route-iq-multi-company-runtime-authorization.js";
 
 export const ROUTE_IQ_CUSTOMER_PWA_PATH = "/app";
 export const ROUTE_IQ_CUSTOMER_PWA_TRAILING_SLASH_PATH = "/app/";
@@ -347,11 +353,27 @@ function resolveExactRuntimeAssets(principal, bindings, { noncanonicalTest = fal
     fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
   }
 
+  let zipCoverage;
+  try {
+    zipCoverage = projectRouteIqWorkspaceZipCoverage({
+      principal,
+      workspaceRegistry: registry
+    });
+  } catch {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.runtimeBindingInvalid, 503);
+  }
+
   return deepFreeze({
-    workspaceConfiguration: workspaceConfigurationPath,
-    businessManifestRegistry: manifestRegistryPath,
-    businessRoster: businessRosterPath,
-    businessHours: businessHoursPath
+    runtimeAssets: {
+      workspaceConfiguration: workspaceConfigurationPath,
+      businessManifestRegistry: manifestRegistryPath,
+      businessRoster: businessRosterPath,
+      businessHours: businessHoursPath
+    },
+    runtimeAuthorization: {
+      territoryIds: zipCoverage.territoryIds,
+      zipCoverage
+    }
   });
 }
 
@@ -445,6 +467,9 @@ function launchInputs(testHooks) {
       registry: testHooks.registry || commercialWorkspaceRegistry,
       currentDate: testHooks.currentDate,
       keyResolver: testHooks.keyResolver,
+      dataAuthorizePrincipal: typeof testHooks.dataAuthorizePrincipal === "function"
+        ? testHooks.dataAuthorizePrincipal
+        : authorizeRouteIqAugust1LaunchPrincipal,
       runtimeBindings: testHooks.runtimeBindings,
       noncanonicalTest: true
     };
@@ -454,6 +479,7 @@ function launchInputs(testHooks) {
     registry: commercialWorkspaceRegistry,
     currentDate: undefined,
     keyResolver: undefined,
+    dataAuthorizePrincipal: authorizeRouteIqAugust1LaunchPrincipal,
     runtimeBindings: {
       workspaceConfiguration: {
         path: WORKSPACE_CONFIGURATION_ASSET_PATH,
@@ -479,6 +505,8 @@ function mapLaunchFailure(error) {
     case "route_iq_launch_role_unauthorized":
       return new RouteIqCustomerPwaRuntimeError(ROUTE_IQ_CUSTOMER_PWA_FAILURES.roleUnauthorized);
     case "route_iq_launch_cross_workspace_denied":
+    case "route_iq_launch_requested_workspace_unauthorized":
+    case "route_iq_launch_workspace_selection_unauthorized":
       return new RouteIqCustomerPwaRuntimeError(ROUTE_IQ_CUSTOMER_PWA_FAILURES.scopeMismatch);
     case "route_iq_launch_cross_user_write_denied":
       return new RouteIqCustomerPwaRuntimeError(ROUTE_IQ_CUSTOMER_PWA_FAILURES.crossUserWriteDenied);
@@ -493,6 +521,17 @@ export async function authorizeRouteIqCustomerPwaRequest(request, env = {}, { te
   }
   if (env?.[ROUTE_IQ_CUSTOMER_PWA_ENV.workerName] !== CUSTOMER_PWA_WORKER_NAME) {
     fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.configurationInvalid, 503);
+  }
+
+  let requestedWorkspaceId;
+  try {
+    requestedWorkspaceId = requestedRouteIqWorkspaceId(request);
+  } catch (error) {
+    if (error instanceof RouteIqMultiCompanyRuntimeAuthorizationError
+      && error.code === ROUTE_IQ_MULTI_COMPANY_FAILURES.selectionInvalid) {
+      fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.scopeMismatch);
+    }
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.launchInvalid, 503);
   }
 
   const inputs = launchInputs(testHooks);
@@ -566,22 +605,31 @@ export async function authorizeRouteIqCustomerPwaRequest(request, env = {}, { te
   const authenticatedPrincipalId = `riq_principal_${await sha256(payload.sub)}`;
   let principal;
   try {
-    principal = authorizeRouteIqAugust1LaunchPrincipal({
+    principal = await inputs.dataAuthorizePrincipal({
       envelope: inputs.envelope,
       registry: inputs.registry,
       authenticatedPrincipalId,
+      requestedWorkspaceId,
       now: inputs.currentDate || new Date()
     });
   } catch (error) {
     throw mapLaunchFailure(error);
   }
-  const runtimeAssets = resolveExactRuntimeAssets(principal, inputs.runtimeBindings, {
+  if (requestedWorkspaceId !== undefined && principal?.workspaceId !== requestedWorkspaceId) {
+    fail(ROUTE_IQ_CUSTOMER_PWA_FAILURES.scopeMismatch);
+  }
+  const runtimeContext = resolveExactRuntimeAssets(principal, inputs.runtimeBindings, {
     noncanonicalTest: inputs.noncanonicalTest
+  });
+  const runtimePrincipal = deepFreeze({
+    ...clone(principal),
+    territoryIds: clone(runtimeContext.runtimeAuthorization.territoryIds)
   });
   return deepFreeze({
     launch,
-    principal,
-    runtimeAssets,
+    principal: runtimePrincipal,
+    runtimeAssets: runtimeContext.runtimeAssets,
+    runtimeAuthorization: runtimeContext.runtimeAuthorization,
     accessExpiresAt: new Date(payload.exp * 1000).toISOString()
   });
 }
