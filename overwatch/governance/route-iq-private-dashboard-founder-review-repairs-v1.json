@@ -1,0 +1,155 @@
+{
+  "governanceId": "route-iq-private-dashboard-founder-review-repairs-v1",
+  "batchId": "BATCH-20260723-005",
+  "status": "ENGINEERING_VERIFIED_QUALIFICATION_PENDING",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "startingCandidate": {
+    "commit": "37fd948bd7b05cfa88155ea42b49ea84b1cd8a2b",
+    "tree": "98c11cd15f7342154dc6ad312871386d6d87fbcc",
+    "status": "PRIVATE_DASHBOARD_FOUNDER_REVIEW_BLOCKED"
+  },
+  "ownerCommits": [
+    {
+      "subsystem": "Prometheus Administration",
+      "commit": "908df79eea2b3b79bbe03be1344dae943dad11ce",
+      "subject": "administration: govern ZIP coverage and onboarding rehearsal"
+    },
+    {
+      "subsystem": "Prometheus Data",
+      "commit": "c33a704a63ed63230e41b7a1f2ce576554b2f704",
+      "subject": "data: add isolated onboarding rehearsal evidence"
+    },
+    {
+      "subsystem": "Prometheus Dashboard",
+      "commit": "8b3270cfa5b2c9296ff2cba94ce909aef061522b",
+      "subject": "dashboard: enforce ZIP scope and Founder switching"
+    },
+    {
+      "subsystem": "Prometheus Infrastructure",
+      "commit": "358855a256f1ecefb09fcbd5053ef8dc38e96ea9",
+      "subject": "infrastructure: add multi-company runtime authorization"
+    },
+    {
+      "subsystem": "Prometheus Infrastructure",
+      "commit": "0b8509197d255c01708ad3dac6a4f80b7bef869c",
+      "subject": "infrastructure: integrate canonical ZIP coverage runtime"
+    },
+    {
+      "subsystem": "Prometheus Data",
+      "commit": "339a9c457d5092977bf297ec1ff2d931aa0baf56",
+      "subject": "data: bind Northstar roster to ZIP coverage"
+    },
+    {
+      "subsystem": "Prometheus Dashboard",
+      "commit": "12b0e436469afa6bf29b23314eb83df401e3ca98",
+      "subject": "dashboard: bind runtime harness to governed ZIP"
+    },
+    {
+      "subsystem": "Prometheus Data",
+      "commit": "7cb938cc09dfc1d07e01d2b6e40a458bd9d6b075",
+      "subject": "data: reconcile rehearsal production baseline pin"
+    },
+    {
+      "subsystem": "Prometheus Dashboard",
+      "commit": "23833b40c38e0c417a23315f82f5c5f779ef59b3",
+      "subject": "dashboard: keep retired-name evidence canonical"
+    },
+    {
+      "subsystem": "Prometheus Infrastructure",
+      "commit": "f5a81674a6e4c949dc35944f19a2b5829175a613",
+      "subject": "infrastructure: sync private dashboard data mirrors"
+    },
+    {
+      "subsystem": "Prometheus Data",
+      "commit": "dcc639f7a65037db284ca501b426ac086020bbbb",
+      "subject": "data: bind onboarding rehearsal to Summit configuration"
+    },
+    {
+      "subsystem": "Prometheus Dashboard",
+      "commit": "56aaf2ec155e1f4054526473591af6b81cb2465b",
+      "subject": "dashboard: validate Summit rehearsal in mobile browser"
+    }
+  ],
+  "zipCoverage": {
+    "authority": "Prometheus Administration",
+    "source": "territories[].zipCoverage.postalCodes",
+    "format": "US_FIVE_DIGIT",
+    "versioned": true,
+    "duplicateAllowed": false,
+    "crossOwnerAllowed": false,
+    "configurationOnlyMutation": true,
+    "missingInvalidOrUnauthorized": "FAIL_CLOSED"
+  },
+  "founderAccess": {
+    "exactPrincipalRequired": true,
+    "authorizedWorkspaceIds": [
+      "fitness_connection",
+      "northstar_outside_sales_synthetic"
+    ],
+    "workspaceSessionCount": 1,
+    "companyDataMergingAllowed": false,
+    "representativeEnumerationAllowed": false,
+    "displayNameAuthorizationAllowed": false,
+    "anthonyMappingStatus": "UNMAPPED"
+  },
+  "onboardingRehearsal": {
+    "workspaceId": "summit_outside_sales_rehearsal_synthetic",
+    "companyId": "summit_service_supply_rehearsal_synthetic",
+    "operatingProfileId": "general_outside_sales",
+    "classification": "SYNTHETIC_NONPRODUCTION_REHEARSAL",
+    "runtimeAssetCount": 4,
+    "automatedConfigurationSeconds": 600,
+    "elapsedEvidenceSeconds": 1200,
+    "maximumTargetSeconds": 259200,
+    "mobileViewport": {
+      "width": 390,
+      "height": 844
+    },
+    "dashboardWorkflowAssertions": 162,
+    "seventyTwoHourStandardProven": false,
+    "remainingBoundaries": [
+      "NAMED_USER_IDENTITY_CONFIRMATION",
+      "TRAINING_COMPLETION",
+      "SUPPORT_OWNER_CONFIRMATION",
+      "INCIDENT_OWNER_CONFIRMATION",
+      "AVAILABILITY_PROVIDER_CREDENTIALS",
+      "PRODUCTION_MANIFEST_APPROVAL",
+      "DATA_PRODUCER_BINDING",
+      "INITIAL_FRESH_AVAILABILITY_SNAPSHOT",
+      "DAILY_SCHEDULER_ACTIVATION",
+      "FRESHNESS_MONITORING_CONFIRMATION",
+      "ACTIVE_RESERVE_POOL_TRANSITION_APPROVAL",
+      "EXACT_390_X_844_FOUNDER_ATTENDED_ACCEPTANCE"
+    ]
+  },
+  "productionBoundary": {
+    "dataCounts": {
+      "active": 0,
+      "reserve": 0,
+      "quarantine": 398
+    },
+    "availabilityProviders": "OFF",
+    "dailyScheduler": "OFF",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "deploymentAuthorized": false,
+    "productionMutationAuthorized": false,
+    "publicWorkerAffected": false,
+    "crmReceiptMutationAuthorized": false
+  },
+  "knownProductionIdentity": {
+    "source": "FOUNDER_DIRECTIVE_REPORTED_NOT_REQUERIED_BY_ENGINEERING_BATCH",
+    "publicWorkerVersion": "28c6ffbc-86dc-4037-aaff-5c74f5fe990e",
+    "privateWorkerVersion": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+    "trafficPercent": 100
+  },
+  "qualification": {
+    "workflow": ".github/workflows/qualify-route-iq-private-dashboard-release.yml",
+    "manualOnly": true,
+    "secretAccessAllowed": false,
+    "deploymentAllowed": false,
+    "artifactRequired": true,
+    "independentDownloadReverificationRequired": true
+  }
+}
