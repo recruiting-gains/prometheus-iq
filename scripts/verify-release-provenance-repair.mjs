@@ -39,6 +39,23 @@ const currentCrossIndustryCoherencePaths = new Map([
   ["scripts/verify-shadow-decision-readiness.mjs", "0a6cd4730a223304f9008c375735a84ff4ea0517db83876c9b0bbc9d5106f1c2"],
   ["tests/shadow-decision-readiness.test.mjs", "ca0b685c8fc194317641f06ff0ea5a25a4be64a97ed17e6696f7c52de5f5c732"]
 ]);
+const currentZipFounderAccessIntelligenceCommit =
+  "4b7a18556e7e424f8c643c38f154ec6ed504a354";
+const currentZipFounderAccessIntelligenceParent =
+  "3dc4e39b2d08fd90337aea0b670ee211629dd19f";
+const currentZipFounderAccessIntelligenceTree =
+  "230199ba017e3f0c39d180d4642c7fff3d463c69";
+const currentZipFounderAccessIntelligencePaths = [
+  "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+  "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+  "scripts/verify-discovery-mode-intelligence-v2.mjs",
+  "scripts/verify-nearby-context-intelligence-v2.mjs",
+  "scripts/verify-read-only-field-session-learning.mjs",
+  "scripts/verify-shadow-decision-readiness.mjs",
+  "tests/intelligence-architecture.test.mjs",
+  "tests/read-only-field-session-learning.test.mjs",
+  "tests/shadow-decision-readiness.test.mjs"
+].sort();
 const currentAugust1IntelligenceSuccessorPaths = [
   "intelligence/contracts/shadow-decision-readiness-contracts.json",
   "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
@@ -293,6 +310,30 @@ function isCurrentCrossIndustryIntelligenceTransition(path, currentSha256) {
   return coherenceSha256 === currentSha256
     && sha256(gitBytes("show", `${currentCrossIndustryCoherenceCommit}:${path}`))
       === currentSha256
+    && sha256(read(path)) === currentSha256;
+}
+
+function isCurrentZipFounderAccessIntelligenceTransition(path, currentSha256) {
+  if (!currentZipFounderAccessIntelligencePaths.includes(path)) return false;
+  const fields = git(
+    "show",
+    "-s",
+    "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+    currentZipFounderAccessIntelligenceCommit
+  ).split("\n");
+  return JSON.stringify(fields) === JSON.stringify([
+    currentZipFounderAccessIntelligenceCommit,
+    currentZipFounderAccessIntelligenceTree,
+    currentZipFounderAccessIntelligenceParent,
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "intelligence: adopt ZIP and Founder dashboard baseline"
+  ])
+    && JSON.stringify(changedPaths(currentZipFounderAccessIntelligenceCommit))
+      === JSON.stringify(currentZipFounderAccessIntelligencePaths)
+    && sha256(gitBytes(
+      "show", `${currentZipFounderAccessIntelligenceCommit}:${path}`
+    )) === currentSha256
     && sha256(read(path)) === currentSha256;
 }
 
@@ -836,6 +877,10 @@ export function verifyReleaseProvenanceRepair() {
         || isCurrentCrossIndustryIntelligenceTransition(
           reference.consumerPath,
           currentConsumerSha256
+        )
+        || isCurrentZipFounderAccessIntelligenceTransition(
+          reference.consumerPath,
+          currentConsumerSha256
         ),
       true,
       `${reference.consumerPath} current Intelligence successor drifted.`
@@ -851,6 +896,10 @@ export function verifyReleaseProvenanceRepair() {
           currentMirrorSha256
         )
         || isCurrentCrossIndustryIntelligenceTransition(
+          mirror.path,
+          currentMirrorSha256
+        )
+        || isCurrentZipFounderAccessIntelligenceTransition(
           mirror.path,
           currentMirrorSha256
         ),
