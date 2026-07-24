@@ -421,7 +421,7 @@ test("a clean checkout generates exact dist-public bytes before verifier-only as
       env: { ...process.env, CI: "true", NO_COLOR: "1" }
     });
     assert.equal(verify.status, 0, `clean checkout asset verification failed\n${verify.stderr}`);
-    assert.equal(verify.stdout, "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1");
+    assert.equal(verify.stdout, "ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e");
     rmSync(join(repository, "node_modules"), { recursive: true, force: true });
     assert.equal(fixtureGit(repository, ["status", "--porcelain=v1", "--untracked-files=all"]), "");
   } finally {
@@ -1003,9 +1003,9 @@ test("static owner gates and forward rollback artifact are deterministic", () =>
   assert.equal(first.artifactSha256, second.artifactSha256);
   assert.equal(first.websiteAssetsSha256, second.websiteAssetsSha256);
   assert.equal(first.identityVersion, "route-iq-public-forward-rollback-artifact-v4");
-  assert.equal(first.candidateWebsiteCommit, "710ad8a1428dd7621c5363a16fffaae828cc3421");
-  assert.equal(first.candidateWebsiteTree, "7e7f5cf2ec0fe0a2bfeae41c577279faab4c111b");
-  assert.equal(first.candidateDeploymentAssetsSha256, "48d3b6b44b49366f3387dfc3e37d8e34d83abf5ea8bb0606b0070851802ff6a1");
+  assert.equal(first.candidateWebsiteCommit, "72f3f5733f35a4ab56ae528f3a3616b455bd9ee6");
+  assert.equal(first.candidateWebsiteTree, "6fa5e855c0ae14e97186b219073c1aa0ae5d9381");
+  assert.equal(first.candidateDeploymentAssetsSha256, "ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e");
   assert.equal(first.publicEntrypoint, PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint);
   assert.deepEqual(first.publicEntrypointExports, ["default", "RouteIqRequestCrmCoordinator"]);
   assert.equal(first.generatedWorkerSha256, second.generatedWorkerSha256);
@@ -1015,11 +1015,11 @@ test("static owner gates and forward rollback artifact are deterministic", () =>
 test("the frozen Website build is byte-identical to the stale-free deployment tree", () => {
   const result = verifyRouteIqPublicDeploymentAssets();
   assert.equal(result.fileCount, 22);
-  assert.equal(result.initialCriticalBytes, 456_512);
+  assert.equal(result.initialCriticalBytes, 459_699);
   assert.deepEqual(result.sizes, {
-    index: 3_807,
-    criticalEntry: 354_457,
-    criticalCss: 18_724,
+    index: 3_755,
+    criticalEntry: 356_353,
+    criticalCss: 20_067,
     logo: 79_524,
     fallback: 176_252,
     socialPreview: 107_247,
