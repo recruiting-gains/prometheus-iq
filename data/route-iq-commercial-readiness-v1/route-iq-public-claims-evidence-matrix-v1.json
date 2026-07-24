@@ -79,10 +79,10 @@
     },
     {
       "ownerSubsystem": "Prometheus Intelligence Engine",
-      "ownerCommit": "b065d069bdb3439a0541074d80862494e1d8a9bc",
-      "ownerTree": "5831b5c559c9fe403bb1b20623578245f4f1bcdf",
+      "ownerCommit": "5215ad7f261590f5901dc84a3b8e59d9bde6ce8b",
+      "ownerTree": "0812759b11d783b845cdaf9db3ce0a7c166452c0",
       "path": "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
-      "sha256": "d274956b9d52ab6600eaf0d34b90a2fa8c5511b657e98b0a598655b8ef4c1d9e",
+      "sha256": "47594574fada334693f5cecf4f44b594bd8b4ebbfaa56ec23738dfbb0bbd702c",
       "corroborationResult": "COMPATIBLE_ONLY_WITH_EXPLICIT_QUALIFICATIONS"
     }
   ],
