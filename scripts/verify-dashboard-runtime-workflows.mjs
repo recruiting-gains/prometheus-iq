@@ -25,6 +25,16 @@ const customerPwaWorkspaceConfigurationPath = "administration/workspace-configur
 const customerPwaManifestRegistryPath = "data/__harness__/northstar/manifest-registry.json";
 const customerPwaBusinessRosterPath = "data/__harness__/northstar/approved-roster.json";
 const customerPwaBusinessHoursPath = "data/__harness__/northstar/business-hours.json";
+const summitRehearsalWorkspaceConfigurationPath = "administration/workspace-configurations/route-iq-72-hour-onboarding-rehearsal-v1.json";
+const summitRehearsalManifestRegistryPath = "data/route-iq-72-hour-onboarding-rehearsal-v1/route-iq-72-hour-onboarding-rehearsal-manifest-registry-v1.json";
+const summitRehearsalBusinessRosterPath = "data/route-iq-72-hour-onboarding-rehearsal-v1/route-iq-72-hour-onboarding-rehearsal-approved-business-roster-v1.json";
+const summitRehearsalBusinessHoursPath = "data/route-iq-72-hour-onboarding-rehearsal-v1/route-iq-72-hour-onboarding-rehearsal-business-hours-v1.json";
+const summitRehearsalRuntimeAssetPaths = Object.freeze({
+  workspaceConfiguration: `/${summitRehearsalWorkspaceConfigurationPath}`,
+  businessManifestRegistry: `/${summitRehearsalManifestRegistryPath}`,
+  businessRoster: `/${summitRehearsalBusinessRosterPath}`,
+  businessHours: `/${summitRehearsalBusinessHoursPath}`
+});
 const customerPwaTestClock = Object.freeze({
   now: "2026-07-23T16:00:00.000Z",
   timezoneId: "America/Chicago"
@@ -262,6 +272,332 @@ function injectRouteIqCustomerPwaSession(dashboard, session) {
     return `\\u${character.codePointAt(0).toString(16).padStart(4, "0")}`;
   });
   return dashboard.replace(marker, payload);
+}
+
+function summitRehearsalBrowserDocument() {
+  const registryTemplate = JSON.stringify(canonicalWorkspaceConfigurationRegistry)
+    .replace(/</gu, "\\u003c");
+  const runtimeAssets = JSON.stringify(summitRehearsalRuntimeAssetPaths)
+    .replace(/</gu, "\\u003c");
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Route IQ synthetic onboarding rehearsal</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; max-width: 100%; overflow-x: hidden; }
+    body { background: #f4f7f8; color: #172126; font: 16px/1.45 system-ui, sans-serif; }
+    main { width: min(100%, 760px); margin: 0 auto; padding: 16px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    h1 { margin: 0; font-size: 1.25rem; }
+    button { min-height: 44px; border: 1px solid #176b5b; background: #fff; color: #124c42; padding: 9px 12px; }
+    #routePanel { display: grid; gap: 10px; margin-top: 14px; }
+    .route-card { width: 100%; min-width: 0; border: 1px solid #cad6d3; background: #fff; padding: 12px; }
+    .route-card h2 { margin: 0 0 6px; font-size: 1rem; overflow-wrap: anywhere; }
+    .operating-hours, .visit-duration { margin: 4px 0; overflow-wrap: anywhere; }
+    .operating-hours { font-weight: 700; color: #145c4f; }
+    .visit-duration { color: #47565d; }
+    #workflowStatus { min-height: 24px; margin-top: 12px; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Route IQ onboarding rehearsal</h1>
+      <button id="routeTab" type="button">Route</button>
+    </header>
+    <p id="scopeStatus" role="status">Loading governed rehearsal assets</p>
+    <section id="routePanel" aria-label="Governed route"></section>
+    <p id="workflowStatus" role="status"></p>
+  </main>
+  <script type="module">
+    const runtimeAssets = Object.freeze(${runtimeAssets});
+    const registryTemplate = ${registryTemplate};
+    const state = {
+      status: "LOADING",
+      runtimeAssetKeys: [],
+      requestedAssets: [],
+      workspaceId: "",
+      companyId: "",
+      roleId: "",
+      territoryIds: [],
+      zipCodes: [],
+      recordCount: 0,
+      cardCount: 0,
+      operatingLabels: [],
+      visitDurationLabels: [],
+      routeEligibleCount: 0,
+      roleIsolationRejected: false,
+      territoryIsolationRejected: false,
+      zipIsolationRejected: false,
+      productionAuthorized: null,
+      canonicalAdmissionAllowed: null,
+      externalProviderEnabled: null,
+      safety: null,
+      routeWorkflowReached: false,
+      directionsWorkflowReached: false,
+      errorCode: ""
+    };
+    window.__routeIqSummitRehearsal = state;
+
+    const clone = value => JSON.parse(JSON.stringify(value));
+    const json = async path => {
+      state.requestedAssets.push(path);
+      const response = await fetch(path, { method: "GET", cache: "no-store", credentials: "same-origin" });
+      if (!response.ok || !String(response.headers.get("content-type") || "").includes("application/json")) {
+        throw new Error("route_iq_dashboard_rehearsal_asset_unavailable");
+      }
+      return response.json();
+    };
+    const localEvent = (value, timeZone) => {
+      if (!value) return null;
+      const instant = new Date(value);
+      if (Number.isNaN(instant.getTime())) return null;
+      const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+      }).formatToParts(instant).filter(part => part.type !== "literal").map(part => [part.type, part.value]));
+      return {
+        localDate: parts.year + "-" + parts.month + "-" + parts.day,
+        displayTime: parts.hour + ":" + parts.minute + " " + parts.dayPeriod,
+        timeZone
+      };
+    };
+
+    try {
+      const dashboard = await import("/dashboard/route-iq-dashboard-platform.mjs");
+      const [administrationFixture, dataRegistry, roster, businessHours] = await Promise.all([
+        json(runtimeAssets.workspaceConfiguration),
+        json(runtimeAssets.businessManifestRegistry),
+        json(runtimeAssets.businessRoster),
+        json(runtimeAssets.businessHours)
+      ]);
+      state.runtimeAssetKeys = [...dashboard.routeIqDashboardRuntimeAssetKeys];
+      const workspaceRegistry = clone(registryTemplate);
+      workspaceRegistry.registryVersion = "route-iq-cross-industry-workspaces-v2.2.1";
+      workspaceRegistry.provenance.configurationVersion = "v2.2.1";
+      workspaceRegistry.workspaces[1] = clone(administrationFixture.workspaceConfiguration);
+      workspaceRegistry.founderBoundary.authorizedWorkspaceIds = [
+        workspaceRegistry.workspaces[0].workspaceId,
+        administrationFixture.workspaceConfiguration.workspaceId
+      ];
+      const workspace = workspaceRegistry.workspaces[1];
+      const sourceManifest = dataRegistry.manifests[0];
+      const source = workspace.opportunitySources[0];
+      Object.assign(source, {
+        manifestRegistryPath: runtimeAssets.businessManifestRegistry.slice(1),
+        artifactPath: runtimeAssets.businessRoster.slice(1),
+        artifactSchemaVersion: roster.schemaVersion,
+        classification: "SYNTHETIC_NONCANONICAL",
+        manifestApprovalState: "APPROVED_SYNTHETIC_VALIDATION",
+        productionUseAuthorized: false
+      });
+      const session = {
+        contractVersion: "route-iq-customer-pwa-session-v2",
+        authorizationState: "server_verified",
+        workspaceId: workspace.workspaceId,
+        workspaceLabel: workspace.company.displayName,
+        operatingProfileId: workspace.operatingProfile.profileId,
+        userId: "summit_rehearsal_rep_01",
+        representativeId: "summit_rehearsal_rep_identity_01",
+        displayName: "Synthetic Representative 01",
+        roleId: "summit_rehearsal_representative",
+        capabilities: {
+          operateOwnRoute: true,
+          readWorkspaceOperations: false,
+          administerWorkspaceRoster: false,
+          founderIntelligence: false,
+          founderCrm: false
+        },
+        runtimeAssets,
+        expiresAt: "2099-01-01T00:00:00.000Z",
+        safety: {
+          prospectiveCollection: "OFF",
+          activeCohorts: 0,
+          recommendationInfluence: "OFF"
+        }
+      };
+      const configuration = dashboard.validateDashboardWorkspaceRegistry(
+        workspaceRegistry,
+        session,
+        { allowSynthetic: true }
+      );
+      const manifestRegistry = {
+        schemaVersion: "route-iq-workspace-business-artifact-manifest-v1",
+        registryVersion: "route-iq-workspace-business-artifact-manifest-registry-v1",
+        ownerSubsystem: "Prometheus Data",
+        generatedAt: dataRegistry.generatedAt,
+        fallbackPolicy: "FAIL_CLOSED_NO_DEMO_OR_CROSS_WORKSPACE_FALLBACK",
+        manifests: [{
+          ownerSubsystem: "Prometheus Data",
+          manifestId: sourceManifest.manifestId,
+          manifestVersion: "route-iq-workspace-business-artifact-manifest-v1",
+          workspaceId: sourceManifest.workspaceId,
+          companyId: sourceManifest.companyId,
+          operatingProfileId: sourceManifest.operatingProfileId,
+          configurationVersion: workspace.provenance.configurationVersion,
+          classification: "SYNTHETIC_NONCANONICAL",
+          approvalState: "APPROVED_SYNTHETIC_VALIDATION",
+          productionUseAuthorized: false,
+          demoFallbackAllowed: false,
+          crossWorkspaceFallbackAllowed: false,
+          artifactPath: runtimeAssets.businessRoster.slice(1),
+          artifactSha256: sourceManifest.rosterSha256,
+          recordIdentityField: sourceManifest.recordIdentityField,
+          recordCount: sourceManifest.recordCount,
+          approvedRecordCount: sourceManifest.approvedRecordCount,
+          approvedRecordIds: sourceManifest.approvedRecordIds,
+          freshness: {
+            maximumAgeHours: sourceManifest.hoursPolicy.maximumAgeHours,
+            evaluatedAt: dataRegistry.generatedAt,
+            expiresAt: "2026-07-24T12:00:00.000Z",
+            state: "SYNTHETIC"
+          },
+          sourceProvenance: sourceManifest.sourceProvenance
+        }]
+      };
+      const manifest = dashboard.validateDashboardBusinessManifestRegistry(manifestRegistry, session);
+      const rosterBytes = await fetch(runtimeAssets.businessRoster, { cache: "no-store" }).then(response => response.arrayBuffer());
+      const rosterSha256 = await dashboard.sha256Hex(rosterBytes);
+      if (rosterSha256 !== sourceManifest.rosterSha256) {
+        throw new Error("route_iq_dashboard_rehearsal_roster_hash_mismatch");
+      }
+      const projection = dashboard.projectApprovedRoster(
+        roster,
+        manifest,
+        configuration.workspace,
+        configuration.user,
+        { allowSynthetic: true }
+      );
+      const hoursByRecord = new Map(businessHours.records.map(record => [record.recordId, record]));
+      const decisions = new Map(businessHours.records.map(record => [record.recordId, {
+        status: record.availabilityStatus,
+        hoursFreshness: record.freshnessState === "FRESH"
+          ? "FRESH"
+          : record.freshnessState === "HOURS_STALE"
+            ? "STALE"
+            : "MISSING",
+        immediateRecommendationEligible: record.rehearsalImmediateRouteEligible === true,
+        failClosed: record.rehearsalImmediateRouteEligible !== true,
+        nextOpening: localEvent(record.nextOpeningAt, record.businessTimezone),
+        nextClosing: localEvent(record.nextClosingAt, record.businessTimezone)
+      }]));
+      const cards = projection.places.map(place => {
+        const rehearsalPlace = { ...place, expectedVisitDuration: "5-9" };
+        return {
+          place: rehearsalPlace,
+          decision: decisions.get(place.recordId),
+          fields: dashboard.projectConfiguredBusinessCard(
+            rehearsalPlace,
+            configuration.workspace,
+            decisions.get(place.recordId)
+          )
+        };
+      });
+      const routePanel = document.getElementById("routePanel");
+      cards.forEach(({ place, decision, fields }, index) => {
+        const card = document.createElement("article");
+        card.className = "route-card";
+        card.dataset.routeEligible = String(dashboard.isImmediateRouteEligible(decision));
+        const heading = document.createElement("h2");
+        heading.textContent = fields.business_name;
+        const operating = document.createElement("p");
+        operating.className = "operating-hours";
+        operating.textContent = fields.operating_hours;
+        const duration = document.createElement("p");
+        duration.className = "visit-duration";
+        duration.textContent = fields.estimated_visit_duration;
+        const directions = document.createElement("button");
+        directions.type = "button";
+        directions.dataset.directions = place.recordId;
+        directions.textContent = "Directions";
+        directions.addEventListener("click", () => {
+          state.directionsWorkflowReached = true;
+          document.getElementById("workflowStatus").textContent = "Directions workflow reached";
+        });
+        card.append(heading, operating, duration, directions);
+        routePanel.append(card);
+      });
+      const expectProjectionFailure = (mutate, expectedCode) => {
+        const changed = clone(roster);
+        mutate(changed.records[0]);
+        try {
+          dashboard.projectApprovedRoster(
+            changed,
+            manifest,
+            configuration.workspace,
+            configuration.user,
+            { allowSynthetic: true }
+          );
+          return false;
+        } catch (error) {
+          return error.code === expectedCode;
+        }
+      };
+      let roleIsolationRejected = false;
+      try {
+        dashboard.validateDashboardWorkspaceRegistry(
+          workspaceRegistry,
+          { ...session, roleId: "summit_rehearsal_founder_operator" },
+          { allowSynthetic: true }
+        );
+      } catch (error) {
+        roleIsolationRejected = error.code === "route_iq_dashboard_role_scope_invalid";
+      }
+      document.getElementById("routeTab").addEventListener("click", () => {
+        state.routeWorkflowReached = true;
+        document.getElementById("workflowStatus").textContent = "Route workflow reached";
+      });
+      Object.assign(state, {
+        status: "READY",
+        workspaceId: configuration.workspace.workspaceId,
+        companyId: configuration.workspace.companyId,
+        roleId: configuration.role.roleId,
+        territoryIds: [...configuration.territoryIds],
+        zipCodes: [...configuration.territoryZipCoverage.zipCodes],
+        recordCount: projection.places.length,
+        cardCount: cards.length,
+        operatingLabels: cards.map(card => card.fields.operating_hours),
+        visitDurationLabels: cards.map(card => card.fields.estimated_visit_duration),
+        routeEligibleCount: cards.filter(card => dashboard.isImmediateRouteEligible(card.decision)).length,
+        roleIsolationRejected,
+        territoryIsolationRejected: expectProjectionFailure(
+          record => { record.territoryId = "unassigned_rehearsal_territory"; },
+          "route_iq_dashboard_business_roster_territory_invalid"
+        ),
+        zipIsolationRejected: expectProjectionFailure(
+          record => { record.postalCode = "79999"; },
+          "route_iq_dashboard_business_roster_zip_unauthorized"
+        ),
+        productionAuthorized: administrationFixture.productionAuthorized
+          || workspace.admission.productionAuthorized
+          || sourceManifest.productionUseAuthorized
+          || roster.productionUseAuthorized
+          || businessHours.productionUseAuthorized,
+        canonicalAdmissionAllowed: sourceManifest.canonicalManifestAdmissionAllowed
+          || roster.canonicalManifestAdmissionAllowed
+          || businessHours.canonicalManifestAdmissionAllowed,
+        externalProviderEnabled: businessHours.providerMode !== "NO_EXTERNAL_PROVIDER_REHEARSAL",
+        safety: session.safety
+      });
+      document.getElementById("scopeStatus").textContent =
+        configuration.territoryZipCoverage.zipCodes.length + " governed ZIPs · " + projection.places.length + " approved accounts";
+    } catch (error) {
+      state.status = "FAIL";
+      state.errorCode = String(error?.code || error?.message || "route_iq_dashboard_rehearsal_failed");
+      document.getElementById("scopeStatus").textContent = "Rehearsal unavailable";
+    }
+  </script>
+</body>
+</html>`;
 }
 const chromeStartupTimeoutMs = 30000;
 const chromeControlTimeoutMs = 30000;
@@ -553,6 +889,7 @@ function localHttpsCertificate() {
 function startStaticServer({
   missingActive = false,
   customerPwaSession = null,
+  summitRehearsal = false,
   fieldSessionResponses = [],
   prospectiveResponse = { status: 204 },
   prospectiveBootstrapResponse = disabledProspectiveBootstrap(),
@@ -714,6 +1051,16 @@ function startStaticServer({
       return;
     }
 
+    if (summitRehearsal && (relativePath === "summit-rehearsal" || relativePath === "summit-rehearsal/index.html")) {
+      response.writeHead(200, {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-store",
+        "x-content-type-options": "nosniff"
+      });
+      response.end(summitRehearsalBrowserDocument());
+      return;
+    }
+
     if (customerPwaSession && (relativePath === "app" || relativePath === "app/index.html")) {
       try {
         const dashboard = readFileSync(resolve(root, "index.html"), "utf8");
@@ -748,7 +1095,7 @@ function startStaticServer({
       return;
     }
 
-    const staticRoot = customerPwaSession ? root : dashboardRoot;
+    const staticRoot = customerPwaSession || summitRehearsal ? root : dashboardRoot;
     const resolvedPath = resolve(staticRoot, normalize(relativePath));
     if (!resolvedPath.startsWith(staticRoot)) {
       response.writeHead(403, { "content-type": "text/plain; charset=utf-8" });
@@ -3385,10 +3732,140 @@ async function runHarness() {
         operatingProfileId: "northstar_missing_profile"
       })
     });
+    const summitRehearsalServer = await startServer("Summit rehearsal HTTPS server", {
+      summitRehearsal: true
+    });
     const chrome = await launchChrome({
       executablePath: chromeExecutable,
       registerCleanup: close => resources.push({ name: "Chrome", close })
     });
+
+    const summitAdministrationFixture = JSON.parse(readFileSync(
+      resolve(root, summitRehearsalWorkspaceConfigurationPath),
+      "utf8"
+    ));
+    const summitRosterFixture = JSON.parse(readFileSync(
+      resolve(root, summitRehearsalBusinessRosterPath),
+      "utf8"
+    ));
+    const reusableDashboardSource = [
+      readFileSync(resolve(root, "index.html"), "utf8"),
+      readFileSync(resolve(root, "dashboard/route-iq-dashboard-platform.mjs"), "utf8")
+    ].join("\n");
+    const summitFixtureLabels = [
+      summitAdministrationFixture.workspaceConfiguration.company.displayName,
+      ...summitRosterFixture.records.map(record => record.businessName)
+    ];
+    assertWorkflow(
+      "Summit rehearsal generic Dashboard source isolation",
+      summitFixtureLabels.every(label => !reusableDashboardSource.includes(label)),
+      "the reusable PWA and Dashboard platform contain no rehearsal company or account labels",
+      JSON.stringify({ checkedLabelCount: summitFixtureLabels.length })
+    );
+
+    const summitEventLog = { runtimeExceptions: [], consoleErrors: [], logErrors: [], network: [] };
+    const summitPage = await attachPage(chrome, summitEventLog);
+    await setViewport(summitPage, { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
+    await navigateAndWait(summitPage, `${summitRehearsalServer.origin}/summit-rehearsal`);
+    const summitReadyDeadline = Date.now() + 10000;
+    let summitBoundary;
+    while (Date.now() < summitReadyDeadline) {
+      summitBoundary = await summitPage.evaluate(`window.__routeIqSummitRehearsal || null`);
+      if (["READY", "FAIL"].includes(summitBoundary?.status)) break;
+      await wait(50);
+    }
+    const summitJsonRequests = summitRehearsalServer.requests
+      .filter(request => request.path.endsWith(".json"))
+      .map(request => request.path);
+    const summitJsonRequestSet = new Set(summitJsonRequests);
+    assertWorkflow(
+      "Summit rehearsal exact four runtime assets",
+      summitBoundary?.status === "READY"
+        && JSON.stringify(summitBoundary.runtimeAssetKeys) === JSON.stringify([
+          "workspaceConfiguration",
+          "businessManifestRegistry",
+          "businessRoster",
+          "businessHours"
+        ])
+        && Object.values(summitRehearsalRuntimeAssetPaths).every(path =>
+          summitJsonRequestSet.has(path.slice(1))
+        )
+        && summitJsonRequestSet.size === 4,
+      "the browser consumed one Administration configuration and three Data rehearsal assets",
+      JSON.stringify({ boundary: summitBoundary, requestedJson: [...summitJsonRequestSet].sort() })
+    );
+    assertWorkflow(
+      "Summit rehearsal role territory and ZIP isolation",
+      summitBoundary?.workspaceId === "summit_outside_sales_rehearsal_synthetic"
+        && summitBoundary?.companyId === "summit_service_supply_rehearsal_synthetic"
+        && summitBoundary?.roleId === "summit_rehearsal_representative"
+        && JSON.stringify(summitBoundary?.territoryIds) === JSON.stringify(["summit_dallas_rehearsal_territory"])
+        && JSON.stringify(summitBoundary?.zipCodes) === JSON.stringify(["75201", "75202"])
+        && summitBoundary?.recordCount === 4
+        && summitBoundary?.roleIsolationRejected === true
+        && summitBoundary?.territoryIsolationRejected === true
+        && summitBoundary?.zipIsolationRejected === true,
+      "the representative received only the configured Summit territory and ZIP-scoped roster",
+      JSON.stringify(summitBoundary)
+    );
+    assertWorkflow(
+      "Summit rehearsal operating-hours and visit-duration separation",
+      summitBoundary?.cardCount === 4
+        && summitBoundary?.operatingLabels.length === 4
+        && summitBoundary?.visitDurationLabels.length === 4
+        && summitBoundary.operatingLabels.every(label => !label.startsWith("Estimated visit:"))
+        && summitBoundary.visitDurationLabels.every(label => label === "Estimated visit: 5–9 min")
+        && summitBoundary.operatingLabels.some(label => label.startsWith("Open now · closes "))
+        && summitBoundary.operatingLabels.includes("Hours outdated · verification required")
+        && summitBoundary.operatingLabels.includes("Hours unavailable · not route eligible"),
+      "operating availability and estimated visit duration render as distinct card fields",
+      JSON.stringify({
+        operatingLabels: summitBoundary?.operatingLabels,
+        visitDurationLabels: summitBoundary?.visitDurationLabels
+      })
+    );
+    assertWorkflow(
+      "Summit rehearsal nonproduction fail-closed boundary",
+      summitBoundary?.productionAuthorized === false
+        && summitBoundary?.canonicalAdmissionAllowed === false
+        && summitBoundary?.externalProviderEnabled === false
+        && summitBoundary?.safety?.prospectiveCollection === "OFF"
+        && summitBoundary?.safety?.activeCohorts === 0
+        && summitBoundary?.safety?.recommendationInfluence === "OFF"
+        && summitBoundary?.routeEligibleCount === 1
+        && summitRehearsalServer.prospectiveRequests.length === 0
+        && summitRehearsalServer.fieldSessionRequests.length === 0
+        && summitRehearsalServer.requests.every(request => request.method === "GET"),
+      "rehearsal-only evidence admitted one explicitly eligible stop without enabling production or writes",
+      JSON.stringify({ boundary: summitBoundary, requests: summitRehearsalServer.requests })
+    );
+    verifyMobileFit(
+      "Summit rehearsal exact 390x844 no-horizontal-scroll",
+      await mobileFitSnapshot(summitPage)
+    );
+    await summitPage.evaluate(`document.getElementById("routeTab")?.click()`);
+    await summitPage.evaluate(`document.querySelector("[data-directions]")?.click()`);
+    const summitWorkflow = await summitPage.evaluate(`({
+      routeWorkflowReached: window.__routeIqSummitRehearsal?.routeWorkflowReached === true,
+      directionsWorkflowReached: window.__routeIqSummitRehearsal?.directionsWorkflowReached === true,
+      workflowStatus: document.getElementById("workflowStatus")?.textContent || "",
+      directionsVisible: (() => {
+        const element = document.querySelector("[data-directions]");
+        if (!element) return false;
+        const rect = element.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0 && rect.left >= -1 && rect.right <= innerWidth + 1;
+      })()
+    })`);
+    assertWorkflow(
+      "Summit rehearsal browser workflow reachability",
+      summitWorkflow.routeWorkflowReached
+        && summitWorkflow.directionsWorkflowReached
+        && summitWorkflow.directionsVisible,
+      "Route and Directions controls are reachable in the exact mobile viewport",
+      JSON.stringify(summitWorkflow)
+    );
+    verifyNoErrors("Summit rehearsal", summitEventLog, { debug: {} });
+    await summitPage.close();
 
     const switcher = await runPageScenario(chrome, server, "/app?role=founder&debug=1&harness=workspace-switcher", "workspace-switcher");
     const switcherSnap = switcher.initial;
