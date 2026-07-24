@@ -1,11 +1,18 @@
 {
   "schemaVersion": "route-iq-72-hour-onboarding-rehearsal-manifest-registry-v1",
   "registryVersion": "route-iq-72-hour-onboarding-rehearsal-manifest-registry-v1",
-  "rehearsalId": "route_iq_72_hour_onboarding_rehearsal_v1",
+  "ownerSubsystem": "Prometheus Data",
+  "rehearsalId": "route_iq_72_hour_onboarding_rehearsal_summit_v1",
   "generatedAt": "2026-07-23T12:00:00.000Z",
   "classification": "SYNTHETIC_NONCANONICAL_REHEARSAL_ONLY",
   "canonicalProductionAdmissionAllowed": false,
   "fallbackPolicy": "FAIL_CLOSED_REHEARSAL_ONLY_NO_CANONICAL_ADMISSION",
+  "administrationAuthority": {
+    "ownerSubsystem": "Prometheus Administration",
+    "configurationPath": "administration/workspace-configurations/route-iq-72-hour-onboarding-rehearsal-v1.json",
+    "configurationSha256": "cb559a1eb3480ac5a9f427c5d5efa9fc43adcd09a5ae3f66578548822858fbb0",
+    "fixtureVersion": "route-iq-72-hour-onboarding-rehearsal-v1.0.0"
+  },
   "canonicalProductionBaseline": {
     "manifestRegistryPath": "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json",
     "manifestRegistrySha256": "7f4d408462ce723290ad4b3453488d80dc957c50c2d769195002b0916d18917f",
@@ -25,46 +32,42 @@
   },
   "retryPolicy": {
     "mode": "DETERMINISTIC_IDEMPOTENT_NO_WRITE",
-    "idempotencyKey": "route_iq_72_hour_onboarding_rehearsal_v1_cobalt_facility_supply",
+    "idempotencyKey": "route_iq_72_hour_onboarding_rehearsal_v1_summit_service_supply",
     "externalSideEffectsAllowed": false
   },
   "manifests": [
     {
-      "manifestId": "cobalt_facility_supply_rehearsal_approved_business_roster",
+      "ownerSubsystem": "Prometheus Data",
+      "manifestId": "summit_rehearsal_synthetic_approved_business_roster",
       "manifestVersion": "route-iq-72-hour-onboarding-rehearsal-manifest-v1",
-      "workspaceId": "cobalt_facility_supply_rehearsal",
-      "companyId": "cobalt_facility_supply_synthetic",
+      "workspaceId": "summit_outside_sales_rehearsal_synthetic",
+      "companyId": "summit_service_supply_rehearsal_synthetic",
       "operatingProfileId": "general_outside_sales",
-      "configurationVersion": "route-iq-72-hour-onboarding-rehearsal-v1",
+      "configurationVersion": "route-iq-72-hour-onboarding-rehearsal-v1.0.0",
       "classification": "SYNTHETIC_NONCANONICAL_REHEARSAL_ONLY",
       "approvalState": "APPROVED_SYNTHETIC_REHEARSAL_ONLY",
       "productionUseAuthorized": false,
       "canonicalManifestAdmissionAllowed": false,
       "runtimeAssetGenerationAuthorized": true,
       "rosterPath": "data/route-iq-72-hour-onboarding-rehearsal-v1/route-iq-72-hour-onboarding-rehearsal-approved-business-roster-v1.json",
-      "rosterSha256": "59bef79fb85d5148758013568c8e18f895264ade43692000b271e3bd17875630",
+      "rosterSha256": "97cddba7664d9dc314ea2364318083626bed55b40b421ddd28c6666fb89eb7f1",
       "businessHoursPath": "data/route-iq-72-hour-onboarding-rehearsal-v1/route-iq-72-hour-onboarding-rehearsal-business-hours-v1.json",
-      "businessHoursSha256": "0c4881bb3e8f8a4c6c4bc48147c0701a7edaee2221e674c8b9cb1b30721b2c52",
+      "businessHoursSha256": "a534a0f309d3328a1f00a783ac1c1dd612419981869463c2e0b7e35b74bf55b5",
       "recordIdentityField": "recordId",
       "recordCount": 4,
       "approvedRecordCount": 4,
       "approvedRecordIds": [
-        "rehearsal_cobalt_opportunity_001",
-        "rehearsal_cobalt_opportunity_002",
-        "rehearsal_cobalt_opportunity_003",
-        "rehearsal_cobalt_opportunity_004"
+        "rehearsal_summit_opportunity_001",
+        "rehearsal_summit_opportunity_002",
+        "rehearsal_summit_opportunity_003",
+        "rehearsal_summit_opportunity_004"
       ],
       "territoryAssignments": [
         {
-          "territoryId": "rehearsal_central_territory",
+          "territoryId": "summit_dallas_rehearsal_territory",
           "postalCodes": [
-            "77001"
-          ]
-        },
-        {
-          "territoryId": "rehearsal_east_territory",
-          "postalCodes": [
-            "77002"
+            "75201",
+            "75202"
           ]
         }
       ],
@@ -80,7 +83,7 @@
       "sourceProvenance": {
         "producer": "Prometheus Data",
         "producerVersion": "route-iq-72-hour-onboarding-rehearsal-v1",
-        "sourceSystem": "deterministic_rehearsal_fixture",
+        "sourceSystem": "administration_bound_deterministic_rehearsal_fixture",
         "sourceRetrievedAt": "2026-07-23T12:00:00.000Z"
       }
     }

@@ -14,6 +14,7 @@ import test from "node:test";
 import {
   buildRouteIq72HourOnboardingRehearsalRuntimeAssets,
   loadRouteIq72HourOnboardingRehearsal,
+  routeIq72HourOnboardingAdministrationConfigurationPath,
   routeIq72HourOnboardingRehearsalClassification,
   stableRouteIq72HourOnboardingJson,
   validateRouteIq72HourOnboardingRehearsal
@@ -22,6 +23,9 @@ import {
 const repoRoot = resolve(import.meta.dirname, "..");
 const rehearsalRegistryPath = "data/route-iq-72-hour-onboarding-rehearsal-v1/"
   + "route-iq-72-hour-onboarding-rehearsal-manifest-registry-v1.json";
+const administrationFixture = readJson(
+  routeIq72HourOnboardingAdministrationConfigurationPath
+);
 const canonicalPaths = Object.freeze([
   "data/route-iq-commercial-readiness-v1/"
     + "route-iq-workspace-business-artifact-manifest-registry-v1.json",
@@ -68,6 +72,7 @@ function isolatedFixture({ mutateRegistry, mutateRoster, mutateHours } = {}) {
   mutateRegistry?.(registry);
 
   for (const path of canonicalPaths) copyToRoot(repoRoot, root, path);
+  copyToRoot(repoRoot, root, routeIq72HourOnboardingAdministrationConfigurationPath);
   for (const [path, bytes] of [
     [manifest.rosterPath, rosterBytes],
     [manifest.businessHoursPath, hoursBytes]
@@ -79,27 +84,42 @@ function isolatedFixture({ mutateRegistry, mutateRoster, mutateHours } = {}) {
   return { registry, root };
 }
 
-test("rehearsal roster is isolated, approved only for synthetic validation, and ZIP-scoped", () => {
+test("rehearsal roster is isolated and exactly bound to the Administration Summit configuration", () => {
   const rehearsal = loadRouteIq72HourOnboardingRehearsal({ repoRoot });
+  const configuration = administrationFixture.workspaceConfiguration;
+  const opportunitySource = configuration.opportunitySources[0];
+  const territory = configuration.territories[0];
   assert.equal(rehearsal.registry.classification, routeIq72HourOnboardingRehearsalClassification);
+  assert.equal(rehearsal.registry.ownerSubsystem, "Prometheus Data");
   assert.equal(rehearsal.registry.canonicalProductionAdmissionAllowed, false);
   assert.equal(rehearsal.manifest.productionUseAuthorized, false);
   assert.equal(rehearsal.manifest.canonicalManifestAdmissionAllowed, false);
   assert.equal(rehearsal.manifest.runtimeAssetGenerationAuthorized, true);
-  assert.equal(rehearsal.manifest.workspaceId, "cobalt_facility_supply_rehearsal");
-  assert.equal(rehearsal.manifest.operatingProfileId, "general_outside_sales");
+  assert.equal(rehearsal.manifest.workspaceId, configuration.workspaceId);
+  assert.equal(rehearsal.manifest.companyId, configuration.companyId);
+  assert.equal(rehearsal.manifest.operatingProfileId, configuration.operatingProfile.profileId);
+  assert.equal(rehearsal.manifest.manifestId, opportunitySource.manifestId);
+  assert.equal(rehearsal.manifest.configurationVersion, administrationFixture.fixtureVersion);
   assert.equal(rehearsal.roster.recordCount, 4);
   assert.deepEqual(
     new Set(rehearsal.roster.records.map(record => record.postalCode)),
-    new Set(["77001", "77002"])
+    new Set(territory.zipCoverage.postalCodes)
   );
   assert.deepEqual(
     new Set(rehearsal.roster.records.map(record => record.territoryId)),
-    new Set(["rehearsal_central_territory", "rehearsal_east_territory"])
+    new Set([territory.territoryId])
+  );
+  assert.deepEqual(
+    new Set(rehearsal.roster.records.map(record => record.locationId)),
+    new Set(configuration.locations.map(location => location.locationId))
   );
   assert.equal(
     rehearsal.roster.records.every(record => record.businessName.includes("Synthetic")),
     true
+  );
+  assert.equal(
+    rehearsal.roster.sourceProvenance.sourceSystem,
+    "administration_bound_deterministic_rehearsal_fixture"
   );
 });
 
@@ -238,4 +258,45 @@ test("territory drift, production admission, and immutable artifact drift fail c
     ),
     error => error.code === "route_iq_rehearsal_production_baseline_drift"
   );
+});
+
+test("Administration identity or ZIP drift fails closed without production admission", () => {
+  const authorityDrift = isolatedFixture();
+  const authorityPath = resolve(
+    authorityDrift.root,
+    routeIq72HourOnboardingAdministrationConfigurationPath
+  );
+  const fixture = JSON.parse(readFileSync(authorityPath, "utf8"));
+  fixture.workspaceConfiguration.territories[0].zipCoverage.postalCodes.push("75203");
+  writeFileSync(authorityPath, stableRouteIq72HourOnboardingJson(fixture));
+  assert.throws(
+    () => validateRouteIq72HourOnboardingRehearsal(
+      authorityDrift.registry,
+      { repoRoot: authorityDrift.root }
+    ),
+    error => error.code === "route_iq_rehearsal_administration_authority_drift"
+  );
+
+  const crossWorkspace = isolatedFixture({
+    mutateRegistry(registry) {
+      registry.manifests[0].workspaceId = "unapproved_rehearsal_workspace";
+    }
+  });
+  assert.throws(
+    () => validateRouteIq72HourOnboardingRehearsal(
+      crossWorkspace.registry,
+      { repoRoot: crossWorkspace.root }
+    ),
+    error => [
+      "route_iq_rehearsal_administration_scope_mismatch",
+      "route_iq_rehearsal_roster_invalid"
+    ].includes(error.code)
+  );
+
+  const rehearsal = loadRouteIq72HourOnboardingRehearsal({ repoRoot });
+  assert.deepEqual(
+    rehearsal.registry.canonicalProductionBaseline.counts,
+    { active: 0, reserve: 0, quarantine: 398 }
+  );
+  assert.equal(rehearsal.registry.canonicalProductionAdmissionAllowed, false);
 });

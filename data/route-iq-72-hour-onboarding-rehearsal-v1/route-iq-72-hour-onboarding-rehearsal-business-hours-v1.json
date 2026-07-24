@@ -1,10 +1,11 @@
 {
   "schemaVersion": "route-iq-72-hour-onboarding-rehearsal-hours-v1",
-  "artifactVersion": "cobalt-facility-supply-rehearsal-hours-v1",
+  "artifactVersion": "summit-service-supply-rehearsal-hours-v1",
+  "ownerSubsystem": "Prometheus Data",
   "projectionVersion": "route-iq-business-availability-v2",
-  "rehearsalId": "route_iq_72_hour_onboarding_rehearsal_v1",
-  "workspaceId": "cobalt_facility_supply_rehearsal",
-  "companyId": "cobalt_facility_supply_synthetic",
+  "rehearsalId": "route_iq_72_hour_onboarding_rehearsal_summit_v1",
+  "workspaceId": "summit_outside_sales_rehearsal_synthetic",
+  "companyId": "summit_service_supply_rehearsal_synthetic",
   "operatingProfileId": "general_outside_sales",
   "classification": "SYNTHETIC_NONCANONICAL_REHEARSAL_ONLY",
   "productionUseAuthorized": false,
@@ -23,15 +24,15 @@
   "sourceProvenance": {
     "producer": "Prometheus Data",
     "producerVersion": "route-iq-72-hour-onboarding-rehearsal-v1",
-    "sourceSystem": "deterministic_rehearsal_fixture",
+    "sourceSystem": "administration_bound_deterministic_rehearsal_fixture",
     "sourceRetrievedAt": "2026-07-23T12:00:00.000Z"
   },
   "recordCount": 4,
   "records": [
     {
-      "recordId": "rehearsal_cobalt_opportunity_001",
-      "territoryId": "rehearsal_central_territory",
-      "postalCode": "77001",
+      "recordId": "rehearsal_summit_opportunity_001",
+      "territoryId": "summit_dallas_rehearsal_territory",
+      "postalCode": "75201",
       "businessTimezone": "America/Chicago",
       "weeklySchedule": {
         "mondayToFriday": "08:00-17:00",
@@ -48,9 +49,9 @@
       "rehearsalImmediateRouteEligible": true
     },
     {
-      "recordId": "rehearsal_cobalt_opportunity_002",
-      "territoryId": "rehearsal_east_territory",
-      "postalCode": "77002",
+      "recordId": "rehearsal_summit_opportunity_002",
+      "territoryId": "summit_dallas_rehearsal_territory",
+      "postalCode": "75202",
       "businessTimezone": "America/Chicago",
       "weeklySchedule": {
         "mondayToFriday": "09:00-18:00",
@@ -67,9 +68,9 @@
       "rehearsalImmediateRouteEligible": false
     },
     {
-      "recordId": "rehearsal_cobalt_opportunity_003",
-      "territoryId": "rehearsal_central_territory",
-      "postalCode": "77001",
+      "recordId": "rehearsal_summit_opportunity_003",
+      "territoryId": "summit_dallas_rehearsal_territory",
+      "postalCode": "75201",
       "businessTimezone": "America/Chicago",
       "weeklySchedule": {
         "mondayToFriday": "07:30-16:30",
@@ -86,9 +87,9 @@
       "rehearsalImmediateRouteEligible": false
     },
     {
-      "recordId": "rehearsal_cobalt_opportunity_004",
-      "territoryId": "rehearsal_east_territory",
-      "postalCode": "77002",
+      "recordId": "rehearsal_summit_opportunity_004",
+      "territoryId": "summit_dallas_rehearsal_territory",
+      "postalCode": "75202",
       "businessTimezone": "America/Chicago",
       "weeklySchedule": null,
       "verifiedAt": null,

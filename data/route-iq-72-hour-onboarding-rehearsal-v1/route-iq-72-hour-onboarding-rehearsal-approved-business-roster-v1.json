@@ -1,9 +1,10 @@
 {
   "schemaVersion": "route-iq-72-hour-onboarding-rehearsal-roster-v1",
-  "artifactVersion": "cobalt-facility-supply-rehearsal-roster-v1",
-  "rehearsalId": "route_iq_72_hour_onboarding_rehearsal_v1",
-  "workspaceId": "cobalt_facility_supply_rehearsal",
-  "companyId": "cobalt_facility_supply_synthetic",
+  "artifactVersion": "summit-service-supply-rehearsal-roster-v1",
+  "ownerSubsystem": "Prometheus Data",
+  "rehearsalId": "route_iq_72_hour_onboarding_rehearsal_summit_v1",
+  "workspaceId": "summit_outside_sales_rehearsal_synthetic",
+  "companyId": "summit_service_supply_rehearsal_synthetic",
   "operatingProfileId": "general_outside_sales",
   "classification": "SYNTHETIC_NONCANONICAL_REHEARSAL_ONLY",
   "approvalState": "APPROVED_SYNTHETIC_REHEARSAL_ONLY",
@@ -13,58 +14,58 @@
   "sourceProvenance": {
     "producer": "Prometheus Data",
     "producerVersion": "route-iq-72-hour-onboarding-rehearsal-v1",
-    "sourceSystem": "deterministic_rehearsal_fixture",
+    "sourceSystem": "administration_bound_deterministic_rehearsal_fixture",
     "sourceRetrievedAt": "2026-07-23T12:00:00.000Z"
   },
   "recordCount": 4,
   "records": [
     {
-      "recordId": "rehearsal_cobalt_opportunity_001",
-      "businessName": "Cobalt Synthetic Facility Supply North",
-      "address": "100 Rehearsal Plaza, Example City, TX 77001",
-      "postalCode": "77001",
-      "territoryId": "rehearsal_central_territory",
-      "locationId": "rehearsal_houston_location",
+      "recordId": "rehearsal_summit_opportunity_001",
+      "businessName": "Summit Synthetic Facility Supply Downtown",
+      "address": "100 Rehearsal Plaza, Dallas, TX 75201",
+      "postalCode": "75201",
+      "territoryId": "summit_dallas_rehearsal_territory",
+      "locationId": "summit_dallas_rehearsal_office",
       "businessTimezone": "America/Chicago",
       "category": "Facility supplies",
       "approvalState": "APPROVED_SYNTHETIC_REHEARSAL_ONLY",
-      "hoursRecordId": "rehearsal_cobalt_opportunity_001"
+      "hoursRecordId": "rehearsal_summit_opportunity_001"
     },
     {
-      "recordId": "rehearsal_cobalt_opportunity_002",
-      "businessName": "Cobalt Synthetic Commercial Services East",
-      "address": "200 Rehearsal Plaza, Example City, TX 77002",
-      "postalCode": "77002",
-      "territoryId": "rehearsal_east_territory",
-      "locationId": "rehearsal_houston_location",
+      "recordId": "rehearsal_summit_opportunity_002",
+      "businessName": "Summit Synthetic Commercial Services Central",
+      "address": "200 Rehearsal Plaza, Dallas, TX 75202",
+      "postalCode": "75202",
+      "territoryId": "summit_dallas_rehearsal_territory",
+      "locationId": "summit_dallas_rehearsal_office",
       "businessTimezone": "America/Chicago",
       "category": "Commercial services",
       "approvalState": "APPROVED_SYNTHETIC_REHEARSAL_ONLY",
-      "hoursRecordId": "rehearsal_cobalt_opportunity_002"
+      "hoursRecordId": "rehearsal_summit_opportunity_002"
     },
     {
-      "recordId": "rehearsal_cobalt_opportunity_003",
-      "businessName": "Cobalt Synthetic Equipment Care Central",
-      "address": "300 Rehearsal Plaza, Example City, TX 77001",
-      "postalCode": "77001",
-      "territoryId": "rehearsal_central_territory",
-      "locationId": "rehearsal_houston_location",
+      "recordId": "rehearsal_summit_opportunity_003",
+      "businessName": "Summit Synthetic Equipment Care Downtown",
+      "address": "300 Rehearsal Plaza, Dallas, TX 75201",
+      "postalCode": "75201",
+      "territoryId": "summit_dallas_rehearsal_territory",
+      "locationId": "summit_dallas_rehearsal_office",
       "businessTimezone": "America/Chicago",
       "category": "Equipment services",
       "approvalState": "APPROVED_SYNTHETIC_REHEARSAL_ONLY",
-      "hoursRecordId": "rehearsal_cobalt_opportunity_003"
+      "hoursRecordId": "rehearsal_summit_opportunity_003"
     },
     {
-      "recordId": "rehearsal_cobalt_opportunity_004",
-      "businessName": "Cobalt Synthetic Workplace Products East",
-      "address": "400 Rehearsal Plaza, Example City, TX 77002",
-      "postalCode": "77002",
-      "territoryId": "rehearsal_east_territory",
-      "locationId": "rehearsal_houston_location",
+      "recordId": "rehearsal_summit_opportunity_004",
+      "businessName": "Summit Synthetic Workplace Products Central",
+      "address": "400 Rehearsal Plaza, Dallas, TX 75202",
+      "postalCode": "75202",
+      "territoryId": "summit_dallas_rehearsal_territory",
+      "locationId": "summit_dallas_rehearsal_office",
       "businessTimezone": "America/Chicago",
       "category": "Workplace products",
       "approvalState": "APPROVED_SYNTHETIC_REHEARSAL_ONLY",
-      "hoursRecordId": "rehearsal_cobalt_opportunity_004"
+      "hoursRecordId": "rehearsal_summit_opportunity_004"
     }
   ]
 }

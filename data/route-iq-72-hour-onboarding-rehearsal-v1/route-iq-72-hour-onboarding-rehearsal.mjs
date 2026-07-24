@@ -5,10 +5,14 @@ import { fileURLToPath } from "node:url";
 
 export const routeIq72HourOnboardingRehearsalVersion =
   "route-iq-72-hour-onboarding-rehearsal-v1";
+export const routeIq72HourOnboardingRehearsalId =
+  "route_iq_72_hour_onboarding_rehearsal_summit_v1";
 export const routeIq72HourOnboardingRehearsalClassification =
   "SYNTHETIC_NONCANONICAL_REHEARSAL_ONLY";
 export const routeIq72HourOnboardingRehearsalFallbackPolicy =
   "FAIL_CLOSED_REHEARSAL_ONLY_NO_CANONICAL_ADMISSION";
+export const routeIq72HourOnboardingAdministrationConfigurationPath =
+  "administration/workspace-configurations/route-iq-72-hour-onboarding-rehearsal-v1.json";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const defaultRepoRoot = resolve(moduleDir, "../..");
@@ -94,16 +98,68 @@ function validateProvenance(value, path) {
   ], path);
   if (value.producer !== "Prometheus Data"
     || value.producerVersion !== routeIq72HourOnboardingRehearsalVersion
-    || value.sourceSystem !== "deterministic_rehearsal_fixture"
+    || value.sourceSystem !== "administration_bound_deterministic_rehearsal_fixture"
     || !validTimestamp(value.sourceRetrievedAt)) {
     fail("route_iq_rehearsal_provenance_invalid", `${path} is not deterministic Data evidence.`);
   }
 }
 
-function validateRoster(roster, manifest) {
+function validateAdministrationAuthority(repoRoot, authority, manifest) {
+  exactKeys(authority, [
+    "ownerSubsystem",
+    "configurationPath",
+    "configurationSha256",
+    "fixtureVersion"
+  ], "administrationAuthority");
+  if (authority.ownerSubsystem !== "Prometheus Administration"
+    || authority.configurationPath !== routeIq72HourOnboardingAdministrationConfigurationPath
+    || !SHA256_PATTERN.test(authority.configurationSha256 || "")
+    || authority.fixtureVersion !== "route-iq-72-hour-onboarding-rehearsal-v1.0.0") {
+    fail("route_iq_rehearsal_administration_authority_invalid", "The Administration authority pin is invalid.");
+  }
+  const bytes = readFileSync(resolve(repoRoot, authority.configurationPath));
+  if (sha256(bytes) !== authority.configurationSha256) {
+    fail("route_iq_rehearsal_administration_authority_drift", "The Administration rehearsal configuration changed.");
+  }
+  const fixture = JSON.parse(bytes.toString("utf8"));
+  const configuration = fixture.workspaceConfiguration;
+  const opportunitySource = configuration?.opportunitySources?.find(
+    source => source.manifestId === manifest.manifestId
+  );
+  const activeTerritories = configuration?.territories?.filter(territory => territory.active);
+  const expectedTerritoryAssignments = activeTerritories?.map(territory => ({
+    territoryId: territory.territoryId,
+    postalCodes: territory.zipCoverage?.postalCodes
+  }));
+  if (fixture.fixtureVersion !== authority.fixtureVersion
+    || fixture.classification !== "SYNTHETIC_NONPRODUCTION_REHEARSAL"
+    || fixture.productionAuthorized !== false
+    || configuration?.workspaceId !== manifest.workspaceId
+    || configuration?.companyId !== manifest.companyId
+    || configuration?.operatingProfile?.profileId !== manifest.operatingProfileId
+    || opportunitySource?.workspaceId !== manifest.workspaceId
+    || opportunitySource?.profileId !== manifest.operatingProfileId
+    || opportunitySource?.productionUseAuthorized !== false
+    || manifest.configurationVersion !== fixture.fixtureVersion
+    || stableRouteIq72HourOnboardingJson(expectedTerritoryAssignments)
+      !== stableRouteIq72HourOnboardingJson(manifest.territoryAssignments)) {
+    fail("route_iq_rehearsal_administration_scope_mismatch", "Data rehearsal scope differs from Administration.");
+  }
+  return {
+    allowedLocationIds: new Set(
+      configuration.locations.filter(location => location.active).map(location => location.locationId)
+    ),
+    territoryTimezones: new Map(
+      activeTerritories.map(territory => [territory.territoryId, territory.timezone])
+    )
+  };
+}
+
+function validateRoster(roster, manifest, administrationScope) {
   exactKeys(roster, [
     "schemaVersion",
     "artifactVersion",
+    "ownerSubsystem",
     "rehearsalId",
     "workspaceId",
     "companyId",
@@ -118,6 +174,8 @@ function validateRoster(roster, manifest) {
     "records"
   ], "roster");
   if (roster.schemaVersion !== "route-iq-72-hour-onboarding-rehearsal-roster-v1"
+    || roster.artifactVersion !== "summit-service-supply-rehearsal-roster-v1"
+    || roster.ownerSubsystem !== "Prometheus Data"
     || roster.rehearsalId !== manifest.rehearsalId
     || roster.workspaceId !== manifest.workspaceId
     || roster.companyId !== manifest.companyId
@@ -154,6 +212,9 @@ function validateRoster(roster, manifest) {
       || !record.businessName.includes("Synthetic")
       || record.approvalState !== "APPROVED_SYNTHETIC_REHEARSAL_ONLY"
       || record.hoursRecordId !== record.recordId
+      || !administrationScope.allowedLocationIds.has(record.locationId)
+      || administrationScope.territoryTimezones.get(record.territoryId)
+        !== record.businessTimezone
       || recordIds.has(record.recordId)) {
       fail("route_iq_rehearsal_roster_record_invalid", "A rehearsal roster record is invalid.");
     }
@@ -170,6 +231,7 @@ function validateHours(hours, manifest, roster) {
   exactKeys(hours, [
     "schemaVersion",
     "artifactVersion",
+    "ownerSubsystem",
     "projectionVersion",
     "rehearsalId",
     "workspaceId",
@@ -186,6 +248,8 @@ function validateHours(hours, manifest, roster) {
     "records"
   ], "businessHours");
   if (hours.schemaVersion !== "route-iq-72-hour-onboarding-rehearsal-hours-v1"
+    || hours.artifactVersion !== "summit-service-supply-rehearsal-hours-v1"
+    || hours.ownerSubsystem !== "Prometheus Data"
     || hours.projectionVersion !== "route-iq-business-availability-v2"
     || hours.rehearsalId !== manifest.rehearsalId
     || hours.workspaceId !== manifest.workspaceId
@@ -362,18 +426,21 @@ export function validateRouteIq72HourOnboardingRehearsal(
   exactKeys(registry, [
     "schemaVersion",
     "registryVersion",
+    "ownerSubsystem",
     "rehearsalId",
     "generatedAt",
     "classification",
     "canonicalProductionAdmissionAllowed",
     "fallbackPolicy",
+    "administrationAuthority",
     "canonicalProductionBaseline",
     "retryPolicy",
     "manifests"
   ], "registry");
   if (registry.schemaVersion !== "route-iq-72-hour-onboarding-rehearsal-manifest-registry-v1"
     || registry.registryVersion !== "route-iq-72-hour-onboarding-rehearsal-manifest-registry-v1"
-    || registry.rehearsalId !== "route_iq_72_hour_onboarding_rehearsal_v1"
+    || registry.ownerSubsystem !== "Prometheus Data"
+    || registry.rehearsalId !== routeIq72HourOnboardingRehearsalId
     || registry.classification !== routeIq72HourOnboardingRehearsalClassification
     || registry.canonicalProductionAdmissionAllowed !== false
     || registry.fallbackPolicy !== routeIq72HourOnboardingRehearsalFallbackPolicy
@@ -394,6 +461,7 @@ export function validateRouteIq72HourOnboardingRehearsal(
   }
   const manifest = registry.manifests[0];
   exactKeys(manifest, [
+    "ownerSubsystem",
     "manifestId",
     "manifestVersion",
     "workspaceId",
@@ -417,12 +485,13 @@ export function validateRouteIq72HourOnboardingRehearsal(
     "hoursPolicy",
     "sourceProvenance"
   ], "registry.manifests[0]");
-  if (!ID_PATTERN.test(manifest.manifestId || "")
+  if (manifest.ownerSubsystem !== "Prometheus Data"
+    || manifest.manifestId !== "summit_rehearsal_synthetic_approved_business_roster"
     || manifest.manifestVersion !== "route-iq-72-hour-onboarding-rehearsal-manifest-v1"
     || !ID_PATTERN.test(manifest.workspaceId || "")
     || !ID_PATTERN.test(manifest.companyId || "")
     || manifest.operatingProfileId !== "general_outside_sales"
-    || manifest.configurationVersion !== routeIq72HourOnboardingRehearsalVersion
+    || manifest.configurationVersion !== registry.administrationAuthority.fixtureVersion
     || manifest.classification !== routeIq72HourOnboardingRehearsalClassification
     || manifest.approvalState !== "APPROVED_SYNTHETIC_REHEARSAL_ONLY"
     || manifest.productionUseAuthorized !== false
@@ -454,6 +523,11 @@ export function validateRouteIq72HourOnboardingRehearsal(
     fail("route_iq_rehearsal_hours_policy_invalid", "The rehearsal manifest hours policy is invalid.");
   }
   validateProvenance(manifest.sourceProvenance, "registry.manifests[0].sourceProvenance");
+  const administrationScope = validateAdministrationAuthority(
+    repoRoot,
+    registry.administrationAuthority,
+    manifest
+  );
   const rosterArtifact = readJsonArtifact(
     repoRoot,
     manifest.rosterPath,
@@ -469,7 +543,7 @@ export function validateRouteIq72HourOnboardingRehearsal(
   validateRoster(rosterArtifact.payload, {
     ...manifest,
     rehearsalId: registry.rehearsalId
-  });
+  }, administrationScope);
   validateTerritories(manifest, rosterArtifact.payload);
   validateHours(hoursArtifact.payload, {
     ...manifest,
