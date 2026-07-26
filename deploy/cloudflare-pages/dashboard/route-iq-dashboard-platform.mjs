@@ -9,6 +9,8 @@ export const routeIqFounderWorkspaceAccessContractVersion = "route-iq-founder-wo
 export const routeIqFounderWorkspaceSwitchContractVersion = "route-iq-founder-workspace-switch-receipt-v1";
 export const routeIqFounderWorkspaceAccessPath = "/api/dashboard/route-iq/founder/workspaces";
 export const routeIqFounderWorkspaceSwitchPath = "/api/dashboard/route-iq/founder/workspace-session";
+export const routeIqPaidCustomerPreviewContractVersion = "route-iq-paid-customer-dashboard-preview-v1";
+export const routeIqPaidCustomerPreviewPath = "/api/dashboard/route-iq/internal/paid-customer-configuration-preview";
 
 export const routeIqDashboardRuntimeAssetKeys = Object.freeze([
   "workspaceConfiguration",
@@ -22,6 +24,8 @@ const sha256Pattern = /^[a-f0-9]{64}$/u;
 const usZipCodePattern = /^[0-9]{5}$/u;
 const zipCoverageVersionPattern = /^territory-zip-coverage-v1\.[0-9]+\.[0-9]+$/u;
 const zipCoverageRegistryVersionPattern = /^route-iq-cross-industry-workspaces-v2\.(\d+)\.(\d+)$/u;
+const previewConfigurationVersionPattern = /^[a-z0-9][a-z0-9._-]{2,119}$/u;
+const previewUnsafeTextPattern = /[\u0000-\u001F\u007F<>{}`]|(?:\$\{|\{\{|\}\})|javascript:/iu;
 const supportedCardFields = new Set([
   "business_name",
   "business_type",
@@ -54,6 +58,41 @@ const unavailableStatuses = new Set([
   "PROVIDER_FAILURE",
   "HOURS_INVALID"
 ]);
+const paidCustomerLifecycleStates = new Set([
+  "DRAFT",
+  "VALIDATION_FAILED",
+  "VALIDATED",
+  "PREVIEW_READY",
+  "AWAITING_APPROVAL",
+  "PROVISIONING",
+  "PROVISIONING_FAILED",
+  "READY_FOR_ACTIVATION",
+  "ACTIVE",
+  "SUSPENDED",
+  "OFFBOARDED"
+]);
+const previewMetricFormats = new Set(["COUNT", "RATE", "CURRENCY", "DURATION"]);
+const previewOutcomeClassifications = new Set([
+  "OBSERVATION",
+  "PROGRESS",
+  "SUCCESS",
+  "FOLLOW_UP",
+  "EXCLUSION"
+]);
+const previewTerminologyKeys = Object.freeze([
+  "representativeSingular",
+  "representativePlural",
+  "managerSingular",
+  "managerPlural",
+  "opportunitySingular",
+  "opportunityPlural",
+  "visitSingular",
+  "visitPlural",
+  "outcomeSingular",
+  "outcomePlural",
+  "followUpSingular",
+  "followUpPlural"
+]);
 const loadedFounderWorkspaceAccesses = new WeakSet();
 
 export class RouteIqDashboardPlatformError extends Error {
@@ -83,6 +122,49 @@ function validTimestamp(value) {
   if (typeof value !== "string") return false;
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) && new Date(parsed).toISOString() === value;
+}
+
+function safePreviewText(value, scope, maximum = 160) {
+  if (typeof value !== "string"
+    || value !== value.trim()
+    || value.length < 1
+    || value.length > maximum
+    || previewUnsafeTextPattern.test(value)) {
+    fail("route_iq_dashboard_preview_text_invalid", `${scope} is not safe display text.`);
+  }
+  return value;
+}
+
+function deepFreeze(value) {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+  Object.freeze(value);
+  for (const child of Object.values(value)) deepFreeze(child);
+  return value;
+}
+
+function assertUniquePreviewIds(values, idField, scope) {
+  if (!Array.isArray(values) || values.length < 1 || values.length > 50) {
+    fail("route_iq_dashboard_preview_collection_invalid", `${scope} is incomplete.`);
+  }
+  const ids = values.map(value => value?.[idField]);
+  if (ids.some(value => typeof value !== "string" || !strictId.test(value))
+    || new Set(ids).size !== ids.length) {
+    fail("route_iq_dashboard_preview_identity_invalid", `${scope} has invalid identities.`);
+  }
+}
+
+function assertPreviewSession(session, now) {
+  assertSession(session);
+  const instant = now instanceof Date ? now : new Date(now);
+  if (Number.isNaN(instant.getTime())
+    || !validTimestamp(session.expiresAt)
+    || Date.parse(session.expiresAt) <= instant.getTime()) {
+    fail("route_iq_dashboard_preview_session_expired", "The paid-customer preview session is expired.");
+  }
+  if (session.capabilities.readWorkspaceOperations !== true
+    || session.capabilities.administerWorkspaceRoster !== true) {
+    fail("route_iq_dashboard_preview_forbidden", "The paid-customer configuration preview is unavailable.");
+  }
 }
 
 function registrySupportsZipCoverage(registryVersion) {
@@ -541,6 +623,344 @@ export async function loadGovernedDashboardPlatform({
     manifest,
     status: projection.status,
     places: projection.places
+  });
+}
+
+function previewLabelList(values, scope, { minimum = 0, maximum = 50 } = {}) {
+  if (!Array.isArray(values) || values.length < minimum || values.length > maximum) {
+    fail("route_iq_dashboard_preview_collection_invalid", `${scope} is incomplete.`);
+  }
+  const normalized = values.map((value, index) => safePreviewText(value, `${scope}[${index}]`));
+  if (new Set(normalized).size !== normalized.length) {
+    fail("route_iq_dashboard_preview_collection_invalid", `${scope} contains duplicate values.`);
+  }
+  return normalized;
+}
+
+function normalizedPreviewTerminology(value) {
+  if (!exactKeys(value, previewTerminologyKeys)) {
+    fail("route_iq_dashboard_preview_terminology_invalid", "The paid-customer terminology preview is invalid.");
+  }
+  return Object.fromEntries(previewTerminologyKeys.map(key => [
+    key,
+    safePreviewText(value[key], `preview.terminology.${key}`, 80)
+  ]));
+}
+
+function normalizedPreviewMetrics(values) {
+  assertUniquePreviewIds(values, "metricId", "preview.metrics");
+  return values.map((metric, index) => {
+    if (!exactKeys(metric, [
+      "metricId",
+      "label",
+      "singularLabel",
+      "pluralLabel",
+      "format",
+      "historyLabelPolicy"
+    ])
+      || !previewMetricFormats.has(metric.format)
+      || metric.historyLabelPolicy !== "EVENT_SNAPSHOT_IMMUTABLE") {
+      fail("route_iq_dashboard_preview_metric_invalid", "A paid-customer metric preview is invalid.");
+    }
+    return {
+      metricId: metric.metricId,
+      label: safePreviewText(metric.label, `preview.metrics[${index}].label`),
+      singularLabel: safePreviewText(metric.singularLabel, `preview.metrics[${index}].singularLabel`, 80),
+      pluralLabel: safePreviewText(metric.pluralLabel, `preview.metrics[${index}].pluralLabel`, 80),
+      format: metric.format,
+      historyLabelPolicy: metric.historyLabelPolicy
+    };
+  });
+}
+
+function normalizedPreviewGoals(values, metricIds) {
+  assertUniquePreviewIds(values, "goalId", "preview.goals");
+  return values.map((goal, index) => {
+    if (!exactKeys(goal, ["goalId", "label", "metricId", "targetDisplay"])
+      || !metricIds.has(goal.metricId)) {
+      fail("route_iq_dashboard_preview_goal_invalid", "A paid-customer goal preview is invalid.");
+    }
+    return {
+      goalId: goal.goalId,
+      label: safePreviewText(goal.label, `preview.goals[${index}].label`),
+      metricId: goal.metricId,
+      targetDisplay: safePreviewText(goal.targetDisplay, `preview.goals[${index}].targetDisplay`, 80)
+    };
+  });
+}
+
+function normalizedPreviewOutcomes(values) {
+  assertUniquePreviewIds(values, "outcomeId", "preview.outcomes");
+  return values.map((outcome, index) => {
+    if (!exactKeys(outcome, ["outcomeId", "label", "classification"])
+      || !previewOutcomeClassifications.has(outcome.classification)) {
+      fail("route_iq_dashboard_preview_outcome_invalid", "A paid-customer outcome preview is invalid.");
+    }
+    return {
+      outcomeId: outcome.outcomeId,
+      label: safePreviewText(outcome.label, `preview.outcomes[${index}].label`),
+      classification: outcome.classification
+    };
+  });
+}
+
+function normalizedPreviewFollowUpStages(values) {
+  assertUniquePreviewIds(values, "stageId", "preview.followUpStages");
+  const stages = values.map((stage, index) => {
+    if (!exactKeys(stage, ["stageId", "label", "order"])
+      || !Number.isInteger(stage.order)
+      || stage.order < 1
+      || stage.order > values.length) {
+      fail("route_iq_dashboard_preview_follow_up_invalid", "A paid-customer follow-up stage preview is invalid.");
+    }
+    return {
+      stageId: stage.stageId,
+      label: safePreviewText(stage.label, `preview.followUpStages[${index}].label`),
+      order: stage.order
+    };
+  });
+  if (new Set(stages.map(stage => stage.order)).size !== stages.length) {
+    fail("route_iq_dashboard_preview_follow_up_invalid", "Paid-customer follow-up stage order is ambiguous.");
+  }
+  return stages.sort((left, right) => left.order - right.order);
+}
+
+function normalizedPreviewTerritories(values) {
+  assertUniquePreviewIds(values, "territoryId", "preview.territories");
+  const assignedZipCodes = new Set();
+  return values.map((territory, index) => {
+    if (!exactKeys(territory, ["territoryId", "displayName", "timeZone", "zipCodes"])
+      || !Array.isArray(territory.zipCodes)
+      || territory.zipCodes.length < 1
+      || territory.zipCodes.length > 250
+      || territory.zipCodes.some(zipCode => typeof zipCode !== "string" || !usZipCodePattern.test(zipCode))
+      || new Set(territory.zipCodes).size !== territory.zipCodes.length) {
+      fail("route_iq_dashboard_preview_territory_invalid", "A paid-customer territory preview is invalid.");
+    }
+    try {
+      new Intl.DateTimeFormat("en-US", { timeZone: territory.timeZone }).format(new Date(0));
+    } catch {
+      fail("route_iq_dashboard_preview_territory_invalid", "A paid-customer territory time zone is invalid.");
+    }
+    for (const zipCode of territory.zipCodes) {
+      if (assignedZipCodes.has(zipCode)) {
+        fail("route_iq_dashboard_preview_territory_invalid", "A paid-customer ZIP code belongs to multiple territories.");
+      }
+      assignedZipCodes.add(zipCode);
+    }
+    return {
+      territoryId: territory.territoryId,
+      displayName: safePreviewText(territory.displayName, `preview.territories[${index}].displayName`),
+      timeZone: safePreviewText(territory.timeZone, `preview.territories[${index}].timeZone`, 80),
+      zipCodes: [...territory.zipCodes]
+    };
+  });
+}
+
+function normalizedPreviewTargeting(value) {
+  if (!exactKeys(value, [
+    "includedCategories",
+    "excludedCategories",
+    "excludedBusinessCount",
+    "ruleSummary"
+  ])
+    || !Number.isInteger(value.excludedBusinessCount)
+    || value.excludedBusinessCount < 0
+    || value.excludedBusinessCount > 100000) {
+    fail("route_iq_dashboard_preview_targeting_invalid", "The paid-customer targeting preview is invalid.");
+  }
+  return {
+    includedCategories: previewLabelList(
+      value.includedCategories,
+      "preview.targeting.includedCategories",
+      { minimum: 1 }
+    ),
+    excludedCategories: previewLabelList(
+      value.excludedCategories,
+      "preview.targeting.excludedCategories"
+    ),
+    excludedBusinessCount: value.excludedBusinessCount,
+    ruleSummary: safePreviewText(value.ruleSummary, "preview.targeting.ruleSummary", 320)
+  };
+}
+
+function normalizedPreviewVerification(value) {
+  if (!exactKeys(value, [
+    "verifiedIdentityRequired",
+    "physicalAddressRequired",
+    "authorizedTerritoryRequired",
+    "businessCategoryRequired",
+    "currentOperatingStatusRequired",
+    "operatingHoursRequired",
+    "freshnessCeilingHours",
+    "providerFailureRule"
+  ])
+    || value.verifiedIdentityRequired !== true
+    || value.physicalAddressRequired !== true
+    || value.authorizedTerritoryRequired !== true
+    || value.businessCategoryRequired !== true
+    || value.currentOperatingStatusRequired !== true
+    || value.operatingHoursRequired !== true
+    || !Number.isInteger(value.freshnessCeilingHours)
+    || value.freshnessCeilingHours < 1
+    || value.freshnessCeilingHours > 24
+    || value.providerFailureRule !== "FAIL_CLOSED") {
+    fail("route_iq_dashboard_preview_verification_invalid", "The paid-customer verification preview is invalid.");
+  }
+  return { ...value };
+}
+
+export function validatePaidCustomerConfigurationPreviewEnvelope(envelope, {
+  session,
+  platform,
+  now = new Date()
+} = {}) {
+  assertPreviewSession(session, now);
+  if (!platform
+    || platform.workspace?.workspaceId !== session.workspaceId
+    || platform.workspace?.operatingProfile?.profileId !== session.operatingProfileId
+    || !Array.isArray(platform.effectiveCapabilities)
+    || !platform.effectiveCapabilities.includes("manage_workspace_configuration")) {
+    fail("route_iq_dashboard_preview_platform_scope_invalid", "The paid-customer preview is outside the active Dashboard scope.");
+  }
+  if (!exactKeys(envelope, [
+    "contractVersion",
+    "authorizationState",
+    "previewMode",
+    "activationEffect",
+    "workspaceId",
+    "companyId",
+    "configurationVersion",
+    "lifecycleState",
+    "generatedAt",
+    "expiresAt",
+    "preview"
+  ])
+    || envelope.contractVersion !== routeIqPaidCustomerPreviewContractVersion
+    || envelope.authorizationState !== "server_verified"
+    || envelope.previewMode !== "READ_ONLY"
+    || envelope.activationEffect !== "NONE"
+    || envelope.workspaceId !== session.workspaceId
+    || envelope.workspaceId !== platform.workspace.workspaceId
+    || envelope.companyId !== platform.workspace.companyId
+    || !strictId.test(envelope.companyId || "")
+    || !previewConfigurationVersionPattern.test(envelope.configurationVersion || "")
+    || envelope.configurationVersion !== platform.workspace.provenance?.configurationVersion
+    || !paidCustomerLifecycleStates.has(envelope.lifecycleState)
+    || !validTimestamp(envelope.generatedAt)
+    || !validTimestamp(envelope.expiresAt)) {
+    fail("route_iq_dashboard_preview_envelope_invalid", "The paid-customer configuration preview is invalid.");
+  }
+  const instant = now instanceof Date ? now : new Date(now);
+  const generatedAt = Date.parse(envelope.generatedAt);
+  const expiresAt = Date.parse(envelope.expiresAt);
+  if (generatedAt > instant.getTime() + 30000
+    || expiresAt <= instant.getTime()
+    || expiresAt <= generatedAt
+    || expiresAt - generatedAt > 15 * 60 * 1000) {
+    fail("route_iq_dashboard_preview_envelope_expired", "The paid-customer configuration preview is stale.");
+  }
+  if (!exactKeys(envelope.preview, [
+    "company",
+    "terminology",
+    "metrics",
+    "goals",
+    "outcomes",
+    "followUpStages",
+    "territories",
+    "targeting",
+    "verification"
+  ])
+    || !exactKeys(envelope.preview.company, ["displayName", "industryLabel", "operatingModelLabel"])) {
+    fail("route_iq_dashboard_preview_content_invalid", "The paid-customer configuration preview is incomplete.");
+  }
+  const metrics = normalizedPreviewMetrics(envelope.preview.metrics);
+  const metricIds = new Set(metrics.map(metric => metric.metricId));
+  const preview = {
+    company: {
+      displayName: safePreviewText(envelope.preview.company.displayName, "preview.company.displayName"),
+      industryLabel: safePreviewText(envelope.preview.company.industryLabel, "preview.company.industryLabel"),
+      operatingModelLabel: safePreviewText(
+        envelope.preview.company.operatingModelLabel,
+        "preview.company.operatingModelLabel"
+      )
+    },
+    terminology: normalizedPreviewTerminology(envelope.preview.terminology),
+    metrics,
+    goals: normalizedPreviewGoals(envelope.preview.goals, metricIds),
+    outcomes: normalizedPreviewOutcomes(envelope.preview.outcomes),
+    followUpStages: normalizedPreviewFollowUpStages(envelope.preview.followUpStages),
+    territories: normalizedPreviewTerritories(envelope.preview.territories),
+    targeting: normalizedPreviewTargeting(envelope.preview.targeting),
+    verification: normalizedPreviewVerification(envelope.preview.verification)
+  };
+  return deepFreeze({
+    status: "READY",
+    contractVersion: envelope.contractVersion,
+    previewMode: envelope.previewMode,
+    activationEffect: envelope.activationEffect,
+    workspaceId: envelope.workspaceId,
+    companyId: envelope.companyId,
+    configurationVersion: envelope.configurationVersion,
+    lifecycleState: envelope.lifecycleState,
+    generatedAt: envelope.generatedAt,
+    expiresAt: envelope.expiresAt,
+    preview
+  });
+}
+
+async function governedPaidCustomerPreviewJson(fetchFn) {
+  let response;
+  try {
+    response = await fetchFn(routeIqPaidCustomerPreviewPath, {
+      method: "GET",
+      mode: "same-origin",
+      credentials: "same-origin",
+      cache: "no-store",
+      redirect: "error",
+      headers: { Accept: "application/json" }
+    });
+  } catch {
+    fail("route_iq_dashboard_preview_network_unavailable", "The paid-customer configuration preview is unavailable.");
+  }
+  const cacheControl = String(response?.headers?.get?.("cache-control") || "").toLowerCase();
+  if (!response?.ok
+    || response.redirected === true
+    || !String(response.headers?.get?.("content-type") || "").toLowerCase().includes("application/json")
+    || !cacheControl.includes("private")
+    || !cacheControl.includes("no-store")) {
+    fail("route_iq_dashboard_preview_unavailable", "The paid-customer configuration preview is unavailable.");
+  }
+  try {
+    return await response.json();
+  } catch {
+    fail("route_iq_dashboard_preview_malformed", "The paid-customer configuration preview is malformed.");
+  }
+}
+
+export async function loadPaidCustomerConfigurationPreview({
+  session,
+  platform,
+  fetchFn = globalThis.fetch,
+  now = new Date()
+} = {}) {
+  assertPreviewSession(session, now);
+  if (typeof fetchFn !== "function") {
+    fail("route_iq_dashboard_preview_fetch_unavailable", "The paid-customer configuration preview cannot load.");
+  }
+  const envelope = await governedPaidCustomerPreviewJson(fetchFn);
+  return validatePaidCustomerConfigurationPreviewEnvelope(envelope, {
+    session,
+    platform,
+    now
+  });
+}
+
+export function paidCustomerConfigurationEmptyState() {
+  return Object.freeze({
+    title: "No paid-customer configuration selected",
+    message: "No paid-customer configuration is selected or activated for this secure session.",
+    detail: "A validated configuration and explicit approval are required before customer operations can begin."
   });
 }
 

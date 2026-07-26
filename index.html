@@ -929,6 +929,69 @@
       line-height: 1.45;
     }
 
+    .paid-customer-preview[hidden] {
+      display: none;
+    }
+
+    .paid-customer-preview-body {
+      display: grid;
+      gap: 14px;
+    }
+
+    .paid-customer-preview-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .paid-customer-preview-summary div,
+    .paid-customer-preview-section {
+      min-width: 0;
+    }
+
+    .paid-customer-preview-summary span,
+    .paid-customer-preview-section h3 {
+      display: block;
+      margin: 0 0 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.3;
+      text-transform: uppercase;
+    }
+
+    .paid-customer-preview-summary b,
+    .paid-customer-preview-section p,
+    .paid-customer-preview-list {
+      margin: 0;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .paid-customer-preview-sections {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    .paid-customer-preview-section {
+      display: grid;
+      align-content: start;
+      gap: 5px;
+    }
+
+    .paid-customer-preview-list {
+      padding-left: 18px;
+    }
+
+    .paid-customer-preview-list li + li {
+      margin-top: 4px;
+    }
+
     .empty {
       padding: 18px 14px;
       border: 1px dashed #c8d0cc;
@@ -1506,6 +1569,11 @@
         grid-template-columns: 1fr;
       }
 
+      .paid-customer-preview-summary,
+      .paid-customer-preview-sections {
+        grid-template-columns: 1fr;
+      }
+
       .item-head {
         flex-wrap: wrap;
       }
@@ -1533,7 +1601,7 @@
     }
   </style>
 </head>
-<body class="booting" data-mode="owner" data-session-role="founder" data-workspace-id="route_iq_unconfigured" data-workspace-name="Route IQ configuration required" data-operating-profile-id="">
+<body class="booting" data-mode="owner" data-session-role="founder" data-workspace-id="route_iq_unconfigured" data-workspace-name="No paid-customer configuration selected" data-operating-profile-id="">
   <div class="app">
     <header>
       <div class="topline">
@@ -1755,6 +1823,50 @@
             <b id="bestCategory">-</b>
           </article>
         </div>
+        <section class="paid-customer-preview" id="paidCustomerConfigurationPreview" aria-labelledby="paidCustomerConfigurationPreviewTitle" hidden>
+          <div class="section-title">
+            <h2 id="paidCustomerConfigurationPreviewTitle">Paid-customer configuration preview</h2>
+            <small>Read-only and non-activating</small>
+          </div>
+          <article class="panel pad paid-customer-preview-body" aria-live="polite">
+            <div class="status-line" id="paidCustomerConfigurationPreviewStatus">Loading validated configuration.</div>
+            <div class="paid-customer-preview-summary">
+              <div><span>Company</span><b id="paidCustomerPreviewCompany">-</b></div>
+              <div><span>Industry</span><b id="paidCustomerPreviewIndustry">-</b></div>
+              <div><span>Lifecycle</span><b id="paidCustomerPreviewLifecycle">-</b></div>
+            </div>
+            <div class="paid-customer-preview-sections">
+              <section class="paid-customer-preview-section">
+                <h3>Representative and manager terms</h3>
+                <p id="paidCustomerPreviewPeopleTerms">-</p>
+              </section>
+              <section class="paid-customer-preview-section">
+                <h3>Opportunity and outcome terms</h3>
+                <p id="paidCustomerPreviewWorkflowTerms">-</p>
+              </section>
+              <section class="paid-customer-preview-section">
+                <h3>Metrics and goals</h3>
+                <ul class="paid-customer-preview-list" id="paidCustomerPreviewMetrics"></ul>
+              </section>
+              <section class="paid-customer-preview-section">
+                <h3>Outcomes and follow-up</h3>
+                <ul class="paid-customer-preview-list" id="paidCustomerPreviewOutcomes"></ul>
+              </section>
+              <section class="paid-customer-preview-section">
+                <h3>Authorized territories</h3>
+                <ul class="paid-customer-preview-list" id="paidCustomerPreviewTerritories"></ul>
+              </section>
+              <section class="paid-customer-preview-section">
+                <h3>Targeting rules</h3>
+                <p id="paidCustomerPreviewTargeting">-</p>
+              </section>
+              <section class="paid-customer-preview-section">
+                <h3>Verification and freshness</h3>
+                <p id="paidCustomerPreviewVerification">-</p>
+              </section>
+            </div>
+          </article>
+        </section>
         <div id="founderDailyIntelligence" class="owner-only" hidden>
           <div class="section-title">
             <h2>Daily Intelligence Snapshot</h2>
@@ -1983,6 +2095,10 @@
     function renderRouteIqCustomerPwaSessionBlocked(state) {
       document.body.dataset.sessionRole = "unauthorized";
       document.body.dataset.customerSessionState = state;
+      if (state === "configuration_unavailable") {
+        document.body.innerHTML = `<main class="route-iq-customer-session-blocked"><div><h1>No paid-customer configuration selected</h1><p>No paid-customer configuration is selected or activated for this secure session. A validated configuration and explicit approval are required before customer operations can begin.</p></div></main>`;
+        return;
+      }
       document.body.innerHTML = `<main class="route-iq-customer-session-blocked"><div><h1>Route IQ access unavailable</h1><p>Your secure session is missing, expired, or outside the authorized workspace. Reconnect and sign in again.</p></div></main>`;
     }
 
@@ -2282,7 +2398,7 @@
       : {
           route_iq_unconfigured: Object.freeze({
             workspaceId: "route_iq_unconfigured",
-            label: "Route IQ configuration required",
+            label: "No paid-customer configuration selected",
             operatingProfileId: "",
             route: "/"
           })
@@ -2330,6 +2446,11 @@
         status: "not_requested",
         authorized: false,
         rendered: false
+      },
+      paidCustomerConfigurationPreview: {
+        status: "not_requested",
+        rendered: false,
+        activationEffect: "NONE"
       },
       lastError: "",
       lastUnhandledRejection: "",
@@ -2665,6 +2786,112 @@
       }
     }
 
+    function replacePaidCustomerPreviewList(id, values) {
+      const list = document.getElementById(id);
+      if (!list) return;
+      const items = values.map(value => {
+        const item = document.createElement("li");
+        item.textContent = String(value);
+        return item;
+      });
+      list.replaceChildren(...items);
+    }
+
+    function renderPaidCustomerConfigurationPreview(model) {
+      const container = document.getElementById("paidCustomerConfigurationPreview");
+      if (!container) return;
+      const preview = model.preview;
+      const terminology = preview.terminology;
+      document.getElementById("paidCustomerConfigurationPreviewStatus").textContent =
+        "Validated read-only preview · no customer activation or production mutation";
+      document.getElementById("paidCustomerPreviewCompany").textContent = preview.company.displayName;
+      document.getElementById("paidCustomerPreviewIndustry").textContent =
+        `${preview.company.industryLabel} · ${preview.company.operatingModelLabel}`;
+      document.getElementById("paidCustomerPreviewLifecycle").textContent =
+        titleCaseWords(model.lifecycleState);
+      document.getElementById("paidCustomerPreviewPeopleTerms").textContent =
+        `${terminology.representativeSingular} / ${terminology.representativePlural} · `
+        + `${terminology.managerSingular} / ${terminology.managerPlural}`;
+      document.getElementById("paidCustomerPreviewWorkflowTerms").textContent =
+        `${terminology.opportunitySingular} / ${terminology.opportunityPlural} · `
+        + `${terminology.visitSingular} / ${terminology.visitPlural} · `
+        + `${terminology.outcomeSingular} / ${terminology.outcomePlural}`;
+      replacePaidCustomerPreviewList(
+        "paidCustomerPreviewMetrics",
+        preview.metrics.map(metric => {
+          const goals = preview.goals
+            .filter(goal => goal.metricId === metric.metricId)
+            .map(goal => `${goal.label}: ${goal.targetDisplay}`);
+          return goals.length ? `${metric.label} · ${goals.join(" · ")}` : metric.label;
+        })
+      );
+      replacePaidCustomerPreviewList(
+        "paidCustomerPreviewOutcomes",
+        preview.outcomes.map(outcome => `${outcome.label} · ${titleCaseWords(outcome.classification)}`)
+          .concat(preview.followUpStages.map(stage =>
+            `${terminology.followUpSingular} ${stage.order}: ${stage.label}`
+          ))
+      );
+      replacePaidCustomerPreviewList(
+        "paidCustomerPreviewTerritories",
+        preview.territories.map(territory =>
+          `${territory.displayName} · ${territory.timeZone} · ZIPs ${territory.zipCodes.join(", ")}`
+        )
+      );
+      const exclusions = preview.targeting.excludedCategories.length
+        ? preview.targeting.excludedCategories.join(", ")
+        : "none configured";
+      document.getElementById("paidCustomerPreviewTargeting").textContent =
+        `${preview.targeting.ruleSummary} Included: ${preview.targeting.includedCategories.join(", ")}. `
+        + `Excluded: ${exclusions}. Explicit business exclusions: ${preview.targeting.excludedBusinessCount}.`;
+      document.getElementById("paidCustomerPreviewVerification").textContent =
+        `Verified identity, physical address, authorized territory, category, current operating status, `
+        + `and operating hours are required. Freshness ceiling: ${preview.verification.freshnessCeilingHours} hours. `
+        + "Provider failures fail closed.";
+      container.hidden = false;
+      window.prometheusDebugState.paidCustomerConfigurationPreview = {
+        status: "ready",
+        rendered: true,
+        activationEffect: model.activationEffect
+      };
+    }
+
+    async function initializePaidCustomerConfigurationPreview() {
+      const container = document.getElementById("paidCustomerConfigurationPreview");
+      if (!container) return;
+      container.hidden = true;
+      if (!routeIqCustomerPwaSession
+        || !routeIqDashboardPlatformApi
+        || !activeDashboardPlatform
+        || !dashboardCapabilityEnabled("manage_workspace_configuration")) {
+        window.prometheusDebugState.paidCustomerConfigurationPreview = {
+          status: "not_authorized",
+          rendered: false,
+          activationEffect: "NONE"
+        };
+        return;
+      }
+      container.hidden = false;
+      try {
+        const model = await routeIqDashboardPlatformApi.loadPaidCustomerConfigurationPreview({
+          session: routeIqCustomerPwaSession,
+          platform: activeDashboardPlatform,
+          fetchFn: fetch,
+          now: new Date()
+        });
+        renderPaidCustomerConfigurationPreview(model);
+      } catch (error) {
+        document.getElementById("paidCustomerConfigurationPreviewStatus").textContent =
+          "Validated configuration preview unavailable · no customer state was changed";
+        window.prometheusDebugState.paidCustomerConfigurationPreview = {
+          status: "unavailable",
+          rendered: false,
+          activationEffect: "NONE",
+          errorCode: cleanText(error?.code || "route_iq_dashboard_preview_unavailable", 100)
+        };
+      }
+    }
+
     async function initializeFounderWorkspaceSwitching() {
       const container = document.getElementById("founderWorkspaceSwitch");
       const select = document.getElementById("founderWorkspaceSelect");
@@ -2840,6 +3067,7 @@
           mobileBetaChanged: false
         };
         applyDashboardConfigurationPresentation();
+        await initializePaidCustomerConfigurationPreview();
         await initializeFounderWorkspaceSwitching();
         return true;
       } catch (error) {
