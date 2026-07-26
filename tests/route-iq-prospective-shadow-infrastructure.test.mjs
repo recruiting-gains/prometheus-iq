@@ -97,6 +97,9 @@ import {
   deriveRouteIqScoreableOutcomeFromCommittedEvidence
 } from "../intelligence/route-iq-committed-outcome-evaluation.mjs";
 import {
+  verifyRouteIqProspectiveWorkerDispatchSource
+} from "../scripts/lib/route-iq-prospective-shadow-worker-dispatch-verifier.mjs";
+import {
   produceRouteIqNextStopCandidateManifest,
   shadowDecisionProspectiveDispositionSchemaVersion,
   shadowDecisionRankingBasisVersion
@@ -1628,20 +1631,60 @@ test("activation readiness audit reports writes, records, budgets, production ac
   assert.equal(staleAudit.blockers.includes("activation_cohort_config_stale"), true);
 });
 
-test("Worker API dispatch preserves prospective routing with the Founder snapshot hook shape", () => {
+test("Worker API dispatch preserves prospective routing with the governed paid-customer hook shape", () => {
   const source = readFileSync(join(root, "workers/prometheus-iq-worker.js"), "utf8");
-  assert.match(
-    source,
-    /async function handleApiRequest\(request, env, executionContext, \{ dailySnapshotTestHooks \} = \{\}\)/u
-  );
-  assert.match(
-    source,
-    /if \(isRouteIqProspectiveShadowPath\(url\.pathname\)\) \{\s*return handleRouteIqProspectiveShadowRequest\(request, env, \{ executionContext \}\);\s*\}/u
-  );
-  assert.match(
-    source,
-    /withAegisHeaders\(await handleApiRequest\(request, env, executionContext, \{ dailySnapshotTestHooks \}\), aegis\)/u
-  );
+  assert.doesNotThrow(() => verifyRouteIqProspectiveWorkerDispatchSource(source));
+});
+
+test("Worker API dispatch verifier rejects unauthorized governed-hook signature drift", () => {
+  const source = readFileSync(join(root, "workers/prometheus-iq-worker.js"), "utf8");
+  const signature = `async function handleApiRequest(request, env, executionContext, {
+  dailySnapshotTestHooks,
+  paidCustomerOnboardingTestHooks,
+  paidCustomerDashboardPreviewTestHooks
+} = {}) {`;
+  const unauthorizedSignatures = [
+    "async function handleApiRequest(request, env, executionContext, { dailySnapshotTestHooks } = {}) {",
+    signature.replace("  paidCustomerOnboardingTestHooks,\n", ""),
+    signature.replace("  paidCustomerDashboardPreviewTestHooks\n", ""),
+    signature.replace(
+      "  paidCustomerOnboardingTestHooks,\n  paidCustomerDashboardPreviewTestHooks",
+      "  paidCustomerDashboardPreviewTestHooks,\n  paidCustomerOnboardingTestHooks"
+    ),
+    signature.replace(
+      "  paidCustomerDashboardPreviewTestHooks\n",
+      "  paidCustomerDashboardPreviewTestHooks,\n  unauthorizedTestHooks\n"
+    ),
+    signature.replace("paidCustomerOnboardingTestHooks", "customerOnboardingTestHooks")
+  ];
+  assert.equal(source.includes(signature), true);
+  for (const unauthorizedSignature of unauthorizedSignatures) {
+    assert.throws(
+      () => verifyRouteIqProspectiveWorkerDispatchSource(source.replace(signature, unauthorizedSignature)),
+      /exact governed paid-customer hook signature/u
+    );
+  }
+});
+
+test("Worker API dispatch verifier rejects hook-forwarding and prospective-dispatch drift", () => {
+  const source = readFileSync(join(root, "workers/prometheus-iq-worker.js"), "utf8");
+  const mutations = [
+    source.replace(
+      "          paidCustomerOnboardingTestHooks,\n          paidCustomerDashboardPreviewTestHooks",
+      "          paidCustomerDashboardPreviewTestHooks"
+    ),
+    source.replace(
+      "return handleRouteIqProspectiveShadowRequest(request, env, { executionContext });",
+      "return handleRouteIqProspectiveShadowRequest(request, env);"
+    )
+  ];
+  for (const mutation of mutations) {
+    assert.notEqual(mutation, source);
+    assert.throws(
+      () => verifyRouteIqProspectiveWorkerDispatchSource(mutation),
+      /exact (?:governed paid-customer hooks|prospective-shadow execution-context dispatch)/u
+    );
+  }
 });
 
 test("authenticated GET bootstrap is strict, short-lived, no-store, and storage-free", async () => {

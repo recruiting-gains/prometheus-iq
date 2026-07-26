@@ -3,6 +3,10 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import {
+  verifyRouteIqProspectiveWorkerDispatchSource
+} from "./lib/route-iq-prospective-shadow-worker-dispatch-verifier.mjs";
+
 const root = resolve(import.meta.dirname, "..");
 const batchId = "BATCH-20260714-004";
 const startupSuppressionBatchId = "BATCH-20260714-002";
@@ -123,18 +127,7 @@ assert.match(
 assert.doesNotMatch(worker, /await reconcileAndCloseRouteIqProspectiveSessionFromHandoff/u);
 assert.match(worker, /executionContext\.waitUntil\(closePromise\)/u);
 assert.match(worker, /async fetch\(request, env, executionContext\)/u);
-assert.match(
-  worker,
-  /async function handleApiRequest\(request, env, executionContext, \{ dailySnapshotTestHooks \} = \{\}\)/u
-);
-assert.match(
-  worker,
-  /if \(isRouteIqProspectiveShadowPath\(url\.pathname\)\) \{\s*return handleRouteIqProspectiveShadowRequest\(request, env, \{ executionContext \}\);\s*\}/u
-);
-assert.match(
-  worker,
-  /withAegisHeaders\(await handleApiRequest\(request, env, executionContext, \{ dailySnapshotTestHooks \}\), aegis\)/u
-);
+verifyRouteIqProspectiveWorkerDispatchSource(worker);
 assert.match(worker, /reconcileAndCloseRouteIqProspectiveSessionFromHandoff[\s\S]+\.catch\(error =>/u);
 assert.match(worker, /route_iq_prospective_session_close_failure/u);
 
