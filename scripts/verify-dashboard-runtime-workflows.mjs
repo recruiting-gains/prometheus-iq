@@ -2081,7 +2081,7 @@ async function verifyNearbyOpportunitiesFlow(cdp) {
     const emptyBefore = document.querySelector("#nearbyOpportunities .empty")?.textContent?.trim() || "";
     const target = (typeof routeVisiblePlaces === "function" ? routeVisiblePlaces() : [])
       .find(place => typeof nearbyOpportunitiesForPlace === "function" && nearbyOpportunitiesForPlace(place, 4).length > 0);
-    if (!target) throw new Error("No Anthony Active Pool target has nearby opportunities.");
+    if (!target) throw new Error("No representative route target has nearby opportunities.");
     Object.defineProperty(navigator, "geolocation", {
       configurable: true,
       value: {
@@ -3696,7 +3696,7 @@ async function runHarness() {
       customerPwaSession: customerPwaManagerSessionFixture,
       founderDailyIntelligenceResponse: founderDailyIntelligenceResponse()
     });
-    const founderDailyIntelligenceAnthonyServer = await startServer("Anthony intelligence HTTPS server", {
+    const founderDailyIntelligenceAnthonyServer = await startServer("Pending Founder intelligence HTTPS server", {
       customerPwaSession: customerPwaManagerSessionFixture,
       founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
         principal: {
@@ -3953,18 +3953,18 @@ async function runHarness() {
     await clickTab(founder.cdp, "route");
     const routeSnap = await snapshot(founder.cdp);
     assertWorkflow("Build Route workflow", routeSnap.activeView === "view-route" && routeSnap.routeCards > 0 && /Route/.test(routeSnap.routeText), `${routeSnap.routeCards} route cards rendered`, JSON.stringify({ activeView: routeSnap.activeView, routeCards: routeSnap.routeCards, routeText: routeSnap.routeText.slice(0, 300) }));
-    assertWorkflow("Beta Route Controls Owner 15-location route generation", routeSnap.routeCards === 15 && routeSnap.routeCountLabel.includes("15 active stops"), `${routeSnap.routeCards} route cards rendered; ${routeSnap.routeCountLabel}`, JSON.stringify({ routeCards: routeSnap.routeCards, routeCountLabel: routeSnap.routeCountLabel }));
+    assertWorkflow("Owner 15-location route generation", routeSnap.routeCards === 15 && routeSnap.routeCountLabel.includes("15 active stops"), `${routeSnap.routeCards} route cards rendered; ${routeSnap.routeCountLabel}`, JSON.stringify({ routeCards: routeSnap.routeCards, routeCountLabel: routeSnap.routeCountLabel }));
     const businessHoursRuntime = await verifyRouteBusinessHoursRuntime(founder.cdp);
     assertWorkflow("Route IQ governed business-hours artifact consumption", businessHoursRuntime.artifactAvailable && businessHoursRuntime.recordCount === 20 && businessHoursRuntime.debug.status === "ready" && businessHoursRuntime.debug.scoringChanged === false && businessHoursRuntime.queueStatuses.every(status => status === "OPEN_VERIFIED"), `${businessHoursRuntime.recordCount} fresh governed test-only hours records loaded`, JSON.stringify(businessHoursRuntime));
     assertWorkflow("Route IQ active queue closed-now exclusion", businessHoursRuntime.queueCount === 15 && !businessHoursRuntime.queueStatuses.includes("CLOSED_VERIFIED") && businessHoursRuntime.queueStatuses.every(Boolean) && !businessHoursRuntime.queueScoringChanged, `${businessHoursRuntime.queueCount} queued stops; 0 verified-closed; score weights unchanged`, JSON.stringify(businessHoursRuntime));
     assertWorkflow("Route IQ mobile-compatible hours explainability", businessHoursRuntime.routeCardCount === 15 && !businessHoursRuntime.routeCardStatuses.includes("CLOSED_VERIFIED") && businessHoursRuntime.routeCardStatuses.every(Boolean) && businessHoursRuntime.routeText.includes("Business-hours eligibility") && (businessHoursRuntime.queueUnverifiedCount === 0 || businessHoursRuntime.routeCardMarkers.filter(marker => marker === "HOURS_NOT_VERIFIED").length === businessHoursRuntime.queueUnverifiedCount), `${businessHoursRuntime.routeCardCount} route cards expose additive hours status`, JSON.stringify(businessHoursRuntime));
     const ownerNearbyBadge = await verifyRouteNearbyInteraction(founder.cdp);
-    assertWorkflow("Beta Route Controls Owner Nearby opens context", ownerNearbyBadge.tagName === "button" && ownerNearbyBadge.nearbyPlace && ownerNearbyBadge.after.modalActive && ownerNearbyBadge.modalTitle === "Nearby Context" && /Nearby Context|walkable|Directions|No verified/.test(ownerNearbyBadge.modalText), `${ownerNearbyBadge.text} opened ${ownerNearbyBadge.modalTitle}`, JSON.stringify(ownerNearbyBadge));
+    assertWorkflow("Owner Nearby Context interaction", ownerNearbyBadge.tagName === "button" && ownerNearbyBadge.nearbyPlace && ownerNearbyBadge.after.modalActive && ownerNearbyBadge.modalTitle === "Nearby Context" && /Nearby Context|walkable|Directions|No verified/.test(ownerNearbyBadge.modalText), `${ownerNearbyBadge.text} opened ${ownerNearbyBadge.modalTitle}`, JSON.stringify(ownerNearbyBadge));
 
     await clickTab(founder.cdp, "today");
     const territoryPolicy = await verifyTerritoryPermissionModel(founder.cdp);
-    assertWorkflow("Beta Stability Sprint 2 territory owner permission model", territoryPolicy.afterOwner.assignedRadiusMiles === 5 && territoryPolicy.afterOwner.allowedRadiusMiles === 10 && territoryPolicy.afterOwner.allowRepRadiusChanges === true && territoryPolicy.afterOwner.lockAssignedRadius === false && territoryPolicy.ownerStatus.includes("rep changes allowed"), territoryPolicy.ownerStatus, JSON.stringify(territoryPolicy));
-    assertWorkflow("Beta Stability Sprint 2 territory rep allowed adjustment", territoryPolicy.repDisabledBefore === false && territoryPolicy.afterRep.assignedRadiusMiles === 10 && territoryPolicy.repStatus.includes("Rep adjustment allowed"), territoryPolicy.repStatus, JSON.stringify(territoryPolicy));
+    assertWorkflow("Owner territory permission model", territoryPolicy.afterOwner.assignedRadiusMiles === 5 && territoryPolicy.afterOwner.allowedRadiusMiles === 10 && territoryPolicy.afterOwner.allowRepRadiusChanges === true && territoryPolicy.afterOwner.lockAssignedRadius === false && territoryPolicy.ownerStatus.includes("rep changes allowed"), territoryPolicy.ownerStatus, JSON.stringify(territoryPolicy));
+    assertWorkflow("Representative territory adjustment", territoryPolicy.repDisabledBefore === false && territoryPolicy.afterRep.assignedRadiusMiles === 10 && territoryPolicy.repStatus.includes("Rep adjustment allowed"), territoryPolicy.repStatus, JSON.stringify(territoryPolicy));
 
     const activePageTargets = await listChromePageTargets(chrome.debugPort);
     assertWorkflow(
@@ -4195,6 +4195,8 @@ async function runHarness() {
       "intelligence/continuous-adaptive-route-replenishment.mjs",
       "intelligence/route-business-hours-eligibility.mjs",
       "intelligence/route-iq-governed-runtime-scope.mjs",
+      activePoolPath,
+      fullPoolPath,
       customerPwaBusinessHoursPath,
       customerPwaBusinessRosterPath
     ]);
@@ -4202,7 +4204,7 @@ async function runHarness() {
       "Customer PWA missing operating-profile fail-closed",
       missingProfileBoundary?.sessionRole === "unauthorized"
         && missingProfileBoundary?.sessionState === "configuration_unavailable"
-        && missingProfileBoundary?.blockedHeading === "Route IQ access unavailable"
+        && missingProfileBoundary?.blockedHeading === "No paid-customer configuration selected"
         && missingProfileBoundary?.startupCompleted === false
         && missingProfileBoundary?.operatingProfileStatus === "configuration_unavailable"
         && missingProfileBoundary?.profileAccepted === false
@@ -4222,7 +4224,7 @@ async function runHarness() {
     const repSnap = rep.initial;
     assertWorkflow("Rep Mode", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.visibleTabs.includes("places") && !repSnap.visibleTabs.includes("stats") && !repSnap.visibleTabs.includes("find"), `rep tabs visible: ${repSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: repSnap.sessionRole, mode: repSnap.mode, visibleTabs: repSnap.visibleTabs }));
     assertWorkflow("Add Place desktop availability", repSnap.todayText.includes("Add Place"), "representative Add Place command visible on desktop", JSON.stringify({ todayText: repSnap.todayText.slice(0, 500) }));
-    assertWorkflow("Beta Stability Sprint 2 Rep radius/ring visibility", repSnap.territoryVisible && repSnap.territoryRingCount > 0 && repSnap.territoryText.includes("Assigned Territory Radius") && repSnap.territoryText.includes("Ring"), `${repSnap.territoryRingCount} territory rings visible for ${repSnap.activeRepId}`, JSON.stringify({ territoryVisible: repSnap.territoryVisible, territoryRingCount: repSnap.territoryRingCount, territoryText: repSnap.territoryText.slice(0, 400) }));
+    assertWorkflow("Representative radius/ring visibility", repSnap.territoryVisible && repSnap.territoryRingCount > 0 && repSnap.territoryText.includes("Assigned Territory Radius") && repSnap.territoryText.includes("Ring"), `${repSnap.territoryRingCount} territory rings visible for ${repSnap.activeRepId}`, JSON.stringify({ territoryVisible: repSnap.territoryVisible, territoryRingCount: repSnap.territoryRingCount, territoryText: repSnap.territoryText.slice(0, 400) }));
     assertWorkflow("Representative governed territory boundary", repSnap.debug.territoryCoverage.assignedRadiusMiles <= repSnap.debug.territoryCoverage.allowedRadiusMiles && repSnap.debug.territoryCoverage.ringTotals[0] > 0 && repSnap.debug.territoryCoverage.routeUsesOnlyRingOne === true, `${repSnap.debug.territoryCoverage.assignedRadiusMiles}/${repSnap.debug.territoryCoverage.allowedRadiusMiles} mi governed boundary`, JSON.stringify({ coverage: repSnap.debug.territoryCoverage, ringTexts: repSnap.territoryRingTexts }));
     assertWorkflow("Rep startup defers owner-only views", repSnap.placesItems === 0 && repSnap.debug.deferredOwnerViews.places === false && repSnap.debug.deferredOwnerViews.stats === false && repSnap.debug.deferredOwnerViews.find === false, `owner-only views deferred; render total ${repSnap.debug.renderTimings.total || 0}ms`, JSON.stringify({ placesItems: repSnap.placesItems, renderTimings: repSnap.debug.renderTimings, deferredOwnerViews: repSnap.debug.deferredOwnerViews }));
     await rep.cdp.evaluate(`setTab("stats")`);
@@ -4230,7 +4232,7 @@ async function runHarness() {
     assertWorkflow("Rep owner-tab guard", repAfterOwnerTab.activeView === "view-today", "rep remains on Today when owner tab is requested", JSON.stringify({ activeView: repAfterOwnerTab.activeView }));
     assertWorkflow("Rep route quality", repSnap.debug.rendererReceived && repSnap.bestNextMove && repSnap.bestMoveDirections.startsWith("https://www.google.com/maps/dir/?api=1&destination=") && repSnap.dailyRouteCards > 0, `${repSnap.bestNextMove} with governed directions and ${repSnap.dailyRouteCards} route cards`, JSON.stringify({ bestNextMove: repSnap.bestNextMove, directions: repSnap.bestMoveDirections, dailyRouteCards: repSnap.dailyRouteCards }));
     assertWorkflow("Authenticated representative readiness", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.activeRepId === customerPwaSessionFixture.representativeId && repSnap.debug.runtimeDataPool === "governed" && repSnap.debug.runtimeDataStatus === "READY" && repSnap.appBuildVersion && repSnap.storedAppBuildVersion === repSnap.appBuildVersion, `synthetic representative ready on governed roster, build ${repSnap.appBuildVersion}`, JSON.stringify(repSnap));
-    assertWorkflow("Beta Stability Sprint 2 dashboard performance", Number(founderSnap.debug.renderTimings.total || 0) < 5000 && Number(repSnap.debug.renderTimings.total || 0) < 5000 && Number(founderSnap.performance.activeResourceDuration || 0) < 5000 && founder.routeLoadMs < 10000, `founder render ${founderSnap.debug.renderTimings.total || 0}ms, rep render ${repSnap.debug.renderTimings.total || 0}ms, active fetch ${founderSnap.performance.activeResourceDuration || 0}ms, route ready ${founder.routeLoadMs}ms`, JSON.stringify({ founderRender: founderSnap.debug.renderTimings, repRender: repSnap.debug.renderTimings, founderPerformance: founderSnap.performance, routeLoadMs: founder.routeLoadMs }));
+    assertWorkflow("Dashboard performance", Number(founderSnap.debug.renderTimings.total || 0) < 5000 && Number(repSnap.debug.renderTimings.total || 0) < 5000 && Number(founderSnap.performance.activeResourceDuration || 0) < 5000 && founder.routeLoadMs < 10000, `founder render ${founderSnap.debug.renderTimings.total || 0}ms, rep render ${repSnap.debug.renderTimings.total || 0}ms, active fetch ${founderSnap.performance.activeResourceDuration || 0}ms, route ready ${founder.routeLoadMs}ms`, JSON.stringify({ founderRender: founderSnap.debug.renderTimings, repRender: repSnap.debug.renderTimings, founderPerformance: founderSnap.performance, routeLoadMs: founder.routeLoadMs }));
     const decisionDesktop = await verifyDecisionContextDesktopLayout(rep.cdp);
     assertWorkflow("Decision Context desktop rendering", decisionDesktop.viewportWidth > 390 && decisionDesktop.quickCount === 7 && decisionDesktop.visitCount === 7 && decisionDesktop.addPlaceCount === 7 && decisionDesktop.quickInitiallyHidden && decisionDesktop.quickOptional && decisionDesktop.addPlaceInitiallyHidden && decisionDesktop.addPlaceVisibleWithVisit && decisionDesktop.left >= -1 && decisionDesktop.right <= decisionDesktop.viewportWidth + 1 && decisionDesktop.scrollWidth <= decisionDesktop.viewportWidth + 1, "seven optional decision sources fit Quick Result, Add Visit, and Add Place initial-visit workflows", JSON.stringify(decisionDesktop));
     verifyNoErrors("Rep", rep.eventLog, repSnap);
@@ -4238,8 +4240,8 @@ async function runHarness() {
     const repRouteSnap = await snapshot(rep.cdp);
     assertWorkflow("Representative 15-location route generation", repRouteSnap.routeCards === 15 && repRouteSnap.routeCountLabel.includes("15 active stops"), `${repRouteSnap.routeCards} representative route cards rendered; ${repRouteSnap.routeCountLabel}`, JSON.stringify({ routeCards: repRouteSnap.routeCards, routeCountLabel: repRouteSnap.routeCountLabel, routeText: repRouteSnap.routeText.slice(0, 500) }));
     const routeWindows = await verifyRouteWindowOptions(rep.cdp);
-    assertWorkflow("Beta Route Controls Morning route options", routeWindows.morning.routeCards > 0 && routeWindows.morning.routeCountLabel.includes("active stops"), `${routeWindows.morning.routeCards} Morning options; ${routeWindows.morning.routeCountLabel}`, JSON.stringify(routeWindows.morning));
-    assertWorkflow("Beta Route Controls Evening route options", routeWindows.evening.routeCards > 0 && routeWindows.evening.routeCountLabel.includes("active stops"), `${routeWindows.evening.routeCards} Evening options; ${routeWindows.evening.routeCountLabel}`, JSON.stringify(routeWindows.evening));
+    assertWorkflow("Representative Morning route options", routeWindows.morning.routeCards > 0 && routeWindows.morning.routeCountLabel.includes("active stops"), `${routeWindows.morning.routeCards} Morning options; ${routeWindows.morning.routeCountLabel}`, JSON.stringify(routeWindows.morning));
+    assertWorkflow("Representative Evening route options", routeWindows.evening.routeCards > 0 && routeWindows.evening.routeCountLabel.includes("active stops"), `${routeWindows.evening.routeCards} Evening options; ${routeWindows.evening.routeCountLabel}`, JSON.stringify(routeWindows.evening));
     assertWorkflow(
       "Representative route identity uniqueness",
       new Set(repRouteSnap.routeQueueIds).size === repRouteSnap.routeQueueIds.length,
@@ -4247,7 +4249,7 @@ async function runHarness() {
       JSON.stringify(repRouteSnap.routeQueueIds)
     );
     const repNearbyBadge = await verifyRouteNearbyInteraction(rep.cdp);
-    assertWorkflow("Beta Route Controls Anthony Rep Nearby opens context", repNearbyBadge.tagName === "button" && repNearbyBadge.nearbyPlace && repNearbyBadge.after.modalActive && repNearbyBadge.modalTitle === "Nearby Context" && /Nearby Context|walkable|Directions|No verified/.test(repNearbyBadge.modalText), `${repNearbyBadge.text} opened ${repNearbyBadge.modalTitle}`, JSON.stringify(repNearbyBadge));
+    assertWorkflow("Representative Nearby Context interaction", repNearbyBadge.tagName === "button" && repNearbyBadge.nearbyPlace && repNearbyBadge.after.modalActive && repNearbyBadge.modalTitle === "Nearby Context" && /Nearby Context|walkable|Directions|No verified/.test(repNearbyBadge.modalText), `${repNearbyBadge.text} opened ${repNearbyBadge.modalTitle}`, JSON.stringify(repNearbyBadge));
     await clickTab(rep.cdp, "today");
     const nearbyFlow = await verifyNearbyOpportunitiesFlow(rep.cdp);
     assertWorkflow("Nearby Opportunities empty state", nearbyFlow.emptyBefore.includes("Log a governed route stop"), nearbyFlow.emptyBefore, JSON.stringify(nearbyFlow));
@@ -4260,7 +4262,7 @@ async function runHarness() {
     const desktopRepPlaces = await verifyDesktopRepresentativePlaces(rep.cdp);
     assertWorkflow("Representative Saved Places desktop rendering", desktopRepPlaces.viewportWidth > 390 && desktopRepPlaces.title === "Rep Places" && desktopRepPlaces.visitedHeading === "Visited Places" && desktopRepPlaces.savedHeading === "Saved Places" && desktopRepPlaces.savedText.includes("Not Yet Visited") && desktopRepPlaces.visitedCount > 0 && desktopRepPlaces.savedCount === 1 && desktopRepPlaces.savedLeft >= -1 && desktopRepPlaces.savedRight <= desktopRepPlaces.viewportWidth + 1, "Visited and Saved sections render distinctly on desktop", JSON.stringify(desktopRepPlaces));
     const routeSync = await verifyRouteStateSynchronization(rep.cdp);
-    assertWorkflow("Beta Stability Sprint 2 route state synchronization", !routeSync.routePoolStillContainsLogged && !routeSync.routeListStillContainsLogged && !routeSync.dailyRouteStillContainsLogged && !routeSync.bestNextStillLogged, `${routeSync.loggedName} removed from route pool/list/daily/best-next after logging`, JSON.stringify(routeSync));
+    assertWorkflow("Representative route state synchronization", !routeSync.routePoolStillContainsLogged && !routeSync.routeListStillContainsLogged && !routeSync.dailyRouteStillContainsLogged && !routeSync.bestNextStillLogged, `${routeSync.loggedName} removed from route pool/list/daily/best-next after logging`, JSON.stringify(routeSync));
     verifyNoErrors("Nearby Opportunities", rep.eventLog, await snapshot(rep.cdp));
 
     const anthonyLog = await runPageScenario(chrome, mobileLoggingServer, "/app?harness=representative-mobile-quick-log", "representative-mobile-log", {
@@ -4269,21 +4271,21 @@ async function runHarness() {
     });
     const quickLog = await verifyMobileQuickLogging(anthonyLog.cdp);
     const quickLogRouteStatus = inspectRouteUpdateStatus(quickLog.routeLoopStatus);
-    assertWorkflow("Anthony mobile pin-drop logging reachability", quickLog.reachable && !quickLog.modalActiveAfterSubmit && quickLog.afterUnits > quickLog.beforeUnits && quickLog.routeQueueCount === 15 && quickLogRouteStatus.hasStablePrefix && quickLog.documentScrollWidth <= quickLog.viewportWidth + 1 && quickLog.bodyScrollWidth <= quickLog.viewportWidth + 1, `submit reachable, units ${quickLog.beforeUnits} -> ${quickLog.afterUnits}, queue ${quickLog.routeQueueCount}, modal body ${quickLog.modalBodyClientHeight}/${quickLog.modalBodyScrollHeight}`, JSON.stringify({ ...quickLog, routeStatus: quickLogRouteStatus }));
-    assertWorkflow("Anthony mobile pin-drop governed hours detail", quickLogRouteStatus.hasGovernedHoursDetail, quickLogRouteStatus.detail || "no unverified-hours detail", JSON.stringify(quickLogRouteStatus));
-    verifyNoErrors("Anthony mobile logging", anthonyLog.eventLog, await snapshot(anthonyLog.cdp));
+    assertWorkflow("Representative mobile pin-drop logging reachability", quickLog.reachable && !quickLog.modalActiveAfterSubmit && quickLog.afterUnits > quickLog.beforeUnits && quickLog.routeQueueCount === 15 && quickLogRouteStatus.hasStablePrefix && quickLog.documentScrollWidth <= quickLog.viewportWidth + 1 && quickLog.bodyScrollWidth <= quickLog.viewportWidth + 1, `submit reachable, units ${quickLog.beforeUnits} -> ${quickLog.afterUnits}, queue ${quickLog.routeQueueCount}, modal body ${quickLog.modalBodyClientHeight}/${quickLog.modalBodyScrollHeight}`, JSON.stringify({ ...quickLog, routeStatus: quickLogRouteStatus }));
+    assertWorkflow("Representative mobile pin-drop governed hours detail", quickLogRouteStatus.hasGovernedHoursDetail, quickLogRouteStatus.detail || "no unverified-hours detail", JSON.stringify(quickLogRouteStatus));
+    verifyNoErrors("Representative mobile logging", anthonyLog.eventLog, await snapshot(anthonyLog.cdp));
 
     const anthonyPwa = await runPageScenario(chrome, representativePwaServer, "/app?harness=representative-pwa-signin", "representative-pwa", {
       standalone: true,
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
-    verifyRepOnly("Anthony PWA first launch Rep-only", anthonyPwa.initial);
-    assertWorkflow("Anthony mobile startup performance", Number(anthonyPwa.initial.debug.renderTimings.total || 0) < 5000 && Number(anthonyPwa.initial.performance.activeResourceDuration || 0) < 5000, `render ${anthonyPwa.initial.debug.renderTimings.total || 0}ms, active fetch ${anthonyPwa.initial.performance.activeResourceDuration || 0}ms`, JSON.stringify({ renderTimings: anthonyPwa.initial.debug.renderTimings, performance: anthonyPwa.initial.performance }));
+    verifyRepOnly("Representative PWA first launch Rep-only", anthonyPwa.initial);
+    assertWorkflow("Representative mobile startup performance", Number(anthonyPwa.initial.debug.renderTimings.total || 0) < 5000 && Number(anthonyPwa.initial.performance.activeResourceDuration || 0) < 5000, `render ${anthonyPwa.initial.debug.renderTimings.total || 0}ms, active fetch ${anthonyPwa.initial.performance.activeResourceDuration || 0}ms`, JSON.stringify({ renderTimings: anthonyPwa.initial.debug.renderTimings, performance: anthonyPwa.initial.performance }));
     const anthonyReopen = await navigateExistingScenario(anthonyPwa.cdp, representativePwaServer, "/app?harness=representative-pwa-reopen");
-    verifyRepOnly("Anthony PWA reopen preserves Rep-only", anthonyReopen);
+    verifyRepOnly("Representative PWA reopen preserves Rep-only", anthonyReopen);
     const anthonyRefresh = await navigateExistingScenario(anthonyPwa.cdp, representativePwaServer, "/app?harness=representative-pwa-refresh");
-    verifyRepOnly("Anthony PWA refresh preserves Rep-only", anthonyRefresh);
-    verifyNoErrors("Anthony PWA", anthonyPwa.eventLog, anthonyRefresh);
+    verifyRepOnly("Representative PWA refresh preserves Rep-only", anthonyRefresh);
+    verifyNoErrors("Representative PWA", anthonyPwa.eventLog, anthonyRefresh);
 
     const decisionContext = await runPageScenario(chrome, decisionContextServer, "/app?role=rep&rep=anthony&debug=1&harness=decision-context-producer", "decision-context-producer", {
       standalone: true,

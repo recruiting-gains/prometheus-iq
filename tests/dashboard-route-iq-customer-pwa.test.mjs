@@ -129,10 +129,25 @@ test("the browser harness proves a missing customer profile stops before operati
   assert.match(runtimeWorkflowHarness, /operatingProfileId: "northstar_missing_profile"/u);
   assert.match(runtimeWorkflowHarness, /Customer PWA missing operating-profile fail-closed/u);
   assert.match(runtimeWorkflowHarness, /sessionState === "configuration_unavailable"/u);
+  assert.match(runtimeWorkflowHarness, /blockedHeading === "No paid-customer configuration selected"/u);
+  assert.match(runtimeWorkflowHarness, /startupCompleted === false/u);
   assert.match(runtimeWorkflowHarness, /prospectiveBootstrapRequests\.length === 0/u);
+  assert.match(runtimeWorkflowHarness, /prospectiveRequests\.length === 0/u);
   assert.match(runtimeWorkflowHarness, /prospectiveListenerAttached === false/u);
   assert.match(runtimeWorkflowHarness, /operationalWorkflowStarted === false/u);
   assert.match(runtimeWorkflowHarness, /intelligence\/continuous-adaptive-route-replenishment\.mjs/u);
-  assert.match(runtimeWorkflowHarness, /businessRoster/u);
+  assert.match(runtimeWorkflowHarness, /intelligence\/route-business-hours-eligibility\.mjs/u);
+  assert.match(runtimeWorkflowHarness, /intelligence\/route-iq-governed-runtime-scope\.mjs/u);
+  assert.match(runtimeWorkflowHarness, /activePoolPath,\s*\n\s*fullPoolPath,/u);
+  assert.match(runtimeWorkflowHarness, /customerPwaBusinessHoursPath,\s*\n\s*customerPwaBusinessRosterPath/u);
   assert.match(runtimeWorkflowHarness, /!customerPwaMissingProfileServer\.requests\.some/u);
+});
+
+test("runtime workflow check labels use neutral production terminology", () => {
+  assert.doesNotMatch(
+    runtimeWorkflowHarness,
+    /(?:assertWorkflow|verifyNoErrors|verifyRepOnly)\("[^"]*(?:Beta|Anthony)/u
+  );
+  assert.match(runtimeWorkflowHarness, /Representative mobile pin-drop logging reachability/u);
+  assert.match(runtimeWorkflowHarness, /Representative PWA first launch Rep-only/u);
 });
