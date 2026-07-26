@@ -19,7 +19,13 @@ redirect denial. Infrastructure then narrowed the implementation through
 `a4572b351473bf5c0183d748434d77de04d882f0`,
 `c7bbf6413430da2e55f94041bba70fcbdb4a95ba`, and
 `b64f6f05940bdf24ba57dfe488f567853e0c3d22` so the shared public Worker bundle
-and private forward-payload identity remain unchanged.
+and private forward-payload identity remain unchanged. The release-propagation
+successors `a83e069016622d968702c4db40c251ccbff744dd` and
+`25ff53a7e61b50962144c5c689cc7a546875f724` bind postdeployment readiness
+to the exact Cloudflare Worker version without changing the approved Dashboard
+experience. Infrastructure successor
+`6f7216afa09b72442f53a271a8b9fc749aa34d4b` then routes the canonical rollback
+root through that same authenticated guard and version proof.
 
 ## Corrective
 
@@ -105,6 +111,32 @@ non-Worker smoke client. The deterministic public rollback bundle remains
 `f8fceee62838c182a4e093d4d8bc57c71bf5ec8dbe71707db76c63ecd7a4b1eb`,
 and the private forward payload returns to its prior qualified identity.
 
+Deployment run `30205110247` crossed the production mutation boundary, then
+failed closed when its first immediate Access-authorized 2xx root response did
+not contain the runtime guard marker. The workflow executed its one qualified
+forward-compatible rollback and verified the rollback; the public Worker was
+unchanged.
+
+The release-propagation successor now requires both the exact runtime guard
+marker and the exact Cloudflare Worker version supplied by the
+`CF_VERSION_METADATA` binding before the full smoke plan may start. The same
+version is required on every full-smoke response, so an older Worker cannot pass
+by serving byte-identical HTML. Only a missing marker or missing or stale version
+may wait within the fixed 46.5-second readiness window. Redirects, non-2xx
+responses, malformed markers or versions, transport failures, and deadlines fail
+into the one qualified rollback. Fetch, response inspection, and response-body
+cancellation share one deadline for readiness and every full-smoke request.
+Neither credential material nor release identity values are emitted.
+
+Independent review found that the forward-compatible rollback originally sent
+only `/api/*` through its generated Worker wrapper, while the readiness probe
+uses canonical `/`. The rollback root could therefore bypass the guard marker
+and `CF_VERSION_METADATA` proof. Infrastructure repaired the rollback routes so
+only canonical `/` and the existing `/api/*` namespace are Worker-first. A
+composed regression test now proves an authenticated rollback root response
+contains both the exact marker and exact Worker version; ordinary assets,
+Dashboard behavior, bindings, and migrations remain unchanged.
+
 ## Boundary
 
 - Target: `prometheus-iq` only.
@@ -120,6 +152,9 @@ and the private forward payload returns to its prior qualified identity.
   rollback is prohibited.
 - Automated smoke requests are authenticated GET or HEAD only, use canonical
   paths, reject every redirect, and permit zero attempted application writes.
+- The postdeployment smoke plan cannot start until the canonical root proves
+  the exact deployed Worker version inside the bounded readiness window, and
+  every full-smoke response must prove that same version.
 - Collection, cohorts, recommendation influence, availability refresh,
   customer activation, Anthony mapping, the public Worker, and CRM remain
   outside this release.

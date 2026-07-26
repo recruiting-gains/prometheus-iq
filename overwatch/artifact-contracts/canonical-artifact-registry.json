@@ -228,7 +228,11 @@
         "canonicalClientIsolationCommit": "c7bbf6413430da2e55f94041bba70fcbdb4a95ba",
         "canonicalClientIsolationTree": "8a86830a3cb4ad489583f513ee7fe3cfb16e3bc0",
         "payloadContinuityCommit": "b64f6f05940bdf24ba57dfe488f567853e0c3d22",
-        "payloadContinuityTree": "9748bbb49da416bc7f418c2b738788e4fdd4bea7"
+        "payloadContinuityTree": "9748bbb49da416bc7f418c2b738788e4fdd4bea7",
+        "releasePropagationRepairCommit": "25ff53a7e61b50962144c5c689cc7a546875f724",
+        "releasePropagationRepairTree": "25f27adbd21a281d1294a68362b994403934095e",
+        "rollbackRootGuardRepairCommit": "6f7216afa09b72442f53a271a8b9fc749aa34d4b",
+        "rollbackRootGuardRepairTree": "414e500a735885f460cb25afc18b0387d43e8125"
       },
       "cleanRunnerRealWranglerEvidenceRequired": true,
       "writeAllowed": [

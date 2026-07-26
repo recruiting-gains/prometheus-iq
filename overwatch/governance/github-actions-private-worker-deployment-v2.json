@@ -1,6 +1,6 @@
 {
   "governanceId": "github-actions-private-worker-deployment-governance-v2",
-  "version": "1.6.0",
+  "version": "1.9.0",
   "batchId": "BATCH-20260725-007",
   "directive": "Founder Standing Directive - End-to-End Engineering Execution",
   "status": "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED",
@@ -95,6 +95,22 @@
       "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Restore private payload continuity after smoke isolation"
+    },
+    "implementationReleasePropagationRepairCommit": {
+      "commit": "25ff53a7e61b50962144c5c689cc7a546875f724",
+      "parent": "a83e069016622d968702c4db40c251ccbff744dd",
+      "tree": "25f27adbd21a281d1294a68362b994403934095e",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Harden private release propagation verification"
+    },
+    "implementationRollbackRootGuardRepairCommit": {
+      "commit": "6f7216afa09b72442f53a271a8b9fc749aa34d4b",
+      "parent": "25ff53a7e61b50962144c5c689cc7a546875f724",
+      "tree": "414e500a735885f460cb25afc18b0387d43e8125",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Route rollback root through smoke guard"
     },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
@@ -367,6 +383,124 @@
         "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
         "sha256": "4b7f7faf9f4d59f60fecb17431bb43ae768e8b7cd80b3f9c75adf9b2bcb05c03"
       }
+    ],
+    "releasePropagationRepairPaths": [
+      "scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs",
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "scripts/run-cloudflare-unattended-smoke.mjs",
+      "scripts/run-github-actions-private-worker-deployment-v2.mjs",
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "tests/cloudflare-unattended-runtime-guard.test.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "tests/route-iq-private-forward-rollback-candidate-v3.test.mjs",
+      "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+      "workers/infrastructure/cloudflare-unattended-smoke-guard.js",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+      "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
+      "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json",
+      "workers/prometheus-iq-worker.js",
+      "wrangler.jsonc"
+    ],
+    "releasePropagationRepairEvidence": [
+      {
+        "path": "scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs",
+        "sha256": "2e2a667a22ea9b49b63cfb5e4e164805ce0eac1009a779dfd6bdddcaa6fb1eb9"
+      },
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "a70895204b267ccddce168ecd68e6fb905c8440b64313116248e209cae1b18e3"
+      },
+      {
+        "path": "scripts/run-cloudflare-unattended-smoke.mjs",
+        "sha256": "23b6bcbdc1dd1269f54e867c9be9c4fa5aa1435502fc4ce28f50c41704fcc7d1"
+      },
+      {
+        "path": "scripts/run-github-actions-private-worker-deployment-v2.mjs",
+        "sha256": "b4c6a5f1458db28adcac691a3df345afeb423bef387ee8d298e73962c9cc516b"
+      },
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "967930d51af6f5b4f503e9420ea4c3e9efd3c1f9e65b6cad9572578b53533986"
+      },
+      {
+        "path": "tests/cloudflare-unattended-runtime-guard.test.mjs",
+        "sha256": "527729cbf7be101fc65a308035d5877dc036f2f477f66a835afa7a2785272a91"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "sha256": "926a50e3baf4dde74aa26f1efafc95e11066bfa84cf4b1bc4c65503fd8bcc5b7"
+      },
+      {
+        "path": "tests/route-iq-private-forward-rollback-candidate-v3.test.mjs",
+        "sha256": "3fe6b9b2595cb5c41382e556bce8d49bb2a96432f5e0f70eed56811279258492"
+      },
+      {
+        "path": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+        "sha256": "b2a175fefd963f52c9b9738b8cd00074dc72ba97d11460887cda2a49bda9247e"
+      },
+      {
+        "path": "workers/infrastructure/cloudflare-unattended-smoke-guard.js",
+        "sha256": "a67375594478bc4bed3b3f9341778da1f07252a5cc711a45d81e11cf71ac8f62"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "7779119d36fe8b09a4afeb31be1ed88f9ee5ed991314e9a43e4ebb3732819c59"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
+        "sha256": "cce54655218526e554c35e11b0599caf559fcf014c2c57c1ade2a65e770b0d32"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json",
+        "sha256": "6ddc92bb2fa764a8058fe2256574d3e319ae3724886908e43924ea962ab6bd06"
+      },
+      {
+        "path": "workers/prometheus-iq-worker.js",
+        "sha256": "cb94edb98f424de58d113722b743d16fa1512320d2fc5812f752b75b361985a6"
+      },
+      {
+        "path": "wrangler.jsonc",
+        "sha256": "b888732c12aa34d07f538d7ae112b6eb3f966c75d24839bac76d4e8ea6b9a835"
+      }
+    ],
+    "rollbackRootGuardRepairPaths": [
+      "scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs",
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "tests/route-iq-private-forward-rollback-candidate-v3.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+      "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
+      "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json"
+    ],
+    "rollbackRootGuardRepairEvidence": [
+      {
+        "path": "scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs",
+        "sha256": "5fc82e8972162b29540555d33f862121fcf00a2752b48a627871e0f313e8fe9c"
+      },
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "05648d6914a8503ec7fef1a1961fc23be6dd70d01efde883b7118ae8d1833230"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "sha256": "b0e35215365489f983f81429281b326bccf93bdb94610cdba1d6d6e3d99f00a4"
+      },
+      {
+        "path": "tests/route-iq-private-forward-rollback-candidate-v3.test.mjs",
+        "sha256": "38831bdfb713d75dfcf69178eff27a8a6237ec523950ec84ed4a5240c879de2a"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "96c789ebbf18db6dd7b64d4ab71dd8a9bd81f4f3919f509af01708cd5478473c"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
+        "sha256": "40e2913bb23d6a585fd7cd6e9d7ee1de0b9741ba7cdb20b92398c90acff72611"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json",
+        "sha256": "7ad3877abf9f9b94ef7100fc48cfd8c1dfaa3a5f1401e493ae362862c856d7d0"
+      }
     ]
   },
   "rootCause": {
@@ -412,14 +546,22 @@
     "sharedPublicRollbackDriftCause": "Removing /index.html from the shared runtime guard changed the generated public Worker bundle even though the corrective targets only the private Worker.",
     "sharedPublicRollbackPreservationRepair": "Infrastructure restored the historical read-only guard alias byte-for-byte, isolated canonical-path filtering inside the non-Worker smoke client, and restored the private forward-payload continuity pin.",
     "publicRollbackBundleSha256": "f8fceee62838c182a4e093d4d8bc57c71bf5ec8dbe71707db76c63ecd7a4b1eb",
-    "publicRollbackBundleChanged": false
+    "publicRollbackBundleChanged": false,
+    "propagationFailureDeploymentRun": "30205110247",
+    "propagationFailureReachedProductionMutation": true,
+    "propagationFailureClassification": "SMOKE_FAILURE|DIMENSION=GUARD_MARKER_MISSING",
+    "propagationFailureRollbackVerified": true,
+    "propagationFailureCause": "The first immediate postdeployment root request was Access-authorized and returned 2xx before the newly active Worker guard had propagated to that edge, so the exact guard marker was absent.",
+    "propagationRepair": "Postdeployment readiness now requires both the exact guard marker and the exact Cloudflare Worker version ID supplied through the CF_VERSION_METADATA binding. The same version is required on every full-smoke response, including when an older Worker serves byte-identical HTML. Fetch, response inspection, and body cancellation share one bounded deadline; redirects, non-2xx, invalid markers or versions, transport failures, and deadlines fail closed into the one qualified forward rollback.",
+    "rollbackRootGuardGap": "The forward-compatible rollback originally routed only /api/* through the generated Worker wrapper, while the propagation probe requests the canonical root. A rollback root could therefore bypass both the authenticated guard marker and CF_VERSION_METADATA proof.",
+    "rollbackRootGuardRepair": "The rollback routes only canonical / and the existing /api/* namespace through the generated wrapper. A composed test proves an authenticated rollback root response contains both the exact guard marker and the exact Worker version while ordinary static assets and approved Dashboard behavior remain unchanged."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
     "previousQualifiedTree": "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
     "releaseScopeUnchangedThroughBaselineCommit": "8976c077eef91147368c9b5566b5310c04fd6630",
-    "qualifiedForwardPayloadSha256": "a814ee31dcbc11c62dfd869ae23cd642163c89062512cd84fea589e516c995df",
-    "qualifiedRollbackBundleSha256": "64af130e3a9cf1a6807b4fc0328b58083cb0744472a776211464b323bbb6a7a9"
+    "qualifiedForwardPayloadSha256": "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c",
+    "qualifiedRollbackBundleSha256": "24cb31665b74c2abc6c51c5c932165c51cacf1eac1813c3bb794005194ed17cc"
   },
   "workflowBoundary": {
     "qualificationWorkflow": "Qualify Prometheus Private Worker v2",
@@ -510,6 +652,15 @@
     "canonicalHtmlPath": "/",
     "noncanonicalHtmlAliasesAllowed": false,
     "runtimeGuardHistoricalReadOnlyAliasPreserved": true,
+    "exactWorkerVersionReleaseIdentityRequired": true,
+    "versionMetadataBinding": "CF_VERSION_METADATA",
+    "versionResponseHeader": "X-Prometheus-Private-Worker-Version",
+    "fullSmokeVersionIdentityRequired": true,
+    "rollbackRootVersionIdentityRequired": true,
+    "rollbackRootComposedGuardTestRequired": true,
+    "requestAndResponseLifecycleDeadlineEnforced": true,
+    "propagationMaximumWaitMilliseconds": 46500,
+    "unsafeResponseRetryAllowed": false,
     "credentialsOmittedFromBrowserState": true
   },
   "protectedEnvironment": {
@@ -548,7 +699,8 @@
     "productionContactPerformedByThisGovernanceCommit": false,
     "qualificationPerformedByThisGovernanceCommit": false,
     "externalCredentialAndAccessConfigurationPerformed": true,
-    "failedDeploymentRunReachedProductionMutation": false,
+    "failedDeploymentRunReachedProductionMutation": true,
+    "failedDeploymentRunRollbackVerified": true,
     "runnerWorkspaceFailureReachedProductionMutation": false,
     "wranglerScratchFailureReachedProductionMutation": false,
     "publicRollbackBundleChanged": false,
