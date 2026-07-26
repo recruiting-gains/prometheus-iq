@@ -1,8 +1,16 @@
+import {
+  ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_AUTHORITY,
+  validateRouteIqPaidCustomerOnboardingConfiguration
+} from "../administration/contracts/route-iq-paid-customer-onboarding-v1.mjs";
+
 const TRUSTED_CONTEXTS = new WeakSet();
 const TRUSTED_DECISIONS = new WeakSet();
+const TRUSTED_CONTEXT_GRANTS = new WeakMap();
+const TRUSTED_PROJECTED_AUTHORITIES = new WeakSet();
 
 const STRICT_ID = /^[a-z][a-z0-9_]{2,127}$/u;
 const CONFIGURATION_VERSION = /^v[1-9][0-9]*\.[0-9]+\.[0-9]+$/u;
+const CONFIGURATION_IDENTITY = /^[a-z][a-z0-9_]{2,127}@[1-9][0-9]*$/u;
 const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/u;
 const SAFE_LABEL = /^[\p{L}\p{N}][\p{L}\p{N} .,&()/+\-]*$/u;
 const UNSAFE_LABEL_SEQUENCE =
@@ -29,6 +37,7 @@ export const ROUTE_IQ_PAID_CUSTOMER_OPERATIONS = Object.freeze({
   ownOutcomeWrite: "own_outcome_write",
   workspaceRecordsRead: "workspace_records_read",
   workspaceRecordsModify: "workspace_records_modify",
+  territoryAssignmentsManage: "territory_assignments_manage",
   configurationPreview: "configuration_preview",
   roleManage: "role_manage",
   workspaceSuspend: "workspace_suspend",
@@ -45,6 +54,7 @@ export const ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS = Object.freeze({
   trustedContextRequired: "TRUSTED_CONTEXT_REQUIRED",
   trustedDecisionRequired: "TRUSTED_DECISION_REQUIRED",
   storageScopeDenied: "STORAGE_SCOPE_DENIED",
+  roleProjectionDenied: "ROLE_PROJECTION_DENIED",
   labelUnsafe: "LABEL_UNSAFE",
   auditInvalid: "AUDIT_INVALID",
   securityFailure: "SECURITY_FAILURE"
@@ -98,6 +108,22 @@ const SELF_SCOPED_OPERATIONS = new Set([
 ]);
 
 const KNOWN_OPERATIONS = new Set(Object.values(ROUTE_IQ_PAID_CUSTOMER_OPERATIONS));
+const ADMINISTRATION_PROJECTABLE_OPERATIONS = new Set([
+  ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.dashboardRead,
+  ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.businessRead,
+  ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.ownRecordRead,
+  ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.ownOutcomeWrite,
+  ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.workspaceRecordsRead,
+  ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.territoryAssignmentsManage
+]);
+const ADMINISTRATION_PROJECTABLE_LIFECYCLE_STATES = new Set([
+  "VALIDATED",
+  "PREVIEW_READY",
+  "AWAITING_APPROVAL",
+  "PROVISIONING",
+  "PROVISIONING_FAILED",
+  "READY_FOR_ACTIVATION"
+]);
 const KNOWN_FAILURE_CLASSIFICATIONS = new Set(
   Object.values(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS)
 );
@@ -160,7 +186,7 @@ function deepFreeze(value) {
   return value;
 }
 
-function validateBinding(binding) {
+function validateBinding(binding, projectedRoleGrants = undefined) {
   assertExactKeys(binding, [
     "active",
     "bindingVersion",
@@ -176,19 +202,63 @@ function validateBinding(binding) {
     || !validStrictId(binding.workspaceId)
     || !validStrictId(binding.operatingProfileId)
     || !validStrictId(binding.principalId)
-    || !Object.hasOwn(ROLE_GRANTS, binding.roleId)) {
+    || !(projectedRoleGrants
+      ? projectedRoleGrants.has(binding.roleId)
+      : Object.hasOwn(ROLE_GRANTS, binding.roleId))) {
     fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable);
   }
 }
 
-function validateAuthority(authority) {
-  assertExactKeys(authority, [
+function validateProjectedRoleGrants(roleGrants) {
+  if (!Array.isArray(roleGrants) || roleGrants.length < 1 || roleGrants.length > 50) {
+    fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable);
+  }
+  const grantsByRole = new Map();
+  for (const roleGrant of roleGrants) {
+    assertExactKeys(roleGrant, [
+      "operations",
+      "roleId",
+      "sourcePermissions"
+    ], [], ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable);
+    if (!validStrictId(roleGrant.roleId)
+      || Object.hasOwn(ROLE_GRANTS, roleGrant.roleId)
+      || !Array.isArray(roleGrant.sourcePermissions)
+      || roleGrant.sourcePermissions.length < 1
+      || new Set(roleGrant.sourcePermissions).size !== roleGrant.sourcePermissions.length
+      || roleGrant.sourcePermissions.some(permission => !validStrictId(permission))
+      || !Array.isArray(roleGrant.operations)
+      || roleGrant.operations.length < 1
+      || new Set(roleGrant.operations).size !== roleGrant.operations.length
+      || roleGrant.operations.some(
+        operation => !ADMINISTRATION_PROJECTABLE_OPERATIONS.has(operation)
+      )
+      || grantsByRole.has(roleGrant.roleId)) {
+      fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.roleProjectionDenied);
+    }
+    grantsByRole.set(roleGrant.roleId, roleGrant.operations);
+  }
+  return grantsByRole;
+}
+
+function validateAuthority(authority, allowUntrustedProjection = false) {
+  const requiredKeys = [
     "authority",
     "bindings",
     "contractVersion",
     "expectedAudienceBindingId",
     "expectedIssuerBindingId"
-  ], [], ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable);
+  ];
+  const projected = isPlainObject(authority)
+    && Object.hasOwn(authority, "authoritySource");
+  if (projected) {
+    requiredKeys.push("authoritySource", "configurationIdentity", "roleGrants");
+  }
+  assertExactKeys(
+    authority,
+    requiredKeys,
+    [],
+    ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable
+  );
   if (authority.contractVersion !== ROUTE_IQ_PAID_CUSTOMER_SECURITY_VERSION
     || authority.authority !== ROUTE_IQ_PAID_CUSTOMER_AUTHORITY
     || !validStrictId(authority.expectedAudienceBindingId)
@@ -199,15 +269,166 @@ function validateAuthority(authority) {
     fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable);
   }
 
+  let projectedRoleGrants;
+  if (projected) {
+    if (authority.authoritySource !== ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_AUTHORITY
+      || typeof authority.configurationIdentity !== "string"
+      || !CONFIGURATION_IDENTITY.test(authority.configurationIdentity)
+      || (!allowUntrustedProjection && !TRUSTED_PROJECTED_AUTHORITIES.has(authority))) {
+      fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable);
+    }
+    projectedRoleGrants = validateProjectedRoleGrants(authority.roleGrants);
+  }
+
   const seen = new Set();
   for (const binding of authority.bindings) {
-    validateBinding(binding);
+    validateBinding(binding, projectedRoleGrants);
     const identity = `${binding.principalId}\u0000${binding.companyId}\u0000${binding.workspaceId}`;
     if (seen.has(identity)) {
       fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingAmbiguous);
     }
     seen.add(identity);
   }
+  return projectedRoleGrants;
+}
+
+function projectAdministrationPermission(permission, dashboardCapabilities) {
+  if (permission === "view_assigned_territory") {
+    return [
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.dashboardRead,
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.businessRead,
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.ownRecordRead
+    ];
+  }
+  if (permission === "view_company_dashboard") {
+    return [
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.dashboardRead,
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.businessRead,
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.workspaceRecordsRead
+    ];
+  }
+  if (permission === "manage_territory_assignments") {
+    return [ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.territoryAssignmentsManage];
+  }
+  if (/^record_[a-z][a-z0-9_]*$/u.test(permission)
+    && dashboardCapabilities.has(permission)) {
+    return [ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.ownOutcomeWrite];
+  }
+  if (/^review_[a-z][a-z0-9_]*_outcomes$/u.test(permission)) {
+    return [ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.workspaceRecordsRead];
+  }
+  fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.roleProjectionDenied);
+}
+
+function projectAdministrationRoleGrants(configuration) {
+  const dashboardCapabilities = new Set(configuration.dashboard.capabilityIds);
+  return configuration.access.roles
+    .map(role => {
+      if (Object.hasOwn(ROLE_GRANTS, role.roleId)) {
+        fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.roleProjectionDenied);
+      }
+      const operations = new Set();
+      for (const permission of role.permissions) {
+        for (const operation of projectAdministrationPermission(
+          permission,
+          dashboardCapabilities
+        )) {
+          operations.add(operation);
+        }
+      }
+      if (operations.size < 1) {
+        fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.roleProjectionDenied);
+      }
+      return {
+        roleId: role.roleId,
+        sourcePermissions: [...role.permissions].sort(),
+        operations: Object.values(ROUTE_IQ_PAID_CUSTOMER_OPERATIONS)
+          .filter(operation => operations.has(operation))
+      };
+    })
+    .sort((left, right) => left.roleId.localeCompare(right.roleId));
+}
+
+export function projectRouteIqPaidCustomerAdministrationAuthority(input) {
+  assertExactKeys(input, [
+    "configuration",
+    "expectedAudienceBindingId",
+    "expectedIssuerBindingId",
+    "principalBindings"
+  ], [], ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable);
+  const {
+    configuration,
+    expectedAudienceBindingId,
+    expectedIssuerBindingId,
+    principalBindings
+  } = input;
+  if (!validStrictId(expectedAudienceBindingId)
+    || !validStrictId(expectedIssuerBindingId)
+    || !Array.isArray(principalBindings)
+    || principalBindings.length < 1
+    || principalBindings.length > 10_000) {
+    fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable);
+  }
+
+  let validated;
+  try {
+    validated = validateRouteIqPaidCustomerOnboardingConfiguration(configuration);
+  } catch {
+    fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable);
+  }
+  if (!ADMINISTRATION_PROJECTABLE_LIFECYCLE_STATES.has(validated.lifecycle.state)
+    || validated.safety.customerActivation !== "OFF"
+    || validated.safety.collection !== "OFF"
+    || validated.safety.activeCohorts !== 0
+    || validated.safety.recommendationInfluence !== "OFF"
+    || validated.safety.providerRefresh !== "OFF"
+    || validated.safety.scheduler !== "OFF") {
+    fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable);
+  }
+
+  const roleGrants = projectAdministrationRoleGrants(validated);
+  const configuredRoleIds = new Set(roleGrants.map(role => role.roleId));
+  const seenPrincipals = new Set();
+  const bindings = principalBindings.map(principalBinding => {
+    assertExactKeys(
+      principalBinding,
+      ["principalId", "roleId"],
+      [],
+      ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable
+    );
+    if (!validStrictId(principalBinding.principalId)
+      || !validStrictId(principalBinding.roleId)
+      || !configuredRoleIds.has(principalBinding.roleId)
+      || seenPrincipals.has(principalBinding.principalId)) {
+      fail(seenPrincipals.has(principalBinding.principalId)
+        ? ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingAmbiguous
+        : ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.roleProjectionDenied);
+    }
+    seenPrincipals.add(principalBinding.principalId);
+    return {
+      active: true,
+      bindingVersion: `v1.${validated.configurationRevision}.0`,
+      companyId: validated.company.companyId,
+      workspaceId: validated.company.workspaceId,
+      operatingProfileId: validated.operatingProfile.industryTemplateId,
+      principalId: principalBinding.principalId,
+      roleId: principalBinding.roleId
+    };
+  }).sort((left, right) => left.principalId.localeCompare(right.principalId));
+
+  const authority = deepFreeze({
+    contractVersion: ROUTE_IQ_PAID_CUSTOMER_SECURITY_VERSION,
+    authority: ROUTE_IQ_PAID_CUSTOMER_AUTHORITY,
+    authoritySource: ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_AUTHORITY,
+    configurationIdentity: validated.provenance.configurationIdentity,
+    expectedIssuerBindingId,
+    expectedAudienceBindingId,
+    roleGrants,
+    bindings
+  });
+  validateAuthority(authority, true);
+  TRUSTED_PROJECTED_AUTHORITIES.add(authority);
+  return authority;
 }
 
 export function classifyRouteIqPaidCustomerSecurityFailure(error) {
@@ -240,7 +461,7 @@ export function bindRouteIqPaidCustomerPrincipal({
     "companyId",
     "workspaceId"
   ], [], ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.requestMalformed);
-  validateAuthority(authority);
+  const projectedRoleGrants = validateAuthority(authority);
 
   if (!(now instanceof Date) || !Number.isFinite(now.getTime())
     || authenticatedClaims.authenticated !== true
@@ -288,6 +509,10 @@ export function bindRouteIqPaidCustomerPrincipal({
     sessionExpiresAt: authenticatedClaims.expiresAt
   });
   TRUSTED_CONTEXTS.add(context);
+  TRUSTED_CONTEXT_GRANTS.set(
+    context,
+    projectedRoleGrants?.get(binding.roleId) || ROLE_GRANTS[binding.roleId]
+  );
   return context;
 }
 
@@ -312,7 +537,7 @@ export function authorizeRouteIqPaidCustomerOperation(context, request) {
     fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.scopeDenied);
   }
 
-  const grants = ROLE_GRANTS[context.roleId];
+  const grants = TRUSTED_CONTEXT_GRANTS.get(context);
   if (!grants?.includes(request.operation)) {
     fail(ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.roleDenied);
   }

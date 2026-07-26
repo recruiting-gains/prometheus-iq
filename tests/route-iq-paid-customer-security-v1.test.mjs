@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -14,6 +15,7 @@ import {
   createRouteIqPaidCustomerSecurityAuditEvent,
   isTrustedRouteIqPaidCustomerContext,
   isTrustedRouteIqPaidCustomerDecision,
+  projectRouteIqPaidCustomerAdministrationAuthority,
   routeIqPaidCustomerSafeDenial,
   validateRouteIqPaidCustomerDisplayTerminology
 } from "../security/route-iq-paid-customer-isolation-v1.mjs";
@@ -26,6 +28,11 @@ const SECRET_CANARIES = [
   "synthetic-auth-header",
   "synthetic-cookie-value"
 ];
+const ADMINISTRATION_FIXTURES = JSON.parse(readFileSync(new URL(
+  "../administration/workspace-configurations/"
+    + "route-iq-paid-customer-synthetic-fixtures-v1.json",
+  import.meta.url
+), "utf8")).configurations;
 
 function clone(value) {
   return structuredClone(value);
@@ -113,6 +120,27 @@ function assertNoCanaries(value) {
   for (const canary of SECRET_CANARIES) {
     assert.equal(output.includes(canary), false);
   }
+}
+
+function projectFixtureAuthority(configuration, principalBindings) {
+  return projectRouteIqPaidCustomerAdministrationAuthority({
+    configuration,
+    expectedIssuerBindingId: "synthetic_issuer_binding",
+    expectedAudienceBindingId: "synthetic_audience_binding",
+    principalBindings
+  });
+}
+
+function bindProjectedPrincipal(authorityValue, configuration, principalId) {
+  return bindRouteIqPaidCustomerPrincipal({
+    authenticatedClaims: claims(principalId),
+    requestedScope: {
+      companyId: configuration.company.companyId,
+      workspaceId: configuration.company.workspaceId
+    },
+    authority: authorityValue,
+    now: NOW
+  });
 }
 
 test("server authority binds one immutable company/workspace security context", () => {
@@ -554,4 +582,242 @@ test("all externally safe denials are immutable and contain no claim dimensions"
   ]) {
     assert.equal(serialized(denial).toLowerCase().includes(forbidden), false);
   }
+});
+
+test("final Administration roles project deterministically across unrelated industries", () => {
+  assert.equal(ADMINISTRATION_FIXTURES.length, 2);
+  for (const configuration of ADMINISTRATION_FIXTURES) {
+    const [fieldRole, managerRole] = configuration.access.roles;
+    const fieldPrincipalId = `${configuration.operatingProfile.industryTemplateId}_field_principal`;
+    const managerPrincipalId =
+      `${configuration.operatingProfile.industryTemplateId}_manager_principal`;
+    const projected = projectFixtureAuthority(configuration, [{
+      principalId: fieldPrincipalId,
+      roleId: fieldRole.roleId
+    }, {
+      principalId: managerPrincipalId,
+      roleId: managerRole.roleId
+    }]);
+
+    assert.equal(Object.isFrozen(projected), true);
+    assert.equal(projected.configurationIdentity, configuration.provenance.configurationIdentity);
+    assert.equal(projected.bindings.length, 2);
+    assert.equal(serialized(projected).includes(fieldRole.displayLabel), false);
+    assert.equal(serialized(projected).includes(managerRole.displayLabel), false);
+
+    const fieldContext = bindProjectedPrincipal(
+      projected,
+      configuration,
+      fieldPrincipalId
+    );
+    for (const operation of [
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.dashboardRead,
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.businessRead,
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.ownRecordRead
+    ]) {
+      assert.equal(authorizeRouteIqPaidCustomerOperation(fieldContext, {
+        companyId: configuration.company.companyId,
+        workspaceId: configuration.company.workspaceId,
+        operation,
+        ...(operation === ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.ownRecordRead
+          ? { resourceOwnerPrincipalId: fieldPrincipalId }
+          : {})
+      }).authorized, true);
+    }
+    assert.equal(authorizeRouteIqPaidCustomerOperation(fieldContext, {
+      companyId: configuration.company.companyId,
+      workspaceId: configuration.company.workspaceId,
+      operation: ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.ownOutcomeWrite,
+      resourceOwnerPrincipalId: fieldPrincipalId
+    }).authorized, true);
+    assert.throws(() => authorizeRouteIqPaidCustomerOperation(fieldContext, {
+      companyId: configuration.company.companyId,
+      workspaceId: configuration.company.workspaceId,
+      operation: ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.recommendationReceive
+    }));
+
+    const managerContext = bindProjectedPrincipal(
+      projected,
+      configuration,
+      managerPrincipalId
+    );
+    for (const operation of [
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.dashboardRead,
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.businessRead,
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.workspaceRecordsRead,
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.territoryAssignmentsManage
+    ]) {
+      assert.equal(authorizeRouteIqPaidCustomerOperation(managerContext, {
+        companyId: configuration.company.companyId,
+        workspaceId: configuration.company.workspaceId,
+        operation
+      }).authorized, true);
+    }
+    for (const operation of [
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.workspaceRecordsModify,
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.roleManage,
+      ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.workspaceSuspend
+    ]) {
+      assert.throws(() => authorizeRouteIqPaidCustomerOperation(managerContext, {
+        companyId: configuration.company.companyId,
+        workspaceId: configuration.company.workspaceId,
+        operation
+      }));
+    }
+  }
+});
+
+test("projected authorities deny cross-company substitution without enumeration", () => {
+  const [securityConfiguration, distributionConfiguration] = ADMINISTRATION_FIXTURES;
+  const roleId = securityConfiguration.access.roles[0].roleId;
+  const projected = projectFixtureAuthority(securityConfiguration, [{
+    principalId: "synthetic_shared_principal",
+    roleId
+  }]);
+  const context = bindProjectedPrincipal(
+    projected,
+    securityConfiguration,
+    "synthetic_shared_principal"
+  );
+  const errors = [
+    captureFailure(() => bindRouteIqPaidCustomerPrincipal({
+      authenticatedClaims: claims("synthetic_shared_principal"),
+      requestedScope: {
+        companyId: distributionConfiguration.company.companyId,
+        workspaceId: distributionConfiguration.company.workspaceId
+      },
+      authority: projected,
+      now: NOW
+    })),
+    captureFailure(() => authorizeRouteIqPaidCustomerOperation(context, {
+      companyId: distributionConfiguration.company.companyId,
+      workspaceId: distributionConfiguration.company.workspaceId,
+      operation: ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.businessRead
+    }))
+  ];
+  assert.equal(
+    new Set(errors.map(error => serialized(routeIqPaidCustomerSafeDenial(error)))).size,
+    1
+  );
+});
+
+test("unsupported permission escalation and activated configurations fail projection", () => {
+  const configuration = clone(ADMINISTRATION_FIXTURES[0]);
+  configuration.access.roles[0].permissions.push("role_manage");
+  let error = captureFailure(() => projectFixtureAuthority(configuration, [{
+    principalId: "synthetic_escalation_principal",
+    roleId: configuration.access.roles[0].roleId
+  }]));
+  assert.equal(
+    classifyRouteIqPaidCustomerSecurityFailure(error),
+    ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.roleProjectionDenied
+  );
+
+  const activated = clone(ADMINISTRATION_FIXTURES[0]);
+  activated.lifecycle.state = "ACTIVE";
+  activated.lifecycle.approvalReference = "synthetic_separate_activation_authorization";
+  activated.safety.customerActivation = "ON";
+  activated.safety.activationAuthorizationRef =
+    "synthetic_separate_activation_authorization";
+  error = captureFailure(() => projectFixtureAuthority(activated, [{
+    principalId: "synthetic_activation_principal",
+    roleId: activated.access.roles[0].roleId
+  }]));
+  assert.equal(
+    classifyRouteIqPaidCustomerSecurityFailure(error),
+    ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable
+  );
+});
+
+test("ambiguous and unknown projected roles fail closed", () => {
+  const configuration = ADMINISTRATION_FIXTURES[0];
+  const [fieldRole, managerRole] = configuration.access.roles;
+  let error = captureFailure(() => projectFixtureAuthority(configuration, [{
+    principalId: "synthetic_ambiguous_principal",
+    roleId: fieldRole.roleId
+  }, {
+    principalId: "synthetic_ambiguous_principal",
+    roleId: managerRole.roleId
+  }]));
+  assert.equal(
+    classifyRouteIqPaidCustomerSecurityFailure(error),
+    ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingAmbiguous
+  );
+
+  error = captureFailure(() => projectFixtureAuthority(configuration, [{
+    principalId: "synthetic_unknown_role_principal",
+    roleId: "unknown_configured_role"
+  }]));
+  assert.equal(
+    classifyRouteIqPaidCustomerSecurityFailure(error),
+    ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.roleProjectionDenied
+  );
+});
+
+test("forged projected authorities and extra projector inputs are denied", () => {
+  const configuration = ADMINISTRATION_FIXTURES[0];
+  const principalId = "synthetic_projection_forgery_principal";
+  const projected = projectFixtureAuthority(configuration, [{
+    principalId,
+    roleId: configuration.access.roles[0].roleId
+  }]);
+  const error = captureFailure(() => bindProjectedPrincipal(
+    structuredClone(projected),
+    configuration,
+    principalId
+  ));
+  assert.equal(
+    classifyRouteIqPaidCustomerSecurityFailure(error),
+    ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable
+  );
+  assert.throws(() => projectRouteIqPaidCustomerAdministrationAuthority({
+    configuration,
+    expectedIssuerBindingId: "synthetic_issuer_binding",
+    expectedAudienceBindingId: "synthetic_audience_binding",
+    principalBindings: [{
+      principalId,
+      roleId: configuration.access.roles[0].roleId
+    }],
+    displayNameAuthorization: "forbidden"
+  }));
+});
+
+test("hostile Administration labels fail before authority projection", () => {
+  const configuration = clone(ADMINISTRATION_FIXTURES[1]);
+  configuration.access.roles[0].displayLabel = "<script>crossTenant()</script>";
+  const error = captureFailure(() => projectFixtureAuthority(configuration, [{
+    principalId: "synthetic_hostile_label_principal",
+    roleId: configuration.access.roles[0].roleId
+  }]));
+  assert.equal(
+    classifyRouteIqPaidCustomerSecurityFailure(error),
+    ROUTE_IQ_PAID_CUSTOMER_FAILURE_CLASSIFICATIONS.bindingUnavailable
+  );
+  assertNoCanaries(routeIqPaidCustomerSafeDenial(error));
+});
+
+test("projected decisions retain exact immutable storage scope", () => {
+  const configuration = ADMINISTRATION_FIXTURES[1];
+  const principalId = "commercial_distribution_storage_principal";
+  const projected = projectFixtureAuthority(configuration, [{
+    principalId,
+    roleId: configuration.access.roles[0].roleId
+  }]);
+  const context = bindProjectedPrincipal(projected, configuration, principalId);
+  const decision = authorizeRouteIqPaidCustomerOperation(context, {
+    companyId: configuration.company.companyId,
+    workspaceId: configuration.company.workspaceId,
+    operation: ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.ownOutcomeWrite,
+    resourceOwnerPrincipalId: principalId
+  });
+  assert.equal(assertRouteIqPaidCustomerStorageScope(decision, {
+    companyId: configuration.company.companyId,
+    workspaceId: configuration.company.workspaceId,
+    principalId
+  }), true);
+  assert.throws(() => assertRouteIqPaidCustomerStorageScope(decision, {
+    companyId: ADMINISTRATION_FIXTURES[0].company.companyId,
+    workspaceId: configuration.company.workspaceId,
+    principalId
+  }));
 });
