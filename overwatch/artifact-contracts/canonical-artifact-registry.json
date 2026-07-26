@@ -214,6 +214,13 @@
       "path": "overwatch/governance/github-actions-private-worker-deployment-v2.json",
       "documentationPath": "overwatch/governance/github-actions-private-worker-deployment-v2.md",
       "schema": "GithubActionsPrivateWorkerDeploymentGovernanceV2",
+      "acceptedInfrastructureSuccessor": {
+        "trustedTempAliasCommit": "6a764ad86ad4f99e0bd9ed835c8f1aba20f91a3b",
+        "trustedTempAliasTree": "a1ec42af2b0049cfc15020f37e921885f75ad0ce",
+        "wranglerScratchIsolationCommit": "947720badd46cb053c6e199b96b3739180b26690",
+        "wranglerScratchIsolationTree": "ccf08603d668bb7bc0bba76c76aefd5a4954852d"
+      },
+      "cleanRunnerRealWranglerEvidenceRequired": true,
       "writeAllowed": [
         "Prometheus Overwatch"
       ],

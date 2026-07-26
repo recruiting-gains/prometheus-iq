@@ -1,6 +1,6 @@
 {
   "governanceId": "github-actions-private-worker-deployment-governance-v2",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "batchId": "BATCH-20260725-001",
   "directive": "Founder Standing Directive - End-to-End Engineering Execution",
   "status": "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED",
@@ -39,6 +39,22 @@
       "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Repair private runner runtime workspace"
+    },
+    "implementationTrustedTempAliasRepairCommit": {
+      "commit": "6a764ad86ad4f99e0bd9ed835c8f1aba20f91a3b",
+      "parent": "d33792af0cb6d544ba5ae15990994089dbd7ccc1",
+      "tree": "a1ec42af2b0049cfc15020f37e921885f75ad0ce",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Repair private runner temp alias handling"
+    },
+    "implementationWranglerScratchIsolationCommit": {
+      "commit": "947720badd46cb053c6e199b96b3739180b26690",
+      "parent": "6a764ad86ad4f99e0bd9ed835c8f1aba20f91a3b",
+      "tree": "ccf08603d668bb7bc0bba76c76aefd5a4954852d",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Isolate private Wrangler runtime scratch"
     },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
@@ -158,6 +174,54 @@
         "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
         "sha256": "136ce3d70a081fd0366a54358891cd37b40277bb702a4d995635a3c19b6d6e1d"
       }
+    ],
+    "trustedTempAliasRepairPaths": [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ],
+    "trustedTempAliasRepairEvidence": [
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "59c0e63437430a06f5e7f027759c5ef7f2ccdf0400b8ddf980cad42ca3c3c82b"
+      },
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "71868c3880e40c70036ad1e9ca45bb19c340adbe3965a7af09112d485c38832d"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "sha256": "f09786afcb40234528e010f4f5c379399f6c9ddf50d0d234e9d3267d543a7574"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "c9cc3f5ad81e11e55d71c45ea4d175f3d01f23abd49dc2301b37a124fe2c96ed"
+      }
+    ],
+    "wranglerScratchIsolationPaths": [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ],
+    "wranglerScratchIsolationEvidence": [
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "3f295df44fe155e5bd0ac70420a55506bfeee1b1529153304c8983f55bbb2270"
+      },
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "0676b9b592021f028560b4fb465d8d13cc52155bad386b8b4bdf98134a4a1c68"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "sha256": "4f594733088d7e138c53cd69988765fcfd1d4db6b7fadce5d152bbdc4c228659"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "4b7f7faf9f4d59f60fecb17431bb43ae768e8b7cd80b3f9c75adf9b2bcb05c03"
+      }
     ]
   },
   "rootCause": {
@@ -175,8 +239,17 @@
     "secondDeploymentFailure": "RUNTIME_GUARD_WORKSPACE_INVALID",
     "secondDeploymentReachedProductionMutation": false,
     "secondDeploymentRollbackRequired": false,
-    "runnerWorkspaceCause": "The GitHub-hosted runner temporary environment path may be an alias. The strict no-symlink workspace guard correctly rejected that alias before the Wrangler process could start.",
-    "runnerWorkspaceRepair": "Runtime guard material now uses node:os.tmpdir() as its validated base and exclusively creates a new owner-only 0700 workspace. RUNNER_TEMP cannot redirect the workspace, symlink rejection remains enforced, the 0600 runtime config remains scrubbed in finally, and the qualified application payload remains byte-identical."
+    "thirdDeploymentWorkflowRun": "30191466442",
+    "thirdDeploymentFailure": "RUNTIME_GUARD_WORKSPACE_INVALID",
+    "thirdDeploymentDryRunWranglerSpawned": true,
+    "thirdDeploymentDryRunCompleted": true,
+    "thirdDeploymentForwardWranglerSpawned": false,
+    "thirdDeploymentReachedProductionMutation": false,
+    "thirdDeploymentRollbackRequired": false,
+    "rejectedStaleCause": "The temporary-directory alias hypothesis did not explain run 30191466442. The trusted default temporary base had already been canonicalized and the run advanced through the real Wrangler dry run.",
+    "runnerWorkspaceCause": "Wrangler 4.110.0 dry-run created project-local .wrangler scratch beneath the guarded forward runtime directory. The required post-dry-run byte and tree revalidation then rejected that unapproved entry before the forward deployment Wrangler process could spawn.",
+    "trustedTempAliasRepair": "The default node:os.tmpdir() alias is canonicalized while caller-supplied aliases remain rejected. Owner-only 0700/0600 modes, no-symlink checks, cleanup, and secret-output prohibitions remain unchanged.",
+    "wranglerScratchIsolationRepair": "Every dry-run, deployment, and rollback invocation receives one fixed, phase-specific --outdir inside an owner-only 0700 scratch directory that is a sibling of the guarded forward and rollback roots. The three outdirs are distinct, non-user-controlled, symlink-rejected, cleaned with the runtime workspace, and never allow .wrangler inside either guarded payload root."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
@@ -215,9 +288,39 @@
     "rollbackContractPinned": true,
     "rollbackBundlePinned": true,
     "wranglerMode": "no-bundle",
+    "wranglerVersion": "4.110.0",
+    "wranglerScratchIsolatedFromGuardedRoots": true,
+    "phaseSpecificOutdirRequired": true,
+    "guardedPayloadByteIdentityPreserved": true,
     "keepVars": true,
     "strict": true,
     "workerNameOverrideAllowed": false
+  },
+  "qualificationEvidence": {
+    "localRealWrangler": {
+      "required": true,
+      "status": "PASS",
+      "ownerReportedNodeVersion": "24.4.1",
+      "independentVerifierExecutesWithCurrentNode": true,
+      "wranglerVersion": "4.110.0",
+      "realProcessSpawned": true,
+      "mode": "dry-run",
+      "cloudflareRequests": 0,
+      "secretValuesRequired": false,
+      "phaseSpecificScratchVerified": true,
+      "guardedRootsUnchangedAfterDryRun": true,
+      "postDryRunRuntimeVerificationPassed": true
+    },
+    "cleanGithubRunner": {
+      "requiredBeforeQualificationAcceptance": true,
+      "status": "PENDING",
+      "runner": "ubuntu-24.04",
+      "nodeMajor": 24,
+      "realWranglerDryRunRequired": true,
+      "noSecretQualificationRequired": true,
+      "acceptedRun": null,
+      "qualificationMayPassWithoutEvidence": false
+    }
   },
   "runtimeBoundary": {
     "prospectiveCollection": "OFF",
@@ -277,6 +380,8 @@
     "externalCredentialAndAccessConfigurationPerformed": true,
     "failedDeploymentRunReachedProductionMutation": false,
     "runnerWorkspaceFailureReachedProductionMutation": false,
+    "wranglerScratchFailureReachedProductionMutation": false,
+    "cleanRunnerRequalificationRequired": true,
     "pushMayTriggerDeployment": false
   }
 }

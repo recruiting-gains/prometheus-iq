@@ -7,7 +7,10 @@ Infrastructure-owned secret-scan fixture repair
 `266fb19637fc11dc0c27e42bbfc7a1816cc7cdad` and its independently reviewed
 bootstrap-guard repair
 `a5ae6578bc0c030def8df5d4713d5ecbe5206212` and runner-workspace repair
-`254fea23e18fec27228e15e75986a1c6bb3dffd6`.
+`254fea23e18fec27228e15e75986a1c6bb3dffd6`. Overwatch also accepts the exact
+Infrastructure successor chain that canonicalizes the trusted default temporary
+alias in `6a764ad86ad4f99e0bd9ed835c8f1aba20f91a3b` and isolates Wrangler scratch
+output in `947720badd46cb053c6e199b96b3739180b26690`.
 
 ## Corrective
 
@@ -36,14 +39,33 @@ temporary material in `finally`, and verifies an additive binding transition
 that preserves every preexisting binding and rejects unexpected additions,
 deletions, or type changes.
 
-The next protected run, `30189780921`, passed immutable preflight and then
-failed with `RUNTIME_GUARD_WORKSPACE_INVALID` before Wrangler started. The
-GitHub-hosted runner temporary environment path may be an alias, which the
-no-symlink workspace guard correctly rejected. The Infrastructure repair uses
-`node:os.tmpdir()` as the validated base, creates a fresh exclusive owner-only
-workspace there, and ignores `RUNNER_TEMP` for runtime guard material. The
-repair does not allow aliases or symlinks, does not weaken file modes, and does
-not change the qualified Dashboard, Worker, or rollback payload.
+Protected runs `30189780921` and `30191466442` passed immutable preflight and
+then failed closed with `RUNTIME_GUARD_WORKSPACE_INVALID` before production
+mutation. The original claim that the GitHub runner temporary alias was rejected
+before Wrangler started is superseded. The trusted default temporary alias had
+already been canonicalized in the second run, which advanced through a
+successful real Wrangler dry run.
+
+Wrangler 4.110.0 created project-local `.wrangler` scratch beneath the guarded
+forward runtime directory. The required post-dry-run tree and byte
+reverification correctly rejected that unapproved entry before the forward
+deployment Wrangler process could spawn. No production mutation occurred and
+no rollback was required.
+
+The final Infrastructure successor gives dry-run, deployment, and rollback one
+fixed, distinct `--outdir` apiece inside an owner-only `0700` scratch directory
+that is a sibling of the guarded forward and rollback roots. Those paths are
+not user-controlled, reject symlinks, are cleaned with the runtime workspace,
+and do not allow `.wrangler` or any other new entry inside either guarded
+payload root. The `0600` runtime configs, exact guard markers, payload byte
+identity, one deployment/rollback ceiling, and authenticated GET/HEAD-only
+smoke boundary remain unchanged.
+
+The release-blocking local verifier executes a real no-secret Wrangler 4.110.0
+dry run and proves the guarded roots remain unchanged afterward. The same gate
+must pass on a clean `ubuntu-24.04` GitHub runner with Node 24 before a new
+qualification can be accepted. That clean-runner evidence is pending; this
+governance update does not claim qualification or deployment.
 
 ## Boundary
 
@@ -54,7 +76,7 @@ not change the qualified Dashboard, Worker, or rollback payload.
   qualification run and artifact identities, exact current Worker identities,
   and the Founder actor on the first workflow attempt.
 - Wrangler uses `--no-bundle`, `--keep-vars`, and `--strict`; `--name` is
-  prohibited.
+  prohibited. Every phase also requires its fixed isolated `--outdir`.
 - One forward deployment attempt is permitted. There is no retry.
 - Critical failure permits one paired forward-compatible rollback; native
   rollback is prohibited.

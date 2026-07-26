@@ -67,9 +67,16 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "a5ae6578bc0c030def8df5d4713d5ecbe5206212");
   assert.equal(result.immutableWorkflowV2RunnerWorkspaceRepairCommit,
     "254fea23e18fec27228e15e75986a1c6bb3dffd6");
+  assert.equal(result.immutableWorkflowV2TrustedTempAliasRepairCommit,
+    "6a764ad86ad4f99e0bd9ed835c8f1aba20f91a3b");
+  assert.equal(result.immutableWorkflowV2WranglerScratchIsolationCommit,
+    "947720badd46cb053c6e199b96b3739180b26690");
+  assert.equal(result.localRealWranglerDryRunPassed, true);
+  assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
   assert.equal(result.failedDeploymentRunReachedProductionMutation, false);
   assert.equal(result.runnerWorkspaceFailureReachedProductionMutation, false);
+  assert.equal(result.wranglerScratchFailureReachedProductionMutation, false);
 });
 
 test("Overwatch governance accepts the immutable private Workflow v2 owner release", () => {
@@ -81,6 +88,7 @@ test("Overwatch governance accepts the immutable private Workflow v2 owner relea
 
 test("immutable private Workflow v2 governance fails closed on ownership and safety drift", () => {
   const governanceMutations = [
+    value => { value.version = "1.2.0"; },
     value => { value.ownership.implementationOwner = "Prometheus Overwatch"; },
     value => { value.ownership.overwatchModifiedInfrastructureImplementation = true; },
     value => { value.ownership.implementationCommit.commit = "0".repeat(40); },
@@ -90,17 +98,39 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => {
       value.ownership.implementationRunnerWorkspaceRepairCommit.commit = "0".repeat(40);
     },
+    value => {
+      value.ownership.implementationTrustedTempAliasRepairCommit.commit = "0".repeat(40);
+    },
+    value => {
+      value.ownership.implementationWranglerScratchIsolationCommit.commit = "0".repeat(40);
+    },
     value => { value.ownership.bootstrapRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.runnerWorkspaceRepairEvidence[0].sha256 = "0".repeat(64); },
+    value => { value.ownership.trustedTempAliasRepairEvidence[0].sha256 = "0".repeat(64); },
+    value => {
+      value.ownership.wranglerScratchIsolationEvidence[0].sha256 = "0".repeat(64);
+    },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },
     value => { value.rootCause.firstDeploymentReachedProductionMutation = true; },
     value => { value.rootCause.secondDeploymentReachedProductionMutation = true; },
+    value => { value.rootCause.thirdDeploymentDryRunCompleted = false; },
+    value => { value.rootCause.thirdDeploymentForwardWranglerSpawned = true; },
+    value => { value.rootCause.thirdDeploymentReachedProductionMutation = true; },
+    value => {
+      value.rootCause.runnerWorkspaceCause =
+        "The temporary alias was rejected before the Wrangler process could start.";
+    },
     value => { value.workflowBoundary.onlyTrigger = "push"; },
     value => { value.workflowBoundary.publicWorkerMutationAllowed = true; },
     value => { value.workflowBoundary.rebuildDuringDeploymentAllowed = true; },
     value => { value.workflowBoundary.forwardDeploymentAttempts = 2; },
     value => { value.workflowBoundary.automaticRetryAllowed = true; },
     value => { value.artifactBoundary.workerNameOverrideAllowed = true; },
+    value => { value.artifactBoundary.phaseSpecificOutdirRequired = false; },
+    value => { value.qualificationEvidence.localRealWrangler.status = "FAIL"; },
+    value => {
+      value.qualificationEvidence.cleanGithubRunner.qualificationMayPassWithoutEvidence = true;
+    },
     value => { value.smokeBoundary.methods = ["GET", "POST"]; },
     value => { value.smokeBoundary.attemptedApplicationWrites = 1; },
     value => { value.runtimeBoundary.prospectiveCollection = "ON"; },
@@ -117,6 +147,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => {
       value.releaseBoundary.runnerWorkspaceFailureReachedProductionMutation = true;
     },
+    value => {
+      value.releaseBoundary.wranglerScratchFailureReachedProductionMutation = true;
+    },
+    value => { value.releaseBoundary.cleanRunnerRequalificationRequired = false; },
     value => { value.releaseBoundary.productionContactPerformedByThisGovernanceCommit = true; }
   ];
   for (const mutate of governanceMutations) {
