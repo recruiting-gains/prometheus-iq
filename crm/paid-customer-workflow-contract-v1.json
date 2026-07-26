@@ -44,6 +44,27 @@
     "unsafeLabelsRejected": true,
     "semanticMetricDriftRejected": true
   },
+  "administrationProjection": {
+    "sourceSchemaVersion": "route-iq-paid-customer-onboarding-v1",
+    "sourceContractVersion": "1.0.0",
+    "safeLifecycleStates": [
+      "VALIDATED",
+      "PREVIEW_READY",
+      "AWAITING_APPROVAL"
+    ],
+    "scopeIdentityImmutable": true,
+    "crossWorkspaceConfigurationAllowed": false,
+    "configuredRolesOnly": true,
+    "permissionMapping": "GOVERNED_CAPABILITY_ALLOWLIST_WITHOUT_ESCALATION",
+    "unknownCapabilitiesRejected": true,
+    "processAndFollowUpStageReferencesMustBeComplete": true,
+    "configuredStageOrderMustBeMonotonic": true,
+    "stableMetricHistoryRequired": true,
+    "ambiguousMetricUnitsRejected": true,
+    "productionMutationAuthorized": false,
+    "notificationAuthorized": false,
+    "customerActivationAuthorized": false
+  },
   "lifecycleStates": [
     "draft",
     "validation_failed",

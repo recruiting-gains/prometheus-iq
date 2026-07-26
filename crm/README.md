@@ -1,6 +1,6 @@
 # Prometheus CRM
 
-Prometheus CRM owns local CRM state for contacts, leads, follow-ups, task queues, visit history, sales activity history, and beta activity reporting.
+Prometheus CRM owns local CRM state for contacts, leads, follow-ups, task queues, visit history, sales activity history, and governed customer activity reporting.
 
 ## Boundary
 
@@ -10,13 +10,14 @@ CRM also owns the operating architecture for company accounts, pilot companies, 
 
 ## Current Foundations
 
-- `crm-foundation.mjs`: local beta CRM records, leads, follow-ups, tasks, visits, notes, sales activity, and reports.
+- `crm-foundation.mjs`: legacy pre-commercial CRM records, leads, follow-ups, tasks, visits, notes, sales activity, and reports retained for compatibility.
 - `enterprise-lifecycle-architecture.md`: account/customer-success architecture for 1 company, 10 companies, 100 companies, and enterprise deployments.
 - `enterprise-lifecycle-model.json`: machine-readable CRM operating model for validation and future implementation.
 - `paid-customer-workflow-configuration-v1.mjs`: production-readiness foundation for versioned, company-and-workspace-scoped CRM roles, stages, workflows, metrics, preview, idempotent provisioning projections, lifecycle controls, and append-only audit.
 - `paid-customer-workflow-contract-v1.json`: machine-readable execution boundary for the paid-customer CRM foundation. Preview and provisioning remain non-activating, perform no production CRM mutation, and send no notification.
+- `projectRouteIqPaidCustomerOnboardingToCrmWorkflow`: deterministic fail-closed adapter from the validated Administration onboarding contract into the existing CRM workflow configuration. It preserves immutable scope and metric history, maps only governed role capabilities, and rejects unsafe lifecycle, reference, unit, or cross-workspace states.
 
-The earlier beta-oriented modules remain historical compatibility surfaces. New paid-customer workflow configuration must use the versioned paid-customer contract and stable internal identifiers rather than customer-specific branches or display labels as keys.
+Earlier pre-commercial modules remain historical compatibility surfaces. New paid-customer workflow configuration must use the versioned paid-customer contract and stable internal identifiers rather than customer-specific branches or display labels as keys.
 
 ## Attribution
 
@@ -24,7 +25,7 @@ CRM consumes Website attribution output and normalizes CRM lead attribution thro
 
 ## Operating Profiles
 
-CRM consumes Operating Profile definitions from the Intelligence Engine. Fitness is the default profile. Use `buildCrmOperatingProfile`, `applyCrmOperatingProfileToLead`, `transitionLeadProfileStage`, and `recordProfileOutcomeForLead` for profile-driven terminology, CRM stages, outcome labels, and profile-aware pipeline reporting. Do not hardcode a new industry-specific CRM stage model inside CRM.
+Legacy CRM operating-profile APIs remain compatibility-only. Paid-customer terminology, stages, outcomes, and reporting semantics come from the validated Administration onboarding configuration through the governed CRM adapter; reusable CRM code must not select a default industry or hardcode an industry-specific stage model.
 
 ## Workspace Lead Intake
 
@@ -64,14 +65,14 @@ Route visit outcomes update lead state and append immutable visit entries to bot
 
 - Today's follow-ups
 - Overdue follow-ups
-- Anthony beta activity
+- Legacy Anthony activity retained only in the historical compatibility report
 - Founder activity summary
 - Contact pipeline counts
 - Task completion status
 
 ## v2 Enterprise Lifecycle
 
-CRM v2 prepares Prometheus for multiple customer accounts without modifying production beta systems. It defines:
+CRM v2 prepares Prometheus for multiple customer accounts without modifying legacy pre-commercial systems. It defines:
 
 - Company accounts and account hierarchy.
 - Contacts, decision makers, champions, and executive sponsors.

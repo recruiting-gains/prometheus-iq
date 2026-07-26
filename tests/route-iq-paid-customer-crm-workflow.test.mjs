@@ -11,6 +11,8 @@ import {
   createPaidCustomerCrmProvisioningState,
   normalizePaidCustomerCrmDisplayLabel,
   paidCustomerCrmContractVersion,
+  paidCustomerCrmPermissions,
+  projectRouteIqPaidCustomerOnboardingToCrmWorkflow,
   readPaidCustomerCrmScopedResource,
   snapshotPaidCustomerCrmMetric,
   transitionPaidCustomerCrmLifecycle,
@@ -20,6 +22,13 @@ import {
 } from "../crm/paid-customer-workflow-configuration-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
+const administrationFixtures = JSON.parse(readFileSync(
+  resolve(
+    root,
+    "administration/workspace-configurations/route-iq-paid-customer-synthetic-fixtures-v1.json"
+  ),
+  "utf8"
+)).configurations;
 
 function medicalConfiguration(overrides = {}) {
   return {
@@ -748,4 +757,241 @@ test("append-only audit and outward results contain no labels, credentials, noti
     recordWritesAllowed: false,
     retainedConfiguration: true
   });
+});
+
+test("final Administration fixtures project deterministically across unrelated industries", () => {
+  assert.equal(administrationFixtures.length, 2);
+  const sourceBefore = structuredClone(administrationFixtures);
+  const projections = administrationFixtures.map(configuration => {
+    const first = projectRouteIqPaidCustomerOnboardingToCrmWorkflow(configuration);
+    const second = projectRouteIqPaidCustomerOnboardingToCrmWorkflow(configuration);
+    assert.deepEqual(first, second);
+    assert.equal(first.companyId, configuration.company.companyId);
+    assert.equal(first.workspaceId, configuration.company.workspaceId);
+    assert.equal(
+      first.industryTemplateId,
+      `industry_${configuration.operatingProfile.industryTemplateId}`
+    );
+    assert.equal(first.lifecycleState, "validated");
+    assert.equal(first.configurationVersion, "1.1.0");
+    assert.equal(first.roles.length, configuration.access.roles.length);
+    assert.equal(
+      first.stages.length,
+      configuration.sales.processStages.length
+        + configuration.sales.followUpStages.length
+    );
+    assert.equal(first.workflows.length, 1);
+    assert.equal(first.metrics.length, configuration.terminology.metrics.length);
+
+    const preview = buildPaidCustomerCrmPreview(first);
+    const plan = buildPaidCustomerCrmProvisioningPlan(
+      first,
+      createPaidCustomerCrmProvisioningState({
+        companyId: first.companyId,
+        workspaceId: first.workspaceId
+      })
+    );
+    assert.deepEqual(preview.effects, {
+      activating: false,
+      productionMutationAuthorized: false,
+      notificationAuthorized: false,
+      customerRecordCreationAuthorized: false
+    });
+    assert.deepEqual(plan.effects, {
+      targetLifecycleState: "ready_for_activation",
+      productionMutationAuthorized: false,
+      notificationAuthorized: false,
+      customerRecordMutationAuthorized: false,
+      activationAuthorized: false
+    });
+    return first;
+  });
+  assert.notEqual(projections[0].companyId, projections[1].companyId);
+  assert.notEqual(projections[0].workspaceId, projections[1].workspaceId);
+  assert.notEqual(projections[0].industryTemplateId, projections[1].industryTemplateId);
+  assert.deepEqual(administrationFixtures, sourceBefore);
+});
+
+test("Administration roles receive only governed CRM permissions without label-based escalation", () => {
+  for (const configuration of administrationFixtures) {
+    const projected = projectRouteIqPaidCustomerOnboardingToCrmWorkflow(configuration);
+    const representative = projected.roles.find(role => (
+      role.permissions.includes("crm.records.write")
+    ));
+    const manager = projected.roles.find(role => (
+      role.permissions.includes("crm.workflow.manage")
+    ));
+    assert.ok(representative);
+    assert.ok(manager);
+    assert.equal(representative.permissions.includes("crm.workflow.manage"), false);
+    assert.equal(representative.permissions.includes("crm.lifecycle.manage"), false);
+    assert.equal(manager.permissions.includes("crm.records.write"), false);
+    assert.equal(manager.permissions.includes("crm.lifecycle.manage"), false);
+    assert.ok(projected.roles.every(role => (
+      role.roleId.startsWith("crm.role.")
+      && role.permissions.every(permission => paidCustomerCrmPermissions.includes(permission))
+    )));
+  }
+
+  const unknownCapability = structuredClone(administrationFixtures[0]);
+  unknownCapability.access.roles[0].permissions.push("export_all_customer_records");
+  assertCode(
+    () => projectRouteIqPaidCustomerOnboardingToCrmWorkflow(unknownCapability),
+    "administration_permission_unmapped"
+  );
+
+  const capabilityNotEnabled = structuredClone(administrationFixtures[0]);
+  capabilityNotEnabled.access.roles[0].permissions.push("record_unapproved_activity");
+  assertCode(
+    () => projectRouteIqPaidCustomerOnboardingToCrmWorkflow(capabilityNotEnabled),
+    "administration_permission_not_enabled"
+  );
+
+  const contradictoryRole = structuredClone(administrationFixtures[0]);
+  contradictoryRole.access.roles[0].permissions.push("view_company_dashboard");
+  assertCode(
+    () => projectRouteIqPaidCustomerOnboardingToCrmWorkflow(contradictoryRole),
+    "administration_role_capabilities_contradictory"
+  );
+});
+
+test("Administration process and follow-up references become one safe ordered workflow", () => {
+  for (const configuration of administrationFixtures) {
+    const projected = projectRouteIqPaidCustomerOnboardingToCrmWorkflow(configuration);
+    const workflow = projected.workflows[0];
+    const expectedStageIds = [
+      ...configuration.crm.processStageIds.map(stageId => `crm.stage.process.${stageId}`),
+      ...configuration.crm.followUpStageIds.map(
+        stageId => `crm.stage.follow_up.${stageId}`
+      )
+    ];
+    assert.deepEqual(workflow.stageIds, expectedStageIds);
+    assert.deepEqual(
+      projected.stages.map(stage => stage.order),
+      projected.stages.map((_, index) => index + 1)
+    );
+    assert.ok(workflow.transitions.some(transition => (
+      transition.transitionId.startsWith("crm.transition.outcome.")
+    )));
+  }
+
+  const incomplete = structuredClone(administrationFixtures[0]);
+  incomplete.crm.processStageIds.pop();
+  assertCode(
+    () => projectRouteIqPaidCustomerOnboardingToCrmWorkflow(incomplete),
+    "administration_crm_stage_reference_incomplete"
+  );
+
+  const contradictoryOrder = structuredClone(administrationFixtures[1]);
+  contradictoryOrder.crm.processStageIds.reverse();
+  assertCode(
+    () => projectRouteIqPaidCustomerOnboardingToCrmWorkflow(contradictoryOrder),
+    "administration_crm_stage_order_contradictory"
+  );
+});
+
+test("Administration metric projection preserves stable history semantics across label revisions", () => {
+  const firstAdministration = structuredClone(administrationFixtures[0]);
+  const first = projectRouteIqPaidCustomerOnboardingToCrmWorkflow(firstAdministration);
+  const firstMetric = first.metrics[0];
+  assert.equal(firstMetric.metricId, "crm.metric.completed_assessments");
+  assert.equal(firstMetric.semanticKey, "history.completed_assessments.1_0_0");
+  assert.equal(firstMetric.unit, "count");
+  assert.equal(firstMetric.aggregation, "count");
+
+  const initial = createPaidCustomerCrmProvisioningState({
+    companyId: first.companyId,
+    workspaceId: first.workspaceId
+  });
+  const firstApplied = applyPaidCustomerCrmProvisioningPlan(
+    initial,
+    buildPaidCustomerCrmProvisioningPlan(first, initial),
+    { attemptId: "attempt_administration_revision_one" }
+  );
+  assert.equal(firstApplied.ok, true);
+
+  const revisedAdministration = structuredClone(firstAdministration);
+  revisedAdministration.configurationRevision = 2;
+  revisedAdministration.provenance.configurationIdentity =
+    `${revisedAdministration.configurationId}@2`;
+  const visitTerm = revisedAdministration.terminology.terms.find(
+    term => term.termId === "visit"
+  );
+  visitTerm.singular = "site assessment";
+  visitTerm.plural = "site assessments";
+  const revised = projectRouteIqPaidCustomerOnboardingToCrmWorkflow(
+    revisedAdministration
+  );
+  assert.equal(revised.configurationVersion, "1.2.0");
+  assert.equal(revised.metrics[0].semanticKey, firstMetric.semanticKey);
+  const revisionPlan = buildPaidCustomerCrmProvisioningPlan(
+    revised,
+    firstApplied.state
+  );
+  assert.equal(revisionPlan.effects.productionMutationAuthorized, false);
+  assert.equal(revisionPlan.effects.notificationAuthorized, false);
+
+  const ambiguous = structuredClone(firstAdministration);
+  ambiguous.terminology.metrics[0].aggregation = "SUM";
+  assertCode(
+    () => projectRouteIqPaidCustomerOnboardingToCrmWorkflow(ambiguous),
+    "administration_metric_unit_ambiguous"
+  );
+});
+
+test("Administration projection rejects unsafe lifecycle, scope, references, and labels", () => {
+  for (const lifecycleState of [
+    "DRAFT",
+    "VALIDATION_FAILED",
+    "PROVISIONING",
+    "PROVISIONING_FAILED",
+    "READY_FOR_ACTIVATION",
+    "ACTIVE",
+    "SUSPENDED",
+    "OFFBOARDED"
+  ]) {
+    const configuration = structuredClone(administrationFixtures[0]);
+    configuration.lifecycle.state = lifecycleState;
+    configuration.lifecycle.failure = ["VALIDATION_FAILED", "PROVISIONING_FAILED"]
+      .includes(lifecycleState)
+      ? {
+          code: "synthetic_projection_failure",
+          recoveryAction: "Return to the governed draft configuration."
+        }
+      : null;
+    if ([
+      "PROVISIONING",
+      "READY_FOR_ACTIVATION",
+      "ACTIVE",
+      "SUSPENDED",
+      "OFFBOARDED"
+    ].includes(lifecycleState)) {
+      configuration.lifecycle.approvalReference = "synthetic_approval_reference";
+    }
+    if (lifecycleState === "ACTIVE") {
+      configuration.safety.customerActivation = "ON";
+      configuration.safety.activationAuthorizationRef = "synthetic_activation_reference";
+    }
+    assert.throws(
+      () => projectRouteIqPaidCustomerOnboardingToCrmWorkflow(configuration)
+    );
+  }
+
+  const crossWorkspace = structuredClone(administrationFixtures[0]);
+  crossWorkspace.crm.crossWorkspaceRecordsAllowed = true;
+  assert.throws(
+    () => projectRouteIqPaidCustomerOnboardingToCrmWorkflow(crossWorkspace)
+  );
+
+  const unknownOutcome = structuredClone(administrationFixtures[0]);
+  unknownOutcome.crm.outcomeMappings[0].outcomeId = "unknown_outcome_reference";
+  assert.throws(
+    () => projectRouteIqPaidCustomerOnboardingToCrmWorkflow(unknownOutcome)
+  );
+
+  const unsafeLabel = structuredClone(administrationFixtures[0]);
+  unsafeLabel.access.roles[0].displayLabel = "<script>unsafe</script>";
+  assert.throws(
+    () => projectRouteIqPaidCustomerOnboardingToCrmWorkflow(unsafeLabel)
+  );
 });

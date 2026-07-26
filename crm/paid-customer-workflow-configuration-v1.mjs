@@ -1,4 +1,9 @@
 import { createHash } from "node:crypto";
+import {
+  ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_CONTRACT_VERSION,
+  ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_SCHEMA_VERSION,
+  validateRouteIqPaidCustomerOnboardingConfiguration
+} from "../administration/contracts/route-iq-paid-customer-onboarding-v1.mjs";
 
 export const paidCustomerCrmContractVersion = "route_iq_paid_customer_crm_workflow.v1";
 export const paidCustomerCrmStateVersion = "route_iq_paid_customer_crm_projection.v1";
@@ -54,6 +59,18 @@ const entityPrefixes = Object.freeze({
   workflowId: "crm.workflow.",
   transitionId: "crm.transition.",
   metricId: "crm.metric."
+});
+
+const administrationLifecycleProjection = Object.freeze({
+  VALIDATED: "validated",
+  PREVIEW_READY: "preview_ready",
+  AWAITING_APPROVAL: "awaiting_approval"
+});
+
+const administrationMetricProjection = Object.freeze({
+  COUNT: Object.freeze({ unit: "count", aggregation: "count" }),
+  RATE: Object.freeze({ unit: "percentage", aggregation: "rate" }),
+  DURATION: Object.freeze({ unit: "duration_minutes", aggregation: "average" })
 });
 
 const topLevelKeys = Object.freeze([
@@ -354,6 +371,293 @@ export function validatePaidCustomerCrmWorkflowConfiguration(input) {
     ...normalized,
     configurationDigest: digest(normalized)
   };
+}
+
+function projectAdministrationPermission(
+  permission,
+  field,
+  enabledDashboardCapabilities
+) {
+  if (permission === "view_assigned_territory") {
+    if (!enabledDashboardCapabilities.has(permission)) {
+      fail("administration_permission_not_enabled", field);
+    }
+    return ["crm.workflow.read", "crm.records.read"];
+  }
+  if (permission === "view_company_dashboard") {
+    return [
+      "crm.preview.read",
+      "crm.workflow.read",
+      "crm.audit.read",
+      "crm.records.read"
+    ];
+  }
+  if (permission === "manage_territory_assignments") {
+    return ["crm.workflow.manage"];
+  }
+  if (/^record_[a-z][a-z0-9_]*$/u.test(permission)) {
+    if (!enabledDashboardCapabilities.has(permission)) {
+      fail("administration_permission_not_enabled", field);
+    }
+    return ["crm.workflow.read", "crm.records.read", "crm.records.write"];
+  }
+  if (/^review_[a-z][a-z0-9_]*_outcomes$/u.test(permission)) {
+    return ["crm.workflow.read", "crm.records.read"];
+  }
+  fail("administration_permission_unmapped", field);
+}
+
+function administrationRoleKind(role, field) {
+  const representative = role.permissions.some(permission => (
+    permission === "view_assigned_territory"
+    || /^record_[a-z][a-z0-9_]*$/u.test(permission)
+  ));
+  const manager = role.permissions.some(permission => (
+    permission === "view_company_dashboard"
+    || permission === "manage_territory_assignments"
+    || /^review_[a-z][a-z0-9_]*_outcomes$/u.test(permission)
+  ));
+  if (representative === manager) {
+    fail(
+      representative
+        ? "administration_role_capabilities_contradictory"
+        : "administration_role_capabilities_unmapped",
+      field
+    );
+  }
+  return representative ? "representative" : "manager";
+}
+
+function projectAdministrationRoles(configuration, terminologyById) {
+  const enabledDashboardCapabilities = new Set(configuration.dashboard.capabilityIds);
+  return configuration.access.roles.map((role, index) => {
+    const field = `administration.access.roles[${index}]`;
+    const roleKind = administrationRoleKind(role, field);
+    const term = terminologyById.get(roleKind);
+    const singular = normalizePaidCustomerCrmDisplayLabel(
+      role.displayLabel,
+      `${field}.displayLabel`
+    );
+    if (singular.toLocaleLowerCase("en-US") !== term.singular.toLocaleLowerCase("en-US")) {
+      fail("administration_role_terminology_mismatch", `${field}.displayLabel`);
+    }
+    const permissions = [...new Set(role.permissions.flatMap((permission, permissionIndex) => (
+      projectAdministrationPermission(
+        permission,
+        `${field}.permissions[${permissionIndex}]`,
+        enabledDashboardCapabilities
+      )
+    )))].sort();
+    return {
+      roleId: `${entityPrefixes.roleId}${role.roleId}`,
+      displayLabel: {
+        singular,
+        plural: term.plural
+      },
+      permissions
+    };
+  });
+}
+
+function resolveAdministrationStageOrder(configuration, kind) {
+  const sourceStages = kind === "process"
+    ? configuration.sales.processStages
+    : configuration.sales.followUpStages;
+  const configuredIds = kind === "process"
+    ? configuration.crm.processStageIds
+    : configuration.crm.followUpStageIds;
+  const byId = new Map(sourceStages.map(stage => [stage.stageId, stage]));
+  if (
+    configuredIds.length !== sourceStages.length
+    || sourceStages.some(stage => !configuredIds.includes(stage.stageId))
+  ) {
+    fail("administration_crm_stage_reference_incomplete", `administration.crm.${kind}StageIds`);
+  }
+  const ordered = configuredIds.map((stageId, index) => {
+    const stage = byId.get(stageId);
+    if (!stage) {
+      fail(
+        "administration_crm_stage_reference_unknown",
+        `administration.crm.${kind}StageIds[${index}]`
+      );
+    }
+    return stage;
+  });
+  for (let index = 1; index < ordered.length; index += 1) {
+    if (ordered[index - 1].sequence >= ordered[index].sequence) {
+      fail(
+        "administration_crm_stage_order_contradictory",
+        `administration.crm.${kind}StageIds`
+      );
+    }
+  }
+  return ordered;
+}
+
+function projectedStageId(kind, sourceStageId) {
+  return `${entityPrefixes.stageId}${kind}.${sourceStageId}`;
+}
+
+function adjacentAdministrationTransitions(stages, kind) {
+  return stages.slice(1).map((stage, index) => {
+    const previous = stages[index];
+    return {
+      transitionId:
+        `${entityPrefixes.transitionId}${kind}.${previous.stageId}_to_${stage.stageId}`,
+      fromStageId: projectedStageId(kind, previous.stageId),
+      toStageId: projectedStageId(kind, stage.stageId)
+    };
+  });
+}
+
+function projectAdministrationWorkflow(configuration, processStages, followUpStages) {
+  const processIds = new Set(processStages.map(stage => stage.stageId));
+  const followUpIds = new Set(followUpStages.map(stage => stage.stageId));
+  const transitions = [
+    ...adjacentAdministrationTransitions(processStages, "process"),
+    ...adjacentAdministrationTransitions(followUpStages, "follow_up"),
+    ...configuration.crm.outcomeMappings
+      .filter(mapping => mapping.followUpStageId !== null)
+      .map((mapping, index) => {
+        if (
+          !processIds.has(mapping.processStageId)
+          || !followUpIds.has(mapping.followUpStageId)
+        ) {
+          fail(
+            "administration_crm_outcome_mapping_contradictory",
+            `administration.crm.outcomeMappings[${index}]`
+          );
+        }
+        return {
+          transitionId: `${entityPrefixes.transitionId}outcome.${mapping.outcomeId}`,
+          fromStageId: projectedStageId("process", mapping.processStageId),
+          toStageId: projectedStageId("follow_up", mapping.followUpStageId)
+        };
+      })
+  ];
+  if (transitions.length === 0) {
+    fail("administration_crm_transition_missing", "administration.crm");
+  }
+  const companyLabel = normalizePaidCustomerCrmDisplayLabel(
+    configuration.company.displayName,
+    "administration.company.displayName"
+  );
+  return {
+    workflowId: `${entityPrefixes.workflowId}${configuration.crm.workflowId}`,
+    displayLabel: {
+      singular: `${companyLabel} CRM workflow`,
+      plural: `${companyLabel} CRM workflows`
+    },
+    stageIds: [
+      ...processStages.map(stage => projectedStageId("process", stage.stageId)),
+      ...followUpStages.map(stage => projectedStageId("follow_up", stage.stageId))
+    ],
+    transitions
+  };
+}
+
+function projectAdministrationMetrics(configuration, terminologyById) {
+  return configuration.terminology.metrics.map((metric, index) => {
+    const field = `administration.terminology.metrics[${index}]`;
+    const projection = administrationMetricProjection[metric.aggregation];
+    if (!projection) {
+      fail("administration_metric_unit_ambiguous", `${field}.aggregation`);
+    }
+    const term = terminologyById.get(metric.displayTermId);
+    if (!term) {
+      fail("administration_metric_term_unknown", `${field}.displayTermId`);
+    }
+    return {
+      metricId: `${entityPrefixes.metricId}${metric.metricId}`,
+      semanticKey:
+        `history.${metric.metricId}.${metric.semanticVersion.replaceAll(".", "_")}`,
+      displayLabel: {
+        singular: term.singular,
+        plural: term.plural
+      },
+      unit: projection.unit,
+      aggregation: projection.aggregation
+    };
+  });
+}
+
+function assertAdministrationProjectionBoundary(configuration) {
+  const lifecycleState = administrationLifecycleProjection[configuration.lifecycle.state];
+  if (!lifecycleState) {
+    fail(
+      "administration_lifecycle_not_projectable",
+      "administration.lifecycle.state"
+    );
+  }
+  if (
+    configuration.company.identityImmutable !== true
+    || configuration.access.crossWorkspaceAccessAllowed !== false
+    || configuration.crm.crossWorkspaceRecordsAllowed !== false
+  ) {
+    fail("administration_projection_scope_unsafe", "administration.company");
+  }
+  if (
+    configuration.crm.productionMutationAuthorized !== false
+    || configuration.safety.customerActivation !== "OFF"
+    || configuration.safety.activationAuthorizationRef !== null
+    || configuration.safety.collection !== "OFF"
+    || configuration.safety.activeCohorts !== 0
+    || configuration.safety.recommendationInfluence !== "OFF"
+    || configuration.safety.providerRefresh !== "OFF"
+    || configuration.safety.scheduler !== "OFF"
+  ) {
+    fail("administration_projection_effects_unsafe", "administration.safety");
+  }
+  return lifecycleState;
+}
+
+export function projectRouteIqPaidCustomerOnboardingToCrmWorkflow(input) {
+  const configuration = validateRouteIqPaidCustomerOnboardingConfiguration(input);
+  if (
+    configuration.schemaVersion !== ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_SCHEMA_VERSION
+    || configuration.contractVersion !== ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_CONTRACT_VERSION
+  ) {
+    fail("administration_contract_version_unsupported", "administration.contractVersion");
+  }
+  const lifecycleState = assertAdministrationProjectionBoundary(configuration);
+  const terminologyById = new Map(
+    configuration.terminology.terms.map(term => [term.termId, term])
+  );
+  const processStages = resolveAdministrationStageOrder(configuration, "process");
+  const followUpStages = resolveAdministrationStageOrder(configuration, "followUp");
+  const orderedStages = [...processStages, ...followUpStages];
+  const stages = orderedStages.map((stage, index) => {
+    const kind = index < processStages.length ? "process" : "follow_up";
+    return {
+      stageId: projectedStageId(kind, stage.stageId),
+      displayLabel: {
+        singular: stage.displayLabel,
+        plural: stage.displayLabel
+      },
+      order: index + 1,
+      terminal: stage.terminal
+    };
+  });
+  const [contractMajor] = configuration.contractVersion.split(".");
+  const validatedProjection = validatePaidCustomerCrmWorkflowConfiguration({
+    contractVersion: paidCustomerCrmContractVersion,
+    configurationVersion:
+      `${contractMajor}.${configuration.configurationRevision}.0`,
+    companyId: configuration.company.companyId,
+    workspaceId: configuration.company.workspaceId,
+    industryTemplateId:
+      `industry_${configuration.operatingProfile.industryTemplateId}`,
+    lifecycleState,
+    roles: projectAdministrationRoles(configuration, terminologyById),
+    stages,
+    workflows: [
+      projectAdministrationWorkflow(configuration, processStages, followUpStages)
+    ],
+    metrics: projectAdministrationMetrics(configuration, terminologyById)
+  });
+  const { configurationDigest: _configurationDigest, ...workflowConfiguration } =
+    validatedProjection;
+  return workflowConfiguration;
 }
 
 function requireMatchingScope(expected, actual, field = "scope") {
