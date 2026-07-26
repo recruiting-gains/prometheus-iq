@@ -4,6 +4,14 @@
   "implementation": "intelligence/route-iq-paid-customer-intelligence.mjs",
   "consumes": {
     "onboarding": "route-iq-paid-customer-onboarding-v1",
+    "onboardingContractVersion": "1.0.0",
+    "onboardingAuthority": "prometheus_administration",
+    "configurationIdentity": "provenance.configurationIdentity",
+    "companyIdentity": "company.companyId",
+    "workspaceIdentity": "company.workspaceId",
+    "territory": "territory",
+    "metricDefinitions": "terminology.metrics",
+    "metricLabels": "terminology.terms",
     "verifiedBusinessEvidence": "route-iq-verified-business-evidence-v1"
   },
   "scope": {
@@ -45,26 +53,38 @@
     "cross_company",
     "cross_workspace"
   ],
-  "roles": {
-    "founder": [
-      "RECOMMENDATION_ADMISSION",
-      "CONFIGURATION_PREVIEW"
+  "authorization": {
+    "configuredRoleIdRequired": true,
+    "customerRoleNamesHardCoded": false,
+    "operations": {
+      "RECOMMENDATION_ADMISSION": [
+        "view_assigned_territory",
+        "view_company_dashboard"
+      ],
+      "CONFIGURATION_PREVIEW": [
+        "view_company_dashboard"
+      ]
+    }
+  },
+  "lifecycle": {
+    "acceptedInactiveStates": [
+      "VALIDATED",
+      "PREVIEW_READY",
+      "AWAITING_APPROVAL",
+      "READY_FOR_ACTIVATION"
     ],
-    "manager": [
-      "RECOMMENDATION_ADMISSION",
-      "CONFIGURATION_PREVIEW"
-    ],
-    "representative": [
-      "RECOMMENDATION_ADMISSION"
-    ],
-    "auditor": [
-      "CONFIGURATION_PREVIEW"
-    ]
+    "draftAccepted": false,
+    "failureStateAccepted": false,
+    "activeAcceptedWithoutSeparateActivation": false,
+    "suspendedAccepted": false,
+    "offboardedAccepted": false
   },
   "metricModel": {
     "stableInternalIdentifiers": true,
     "displayLabelsSeparate": true,
     "singularPluralRequired": true,
+    "semanticVersionRequired": true,
+    "historyIdentityRequired": true,
     "historicalSnapshotsImmutable": true,
     "controlledGenericFallbackOnly": true,
     "customerSpecificCodeBranchesAllowed": false

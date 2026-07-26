@@ -1,5 +1,15 @@
+import {
+  ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_AUTHORITY,
+  ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_CONTRACT_VERSION,
+  ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_SCHEMA_VERSION,
+  validateRouteIqPaidCustomerOnboardingConfiguration
+} from "../administration/contracts/route-iq-paid-customer-onboarding-v1.mjs";
+
 export const routeIqPaidCustomerIntelligenceVersion = "route-iq-paid-customer-intelligence-v1";
-export const routeIqPaidCustomerOnboardingVersion = "route-iq-paid-customer-onboarding-v1";
+export const routeIqPaidCustomerOnboardingVersion =
+  ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_SCHEMA_VERSION;
+export const routeIqPaidCustomerOnboardingContractVersion =
+  ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_CONTRACT_VERSION;
 export const routeIqVerifiedBusinessEvidenceVersion = "route-iq-verified-business-evidence-v1";
 export const routeIqMetricLabelSnapshotVersion = "route-iq-metric-label-snapshot-v1";
 
@@ -18,8 +28,7 @@ export const paidCustomerIntelligenceOperations = Object.freeze({
 });
 
 const identifierPattern = /^[a-z][a-z0-9_]{2,127}$/;
-const metricIdentifierPattern = /^metric_[a-z][a-z0-9_]{2,63}$/;
-const categoryIdentifierPattern = /^category_[a-z][a-z0-9_]{2,63}$/;
+const semanticVersionPattern = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/;
 const zipCodePattern = /^\d{5}$/;
 const dangerousLabelPattern = /[<>{}`$\\]|(?:javascript|data|vbscript)\s*:/iu;
 const controlCharacterPattern = /[\u0000-\u001F\u007F]/gu;
@@ -29,28 +38,25 @@ const activePreviewStates = new Set([
   "AWAITING_APPROVAL",
   "READY_FOR_ACTIVATION"
 ]);
-const authorizedOperationsByRole = Object.freeze({
-  founder: Object.freeze([
-    paidCustomerIntelligenceOperations.recommendationAdmission,
-    paidCustomerIntelligenceOperations.configurationPreview
+const authorizedPermissionsByOperation = Object.freeze({
+  [paidCustomerIntelligenceOperations.recommendationAdmission]: Object.freeze([
+    "view_assigned_territory",
+    "view_company_dashboard"
   ]),
-  manager: Object.freeze([
-    paidCustomerIntelligenceOperations.recommendationAdmission,
-    paidCustomerIntelligenceOperations.configurationPreview
-  ]),
-  representative: Object.freeze([
-    paidCustomerIntelligenceOperations.recommendationAdmission
-  ]),
-  auditor: Object.freeze([
-    paidCustomerIntelligenceOperations.configurationPreview
+  [paidCustomerIntelligenceOperations.configurationPreview]: Object.freeze([
+    "view_company_dashboard"
   ])
 });
 const controlledFallbackLabels = Object.freeze({
   activity: Object.freeze({ singular: "Activity", plural: "Activities" }),
+  business: Object.freeze({ singular: "Business", plural: "Businesses" }),
   conversion: Object.freeze({ singular: "Conversion", plural: "Conversions" }),
   follow_up: Object.freeze({ singular: "Follow-up", plural: "Follow-ups" }),
   goal: Object.freeze({ singular: "Goal", plural: "Goals" }),
-  outcome: Object.freeze({ singular: "Outcome", plural: "Outcomes" })
+  manager: Object.freeze({ singular: "Manager", plural: "Managers" }),
+  outcome: Object.freeze({ singular: "Outcome", plural: "Outcomes" }),
+  representative: Object.freeze({ singular: "Representative", plural: "Representatives" }),
+  visit: Object.freeze({ singular: "Visit", plural: "Visits" })
 });
 const authorizedScopes = new WeakSet();
 const scopeMetadata = new WeakMap();
@@ -106,28 +112,70 @@ function safeDisplayLabel(value, label) {
   return normalized;
 }
 
-function normalizeMetricDefinition(definition) {
+function normalizeMetricDefinition(definition, termsById = null) {
   if (!isRecord(definition)) {
     throw new Error("Paid-customer Intelligence metric definition is invalid.");
   }
-  const metricId = cleanIdentifier(definition.metricId, "metric identifier", metricIdentifierPattern);
+  const metricId = cleanIdentifier(definition.metricId, "metric identifier");
+  if (termsById) {
+    const semanticVersion = String(definition.semanticVersion ?? "").trim();
+    const displayTermId = cleanIdentifier(definition.displayTermId, "metric display term");
+    const term = termsById.get(displayTermId);
+    if (!semanticVersionPattern.test(semanticVersion)
+      || definition.historyIdentity !== `${metricId}@${semanticVersion}`
+      || !term) {
+      throw new Error("Paid-customer Intelligence metric history contract is invalid.");
+    }
+    const fallbackKind = Object.hasOwn(controlledFallbackLabels, displayTermId)
+      ? displayTermId
+      : "outcome";
+    return {
+      metricId,
+      semanticVersion,
+      historyIdentity: definition.historyIdentity,
+      displayTermId,
+      fallbackKind,
+      singular: safeDisplayLabel(term.singular, "metric singular label"),
+      plural: safeDisplayLabel(term.plural, "metric plural label")
+    };
+  }
+
   const fallbackKind = cleanIdentifier(definition.fallbackKind, "metric fallback kind");
   if (!Object.hasOwn(controlledFallbackLabels, fallbackKind)) {
     throw new Error("Paid-customer Intelligence metric fallback kind is unsupported.");
   }
   return {
     metricId,
+    semanticVersion: null,
+    historyIdentity: null,
+    displayTermId: null,
     fallbackKind,
     singular: safeDisplayLabel(definition.labels?.singular, "metric singular label"),
     plural: safeDisplayLabel(definition.labels?.plural, "metric plural label")
   };
 }
 
-export function normalizePaidCustomerMetricCatalog(definitions) {
+export function normalizePaidCustomerMetricCatalog(definitions, terms = null) {
   if (!Array.isArray(definitions) || definitions.length === 0) {
     throw new Error("Paid-customer Intelligence metric catalog is missing.");
   }
-  const normalized = definitions.map(normalizeMetricDefinition).sort((left, right) =>
+  let termsById = null;
+  if (terms !== null) {
+    if (!Array.isArray(terms) || terms.length === 0) {
+      throw new Error("Paid-customer Intelligence terminology catalog is missing.");
+    }
+    termsById = new Map();
+    for (const term of terms) {
+      const termId = cleanIdentifier(term?.termId, "terminology identifier");
+      if (termsById.has(termId)) {
+        throw new Error("Paid-customer Intelligence terminology identifiers must be unique.");
+      }
+      termsById.set(termId, term);
+    }
+  }
+  const normalized = definitions.map(definition =>
+    normalizeMetricDefinition(definition, termsById)
+  ).sort((left, right) =>
     left.metricId.localeCompare(right.metricId)
   );
   if (new Set(normalized.map(item => item.metricId)).size !== normalized.length) {
@@ -135,6 +183,9 @@ export function normalizePaidCustomerMetricCatalog(definitions) {
   }
   return deepFreeze(normalized.map(item => ({
     metricId: item.metricId,
+    semanticVersion: item.semanticVersion,
+    historyIdentity: item.historyIdentity,
+    displayTermId: item.displayTermId,
     fallbackKind: item.fallbackKind,
     labels: {
       singular: item.singular,
@@ -145,30 +196,35 @@ export function normalizePaidCustomerMetricCatalog(definitions) {
 
 function validateSafetyBoundary(configuration, errors) {
   const safety = configuration?.safety;
-  for (const [key, expected] of Object.entries(paidCustomerIntelligenceSafety)) {
+  const expectedConfigurationSafety = {
+    customerActivation: "OFF",
+    activationAuthorizationRef: null,
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    providerRefresh: "OFF",
+    scheduler: "OFF"
+  };
+  for (const [key, expected] of Object.entries(expectedConfigurationSafety)) {
     if (safety?.[key] !== expected) errors.push(`safety.${key}`);
   }
 }
 
-function validateTerritories(configuration, errors) {
-  if (!Array.isArray(configuration?.territories) || configuration.territories.length === 0) {
-    errors.push("territories");
+function validateTerritory(configuration, errors) {
+  const territory = configuration?.territory;
+  if (!isRecord(territory)) {
+    errors.push("territory");
     return;
   }
-  const territoryIds = new Set();
-  for (const territory of configuration.territories) {
-    try {
-      const territoryId = cleanIdentifier(territory?.territoryId, "territory identifier");
-      if (territoryIds.has(territoryId)) errors.push("territories.duplicateTerritoryId");
-      territoryIds.add(territoryId);
-      if (territory?.authorized !== true) errors.push("territories.authorized");
-      if (!Array.isArray(territory?.zipCodes) || territory.zipCodes.length === 0
-        || territory.zipCodes.some(zip => !zipCodePattern.test(String(zip)))) {
-        errors.push("territories.zipCodes");
-      }
-    } catch {
-      errors.push("territories.territoryId");
+  try {
+    cleanIdentifier(territory.territoryId, "territory identifier");
+    if (!Array.isArray(territory.authorizedZipCodes)
+      || territory.authorizedZipCodes.length === 0
+      || territory.authorizedZipCodes.some(zip => !zipCodePattern.test(String(zip)))) {
+      errors.push("territory.authorizedZipCodes");
     }
+  } catch {
+    errors.push("territory.territoryId");
   }
 }
 
@@ -176,16 +232,19 @@ function validateTargeting(configuration, errors) {
   try {
     const included = uniqueIdentifiers(
       configuration?.targeting?.includedCategoryIds,
-      "included category",
-      categoryIdentifierPattern
+      "included category"
     );
     const excluded = uniqueIdentifiers(
       configuration?.targeting?.excludedCategoryIds,
-      "excluded category",
-      categoryIdentifierPattern
+      "excluded category"
     );
     uniqueIdentifiers(configuration?.targeting?.excludedBusinessIds, "excluded business");
-    if (included.length === 0 || included.some(value => excluded.includes(value))) {
+    if (configuration?.targeting?.targetingDefaultsAllowed !== false
+      || configuration?.targeting?.missingRulesBehavior !== "FAIL_CLOSED_CONFIGURATION_REQUIRED"
+      || configuration?.targeting?.conflictBehavior !==
+        "FAIL_CLOSED_CONFLICT_REQUIRES_RESOLUTION"
+      || included.length === 0
+      || included.some(value => excluded.includes(value))) {
       errors.push("targeting.categories");
     }
   } catch {
@@ -196,38 +255,53 @@ function validateTargeting(configuration, errors) {
 export function validatePaidCustomerIntelligenceOnboarding(configuration) {
   const errors = [];
   if (!isRecord(configuration)) return ["configuration"];
-  if (configuration.schemaVersion !== routeIqPaidCustomerOnboardingVersion) errors.push("schemaVersion");
-  if (configuration.authority !== "prometheus_administration") errors.push("authority");
   try {
-    const companyId = cleanIdentifier(configuration.scope?.companyId, "company identity");
-    const workspaceId = cleanIdentifier(configuration.scope?.workspaceId, "workspace identity");
-    if (configuration.scope?.immutable !== true
-      || configuration.company?.companyId !== companyId
-      || configuration.workspace?.workspaceId !== workspaceId
-      || configuration.workspace?.companyId !== companyId) {
-      errors.push("scope");
+    validateRouteIqPaidCustomerOnboardingConfiguration(configuration);
+  } catch (error) {
+    return [`administration.${String(error?.code || "configuration_invalid")}`];
+  }
+
+  if (configuration.schemaVersion !== routeIqPaidCustomerOnboardingVersion) {
+    errors.push("schemaVersion");
+  }
+  if (configuration.contractVersion !== routeIqPaidCustomerOnboardingContractVersion) {
+    errors.push("contractVersion");
+  }
+  if (configuration.provenance?.authority !== ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_AUTHORITY) {
+    errors.push("authority");
+  }
+  try {
+    cleanIdentifier(configuration.company?.companyId, "company identity");
+    cleanIdentifier(configuration.company?.workspaceId, "workspace identity");
+    if (configuration.company?.identityImmutable !== true
+      || configuration.company.companyId === configuration.company.workspaceId
+      || configuration.provenance?.configurationIdentity !==
+        `${configuration.configurationId}@${configuration.configurationRevision}`) {
+      errors.push("identity");
     }
-    cleanIdentifier(configuration.configurationVersion, "configuration version");
   } catch {
     errors.push("identity");
   }
-  if (!activePreviewStates.has(configuration.lifecycle?.state)
-    || configuration.lifecycle?.customerActivated !== false) {
+  if (!activePreviewStates.has(configuration.lifecycle?.state)) {
     errors.push("lifecycle");
   }
   validateSafetyBoundary(configuration, errors);
-  validateTerritories(configuration, errors);
+  validateTerritory(configuration, errors);
   validateTargeting(configuration, errors);
-  if (!Number.isInteger(configuration?.freshnessPolicy?.maximumAgeHours)
-    || configuration.freshnessPolicy.maximumAgeHours < 1
-    || configuration.freshnessPolicy.maximumAgeHours > 24
-    || configuration.freshnessPolicy.providerFailureFailsClosed !== true) {
-    errors.push("freshnessPolicy");
+  if (!Number.isInteger(configuration?.verification?.freshnessCeilingHours)
+    || configuration.verification.freshnessCeilingHours < 1
+    || configuration.verification.freshnessCeilingHours > 24
+    || configuration.verification.providerFailureBehavior !==
+      "INELIGIBLE_PRESERVE_PRIOR_EVIDENCE") {
+    errors.push("verification");
   }
   try {
-    normalizePaidCustomerMetricCatalog(configuration.metrics);
+    normalizePaidCustomerMetricCatalog(
+      configuration.terminology?.metrics,
+      configuration.terminology?.terms
+    );
   } catch {
-    errors.push("metrics");
+    errors.push("terminology.metrics");
   }
   return [...new Set(errors)].sort();
 }
@@ -255,43 +329,54 @@ export function createPaidCustomerIntelligenceScope({
   if (validatePaidCustomerIntelligenceOnboarding(onboardingConfiguration).length > 0) {
     throw new Error("Paid-customer Intelligence configuration is invalid.");
   }
-  const companyId = onboardingConfiguration.scope.companyId;
-  const workspaceId = onboardingConfiguration.scope.workspaceId;
+  const configuration =
+    validateRouteIqPaidCustomerOnboardingConfiguration(onboardingConfiguration);
+  const companyId = configuration.company.companyId;
+  const workspaceId = configuration.company.workspaceId;
   const normalizedOperation = String(operation ?? "").trim();
-  const role = String(principal?.role ?? "").trim();
+  const roleId = String(principal?.roleId ?? "").trim();
+  const configuredRole = configuration.access.roles.find(role => role.roleId === roleId);
+  const authorizedPermissions = authorizedPermissionsByOperation[normalizedOperation];
   if (principal?.authority !== "server_authenticated_principal"
     || principal?.authenticated !== true
     || principal?.companyId !== companyId
     || principal?.workspaceId !== workspaceId
-    || !authorizedOperationsByRole[role]?.includes(normalizedOperation)) {
+    || !configuredRole
+    || !authorizedPermissions
+    || !configuredRole.permissions.some(permission =>
+      authorizedPermissions.includes(permission))) {
     throw new Error("Paid-customer Intelligence scope is denied.");
   }
 
-  const metricCatalog = normalizePaidCustomerMetricCatalog(onboardingConfiguration.metrics);
+  const metricCatalog = normalizePaidCustomerMetricCatalog(
+    configuration.terminology.metrics,
+    configuration.terminology.terms
+  );
   const scope = deepFreeze({
     version: routeIqPaidCustomerIntelligenceVersion,
     companyId,
     workspaceId,
-    configurationVersion: onboardingConfiguration.configurationVersion,
-    role,
+    configurationVersion: configuration.provenance.configurationIdentity,
+    roleId,
     operation: normalizedOperation,
     recommendationInfluence: "OFF",
     customerActivation: "OFF"
   });
-  const territoryMetadata = new Map(onboardingConfiguration.territories.map(territory => [
-    territory.territoryId,
+  const territoryMetadata = new Map([[
+    configuration.territory.territoryId,
     {
-      zipCodes: new Set(territory.zipCodes.map(String)),
-      cities: new Set((territory.cities || []).map(value => String(value).trim().toLowerCase()))
+      zipCodes: new Set(configuration.territory.authorizedZipCodes.map(String)),
+      cities: new Set(configuration.territory.authorizedCities.map(city =>
+        city.name.trim().toLowerCase()))
     }
-  ]));
+  ]]);
   authorizedScopes.add(scope);
   scopeMetadata.set(scope, {
     territoryMetadata,
-    includedCategoryIds: new Set(onboardingConfiguration.targeting.includedCategoryIds),
-    excludedCategoryIds: new Set(onboardingConfiguration.targeting.excludedCategoryIds),
-    excludedBusinessIds: new Set(onboardingConfiguration.targeting.excludedBusinessIds),
-    maximumAgeHours: onboardingConfiguration.freshnessPolicy.maximumAgeHours,
+    includedCategoryIds: new Set(configuration.targeting.includedCategoryIds),
+    excludedCategoryIds: new Set(configuration.targeting.excludedCategoryIds),
+    excludedBusinessIds: new Set(configuration.targeting.excludedBusinessIds),
+    maximumAgeHours: configuration.verification.freshnessCeilingHours,
     metricCatalog
   });
   return scope;
@@ -368,11 +453,7 @@ export function evaluatePaidCustomerRecommendationAdmission({
   try {
     businessId = cleanIdentifier(businessEvidence.businessId, "business identity");
     territoryId = cleanIdentifier(businessEvidence.territoryId, "territory identity");
-    categoryId = cleanIdentifier(
-      businessEvidence.categoryId,
-      "business category",
-      categoryIdentifierPattern
-    );
+    categoryId = cleanIdentifier(businessEvidence.categoryId, "business category");
   } catch {
     return rejectedDecision(scope, "EVIDENCE_IDENTITY_INVALID", evaluatedTimestamp);
   }
@@ -475,6 +556,9 @@ export function createPaidCustomerMetricLabelSnapshot({
   const timestamp = cleanTimestamp(effectiveAt, "metric snapshot time");
   const definitions = scopeMetadata.get(paidCustomerScope).metricCatalog.map(definition => ({
     metricId: definition.metricId,
+    semanticVersion: definition.semanticVersion,
+    historyIdentity: definition.historyIdentity,
+    displayTermId: definition.displayTermId,
     fallbackKind: definition.fallbackKind,
     labels: {
       singular: definition.labels.singular,
@@ -497,7 +581,7 @@ export function resolvePaidCustomerMetricLabel({
   labelSnapshot,
   fallbackKind = "outcome"
 } = {}) {
-  const normalizedMetricId = cleanIdentifier(metricId, "metric identifier", metricIdentifierPattern);
+  const normalizedMetricId = cleanIdentifier(metricId, "metric identifier");
   const numericCount = Number(count);
   if (!Number.isFinite(numericCount)) {
     throw new Error("Paid-customer Intelligence metric count is invalid.");
