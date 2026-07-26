@@ -1034,7 +1034,7 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
     }, 500);
   }
 
-  return markCloudflareUnattendedSmokeResponse(response, smokeAuthorization);
+  return markCloudflareUnattendedSmokeResponse(response, smokeAuthorization, env);
 }
 
 export default {

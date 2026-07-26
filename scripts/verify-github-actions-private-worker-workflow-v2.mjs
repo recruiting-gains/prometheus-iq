@@ -21,6 +21,9 @@ import {
   CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION,
   fixedCloudflareUnattendedSmokePlan
 } from "./run-cloudflare-unattended-smoke.mjs";
+import {
+  CLOUDFLARE_UNATTENDED_SMOKE_VERSION
+} from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 import { inspectRouteIqPrivateDashboardDeployAssets } from "./sync-route-iq-private-dashboard-deploy-assets.mjs";
 import { validateRouteIqPrivateForwardRollbackBoundaryV3 } from "./build-route-iq-private-forward-rollback-candidate-v3.mjs";
 
@@ -271,6 +274,11 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     RUNTIME_GUARD_BINDINGS
   );
   assert.equal(
+    contract.configurationPreservation.bindingTransition
+      .runtimeGuardVersionMetadataAdditionAllowed,
+    CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding
+  );
+  assert.equal(
     contract.configurationPreservation.bindingTransition.unexpectedAdditionsAllowed,
     false
   );
@@ -287,6 +295,10 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     contract.smoke.bootstrap.currentPrivateVersionWithoutGuard,
     PRIVATE_WORKFLOW_V2_POLICY.bootstrapGuardlessPrivateVersion
   );
+  assert.equal(
+    contract.smoke.bootstrap.additionalVerifiedGuardlessRollbackVersion,
+    PRIVATE_WORKFLOW_V2_POLICY.verifiedGuardlessRollbackPrivateVersion
+  );
   assert.equal(contract.smoke.bootstrap.oneTimeTransition, true);
   assert.equal(contract.smoke.bootstrap.accessServiceTokenRequired, true);
   assert.equal(
@@ -299,10 +311,12 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     path: "/",
     retryableConditions: [
       "2xx_guard_marker_missing",
-      "2xx_exact_guard_marker_stale_qualified_root_sha256"
+      "2xx_exact_guard_marker_worker_version_missing",
+      "2xx_exact_guard_marker_stale_worker_version"
     ],
-    expectedReleaseIdentity: "qualified_forward_root_asset_sha256",
-    maximumResponseBytes: 2_097_152,
+    expectedReleaseIdentity: "cloudflare_worker_version_id",
+    versionMetadataBinding: CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding,
+    versionResponseHeader: CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader,
     maxAttempts: CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts,
     delayMilliseconds: CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds,
     requestTimeoutMilliseconds:
@@ -310,9 +324,10 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     maximumWaitMilliseconds:
       CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds,
     unsafeResponseRetryAllowed: false,
-    requestDeadlineEnforced: true,
+    requestAndResponseLifecycleDeadlineEnforced: true,
+    fullSmokeRequestLifecycleDeadlineEnforced: true,
     responseBodiesConsumedOrCancelled: true,
-    releaseIdentityHashLogged: false,
+    releaseIdentityValueLogged: false,
     fullFixedSmokeRunsAfterReadiness: true,
     timeoutTriggersForwardRollback: true
   });
@@ -362,6 +377,10 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     "CLOUDFLARE_ACCESS_CLIENT_ID"
   );
   assert.deepEqual(contract.runtimeGuardInjection.plainTextSettings, RUNTIME_GUARD_BINDINGS);
+  assert.equal(
+    contract.runtimeGuardInjection.versionMetadataBinding,
+    CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding
+  );
   assert.equal(contract.failureClassification.fixedNonsecretOnly, true);
   assert.equal(contract.failureClassification.publicDeploymentPolicyDiagnosticsPreserved, true);
   assert.equal(contract.failureClassification.smokeFailureDimensionPreserved, true);
@@ -400,8 +419,8 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   );
   assert.match(deploymentRunner, /runCloudflareUnattendedSmoke/u);
   assert.match(deploymentRunner, /runCloudflareUnattendedPostDeploymentSmoke/u);
-  assert.match(deploymentRunner, /qualifiedRootAssetSha256/u);
-  assert.match(deploymentRunner, /expectedRootSha256/u);
+  assert.match(deploymentRunner, /expectedWorkerVersion/u);
+  assert.doesNotMatch(deploymentRunner, /qualifiedRootAssetSha256|expectedRootSha256/u);
   assert.match(deploymentRunner, /createPrivateV2RuntimeWorkspace/u);
   assert.match(deploymentRunner, /createPrivateV2RuntimeRelease/u);
   assert.match(deploymentRunner, /verifyPrivateV2RuntimeRelease/u);
@@ -432,6 +451,10 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.match(smokeRunner, /GUARD_PROPAGATION_TIMEOUT/u);
   assert.match(smokeRunner, /RELEASE_IDENTITY_MISMATCH/u);
   assert.match(smokeRunner, /waitForCloudflareUnattendedSmokeGuard/u);
+  assert.match(smokeRunner, /CLOUDFLARE_UNATTENDED_SMOKE_VERSION/u);
+  assert.match(smokeRunner, /new AbortController\(\)/u);
+  assert.match(smokeRunner, /discardResponseBody\(response\)/u);
+  assert.doesNotMatch(smokeRunner, /expectedRootSha256|hashBoundedResponseBody/u);
   assert.doesNotMatch(smokeRunner, /smoke_guard_verification_failed:/u);
   assert.match(qualificationRunner, /assertNoProductionSecrets/u);
   assert.match(metadataRunner, /verifyPrivateQualificationArtifactMetadata/u);

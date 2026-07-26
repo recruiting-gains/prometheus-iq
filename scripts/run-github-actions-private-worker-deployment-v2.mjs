@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 
-import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { join, resolve } from "node:path";
+import { resolve } from "node:path";
 
 import {
   fetchPublicWorkerState,
@@ -68,11 +66,6 @@ function scrubSmokeCredentials(credentials) {
   for (const name of smokeCredentialNames) credentials[name] = "";
 }
 
-function qualifiedRootAssetSha256(verifiedArtifact) {
-  const path = join(verifiedArtifact.forwardDirectory, "assets", "index.html");
-  return createHash("sha256").update(readFileSync(path)).digest("hex");
-}
-
 export async function runPrivateWorkerDeploymentV2Command({
   mode,
   environment = process.env,
@@ -89,7 +82,6 @@ export async function runPrivateWorkerDeploymentV2Command({
     runtimeIdentity
   );
   const verifiedArtifact = verifyImmutableRelease();
-  const expectedRootSha256 = qualifiedRootAssetSha256(verifiedArtifact);
   requirePrivateV2ProtectedSecretNames(environment);
 
   let deploymentCredentials;
@@ -157,10 +149,11 @@ export async function runPrivateWorkerDeploymentV2Command({
           release
         )
       }),
-      runPostSmoke: () => runCloudflareUnattendedPostDeploymentSmoke({
+      runPostSmoke: ({ expectedWorkerVersion }) =>
+        runCloudflareUnattendedPostDeploymentSmoke({
         fetchImpl,
         credentials: smokeCredentials,
-        expectedRootSha256,
+        expectedWorkerVersion,
         dryRun: false
       }),
       runRollback: release => runBoundedPublicWrangler({

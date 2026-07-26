@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
 import {
   chmodSync,
   existsSync,
@@ -48,6 +47,9 @@ import {
   verifyQualifiedPrivateRelease
 } from "../scripts/lib/github-actions-private-worker-workflow-v2.mjs";
 import {
+  buildRouteIqPrivateForwardRollbackCandidateV3
+} from "../scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs";
+import {
   PUBLIC_DEPLOYMENT_FAILURE,
   PublicDeploymentPolicyError
 } from "../scripts/lib/github-actions-public-worker-deployment.mjs";
@@ -59,7 +61,8 @@ import {
   runCloudflareUnattendedPostDeploymentSmoke
 } from "../scripts/run-cloudflare-unattended-smoke.mjs";
 import {
-  CLOUDFLARE_UNATTENDED_SMOKE_MARKER
+  CLOUDFLARE_UNATTENDED_SMOKE_MARKER,
+  CLOUDFLARE_UNATTENDED_SMOKE_VERSION
 } from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 import { verifyGithubActionsPrivateWorkerWorkflowV2 } from "../scripts/verify-github-actions-private-worker-workflow-v2.mjs";
 
@@ -69,6 +72,8 @@ const tree = "e6d74758013d711547ff77c7a31952d73d5deee7";
 const batchId = "BATCH-20260725-001";
 const publicVersion = "6a8713c0-0712-4cda-8a13-daa893ca45f2";
 const privateVersion = "b8cba784-dfd3-4f8e-8356-816cccf6aecc";
+const deployedPrivateVersion = "11111111-1111-4111-8111-111111111111";
+const rolledBackPrivateVersion = "22222222-2222-4222-8222-222222222222";
 const runtimeIdentity = Object.freeze({
   runner: PRIVATE_WORKFLOW_V2_POLICY.runner,
   architecture: PRIVATE_WORKFLOW_V2_POLICY.architecture,
@@ -207,7 +212,10 @@ function runtimeGuardSettings() {
 
 function passingSmoke(
   markerPolicy = CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT,
-  { markerOmitted = false } = {}
+  {
+    markerOmitted = false,
+    expectedWorkerVersion = deployedPrivateVersion
+  } = {}
 ) {
   const requestCount = 3;
   return Object.freeze({
@@ -216,7 +224,10 @@ function passingSmoke(
     requestCount,
     markerPolicy,
     markerVerifiedCount: markerOmitted ? 0 : requestCount,
-    markerOmittedCount: markerOmitted ? requestCount : 0
+    markerOmittedCount: markerOmitted ? requestCount : 0,
+    ...(expectedWorkerVersion === null
+      ? {}
+      : { expectedWorkerVersion, versionVerifiedCount: requestCount })
   });
 }
 
@@ -229,17 +240,21 @@ function lifecycleFixture({
 } = {}) {
   const runtimeBindings = Object.freeze([
     ...requiredBindings,
-    ...PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS.map(name => `${name}:plain_text`)
+    ...PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS.map(name => (
+      name === CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding
+        ? `${name}:version_metadata`
+        : `${name}:plain_text`
+    ))
   ].sort());
   const initialPrivate = workerState(privateVersion, "private-deployment-1");
   const initialPublic = workerState(publicVersion, "public-deployment-1", ["PUBLIC:plain_text"]);
   const deployedPrivate = workerState(
-    "11111111-1111-4111-8111-111111111111",
+    deployedPrivateVersion,
     "private-deployment-2",
     runtimeBindings
   );
   const rolledBackPrivate = workerState(
-    "22222222-2222-4222-8222-222222222222",
+    rolledBackPrivateVersion,
     "private-deployment-3",
     runtimeBindings
   );
@@ -250,7 +265,9 @@ function lifecycleFixture({
     || postSmoke.markerPolicy
       !== CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
     || postSmoke.markerVerifiedCount !== postSmoke.requestCount
-    || postSmoke.markerOmittedCount !== 0;
+    || postSmoke.markerOmittedCount !== 0
+    || postSmoke.expectedWorkerVersion !== deployedPrivateVersion
+    || postSmoke.versionVerifiedCount !== postSmoke.requestCount;
   const privateStates = [
     initialPrivate,
     initialPrivate,
@@ -303,7 +320,10 @@ function lifecycleFixture({
         markerPolicy,
         CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.BOOTSTRAP_ALLOW_MISSING
       );
-      return passingSmoke(markerPolicy, { markerOmitted: true });
+      return passingSmoke(markerPolicy, {
+        markerOmitted: true,
+        expectedWorkerVersion: null
+      });
     },
     runDryRun: async () => {
       calls.dryRun += 1;
@@ -313,11 +333,12 @@ function lifecycleFixture({
       consume();
       if (deployUncertain) throw new Error("synthetic_uncertain_deploy");
     },
-    runPostSmoke: async ({ markerPolicy }) => {
+    runPostSmoke: async ({ markerPolicy, expectedWorkerVersion }) => {
       calls.postSmoke += 1;
       assert.equal(markerPolicy, CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT);
+      assert.equal(expectedWorkerVersion, deployedPrivateVersion);
       if (postSmokeError) throw postSmokeError;
-      if (postSmokeImplementation) return postSmokeImplementation();
+      if (postSmokeImplementation) return postSmokeImplementation(expectedWorkerVersion);
       return postSmoke;
     },
     runRollback: async () => {
@@ -556,13 +577,16 @@ test("binding transition permits only qualified additions plus guard settings", 
   mkdirSync(forwardDirectory, { mode: 0o700 });
   mkdirSync(rollbackDirectory, { mode: 0o700 });
   const guardVars = Object.fromEntries(
-    PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS.map(name => [name, "synthetic"])
+    PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS
+      .filter(name => name !== CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding)
+      .map(name => [name, "synthetic"])
   );
   const config = {
     assets: { binding: "ASSETS" },
     vars: { QUALIFIED_ADDITION: "ON", ...guardVars },
     kv_namespaces: [{ binding: "EXISTING_STORE" }],
-    durable_objects: { bindings: [{ name: "QUALIFIED_COORDINATOR" }] }
+    durable_objects: { bindings: [{ name: "QUALIFIED_COORDINATOR" }] },
+    version_metadata: { binding: CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding }
   };
   const configName = PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile;
   try {
@@ -581,7 +605,11 @@ test("binding transition permits only qualified additions plus guard settings", 
     for (const expected of [
       "QUALIFIED_ADDITION:plain_text",
       "QUALIFIED_COORDINATOR:durable_object_namespace",
-      ...PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS.map(name => `${name}:plain_text`)
+      ...PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS.map(name => (
+        name === CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding
+          ? `${name}:version_metadata`
+          : `${name}:plain_text`
+      ))
     ]) {
       assert.ok(plan.forwardExpectedBindings.includes(expected));
       assert.ok(plan.rollbackExpectedBindings.includes(expected));
@@ -632,6 +660,10 @@ test("qualified artifact contains actual no-bundle forward payload and rollback 
       inputs: qualificationInputs(),
       runtimeIdentity,
       temporaryRoot: temporary,
+      rollbackBuilder: options => buildRouteIqPrivateForwardRollbackCandidateV3({
+        ...options,
+        sourceRef: "WORKTREE"
+      }),
       verifyRepositoryBoundary: false
     });
     assert.equal(
@@ -766,8 +798,11 @@ test("qualified artifact contains actual no-bundle forward payload and rollback 
       requiredBindings
     );
     for (const name of PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS) {
-      assert.ok(bindingTransition.forwardExpectedBindings.includes(`${name}:plain_text`));
-      assert.ok(bindingTransition.rollbackExpectedBindings.includes(`${name}:plain_text`));
+      const type = name === CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding
+        ? "version_metadata"
+        : "plain_text";
+      assert.ok(bindingTransition.forwardExpectedBindings.includes(`${name}:${type}`));
+      assert.ok(bindingTransition.rollbackExpectedBindings.includes(`${name}:${type}`));
     }
     const runtimeConfigPath = join(
       runtimeRelease.forwardDirectory,
@@ -1052,14 +1087,12 @@ test("a stale guarded release identity triggers one forward rollback", async () 
 
 test("real bounded propagation timeout reaches the lifecycle rollback exactly once", async () => {
   let readinessRequests = 0;
-  const expectedRootSha256 = createHash("sha256")
-    .update("qualified-forward-root")
-    .digest("hex");
   const { result, calls } = lifecycleFixture({
     expectRollback: true,
-    postSmokeImplementation: () => runCloudflareUnattendedPostDeploymentSmoke({
+    postSmokeImplementation: expectedWorkerVersion =>
+      runCloudflareUnattendedPostDeploymentSmoke({
       dryRun: false,
-      expectedRootSha256,
+      expectedWorkerVersion,
       credentials: {
         [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
         [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
@@ -1085,9 +1118,6 @@ test("real bounded propagation timeout reaches the lifecycle rollback exactly on
 });
 
 test("real unsafe propagation responses never retry before lifecycle rollback", async () => {
-  const expectedRootSha256 = createHash("sha256")
-    .update("qualified-forward-root")
-    .digest("hex");
   const cases = [
     [
       () => new Response(null, {
@@ -1120,9 +1150,10 @@ test("real unsafe propagation responses never retry before lifecycle rollback", 
     let readinessRequests = 0;
     const { result, calls } = lifecycleFixture({
       expectRollback: true,
-      postSmokeImplementation: () => runCloudflareUnattendedPostDeploymentSmoke({
+      postSmokeImplementation: expectedWorkerVersion =>
+        runCloudflareUnattendedPostDeploymentSmoke({
         dryRun: false,
-        expectedRootSha256,
+        expectedWorkerVersion,
         credentials: {
           [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
           [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"

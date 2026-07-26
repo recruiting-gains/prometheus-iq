@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
-import { createHash, generateKeyPairSync } from "node:crypto";
+import { generateKeyPairSync } from "node:crypto";
 import {
   chmodSync,
   existsSync,
@@ -30,6 +30,7 @@ import {
   CLOUDFLARE_UNATTENDED_SMOKE_ENV,
   CLOUDFLARE_UNATTENDED_SMOKE_MARKER,
   CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN,
+  CLOUDFLARE_UNATTENDED_SMOKE_VERSION,
   isCloudflareUnattendedSmokeRequestAllowed
 } from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 import {
@@ -61,6 +62,8 @@ const testNow = new Date("2026-07-14T18:05:00.000Z");
 const testIssuer = new URL(`https://${["noncanonical-smoke-test", "cloudflareaccess", "com"].join(".")}`).origin;
 const testAudience = ["noncanonical", "smoke", "audience"].join("-");
 const testClientId = `${"a".repeat(32)}.access`;
+const qualifiedWorkerVersion = "11111111-1111-4111-8111-111111111111";
+const staleWorkerVersion = "22222222-2222-4222-8222-222222222222";
 const signingKeys = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const forgedKeys = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const publicJwk = await exportJWK(signingKeys.publicKey);
@@ -68,16 +71,15 @@ publicJwk.kid = "smoke-test-key";
 publicJwk.alg = "RS256";
 const keyResolver = createLocalJWKSet({ keys: [publicJwk] });
 
-function sha256Text(value) {
-  return createHash("sha256").update(value).digest("hex");
-}
-
 function guardEnv(overrides = {}) {
   return {
     [CLOUDFLARE_UNATTENDED_SMOKE_ENV.enabled]: "ON",
     [CLOUDFLARE_UNATTENDED_SMOKE_ENV.teamDomain]: testIssuer,
     [CLOUDFLARE_UNATTENDED_SMOKE_ENV.audience]: testAudience,
     [CLOUDFLARE_UNATTENDED_SMOKE_ENV.serviceTokenClientId]: testClientId,
+    [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding]: {
+      id: qualifiedWorkerVersion
+    },
     ...overrides
   };
 }
@@ -141,6 +143,7 @@ test("ordinary Founder and representative traffic remains on the existing path",
   );
   assert.equal(await response.text(), "ordinary-runtime");
   assert.equal(response.headers.has(CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader), false);
+  assert.equal(response.headers.has(CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader), false);
 });
 
 test("valid service principal is signature-verified and confined to the read-only allowlist", async () => {
@@ -167,6 +170,10 @@ test("valid service principal is signature-verified and confined to the read-onl
   assert.equal(
     response.headers.get(CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader),
     CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue
+  );
+  assert.equal(
+    response.headers.get(CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader),
+    qualifiedWorkerVersion
   );
   assert.deepEqual(CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_METHODS, ["GET", "HEAD"]);
   assert.ok(CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.length >= 10);
@@ -447,8 +454,6 @@ test("postdeployment smoke requires the exact marker and exposes only its fixed 
 test("postdeployment propagation fence waits only for the exact root guard marker", async () => {
   const syntheticId = "synthetic-propagation-id";
   const syntheticSecret = "synthetic-propagation-secret";
-  const qualifiedRoot = "qualified-forward-root";
-  const staleRoot = "previous-rollback-root";
   const credentials = {
     [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: syntheticId,
     [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: syntheticSecret
@@ -458,19 +463,21 @@ test("postdeployment propagation fence waits only for the exact root guard marke
   const result = await waitForCloudflareUnattendedSmokeGuard({
     dryRun: false,
     credentials,
-    expectedRootSha256: sha256Text(qualifiedRoot),
+    expectedWorkerVersion: qualifiedWorkerVersion,
     sleepImpl: async milliseconds => {
       sleeps.push(milliseconds);
     },
     async fetchImpl(url, options) {
       observed.push({ url: String(url), options });
-      return new Response(observed.length === 3 ? qualifiedRoot : staleRoot, {
+      return new Response("same-root-html", {
         status: 200,
         headers: observed.length === 1
           ? {}
           : {
               [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
-                CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue
+                CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
+              [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]:
+                observed.length === 3 ? qualifiedWorkerVersion : staleWorkerVersion
             }
       });
     }
@@ -509,7 +516,7 @@ test("postdeployment propagation fence fails closed when the marker never appear
   await assert.rejects(
     waitForCloudflareUnattendedSmokeGuard({
       dryRun: false,
-      expectedRootSha256: sha256Text("qualified-forward-root"),
+      expectedWorkerVersion: qualifiedWorkerVersion,
       credentials: {
         [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
         [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
@@ -540,7 +547,7 @@ test("postdeployment propagation fence rejects an older guarded release identity
   await assert.rejects(
     waitForCloudflareUnattendedSmokeGuard({
       dryRun: false,
-      expectedRootSha256: sha256Text("qualified-forward-root"),
+      expectedWorkerVersion: qualifiedWorkerVersion,
       credentials: {
         [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
         [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
@@ -548,11 +555,13 @@ test("postdeployment propagation fence rejects an older guarded release identity
       sleepImpl: async () => {},
       async fetchImpl() {
         calls += 1;
-        return new Response("previous-guarded-release-root", {
+        return new Response("same-root-html", {
           status: 200,
           headers: {
             [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
-              CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue
+              CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
+            [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]:
+              staleWorkerVersion
           }
         });
       }
@@ -582,6 +591,17 @@ test("postdeployment propagation fence never retries unsafe response classes", a
     ],
     [
       async () => new Response(null, {
+        status: 200,
+        headers: {
+          [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
+            CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
+          [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]: "invalid-version"
+        }
+      }),
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH
+    ],
+    [
+      async () => new Response(null, {
         status: 302,
         headers: { Location: "https://example.invalid/blocked" }
       }),
@@ -605,7 +625,7 @@ test("postdeployment propagation fence never retries unsafe response classes", a
       waitForCloudflareUnattendedSmokeGuard({
         dryRun: false,
         credentials,
-        expectedRootSha256: sha256Text("qualified-forward-root"),
+        expectedWorkerVersion: qualifiedWorkerVersion,
         sleepImpl: async () => {
           sleeps += 1;
         },
@@ -633,7 +653,7 @@ test("postdeployment propagation fence has a hard request deadline", async () =>
   await assert.rejects(
     waitForCloudflareUnattendedSmokeGuard({
       dryRun: false,
-      expectedRootSha256: sha256Text("qualified-forward-root"),
+      expectedWorkerVersion: qualifiedWorkerVersion,
       credentials: {
         [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
         [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
@@ -659,33 +679,71 @@ test("postdeployment propagation fence has a hard request deadline", async () =>
   );
 });
 
+test("postdeployment propagation fence bounds a stalled response body lifecycle", async () => {
+  const startedAt = Date.now();
+  await assert.rejects(
+    waitForCloudflareUnattendedSmokeGuard({
+      dryRun: false,
+      expectedWorkerVersion: qualifiedWorkerVersion,
+      credentials: {
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
+      },
+      fetchImpl: async () => ({
+        status: 200,
+        redirected: false,
+        headers: new Headers({
+          [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
+            CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
+          [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]:
+            qualifiedWorkerVersion
+        }),
+        body: {
+          cancel() {
+            return new Promise(() => {});
+          }
+        }
+      })
+    }),
+    error => (
+      error instanceof CloudflareUnattendedSmokeError
+      && error.dimension === CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.NETWORK_FAILED
+    )
+  );
+  assert.ok(
+    Date.now() - startedAt
+      < CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds + 1_500
+  );
+});
+
 test("full postdeployment smoke begins only after propagation readiness", async () => {
   const credentials = {
     [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
     [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
   };
   const expectedSmokeRequests = fixedCloudflareUnattendedSmokePlan().length;
-  const qualifiedRoot = "qualified-forward-root";
   let calls = 0;
   let sleeps = 0;
   const observedPaths = [];
   const result = await runCloudflareUnattendedPostDeploymentSmoke({
     dryRun: false,
     credentials,
-    expectedRootSha256: sha256Text(qualifiedRoot),
+    expectedWorkerVersion: qualifiedWorkerVersion,
     sleepImpl: async () => {
       sleeps += 1;
     },
     async fetchImpl(url) {
       calls += 1;
       observedPaths.push(new URL(url).pathname);
-      return new Response(calls === 2 ? qualifiedRoot : null, {
+      return new Response(null, {
         status: 200,
         headers: calls === 1
           ? {}
           : {
               [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
-                CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue
+                CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
+              [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]:
+                qualifiedWorkerVersion
             }
       });
     }
@@ -699,6 +757,42 @@ test("full postdeployment smoke begins only after propagation readiness", async 
   assert.equal(result.attemptedWriteCount, 0);
   assert.equal(result.markerVerifiedCount, expectedSmokeRequests);
   assert.equal(result.markerOmittedCount, 0);
+  assert.equal(result.expectedWorkerVersion, qualifiedWorkerVersion);
+  assert.equal(result.versionVerifiedCount, expectedSmokeRequests);
+});
+
+test("full postdeployment smoke bounds every request lifecycle", async () => {
+  let calls = 0;
+  await assert.rejects(
+    runCloudflareUnattendedPostDeploymentSmoke({
+      dryRun: false,
+      expectedWorkerVersion: qualifiedWorkerVersion,
+      credentials: {
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
+      },
+      async fetchImpl() {
+        calls += 1;
+        if (calls === 1) {
+          return new Response(null, {
+            status: 200,
+            headers: {
+              [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
+                CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
+              [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]:
+                qualifiedWorkerVersion
+            }
+          });
+        }
+        return new Promise(() => {});
+      }
+    }),
+    error => (
+      error instanceof CloudflareUnattendedSmokeError
+      && error.dimension === CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.NETWORK_FAILED
+    )
+  );
+  assert.equal(calls, 2);
 });
 
 test("smoke redirects are rejected without a follow-up request", async () => {

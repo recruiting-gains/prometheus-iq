@@ -19,9 +19,31 @@ const root = resolve(import.meta.dirname, "..");
 const contractPath = "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json";
 const configPath = "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json";
 const inertClassPath = "workers/infrastructure/route-iq-private-forward-rollback-inert-durable-object-v3.js";
+const smokeGuardPath = "workers/infrastructure/cloudflare-unattended-smoke-guard.js";
+const smokeContractPath = "workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 const generatedManifestName = "route-iq-private-forward-rollback-build-manifest-v3.json";
 const generatedWrapper = [
-  "export { default } from \"./prometheus-iq-retained-version-55.js\";",
+  "import retainedWorker from \"./prometheus-iq-retained-version-55.js\";",
+  "import { authorizeCloudflareUnattendedSmokeRequest, markCloudflareUnattendedSmokeResponse, sanitizeCloudflareUnattendedSmokeAssetRequest } from \"./infrastructure/cloudflare-unattended-smoke-guard.js\";",
+  "",
+  "export default {",
+  "  async fetch(request, env, executionContext) {",
+  "    const authorization = await authorizeCloudflareUnattendedSmokeRequest(request, env);",
+  "    if (authorization.kind === \"denied\") return authorization.response;",
+  "    const response = await retainedWorker.fetch(",
+  "      sanitizeCloudflareUnattendedSmokeAssetRequest(request, authorization),",
+  "      env,",
+  "      executionContext",
+  "    );",
+  "    return markCloudflareUnattendedSmokeResponse(response, authorization, env);",
+  "  },",
+  "  async scheduled(event, env, executionContext) {",
+  "    if (typeof retainedWorker.scheduled === \"function\") {",
+  "      return retainedWorker.scheduled(event, env, executionContext);",
+  "    }",
+  "  }",
+  "};",
+  "",
   "export { RouteIqProspectiveShadowCoordinator } from \"./infrastructure/route-iq-private-forward-rollback-inert-durable-object-v3.js\";",
   "export { RouteIqBusinessAvailabilityCoordinator } from \"./infrastructure/route-iq-private-forward-rollback-inert-durable-object-v3.js\";",
   ""
@@ -171,6 +193,9 @@ export function validateRouteIqPrivateForwardRollbackBoundaryV3(contract, config
     || contract.runtimeBoundary?.effectiveActiveCohortCount !== 0
     || contract.runtimeBoundary?.recommendationInfluence !== "OFF"
     || contract.candidatePackage?.publicWorkerConfigurationIncluded !== false
+    || contract.candidatePackage?.smokeGuardSource !== smokeGuardPath
+    || contract.candidatePackage?.smokeContractSource !== smokeContractPath
+    || contract.candidatePackage?.versionMetadataBinding !== "CF_VERSION_METADATA"
     || config.name !== "prometheus-iq"
     || config.main !== "workers/prometheus-iq-worker.js"
     || config.keep_vars !== true
@@ -178,6 +203,7 @@ export function validateRouteIqPrivateForwardRollbackBoundaryV3(contract, config
     || Object.hasOwn(config, "routes")
     || JSON.stringify(config.assets) !== JSON.stringify(expectedAssets)
     || config.observability?.enabled !== true
+    || config.version_metadata?.binding !== "CF_VERSION_METADATA"
     || config.vars?.ROUTE_IQ_CUSTOMER_PWA_LAUNCH_ENABLED !== "OFF"
     || config.vars?.ROUTE_IQ_PROSPECTIVE_SHADOW_COLLECTION !== "OFF"
     || config.vars?.ROUTE_IQ_BUSINESS_AVAILABILITY_MODE !== "OFF"
@@ -256,6 +282,8 @@ export function buildRouteIqPrivateForwardRollbackCandidateV3({
 
   writeFileSync(priorEntrypoint, generatedWrapper, "utf8");
   writeSourceOverlay(inertClassPath, sourceRef, join(resolvedOutput, inertClassPath));
+  writeSourceOverlay(smokeGuardPath, sourceRef, join(resolvedOutput, smokeGuardPath));
+  writeSourceOverlay(smokeContractPath, sourceRef, join(resolvedOutput, smokeContractPath));
   writeFileSync(join(resolvedOutput, "wrangler.jsonc"), configBuffer);
 
   const priorWorkerSha256 = sha256File(retainedEntrypoint);

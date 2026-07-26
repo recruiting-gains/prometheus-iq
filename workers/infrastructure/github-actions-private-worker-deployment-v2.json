@@ -16,8 +16,8 @@
     "previousQualifiedCandidateTree": "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
     "previousQualificationArtifactContentTreeSha256": "de7b35909f9bd1bf8f15c8fe605cf494a5f39171e6b2bdf822e60031c590b0e7",
     "privateDeployParitySha256": "35a564e4f3fed2961d7658bac57cc4ce66cb9c103e4ab03d5b17fff836ca7731",
-    "qualifiedForwardPayloadSha256": "a814ee31dcbc11c62dfd869ae23cd642163c89062512cd84fea589e516c995df",
-    "qualifiedRollbackBundleSha256": "64af130e3a9cf1a6807b4fc0328b58083cb0744472a776211464b323bbb6a7a9",
+    "qualifiedForwardPayloadSha256": "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c",
+    "qualifiedRollbackBundleSha256": "8f700c7c5f548b66795211a415ec63da51316b86a2685ae77c6618d1fe798007",
     "candidateMayBeAnAncestorOfCurrentMain": true,
     "currentMainMayContainUnrelatedPublicOnlySuccessors": true,
     "candidatePrivateScopeMustRemainByteIdentical": true,
@@ -120,6 +120,7 @@
         "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE",
         "PROMETHEUS_UNATTENDED_SMOKE_SERVICE_TOKEN_CLIENT_ID"
       ],
+      "runtimeGuardVersionMetadataAdditionAllowed": "CF_VERSION_METADATA",
       "unexpectedAdditionsAllowed": false,
       "deletionsAllowed": false,
       "typeChangesAllowed": false,
@@ -144,6 +145,7 @@
     "bootstrap": {
       "oneTimeTransition": true,
       "currentPrivateVersionWithoutGuard": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+      "additionalVerifiedGuardlessRollbackVersion": "e303f3ca-8d2b-4248-85a5-eaad938219a9",
       "accessServiceTokenRequired": true,
       "guardRequestMarkerSent": true,
       "guardResponseMarkerMayBeOmittedOnlyForPinnedCurrentVersion": true,
@@ -156,18 +158,21 @@
         "path": "/",
         "retryableConditions": [
           "2xx_guard_marker_missing",
-          "2xx_exact_guard_marker_stale_qualified_root_sha256"
+          "2xx_exact_guard_marker_worker_version_missing",
+          "2xx_exact_guard_marker_stale_worker_version"
         ],
-        "expectedReleaseIdentity": "qualified_forward_root_asset_sha256",
-        "maximumResponseBytes": 2097152,
+        "expectedReleaseIdentity": "cloudflare_worker_version_id",
+        "versionMetadataBinding": "CF_VERSION_METADATA",
+        "versionResponseHeader": "X-Prometheus-Private-Worker-Version",
         "maxAttempts": 12,
         "delayMilliseconds": 1500,
         "requestTimeoutMilliseconds": 2500,
         "maximumWaitMilliseconds": 46500,
         "unsafeResponseRetryAllowed": false,
-        "requestDeadlineEnforced": true,
+        "requestAndResponseLifecycleDeadlineEnforced": true,
+        "fullSmokeRequestLifecycleDeadlineEnforced": true,
         "responseBodiesConsumedOrCancelled": true,
-        "releaseIdentityHashLogged": false,
+        "releaseIdentityValueLogged": false,
         "fullFixedSmokeRunsAfterReadiness": true,
         "timeoutTriggersForwardRollback": true
       }
@@ -212,6 +217,7 @@
     "teamDomainSource": "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
     "audienceSource": "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE",
     "serviceTokenClientIdSource": "CLOUDFLARE_ACCESS_CLIENT_ID",
+    "versionMetadataBinding": "CF_VERSION_METADATA",
     "plainTextSettings": [
       "PROMETHEUS_UNATTENDED_SMOKE_GUARD",
       "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",

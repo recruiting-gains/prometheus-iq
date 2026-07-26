@@ -3,6 +3,7 @@ import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose";
 import {
   CLOUDFLARE_UNATTENDED_SMOKE_ENV,
   CLOUDFLARE_UNATTENDED_SMOKE_MARKER,
+  CLOUDFLARE_UNATTENDED_SMOKE_VERSION,
   cloudflareUnattendedSmokeContractVersion,
   isCloudflareUnattendedSmokeRequestAllowed
 } from "./cloudflare-unattended-smoke-contract.js";
@@ -12,6 +13,7 @@ const ACCESS_CLIENT_ID_HEADER = "CF-Access-Client-Id";
 const ACCESS_CLIENT_SECRET_HEADER = "CF-Access-Client-Secret";
 const MAX_ACCESS_TOKEN_BYTES = 16 * 1024;
 const MAX_CONFIG_BYTES = 512;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 
 let cachedJwksUrl = null;
 let cachedRemoteJwks = null;
@@ -166,7 +168,7 @@ export async function authorizeCloudflareUnattendedSmokeRequest(request, env, {
   }
 }
 
-export function markCloudflareUnattendedSmokeResponse(response, authorization) {
+export function markCloudflareUnattendedSmokeResponse(response, authorization, env) {
   if (authorization?.kind !== "service_principal" || authorization.verified !== true) {
     return response;
   }
@@ -175,6 +177,10 @@ export function markCloudflareUnattendedSmokeResponse(response, authorization) {
     CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader,
     CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue
   );
+  const workerVersion = env?.[CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding]?.id;
+  if (UUID.test(workerVersion || "")) {
+    headers.set(CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader, workerVersion);
+  }
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,

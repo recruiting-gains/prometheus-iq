@@ -48,7 +48,8 @@ import {
   inspectRouteIqPrivateDashboardDeployAssets
 } from "../sync-route-iq-private-dashboard-deploy-assets.mjs";
 import {
-  CLOUDFLARE_UNATTENDED_SMOKE_ENV
+  CLOUDFLARE_UNATTENDED_SMOKE_ENV,
+  CLOUDFLARE_UNATTENDED_SMOKE_VERSION
 } from "../../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 
 export const PRIVATE_WORKFLOW_V2_POLICY = Object.freeze({
@@ -101,14 +102,15 @@ export const PRIVATE_WORKFLOW_V2_POLICY = Object.freeze({
   githubResponseByteLimit: 65_536,
   githubRequestTimeoutMs: 10_000,
   bootstrapGuardlessPrivateVersion: "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+  verifiedGuardlessRollbackPrivateVersion: "e303f3ca-8d2b-4248-85a5-eaad938219a9",
   continuityBaseline: Object.freeze({
     candidateCommit: "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
     candidateTree: "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
     qualificationArtifactContentTreeSha256:
       "de7b35909f9bd1bf8f15c8fe605cf494a5f39171e6b2bdf822e60031c590b0e7",
     deployParitySha256: "35a564e4f3fed2961d7658bac57cc4ce66cb9c103e4ab03d5b17fff836ca7731",
-    forwardPayloadSha256: "a814ee31dcbc11c62dfd869ae23cd642163c89062512cd84fea589e516c995df",
-    rollbackBundleSha256: "64af130e3a9cf1a6807b4fc0328b58083cb0744472a776211464b323bbb6a7a9"
+    forwardPayloadSha256: "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c",
+    rollbackBundleSha256: "8f700c7c5f548b66795211a415ec63da51316b86a2685ae77c6618d1fe798007"
   })
 });
 
@@ -199,7 +201,8 @@ export const PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS = Object.freeze([
   CLOUDFLARE_UNATTENDED_SMOKE_ENV.enabled,
   CLOUDFLARE_UNATTENDED_SMOKE_ENV.teamDomain,
   CLOUDFLARE_UNATTENDED_SMOKE_ENV.audience,
-  CLOUDFLARE_UNATTENDED_SMOKE_ENV.serviceTokenClientId
+  CLOUDFLARE_UNATTENDED_SMOKE_ENV.serviceTokenClientId,
+  CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding
 ]);
 const PUBLIC_FAILURE_CODES = new Set(Object.values(PUBLIC_DEPLOYMENT_FAILURE));
 const PUBLIC_READ_PHASES = new Set(Object.values(PUBLIC_CLOUDFLARE_READ_PHASE));
@@ -1013,6 +1016,7 @@ function validatePrivateConfig(config, { qualified, rollback = false }) {
     || config.assets?.binding !== "ASSETS"
     || JSON.stringify(config.assets?.run_worker_first) !== JSON.stringify(expectedRunWorkerFirst)
     || config.assets?.not_found_handling !== "single-page-application"
+    || config.version_metadata?.binding !== CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding
     || !Array.isArray(config.kv_namespaces)
     || config.kv_namespaces.length < 1
     || !Array.isArray(config.send_email)
@@ -1593,12 +1597,15 @@ export function privateV2PredeploymentSmokeMarkerPolicy(currentPrivateVersion) {
   if (!UUID.test(currentPrivateVersion || "")) {
     fail(PRIVATE_WORKFLOW_V2_FAILURE.INPUT_INVALID);
   }
-  return currentPrivateVersion === PRIVATE_WORKFLOW_V2_POLICY.bootstrapGuardlessPrivateVersion
+  return [
+    PRIVATE_WORKFLOW_V2_POLICY.bootstrapGuardlessPrivateVersion,
+    PRIVATE_WORKFLOW_V2_POLICY.verifiedGuardlessRollbackPrivateVersion
+  ].includes(currentPrivateVersion)
     ? CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.BOOTSTRAP_ALLOW_MISSING
     : CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT;
 }
 
-function validSmoke(smoke, markerPolicy) {
+function validSmoke(smoke, markerPolicy, expectedWorkerVersion) {
   const base = isPlainObject(smoke)
     && smoke.status === "passed"
     && smoke.attemptedWriteCount === 0
@@ -1611,9 +1618,14 @@ function validSmoke(smoke, markerPolicy) {
     && smoke.markerOmittedCount >= 0
     && smoke.markerVerifiedCount + smoke.markerOmittedCount === smoke.requestCount;
   if (!base) return false;
-  return markerPolicy === CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
-    ? smoke.markerVerifiedCount === smoke.requestCount && smoke.markerOmittedCount === 0
-    : true;
+  if (markerPolicy === CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
+    && (smoke.markerVerifiedCount !== smoke.requestCount || smoke.markerOmittedCount !== 0)) {
+    return false;
+  }
+  if (expectedWorkerVersion === undefined) return true;
+  return UUID.test(expectedWorkerVersion)
+    && smoke.expectedWorkerVersion === expectedWorkerVersion
+    && smoke.versionVerifiedCount === smoke.requestCount;
 }
 
 export function assertPrivateBindingsPreserved(before, after) {
@@ -1647,7 +1659,10 @@ function configuredPrivateBindings(config) {
     ...(config.send_email || []).map(binding => `${binding.name}:send_email`),
     ...(config.durable_objects?.bindings || []).map(
       binding => `${binding.name}:durable_object_namespace`
-    )
+    ),
+    ...(config.version_metadata?.binding
+      ? [`${config.version_metadata.binding}:version_metadata`]
+      : [])
   ].sort();
   if (new Set(bindings).size !== bindings.length) {
     fail(PRIVATE_WORKFLOW_V2_FAILURE.BINDING_PRESERVATION_FAILED);
@@ -1685,9 +1700,12 @@ export function assertQualifiedPrivateConfigCanPreserveBindings(verifiedRelease,
   }
   const forward = configuredPrivateBindings(forwardConfig);
   const rollback = configuredPrivateBindings(rollbackConfig);
-  const guard = PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS
-    .map(name => `${name}:plain_text`)
-    .sort();
+  const guard = [
+    ...PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS
+      .filter(name => name !== CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding)
+      .map(name => `${name}:plain_text`),
+    `${CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding}:version_metadata`
+  ].sort();
   assertNoBindingTypeCollisions([initial, forward, rollback, guard]);
   const forwardSet = new Set(forward);
   const rollbackSet = new Set(rollback);
@@ -1872,11 +1890,14 @@ export async function runQualifiedPrivateDeploymentLifecycle({
       deployedPrivate.bindings
     );
     evidence.append(PRIVATE_WORKFLOW_V2_PHASE.POST_DEPLOYMENT_VERIFIED);
+    const expectedWorkerVersion = deployedPrivate.deployment.versionId;
     if (!validSmoke(
       await runPostSmoke(Object.freeze({
-        markerPolicy: CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
+        markerPolicy: CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT,
+        expectedWorkerVersion
       })),
-      CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
+      CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT,
+      expectedWorkerVersion
     )) {
       fail(PRIVATE_WORKFLOW_V2_FAILURE.SMOKE_INVALID);
     }

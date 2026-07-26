@@ -41,6 +41,7 @@
     "namespaceDeletionAllowed": false,
     "bindingRemovalAllowed": false,
     "classExportRemovalAllowed": false,
+    "versionMetadataBindingPreserved": true,
     "nativeCloudflareRollbackAllowed": false,
     "scheduleTriggerDeclared": false,
     "deploymentMode": "future_normal_forward_deployment"
@@ -74,6 +75,9 @@
     "builder": "scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs",
     "configurationTemplate": "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json",
     "inertClassSource": "workers/infrastructure/route-iq-private-forward-rollback-inert-durable-object-v3.js",
+    "smokeGuardSource": "workers/infrastructure/cloudflare-unattended-smoke-guard.js",
+    "smokeContractSource": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+    "versionMetadataBinding": "CF_VERSION_METADATA",
     "generatedEntrypoint": "workers/prometheus-iq-worker.js",
     "retainedEntrypoint": "workers/prometheus-iq-retained-version-55.js",
     "generatedManifest": "route-iq-private-forward-rollback-build-manifest-v3.json",
@@ -84,10 +88,10 @@
   },
   "artifactIdentity": {
     "algorithm": "sha256",
-    "configSha256": "PENDING_GENERATION",
-    "inertClassSha256": "PENDING_GENERATION",
-    "generatedEntrypointSha256": "PENDING_GENERATION",
-    "contentTreeSha256": "PENDING_GENERATION"
+    "configSha256": "6ddc92bb2fa764a8058fe2256574d3e319ae3724886908e43924ea962ab6bd06",
+    "inertClassSha256": "c668e6d69c734c637ccb942767b7107c5725e62cc2deec18f6552b1726c7e47d",
+    "generatedEntrypointSha256": "164b9e1843c2aecc074a4bda0eb2efc15c83bf890ba595959ae920690f028116",
+    "contentTreeSha256": "8f700c7c5f548b66795211a415ec63da51316b86a2685ae77c6618d1fe798007"
   },
   "monitoringAndCost": {
     "observabilityPreserved": true,

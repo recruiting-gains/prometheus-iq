@@ -11,6 +11,11 @@ export const CLOUDFLARE_UNATTENDED_SMOKE_MARKER = Object.freeze({
   responseValue: "verified-read-only-v1"
 });
 
+export const CLOUDFLARE_UNATTENDED_SMOKE_VERSION = Object.freeze({
+  binding: "CF_VERSION_METADATA",
+  responseHeader: "X-Prometheus-Private-Worker-Version"
+});
+
 export const CLOUDFLARE_UNATTENDED_SMOKE_ENV = Object.freeze({
   enabled: "PROMETHEUS_UNATTENDED_SMOKE_GUARD",
   teamDomain: "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",

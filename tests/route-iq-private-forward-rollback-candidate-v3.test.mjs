@@ -147,6 +147,7 @@ test("rollback config preserves stateful and static bindings while forcing every
   assert.equal(config.assets.binding, "ASSETS");
   assert.deepEqual(config.assets.run_worker_first, ["/api/*"]);
   assert.equal(config.observability.enabled, true);
+  assert.deepEqual(config.version_metadata, { binding: "CF_VERSION_METADATA" });
   assert.equal(config.vars.ROUTE_IQ_CUSTOMER_PWA_LAUNCH_ENABLED, "OFF");
   assert.equal(config.vars.ROUTE_IQ_PROSPECTIVE_SHADOW_COLLECTION, "OFF");
   assert.equal(config.vars.ROUTE_IQ_BUSINESS_AVAILABILITY_MODE, "OFF");
@@ -208,6 +209,10 @@ test("stateful, target, and activation mutations fail closed before packaging", 
     ["secret declaration removed", null, candidate => { candidate.secrets.required = []; }],
     ["KV binding removed", null, candidate => { candidate.kv_namespaces.pop(); }],
     ["email binding removed", null, candidate => { candidate.send_email = []; }],
+    ["version metadata removed", null, candidate => { delete candidate.version_metadata; }],
+    ["version metadata renamed", null, candidate => {
+      candidate.version_metadata.binding = "OTHER_VERSION_METADATA";
+    }],
     ["route override added", null, candidate => { candidate.routes = ["example.invalid/*"]; }],
     ["public configuration included", candidate => { candidate.candidatePackage.publicWorkerConfigurationIncluded = true; }, null],
     ["effective cohort count changed", candidate => { candidate.runtimeBoundary.effectiveActiveCohortCount = 1; }, null]
@@ -256,6 +261,9 @@ test("builder emits one deterministic private-only artifact pinned to the retain
     const retained = readFileSync(join(firstOutput, "workers/prometheus-iq-retained-version-55.js"), "utf8");
     assert.match(wrapper, /prometheus-iq-retained-version-55\.js/u);
     assert.match(wrapper, /route-iq-private-forward-rollback-inert-durable-object-v3\.js/u);
+    assert.match(wrapper, /authorizeCloudflareUnattendedSmokeRequest/u);
+    assert.match(wrapper, /sanitizeCloudflareUnattendedSmokeAssetRequest/u);
+    assert.match(wrapper, /markCloudflareUnattendedSmokeResponse/u);
     assert.match(wrapper, /RouteIqBusinessAvailabilityCoordinator/u);
     assert.doesNotMatch(wrapper, /export \*/u);
     assert.doesNotMatch(retained, /route-iq-august-1-customer-pwa-runtime|ROUTE_IQ_CUSTOMER_PWA/u);
@@ -314,6 +322,7 @@ test("contract prohibits destructive rollback and records preservation-only secr
   assert.equal(contract.statefulCompatibility.namespaceDeletionAllowed, false);
   assert.equal(contract.statefulCompatibility.bindingRemovalAllowed, false);
   assert.equal(contract.statefulCompatibility.classExportRemovalAllowed, false);
+  assert.equal(contract.statefulCompatibility.versionMetadataBindingPreserved, true);
   assert.equal(contract.protectedRuntimeConfiguration.keepVars, true);
   assert.equal(contract.protectedRuntimeConfiguration.allExistingSecretBindingsPreserved, true);
   assert.equal(contract.protectedRuntimeConfiguration.secretsFileAllowed, false);
@@ -328,6 +337,6 @@ test("contract prohibits destructive rollback and records preservation-only secr
   assert.equal(contract.authorization.productionMutationAuthorized, false);
   assert.equal(contract.authorization.productionDataMutationAuthorized, false);
 
-  assert.match(sha256(readFileSync(configPath)), /^[a-f0-9]{64}$/u);
-  assert.match(sha256(readFileSync(inertPath)), /^[a-f0-9]{64}$/u);
+  assert.equal(sha256(readFileSync(configPath)), contract.artifactIdentity.configSha256);
+  assert.equal(sha256(readFileSync(inertPath)), contract.artifactIdentity.inertClassSha256);
 });
