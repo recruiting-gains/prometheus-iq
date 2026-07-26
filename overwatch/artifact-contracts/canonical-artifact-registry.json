@@ -208,6 +208,23 @@
       "failClosedIfMissing": true
     },
     {
+      "artifactId": "github-actions-private-worker-deployment-governance-v2",
+      "artifactType": "overwatch_infrastructure_private_worker_immutable_release_governance",
+      "ownerSubsystem": "Prometheus Overwatch",
+      "path": "overwatch/governance/github-actions-private-worker-deployment-v2.json",
+      "documentationPath": "overwatch/governance/github-actions-private-worker-deployment-v2.md",
+      "schema": "GithubActionsPrivateWorkerDeploymentGovernanceV2",
+      "writeAllowed": [
+        "Prometheus Overwatch"
+      ],
+      "readAllowed": [
+        "Prometheus Infrastructure",
+        "Prometheus Overwatch"
+      ],
+      "productionConsumer": false,
+      "failClosedIfMissing": true
+    },
+    {
       "artifactId": "public-deployment-workflow-v2-governance-v1",
       "artifactType": "overwatch_infrastructure_public_worker_qualification_deployment_governance",
       "ownerSubsystem": "Prometheus Overwatch",

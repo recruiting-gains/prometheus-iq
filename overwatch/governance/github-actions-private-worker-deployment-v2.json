@@ -1,0 +1,174 @@
+{
+  "governanceId": "github-actions-private-worker-deployment-governance-v2",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260725-001",
+  "directive": "Founder Standing Directive - End-to-End Engineering Execution",
+  "status": "SOURCE_GOVERNED_QUALIFICATION_PENDING_NOT_DEPLOYED",
+  "owningSubsystem": "Prometheus Overwatch",
+  "ownership": {
+    "implementationOwner": "Prometheus Infrastructure",
+    "verificationOwner": "Prometheus Overwatch",
+    "implementationCommit": {
+      "commit": "5c9621e29c4d613e997c8fee3c75d67c6fd0828c",
+      "parent": "8976c077eef91147368c9b5566b5310c04fd6630",
+      "tree": "a910015245eccb1f3af9b4ecba947c0ced0835fb",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Add immutable private Worker deployment workflow v2"
+    },
+    "implementationRepairCommit": {
+      "commit": "266fb19637fc11dc0c27e42bbfc7a1816cc7cdad",
+      "parent": "5c9621e29c4d613e997c8fee3c75d67c6fd0828c",
+      "tree": "09f50df144a4f4890c327306d051bbcf11bd362a",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Repair private workflow secret-scan fixture"
+    },
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false,
+    "implementationPaths": [
+      ".github/workflows/deploy-prometheus-private-worker-v2.yml",
+      ".github/workflows/qualify-prometheus-private-worker-v2.yml",
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "scripts/run-github-actions-private-worker-artifact-metadata-v2.mjs",
+      "scripts/run-github-actions-private-worker-deployment-v2.mjs",
+      "scripts/run-github-actions-private-worker-qualification-v2.mjs",
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ],
+    "ownerEvidence": [
+      {
+        "path": ".github/workflows/deploy-prometheus-private-worker-v2.yml",
+        "sha256": "b9ed905636e7a8498d47f137821663382a39b14e4d0f854603f903cb6236efd0"
+      },
+      {
+        "path": ".github/workflows/qualify-prometheus-private-worker-v2.yml",
+        "sha256": "b542c1a254caaea2b73501accfa410ac31f1829c6f7e9b67a0d5f02c4b745f47"
+      },
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "d4415be2f3da11380493076f3a062d9a2792aa46538151ec6630cc36953dcaf9"
+      },
+      {
+        "path": "scripts/run-github-actions-private-worker-artifact-metadata-v2.mjs",
+        "sha256": "597bfc5712db73d4fcc2a6714bab628ed7f77a6394fbcd7ce80eb11e9799c8d3"
+      },
+      {
+        "path": "scripts/run-github-actions-private-worker-deployment-v2.mjs",
+        "sha256": "16ff07f82fa313078e4abd27aa480c4e9f8e6ab6bc27380592f290485340e8ac"
+      },
+      {
+        "path": "scripts/run-github-actions-private-worker-qualification-v2.mjs",
+        "sha256": "501b56f464c7d91247cea21cfe4d6c48ab3a9d2e589c468fbfdc277ce984e466"
+      },
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "dfd5a8e27e326f34a7361386de178925cd42723be550218843cb45004565fd72"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "sha256": "8bba6f343c4996b3b8a8e506ffb778e9f788bbcf3f6bba6a3e21651fe28ec848"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "d01d6011a0e675326a9405d9f09b4c96a28fee8928b082c41342c9c2baba8f8e"
+      }
+    ]
+  },
+  "rootCause": {
+    "legacyWorkflow": ".github/workflows/deploy-prometheus-private-worker.yml",
+    "legacyQualificationArtifactDeployable": false,
+    "legacyWorkflowRebuildsCurrentMain": true,
+    "legacyWorkflowConsumesExactQualifiedPayload": false,
+    "repair": "An independent private-Worker v2 lane now qualifies the actual forward payload and paired forward-compatible rollback, then deploys only that downloaded immutable artifact without rebuilding."
+  },
+  "continuity": {
+    "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
+    "previousQualifiedTree": "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
+    "releaseScopeUnchangedThroughBaselineCommit": "8976c077eef91147368c9b5566b5310c04fd6630",
+    "qualifiedForwardPayloadSha256": "a814ee31dcbc11c62dfd869ae23cd642163c89062512cd84fea589e516c995df",
+    "qualifiedRollbackBundleSha256": "64af130e3a9cf1a6807b4fc0328b58083cb0744472a776211464b323bbb6a7a9"
+  },
+  "workflowBoundary": {
+    "qualificationWorkflow": "Qualify Prometheus Private Worker v2",
+    "deploymentWorkflow": "Deploy Prometheus Private Worker v2",
+    "onlyTrigger": "workflow_dispatch",
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "branch": "main",
+    "founderActor": "PrometheusRouteIQ",
+    "founderTriggeringActor": "PrometheusRouteIQ",
+    "firstRunAttemptOnly": true,
+    "privateWorker": "prometheus-iq",
+    "publicWorker": "prometheusrouteiq-website",
+    "publicWorkerMutationAllowed": false,
+    "rebuildDuringDeploymentAllowed": false,
+    "artifactSubstitutionAllowed": false,
+    "forwardDeploymentAttempts": 1,
+    "automaticRetryAllowed": false,
+    "forwardRollbackAttemptsAfterCriticalFailure": 1,
+    "nativeRollbackAllowed": false,
+    "concurrencyProtected": true
+  },
+  "artifactBoundary": {
+    "actualForwardPayloadIncluded": true,
+    "forwardCompatibleRollbackIncluded": true,
+    "contentTreePinned": true,
+    "manifestPinned": true,
+    "artifactZipPinned": true,
+    "workflowContractPinned": true,
+    "rollbackContractPinned": true,
+    "rollbackBundlePinned": true,
+    "wranglerMode": "no-bundle",
+    "keepVars": true,
+    "strict": true,
+    "workerNameOverrideAllowed": false
+  },
+  "runtimeBoundary": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "availabilityMode": "OFF",
+    "customerPwaLaunch": "OFF",
+    "anthonyMapped": false,
+    "publicWorkerMutationAllowed": false,
+    "crmMutationAllowed": false
+  },
+  "smokeBoundary": {
+    "authenticated": true,
+    "methods": [
+      "GET",
+      "HEAD"
+    ],
+    "attemptedApplicationWrites": 0,
+    "redirectsFollowed": false,
+    "credentialsOmittedFromBrowserState": true
+  },
+  "protectedEnvironment": {
+    "name": "prometheus-private-worker-production",
+    "mainOnly": true,
+    "requiredSecretNames": [
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+    ],
+    "readOnlyNameAudit": {
+      "CLOUDFLARE_API_TOKEN": "PRESENT",
+      "CLOUDFLARE_ACCOUNT_ID": "ABSENT",
+      "CLOUDFLARE_ACCESS_CLIENT_ID": "PRESENT",
+      "CLOUDFLARE_ACCESS_CLIENT_SECRET": "ABSENT"
+    },
+    "secretValuesAccessed": false,
+    "missingNamesFailBeforeCloudflareRequest": true,
+    "deploymentReady": false
+  },
+  "releaseBoundary": {
+    "qualificationAuthorizedByStandingDirective": true,
+    "deploymentAuthorizedByStandingDirectiveWhenEveryPrerequisitePasses": true,
+    "deploymentPerformedByThisGovernanceCommit": false,
+    "productionContactPerformedByThisGovernanceCommit": false,
+    "qualificationPerformedByThisGovernanceCommit": false,
+    "pushMayTriggerDeployment": false
+  }
+}
