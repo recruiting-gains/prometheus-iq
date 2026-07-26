@@ -1,5 +1,9 @@
 import { createHash } from "node:crypto";
 
+import {
+  validateRouteIqPaidCustomerOnboardingConfiguration
+} from "../../administration/contracts/route-iq-paid-customer-onboarding-v1.mjs";
+
 export const routeIqVerifiedBusinessEvidenceVersion =
   "route-iq-verified-business-evidence-v1";
 export const routeIqVerifiedBusinessNormalizedVersion =
@@ -10,6 +14,8 @@ export const routeIqVerifiedBusinessStorageVersion =
   "route-iq-verified-business-storage-record-v1";
 export const routeIqVerifiedBusinessAuditVersion =
   "route-iq-verified-business-audit-record-v1";
+export const routeIqPaidCustomerVerifiedBusinessHandoffVersion =
+  "route-iq-paid-customer-verified-business-handoff-v1";
 
 export const routeIqVerifiedBusinessIneligibilityReasons = Object.freeze([
   "IDENTITY_UNVERIFIED",
@@ -81,6 +87,15 @@ const EVIDENCE_QUALITIES = Object.freeze(["NONE", "LOW", "MEDIUM", "HIGH"]);
 const EVIDENCE_QUALITY_RANK = new Map(
   EVIDENCE_QUALITIES.map((quality, index) => [quality, index])
 );
+const PROJECTABLE_ONBOARDING_STATES = new Set([
+  "VALIDATED",
+  "PREVIEW_READY",
+  "AWAITING_APPROVAL",
+  "PROVISIONING",
+  "PROVISIONING_FAILED",
+  "READY_FOR_ACTIVATION"
+]);
+const REQUIRED_EVIDENCE_QUALITY_MINIMUM = "LOW";
 const AUDIT_EVENT_TYPES = new Set([
   "EVIDENCE_NORMALIZED",
   "EVIDENCE_STORED",
@@ -327,6 +342,288 @@ export function validateRouteIqVerifiedBusinessEligibilityPolicy(policy) {
     maximumFreshnessHours: policy.maximumFreshnessHours,
     minimumEvidenceQuality: policy.minimumEvidenceQuality
   });
+}
+
+function validatedOnboardingConfiguration(configuration) {
+  try {
+    return validateRouteIqPaidCustomerOnboardingConfiguration(configuration);
+  } catch {
+    fail(
+      "route_iq_paid_customer_onboarding_configuration_invalid",
+      "The onboarding configuration cannot be projected into a Data policy."
+    );
+  }
+}
+
+function assertProjectionSafety(configuration) {
+  if (!PROJECTABLE_ONBOARDING_STATES.has(configuration.lifecycle.state)) {
+    fail(
+      "route_iq_paid_customer_onboarding_state_ineligible",
+      "The onboarding lifecycle state cannot produce an eligibility policy."
+    );
+  }
+  if (
+    configuration.safety.customerActivation !== "OFF"
+    || configuration.safety.activationAuthorizationRef !== null
+    || configuration.safety.collection !== "OFF"
+    || configuration.safety.activeCohorts !== 0
+    || configuration.safety.recommendationInfluence !== "OFF"
+    || configuration.safety.providerRefresh !== "OFF"
+    || configuration.safety.scheduler !== "OFF"
+  ) {
+    fail(
+      "route_iq_paid_customer_onboarding_safety_invalid",
+      "Eligibility projection cannot activate customers, collection, cohorts, providers, scheduling, or influence."
+    );
+  }
+}
+
+function projectedPolicyFromConfiguration(configuration) {
+  return validateRouteIqVerifiedBusinessEligibilityPolicy({
+    schemaVersion: routeIqVerifiedBusinessEligibilityPolicyVersion,
+    policyId: configuration.configurationId,
+    policyVersion: `v${configuration.configurationRevision}`,
+    companyId: configuration.company.companyId,
+    workspaceId: configuration.company.workspaceId,
+    authorizedTerritories: [{
+      territoryId: configuration.territory.territoryId,
+      postalCodes: [...configuration.territory.authorizedZipCodes]
+    }],
+    includedCategoryIds: [...configuration.targeting.includedCategoryIds],
+    excludedCategoryIds: [...configuration.targeting.excludedCategoryIds],
+    excludedBusinessIds: [...configuration.targeting.excludedBusinessIds],
+    maximumFreshnessHours: configuration.verification.freshnessCeilingHours,
+    minimumEvidenceQuality: REQUIRED_EVIDENCE_QUALITY_MINIMUM
+  });
+}
+
+function arraysEqual(left, right) {
+  return left.length === right.length
+    && left.every((value, index) => value === right[index]);
+}
+
+export function validateRouteIqPaidCustomerVerifiedBusinessHandoff(
+  handoff,
+  { expectedEligibilityPolicy = null } = {}
+) {
+  assertExactKeys(handoff, [
+    "contractVersion",
+    "ownerSubsystem",
+    "receivingSubsystem",
+    "evidenceContractVersion",
+    "normalizedEvidenceVersion",
+    "eligibilityPolicyVersion",
+    "storageRecordVersion",
+    "auditRecordVersion",
+    "scope",
+    "territory",
+    "customerRules",
+    "freshnessCeilingHours",
+    "evidenceQualityRequired",
+    "admissionState",
+    "businessActivationPerformed",
+    "providerRefresh",
+    "scheduler",
+    "productionMutationPerformed"
+  ], "verifiedBusinessHandoff");
+  const contractIdentityMatches =
+    handoff.contractVersion === routeIqPaidCustomerVerifiedBusinessHandoffVersion
+    && handoff.ownerSubsystem === "Prometheus Infrastructure"
+    && handoff.receivingSubsystem === "Prometheus Data"
+    && handoff.evidenceContractVersion === routeIqVerifiedBusinessEvidenceVersion
+    && handoff.normalizedEvidenceVersion === routeIqVerifiedBusinessNormalizedVersion
+    && handoff.eligibilityPolicyVersion === routeIqVerifiedBusinessEligibilityPolicyVersion
+    && handoff.storageRecordVersion === routeIqVerifiedBusinessStorageVersion
+    && handoff.auditRecordVersion === routeIqVerifiedBusinessAuditVersion;
+  if (!contractIdentityMatches) {
+    fail(
+      "route_iq_paid_customer_handoff_contract_invalid",
+      "The verified-business handoff contract identity is invalid."
+    );
+  }
+
+  assertExactKeys(
+    handoff.scope,
+    ["companyId", "workspaceId", "immutable"],
+    "verifiedBusinessHandoff.scope"
+  );
+  const scope = validateScope({
+    companyId: handoff.scope.companyId,
+    workspaceId: handoff.scope.workspaceId
+  }, "verifiedBusinessHandoff.scope");
+  if (handoff.scope.immutable !== true) {
+    fail(
+      "route_iq_paid_customer_handoff_scope_mutable",
+      "The verified-business handoff scope must be immutable."
+    );
+  }
+
+  assertExactKeys(
+    handoff.territory,
+    ["territoryId", "authorizedZipCodes"],
+    "verifiedBusinessHandoff.territory"
+  );
+  assertId(
+    handoff.territory.territoryId,
+    "verifiedBusinessHandoff.territory.territoryId"
+  );
+  if (
+    !Array.isArray(handoff.territory.authorizedZipCodes)
+    || handoff.territory.authorizedZipCodes.length === 0
+  ) {
+    fail(
+      "route_iq_paid_customer_handoff_territory_invalid",
+      "The verified-business handoff requires an authorized territory."
+    );
+  }
+  const authorizedZipCodes = handoff.territory.authorizedZipCodes.map(
+    (postalCode, index) => normalizePostalCode(
+      postalCode,
+      `verifiedBusinessHandoff.territory.authorizedZipCodes[${index}]`
+    )
+  );
+  if (new Set(authorizedZipCodes).size !== authorizedZipCodes.length) {
+    fail(
+      "route_iq_paid_customer_handoff_territory_invalid",
+      "The verified-business handoff contains duplicate postal codes."
+    );
+  }
+
+  assertExactKeys(
+    handoff.customerRules,
+    ["includedCategoryIds", "excludedCategoryIds", "excludedBusinessIds"],
+    "verifiedBusinessHandoff.customerRules"
+  );
+  const includedCategoryIds = uniqueSortedIds(
+    handoff.customerRules.includedCategoryIds,
+    "verifiedBusinessHandoff.customerRules.includedCategoryIds"
+  );
+  const excludedCategoryIds = uniqueSortedIds(
+    handoff.customerRules.excludedCategoryIds,
+    "verifiedBusinessHandoff.customerRules.excludedCategoryIds"
+  );
+  const excludedBusinessIds = uniqueSortedIds(
+    handoff.customerRules.excludedBusinessIds,
+    "verifiedBusinessHandoff.customerRules.excludedBusinessIds"
+  );
+  if (
+    includedCategoryIds.length === 0
+    || includedCategoryIds.some(categoryId => excludedCategoryIds.includes(categoryId))
+  ) {
+    fail(
+      "route_iq_paid_customer_handoff_rules_conflict",
+      "The verified-business handoff has missing or contradictory customer rules."
+    );
+  }
+  if (
+    !Number.isInteger(handoff.freshnessCeilingHours)
+    || handoff.freshnessCeilingHours < 1
+    || handoff.freshnessCeilingHours > 24
+    || handoff.evidenceQualityRequired !== true
+  ) {
+    fail(
+      "route_iq_paid_customer_handoff_evidence_policy_invalid",
+      "The verified-business handoff has an invalid freshness or evidence-quality rule."
+    );
+  }
+  if (
+    handoff.admissionState !== "FAIL_CLOSED_PENDING_DATA_AND_INTELLIGENCE_VALIDATION"
+    || handoff.businessActivationPerformed !== false
+    || handoff.providerRefresh !== "OFF"
+    || handoff.scheduler !== "OFF"
+    || handoff.productionMutationPerformed !== false
+  ) {
+    fail(
+      "route_iq_paid_customer_handoff_activation_forbidden",
+      "The verified-business handoff exceeds the non-activation boundary."
+    );
+  }
+
+  const normalized = {
+    contractVersion: routeIqPaidCustomerVerifiedBusinessHandoffVersion,
+    ownerSubsystem: "Prometheus Infrastructure",
+    receivingSubsystem: "Prometheus Data",
+    evidenceContractVersion: routeIqVerifiedBusinessEvidenceVersion,
+    normalizedEvidenceVersion: routeIqVerifiedBusinessNormalizedVersion,
+    eligibilityPolicyVersion: routeIqVerifiedBusinessEligibilityPolicyVersion,
+    storageRecordVersion: routeIqVerifiedBusinessStorageVersion,
+    auditRecordVersion: routeIqVerifiedBusinessAuditVersion,
+    scope: {
+      ...scope,
+      immutable: true
+    },
+    territory: {
+      territoryId: handoff.territory.territoryId,
+      authorizedZipCodes: authorizedZipCodes.toSorted()
+    },
+    customerRules: {
+      includedCategoryIds,
+      excludedCategoryIds,
+      excludedBusinessIds
+    },
+    freshnessCeilingHours: handoff.freshnessCeilingHours,
+    evidenceQualityRequired: true,
+    admissionState: "FAIL_CLOSED_PENDING_DATA_AND_INTELLIGENCE_VALIDATION",
+    businessActivationPerformed: false,
+    providerRefresh: "OFF",
+    scheduler: "OFF",
+    productionMutationPerformed: false
+  };
+
+  if (expectedEligibilityPolicy !== null) {
+    const expected = validateRouteIqVerifiedBusinessEligibilityPolicy(
+      expectedEligibilityPolicy
+    );
+    const territory = expected.authorizedTerritories[0];
+    const compatible = expected.authorizedTerritories.length === 1
+      && expected.companyId === normalized.scope.companyId
+      && expected.workspaceId === normalized.scope.workspaceId
+      && territory.territoryId === normalized.territory.territoryId
+      && arraysEqual(territory.postalCodes, normalized.territory.authorizedZipCodes)
+      && arraysEqual(
+        expected.includedCategoryIds,
+        normalized.customerRules.includedCategoryIds
+      )
+      && arraysEqual(
+        expected.excludedCategoryIds,
+        normalized.customerRules.excludedCategoryIds
+      )
+      && arraysEqual(
+        expected.excludedBusinessIds,
+        normalized.customerRules.excludedBusinessIds
+      )
+      && expected.maximumFreshnessHours === normalized.freshnessCeilingHours
+      && expected.minimumEvidenceQuality === REQUIRED_EVIDENCE_QUALITY_MINIMUM;
+    if (!compatible) {
+      fail(
+        "route_iq_paid_customer_handoff_policy_mismatch",
+        "The verified-business handoff does not match the expected Data policy."
+      );
+    }
+  }
+
+  return deepFreeze(normalized);
+}
+
+export function projectRouteIqVerifiedBusinessEligibilityPolicy(
+  configuration,
+  { authorizedScope, infrastructureHandoff = null } = {}
+) {
+  const validated = validatedOnboardingConfiguration(configuration);
+  assertProjectionSafety(validated);
+  const scope = validateScope(authorizedScope, "authorizedScope");
+  assertSameScope(
+    validated.company,
+    scope,
+    "route_iq_paid_customer_projection_scope_unauthorized"
+  );
+  const policy = projectedPolicyFromConfiguration(validated);
+  if (infrastructureHandoff !== null) {
+    validateRouteIqPaidCustomerVerifiedBusinessHandoff(infrastructureHandoff, {
+      expectedEligibilityPolicy: policy
+    });
+  }
+  return policy;
 }
 
 function validateEvidenceIdentity(identity) {

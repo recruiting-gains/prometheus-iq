@@ -11,6 +11,22 @@ must explicitly provide territory and postal-code coverage, included and exclude
 categories, excluded business identities, a freshness ceiling of no more than 24
 hours, and minimum evidence quality.
 
+The Data-owned projector accepts only a configuration that passes the final
+Administration onboarding validator. It binds the immutable company/workspace,
+configuration identity and revision, territory ZIP codes, targeting rules, and
+freshness ceiling into the eligibility policy. Administration's explicit
+`evidenceQualityRequired: true` rule maps to Data's minimum non-empty evidence
+quality (`LOW`); false or missing quality requirements fail closed. Draft,
+invalid, active, suspended, and offboarded configurations cannot be projected.
+The caller must also supply an authorized company/workspace scope that exactly
+matches the validated configuration.
+
+Infrastructure handoffs are validated independently by Data without importing an
+Infrastructure implementation. The exact contract identity, scope, territory,
+targeting rules, evidence versions, and dark safety state must match the projected
+policy. Cross-scope, malformed, contradictory, provider-enabled, scheduled,
+activating, or production-mutating handoffs are rejected.
+
 An immediate route-eligible record requires:
 
 - verified identity, physical address, category, and source;
