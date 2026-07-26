@@ -13,7 +13,7 @@ import {
   writeFileSync
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join, resolve, sep } from "node:path";
 
 import {
   PRIVATE_WORKFLOW_V2_FAILURE,
@@ -428,9 +428,10 @@ test("runtime guard settings are consumed, strictly validated, scrubbed, and nev
   }
 });
 
-test("runtime workspace rejects symlink parents and insecure modes", () => {
+test("runtime workspace rejects temporary aliases and insecure modes", () => {
   const temporary = mkdtempSync(join(tmpdir(), "prometheus-private-v2-runtime-boundary-"));
   let workspace;
+  const previousRunnerTemp = process.env.RUNNER_TEMP;
   try {
     const symlink = join(temporary, "linked-base");
     symlinkSync(temporary, symlink);
@@ -441,7 +442,10 @@ test("runtime workspace rejects symlink parents and insecure modes", () => {
         && error.code === PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID
       )
     );
-    workspace = createPrivateV2RuntimeWorkspace(temporary);
+    process.env.RUNNER_TEMP = symlink;
+    workspace = createPrivateV2RuntimeWorkspace();
+    assert.equal(resolve(workspace).startsWith(`${resolve(symlink)}${sep}`), false);
+    assert.equal(lstatSync(workspace).mode & 0o777, 0o700);
     chmodSync(workspace, 0o755);
     assert.throws(
       () => createPrivateV2RuntimeRelease({
@@ -452,7 +456,32 @@ test("runtime workspace rejects symlink parents and insecure modes", () => {
       PrivateWorkflowV2Error
     );
   } finally {
+    if (previousRunnerTemp === undefined) delete process.env.RUNNER_TEMP;
+    else process.env.RUNNER_TEMP = previousRunnerTemp;
     removePrivateV2RuntimeWorkspace(workspace);
+    rmSync(temporary, { recursive: true, force: true });
+  }
+});
+
+test("runtime workspace rejects dangling and non-directory aliases", () => {
+  const temporary = mkdtempSync(join(tmpdir(), "prometheus-private-v2-runtime-invalid-"));
+  try {
+    const fileTarget = join(temporary, "not-a-directory");
+    const fileAlias = join(temporary, "file-alias");
+    const danglingAlias = join(temporary, "dangling-alias");
+    writeFileSync(fileTarget, "fixture", { mode: 0o600 });
+    symlinkSync(fileTarget, fileAlias);
+    symlinkSync(join(temporary, "missing"), danglingAlias);
+    for (const candidate of [fileAlias, danglingAlias]) {
+      assert.throws(
+        () => createPrivateV2RuntimeWorkspace(candidate),
+        error => (
+          error instanceof PrivateWorkflowV2Error
+          && error.code === PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID
+        )
+      );
+    }
+  } finally {
     rmSync(temporary, { recursive: true, force: true });
   }
 });

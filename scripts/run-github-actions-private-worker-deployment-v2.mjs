@@ -94,7 +94,7 @@ export async function runPrivateWorkerDeploymentV2Command({
       environment,
       smokeCredentials.CLOUDFLARE_ACCESS_CLIENT_ID
     );
-    runtimeWorkspace = createPrivateV2RuntimeWorkspace(environment.RUNNER_TEMP);
+    runtimeWorkspace = createPrivateV2RuntimeWorkspace();
     const runtimeRelease = createPrivateV2RuntimeRelease({
       workspace: runtimeWorkspace,
       verifiedRelease: verifiedArtifact,

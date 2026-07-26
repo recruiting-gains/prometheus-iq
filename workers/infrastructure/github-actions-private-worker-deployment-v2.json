@@ -165,6 +165,8 @@
     "artifactValueOutputAllowed": false,
     "temporaryDirectoryMode": "0700",
     "temporaryConfigMode": "0600",
+    "temporaryBaseSource": "node:os.tmpdir()",
+    "runnerTempEnvironmentAliasAllowed": false,
     "exclusiveCreateRequired": true,
     "symlinksAllowed": false,
     "cleanupRequiredInFinally": true,

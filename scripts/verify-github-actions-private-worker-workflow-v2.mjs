@@ -295,6 +295,9 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.equal(contract.runtimeGuardInjection.artifactMutationAllowed, false);
   assert.equal(contract.runtimeGuardInjection.temporaryDirectoryMode, "0700");
   assert.equal(contract.runtimeGuardInjection.temporaryConfigMode, "0600");
+  assert.equal(contract.runtimeGuardInjection.temporaryBaseSource, "node:os.tmpdir()");
+  assert.equal(contract.runtimeGuardInjection.runnerTempEnvironmentAliasAllowed, false);
+  assert.equal(contract.runtimeGuardInjection.symlinksAllowed, false);
   assert.equal(contract.runtimeGuardInjection.cleanupRequiredInFinally, true);
   assert.equal(
     contract.runtimeGuardInjection.teamDomainSource,
@@ -343,6 +346,22 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.match(deploymentRunner, /createPrivateV2RuntimeRelease/u);
   assert.match(deploymentRunner, /verifyPrivateV2RuntimeRelease/u);
   assert.match(deploymentRunner, /removePrivateV2RuntimeWorkspace\(runtimeWorkspace\)/u);
+  const runtimeWorkspaceCreation = deploymentRunner.indexOf(
+    "runtimeWorkspace = createPrivateV2RuntimeWorkspace()"
+  );
+  const lifecycleStart = deploymentRunner.indexOf(
+    "const result = await runQualifiedPrivateDeploymentLifecycle({"
+  );
+  const forwardWranglerBoundary = deploymentRunner.indexOf(
+    "runDeploy: (release, onMutationBoundary)"
+  );
+  assert.ok(runtimeWorkspaceCreation >= 0);
+  assert.doesNotMatch(
+    deploymentRunner,
+    /createPrivateV2RuntimeWorkspace\(environment\.RUNNER_TEMP\)/u
+  );
+  assert.ok(runtimeWorkspaceCreation < lifecycleStart);
+  assert.ok(lifecycleStart < forwardWranglerBoundary);
   assert.ok(
     deploymentRunner.indexOf("removePrivateV2RuntimeWorkspace(runtimeWorkspace)")
       < deploymentRunner.indexOf("scrubDeploymentCredentials(deploymentCredentials)")
