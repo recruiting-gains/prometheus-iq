@@ -49,6 +49,11 @@ import {
   reconcileAndCloseRouteIqProspectiveSessionFromHandoff
 } from "./infrastructure/route-iq-prospective-shadow-runtime.js";
 import {
+  ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_ROOT,
+  handleRouteIqPaidCustomerOnboardingRequest,
+  isRouteIqPaidCustomerOnboardingPath
+} from "./infrastructure/route-iq-paid-customer-onboarding-runtime.js";
+import {
   authorizeCloudflareUnattendedSmokeRequest,
   markCloudflareUnattendedSmokeResponse,
   sanitizeCloudflareUnattendedSmokeAssetRequest
@@ -967,8 +972,18 @@ async function handleRouteIqCustomerAwareFieldSessionRequest(request, env, execu
   });
 }
 
-async function handleApiRequest(request, env, executionContext, { dailySnapshotTestHooks } = {}) {
+async function handleApiRequest(request, env, executionContext, {
+  dailySnapshotTestHooks,
+  paidCustomerOnboardingTestHooks
+} = {}) {
   const url = new URL(request.url);
+  if (isRouteIqPaidCustomerOnboardingPath(url.pathname)) {
+    return handleRouteIqPaidCustomerOnboardingRequest(
+      request,
+      env,
+      paidCustomerOnboardingTestHooks
+    );
+  }
   if (isRouteIqBusinessAvailabilityPath(url.pathname)) {
     return handleRouteIqBusinessAvailabilityRequest(request, env);
   }
@@ -992,7 +1007,8 @@ async function handleApiRequest(request, env, executionContext, { dailySnapshotT
 export async function handlePrometheusIqWorkerRequest(request, env, executionContext, {
   customerPwaTestHooks,
   unattendedSmokeTestHooks,
-  dailySnapshotTestHooks
+  dailySnapshotTestHooks,
+  paidCustomerOnboardingTestHooks
 } = {}) {
   const smokeAuthorization = await authorizeCloudflareUnattendedSmokeRequest(request, env, {
     noncanonicalTestHooks: unattendedSmokeTestHooks
@@ -1020,7 +1036,10 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
           aegis
         );
       } else {
-        response = withAegisHeaders(await handleApiRequest(request, env, executionContext, { dailySnapshotTestHooks }), aegis);
+        response = withAegisHeaders(await handleApiRequest(request, env, executionContext, {
+          dailySnapshotTestHooks,
+          paidCustomerOnboardingTestHooks
+        }), aegis);
       }
     } else {
       response = await env.ASSETS.fetch(
@@ -1057,6 +1076,7 @@ export {
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PRINCIPAL_ID,
+  ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_ROOT,
   ROUTE_IQ_BUSINESS_AVAILABILITY_PATH,
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
   ROUTE_IQ_REQUEST_CRM_PATH,
@@ -1066,6 +1086,7 @@ export {
   handleRouteIqBusinessAvailabilityRequest,
   handleRouteIqBusinessAvailabilityScheduled,
   handleRouteIqFounderDailySnapshot,
+  handleRouteIqPaidCustomerOnboardingRequest,
   handleRouteIqFieldSessionHandoff,
   handleRouteIqProspectiveShadowRequest,
   persistMetaInstagramTokenPatch,

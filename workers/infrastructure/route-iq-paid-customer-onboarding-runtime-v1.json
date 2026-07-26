@@ -1,0 +1,122 @@
+{
+  "contractVersion": "route-iq-paid-customer-onboarding-runtime-v1",
+  "ownerSubsystem": "Prometheus Infrastructure",
+  "worker": "prometheus-iq",
+  "deliveryState": "AUTHENTICATED_NON_ACTIVATING_FOUNDATION",
+  "routes": {
+    "root": "/api/dashboard/route-iq/paid-customer-onboarding",
+    "preview": "/api/dashboard/route-iq/paid-customer-onboarding/preview",
+    "provisioningPlan": "/api/dashboard/route-iq/paid-customer-onboarding/provisioning-plan",
+    "suspensionPreview": "/api/dashboard/route-iq/paid-customer-onboarding/suspension-preview",
+    "offboardingPreview": "/api/dashboard/route-iq/paid-customer-onboarding/offboarding-preview",
+    "allowedMethod": "POST",
+    "maximumBodyBytes": 524288,
+    "requiredContentType": "application/json",
+    "compressedBodiesAllowed": false,
+    "requiredQuery": "workspaceId=ONE_STRICT_OPAQUE_ID",
+    "unknownPathOrQueryBehavior": "FAIL_CLOSED"
+  },
+  "requestOrdering": [
+    "CLOUDFLARE_UNATTENDED_SMOKE_GUARD",
+    "AEGIS_API_CONTROLS",
+    "EXACT_ROUTE_AND_QUERY_VALIDATION",
+    "SERVER_PRINCIPAL_AUTHORIZATION",
+    "BOUNDED_BODY_READ",
+    "COMPANY_AND_WORKSPACE_SCOPE_MATCH",
+    "OWNER_CONTRACT_VALIDATION",
+    "NON_PERSISTING_RESPONSE"
+  ],
+  "authentication": {
+    "productionAuthority": "existing Route IQ customer PWA Cloudflare Access verifier",
+    "principalAuthority": "server_authenticated_principal",
+    "callerSuppliedIdentityAccepted": false,
+    "displayNameAuthorizationAccepted": false,
+    "allowedCapabilities": [
+      "founder_explicit_workspace_read_only",
+      "workspace_admin_read_and_roster_administration"
+    ],
+    "representativePreviewAllowed": false,
+    "crossCompanyAccess": "DENIED_WITHOUT_ENUMERATION",
+    "crossWorkspaceAccess": "DENIED_WITHOUT_ENUMERATION"
+  },
+  "ownerComposition": {
+    "configurationValidation": "Prometheus Administration route-iq-paid-customer-onboarding-v1",
+    "configurationPreview": "Prometheus Administration",
+    "lifecycleValidation": "Prometheus Administration",
+    "provisioningPlanAndIdempotency": "Prometheus Administration",
+    "verifiedBusinessEvidence": "Prometheus Data route-iq-verified-business-evidence-v1",
+    "recommendationAdmission": "Prometheus Intelligence",
+    "runtimeDelivery": "Prometheus Infrastructure"
+  },
+  "operations": {
+    "configurationPreview": {
+      "allowedLifecycleStates": [
+        "VALIDATED",
+        "PREVIEW_READY",
+        "AWAITING_APPROVAL"
+      ],
+      "activationPerformed": false,
+      "persistencePerformed": false
+    },
+    "provisioningPlan": {
+      "requiredLifecycleState": "PROVISIONING",
+      "idempotencyProof": "APPLY_SAME_PLAN_TWICE_TO_EPHEMERAL_REGISTRY_AND_REQUIRE_IDENTICAL_RESULT",
+      "receiptClassification": "NON_PERSISTED_PREVIEW_RECEIPT",
+      "activationPerformed": false,
+      "persistencePerformed": false
+    },
+    "suspensionPreview": {
+      "stateAuthority": "Prometheus Administration lifecycle contract",
+      "accessBehavior": "DENY_OPERATIONAL_ACCESS",
+      "evidenceBehavior": "PRESERVE_APPEND_ONLY",
+      "persistencePerformed": false
+    },
+    "offboardingPreview": {
+      "stateAuthority": "Prometheus Administration lifecycle contract",
+      "accessBehavior": "DENY_ALL_CUSTOMER_ACCESS",
+      "evidenceBehavior": "PRESERVE_UNDER_RETENTION_AND_LEGAL_HOLD",
+      "dispositionBehavior": "SEPARATE_APPEND_ONLY_DATA_ACTION_REQUIRED",
+      "persistencePerformed": false
+    }
+  },
+  "verifiedBusinessHandoff": {
+    "receivingOwner": "Prometheus Data",
+    "scope": "EXACT_IMMUTABLE_COMPANY_AND_WORKSPACE",
+    "customerTargetingRules": "EXACT_VALIDATED_CONFIGURATION",
+    "freshnessCeiling": "EXACT_VALIDATED_CONFIGURATION_MAXIMUM_24_HOURS",
+    "admissionState": "FAIL_CLOSED_PENDING_DATA_AND_INTELLIGENCE_VALIDATION",
+    "businessActivationPerformed": false,
+    "providerRefresh": "OFF",
+    "scheduler": "OFF"
+  },
+  "bindingsAndMigrations": {
+    "newBindings": [],
+    "newDurableObjectClasses": [],
+    "newMigrations": [],
+    "newSecrets": [],
+    "newVariables": []
+  },
+  "writes": {
+    "company": false,
+    "workspace": false,
+    "user": false,
+    "customer": false,
+    "crm": false,
+    "business": false,
+    "provider": false,
+    "scheduler": false,
+    "production": false,
+    "existingAegisRateLimitTelemetryUnchanged": true
+  },
+  "safety": {
+    "customerActivation": "OFF",
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providerRefresh": "OFF",
+    "scheduler": "OFF",
+    "usersProvisioned": false,
+    "crmMutationPerformed": false,
+    "productionMutationPerformed": false
+  }
+}

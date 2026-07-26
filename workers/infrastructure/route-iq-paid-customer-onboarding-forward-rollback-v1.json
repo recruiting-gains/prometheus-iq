@@ -1,0 +1,56 @@
+{
+  "contractVersion": "route-iq-paid-customer-onboarding-forward-rollback-v1",
+  "ownerSubsystem": "Prometheus Infrastructure",
+  "targetWorker": "prometheus-iq",
+  "trigger": "PAID_CUSTOMER_ONBOARDING_RUNTIME_CRITICAL_ACCEPTANCE_FAILURE",
+  "rollbackMode": "FORWARD_DEPLOY_PREVIOUS_QUALIFIED_PRIVATE_WORKER_ARTIFACT",
+  "nativeRollbackAllowed": false,
+  "consequences": {
+    "endpointRemovedUntilRepaired": [
+      "/api/dashboard/route-iq/paid-customer-onboarding/preview",
+      "/api/dashboard/route-iq/paid-customer-onboarding/provisioning-plan",
+      "/api/dashboard/route-iq/paid-customer-onboarding/suspension-preview",
+      "/api/dashboard/route-iq/paid-customer-onboarding/offboarding-preview"
+    ],
+    "customerDataLossPossible": false,
+    "acceptedRecordLossPossible": false,
+    "schemaRollbackRequired": false,
+    "bindingRemovalRequired": false,
+    "durableObjectMigrationRemovalRequired": false,
+    "secretChangeRequired": false,
+    "variableChangeRequired": false,
+    "reason": "The runtime is non-persisting and introduces no binding, namespace, migration, secret, or variable."
+  },
+  "preserveExactly": [
+    "all existing private Worker bindings",
+    "all existing private Worker secrets and variables",
+    "all existing Durable Object classes and migration history",
+    "all existing KV namespaces and stored records",
+    "all existing routes and domains",
+    "Cloudflare Access configuration",
+    "collection OFF",
+    "active cohorts 0",
+    "recommendation influence OFF",
+    "provider refresh OFF",
+    "scheduler OFF",
+    "customer activation OFF",
+    "public Worker identity and traffic"
+  ],
+  "verification": [
+    "previous artifact identity and provenance match the qualified rollback package",
+    "public Worker identity remains unchanged",
+    "private Worker receives 100 percent traffic after forward deployment",
+    "onboarding routes no longer execute the failed candidate",
+    "existing private Dashboard health checks pass",
+    "all protected operating switches remain OFF"
+  ],
+  "prohibited": [
+    "delete or rewrite customer data",
+    "remove Durable Object migration history",
+    "change Cloudflare Access",
+    "change the public Worker",
+    "activate a customer",
+    "activate collection, cohorts, recommendation influence, providers, or scheduler",
+    "rebuild instead of consuming a qualified rollback artifact"
+  ]
+}
