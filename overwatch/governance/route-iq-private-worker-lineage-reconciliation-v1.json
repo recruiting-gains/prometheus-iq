@@ -1,0 +1,80 @@
+{
+  "governanceId": "route-iq-private-worker-lineage-reconciliation-v1",
+  "batchId": "BATCH-20260726-006",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "evidenceSource": "AUTHENTICATED_CLOUDFLARE_DEPLOYMENT_HISTORY_READ_ONLY_2026_07_26",
+  "worker": "prometheus-iq",
+  "lineage": [
+    {
+      "version": "43c614e8-ed24-413b-9901-27241e720094",
+      "classification": "DARK_DEPLOYMENT",
+      "release": "BATCH-20260713-004",
+      "sourceCommit": "3e64e6ad765607b7fd585fb9d88e4ec6b65a47a5"
+    },
+    {
+      "version": "5a75f799-22cc-4e29-9a2f-29333defd6f2",
+      "classification": "CONTROLLED_PRIVATE_DARK_DEPLOYMENT",
+      "release": "BATCH-20260714-001",
+      "sourceCommit": "dec2ba1b137b0123b6f072ada4b3dd184f88c80d"
+    },
+    {
+      "version": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+      "classification": "INERT_FORWARD_ROLLBACK_BASELINE",
+      "release": "BATCH-20260714-001",
+      "sourceCommit": null
+    },
+    {
+      "version": "dbcbaabb-d599-49e0-bace-7413998572f0",
+      "classification": "QUALIFIED_CORRECTIVE_DEPLOYMENT",
+      "release": "BATCH-20260726-001",
+      "sourceCommit": "22f589431509f338dd8d2def91705365466b43d4"
+    },
+    {
+      "version": "e303f3ca-8d2b-4248-85a5-eaad938219a9",
+      "classification": "VERIFIED_FORWARD_ROLLBACK",
+      "release": "BATCH-20260726-001",
+      "sourceCommit": "22f589431509f338dd8d2def91705365466b43d4"
+    },
+    {
+      "version": "f3882be4-ddde-4156-a2b3-d84ac37d7637",
+      "classification": "QUALIFIED_CORRECTIVE_DEPLOYMENT",
+      "release": "BATCH-20260726-002",
+      "sourceCommit": "b27cc59ebf8e575187167bbcba915fe3d6a94074"
+    },
+    {
+      "version": "9ffb32d3-313a-4209-ad1d-0a6702ba8a83",
+      "classification": "VERIFIED_FORWARD_ROLLBACK",
+      "release": "BATCH-20260726-002",
+      "sourceCommit": "b27cc59ebf8e575187167bbcba915fe3d6a94074"
+    },
+    {
+      "version": "8b67798a-1cff-40df-b570-2b35ab0fc81c",
+      "classification": "QUALIFIED_CORRECTIVE_DEPLOYMENT",
+      "release": "BATCH-20260726-003",
+      "sourceCommit": "f494d87783fea3e6425913a4c93ddafbe3f05f18"
+    },
+    {
+      "version": "4147db04-2226-4cad-aa30-20453b35f42f",
+      "classification": "VERIFIED_FORWARD_ROLLBACK_BASELINE",
+      "release": "BATCH-20260726-003",
+      "sourceCommit": "f494d87783fea3e6425913a4c93ddafbe3f05f18"
+    },
+    {
+      "version": "16e40509-0173-4712-9138-0393a2ae1924",
+      "classification": "QUALIFIED_ACCEPTED_PRIVATE_DASHBOARD",
+      "release": "BATCH-20260726-005",
+      "sourceCommit": "404f8bf6a5aa04ab73ddfa658c0f084c3da916a6",
+      "trafficPercent": 100
+    }
+  ],
+  "reconciliation": {
+    "whyEarlierReadinessNamedB8cba784": "The earlier readiness evidence predated the July 26 corrective deployment chain and correctly named the retained July 14 inert baseline at that time.",
+    "meaningOf4147db04": "This was not an alias. It was the verified forward rollback produced after the BATCH-20260726-003 corrective attempt and became the immediate baseline replaced by BATCH-20260726-005.",
+    "finalDeploymentOldVersion": "4147db04-2226-4cad-aa30-20453b35f42f",
+    "finalDeploymentNewVersion": "16e40509-0173-4712-9138-0393a2ae1924",
+    "finalDeploymentRollbackOccurred": false,
+    "earlierCampaignRollbackOccurred": true,
+    "semanticCorrection": "The completed BATCH-20260726-005 deployment required no rollback. Earlier corrective attempts did execute verified forward rollbacks; campaign history and final-attempt disposition must be reported separately."
+  },
+  "productionMutationPerformedByAudit": false
+}

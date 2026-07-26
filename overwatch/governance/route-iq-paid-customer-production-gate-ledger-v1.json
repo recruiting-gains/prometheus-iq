@@ -1,0 +1,210 @@
+{
+  "governanceId": "route-iq-paid-customer-production-gate-ledger-v1",
+  "batchId": "BATCH-20260726-006",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "ledgerVersion": "1.0.0",
+  "classification": "ACTIVE_PAID_CUSTOMER_PRODUCTION_READINESS_AUTHORITY",
+  "percentageReadinessAllowed": false,
+  "supersedesAsActiveReadinessAuthority": [
+    "overwatch/governance/route-iq-august-1-readiness-matrix-v1.json"
+  ],
+  "historicalEvidenceMutationAuthorized": false,
+  "releaseBaseline": {
+    "sourceCommit": "404f8bf6a5aa04ab73ddfa658c0f084c3da916a6",
+    "sourceTree": "acc32e95c2bfd46e4b51e8058efd288e07d80cf1",
+    "privateWorker": "16e40509-0173-4712-9138-0393a2ae1924",
+    "publicWorker": "6a8713c0-0712-4cda-8a13-daa893ca45f2",
+    "publicWorkerMutationAuthorized": false
+  },
+  "ownerCommits": [
+    {
+      "commit": "1acc6a8adc087c9386fe4dcd039531d771cf36a6",
+      "subsystem": "Prometheus Intelligence",
+      "subject": "Add paid-customer intelligence admission contracts"
+    },
+    {
+      "commit": "ec21a5b2916803310f9b4b29dbbbd7d083574fc1",
+      "subsystem": "Prometheus Security",
+      "subject": "Enforce paid customer tenant isolation"
+    },
+    {
+      "commit": "987c47d4947dd6ddd6642ae4848ff85447dd41ef",
+      "subsystem": "Prometheus Data",
+      "subject": "Add paid-customer verified business data foundation"
+    },
+    {
+      "commit": "b94a7ad1a40c458c8633d9eadc1bef36c641cdfe",
+      "subsystem": "Prometheus Administration",
+      "subject": "Add paid-customer onboarding administration contract"
+    },
+    {
+      "commit": "a57aad4329856bb8e7e7ef744e1652f56cf6b434",
+      "subsystem": "Prometheus CRM",
+      "subject": "crm: add paid-customer workflow foundation"
+    },
+    {
+      "commit": "85ce5ba7d87b64eb63035173944c2aa7c5f10bc3",
+      "subsystem": "Prometheus Dashboard",
+      "subject": "dashboard: add paid-customer configuration preview"
+    },
+    {
+      "commit": "e603acd26c9866518cecf70183cae0695d525cb5",
+      "subsystem": "Prometheus Dashboard",
+      "subject": "dashboard: version paid-customer preview module load"
+    },
+    {
+      "commit": "e3a9c2c60e41e84508dca1fb9734673f1019d888",
+      "subsystem": "Prometheus Infrastructure",
+      "subject": "infrastructure: add paid-customer onboarding runtime"
+    },
+    {
+      "commit": "9b4bba1f345912b532fc40e9d82fe08063bcad7c",
+      "subsystem": "Prometheus Intelligence",
+      "subject": "Align paid-customer intelligence with Administration contract"
+    },
+    {
+      "commit": "c965c4dd01d46cf5f05692f2853098303fae1a79",
+      "subsystem": "Prometheus Data",
+      "subject": "Project onboarding rules into Data eligibility policy"
+    },
+    {
+      "commit": "86b6a328d4d38b21d560d80742cc3febd5a8c234",
+      "subsystem": "Prometheus Security",
+      "subject": "Enforce Administration role authority projection"
+    },
+    {
+      "commit": "77185e882f0be8e7928de42c9e478d866ed91571",
+      "subsystem": "Prometheus CRM",
+      "subject": "crm: adapt paid onboarding configurations"
+    },
+    {
+      "commit": "3872b30d1f16acde85518ae857bae09336aaed3b",
+      "subsystem": "Prometheus Infrastructure",
+      "subject": "infrastructure: bridge paid-customer preview and acceptance"
+    },
+    {
+      "commit": "02a155ada86f76350e9d1ecc17060c5e6f7d8318",
+      "subsystem": "Prometheus CRM",
+      "subject": "Clarify paid-customer CRM language"
+    }
+  ],
+  "statusVocabulary": [
+    "PRODUCTION_OPERATIONAL",
+    "ENGINEERING_VERIFIED_NOT_ACTIVATED",
+    "EXISTING_PRODUCTION_CAPABILITY_UNCHANGED",
+    "SEPARATELY_GATED",
+    "NOT_READY"
+  ],
+  "evidenceRules": {
+    "documentationAloneCanPassGate": false,
+    "fixturesAloneCanPassGate": false,
+    "hiddenFeatureFlagCanPassGate": false,
+    "unexecutedWorkflowCanPassGate": false,
+    "crossCompanyIsolationRequired": true,
+    "exactArtifactDeploymentRequiredForProductionOperational": true,
+    "automatedProductionAcceptanceRequiredForProductionOperational": true
+  },
+  "gates": [
+    {
+      "gateId": "private_dashboard_production",
+      "status": "PRODUCTION_OPERATIONAL",
+      "evidence": "The retained private Dashboard baseline is authenticated and healthy; the paid-customer foundation requires its own exact-artifact deployment before that new behavior is production operational."
+    },
+    {
+      "gateId": "paid_customer_intake_contract",
+      "status": "ENGINEERING_VERIFIED_NOT_ACTIVATED",
+      "evidence": "Versioned Administration schema, fail-closed validation, deterministic preview, and lifecycle contracts are covered by owner and integration tests."
+    },
+    {
+      "gateId": "tenant_isolation",
+      "status": "ENGINEERING_VERIFIED_NOT_ACTIVATED",
+      "evidence": "Server-authority company/workspace binding, non-enumerating denial, exact storage scope, and cross-company adversarial tests pass across Security, Data, CRM, Intelligence, Dashboard, and Infrastructure."
+    },
+    {
+      "gateId": "workspace_provisioning",
+      "status": "ENGINEERING_VERIFIED_NOT_ACTIVATED",
+      "evidence": "Provisioning plans and retries are deterministic and idempotent, but no real company or workspace is authorized for activation."
+    },
+    {
+      "gateId": "industry_terminology",
+      "status": "ENGINEERING_VERIFIED_NOT_ACTIVATED",
+      "evidence": "Stable internal identifiers, safe singular/plural labels, controlled fallbacks, and unrelated-industry templates pass without customer-specific code branches."
+    },
+    {
+      "gateId": "customer_metrics",
+      "status": "ENGINEERING_VERIFIED_NOT_ACTIVATED",
+      "evidence": "Metric identity and historical label snapshots are immutable across Administration, CRM, Dashboard, and Intelligence projections."
+    },
+    {
+      "gateId": "territory_authorization",
+      "status": "ENGINEERING_VERIFIED_NOT_ACTIVATED",
+      "evidence": "Authorized cities, ZIP codes, territory identities, and travel constraints validate fail closed and remain company/workspace scoped."
+    },
+    {
+      "gateId": "verified_business_acquisition",
+      "status": "NOT_READY",
+      "evidence": "Provider refresh and scheduler remain OFF, no provider credential or paid source is authorized, and no quarantined business may move to an active pool."
+    },
+    {
+      "gateId": "eligibility_and_freshness",
+      "status": "ENGINEERING_VERIFIED_NOT_ACTIVATED",
+      "evidence": "Verified identity, address, territory, category, operating status, hours, source, freshness, duplicate, exclusion, target-profile, and evidence-quality gates fail closed."
+    },
+    {
+      "gateId": "dashboard_configuration",
+      "status": "ENGINEERING_VERIFIED_NOT_ACTIVATED",
+      "evidence": "The authenticated read-only configuration preview and paid-customer unconfigured state are reusable, responsive, non-activating, and customer neutral."
+    },
+    {
+      "gateId": "representative_invitation_and_roles",
+      "status": "NOT_READY",
+      "evidence": "Role contracts and authorization are verified, but no paid-customer identity roster, invitation, or activation has been approved."
+    },
+    {
+      "gateId": "crm_workflows",
+      "status": "ENGINEERING_VERIFIED_NOT_ACTIVATED",
+      "evidence": "Configuration projection, role enforcement, idempotent provisioning, metric history, suspension, and offboarding pass with record mutation and notifications disabled."
+    },
+    {
+      "gateId": "website_secure_intake",
+      "status": "EXISTING_PRODUCTION_CAPABILITY_UNCHANGED",
+      "evidence": "The public Route IQ website and governed request CRM remain on their accepted public Worker and are outside this private release."
+    },
+    {
+      "gateId": "billing_readiness",
+      "status": "NOT_READY",
+      "evidence": "Billing implementation and payment collection are expressly outside this directive."
+    },
+    {
+      "gateId": "monitoring_and_incident_ownership",
+      "status": "NOT_READY",
+      "evidence": "Existing Worker health monitoring remains available, but paid-customer onboarding incident ownership and operational response have not been exercised for a real customer."
+    },
+    {
+      "gateId": "suspension_and_offboarding",
+      "status": "ENGINEERING_VERIFIED_NOT_ACTIVATED",
+      "evidence": "Append-only evidence preservation, write denial, terminal offboarding, and recovery controls pass deterministic tests without destructive deletion."
+    },
+    {
+      "gateId": "end_to_end_paid_customer_acceptance",
+      "status": "SEPARATELY_GATED",
+      "evidence": "No real paid customer, representative, provider, business pool, collection path, CRM mutation, or billing flow is authorized by this foundation release."
+    }
+  ],
+  "protectedOperatingState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providerRefresh": "OFF",
+    "scheduler": "OFF",
+    "customerActivation": "OFF",
+    "anthonyMapping": "UNMAPPED",
+    "businessPools": {
+      "active": 0,
+      "reserve": 0,
+      "quarantine": 398
+    },
+    "crmReceipt": "riq_receipt_e74e57903a211291a9f1f37a",
+    "crmReceiptMutationAuthorized": false
+  }
+}
