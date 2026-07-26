@@ -1,0 +1,278 @@
+name: Deploy Prometheus Private Worker v2
+
+on:
+  workflow_dispatch:
+    inputs:
+      approved_commit:
+        description: Founder-approved private release source commit (40 lowercase hex)
+        required: true
+        type: string
+      approved_tree:
+        description: Founder-approved private release source tree (40 lowercase hex)
+        required: true
+        type: string
+      batch_id:
+        description: Founder-approved deployment batch ID (BATCH-YYYYMMDD-NNN)
+        required: true
+        type: string
+      current_public_version:
+        description: Current public Worker version prerequisite (canonical lowercase UUID)
+        required: true
+        type: string
+      current_private_version:
+        description: Current private Worker version prerequisite (canonical lowercase UUID)
+        required: true
+        type: string
+      qualification_run_id:
+        description: Successful private v2 qualification workflow run ID
+        required: true
+        type: string
+      qualification_artifact_id:
+        description: Immutable GitHub artifact ID emitted by private v2 qualification
+        required: true
+        type: string
+      qualification_artifact_zip_sha256:
+        description: GitHub artifact ZIP SHA-256 emitted by private v2 qualification
+        required: true
+        type: string
+      qualified_content_tree_sha256:
+        description: Qualified immutable package content-tree SHA-256
+        required: true
+        type: string
+      qualified_manifest_sha256:
+        description: Qualified private release manifest SHA-256
+        required: true
+        type: string
+      workflow_contract_sha256:
+        description: Qualified Infrastructure private Workflow v2 contract SHA-256
+        required: true
+        type: string
+      rollback_contract_sha256:
+        description: Qualified private forward rollback contract SHA-256
+        required: true
+        type: string
+      rollback_bundle_sha256:
+        description: Qualified deterministic private forward rollback bundle SHA-256
+        required: true
+        type: string
+      founder_authorization:
+        description: Type exactly I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: deploy-prometheus-private-worker-v2
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Validate immutable private artifact without production access
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' &&
+        github.repository == 'PrometheusRouteIQ/prometheus-iq' &&
+        github.actor == 'PrometheusRouteIQ' &&
+        github.triggering_actor == 'PrometheusRouteIQ' &&
+        github.ref == 'refs/heads/main' &&
+        github.ref_name == 'main' &&
+        github.ref_type == 'branch' &&
+        github.workflow == 'Deploy Prometheus Private Worker v2' &&
+        github.workflow_ref == 'PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-private-worker-v2.yml@refs/heads/main' &&
+        github.run_attempt == 1 &&
+        inputs.founder_authorization == 'I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT'
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout current main control repository
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Set up exact qualification and deployment Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Install exact locked deployment tooling
+        run: npm ci
+
+      - name: Download only the Founder-pinned private qualification artifact
+        # actions/download-artifact v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ inputs.qualification_artifact_id }}
+          github-token: ${{ github.token }}
+          repository: PrometheusRouteIQ/prometheus-iq
+          run-id: ${{ inputs.qualification_run_id }}
+          path: ${{ runner.temp }}/prometheus-private-qualified-release
+
+      - name: Verify immutable GitHub artifact metadata and ZIP identity
+        env:
+          PROMETHEUS_APPROVED_COMMIT: ${{ inputs.approved_commit }}
+          PROMETHEUS_QUALIFICATION_RUN_ID: ${{ inputs.qualification_run_id }}
+          PROMETHEUS_QUALIFICATION_ARTIFACT_ID: ${{ inputs.qualification_artifact_id }}
+          PROMETHEUS_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ inputs.qualification_artifact_zip_sha256 }}
+          PROMETHEUS_GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/run-github-actions-private-worker-artifact-metadata-v2.mjs verify
+
+      - name: Verify every private release identity with zero Cloudflare request
+        env:
+          PROMETHEUS_APPROVED_COMMIT: ${{ inputs.approved_commit }}
+          PROMETHEUS_APPROVED_TREE: ${{ inputs.approved_tree }}
+          PROMETHEUS_BATCH_ID: ${{ inputs.batch_id }}
+          PROMETHEUS_CURRENT_PUBLIC_VERSION: ${{ inputs.current_public_version }}
+          PROMETHEUS_CURRENT_PRIVATE_VERSION: ${{ inputs.current_private_version }}
+          PROMETHEUS_QUALIFICATION_RUN_ID: ${{ inputs.qualification_run_id }}
+          PROMETHEUS_QUALIFICATION_ARTIFACT_ID: ${{ inputs.qualification_artifact_id }}
+          PROMETHEUS_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ inputs.qualification_artifact_zip_sha256 }}
+          PROMETHEUS_QUALIFIED_CONTENT_TREE_SHA256: ${{ inputs.qualified_content_tree_sha256 }}
+          PROMETHEUS_QUALIFIED_MANIFEST_SHA256: ${{ inputs.qualified_manifest_sha256 }}
+          PROMETHEUS_WORKFLOW_CONTRACT_SHA256: ${{ inputs.workflow_contract_sha256 }}
+          PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ inputs.rollback_contract_sha256 }}
+          PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ inputs.rollback_bundle_sha256 }}
+          PROMETHEUS_FOUNDER_AUTHORIZATION: ${{ inputs.founder_authorization }}
+          PROMETHEUS_DISPATCH_INPUTS_JSON: ${{ toJSON(github.event.inputs) }}
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
+          PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
+        run: node scripts/run-github-actions-private-worker-qualification-v2.mjs verify
+
+      - name: Require clean synchronized current control repository
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)"
+          test "$(git rev-parse '${{ inputs.approved_commit }}^{tree}')" = "${{ inputs.approved_tree }}"
+
+  deploy:
+    name: Deploy the exact qualified private artifact once
+    needs: preflight
+    if: ${{ needs.preflight.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: prometheus-private-worker-production
+    steps:
+      - name: Checkout current main control repository
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Set up exact qualification and deployment Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Install exact locked deployment tooling
+        run: npm ci
+
+      - name: Download only the Founder-pinned private qualification artifact
+        # actions/download-artifact v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ inputs.qualification_artifact_id }}
+          github-token: ${{ github.token }}
+          repository: PrometheusRouteIQ/prometheus-iq
+          run-id: ${{ inputs.qualification_run_id }}
+          path: ${{ runner.temp }}/prometheus-private-qualified-release
+
+      - name: Reverify immutable GitHub artifact metadata and ZIP identity
+        env:
+          PROMETHEUS_APPROVED_COMMIT: ${{ inputs.approved_commit }}
+          PROMETHEUS_QUALIFICATION_RUN_ID: ${{ inputs.qualification_run_id }}
+          PROMETHEUS_QUALIFICATION_ARTIFACT_ID: ${{ inputs.qualification_artifact_id }}
+          PROMETHEUS_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ inputs.qualification_artifact_zip_sha256 }}
+          PROMETHEUS_GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/run-github-actions-private-worker-artifact-metadata-v2.mjs verify
+
+      - name: Reverify immutable release before protected execution
+        env:
+          PROMETHEUS_APPROVED_COMMIT: ${{ inputs.approved_commit }}
+          PROMETHEUS_APPROVED_TREE: ${{ inputs.approved_tree }}
+          PROMETHEUS_BATCH_ID: ${{ inputs.batch_id }}
+          PROMETHEUS_CURRENT_PUBLIC_VERSION: ${{ inputs.current_public_version }}
+          PROMETHEUS_CURRENT_PRIVATE_VERSION: ${{ inputs.current_private_version }}
+          PROMETHEUS_QUALIFICATION_RUN_ID: ${{ inputs.qualification_run_id }}
+          PROMETHEUS_QUALIFICATION_ARTIFACT_ID: ${{ inputs.qualification_artifact_id }}
+          PROMETHEUS_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ inputs.qualification_artifact_zip_sha256 }}
+          PROMETHEUS_QUALIFIED_CONTENT_TREE_SHA256: ${{ inputs.qualified_content_tree_sha256 }}
+          PROMETHEUS_QUALIFIED_MANIFEST_SHA256: ${{ inputs.qualified_manifest_sha256 }}
+          PROMETHEUS_WORKFLOW_CONTRACT_SHA256: ${{ inputs.workflow_contract_sha256 }}
+          PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ inputs.rollback_contract_sha256 }}
+          PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ inputs.rollback_bundle_sha256 }}
+          PROMETHEUS_FOUNDER_AUTHORIZATION: ${{ inputs.founder_authorization }}
+          PROMETHEUS_DISPATCH_INPUTS_JSON: ${{ toJSON(github.event.inputs) }}
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
+          PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
+        run: node scripts/run-github-actions-private-worker-qualification-v2.mjs verify
+
+      - name: Cross the private production boundary once and forward-roll back on critical failure
+        env:
+          PROMETHEUS_APPROVED_COMMIT: ${{ inputs.approved_commit }}
+          PROMETHEUS_APPROVED_TREE: ${{ inputs.approved_tree }}
+          PROMETHEUS_BATCH_ID: ${{ inputs.batch_id }}
+          PROMETHEUS_CURRENT_PUBLIC_VERSION: ${{ inputs.current_public_version }}
+          PROMETHEUS_CURRENT_PRIVATE_VERSION: ${{ inputs.current_private_version }}
+          PROMETHEUS_QUALIFICATION_RUN_ID: ${{ inputs.qualification_run_id }}
+          PROMETHEUS_QUALIFICATION_ARTIFACT_ID: ${{ inputs.qualification_artifact_id }}
+          PROMETHEUS_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ inputs.qualification_artifact_zip_sha256 }}
+          PROMETHEUS_QUALIFIED_CONTENT_TREE_SHA256: ${{ inputs.qualified_content_tree_sha256 }}
+          PROMETHEUS_QUALIFIED_MANIFEST_SHA256: ${{ inputs.qualified_manifest_sha256 }}
+          PROMETHEUS_WORKFLOW_CONTRACT_SHA256: ${{ inputs.workflow_contract_sha256 }}
+          PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ inputs.rollback_contract_sha256 }}
+          PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ inputs.rollback_bundle_sha256 }}
+          PROMETHEUS_FOUNDER_AUTHORIZATION: ${{ inputs.founder_authorization }}
+          PROMETHEUS_DISPATCH_INPUTS_JSON: ${{ toJSON(github.event.inputs) }}
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
+          PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}
+          CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}
+        run: node scripts/run-github-actions-private-worker-deployment-v2.mjs deploy
+
+      - name: Reverify immutable artifact after successful deployment
+        env:
+          PROMETHEUS_APPROVED_COMMIT: ${{ inputs.approved_commit }}
+          PROMETHEUS_APPROVED_TREE: ${{ inputs.approved_tree }}
+          PROMETHEUS_BATCH_ID: ${{ inputs.batch_id }}
+          PROMETHEUS_CURRENT_PUBLIC_VERSION: ${{ inputs.current_public_version }}
+          PROMETHEUS_CURRENT_PRIVATE_VERSION: ${{ inputs.current_private_version }}
+          PROMETHEUS_QUALIFICATION_RUN_ID: ${{ inputs.qualification_run_id }}
+          PROMETHEUS_QUALIFICATION_ARTIFACT_ID: ${{ inputs.qualification_artifact_id }}
+          PROMETHEUS_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ inputs.qualification_artifact_zip_sha256 }}
+          PROMETHEUS_QUALIFIED_CONTENT_TREE_SHA256: ${{ inputs.qualified_content_tree_sha256 }}
+          PROMETHEUS_QUALIFIED_MANIFEST_SHA256: ${{ inputs.qualified_manifest_sha256 }}
+          PROMETHEUS_WORKFLOW_CONTRACT_SHA256: ${{ inputs.workflow_contract_sha256 }}
+          PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ inputs.rollback_contract_sha256 }}
+          PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ inputs.rollback_bundle_sha256 }}
+          PROMETHEUS_FOUNDER_AUTHORIZATION: ${{ inputs.founder_authorization }}
+          PROMETHEUS_DISPATCH_INPUTS_JSON: ${{ toJSON(github.event.inputs) }}
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
+          PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
+        run: node scripts/run-github-actions-private-worker-qualification-v2.mjs verify
+
+      - name: Require clean synchronized current control repository after deployment
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)"
+          test "$(git rev-parse '${{ inputs.approved_commit }}^{tree}')" = "${{ inputs.approved_tree }}"

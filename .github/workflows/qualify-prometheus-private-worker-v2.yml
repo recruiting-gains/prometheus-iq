@@ -1,0 +1,127 @@
+name: Qualify Prometheus Private Worker v2
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_commit:
+        description: Exact private release source commit at current origin/main (40 lowercase hex)
+        required: true
+        type: string
+      candidate_tree:
+        description: Exact tree for the private release source commit (40 lowercase hex)
+        required: true
+        type: string
+      batch_id:
+        description: Qualification batch ID (BATCH-YYYYMMDD-NNN)
+        required: true
+        type: string
+      current_public_version:
+        description: Current public Worker version prerequisite (canonical lowercase UUID)
+        required: true
+        type: string
+      current_private_version:
+        description: Current private Worker version prerequisite (canonical lowercase UUID)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: qualify-prometheus-private-worker-v2-${{ inputs.candidate_commit }}
+  cancel-in-progress: false
+
+jobs:
+  qualify:
+    name: Verify and freeze one immutable private Worker release
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' &&
+        github.repository == 'PrometheusRouteIQ/prometheus-iq' &&
+        github.actor == 'PrometheusRouteIQ' &&
+        github.triggering_actor == 'PrometheusRouteIQ' &&
+        github.ref == 'refs/heads/main' &&
+        github.ref_name == 'main' &&
+        github.ref_type == 'branch' &&
+        github.workflow == 'Qualify Prometheus Private Worker v2' &&
+        github.workflow_ref == 'PrometheusRouteIQ/prometheus-iq/.github/workflows/qualify-prometheus-private-worker-v2.yml@refs/heads/main' &&
+        github.run_attempt == 1
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    outputs:
+      qualification_artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      qualification_artifact_zip_sha256: ${{ steps.upload.outputs.artifact-digest }}
+      qualified_content_tree_sha256: ${{ steps.freeze.outputs.qualified_content_tree_sha256 }}
+      qualified_manifest_sha256: ${{ steps.freeze.outputs.qualified_manifest_sha256 }}
+      forward_payload_sha256: ${{ steps.freeze.outputs.forward_payload_sha256 }}
+      deployment_assets_sha256: ${{ steps.freeze.outputs.deployment_assets_sha256 }}
+      rollback_contract_sha256: ${{ steps.freeze.outputs.rollback_contract_sha256 }}
+      rollback_bundle_sha256: ${{ steps.freeze.outputs.rollback_bundle_sha256 }}
+      workflow_contract_sha256: ${{ steps.freeze.outputs.workflow_contract_sha256 }}
+    steps:
+      - name: Checkout exact main control repository
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Set up exact qualification and deployment Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Install exact locked deployment tooling
+        run: npm ci
+
+      - name: Build deterministic source and run complete no-secret verification
+        run: |
+          npm run build
+          npm test
+          npm run lint
+          npm run typecheck
+          npm run security:check
+          node scripts/check-cloudflare-unattended-secret-presence.mjs --source=environment
+          npm run security:aegis:verify
+          node scripts/verify-cross-subsystem-artifact-contracts.mjs
+          node scripts/verify-github-actions-private-worker-workflow-v2.mjs
+          node --test tests/github-actions-private-worker-workflow-v2.test.mjs
+
+      - name: Build and freeze the private deployment and rollback artifact exactly once
+        id: freeze
+        env:
+          PROMETHEUS_CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+          PROMETHEUS_CANDIDATE_TREE: ${{ inputs.candidate_tree }}
+          PROMETHEUS_BATCH_ID: ${{ inputs.batch_id }}
+          PROMETHEUS_CURRENT_PUBLIC_VERSION: ${{ inputs.current_public_version }}
+          PROMETHEUS_CURRENT_PRIVATE_VERSION: ${{ inputs.current_private_version }}
+          PROMETHEUS_DISPATCH_INPUTS_JSON: ${{ toJSON(github.event.inputs) }}
+          PROMETHEUS_QUALIFIED_RELEASE_OUTPUT: ${{ runner.temp }}/prometheus-private-qualified-release
+          PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
+        run: node scripts/run-github-actions-private-worker-qualification-v2.mjs build
+
+      - name: Upload the immutable private release package
+        id: upload
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prometheus-private-qualified-${{ inputs.candidate_commit }}
+          path: ${{ runner.temp }}/prometheus-private-qualified-release
+          if-no-files-found: error
+          include-hidden-files: true
+          compression-level: 0
+          retention-days: 30
+
+      - name: Require unchanged exact qualification source
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"

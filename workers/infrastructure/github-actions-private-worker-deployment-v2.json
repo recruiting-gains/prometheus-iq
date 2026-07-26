@@ -1,0 +1,154 @@
+{
+  "contractVersion": "github-actions-private-worker-deployment-v2",
+  "product": "Route IQ",
+  "owner": "Prometheus Infrastructure",
+  "status": "IMPLEMENTED_NOT_QUALIFIED_NOT_DEPLOYED",
+  "target": {
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "branch": "main",
+    "privateWorker": "prometheus-iq",
+    "publicWorker": "prometheusrouteiq-website",
+    "publicWorkerMutationAllowed": false,
+    "applicationSpecificReleaseLane": true
+  },
+  "continuity": {
+    "previousQualifiedCandidateCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
+    "previousQualifiedCandidateTree": "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
+    "previousQualificationArtifactContentTreeSha256": "de7b35909f9bd1bf8f15c8fe605cf494a5f39171e6b2bdf822e60031c590b0e7",
+    "privateDeployParitySha256": "35a564e4f3fed2961d7658bac57cc4ce66cb9c103e4ab03d5b17fff836ca7731",
+    "qualifiedForwardPayloadSha256": "a814ee31dcbc11c62dfd869ae23cd642163c89062512cd84fea589e516c995df",
+    "qualifiedRollbackBundleSha256": "64af130e3a9cf1a6807b4fc0328b58083cb0744472a776211464b323bbb6a7a9",
+    "candidateMayBeAnAncestorOfCurrentMain": true,
+    "currentMainMayContainUnrelatedPublicOnlySuccessors": true,
+    "candidatePrivateScopeMustRemainByteIdentical": true,
+    "qualifiedPayloadMustBeVerifiedAgainstTheCurrentControlSource": true
+  },
+  "qualification": {
+    "workflow": ".github/workflows/qualify-prometheus-private-worker-v2.yml",
+    "trigger": "workflow_dispatch",
+    "runner": "ubuntu-24.04",
+    "architecture": "X64",
+    "nodeVersion": "24.4.1",
+    "wranglerVersion": "4.110.0",
+    "sourceBuilds": 1,
+    "cloudflareRequestsAllowed": false,
+    "secretAccessAllowed": false,
+    "artifactIncludesActualDeployableForwardPayload": true,
+    "artifactIncludesForwardCompatibleRollback": true,
+    "artifactRetentionDays": 30
+  },
+  "deployment": {
+    "workflow": ".github/workflows/deploy-prometheus-private-worker-v2.yml",
+    "trigger": "workflow_dispatch",
+    "protectedEnvironment": "prometheus-private-worker-production",
+    "founderActor": "PrometheusRouteIQ",
+    "requiredBranch": "main",
+    "requiredRunAttempt": 1,
+    "concurrencyGroup": "deploy-prometheus-private-worker-v2",
+    "rebuildAllowed": false,
+    "artifactSubstitutionAllowed": false,
+    "wranglerMode": "no-bundle",
+    "keepVars": true,
+    "strict": true,
+    "workerNameOverrideAllowed": false,
+    "forwardDeploymentAttempts": 1,
+    "automaticRetryAllowed": false
+  },
+  "authorization": {
+    "exactConfirmation": "I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT",
+    "requiredInputs": [
+      "approved_commit",
+      "approved_tree",
+      "batch_id",
+      "current_public_version",
+      "current_private_version",
+      "qualification_run_id",
+      "qualification_artifact_id",
+      "qualification_artifact_zip_sha256",
+      "qualified_content_tree_sha256",
+      "qualified_manifest_sha256",
+      "workflow_contract_sha256",
+      "rollback_contract_sha256",
+      "rollback_bundle_sha256",
+      "founder_authorization"
+    ],
+    "consumedAt": "forward_wrangler_process_spawn_confirmed",
+    "preAuthorizationCloudflareReadOnlyRequestsAllowed": true,
+    "preAuthorizationCloudflareReadScope": "exact_public_and_private_worker_identity_and_binding_prerequisites_only",
+    "preAuthorizationCloudflareMutationRequestsAllowed": false
+  },
+  "protectedEnvironment": {
+    "requiredSecretNames": [
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+    ],
+    "valuesInSourceAllowed": false,
+    "valuesInLogsAllowed": false,
+    "externalPresenceStateEmbeddedInSource": false,
+    "missingRequiredNameFailure": "REQUIRED_PROTECTED_SECRET_NAMES_MISSING",
+    "missingRequiredNameBlocksBeforeCloudflareRequest": true
+  },
+  "productionPreflight": {
+    "publicWorkerIdentityRequired": true,
+    "privateWorkerIdentityRequired": true,
+    "bothWorkersMustBeAtOneHundredPercentTraffic": true,
+    "bindingSnapshotRequiredBeforeMutation": true,
+    "concurrentChangeDetectionRequired": true,
+    "artifactMetadataApiMethod": "GET",
+    "artifactMetadataRedirectsAllowed": false
+  },
+  "configurationPreservation": {
+    "existingVariablesPreserved": true,
+    "existingSecretValuesPreserved": true,
+    "existingBindingsPreserved": true,
+    "durableObjectBindingsPreserved": true,
+    "durableObjectMigrationHistoryPreserved": true,
+    "routesPreserved": true,
+    "publicWorkerPreserved": true,
+    "secretCreateUpdateDeleteAllowed": false,
+    "nativeCloudflareRollbackAllowed": false
+  },
+  "smoke": {
+    "authentication": "cloudflare_access_service_principal",
+    "methods": [
+      "GET",
+      "HEAD"
+    ],
+    "writeMethodsAllowed": false,
+    "serviceWorkerWritesAllowed": false,
+    "formSubmissionAllowed": false,
+    "attemptedApplicationWritesRequired": 0,
+    "crmSubmissionAllowed": false,
+    "notificationAllowed": false
+  },
+  "rollback": {
+    "strategy": "verified_new_forward_deployment",
+    "sourceContract": "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
+    "nativeCloudflareRollbackAllowed": false,
+    "rollbackAttemptsAfterCriticalFailure": 1,
+    "migrationHistoryPreserved": true,
+    "durableObjectNamespacesPreserved": true,
+    "bindingsPreserved": true,
+    "protectedSecretsPreserved": true
+  },
+  "runtimeBoundaries": {
+    "publicWorkerDeploymentAllowed": false,
+    "crmMutationAllowed": false,
+    "productionDataMutationAllowed": false,
+    "prospectiveCollection": "OFF",
+    "activeCohortCount": 0,
+    "recommendationInfluence": "OFF",
+    "businessAvailabilityMode": "OFF",
+    "scheduler": "OFF",
+    "customerActivation": "OFF",
+    "anthonyMapped": false
+  },
+  "releaseBoundary": {
+    "deploymentAuthorized": false,
+    "pushAuthorized": false,
+    "productionContactAuthorized": false,
+    "protectedSettingMutationAuthorized": false
+  }
+}
