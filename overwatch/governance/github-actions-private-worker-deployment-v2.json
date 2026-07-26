@@ -1,7 +1,7 @@
 {
   "governanceId": "github-actions-private-worker-deployment-governance-v2",
-  "version": "1.10.0",
-  "batchId": "BATCH-20260726-003",
+  "version": "1.11.0",
+  "batchId": "BATCH-20260726-004",
   "directive": "Founder Standing Directive - End-to-End Engineering Execution",
   "status": "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED",
   "owningSubsystem": "Prometheus Overwatch",
@@ -127,6 +127,14 @@
       "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Correct private forward payload identity"
+    },
+    "implementationUnconditionalGuardRoutingCommit": {
+      "commit": "ceea5b6496f81341a49f605622d78daf084d9f6f",
+      "parent": "f494d87783fea3e6425913a4c93ddafbe3f05f18",
+      "tree": "4ae9572745cc260b347309a51f8e98a39720d1d4",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Enforce unconditional private Worker guard routing"
     },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
@@ -610,6 +618,85 @@
         "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
         "sha256": "3ac1629e195fe1451c2e5c8df656ea245d5ca12e2847860ceb74c76839c95ece"
       }
+    ],
+    "unconditionalGuardRoutingPaths": [
+      "docs/cloudflare-unattended-deployment-access-v1.md",
+      "scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs",
+      "scripts/lib/github-actions-private-worker-deployment.mjs",
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "scripts/run-cloudflare-unattended-smoke.mjs",
+      "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "tests/cloudflare-unattended-runtime-guard.test.mjs",
+      "tests/github-actions-private-worker-deployment.test.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "tests/route-iq-private-forward-rollback-candidate-v3.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+      "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
+      "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json",
+      "wrangler.jsonc"
+    ],
+    "unconditionalGuardRoutingEvidence": [
+      {
+        "path": "docs/cloudflare-unattended-deployment-access-v1.md",
+        "sha256": "0b8ebfe210c53bbd2510ceecb6de95fa3e264c937ed23a5b2f37b48afececc4a"
+      },
+      {
+        "path": "scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs",
+        "sha256": "3ce36dd738518630c8b00768f8685aee647458274165e50b0b5196cf0667c331"
+      },
+      {
+        "path": "scripts/lib/github-actions-private-worker-deployment.mjs",
+        "sha256": "e71bdff256e2d705a3848a8e2fbe1855508416628a18956429026c5bb0ab18ad"
+      },
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "f8e306e3bc16116e23ff284ce3acb0b72e6d40b7c3de97b5709586e35f2555a5"
+      },
+      {
+        "path": "scripts/run-cloudflare-unattended-smoke.mjs",
+        "sha256": "5c37584178d5881b3faff357c28be7a3c7c1117e7c543d7642ccd3ab87015708"
+      },
+      {
+        "path": "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+        "sha256": "ea4934d6c99f1a6adfc6a2c0e8685b9f51951f35a95df6f1fce7fff5275c3c25"
+      },
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "9eb04cfb598fbed394e4a18b8cd1e00762347a06514de147b7fde7428e5316ea"
+      },
+      {
+        "path": "tests/cloudflare-unattended-runtime-guard.test.mjs",
+        "sha256": "b48655fc9bc9b6b7f8f4b19cbc7dcce8ce3e442fffa3e10b5d804ec3ca1754dd"
+      },
+      {
+        "path": "tests/github-actions-private-worker-deployment.test.mjs",
+        "sha256": "8daa65bda64c925437c8d879860dbd8de6f440e40affe6030d2b2d6197e143fb"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "sha256": "5cb72feff58106937704e7604a93b5bfd551e20efa6b844eb1370c8c0000da56"
+      },
+      {
+        "path": "tests/route-iq-private-forward-rollback-candidate-v3.test.mjs",
+        "sha256": "5fdcfba5d959b128d66da94202dfb4357e7ddd84d3bdd5aa727c39c9d17b5d8b"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "ccb56b24652009b7a673fc56bda4b5d1b3bba89550a34db6c894fb715edda20b"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
+        "sha256": "51c5d93945c891b388bba2de57e5df7d382c9ef6bfd5b96680fe6c66621c10e1"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json",
+        "sha256": "23b6c5c5d506ea88565c428b1adbe0e068de14250126b4e1f53d4d10fd0b827e"
+      },
+      {
+        "path": "wrangler.jsonc",
+        "sha256": "b888732c12aa34d07f538d7ae112b6eb3f966c75d24839bac76d4e8ea6b9a835"
+      }
     ]
   },
   "rootCause": {
@@ -669,15 +756,22 @@
     "secondPropagationFailureClassification": "SMOKE_FAILURE|DIMENSION=GUARD_MARKER_MISSING",
     "secondPropagationFailureRollbackVerified": true,
     "guardConvergenceGap": "The postdeployment readiness fence proved only the canonical root while the fixed acceptance plan also checks static assets. Forward and rollback used different assets.run_worker_first representations, so a root response could carry the exact guard marker and Worker version before every fixed static path crossed the same Worker boundary.",
-    "guardConvergenceRepair": "Forward and rollback now use the same explicit [\"/*\"] request boundary. Each bounded propagation attempt evaluates the entire fixed GET/HEAD plan, accepts only when every probe carries the exact guard marker and exact Worker version, emits only fixed nonsecret probe classifications, and never retries unsafe response classes.",
-    "forwardPayloadPinCorrection": "The first owner commit carried a payload digest derived from a symlinked dependency tree. Infrastructure independently regenerated the payload with a materialized dependency tree matching the clean GitHub runner, pinned the exact digest, and preserved all runtime behavior."
+    "guardConvergenceRepair": "Forward and rollback initially used the same selective [\"/*\"] route-pattern boundary. Each propagation attempt evaluated the entire fixed GET/HEAD plan, accepted only when every probe carried the exact guard marker and exact Worker version, emitted only fixed nonsecret probe classifications, and never retries unsafe response classes.",
+    "forwardPayloadPinCorrection": "The first owner commit carried a payload digest derived from a symlinked dependency tree. Infrastructure independently regenerated the payload with a materialized dependency tree matching the clean GitHub runner, pinned the exact digest, and preserved all runtime behavior.",
+    "thirdPropagationFailureDeploymentRun": "30213341082",
+    "thirdPropagationFailureReachedProductionMutation": true,
+    "thirdPropagationFailureClassification": "SMOKE_FAILURE|DIMENSION=GUARD_PROPAGATION_TIMEOUT|PROBE=RUNTIME_POOLS_GET",
+    "thirdPropagationFailureRollbackVerified": true,
+    "unconditionalGuardRoutingGap": "The selective route-pattern array [\"/*\"] did not provide the unconditional Worker-first security invariant for the cached runtime-pools asset. The valid 2xx response bypassed the Worker guard and therefore lacked its exact marker.",
+    "prematureConvergenceDeadlineGap": "The smoke fence advertised a 46.5-second convergence window but exhausted twelve fast attempts after roughly 16.5 seconds because acceptance was controlled by attempt count rather than measured elapsed time.",
+    "unconditionalGuardRoutingRepair": "Forward and rollback now require Cloudflare's boolean true unconditional Worker-first mode and reject every route-pattern array. The full-plan smoke fence uses a monotonic 46.5-second deadline with no attempt-count acceptance limit; unsafe response classes still fail immediately into the one verified forward rollback."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
     "previousQualifiedTree": "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
     "releaseScopeUnchangedThroughBaselineCommit": "8976c077eef91147368c9b5566b5310c04fd6630",
-    "qualifiedForwardPayloadSha256": "d7b4837187a55132ece120262373ee9bda3293159eb7c822aa2365d32f27af97",
-    "qualifiedRollbackBundleSha256": "f2edb9475f09fcf9b3469c133585c82333c218d0f6efe9f696d192665a8bf8df"
+    "qualifiedForwardPayloadSha256": "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c",
+    "qualifiedRollbackBundleSha256": "0350e6281b228321509c59fadc1fe612f6400b6d025c27dddd01ea980daddb79"
   },
   "workflowBoundary": {
     "qualificationWorkflow": "Qualify Prometheus Private Worker v2",
@@ -776,9 +870,10 @@
     "rollbackRootComposedGuardTestRequired": true,
     "fullFixedPlanConvergenceRequired": true,
     "fixedNonsecretProbeClassificationRequired": true,
-    "forwardAndRollbackWorkerFirstPaths": [
-      "/*"
-    ],
+    "forwardAndRollbackWorkerFirstUnconditional": true,
+    "selectiveWorkerFirstArraysAccepted": false,
+    "monotonicElapsedDeadline": true,
+    "attemptLimitControlsAcceptance": false,
     "requestAndResponseLifecycleDeadlineEnforced": true,
     "propagationMaximumWaitMilliseconds": 46500,
     "unsafeResponseRetryAllowed": false,

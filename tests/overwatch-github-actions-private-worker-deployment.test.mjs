@@ -89,6 +89,8 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "c217ad43e4dbae32690661463eb6cfa38a19e95c");
   assert.equal(result.immutableWorkflowV2ForwardPayloadPinCorrectionCommit,
     "b540084521c87ccad85b41b5e9d1714a497f73e0");
+  assert.equal(result.immutableWorkflowV2UnconditionalGuardRoutingCommit,
+    "ceea5b6496f81341a49f605622d78daf084d9f6f");
   assert.equal(result.localRealWranglerDryRunPassed, true);
   assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
@@ -156,6 +158,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
       value.ownership.implementationForwardPayloadPinCorrectionCommit.commit =
         "0".repeat(40);
     },
+    value => {
+      value.ownership.implementationUnconditionalGuardRoutingCommit.commit =
+        "0".repeat(40);
+    },
     value => { value.ownership.bootstrapRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.runnerWorkspaceRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.trustedTempAliasRepairEvidence[0].sha256 = "0".repeat(64); },
@@ -189,6 +195,9 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => {
       value.ownership.forwardPayloadPinCorrectionEvidence[0].sha256 = "0".repeat(64);
     },
+    value => {
+      value.ownership.unconditionalGuardRoutingEvidence[0].sha256 = "0".repeat(64);
+    },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },
     value => { value.rootCause.firstDeploymentReachedProductionMutation = true; },
     value => { value.rootCause.secondDeploymentReachedProductionMutation = true; },
@@ -207,6 +216,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.rootCause.guardConvergenceGap = "No gap."; },
     value => { value.rootCause.guardConvergenceRepair = "No repair."; },
     value => { value.rootCause.forwardPayloadPinCorrection = "No correction."; },
+    value => { value.rootCause.thirdPropagationFailureRollbackVerified = false; },
+    value => { value.rootCause.unconditionalGuardRoutingGap = "No gap."; },
+    value => { value.rootCause.prematureConvergenceDeadlineGap = "No gap."; },
+    value => { value.rootCause.unconditionalGuardRoutingRepair = "No repair."; },
     value => {
       value.rootCause.runnerWorkspaceCause =
         "The temporary alias was rejected before the Wrangler process could start.";
@@ -238,7 +251,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.smokeBoundary.rollbackRootComposedGuardTestRequired = false; },
     value => { value.smokeBoundary.fullFixedPlanConvergenceRequired = false; },
     value => { value.smokeBoundary.fixedNonsecretProbeClassificationRequired = false; },
-    value => { value.smokeBoundary.forwardAndRollbackWorkerFirstPaths = ["/api/*"]; },
+    value => { value.smokeBoundary.forwardAndRollbackWorkerFirstUnconditional = false; },
+    value => { value.smokeBoundary.selectiveWorkerFirstArraysAccepted = true; },
+    value => { value.smokeBoundary.monotonicElapsedDeadline = false; },
+    value => { value.smokeBoundary.attemptLimitControlsAcceptance = true; },
     value => { value.smokeBoundary.requestAndResponseLifecycleDeadlineEnforced = false; },
     value => { value.smokeBoundary.propagationMaximumWaitMilliseconds = 0; },
     value => { value.smokeBoundary.unsafeResponseRetryAllowed = true; },

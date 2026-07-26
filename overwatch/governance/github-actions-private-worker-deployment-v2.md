@@ -29,7 +29,10 @@ root through that same authenticated guard and version proof. Infrastructure
 successors `c217ad43e4dbae32690661463eb6cfa38a19e95c` and
 `b540084521c87ccad85b41b5e9d1714a497f73e0` make the complete fixed smoke plan
 the propagation fence, align forward and rollback asset routing, and pin the
-materialized clean-runner payload identity.
+materialized clean-runner payload identity. Infrastructure successor
+`ceea5b6496f81341a49f605622d78daf084d9f6f` then replaces the selective
+route-pattern boundary with unconditional boolean Worker-first routing and
+replaces the premature attempt count with a measured monotonic deadline.
 
 ## Corrective
 
@@ -150,13 +153,12 @@ closed, executed its one forward-compatible rollback, and verified private
 production on version `9ffb32d3-313a-4209-ad1d-0a6702ba8a83`; the public Worker
 remained unchanged.
 
-The guard-convergence successor uses the same explicit `["/*"]` Worker-first
-boundary in forward and rollback. Every bounded propagation attempt evaluates
-the whole fixed GET/HEAD plan and accepts only when every probe carries the
-exact marker and exact Worker version. Only missing or stale propagation
-evidence may wait; redirects, non-2xx responses, invalid markers or versions,
-and transport failures fail immediately. Failure output contains only fixed
-nonsecret probe and dimension codes.
+The first guard-convergence successor used the same selective `["/*"]`
+Worker-first boundary in forward and rollback. Every bounded propagation
+attempt evaluated the whole fixed GET/HEAD plan and accepted only when every
+probe carried the exact marker and exact Worker version. Only missing or stale
+propagation evidence could wait; redirects, non-2xx responses, invalid markers
+or versions, and transport failures failed immediately.
 
 The first owner commit recorded a payload digest generated with a symlinked
 dependency tree. The pin-only Infrastructure successor regenerated with a
@@ -166,6 +168,27 @@ exact forward payload identity to
 The paired rollback identity is
 `f2edb9475f09fcf9b3469c133585c82333c218d0f6efe9f696d192665a8bf8df`.
 No runtime behavior changed in the pin-only successor.
+
+Deployment run `30213341082` crossed the production mutation boundary and
+failed closed at `RUNTIME_POOLS_GET` with
+`GUARD_PROPAGATION_TIMEOUT`. Its valid 2xx response lacked the exact guard
+marker, proving that the selective `["/*"]` asset route did not establish the
+required unconditional Worker boundary for every cached static asset. The same
+run also exposed that twelve fast attempts exhausted after roughly 16.5 seconds
+even though the contract advertised a 46.5-second convergence window. The
+workflow executed and verified the qualified forward-compatible rollback;
+private production returned to
+`9ffb32d3-313a-4209-ad1d-0a6702ba8a83` and the public Worker remained
+unchanged.
+
+The corrective requires `assets.run_worker_first: true` in forward and
+rollback and rejects every array substitute, including `["/*"]`. Its smoke
+fence measures a monotonic 46.5-second deadline rather than counting attempts.
+The complete fixed GET/HEAD plan must still converge in one round, and unsafe
+responses still fail immediately. The corrected forward payload identity is
+`81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c`;
+the paired rollback identity is
+`0350e6281b228321509c59fadc1fe612f6400b6d025c27dddd01ea980daddb79`.
 
 ## Boundary
 
@@ -184,7 +207,9 @@ No runtime behavior changed in the pin-only successor.
   paths, reject every redirect, and permit zero attempted application writes.
 - The postdeployment readiness window evaluates the complete fixed GET/HEAD
   plan. Every probe must prove the exact guard marker and deployed Worker
-  version in one converged attempt.
+  version in one converged attempt. Forward and rollback use unconditional
+  boolean Worker-first routing, and the bounded wait is measured by a monotonic
+  clock rather than an attempt count.
 - Collection, cohorts, recommendation influence, availability refresh,
   customer activation, Anthony mapping, the public Worker, and CRM remain
   outside this release.

@@ -88,6 +88,9 @@ const v2GuardConvergenceRepairTree = "0a63711714871a62950eb96c4b1d80b94555f19f";
 const v2ForwardPayloadPinCorrectionCommit = "b540084521c87ccad85b41b5e9d1714a497f73e0";
 const v2ForwardPayloadPinCorrectionParent = v2GuardConvergenceRepairCommit;
 const v2ForwardPayloadPinCorrectionTree = "964583be49a8859ace9b6c3e560338617c95744f";
+const v2UnconditionalGuardRoutingCommit = "ceea5b6496f81341a49f605622d78daf084d9f6f";
+const v2UnconditionalGuardRoutingParent = "f494d87783fea3e6425913a4c93ddafbe3f05f18";
+const v2UnconditionalGuardRoutingTree = "4ae9572745cc260b347309a51f8e98a39720d1d4";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -301,6 +304,39 @@ const v2ForwardPayloadPinCorrectionHashes = Object.freeze({
     "3ac1629e195fe1451c2e5c8df656ea245d5ca12e2847860ceb74c76839c95ece"
 });
 
+const v2UnconditionalGuardRoutingHashes = Object.freeze({
+  "docs/cloudflare-unattended-deployment-access-v1.md":
+    "0b8ebfe210c53bbd2510ceecb6de95fa3e264c937ed23a5b2f37b48afececc4a",
+  "scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs":
+    "3ce36dd738518630c8b00768f8685aee647458274165e50b0b5196cf0667c331",
+  "scripts/lib/github-actions-private-worker-deployment.mjs":
+    "e71bdff256e2d705a3848a8e2fbe1855508416628a18956429026c5bb0ab18ad",
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+    "f8e306e3bc16116e23ff284ce3acb0b72e6d40b7c3de97b5709586e35f2555a5",
+  "scripts/run-cloudflare-unattended-smoke.mjs":
+    "5c37584178d5881b3faff357c28be7a3c7c1117e7c543d7642ccd3ab87015708",
+  "scripts/verify-cloudflare-unattended-runtime-guard.mjs":
+    "ea4934d6c99f1a6adfc6a2c0e8685b9f51951f35a95df6f1fce7fff5275c3c25",
+  "scripts/verify-github-actions-private-worker-workflow-v2.mjs":
+    "9eb04cfb598fbed394e4a18b8cd1e00762347a06514de147b7fde7428e5316ea",
+  "tests/cloudflare-unattended-runtime-guard.test.mjs":
+    "b48655fc9bc9b6b7f8f4b19cbc7dcce8ce3e442fffa3e10b5d804ec3ca1754dd",
+  "tests/github-actions-private-worker-deployment.test.mjs":
+    "8daa65bda64c925437c8d879860dbd8de6f440e40affe6030d2b2d6197e143fb",
+  "tests/github-actions-private-worker-workflow-v2.test.mjs":
+    "5cb72feff58106937704e7604a93b5bfd551e20efa6b844eb1370c8c0000da56",
+  "tests/route-iq-private-forward-rollback-candidate-v3.test.mjs":
+    "5fdcfba5d959b128d66da94202dfb4357e7ddd84d3bdd5aa727c39c9d17b5d8b",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "ccb56b24652009b7a673fc56bda4b5d1b3bba89550a34db6c894fb715edda20b",
+  "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json":
+    "51c5d93945c891b388bba2de57e5df7d382c9ef6bfd5b96680fe6c66621c10e1",
+  "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json":
+    "23b6c5c5d506ea88565c428b1adbe0e068de14250126b4e1f53d4d10fd0b827e",
+  "wrangler.jsonc":
+    "b888732c12aa34d07f538d7ae112b6eb3f966c75d24839bac76d4e8ea6b9a835"
+});
+
 const historicalOwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker.yml":
     "f2e672729d9bee7a4a173627e51a622b944d3b545e4ed1f4851414b5e31897e9",
@@ -324,13 +360,13 @@ const compatibilityOwnerHashes = Object.freeze({
   "docs/github-actions-founder-triggered-private-worker-deployment-v1.md":
     "77f5dd3b94393ae8ee7b8bb0c3c762ed7aa3c98c92acb1c0c85a3e94006a8b53",
   "scripts/lib/github-actions-private-worker-deployment.mjs":
-    "0d02eb7d189ad170c8b6e7c7472b7e61a9bdc6ea6d53f4db98d79d13a41c3e5a",
+    "e71bdff256e2d705a3848a8e2fbe1855508416628a18956429026c5bb0ab18ad",
   "scripts/run-github-actions-private-worker-deployment.mjs":
     "4c3fac8b30031e44b9b5e5b0ee12b1f9928098f3cc539f29f83af17fd714284e",
   "scripts/verify-github-actions-private-worker-deployment.mjs":
     "aa910f195cd836866b7ccb07290880bc762f3461b65a91234d275d72502fee63",
   "tests/github-actions-private-worker-deployment.test.mjs":
-    "b5e735b02bdce3ac72d6e557704236cb366c068727792ef6b9d9617799586eb7",
+    "8daa65bda64c925437c8d879860dbd8de6f440e40affe6030d2b2d6197e143fb",
   "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json":
     "95d8d50e7ac4c9abacbac879d49bbaa3799988bb886d8ad92a98c6fe415efd6c"
 });
@@ -886,7 +922,7 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(governance?.governanceId ===
     "github-actions-private-worker-deployment-governance-v2",
   "Private Workflow v2 governance identity drifted.");
-  require(governance?.version === "1.10.0"
+  require(governance?.version === "1.11.0"
     && governance?.status ===
     "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED"
     && governance?.owningSubsystem === "Prometheus Overwatch",
@@ -1031,6 +1067,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership?.implementationForwardPayloadPinCorrectionCommit?.author ===
       infrastructureIdentity
     && governance?.ownership?.implementationForwardPayloadPinCorrectionCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationUnconditionalGuardRoutingCommit?.commit ===
+      v2UnconditionalGuardRoutingCommit
+    && governance?.ownership?.implementationUnconditionalGuardRoutingCommit?.parent ===
+      v2UnconditionalGuardRoutingParent
+    && governance?.ownership?.implementationUnconditionalGuardRoutingCommit?.tree ===
+      v2UnconditionalGuardRoutingTree
+    && governance?.ownership?.implementationUnconditionalGuardRoutingCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationUnconditionalGuardRoutingCommit?.committer ===
       infrastructureIdentity,
   "Private Workflow v2 owner provenance drifted.");
   require(equal(governance?.ownership?.implementationPaths, Object.keys(v2OwnerHashes)),
@@ -1131,6 +1177,12 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.forwardPayloadPinCorrectionEvidence,
     evidenceMap(v2ForwardPayloadPinCorrectionHashes)),
   "Private Workflow v2 forward-payload pin correction evidence drifted.");
+  require(equal(governance?.ownership?.unconditionalGuardRoutingPaths,
+    Object.keys(v2UnconditionalGuardRoutingHashes)),
+  "Private Workflow v2 unconditional-guard routing path set drifted.");
+  require(equal(governance?.ownership?.unconditionalGuardRoutingEvidence,
+    evidenceMap(v2UnconditionalGuardRoutingHashes)),
+  "Private Workflow v2 unconditional-guard routing evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -1229,6 +1281,23 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     )
     && governance?.rootCause?.forwardPayloadPinCorrection?.includes(
       "materialized dependency tree"
+    )
+    && governance?.rootCause?.thirdPropagationFailureDeploymentRun === "30213341082"
+    && governance?.rootCause?.thirdPropagationFailureReachedProductionMutation === true
+    && governance?.rootCause?.thirdPropagationFailureClassification ===
+      "SMOKE_FAILURE|DIMENSION=GUARD_PROPAGATION_TIMEOUT|PROBE=RUNTIME_POOLS_GET"
+    && governance?.rootCause?.thirdPropagationFailureRollbackVerified === true
+    && governance?.rootCause?.unconditionalGuardRoutingGap?.includes(
+      "selective route-pattern array"
+    )
+    && governance?.rootCause?.prematureConvergenceDeadlineGap?.includes(
+      "roughly 16.5 seconds"
+    )
+    && governance?.rootCause?.unconditionalGuardRoutingRepair?.includes(
+      "boolean true unconditional Worker-first mode"
+    )
+    && governance?.rootCause?.unconditionalGuardRoutingRepair?.includes(
+      "monotonic 46.5-second deadline"
     ),
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
@@ -1247,9 +1316,9 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.workflowBoundary?.nativeRollbackAllowed === false,
   "Private Workflow v2 execution boundary drifted.");
   require(governance?.continuity?.qualifiedForwardPayloadSha256 ===
-    "d7b4837187a55132ece120262373ee9bda3293159eb7c822aa2365d32f27af97"
+    "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c"
     && governance?.continuity?.qualifiedRollbackBundleSha256 ===
-      "f2edb9475f09fcf9b3469c133585c82333c218d0f6efe9f696d192665a8bf8df",
+      "0350e6281b228321509c59fadc1fe612f6400b6d025c27dddd01ea980daddb79",
   "Private Workflow v2 continuity identities drifted.");
   require(governance?.artifactBoundary?.actualForwardPayloadIncluded === true
     && governance?.artifactBoundary?.forwardCompatibleRollbackIncluded === true
@@ -1314,7 +1383,10 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.smokeBoundary?.rollbackRootComposedGuardTestRequired === true
     && governance?.smokeBoundary?.fullFixedPlanConvergenceRequired === true
     && governance?.smokeBoundary?.fixedNonsecretProbeClassificationRequired === true
-    && equal(governance?.smokeBoundary?.forwardAndRollbackWorkerFirstPaths, ["/*"])
+    && governance?.smokeBoundary?.forwardAndRollbackWorkerFirstUnconditional === true
+    && governance?.smokeBoundary?.selectiveWorkerFirstArraysAccepted === false
+    && governance?.smokeBoundary?.monotonicElapsedDeadline === true
+    && governance?.smokeBoundary?.attemptLimitControlsAcceptance === false
     && governance?.smokeBoundary?.requestAndResponseLifecycleDeadlineEnforced === true
     && governance?.smokeBoundary?.propagationMaximumWaitMilliseconds === 46500
     && governance?.smokeBoundary?.unsafeResponseRetryAllowed === false,
@@ -1416,10 +1488,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       ?.fixedNonsecretProbeClassification === true
     && contract?.smoke?.postDeployment?.propagationFence
       ?.finalExactWholePlanAttemptIsAcceptance === true
+    && contract?.smoke?.postDeployment?.propagationFence
+      ?.unconditionalWorkerFirst === true
+    && contract?.smoke?.postDeployment?.propagationFence
+      ?.monotonicElapsedDeadline === true
+    && contract?.smoke?.postDeployment?.propagationFence
+      ?.attemptLimitControlsAcceptance === false
     && contract?.continuity?.qualifiedForwardPayloadSha256 ===
-      "d7b4837187a55132ece120262373ee9bda3293159eb7c822aa2365d32f27af97"
+      "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c"
     && contract?.continuity?.qualifiedRollbackBundleSha256 ===
-      "f2edb9475f09fcf9b3469c133585c82333c218d0f6efe9f696d192665a8bf8df"
+      "0350e6281b228321509c59fadc1fe612f6400b6d025c27dddd01ea980daddb79"
     && equal(contract?.runtimeGuardInjection?.plainTextSettings, [
       "PROMETHEUS_UNATTENDED_SMOKE_GUARD",
       "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
@@ -1773,6 +1851,15 @@ function verifyV2OwnerAndGovernance() {
       subject: "Correct private forward payload identity",
       hashes: v2ForwardPayloadPinCorrectionHashes,
       recorded: governance.ownership.forwardPayloadPinCorrectionEvidence
+    },
+    {
+      label: "unconditional guard routing",
+      commit: v2UnconditionalGuardRoutingCommit,
+      parent: v2UnconditionalGuardRoutingParent,
+      tree: v2UnconditionalGuardRoutingTree,
+      subject: "Enforce unconditional private Worker guard routing",
+      hashes: v2UnconditionalGuardRoutingHashes,
+      recorded: governance.ownership.unconditionalGuardRoutingEvidence
     }
   ]) {
     const metadata = git([
@@ -1829,7 +1916,8 @@ function verifyV2OwnerAndGovernance() {
     ...v2ReleasePropagationRepairHashes,
     ...v2RollbackRootGuardRepairHashes,
     ...v2GuardConvergenceRepairHashes,
-    ...v2ForwardPayloadPinCorrectionHashes
+    ...v2ForwardPayloadPinCorrectionHashes,
+    ...v2UnconditionalGuardRoutingHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -2130,6 +2218,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2GuardConvergenceRepairCommit,
     immutableWorkflowV2ForwardPayloadPinCorrectionCommit:
       v2ForwardPayloadPinCorrectionCommit,
+    immutableWorkflowV2UnconditionalGuardRoutingCommit:
+      v2UnconditionalGuardRoutingCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,
