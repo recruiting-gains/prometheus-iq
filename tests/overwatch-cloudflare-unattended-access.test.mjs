@@ -139,6 +139,10 @@ test("Overwatch rejects a flexible or stateful smoke client", () => {
   const redirect = clone(infrastructure);
   redirect.defaultDenySmokeClient.redirectMode = "follow";
   assert.equal(evaluate(redirect).ok, false);
+
+  const noncanonicalHtmlAlias = clone(infrastructure);
+  noncanonicalHtmlAlias.defaultDenySmokeClient.noncanonicalHtmlAliasesAllowed = true;
+  assert.equal(evaluate(noncanonicalHtmlAlias).ok, false);
 });
 
 test("Overwatch rejects weak, broad, or reusable Founder control", () => {

@@ -15,7 +15,11 @@ successor `1341e8edf6e96603437b7bff95768531e2f5446a` changes only the
 Infrastructure-owned Workflow v2 test fixture. The canonical-smoke successor
 `dfa52c70cd48b33771d6c85de6483c499d9b038f` removes the noncanonical
 `/index.html` asset alias from the fixed smoke plan while preserving universal
-redirect denial.
+redirect denial. Infrastructure then narrowed the implementation through
+`a4572b351473bf5c0183d748434d77de04d882f0`,
+`c7bbf6413430da2e55f94041bba70fcbdb4a95ba`, and
+`b64f6f05940bdf24ba57dfe488f567853e0c3d22` so the shared public Worker bundle
+and private forward-payload identity remain unchanged.
 
 ## Corrective
 
@@ -88,11 +92,18 @@ canonicalized `/index.html` to `/` with an HTTP 307 response. The redirect
 guard therefore worked as designed.
 
 The Infrastructure successor keeps that guard fail-closed and changes the
-fixed plan to request only the canonical root HTML path. It does not follow
-same-origin or other redirects. A Miniflare integration test delegates through
-the exact Worker-first asset configuration and proves `/` returns HTTP 200
-while `/index.html` returns the rejected HTTP 307 canonicalization response.
-The noncanonical alias is not allowlisted.
+fixed client plan to request only the canonical root HTML path. It does not
+follow same-origin or other redirects. A Miniflare integration test delegates
+through the exact Worker-first asset configuration and proves `/` returns HTTP
+200 while `/index.html` returns the rejected HTTP 307 canonicalization
+response.
+
+The first repair also changed the shared public Worker bundle because both
+Workers reuse the same runtime guard module. The final successor restores the
+historical read-only guard alias byte-for-byte and filters it only in the
+non-Worker smoke client. The deterministic public rollback bundle remains
+`f8fceee62838c182a4e093d4d8bc57c71bf5ec8dbe71707db76c63ecd7a4b1eb`,
+and the private forward payload returns to its prior qualified identity.
 
 ## Boundary
 

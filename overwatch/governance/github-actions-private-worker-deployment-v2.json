@@ -1,7 +1,7 @@
 {
   "governanceId": "github-actions-private-worker-deployment-governance-v2",
-  "version": "1.5.0",
-  "batchId": "BATCH-20260725-006",
+  "version": "1.6.0",
+  "batchId": "BATCH-20260725-007",
   "directive": "Founder Standing Directive - End-to-End Engineering Execution",
   "status": "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED",
   "owningSubsystem": "Prometheus Overwatch",
@@ -71,6 +71,30 @@
       "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Repair private smoke canonical asset path"
+    },
+    "implementationPublicBundlePreservationCommit": {
+      "commit": "a4572b351473bf5c0183d748434d77de04d882f0",
+      "parent": "b09649990deb0410e7edae5ff7886707c31ee4a7",
+      "tree": "798c76cd3f2f53c7fe0ab6d707ef89660b46a2de",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Preserve public bundle in canonical smoke repair"
+    },
+    "implementationCanonicalClientIsolationCommit": {
+      "commit": "c7bbf6413430da2e55f94041bba70fcbdb4a95ba",
+      "parent": "a4572b351473bf5c0183d748434d77de04d882f0",
+      "tree": "8a86830a3cb4ad489583f513ee7fe3cfb16e3bc0",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Isolate canonical smoke client plan"
+    },
+    "implementationPayloadContinuityCommit": {
+      "commit": "b64f6f05940bdf24ba57dfe488f567853e0c3d22",
+      "parent": "c7bbf6413430da2e55f94041bba70fcbdb4a95ba",
+      "tree": "9748bbb49da416bc7f418c2b738788e4fdd4bea7",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Restore private payload continuity after smoke isolation"
     },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
@@ -286,6 +310,63 @@
         "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
         "sha256": "f38e51dd84beb7b1f3e1ff43e4711f463793e6c48cad28a107bafa2236acd80b"
       }
+    ],
+    "publicBundlePreservationPaths": [
+      "docs/cloudflare-unattended-deployment-access-v1.md",
+      "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+      "tests/cloudflare-unattended-runtime-guard.test.mjs",
+      "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json",
+      "workers/infrastructure/cloudflare-unattended-smoke-contract.js"
+    ],
+    "publicBundlePreservationEvidence": [
+      {
+        "path": "docs/cloudflare-unattended-deployment-access-v1.md",
+        "sha256": "1981a79b729bfc6cc2cd50accc96586c229cf8d3be180a5c67bbb3e12d43c412"
+      },
+      {
+        "path": "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+        "sha256": "e275098cae892202543d74c3e6a608c4b6e5d703544d100aade72d22992d9436"
+      },
+      {
+        "path": "tests/cloudflare-unattended-runtime-guard.test.mjs",
+        "sha256": "4deb42ad51e5df9294847d9801be02bff16fb959b738f4d2b50f1dc9661a2d98"
+      },
+      {
+        "path": "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json",
+        "sha256": "cc4497e14c02b72a2e787215eee72f609bab47740b39d56eaa1197143cae53a3"
+      },
+      {
+        "path": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+        "sha256": "85d40e9af08357cd7418ae2de3b9a8fadb7bb7163a46a384b5ccf6dc90dddcb5"
+      }
+    ],
+    "canonicalClientIsolationPaths": [
+      "scripts/run-cloudflare-unattended-smoke.mjs",
+      "workers/infrastructure/cloudflare-unattended-smoke-contract.js"
+    ],
+    "canonicalClientIsolationEvidence": [
+      {
+        "path": "scripts/run-cloudflare-unattended-smoke.mjs",
+        "sha256": "b8ff2859ffdc3eddf47346536a3e1e220fe39d0c8fd8c125e889d0860c60170b"
+      },
+      {
+        "path": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+        "sha256": "2aeb32d7fd43fcb9acaea072919b462c9bba6da4ae270d03c032c0b81bf3d680"
+      }
+    ],
+    "payloadContinuityPaths": [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ],
+    "payloadContinuityEvidence": [
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "3f295df44fe155e5bd0ac70420a55506bfeee1b1529153304c8983f55bbb2270"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "4b7f7faf9f4d59f60fecb17431bb43ae768e8b7cd80b3f9c75adf9b2bcb05c03"
+      }
     ]
   },
   "rootCause": {
@@ -327,13 +408,17 @@
     ],
     "canonicalSmokeFailedRunsReachedProductionMutation": false,
     "canonicalSmokeCause": "The authenticated service principal passed Cloudflare Access, but the fixed smoke plan requested /index.html. Cloudflare Workers static assets use auto-trailing-slash HTML handling and return a 307 canonicalization redirect from /index.html to /. Universal redirect denial correctly stopped every run before deployment.",
-    "canonicalSmokeRepair": "The fixed GET/HEAD plan now requests only the canonical root HTML path. The noncanonical /index.html alias is removed from and denied by the allowlist, every redirect remains fail-closed, and a Miniflare integration test proves the repository assets return 200 for / and 307 to / for /index.html."
+    "canonicalSmokeRepair": "The fixed GET/HEAD plan now requests only the canonical root HTML path. The noncanonical /index.html alias is omitted from the client plan, every redirect remains fail-closed, and a Miniflare integration test proves the repository assets return 200 for / and 307 to / for /index.html.",
+    "sharedPublicRollbackDriftCause": "Removing /index.html from the shared runtime guard changed the generated public Worker bundle even though the corrective targets only the private Worker.",
+    "sharedPublicRollbackPreservationRepair": "Infrastructure restored the historical read-only guard alias byte-for-byte, isolated canonical-path filtering inside the non-Worker smoke client, and restored the private forward-payload continuity pin.",
+    "publicRollbackBundleSha256": "f8fceee62838c182a4e093d4d8bc57c71bf5ec8dbe71707db76c63ecd7a4b1eb",
+    "publicRollbackBundleChanged": false
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
     "previousQualifiedTree": "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
     "releaseScopeUnchangedThroughBaselineCommit": "8976c077eef91147368c9b5566b5310c04fd6630",
-    "qualifiedForwardPayloadSha256": "67a9c5f347cc0e37d58f56211667bfdfbe9de9fb8bbc0c9ba00479a45f78b6b1",
+    "qualifiedForwardPayloadSha256": "a814ee31dcbc11c62dfd869ae23cd642163c89062512cd84fea589e516c995df",
     "qualifiedRollbackBundleSha256": "64af130e3a9cf1a6807b4fc0328b58083cb0744472a776211464b323bbb6a7a9"
   },
   "workflowBoundary": {
@@ -424,6 +509,7 @@
     "redirectsFollowed": false,
     "canonicalHtmlPath": "/",
     "noncanonicalHtmlAliasesAllowed": false,
+    "runtimeGuardHistoricalReadOnlyAliasPreserved": true,
     "credentialsOmittedFromBrowserState": true
   },
   "protectedEnvironment": {
@@ -465,6 +551,7 @@
     "failedDeploymentRunReachedProductionMutation": false,
     "runnerWorkspaceFailureReachedProductionMutation": false,
     "wranglerScratchFailureReachedProductionMutation": false,
+    "publicRollbackBundleChanged": false,
     "cleanRunnerRequalificationRequired": true,
     "pushMayTriggerDeployment": false
   }

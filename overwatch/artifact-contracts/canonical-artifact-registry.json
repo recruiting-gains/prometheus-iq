@@ -222,7 +222,13 @@
         "node24CleanupCommit": "1341e8edf6e96603437b7bff95768531e2f5446a",
         "node24CleanupTree": "c9c9330c8a9b3fc805e751698f85a75ee1817eb2",
         "canonicalSmokeRepairCommit": "dfa52c70cd48b33771d6c85de6483c499d9b038f",
-        "canonicalSmokeRepairTree": "8ab4c1047cc9aa51655e4313f677d955e8c7d636"
+        "canonicalSmokeRepairTree": "8ab4c1047cc9aa51655e4313f677d955e8c7d636",
+        "publicBundlePreservationCommit": "a4572b351473bf5c0183d748434d77de04d882f0",
+        "publicBundlePreservationTree": "798c76cd3f2f53c7fe0ab6d707ef89660b46a2de",
+        "canonicalClientIsolationCommit": "c7bbf6413430da2e55f94041bba70fcbdb4a95ba",
+        "canonicalClientIsolationTree": "8a86830a3cb4ad489583f513ee7fe3cfb16e3bc0",
+        "payloadContinuityCommit": "b64f6f05940bdf24ba57dfe488f567853e0c3d22",
+        "payloadContinuityTree": "9748bbb49da416bc7f418c2b738788e4fdd4bea7"
       },
       "cleanRunnerRealWranglerEvidenceRequired": true,
       "writeAllowed": [

@@ -246,7 +246,12 @@ export function evaluateCloudflareUnattendedAccessGovernance({
   require(guard.productionDeployed === false, "Service-principal guard must remain undeployed.");
   require(guard.privateWorkerRunsFirstForAllRequestsInSource === true, "Private Worker must run before assets in source.");
   require(equalJson(guard.allowedMethods, expectedMethods), "Service-principal methods must be exact GET/HEAD.");
-  require(Array.isArray(guard.allowedPaths) && guard.allowedPaths.length === 15 && new Set(guard.allowedPaths).size === 15, "Service-principal path allowlist drifted or contains duplicates.");
+  require(Array.isArray(guard.allowedPaths)
+    && guard.allowedPaths.length === 15
+    && new Set(guard.allowedPaths).size === 15
+    && guard.allowedPaths.includes("/")
+    && guard.allowedPaths.includes("/index.html"),
+  "Service-principal path allowlist drifted or contains duplicates.");
   require(guard.allOtherMethodsAndPaths === "DENY", "Non-allowlisted service-principal requests must deny.");
   require(guard.writeAttemptCountRequired === 0, "Smoke verification must require zero attempted writes.");
   require(guard.authentication.algorithm === "RS256", "Service-principal JWT algorithm drifted.");
@@ -264,6 +269,10 @@ export function evaluateCloudflareUnattendedAccessGovernance({
   require(smoke.arbitraryUrlAllowed === false && smoke.arbitraryMethodAllowed === false, "Smoke client must deny arbitrary URLs and methods.");
   require(smoke.requestBodiesAllowed === false && smoke.cookiesAllowed === false, "Smoke client must not send bodies or cookies.");
   require(smoke.redirectMode === "manual" && smoke.credentialsMode === "omit", "Smoke client redirect or credential mode drifted.");
+  require(smoke.canonicalHtmlPath === "/"
+    && smoke.noncanonicalHtmlAliasesAllowed === false
+    && smoke.redirectsFollowed === false,
+  "Smoke client canonical-path boundary drifted.");
   require(smoke.browserOrServiceWorkerUsed === false, "Smoke client must not use a browser or service worker.");
   require(smoke.responseBodiesReadOrPersisted === false, "Smoke client must not read or persist response bodies.");
   require(smoke.productionNetworkAccessPerformedByThisBatch === false, "This batch must not perform production smoke access.");
