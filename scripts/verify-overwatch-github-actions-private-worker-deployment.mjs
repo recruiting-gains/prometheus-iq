@@ -66,6 +66,9 @@ const v2WranglerScratchIsolationTree = "ccf08603d668bb7bc0bba76c76aefd5a4954852d
 const v2Node24CleanupRepairCommit = "1341e8edf6e96603437b7bff95768531e2f5446a";
 const v2Node24CleanupRepairParent = "a887033b1840f8933f59b1bc6b783248bd56271c";
 const v2Node24CleanupRepairTree = "c9c9330c8a9b3fc805e751698f85a75ee1817eb2";
+const v2CanonicalSmokeRepairCommit = "dfa52c70cd48b33771d6c85de6483c499d9b038f";
+const v2CanonicalSmokeRepairParent = "7855b0714f8fc178b5be6f8124ef02acad529312";
+const v2CanonicalSmokeRepairTree = "8ab4c1047cc9aa51655e4313f677d955e8c7d636";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -143,6 +146,23 @@ const v2WranglerScratchIsolationHashes = Object.freeze({
 const v2Node24CleanupRepairHashes = Object.freeze({
   "tests/github-actions-private-worker-workflow-v2.test.mjs":
     "4f18145316c10be2f425c153ba56a4785c8934fa0a80d0930c61830418f44d17"
+});
+
+const v2CanonicalSmokeRepairHashes = Object.freeze({
+  "docs/cloudflare-unattended-deployment-access-v1.md":
+    "31d9acf9a514ef54b328096d9aad78a818de9effc4808bf8750045171082a3be",
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+    "c4efe6e554bd5ea328c7a0f7ae8d6b86bc78f8db3733877dced827a492cc503f",
+  "scripts/verify-cloudflare-unattended-runtime-guard.mjs":
+    "e27a05412ebaca64d3679932f708d98e2d21430181a307a99a9ad3af555afec3",
+  "tests/cloudflare-unattended-runtime-guard.test.mjs":
+    "fe6499c4caca8a1ab41efa245673aab020799973604b1e7db0593941659daaab",
+  "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json":
+    "49a102aa45907b80f01ede2768d9f4ea723a5f4a560c8461c9d4df7e938c45db",
+  "workers/infrastructure/cloudflare-unattended-smoke-contract.js":
+    "dbc5c7ccc148223828a6a93588f5917d06d7cf8bbaafa4a3cc526f9079558b21",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "f38e51dd84beb7b1f3e1ff43e4711f463793e6c48cad28a107bafa2236acd80b"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -272,7 +292,8 @@ const infrastructureOwnedPaths = new Set([
   ...Object.keys(v2RunnerWorkspaceRepairHashes),
   ...Object.keys(v2TrustedTempAliasRepairHashes),
   ...Object.keys(v2WranglerScratchIsolationHashes),
-  ...Object.keys(v2Node24CleanupRepairHashes)
+  ...Object.keys(v2Node24CleanupRepairHashes),
+  ...Object.keys(v2CanonicalSmokeRepairHashes)
 ]);
 const overwatchOwnedPaths = new Set([
   ...expectedOverwatchPaths,
@@ -725,7 +746,7 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(governance?.governanceId ===
     "github-actions-private-worker-deployment-governance-v2",
   "Private Workflow v2 governance identity drifted.");
-  require(governance?.version === "1.4.0"
+  require(governance?.version === "1.5.0"
     && governance?.status ===
     "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED"
     && governance?.owningSubsystem === "Prometheus Overwatch",
@@ -790,6 +811,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership?.implementationNode24CleanupRepairCommit?.author ===
       infrastructureIdentity
     && governance?.ownership?.implementationNode24CleanupRepairCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationCanonicalSmokeRepairCommit?.commit ===
+      v2CanonicalSmokeRepairCommit
+    && governance?.ownership?.implementationCanonicalSmokeRepairCommit?.parent ===
+      v2CanonicalSmokeRepairParent
+    && governance?.ownership?.implementationCanonicalSmokeRepairCommit?.tree ===
+      v2CanonicalSmokeRepairTree
+    && governance?.ownership?.implementationCanonicalSmokeRepairCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationCanonicalSmokeRepairCommit?.committer ===
       infrastructureIdentity,
   "Private Workflow v2 owner provenance drifted.");
   require(equal(governance?.ownership?.implementationPaths, Object.keys(v2OwnerHashes)),
@@ -839,6 +870,15 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       sha256: sha256Value
     }))),
   "Private Workflow v2 Node 24 cleanup repair evidence drifted.");
+  require(equal(governance?.ownership?.canonicalSmokeRepairPaths,
+    Object.keys(v2CanonicalSmokeRepairHashes)),
+  "Private Workflow v2 canonical-smoke repair path set drifted.");
+  require(equal(governance?.ownership?.canonicalSmokeRepairEvidence,
+    Object.entries(v2CanonicalSmokeRepairHashes).map(([path, sha256Value]) => ({
+      path,
+      sha256: sha256Value
+    }))),
+  "Private Workflow v2 canonical-smoke repair evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -877,7 +917,21 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.rootCause?.fourthQualificationReachedArtifactBuild === false
     && governance?.rootCause?.fourthQualificationReachedProductionMutation === false
     && governance?.rootCause?.node24CleanupCause?.includes("ERR_FS_EISDIR")
-    && governance?.rootCause?.node24CleanupRepair?.includes("unlinkSync"),
+    && governance?.rootCause?.node24CleanupRepair?.includes("unlinkSync")
+    && equal(governance?.rootCause?.canonicalSmokeFailedRuns, [
+      "30197730489",
+      "30199390518",
+      "30199552708",
+      "30199655532"
+    ])
+    && governance?.rootCause?.canonicalSmokeFailedRunsReachedProductionMutation ===
+      false
+    && governance?.rootCause?.canonicalSmokeCause?.includes(
+      "307 canonicalization redirect from /index.html to /"
+    )
+    && governance?.rootCause?.canonicalSmokeRepair?.includes(
+      "every redirect remains fail-closed"
+    ),
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
     && governance?.workflowBoundary?.branch === "main"
@@ -943,7 +997,10 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   "Private Workflow v2 real-Wrangler qualification evidence drifted.");
   require(equal(governance?.smokeBoundary?.methods, ["GET", "HEAD"])
     && governance?.smokeBoundary?.authenticated === true
-    && governance?.smokeBoundary?.attemptedApplicationWrites === 0,
+    && governance?.smokeBoundary?.attemptedApplicationWrites === 0
+    && governance?.smokeBoundary?.redirectsFollowed === false
+    && governance?.smokeBoundary?.canonicalHtmlPath === "/"
+    && governance?.smokeBoundary?.noncanonicalHtmlAliasesAllowed === false,
   "Private Workflow v2 smoke boundary drifted.");
   require(governance?.runtimeBoundary?.prospectiveCollection === "OFF"
     && governance?.runtimeBoundary?.activeCohorts === 0
@@ -1054,6 +1111,7 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       ?.dotWranglerAllowlistedInGuardedRoots === false
     && contract?.smoke?.writeMethodsAllowed === false
     && contract?.smoke?.attemptedApplicationWritesRequired === 0
+    && contract?.smoke?.redirectsAllowed === false
     && contract?.releaseBoundary?.deploymentAuthorized === false
     && contract?.releaseBoundary?.productionContactAuthorized === false,
   "Private Workflow v2 Infrastructure contract drifted.");
@@ -1314,6 +1372,15 @@ function verifyV2OwnerAndGovernance() {
       subject: "Repair private Workflow v2 Node 24 cleanup",
       hashes: v2Node24CleanupRepairHashes,
       recorded: governance.ownership.node24CleanupRepairEvidence
+    },
+    {
+      label: "canonical smoke",
+      commit: v2CanonicalSmokeRepairCommit,
+      parent: v2CanonicalSmokeRepairParent,
+      tree: v2CanonicalSmokeRepairTree,
+      subject: "Repair private smoke canonical asset path",
+      hashes: v2CanonicalSmokeRepairHashes,
+      recorded: governance.ownership.canonicalSmokeRepairEvidence
     }
   ]) {
     const metadata = git([
@@ -1362,7 +1429,8 @@ function verifyV2OwnerAndGovernance() {
     ...v2BootstrapRepairHashes,
     ...v2RunnerWorkspaceRepairHashes,
     ...v2WranglerScratchIsolationHashes,
-    ...v2Node24CleanupRepairHashes
+    ...v2Node24CleanupRepairHashes,
+    ...v2CanonicalSmokeRepairHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -1480,7 +1548,9 @@ function verifyRegistryAndReleaseWiring() {
       wranglerScratchIsolationCommit: v2WranglerScratchIsolationCommit,
       wranglerScratchIsolationTree: v2WranglerScratchIsolationTree,
       node24CleanupCommit: v2Node24CleanupRepairCommit,
-      node24CleanupTree: v2Node24CleanupRepairTree
+      node24CleanupTree: v2Node24CleanupRepairTree,
+      canonicalSmokeRepairCommit: v2CanonicalSmokeRepairCommit,
+      canonicalSmokeRepairTree: v2CanonicalSmokeRepairTree
     })
     || artifactV2.cleanRunnerRealWranglerEvidenceRequired !== true
     || !equal(artifactV2.writeAllowed, ["Prometheus Overwatch"])) {
@@ -1637,6 +1707,7 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
     immutableWorkflowV2WranglerScratchIsolationCommit:
       v2WranglerScratchIsolationCommit,
     immutableWorkflowV2Node24CleanupRepairCommit: v2Node24CleanupRepairCommit,
+    immutableWorkflowV2CanonicalSmokeRepairCommit: v2CanonicalSmokeRepairCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,

@@ -1,7 +1,7 @@
 {
   "governanceId": "github-actions-private-worker-deployment-governance-v2",
-  "version": "1.4.0",
-  "batchId": "BATCH-20260725-004",
+  "version": "1.5.0",
+  "batchId": "BATCH-20260725-006",
   "directive": "Founder Standing Directive - End-to-End Engineering Execution",
   "status": "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED",
   "owningSubsystem": "Prometheus Overwatch",
@@ -63,6 +63,14 @@
       "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Repair private Workflow v2 Node 24 cleanup"
+    },
+    "implementationCanonicalSmokeRepairCommit": {
+      "commit": "dfa52c70cd48b33771d6c85de6483c499d9b038f",
+      "parent": "7855b0714f8fc178b5be6f8124ef02acad529312",
+      "tree": "8ab4c1047cc9aa51655e4313f677d955e8c7d636",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Repair private smoke canonical asset path"
     },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
@@ -239,6 +247,45 @@
         "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
         "sha256": "4f18145316c10be2f425c153ba56a4785c8934fa0a80d0930c61830418f44d17"
       }
+    ],
+    "canonicalSmokeRepairPaths": [
+      "docs/cloudflare-unattended-deployment-access-v1.md",
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+      "tests/cloudflare-unattended-runtime-guard.test.mjs",
+      "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json",
+      "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ],
+    "canonicalSmokeRepairEvidence": [
+      {
+        "path": "docs/cloudflare-unattended-deployment-access-v1.md",
+        "sha256": "31d9acf9a514ef54b328096d9aad78a818de9effc4808bf8750045171082a3be"
+      },
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "c4efe6e554bd5ea328c7a0f7ae8d6b86bc78f8db3733877dced827a492cc503f"
+      },
+      {
+        "path": "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+        "sha256": "e27a05412ebaca64d3679932f708d98e2d21430181a307a99a9ad3af555afec3"
+      },
+      {
+        "path": "tests/cloudflare-unattended-runtime-guard.test.mjs",
+        "sha256": "fe6499c4caca8a1ab41efa245673aab020799973604b1e7db0593941659daaab"
+      },
+      {
+        "path": "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json",
+        "sha256": "49a102aa45907b80f01ede2768d9f4ea723a5f4a560c8461c9d4df7e938c45db"
+      },
+      {
+        "path": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+        "sha256": "dbc5c7ccc148223828a6a93588f5917d06d7cf8bbaafa4a3cc526f9079558b21"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "f38e51dd84beb7b1f3e1ff43e4711f463793e6c48cad28a107bafa2236acd80b"
+      }
     ]
   },
   "rootCause": {
@@ -271,13 +318,22 @@
     "fourthQualificationReachedArtifactBuild": false,
     "fourthQualificationReachedProductionMutation": false,
     "node24CleanupCause": "The clean Node 24.4.1 runner correctly rejected the substituted symlink, then the test fixture used rmSync on that directory symlink and Node 24 returned ERR_FS_EISDIR during cleanup. The same cleanup happened to succeed under Node 25, so the local current-Node matrix did not expose the portability defect.",
-    "node24CleanupRepair": "The Infrastructure-owned fixture now removes the known symlink with unlinkSync before recreating the directory. The security assertion, symlink rejection, real Wrangler dry run, and production boundaries are unchanged."
+    "node24CleanupRepair": "The Infrastructure-owned fixture now removes the known symlink with unlinkSync before recreating the directory. The security assertion, symlink rejection, real Wrangler dry run, and production boundaries are unchanged.",
+    "canonicalSmokeFailedRuns": [
+      "30197730489",
+      "30199390518",
+      "30199552708",
+      "30199655532"
+    ],
+    "canonicalSmokeFailedRunsReachedProductionMutation": false,
+    "canonicalSmokeCause": "The authenticated service principal passed Cloudflare Access, but the fixed smoke plan requested /index.html. Cloudflare Workers static assets use auto-trailing-slash HTML handling and return a 307 canonicalization redirect from /index.html to /. Universal redirect denial correctly stopped every run before deployment.",
+    "canonicalSmokeRepair": "The fixed GET/HEAD plan now requests only the canonical root HTML path. The noncanonical /index.html alias is removed from and denied by the allowlist, every redirect remains fail-closed, and a Miniflare integration test proves the repository assets return 200 for / and 307 to / for /index.html."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
     "previousQualifiedTree": "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
     "releaseScopeUnchangedThroughBaselineCommit": "8976c077eef91147368c9b5566b5310c04fd6630",
-    "qualifiedForwardPayloadSha256": "a814ee31dcbc11c62dfd869ae23cd642163c89062512cd84fea589e516c995df",
+    "qualifiedForwardPayloadSha256": "67a9c5f347cc0e37d58f56211667bfdfbe9de9fb8bbc0c9ba00479a45f78b6b1",
     "qualifiedRollbackBundleSha256": "64af130e3a9cf1a6807b4fc0328b58083cb0744472a776211464b323bbb6a7a9"
   },
   "workflowBoundary": {
@@ -366,6 +422,8 @@
     ],
     "attemptedApplicationWrites": 0,
     "redirectsFollowed": false,
+    "canonicalHtmlPath": "/",
+    "noncanonicalHtmlAliasesAllowed": false,
     "credentialsOmittedFromBrowserState": true
   },
   "protectedEnvironment": {

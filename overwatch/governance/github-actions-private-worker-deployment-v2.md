@@ -12,7 +12,10 @@ Infrastructure successor chain that canonicalizes the trusted default temporary
 alias in `6a764ad86ad4f99e0bd9ed835c8f1aba20f91a3b` and isolates Wrangler scratch
 output in `947720badd46cb053c6e199b96b3739180b26690`. The Node 24 portability
 successor `1341e8edf6e96603437b7bff95768531e2f5446a` changes only the
-Infrastructure-owned Workflow v2 test fixture.
+Infrastructure-owned Workflow v2 test fixture. The canonical-smoke successor
+`dfa52c70cd48b33771d6c85de6483c499d9b038f` removes the noncanonical
+`/index.html` asset alias from the fixed smoke plan while preserving universal
+redirect denial.
 
 ## Corrective
 
@@ -78,6 +81,19 @@ attack remains rejected, the real Wrangler test remains mandatory, and no
 runtime, payload, or production boundary changed. Fresh clean-runner evidence
 is pending; this governance update does not claim qualification or deployment.
 
+Protected runs `30197730489`, `30199390518`, `30199552708`, and `30199655532`
+failed before production mutation with `REDIRECT_DENIED`. Cloudflare Access
+allowed the exact replacement service principal, but Workers static assets
+canonicalized `/index.html` to `/` with an HTTP 307 response. The redirect
+guard therefore worked as designed.
+
+The Infrastructure successor keeps that guard fail-closed and changes the
+fixed plan to request only the canonical root HTML path. It does not follow
+same-origin or other redirects. A Miniflare integration test delegates through
+the exact Worker-first asset configuration and proves `/` returns HTTP 200
+while `/index.html` returns the rejected HTTP 307 canonicalization response.
+The noncanonical alias is not allowlisted.
+
 ## Boundary
 
 - Target: `prometheus-iq` only.
@@ -91,8 +107,8 @@ is pending; this governance update does not claim qualification or deployment.
 - One forward deployment attempt is permitted. There is no retry.
 - Critical failure permits one paired forward-compatible rollback; native
   rollback is prohibited.
-- Automated smoke requests are authenticated GET or HEAD only and permit zero
-  attempted application writes.
+- Automated smoke requests are authenticated GET or HEAD only, use canonical
+  paths, reject every redirect, and permit zero attempted application writes.
 - Collection, cohorts, recommendation influence, availability refresh,
   customer activation, Anthony mapping, the public Worker, and CRM remain
   outside this release.
