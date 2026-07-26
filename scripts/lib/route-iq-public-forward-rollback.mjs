@@ -24,8 +24,17 @@ import {
 } from "./github-actions-public-worker-deployment.mjs";
 
 const MAX_ARCHIVE_BYTES = 256 * 1024 * 1024;
+const MAX_PINNED_FILE_BYTES = 2_000_000;
 const COMMAND_TIMEOUT_MS = 240_000;
 const SHA256 = /^[0-9a-f]{64}$/u;
+export const PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE = Object.freeze({
+  commit: "25ff53a7e61b50962144c5c689cc7a546875f724",
+  tree: "25f27adbd21a281d1294a68362b994403934095e",
+  owner: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+  rollbackContractSha256: "df9a90e39076df62bb6c3ec521a9dd86afe8d65f0836645237dbc2d08c69302d",
+  packageLockSha256: "70bb4bb8a4ed855307ca98c0efd295e23825504bf225609d16be474640134a0c",
+  artifactSha256: "37f215ffe57df61aaa741352111806b07ff1a97dabd07c36188080e62857e582"
+});
 const GENERATED_OUTPUT_FILES = Object.freeze([
   "prometheusrouteiq-website-entry.js",
   "prometheusrouteiq-website-entry.js.map",
@@ -114,6 +123,197 @@ function sha256File(path) {
   } finally {
     content.fill(0);
   }
+}
+
+function validPinnedPath(path) {
+  return typeof path === "string"
+    && path.length > 0
+    && path.length <= 512
+    && !path.startsWith("/")
+    && !path.endsWith("/")
+    && !path.includes("\\")
+    && !path.includes("\0")
+    && path.split("/").every(segment => segment.length > 0 && segment !== "." && segment !== "..");
+}
+
+function commandText(root, command, argumentsList) {
+  const output = run(root, command, argumentsList, {
+    encoding: "utf8",
+    maxBuffer: MAX_PINNED_FILE_BYTES
+  });
+  return typeof output === "string" ? output.trim() : "";
+}
+
+export function verifyPublicForwardRollbackBuildSource(root) {
+  try {
+    const source = PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE;
+    if (commandText(root, "git", ["rev-parse", `${source.commit}^{commit}`]) !== source.commit
+      || commandText(root, "git", ["rev-parse", `${source.commit}^{tree}`]) !== source.tree
+      || commandText(root, "git", ["show", "-s", "--format=%an <%ae>", source.commit]) !== source.owner) {
+      throw new Error("public_forward_rollback_build_source_invalid");
+    }
+    run(root, "git", ["merge-base", "--is-ancestor", source.commit, "HEAD"]);
+    if (sha256File(join(root, PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath))
+        !== source.rollbackContractSha256
+      || sha256File(join(root, "package-lock.json")) !== source.packageLockSha256) {
+      throw new Error("public_forward_rollback_build_source_invalid");
+    }
+    return source;
+  } catch (error) {
+    if (error?.message === "public_forward_rollback_build_source_invalid") throw error;
+    throw new Error("public_forward_rollback_build_source_invalid");
+  }
+}
+
+function safeMaterializationDestination(directory, path) {
+  const root = resolve(directory);
+  let rootStats;
+  let realRoot;
+  try {
+    rootStats = lstatSync(root);
+    realRoot = realpathSync(root);
+  } catch {
+    throw new Error("public_forward_rollback_pinned_source_invalid");
+  }
+  if (!rootStats.isDirectory() || rootStats.isSymbolicLink()) {
+    throw new Error("public_forward_rollback_pinned_source_invalid");
+  }
+
+  const segments = path.split("/");
+  let current = root;
+  for (const segment of segments.slice(0, -1)) {
+    current = join(current, segment);
+    try {
+      const stats = lstatSync(current);
+      if (!stats.isDirectory() || stats.isSymbolicLink()) {
+        throw new Error("public_forward_rollback_pinned_source_invalid");
+      }
+    } catch (error) {
+      if (error?.message === "public_forward_rollback_pinned_source_invalid") throw error;
+      try {
+        mkdirSync(current, { mode: 0o700 });
+      } catch {
+        throw new Error("public_forward_rollback_pinned_source_invalid");
+      }
+    }
+    let realCurrent;
+    try {
+      realCurrent = realpathSync(current);
+    } catch {
+      throw new Error("public_forward_rollback_pinned_source_invalid");
+    }
+    const relativeCurrent = relative(realRoot, realCurrent);
+    if (!relativeCurrent
+      || relativeCurrent === ".."
+      || relativeCurrent.startsWith("../")
+      || relativeCurrent.startsWith("..\\")
+      || isAbsolute(relativeCurrent)) {
+      throw new Error("public_forward_rollback_pinned_source_invalid");
+    }
+  }
+
+  const destination = join(current, segments.at(-1));
+  let projectedRealDestination;
+  try {
+    projectedRealDestination = join(realpathSync(current), segments.at(-1));
+  } catch {
+    throw new Error("public_forward_rollback_pinned_source_invalid");
+  }
+  const relativeDestination = relative(realRoot, projectedRealDestination);
+  if (!relativeDestination
+    || relativeDestination === ".."
+    || relativeDestination.startsWith("../")
+    || relativeDestination.startsWith("..\\")
+    || isAbsolute(relativeDestination)) {
+    throw new Error("public_forward_rollback_pinned_source_invalid");
+  }
+  try {
+    lstatSync(destination);
+    throw new Error("public_forward_rollback_pinned_source_invalid");
+  } catch (error) {
+    if (error?.message === "public_forward_rollback_pinned_source_invalid") throw error;
+  }
+  return Object.freeze({ destination, realRoot });
+}
+
+export function materializePinnedPublicStatefulFiles(
+  root,
+  directory,
+  candidateStatefulFiles
+) {
+  const entries = Object.entries(candidateStatefulFiles || {})
+    .sort(([left], [right]) => left.localeCompare(right));
+  if (entries.length < 1) throw new Error("public_forward_rollback_pinned_source_invalid");
+
+  for (const [path, provenance] of entries) {
+    if (!validPinnedPath(path)
+      || typeof provenance !== "object"
+      || provenance === null
+      || Array.isArray(provenance)
+      || !/^[0-9a-f]{40}$/u.test(provenance.sourceCommit || "")
+      || !SHA256.test(provenance.sha256 || "")) {
+      throw new Error("public_forward_rollback_pinned_source_invalid");
+    }
+    let treeEntry;
+    try {
+      treeEntry = commandText(root, "git", [
+        "ls-tree",
+        provenance.sourceCommit,
+        "--",
+        path
+      ]);
+    } catch {
+      throw new Error("public_forward_rollback_pinned_source_invalid");
+    }
+    const tabIndex = treeEntry.indexOf("\t");
+    const metadata = tabIndex > 0 ? treeEntry.slice(0, tabIndex).split(" ") : [];
+    if (tabIndex < 1
+      || treeEntry.slice(tabIndex + 1) !== path
+      || metadata.length !== 3
+      || !["100644", "100755"].includes(metadata[0])
+      || metadata[1] !== "blob"
+      || !/^[0-9a-f]{40}$/u.test(metadata[2] || "")) {
+      throw new Error("public_forward_rollback_pinned_source_invalid");
+    }
+    const { destination, realRoot } = safeMaterializationDestination(directory, path);
+
+    let content;
+    try {
+      content = run(root, "git", [
+        "show",
+        `${provenance.sourceCommit}:${path}`
+      ], { maxBuffer: MAX_PINNED_FILE_BYTES });
+      if (!Buffer.isBuffer(content)
+        || content.length < 1
+        || content.length > MAX_PINNED_FILE_BYTES
+        || createHash("sha256").update(content).digest("hex") !== provenance.sha256) {
+        throw new Error("public_forward_rollback_pinned_source_invalid");
+      }
+      writeFileSync(destination, content, { flag: "wx", mode: 0o600 });
+      const materializedStats = lstatSync(destination);
+      const realDestination = realpathSync(destination);
+      const relativeDestination = relative(realRoot, realDestination);
+      if (!materializedStats.isFile()
+        || materializedStats.isSymbolicLink()
+        || !relativeDestination
+        || relativeDestination === ".."
+        || relativeDestination.startsWith("../")
+        || relativeDestination.startsWith("..\\")
+        || isAbsolute(relativeDestination)
+        || sha256File(destination) !== provenance.sha256) {
+        throw new Error("public_forward_rollback_pinned_source_invalid");
+      }
+    } catch (error) {
+      if (error?.message === "public_forward_rollback_pinned_source_invalid") throw error;
+      throw new Error("public_forward_rollback_pinned_source_invalid");
+    } finally {
+      if (Buffer.isBuffer(content)) content.fill(0);
+    }
+  }
+  return Object.freeze({
+    status: "PUBLIC_FORWARD_ROLLBACK_PINNED_STATEFUL_FILES_MATERIALIZED",
+    fileCount: entries.length
+  });
 }
 
 function canonicalJson(value) {
@@ -298,11 +498,19 @@ export function buildPublicForwardRollbackArtifact(root, {
   outputDirectory
 } = {}) {
   const contract = verifyPublicForwardRollbackContract(root);
+  const buildSource = verifyPublicForwardRollbackBuildSource(root);
   const workspace = mkdtempSync(join(temporaryRoot, "route-iq-public-forward-rollback-"));
   const generatedDirectory = join(workspace, ".route-iq-public-forward-generated");
   const identityDirectory = join(workspace, ".route-iq-public-forward-artifact");
+  const provenanceDirectory = join(workspace, ".route-iq-public-forward-provenance");
   try {
-    extractArchive(root, "HEAD", workspace);
+    extractArchive(root, buildSource.commit, workspace);
+    mkdirSync(provenanceDirectory, { mode: 0o700 });
+    materializePinnedPublicStatefulFiles(
+      root,
+      provenanceDirectory,
+      contract.candidateStatefulFiles
+    );
     const publicAssets = join(workspace, contract.websiteAssetPath);
     rmSync(publicAssets, { recursive: true, force: true });
     extractArchive(root, contract.sourceWebsiteCommit, workspace, contract.websiteAssetPath);
@@ -370,6 +578,9 @@ export function buildPublicForwardRollbackArtifact(root, {
     if (![artifactSha256, websiteAssetsSha256, configurationSha256, generatedWorkerSha256, generatedSourceMapSha256]
       .every(value => SHA256.test(value))) {
       throw new Error("public_forward_rollback_hash_invalid");
+    }
+    if (artifactSha256 !== buildSource.artifactSha256) {
+      throw new Error("public_forward_rollback_build_source_invalid");
     }
     if (outputDirectory !== undefined) {
       if (typeof outputDirectory !== "string" || outputDirectory.length < 1) {
