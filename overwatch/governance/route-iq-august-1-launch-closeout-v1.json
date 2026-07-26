@@ -298,6 +298,6 @@
     {"path":"workers/infrastructure/route-iq-public-forward-rollback-v1.json","owner":"Prometheus Infrastructure","classification":"CONTROLLING_CURRENT","required":true,"sha256":"df9a90e39076df62bb6c3ec521a9dd86afe8d65f0836645237dbc2d08c69302d"},
     {"path":"workers/infrastructure/route-iq-request-crm-runtime-v1.json","owner":"Prometheus Infrastructure","classification":"CONTROLLING_CURRENT","required":true,"sha256":"2698f79b8714b6f10611afa54731c6ce31a356293dd5b79f7fd56567f639d068"},
     {"path":"workers/infrastructure/route-iq-request-crm-runtime.js","owner":"Prometheus Infrastructure","classification":"CONTROLLING_CURRENT","required":true,"sha256":"d94123c135fa8030cd6cb10385ff2198ae71ce33e5b0580e7243bbd3aeba68a9"},
-    {"path":"workers/prometheus-iq-worker.js","owner":"Prometheus Infrastructure","classification":"CONTROLLING_CURRENT","required":true,"sha256":"7fcb0b3e4e6772e4831a808cbd0f02ef9e28f017ebb6c2d69a9b368248ac76c9"}
+    {"path":"workers/prometheus-iq-worker.js","owner":"Prometheus Infrastructure","classification":"CONTROLLING_CURRENT","required":true,"sha256":"cb94edb98f424de58d113722b743d16fa1512320d2fc5812f752b75b361985a6"}
   ]
 }
