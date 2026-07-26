@@ -18,6 +18,7 @@ import {
   buildQualifiedPrivateWranglerInvocation,
   createPrivateDeploymentEvidenceRecorder,
   formatPrivateWorkflowV2Failure,
+  privateWorkflowV2SecretEnvironmentNames,
   qualifiedPrivateConfigForArtifact,
   requirePrivateV2ProtectedSecretNames,
   runQualifiedPrivateDeploymentLifecycle,
@@ -298,12 +299,10 @@ test("deployment input validation pins every artifact identity without requiring
 });
 
 test("all four protected names are required before any production request", () => {
-  const complete = {
-    CLOUDFLARE_API_TOKEN: "fixture",
-    CLOUDFLARE_ACCOUNT_ID: "fixture",
-    CLOUDFLARE_ACCESS_CLIENT_ID: "fixture",
-    CLOUDFLARE_ACCESS_CLIENT_SECRET: "fixture"
-  };
+  const complete = Object.fromEntries(
+    privateWorkflowV2SecretEnvironmentNames.map(name => [name, "fixture"])
+  );
+  assert.equal(Object.keys(complete).length, 4);
   assert.equal(
     requirePrivateV2ProtectedSecretNames({ ...complete }).status,
     "PRIVATE_WORKER_V2_REQUIRED_PROTECTED_SECRET_NAMES_PRESENT"
