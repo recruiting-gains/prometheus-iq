@@ -55,6 +55,9 @@ const v2OwnerRepairTree = "09f50df144a4f4890c327306d051bbcf11bd362a";
 const v2BootstrapRepairCommit = "a5ae6578bc0c030def8df5d4713d5ecbe5206212";
 const v2BootstrapRepairParent = "2dda98c901889b9a115592d9f1f74b8d24deb56f";
 const v2BootstrapRepairTree = "fba13a295f427eefad01b1f3c9b84c5a08eb7d37";
+const v2RunnerWorkspaceRepairCommit = "254fea23e18fec27228e15e75986a1c6bb3dffd6";
+const v2RunnerWorkspaceRepairParent = "f293d37ad8588755151dbf7fc83f1aa19118fd9b";
+const v2RunnerWorkspaceRepairTree = "0770f3a6f6a1626f8510e1300b4fdbef936206c8";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -94,6 +97,17 @@ const v2BootstrapRepairHashes = Object.freeze({
     "fb945a51a5556aaf5b9e22c659c49429aec83465f10920b6e634b772f872ca4c",
   "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
     "87dfe2db6bb803b528ad73656ddd9fba31efd35a049d4e1bfe140c52edee6b22"
+});
+
+const v2RunnerWorkspaceRepairHashes = Object.freeze({
+  "scripts/run-github-actions-private-worker-deployment-v2.mjs":
+    "ed7572003565fa989bdb85ef63232585527b8ee1ea5e52aa537e18e0c9bbb25b",
+  "scripts/verify-github-actions-private-worker-workflow-v2.mjs":
+    "b0c5968daa1bef96139cb9b8797bd0ddae449ad3b4175a1a6ca73d8bdcad54c2",
+  "tests/github-actions-private-worker-workflow-v2.test.mjs":
+    "82f66577294d3a76196246e3695838634e20e55c2780cc72c138f561b98abaa8",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "136ce3d70a081fd0366a54358891cd37b40277bb702a4d995635a3c19b6d6e1d"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -219,7 +233,8 @@ const infrastructureOwnedPaths = new Set([
   ...Object.keys(historicalOwnerHashes),
   ...Object.keys(compatibilityOwnerHashes),
   ...Object.keys(v2OwnerHashes),
-  ...Object.keys(v2BootstrapRepairHashes)
+  ...Object.keys(v2BootstrapRepairHashes),
+  ...Object.keys(v2RunnerWorkspaceRepairHashes)
 ]);
 const overwatchOwnedPaths = new Set([
   ...expectedOverwatchPaths,
@@ -696,6 +711,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership?.implementationBootstrapRepairCommit?.author ===
       infrastructureIdentity
     && governance?.ownership?.implementationBootstrapRepairCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationRunnerWorkspaceRepairCommit?.commit ===
+      v2RunnerWorkspaceRepairCommit
+    && governance?.ownership?.implementationRunnerWorkspaceRepairCommit?.parent ===
+      v2RunnerWorkspaceRepairParent
+    && governance?.ownership?.implementationRunnerWorkspaceRepairCommit?.tree ===
+      v2RunnerWorkspaceRepairTree
+    && governance?.ownership?.implementationRunnerWorkspaceRepairCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationRunnerWorkspaceRepairCommit?.committer ===
       infrastructureIdentity,
   "Private Workflow v2 owner provenance drifted.");
   require(equal(governance?.ownership?.implementationPaths, Object.keys(v2OwnerHashes)),
@@ -709,6 +734,15 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       sha256: sha256Value
     }))),
   "Private Workflow v2 bootstrap repair evidence drifted.");
+  require(equal(governance?.ownership?.runnerWorkspaceRepairPaths,
+    Object.keys(v2RunnerWorkspaceRepairHashes)),
+  "Private Workflow v2 runner-workspace repair path set drifted.");
+  require(equal(governance?.ownership?.runnerWorkspaceRepairEvidence,
+    Object.entries(v2RunnerWorkspaceRepairHashes).map(([path, sha256Value]) => ({
+      path,
+      sha256: sha256Value
+    }))),
+  "Private Workflow v2 runner-workspace repair evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -716,7 +750,14 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.rootCause?.firstDeploymentReachedProductionMutation === false
     && governance?.rootCause?.firstDeploymentRollbackRequired === false
     && typeof governance?.rootCause?.bootstrapDeadlock === "string"
-    && typeof governance?.rootCause?.bootstrapRepair === "string",
+    && typeof governance?.rootCause?.bootstrapRepair === "string"
+    && governance?.rootCause?.secondDeploymentWorkflowRun === "30189780921"
+    && governance?.rootCause?.secondDeploymentFailure ===
+      "RUNTIME_GUARD_WORKSPACE_INVALID"
+    && governance?.rootCause?.secondDeploymentReachedProductionMutation === false
+    && governance?.rootCause?.secondDeploymentRollbackRequired === false
+    && typeof governance?.rootCause?.runnerWorkspaceCause === "string"
+    && typeof governance?.rootCause?.runnerWorkspaceRepair === "string",
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
     && governance?.workflowBoundary?.branch === "main"
@@ -793,6 +834,8 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.releaseBoundary?.externalCredentialAndAccessConfigurationPerformed ===
       true
     && governance?.releaseBoundary?.failedDeploymentRunReachedProductionMutation === false
+    && governance?.releaseBoundary?.runnerWorkspaceFailureReachedProductionMutation ===
+      false
     && governance?.releaseBoundary?.pushMayTriggerDeployment === false,
   "Private Workflow v2 release boundary drifted.");
   require(contract?.contractVersion === "github-actions-private-worker-deployment-v2"
@@ -1022,9 +1065,63 @@ function verifyV2OwnerAndGovernance() {
       stdio: ["ignore", "pipe", "ignore"]
     });
     if (sha256(committed) !== expected
-      || sha256(readFileSync(resolve(root, path))) !== expected
       || bootstrapRecorded.get(path) !== expected) {
       throw new Error(`Private Workflow v2 bootstrap evidence drifted: ${path}`);
+    }
+  }
+
+  const runnerWorkspaceMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    v2RunnerWorkspaceRepairCommit
+  ]).split("\n");
+  if (!equal(runnerWorkspaceMetadata, [
+    v2RunnerWorkspaceRepairCommit,
+    v2RunnerWorkspaceRepairParent,
+    v2RunnerWorkspaceRepairTree,
+    infrastructureIdentity,
+    infrastructureIdentity,
+    "Repair private runner runtime workspace"
+  ])) throw new Error("Private Workflow v2 runner-workspace repair provenance drifted.");
+
+  const runnerWorkspacePaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    v2RunnerWorkspaceRepairCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(runnerWorkspacePaths, Object.keys(v2RunnerWorkspaceRepairHashes))) {
+    throw new Error("Private Workflow v2 runner-workspace repair path set drifted.");
+  }
+  if (runnerWorkspacePaths.some(path => path.startsWith("overwatch/")
+    || path === "package.json")) {
+    throw new Error(
+      "Private Workflow v2 runner-workspace repair crossed the Overwatch boundary."
+    );
+  }
+
+  const runnerWorkspaceRecorded = new Map(
+    governance.ownership.runnerWorkspaceRepairEvidence
+      .map(item => [item.path, item.sha256])
+  );
+  for (const [path, expected] of Object.entries(v2RunnerWorkspaceRepairHashes)) {
+    const committed = execFileSync("/usr/bin/git", [
+      "show", `${v2RunnerWorkspaceRepairCommit}:${path}`
+    ], {
+      cwd: root,
+      encoding: null,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    if (sha256(committed) !== expected
+      || runnerWorkspaceRecorded.get(path) !== expected) {
+      throw new Error(`Private Workflow v2 runner-workspace evidence drifted: ${path}`);
+    }
+  }
+
+  const currentInfrastructureHashes = {
+    ...v2BootstrapRepairHashes,
+    ...v2RunnerWorkspaceRepairHashes
+  };
+  for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
+    if (sha256(readFileSync(resolve(root, path))) !== expected) {
+      throw new Error(`Private Workflow v2 current owner evidence drifted: ${path}`);
     }
   }
 
@@ -1263,8 +1360,10 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
     immutableWorkflowV2QualificationPending: true,
     immutableWorkflowV2DeploymentReady: true,
     immutableWorkflowV2BootstrapRepairCommit: v2BootstrapRepairCommit,
+    immutableWorkflowV2RunnerWorkspaceRepairCommit: v2RunnerWorkspaceRepairCommit,
     protectedEnvironmentRequiredNamesPresent: true,
-    failedDeploymentRunReachedProductionMutation: false
+    failedDeploymentRunReachedProductionMutation: false,
+    runnerWorkspaceFailureReachedProductionMutation: false
   });
 }
 

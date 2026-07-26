@@ -1,6 +1,6 @@
 {
   "governanceId": "github-actions-private-worker-deployment-governance-v2",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "batchId": "BATCH-20260725-001",
   "directive": "Founder Standing Directive - End-to-End Engineering Execution",
   "status": "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED",
@@ -31,6 +31,14 @@
       "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "infrastructure: repair private deployment bootstrap guard"
+    },
+    "implementationRunnerWorkspaceRepairCommit": {
+      "commit": "254fea23e18fec27228e15e75986a1c6bb3dffd6",
+      "parent": "f293d37ad8588755151dbf7fc83f1aa19118fd9b",
+      "tree": "0770f3a6f6a1626f8510e1300b4fdbef936206c8",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Repair private runner runtime workspace"
     },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
@@ -126,6 +134,30 @@
         "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
         "sha256": "87dfe2db6bb803b528ad73656ddd9fba31efd35a049d4e1bfe140c52edee6b22"
       }
+    ],
+    "runnerWorkspaceRepairPaths": [
+      "scripts/run-github-actions-private-worker-deployment-v2.mjs",
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ],
+    "runnerWorkspaceRepairEvidence": [
+      {
+        "path": "scripts/run-github-actions-private-worker-deployment-v2.mjs",
+        "sha256": "ed7572003565fa989bdb85ef63232585527b8ee1ea5e52aa537e18e0c9bbb25b"
+      },
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "b0c5968daa1bef96139cb9b8797bd0ddae449ad3b4175a1a6ca73d8bdcad54c2"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "sha256": "82f66577294d3a76196246e3695838634e20e55c2780cc72c138f561b98abaa8"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "136ce3d70a081fd0366a54358891cd37b40277bb702a4d995635a3c19b6d6e1d"
+      }
     ]
   },
   "rootCause": {
@@ -138,7 +170,13 @@
     "firstDeploymentReachedProductionMutation": false,
     "firstDeploymentRollbackRequired": false,
     "bootstrapDeadlock": "The retained private Worker predates the runtime guard, but predeployment smoke required the guard response marker before the guarded successor could be installed.",
-    "bootstrapRepair": "The exact retained guardless version may omit only the predeployment guard marker while still requiring the service principal and fixed GET/HEAD request contract. Postdeployment smoke always requires the exact guard marker. Runtime guard settings are injected through an exclusive owner-only temporary config, and binding transition verification permits only the governed additive settings while preserving every preexisting binding."
+    "bootstrapRepair": "The exact retained guardless version may omit only the predeployment guard marker while still requiring the service principal and fixed GET/HEAD request contract. Postdeployment smoke always requires the exact guard marker. Runtime guard settings are injected through an exclusive owner-only temporary config, and binding transition verification permits only the governed additive settings while preserving every preexisting binding.",
+    "secondDeploymentWorkflowRun": "30189780921",
+    "secondDeploymentFailure": "RUNTIME_GUARD_WORKSPACE_INVALID",
+    "secondDeploymentReachedProductionMutation": false,
+    "secondDeploymentRollbackRequired": false,
+    "runnerWorkspaceCause": "The GitHub-hosted runner temporary environment path may be an alias. The strict no-symlink workspace guard correctly rejected that alias before the Wrangler process could start.",
+    "runnerWorkspaceRepair": "Runtime guard material now uses node:os.tmpdir() as its validated base and exclusively creates a new owner-only 0700 workspace. RUNNER_TEMP cannot redirect the workspace, symlink rejection remains enforced, the 0600 runtime config remains scrubbed in finally, and the qualified application payload remains byte-identical."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
@@ -238,6 +276,7 @@
     "qualificationPerformedByThisGovernanceCommit": false,
     "externalCredentialAndAccessConfigurationPerformed": true,
     "failedDeploymentRunReachedProductionMutation": false,
+    "runnerWorkspaceFailureReachedProductionMutation": false,
     "pushMayTriggerDeployment": false
   }
 }

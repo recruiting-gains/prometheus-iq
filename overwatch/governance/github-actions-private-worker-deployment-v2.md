@@ -6,7 +6,8 @@ private Worker release lane introduced by commit
 Infrastructure-owned secret-scan fixture repair
 `266fb19637fc11dc0c27e42bbfc7a1816cc7cdad` and its independently reviewed
 bootstrap-guard repair
-`a5ae6578bc0c030def8df5d4713d5ecbe5206212`.
+`a5ae6578bc0c030def8df5d4713d5ecbe5206212` and runner-workspace repair
+`254fea23e18fec27228e15e75986a1c6bb3dffd6`.
 
 ## Corrective
 
@@ -34,6 +35,15 @@ does not alter the qualified application payload or assets, cleans the
 temporary material in `finally`, and verifies an additive binding transition
 that preserves every preexisting binding and rejects unexpected additions,
 deletions, or type changes.
+
+The next protected run, `30189780921`, passed immutable preflight and then
+failed with `RUNTIME_GUARD_WORKSPACE_INVALID` before Wrangler started. The
+GitHub-hosted runner temporary environment path may be an alias, which the
+no-symlink workspace guard correctly rejected. The Infrastructure repair uses
+`node:os.tmpdir()` as the validated base, creates a fresh exclusive owner-only
+workspace there, and ignores `RUNNER_TEMP` for runtime guard material. The
+repair does not allow aliases or symlinks, does not weaken file modes, and does
+not change the qualified Dashboard, Worker, or rollback payload.
 
 ## Boundary
 
