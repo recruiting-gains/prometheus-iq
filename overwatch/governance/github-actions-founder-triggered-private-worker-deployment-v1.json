@@ -70,7 +70,7 @@
       },
       {
         "path": "scripts/lib/github-actions-private-worker-deployment.mjs",
-        "sha256": "e71bdff256e2d705a3848a8e2fbe1855508416628a18956429026c5bb0ab18ad"
+        "sha256": "0d02eb7d189ad170c8b6e7c7472b7e61a9bdc6ea6d53f4db98d79d13a41c3e5a"
       },
       {
         "path": "scripts/run-github-actions-private-worker-deployment.mjs",
@@ -82,7 +82,7 @@
       },
       {
         "path": "tests/github-actions-private-worker-deployment.test.mjs",
-        "sha256": "5e9df6579ef49c334f3a5c822ac7018dfcb7c7f923e371e005ac6608939d9bf7"
+        "sha256": "b5e735b02bdce3ac72d6e557704236cb366c068727792ef6b9d9617799586eb7"
       },
       {
         "path": "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json",

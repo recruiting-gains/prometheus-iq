@@ -82,6 +82,12 @@ const v2ReleasePropagationRepairTree = "25f27adbd21a281d1294a68362b994403934095e
 const v2RollbackRootGuardRepairCommit = "6f7216afa09b72442f53a271a8b9fc749aa34d4b";
 const v2RollbackRootGuardRepairParent = v2ReleasePropagationRepairCommit;
 const v2RollbackRootGuardRepairTree = "414e500a735885f460cb25afc18b0387d43e8125";
+const v2GuardConvergenceRepairCommit = "c217ad43e4dbae32690661463eb6cfa38a19e95c";
+const v2GuardConvergenceRepairParent = "b27cc59ebf8e575187167bbcba915fe3d6a94074";
+const v2GuardConvergenceRepairTree = "0a63711714871a62950eb96c4b1d80b94555f19f";
+const v2ForwardPayloadPinCorrectionCommit = "b540084521c87ccad85b41b5e9d1714a497f73e0";
+const v2ForwardPayloadPinCorrectionParent = v2GuardConvergenceRepairCommit;
+const v2ForwardPayloadPinCorrectionTree = "964583be49a8859ace9b6c3e560338617c95744f";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -255,6 +261,46 @@ const v2RollbackRootGuardRepairHashes = Object.freeze({
     "7ad3877abf9f9b94ef7100fc48cfd8c1dfaa3a5f1401e493ae362862c856d7d0"
 });
 
+const v2GuardConvergenceRepairHashes = Object.freeze({
+  "docs/cloudflare-unattended-deployment-access-v1.md":
+    "123d54252e2c1b23f6ca873e06c4eeef251e84e44a84fd22028998b54b4faa4a",
+  "scripts/build-route-iq-private-forward-rollback-candidate-v3.mjs":
+    "f046207cc7693b22d82995d1d135b02b47c6551c68335bb328b3b553c1f763b2",
+  "scripts/lib/github-actions-private-worker-deployment.mjs":
+    "0d02eb7d189ad170c8b6e7c7472b7e61a9bdc6ea6d53f4db98d79d13a41c3e5a",
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+    "7604960c354a6faec57f945ca9c73be8cb6c3f0341bab111ccebe0c7635c8101",
+  "scripts/run-cloudflare-unattended-smoke.mjs":
+    "03f1b672b1f5335cd8cd79d4b16d0411bcde36c02bc5d6e21b58b110bf4211e1",
+  "scripts/verify-cloudflare-unattended-runtime-guard.mjs":
+    "5b5c3123186c112999823a5b8be85461faee8d8ccaf627ade7c9784497f407b4",
+  "scripts/verify-github-actions-private-worker-workflow-v2.mjs":
+    "56b8855db6be4406c366f70561fe5473cd69eeace8483512aa7393eb84297ed9",
+  "tests/cloudflare-unattended-runtime-guard.test.mjs":
+    "ad3391824e3eefe8a11f807f923c3833c4fc588acf5fbc7130b2eee12aa5f65a",
+  "tests/github-actions-private-worker-deployment.test.mjs":
+    "b5e735b02bdce3ac72d6e557704236cb366c068727792ef6b9d9617799586eb7",
+  "tests/github-actions-private-worker-workflow-v2.test.mjs":
+    "559f20b40451f791c5589acd9b71dc471b262615dde16037b23940245aef998b",
+  "tests/route-iq-private-forward-rollback-candidate-v3.test.mjs":
+    "c17531d64d3b12f72fcbac00b088cc1c847dec58e55dd9b602a4f09f45141b2c",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "e849d2e9cdb800d0c123da7726d9077242a1bba4f8c15be3d55384725604ca7e",
+  "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json":
+    "504960881c441720b8db6734ccefca7e1b38b953d355cb78fff92649cb54988c",
+  "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json":
+    "dbcb4a6991035968b8a46bb83f69a64d1a7ac99edb113b43f1907cd37e855760",
+  "wrangler.jsonc":
+    "09c6c9c9a2591540eed92342d1c4ce18504cf49653054c17f4bd343f3425b884"
+});
+
+const v2ForwardPayloadPinCorrectionHashes = Object.freeze({
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+    "8a7e758a38e1fe3be390836cce305f58dc23be90d489d6ccf9a7aaafae8e4f2b",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "3ac1629e195fe1451c2e5c8df656ea245d5ca12e2847860ceb74c76839c95ece"
+});
+
 const historicalOwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker.yml":
     "f2e672729d9bee7a4a173627e51a622b944d3b545e4ed1f4851414b5e31897e9",
@@ -278,13 +324,13 @@ const compatibilityOwnerHashes = Object.freeze({
   "docs/github-actions-founder-triggered-private-worker-deployment-v1.md":
     "77f5dd3b94393ae8ee7b8bb0c3c762ed7aa3c98c92acb1c0c85a3e94006a8b53",
   "scripts/lib/github-actions-private-worker-deployment.mjs":
-    "e71bdff256e2d705a3848a8e2fbe1855508416628a18956429026c5bb0ab18ad",
+    "0d02eb7d189ad170c8b6e7c7472b7e61a9bdc6ea6d53f4db98d79d13a41c3e5a",
   "scripts/run-github-actions-private-worker-deployment.mjs":
     "4c3fac8b30031e44b9b5e5b0ee12b1f9928098f3cc539f29f83af17fd714284e",
   "scripts/verify-github-actions-private-worker-deployment.mjs":
     "aa910f195cd836866b7ccb07290880bc762f3461b65a91234d275d72502fee63",
   "tests/github-actions-private-worker-deployment.test.mjs":
-    "5e9df6579ef49c334f3a5c822ac7018dfcb7c7f923e371e005ac6608939d9bf7",
+    "b5e735b02bdce3ac72d6e557704236cb366c068727792ef6b9d9617799586eb7",
   "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json":
     "95d8d50e7ac4c9abacbac879d49bbaa3799988bb886d8ad92a98c6fe415efd6c"
 });
@@ -840,7 +886,7 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(governance?.governanceId ===
     "github-actions-private-worker-deployment-governance-v2",
   "Private Workflow v2 governance identity drifted.");
-  require(governance?.version === "1.9.0"
+  require(governance?.version === "1.10.0"
     && governance?.status ===
     "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED"
     && governance?.owningSubsystem === "Prometheus Overwatch",
@@ -965,6 +1011,26 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership?.implementationRollbackRootGuardRepairCommit?.author ===
       infrastructureIdentity
     && governance?.ownership?.implementationRollbackRootGuardRepairCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationGuardConvergenceRepairCommit?.commit ===
+      v2GuardConvergenceRepairCommit
+    && governance?.ownership?.implementationGuardConvergenceRepairCommit?.parent ===
+      v2GuardConvergenceRepairParent
+    && governance?.ownership?.implementationGuardConvergenceRepairCommit?.tree ===
+      v2GuardConvergenceRepairTree
+    && governance?.ownership?.implementationGuardConvergenceRepairCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationGuardConvergenceRepairCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationForwardPayloadPinCorrectionCommit?.commit ===
+      v2ForwardPayloadPinCorrectionCommit
+    && governance?.ownership?.implementationForwardPayloadPinCorrectionCommit?.parent ===
+      v2ForwardPayloadPinCorrectionParent
+    && governance?.ownership?.implementationForwardPayloadPinCorrectionCommit?.tree ===
+      v2ForwardPayloadPinCorrectionTree
+    && governance?.ownership?.implementationForwardPayloadPinCorrectionCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationForwardPayloadPinCorrectionCommit?.committer ===
       infrastructureIdentity,
   "Private Workflow v2 owner provenance drifted.");
   require(equal(governance?.ownership?.implementationPaths, Object.keys(v2OwnerHashes)),
@@ -1053,6 +1119,18 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.rollbackRootGuardRepairEvidence,
     evidenceMap(v2RollbackRootGuardRepairHashes)),
   "Private Workflow v2 rollback-root guard repair evidence drifted.");
+  require(equal(governance?.ownership?.guardConvergenceRepairPaths,
+    Object.keys(v2GuardConvergenceRepairHashes)),
+  "Private Workflow v2 guard-convergence repair path set drifted.");
+  require(equal(governance?.ownership?.guardConvergenceRepairEvidence,
+    evidenceMap(v2GuardConvergenceRepairHashes)),
+  "Private Workflow v2 guard-convergence repair evidence drifted.");
+  require(equal(governance?.ownership?.forwardPayloadPinCorrectionPaths,
+    Object.keys(v2ForwardPayloadPinCorrectionHashes)),
+  "Private Workflow v2 forward-payload pin correction path set drifted.");
+  require(equal(governance?.ownership?.forwardPayloadPinCorrectionEvidence,
+    evidenceMap(v2ForwardPayloadPinCorrectionHashes)),
+  "Private Workflow v2 forward-payload pin correction evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -1134,6 +1212,23 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     )
     && governance?.rootCause?.rollbackRootGuardRepair?.includes(
       "canonical / and the existing /api/* namespace"
+    )
+    && governance?.rootCause?.secondPropagationFailureDeploymentRun === "30210281673"
+    && governance?.rootCause?.secondPropagationFailureReachedProductionMutation === true
+    && governance?.rootCause?.secondPropagationFailureClassification ===
+      "SMOKE_FAILURE|DIMENSION=GUARD_MARKER_MISSING"
+    && governance?.rootCause?.secondPropagationFailureRollbackVerified === true
+    && governance?.rootCause?.guardConvergenceGap?.includes(
+      "readiness fence proved only the canonical root"
+    )
+    && governance?.rootCause?.guardConvergenceRepair?.includes(
+      "entire fixed GET/HEAD plan"
+    )
+    && governance?.rootCause?.guardConvergenceRepair?.includes(
+      "never retries unsafe response classes"
+    )
+    && governance?.rootCause?.forwardPayloadPinCorrection?.includes(
+      "materialized dependency tree"
     ),
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
@@ -1152,9 +1247,9 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.workflowBoundary?.nativeRollbackAllowed === false,
   "Private Workflow v2 execution boundary drifted.");
   require(governance?.continuity?.qualifiedForwardPayloadSha256 ===
-    "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c"
+    "d7b4837187a55132ece120262373ee9bda3293159eb7c822aa2365d32f27af97"
     && governance?.continuity?.qualifiedRollbackBundleSha256 ===
-      "24cb31665b74c2abc6c51c5c932165c51cacf1eac1813c3bb794005194ed17cc",
+      "f2edb9475f09fcf9b3469c133585c82333c218d0f6efe9f696d192665a8bf8df",
   "Private Workflow v2 continuity identities drifted.");
   require(governance?.artifactBoundary?.actualForwardPayloadIncluded === true
     && governance?.artifactBoundary?.forwardCompatibleRollbackIncluded === true
@@ -1217,6 +1312,9 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.smokeBoundary?.fullSmokeVersionIdentityRequired === true
     && governance?.smokeBoundary?.rollbackRootVersionIdentityRequired === true
     && governance?.smokeBoundary?.rollbackRootComposedGuardTestRequired === true
+    && governance?.smokeBoundary?.fullFixedPlanConvergenceRequired === true
+    && governance?.smokeBoundary?.fixedNonsecretProbeClassificationRequired === true
+    && equal(governance?.smokeBoundary?.forwardAndRollbackWorkerFirstPaths, ["/*"])
     && governance?.smokeBoundary?.requestAndResponseLifecycleDeadlineEnforced === true
     && governance?.smokeBoundary?.propagationMaximumWaitMilliseconds === 46500
     && governance?.smokeBoundary?.unsafeResponseRetryAllowed === false,
@@ -1307,11 +1405,21 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && contract?.configurationPreservation?.bindingTransition?.deletionsAllowed === false
     && contract?.configurationPreservation?.bindingTransition?.typeChangesAllowed === false
     && contract?.smoke?.bootstrap?.currentPrivateVersionWithoutGuard ===
-      "b8cba784-dfd3-4f8e-8356-816cccf6aecc"
+      "9ffb32d3-313a-4209-ad1d-0a6702ba8a83"
     && contract?.smoke?.bootstrap?.accessServiceTokenRequired === true
     && contract?.smoke?.bootstrap?.guardResponseMarkerMayBeOmittedOnlyForPinnedCurrentVersion
       === true
     && contract?.smoke?.postDeployment?.exactGuardResponseMarkerRequired === true
+    && contract?.smoke?.postDeployment?.propagationFence?.scope ===
+      "full_fixed_get_head_plan"
+    && contract?.smoke?.postDeployment?.propagationFence
+      ?.fixedNonsecretProbeClassification === true
+    && contract?.smoke?.postDeployment?.propagationFence
+      ?.finalExactWholePlanAttemptIsAcceptance === true
+    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+      "d7b4837187a55132ece120262373ee9bda3293159eb7c822aa2365d32f27af97"
+    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+      "f2edb9475f09fcf9b3469c133585c82333c218d0f6efe9f696d192665a8bf8df"
     && equal(contract?.runtimeGuardInjection?.plainTextSettings, [
       "PROMETHEUS_UNATTENDED_SMOKE_GUARD",
       "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
@@ -1647,6 +1755,24 @@ function verifyV2OwnerAndGovernance() {
       subject: "Route rollback root through smoke guard",
       hashes: v2RollbackRootGuardRepairHashes,
       recorded: governance.ownership.rollbackRootGuardRepairEvidence
+    },
+    {
+      label: "guard convergence",
+      commit: v2GuardConvergenceRepairCommit,
+      parent: v2GuardConvergenceRepairParent,
+      tree: v2GuardConvergenceRepairTree,
+      subject: "Harden private Worker guard convergence",
+      hashes: v2GuardConvergenceRepairHashes,
+      recorded: governance.ownership.guardConvergenceRepairEvidence
+    },
+    {
+      label: "forward-payload pin correction",
+      commit: v2ForwardPayloadPinCorrectionCommit,
+      parent: v2ForwardPayloadPinCorrectionParent,
+      tree: v2ForwardPayloadPinCorrectionTree,
+      subject: "Correct private forward payload identity",
+      hashes: v2ForwardPayloadPinCorrectionHashes,
+      recorded: governance.ownership.forwardPayloadPinCorrectionEvidence
     }
   ]) {
     const metadata = git([
@@ -1701,7 +1827,9 @@ function verifyV2OwnerAndGovernance() {
     ...v2CanonicalClientIsolationHashes,
     ...v2PayloadContinuityHashes,
     ...v2ReleasePropagationRepairHashes,
-    ...v2RollbackRootGuardRepairHashes
+    ...v2RollbackRootGuardRepairHashes,
+    ...v2GuardConvergenceRepairHashes,
+    ...v2ForwardPayloadPinCorrectionHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -1998,6 +2126,10 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2ReleasePropagationRepairCommit,
     immutableWorkflowV2RollbackRootGuardRepairCommit:
       v2RollbackRootGuardRepairCommit,
+    immutableWorkflowV2GuardConvergenceRepairCommit:
+      v2GuardConvergenceRepairCommit,
+    immutableWorkflowV2ForwardPayloadPinCorrectionCommit:
+      v2ForwardPayloadPinCorrectionCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,

@@ -85,6 +85,10 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "25ff53a7e61b50962144c5c689cc7a546875f724");
   assert.equal(result.immutableWorkflowV2RollbackRootGuardRepairCommit,
     "6f7216afa09b72442f53a271a8b9fc749aa34d4b");
+  assert.equal(result.immutableWorkflowV2GuardConvergenceRepairCommit,
+    "c217ad43e4dbae32690661463eb6cfa38a19e95c");
+  assert.equal(result.immutableWorkflowV2ForwardPayloadPinCorrectionCommit,
+    "b540084521c87ccad85b41b5e9d1714a497f73e0");
   assert.equal(result.localRealWranglerDryRunPassed, true);
   assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
@@ -144,6 +148,14 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
       value.ownership.implementationRollbackRootGuardRepairCommit.commit =
         "0".repeat(40);
     },
+    value => {
+      value.ownership.implementationGuardConvergenceRepairCommit.commit =
+        "0".repeat(40);
+    },
+    value => {
+      value.ownership.implementationForwardPayloadPinCorrectionCommit.commit =
+        "0".repeat(40);
+    },
     value => { value.ownership.bootstrapRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.runnerWorkspaceRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.trustedTempAliasRepairEvidence[0].sha256 = "0".repeat(64); },
@@ -171,6 +183,12 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => {
       value.ownership.rollbackRootGuardRepairEvidence[0].sha256 = "0".repeat(64);
     },
+    value => {
+      value.ownership.guardConvergenceRepairEvidence[0].sha256 = "0".repeat(64);
+    },
+    value => {
+      value.ownership.forwardPayloadPinCorrectionEvidence[0].sha256 = "0".repeat(64);
+    },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },
     value => { value.rootCause.firstDeploymentReachedProductionMutation = true; },
     value => { value.rootCause.secondDeploymentReachedProductionMutation = true; },
@@ -185,6 +203,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.rootCause.propagationFailureRollbackVerified = false; },
     value => { value.rootCause.rollbackRootGuardGap = "No gap."; },
     value => { value.rootCause.rollbackRootGuardRepair = "No repair."; },
+    value => { value.rootCause.secondPropagationFailureRollbackVerified = false; },
+    value => { value.rootCause.guardConvergenceGap = "No gap."; },
+    value => { value.rootCause.guardConvergenceRepair = "No repair."; },
+    value => { value.rootCause.forwardPayloadPinCorrection = "No correction."; },
     value => {
       value.rootCause.runnerWorkspaceCause =
         "The temporary alias was rejected before the Wrangler process could start.";
@@ -195,6 +217,7 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.workflowBoundary.forwardDeploymentAttempts = 2; },
     value => { value.workflowBoundary.automaticRetryAllowed = true; },
     value => { value.continuity.qualifiedForwardPayloadSha256 = "0".repeat(64); },
+    value => { value.continuity.qualifiedRollbackBundleSha256 = "0".repeat(64); },
     value => { value.artifactBoundary.workerNameOverrideAllowed = true; },
     value => { value.artifactBoundary.phaseSpecificOutdirRequired = false; },
     value => { value.qualificationEvidence.localRealWrangler.status = "FAIL"; },
@@ -213,6 +236,9 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.smokeBoundary.fullSmokeVersionIdentityRequired = false; },
     value => { value.smokeBoundary.rollbackRootVersionIdentityRequired = false; },
     value => { value.smokeBoundary.rollbackRootComposedGuardTestRequired = false; },
+    value => { value.smokeBoundary.fullFixedPlanConvergenceRequired = false; },
+    value => { value.smokeBoundary.fixedNonsecretProbeClassificationRequired = false; },
+    value => { value.smokeBoundary.forwardAndRollbackWorkerFirstPaths = ["/api/*"]; },
     value => { value.smokeBoundary.requestAndResponseLifecycleDeadlineEnforced = false; },
     value => { value.smokeBoundary.propagationMaximumWaitMilliseconds = 0; },
     value => { value.smokeBoundary.unsafeResponseRetryAllowed = true; },

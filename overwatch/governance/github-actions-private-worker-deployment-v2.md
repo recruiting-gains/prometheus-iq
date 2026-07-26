@@ -25,7 +25,11 @@ successors `a83e069016622d968702c4db40c251ccbff744dd` and
 to the exact Cloudflare Worker version without changing the approved Dashboard
 experience. Infrastructure successor
 `6f7216afa09b72442f53a271a8b9fc749aa34d4b` then routes the canonical rollback
-root through that same authenticated guard and version proof.
+root through that same authenticated guard and version proof. Infrastructure
+successors `c217ad43e4dbae32690661463eb6cfa38a19e95c` and
+`b540084521c87ccad85b41b5e9d1714a497f73e0` make the complete fixed smoke plan
+the propagation fence, align forward and rollback asset routing, and pin the
+materialized clean-runner payload identity.
 
 ## Corrective
 
@@ -137,6 +141,32 @@ composed regression test now proves an authenticated rollback root response
 contains both the exact marker and exact Worker version; ordinary assets,
 Dashboard behavior, bindings, and migrations remain unchanged.
 
+Deployment run `30210281673` then proved the remaining gap. The canonical root
+converged on the guarded release, but a later fixed static-asset probe did not
+carry the guard marker. The previous readiness fence had proved only `/`, while
+the acceptance plan covered fifteen GET/HEAD probes and forward and rollback
+used different `assets.run_worker_first` representations. The workflow failed
+closed, executed its one forward-compatible rollback, and verified private
+production on version `9ffb32d3-313a-4209-ad1d-0a6702ba8a83`; the public Worker
+remained unchanged.
+
+The guard-convergence successor uses the same explicit `["/*"]` Worker-first
+boundary in forward and rollback. Every bounded propagation attempt evaluates
+the whole fixed GET/HEAD plan and accepts only when every probe carries the
+exact marker and exact Worker version. Only missing or stale propagation
+evidence may wait; redirects, non-2xx responses, invalid markers or versions,
+and transport failures fail immediately. Failure output contains only fixed
+nonsecret probe and dimension codes.
+
+The first owner commit recorded a payload digest generated with a symlinked
+dependency tree. The pin-only Infrastructure successor regenerated with a
+materialized dependency tree matching the clean GitHub runner and fixed the
+exact forward payload identity to
+`d7b4837187a55132ece120262373ee9bda3293159eb7c822aa2365d32f27af97`.
+The paired rollback identity is
+`f2edb9475f09fcf9b3469c133585c82333c218d0f6efe9f696d192665a8bf8df`.
+No runtime behavior changed in the pin-only successor.
+
 ## Boundary
 
 - Target: `prometheus-iq` only.
@@ -152,9 +182,9 @@ Dashboard behavior, bindings, and migrations remain unchanged.
   rollback is prohibited.
 - Automated smoke requests are authenticated GET or HEAD only, use canonical
   paths, reject every redirect, and permit zero attempted application writes.
-- The postdeployment smoke plan cannot start until the canonical root proves
-  the exact deployed Worker version inside the bounded readiness window, and
-  every full-smoke response must prove that same version.
+- The postdeployment readiness window evaluates the complete fixed GET/HEAD
+  plan. Every probe must prove the exact guard marker and deployed Worker
+  version in one converged attempt.
 - Collection, cohorts, recommendation influence, availability refresh,
   customer activation, Anthony mapping, the public Worker, and CRM remain
   outside this release.
