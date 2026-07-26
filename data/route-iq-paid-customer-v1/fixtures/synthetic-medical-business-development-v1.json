@@ -1,0 +1,162 @@
+{
+  "fixtureVersion": "route-iq-paid-customer-synthetic-fixture-v1",
+  "fixtureId": "synthetic_medical_business_development_v1",
+  "classification": "SYNTHETIC_NONCANONICAL",
+  "productionUseAuthorized": false,
+  "providerActivationAuthorized": false,
+  "companyId": "synthetic_medical_company",
+  "workspaceId": "synthetic_medical_workspace",
+  "operatingProfileId": "medical_business_development",
+  "evaluatedAt": "2026-07-26T12:00:00.000Z",
+  "eligibilityPolicy": {
+    "schemaVersion": "route-iq-verified-business-eligibility-policy-v1",
+    "policyId": "synthetic_medical_eligibility_policy",
+    "policyVersion": "v1",
+    "companyId": "synthetic_medical_company",
+    "workspaceId": "synthetic_medical_workspace",
+    "authorizedTerritories": [
+      {
+        "territoryId": "synthetic_medical_central",
+        "postalCodes": ["00001"]
+      }
+    ],
+    "includedCategoryIds": ["medical_facility"],
+    "excludedCategoryIds": ["residential_consumer"],
+    "excludedBusinessIds": [],
+    "maximumFreshnessHours": 24,
+    "minimumEvidenceQuality": "MEDIUM"
+  },
+  "recordCount": 2,
+  "records": [
+    {
+      "schemaVersion": "route-iq-verified-business-evidence-v1",
+      "evidenceId": "riq_business_evidence_111111111111111111111111",
+      "companyId": "synthetic_medical_company",
+      "workspaceId": "synthetic_medical_workspace",
+      "businessId": "synthetic_medical_facility_001",
+      "observedAt": "2026-07-26T10:00:00.000Z",
+      "identity": {
+        "legalName": "Synthetic Harbor Medical Center",
+        "sourceIdentityId": "synthetic_medical_source_001",
+        "verificationState": "VERIFIED"
+      },
+      "address": {
+        "line1": "100 Synthetic Health Way",
+        "line2": null,
+        "locality": "Example City",
+        "region": "TX",
+        "postalCode": "00001",
+        "countryCode": "US",
+        "latitude": null,
+        "longitude": null,
+        "verificationState": "VERIFIED"
+      },
+      "territory": {
+        "territoryId": "synthetic_medical_central",
+        "postalCode": "00001"
+      },
+      "category": {
+        "categoryId": "medical_facility",
+        "verificationState": "VERIFIED"
+      },
+      "operatingStatus": {
+        "state": "OPEN",
+        "verifiedAt": "2026-07-26T10:00:00.000Z"
+      },
+      "hours": {
+        "state": "OPEN_VERIFIED",
+        "timeZone": "America/Chicago",
+        "weeklyScheduleVersion": "synthetic_medical_schedule_v1",
+        "verifiedAt": "2026-07-26T10:00:00.000Z",
+        "expiresAt": "2026-07-27T10:00:00.000Z",
+        "providerFailure": false
+      },
+      "verificationSource": {
+        "sourceId": "synthetic-medical-contract-fixture",
+        "sourceType": "SYNTHETIC_FIXTURE",
+        "verificationState": "VERIFIED",
+        "retrievedAt": "2026-07-26T10:00:00.000Z",
+        "providerStatus": "NOT_APPLICABLE",
+        "provenanceVersion": "synthetic-medical-fixture-v1"
+      },
+      "duplicateResolution": {
+        "state": "UNIQUE",
+        "canonicalBusinessId": null,
+        "relatedBusinessIds": []
+      },
+      "targetProfile": {
+        "state": "MATCH",
+        "reasonCode": "verified_medical_facility_match"
+      },
+      "recommendationEvidence": {
+        "reasonCode": "verified_open_medical_facility",
+        "evidenceQuality": "HIGH"
+      }
+    },
+    {
+      "schemaVersion": "route-iq-verified-business-evidence-v1",
+      "evidenceId": "riq_business_evidence_222222222222222222222222",
+      "companyId": "synthetic_medical_company",
+      "workspaceId": "synthetic_medical_workspace",
+      "businessId": "synthetic_medical_facility_002",
+      "observedAt": "2026-07-26T10:00:00.000Z",
+      "identity": {
+        "legalName": "Synthetic Meridian Care Campus",
+        "sourceIdentityId": "synthetic_medical_source_002",
+        "verificationState": "VERIFIED"
+      },
+      "address": {
+        "line1": "200 Synthetic Health Way",
+        "line2": null,
+        "locality": "Example City",
+        "region": "TX",
+        "postalCode": "00001",
+        "countryCode": "US",
+        "latitude": null,
+        "longitude": null,
+        "verificationState": "VERIFIED"
+      },
+      "territory": {
+        "territoryId": "synthetic_medical_central",
+        "postalCode": "00001"
+      },
+      "category": {
+        "categoryId": "medical_facility",
+        "verificationState": "VERIFIED"
+      },
+      "operatingStatus": {
+        "state": "CLOSED",
+        "verifiedAt": "2026-07-26T10:00:00.000Z"
+      },
+      "hours": {
+        "state": "CLOSED_VERIFIED",
+        "timeZone": "America/Chicago",
+        "weeklyScheduleVersion": "synthetic_medical_schedule_v1",
+        "verifiedAt": "2026-07-26T10:00:00.000Z",
+        "expiresAt": "2026-07-27T10:00:00.000Z",
+        "providerFailure": false
+      },
+      "verificationSource": {
+        "sourceId": "synthetic-medical-contract-fixture",
+        "sourceType": "SYNTHETIC_FIXTURE",
+        "verificationState": "VERIFIED",
+        "retrievedAt": "2026-07-26T10:00:00.000Z",
+        "providerStatus": "NOT_APPLICABLE",
+        "provenanceVersion": "synthetic-medical-fixture-v1"
+      },
+      "duplicateResolution": {
+        "state": "UNIQUE",
+        "canonicalBusinessId": null,
+        "relatedBusinessIds": []
+      },
+      "targetProfile": {
+        "state": "MATCH",
+        "reasonCode": "verified_medical_facility_match"
+      },
+      "recommendationEvidence": {
+        "reasonCode": "verified_closed_medical_facility",
+        "evidenceQuality": "HIGH"
+      }
+    }
+  ]
+}

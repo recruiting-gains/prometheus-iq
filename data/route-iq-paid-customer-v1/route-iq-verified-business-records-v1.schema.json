@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prometheus.local/schemas/route-iq-verified-business-records-v1.schema.json",
+  "title": "Route IQ Verified Business Scoped Records v1",
+  "oneOf": [
+    { "$ref": "#/$defs/storageRecord" },
+    { "$ref": "#/$defs/auditRecord" }
+  ],
+  "$defs": {
+    "opaqueId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{2,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "reasonCode": {
+      "enum": [
+        "IDENTITY_UNVERIFIED",
+        "ADDRESS_UNVERIFIED",
+        "EVIDENCE_CONFLICTING",
+        "TERRITORY_UNAUTHORIZED",
+        "POSTAL_CODE_UNAUTHORIZED",
+        "CATEGORY_UNVERIFIED",
+        "CATEGORY_NOT_INCLUDED",
+        "CUSTOMER_EXCLUDED_CATEGORY",
+        "CUSTOMER_EXCLUDED_BUSINESS",
+        "OPERATING_STATUS_UNVERIFIED",
+        "BUSINESS_CLOSED",
+        "HOURS_MISSING",
+        "HOURS_STALE",
+        "HOURS_CLOSED",
+        "HOURS_CONFLICTING",
+        "PROVIDER_FAILED",
+        "SOURCE_UNVERIFIED",
+        "DUPLICATE_UNRESOLVED",
+        "NONCANONICAL_DUPLICATE",
+        "TARGET_PROFILE_MISMATCH",
+        "TARGET_PROFILE_UNVERIFIED",
+        "RECOMMENDATION_REASON_MISSING",
+        "EVIDENCE_QUALITY_INSUFFICIENT"
+      ]
+    },
+    "scopeFields": {
+      "type": "object",
+      "required": ["companyId", "workspaceId", "businessId", "evidenceId"],
+      "properties": {
+        "companyId": { "$ref": "#/$defs/opaqueId" },
+        "workspaceId": { "$ref": "#/$defs/opaqueId" },
+        "businessId": { "$ref": "#/$defs/opaqueId" },
+        "evidenceId": {
+          "type": "string",
+          "pattern": "^riq_business_evidence_[a-f0-9]{24}$"
+        }
+      }
+    },
+    "storageRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "companyId",
+        "workspaceId",
+        "businessId",
+        "evidenceId",
+        "storageKey",
+        "storedAt",
+        "idempotencyKey",
+        "payloadSha256",
+        "routeEligible",
+        "reasonCodes",
+        "normalizedEvidence"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "route-iq-verified-business-storage-record-v1" },
+        "companyId": { "$ref": "#/$defs/opaqueId" },
+        "workspaceId": { "$ref": "#/$defs/opaqueId" },
+        "businessId": { "$ref": "#/$defs/opaqueId" },
+        "evidenceId": {
+          "type": "string",
+          "pattern": "^riq_business_evidence_[a-f0-9]{24}$"
+        },
+        "storageKey": {
+          "type": "string",
+          "pattern": "^route-iq/paid-customer/v1/companies/"
+        },
+        "storedAt": { "type": "string", "format": "date-time" },
+        "idempotencyKey": { "$ref": "#/$defs/opaqueId" },
+        "payloadSha256": { "$ref": "#/$defs/sha256" },
+        "routeEligible": { "type": "boolean" },
+        "reasonCodes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/reasonCode" }
+        },
+        "normalizedEvidence": {
+          "type": "object",
+          "required": [
+            "schemaVersion",
+            "companyId",
+            "workspaceId",
+            "businessId",
+            "evidenceId",
+            "admission",
+            "evidenceFingerprintSha256"
+          ],
+          "properties": {
+            "schemaVersion": { "const": "route-iq-verified-business-normalized-v1" },
+            "companyId": { "$ref": "#/$defs/opaqueId" },
+            "workspaceId": { "$ref": "#/$defs/opaqueId" },
+            "businessId": { "$ref": "#/$defs/opaqueId" },
+            "evidenceId": {
+              "type": "string",
+              "pattern": "^riq_business_evidence_[a-f0-9]{24}$"
+            },
+            "admission": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["state", "routeEligible", "reasonCodes"],
+              "properties": {
+                "state": { "enum": ["ELIGIBLE", "INELIGIBLE"] },
+                "routeEligible": { "type": "boolean" },
+                "reasonCodes": {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": { "$ref": "#/$defs/reasonCode" }
+                }
+              }
+            },
+            "evidenceFingerprintSha256": { "$ref": "#/$defs/sha256" }
+          }
+        }
+      }
+    },
+    "auditRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "eventId",
+        "companyId",
+        "workspaceId",
+        "businessId",
+        "evidenceId",
+        "eventType",
+        "occurredAt",
+        "actorType",
+        "outcome",
+        "reasonCodes",
+        "payloadSha256",
+        "auditKey"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "route-iq-verified-business-audit-record-v1" },
+        "eventId": {
+          "type": "string",
+          "pattern": "^riq_business_audit_[a-f0-9]{24}$"
+        },
+        "companyId": { "$ref": "#/$defs/opaqueId" },
+        "workspaceId": { "$ref": "#/$defs/opaqueId" },
+        "businessId": { "$ref": "#/$defs/opaqueId" },
+        "evidenceId": {
+          "type": "string",
+          "pattern": "^riq_business_evidence_[a-f0-9]{24}$"
+        },
+        "eventType": {
+          "enum": [
+            "EVIDENCE_NORMALIZED",
+            "EVIDENCE_STORED",
+            "EVIDENCE_REJECTED",
+            "EVIDENCE_REEVALUATED"
+          ]
+        },
+        "occurredAt": { "type": "string", "format": "date-time" },
+        "actorType": {
+          "enum": [
+            "PROMETHEUS_DATA",
+            "GOVERNED_PROVIDER",
+            "AUTHORIZED_OPERATOR"
+          ]
+        },
+        "outcome": { "enum": ["ACCEPTED", "INELIGIBLE", "REJECTED"] },
+        "reasonCodes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/reasonCode" }
+        },
+        "payloadSha256": { "$ref": "#/$defs/sha256" },
+        "auditKey": {
+          "type": "string",
+          "pattern": "^route-iq/paid-customer/v1/companies/"
+        }
+      }
+    }
+  }
+}

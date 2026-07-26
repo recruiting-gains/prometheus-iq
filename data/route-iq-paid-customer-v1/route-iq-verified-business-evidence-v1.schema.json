@@ -1,0 +1,252 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prometheus.local/schemas/route-iq-verified-business-evidence-v1.schema.json",
+  "title": "Route IQ Verified Business Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceId",
+    "companyId",
+    "workspaceId",
+    "businessId",
+    "observedAt",
+    "identity",
+    "address",
+    "territory",
+    "category",
+    "operatingStatus",
+    "hours",
+    "verificationSource",
+    "duplicateResolution",
+    "targetProfile",
+    "recommendationEvidence"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "route-iq-verified-business-evidence-v1" },
+    "evidenceId": { "type": "string", "pattern": "^riq_business_evidence_[a-f0-9]{24}$" },
+    "companyId": { "$ref": "#/$defs/opaqueId" },
+    "workspaceId": { "$ref": "#/$defs/opaqueId" },
+    "businessId": { "$ref": "#/$defs/opaqueId" },
+    "observedAt": { "$ref": "#/$defs/timestamp" },
+    "identity": { "$ref": "#/$defs/identity" },
+    "address": { "$ref": "#/$defs/address" },
+    "territory": { "$ref": "#/$defs/territory" },
+    "category": { "$ref": "#/$defs/category" },
+    "operatingStatus": { "$ref": "#/$defs/operatingStatus" },
+    "hours": { "$ref": "#/$defs/hours" },
+    "verificationSource": { "$ref": "#/$defs/verificationSource" },
+    "duplicateResolution": { "$ref": "#/$defs/duplicateResolution" },
+    "targetProfile": { "$ref": "#/$defs/targetProfile" },
+    "recommendationEvidence": { "$ref": "#/$defs/recommendationEvidence" }
+  },
+  "$defs": {
+    "opaqueId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{2,127}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "nullableTimestamp": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "nullableSafeText": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^[^<>\\u0000-\\u001F\\u007F]+$"
+    },
+    "verificationState": {
+      "enum": ["VERIFIED", "MISSING", "CONFLICTING", "INVALID"]
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["legalName", "sourceIdentityId", "verificationState"],
+      "properties": {
+        "legalName": { "$ref": "#/$defs/nullableSafeText" },
+        "sourceIdentityId": { "$ref": "#/$defs/nullableSafeText" },
+        "verificationState": { "$ref": "#/$defs/verificationState" }
+      }
+    },
+    "address": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "line1",
+        "line2",
+        "locality",
+        "region",
+        "postalCode",
+        "countryCode",
+        "latitude",
+        "longitude",
+        "verificationState"
+      ],
+      "properties": {
+        "line1": { "$ref": "#/$defs/nullableSafeText" },
+        "line2": { "$ref": "#/$defs/nullableSafeText" },
+        "locality": { "$ref": "#/$defs/nullableSafeText" },
+        "region": { "$ref": "#/$defs/nullableSafeText" },
+        "postalCode": {
+          "type": ["string", "null"],
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9 -]{1,11}$"
+        },
+        "countryCode": {
+          "type": ["string", "null"],
+          "pattern": "^[A-Z]{2}$"
+        },
+        "latitude": {
+          "type": ["number", "null"],
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": ["number", "null"],
+          "minimum": -180,
+          "maximum": 180
+        },
+        "verificationState": { "$ref": "#/$defs/verificationState" }
+      }
+    },
+    "territory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["territoryId", "postalCode"],
+      "properties": {
+        "territoryId": { "$ref": "#/$defs/opaqueId" },
+        "postalCode": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9 -]{1,11}$"
+        }
+      }
+    },
+    "category": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["categoryId", "verificationState"],
+      "properties": {
+        "categoryId": { "$ref": "#/$defs/opaqueId" },
+        "verificationState": { "$ref": "#/$defs/verificationState" }
+      }
+    },
+    "operatingStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "verifiedAt"],
+      "properties": {
+        "state": { "enum": ["OPEN", "CLOSED", "UNKNOWN", "CONFLICTING"] },
+        "verifiedAt": { "$ref": "#/$defs/nullableTimestamp" }
+      }
+    },
+    "hours": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "timeZone",
+        "weeklyScheduleVersion",
+        "verifiedAt",
+        "expiresAt",
+        "providerFailure"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "OPEN_VERIFIED",
+            "CLOSED_VERIFIED",
+            "STALE",
+            "MISSING",
+            "CONFLICTING",
+            "PROVIDER_FAILED"
+          ]
+        },
+        "timeZone": { "$ref": "#/$defs/nullableSafeText" },
+        "weeklyScheduleVersion": { "$ref": "#/$defs/nullableSafeText" },
+        "verifiedAt": { "$ref": "#/$defs/nullableTimestamp" },
+        "expiresAt": { "$ref": "#/$defs/nullableTimestamp" },
+        "providerFailure": { "type": "boolean" }
+      }
+    },
+    "verificationSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "sourceType",
+        "verificationState",
+        "retrievedAt",
+        "providerStatus",
+        "provenanceVersion"
+      ],
+      "properties": {
+        "sourceId": { "type": "string", "minLength": 1, "maxLength": 180 },
+        "sourceType": {
+          "enum": [
+            "GOVERNED_PROVIDER",
+            "CUSTOMER_AUTHORIZED_SOURCE",
+            "FIELD_VERIFICATION",
+            "SYNTHETIC_FIXTURE"
+          ]
+        },
+        "verificationState": { "$ref": "#/$defs/verificationState" },
+        "retrievedAt": { "$ref": "#/$defs/timestamp" },
+        "providerStatus": { "enum": ["SUCCEEDED", "FAILED", "NOT_APPLICABLE"] },
+        "provenanceVersion": { "type": "string", "minLength": 1, "maxLength": 120 }
+      }
+    },
+    "duplicateResolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "canonicalBusinessId", "relatedBusinessIds"],
+      "properties": {
+        "state": {
+          "enum": [
+            "UNIQUE",
+            "DUPLICATE_RESOLVED",
+            "DUPLICATE_UNRESOLVED",
+            "CONFLICTING"
+          ]
+        },
+        "canonicalBusinessId": {
+          "oneOf": [
+            { "$ref": "#/$defs/opaqueId" },
+            { "type": "null" }
+          ]
+        },
+        "relatedBusinessIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/opaqueId" }
+        }
+      }
+    },
+    "targetProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reasonCode"],
+      "properties": {
+        "state": { "enum": ["MATCH", "NO_MATCH", "UNVERIFIED", "CONFLICTING"] },
+        "reasonCode": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z][a-z0-9_]{2,127}$"
+        }
+      }
+    },
+    "recommendationEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reasonCode", "evidenceQuality"],
+      "properties": {
+        "reasonCode": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z][a-z0-9_]{2,127}$"
+        },
+        "evidenceQuality": { "enum": ["NONE", "LOW", "MEDIUM", "HIGH"] }
+      }
+    }
+  }
+}
