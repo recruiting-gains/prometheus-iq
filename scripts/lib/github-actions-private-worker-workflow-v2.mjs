@@ -110,7 +110,7 @@ export const PRIVATE_WORKFLOW_V2_POLICY = Object.freeze({
       "de7b35909f9bd1bf8f15c8fe605cf494a5f39171e6b2bdf822e60031c590b0e7",
     deployParitySha256: "35a564e4f3fed2961d7658bac57cc4ce66cb9c103e4ab03d5b17fff836ca7731",
     forwardPayloadSha256: "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c",
-    rollbackBundleSha256: "8f700c7c5f548b66795211a415ec63da51316b86a2685ae77c6618d1fe798007"
+    rollbackBundleSha256: "24cb31665b74c2abc6c51c5c932165c51cacf1eac1813c3bb794005194ed17cc"
   })
 });
 
@@ -1008,7 +1008,7 @@ function validatePrivateConfig(config, { qualified, rollback = false }) {
     ? `./worker/${PRIVATE_WORKFLOW_V2_POLICY.generatedWorkerFile}`
     : "workers/prometheus-iq-worker.js";
   const expectedAssets = qualified ? "./assets" : "./deploy/cloudflare-pages";
-  const expectedRunWorkerFirst = rollback ? ["/api/*"] : true;
+  const expectedRunWorkerFirst = rollback ? ["/", "/api/*"] : true;
   if (!isPlainObject(config)
     || config.name !== PRIVATE_WORKFLOW_V2_POLICY.privateWorker
     || config.main !== expectedMain

@@ -556,7 +556,7 @@ test("forward and rollback qualified configurations retain their distinct reques
   assert.equal(forward.name, PRIVATE_WORKFLOW_V2_POLICY.privateWorker);
   assert.equal(forward.keep_vars, true);
   assert.equal(forward.assets.run_worker_first, true);
-  assert.deepEqual(rollback.assets.run_worker_first, ["/api/*"]);
+  assert.deepEqual(rollback.assets.run_worker_first, ["/", "/api/*"]);
   assert.equal(Object.hasOwn(forward, "routes"), false);
   assert.equal(Object.hasOwn(rollback, "routes"), false);
   assert.throws(

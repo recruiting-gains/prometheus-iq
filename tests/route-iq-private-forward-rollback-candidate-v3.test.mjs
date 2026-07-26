@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, generateKeyPairSync } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
@@ -12,7 +12,10 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import test from "node:test";
+
+import { SignJWT, exportJWK } from "jose";
 
 import {
   buildRouteIqPrivateForwardRollbackCandidateV3,
@@ -24,6 +27,12 @@ import {
   RouteIqBusinessAvailabilityCoordinator,
   RouteIqProspectiveShadowCoordinator
 } from "../workers/infrastructure/route-iq-private-forward-rollback-inert-durable-object-v3.js";
+import {
+  CLOUDFLARE_UNATTENDED_SMOKE_ENV,
+  CLOUDFLARE_UNATTENDED_SMOKE_MARKER,
+  CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN,
+  CLOUDFLARE_UNATTENDED_SMOKE_VERSION
+} from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 
 const root = resolve(import.meta.dirname, "..");
 const contractPath = join(
@@ -145,7 +154,8 @@ test("rollback config preserves stateful and static bindings while forcing every
   assert.equal(config.main, "workers/prometheus-iq-worker.js");
   assert.equal(config.keep_vars, true);
   assert.equal(config.assets.binding, "ASSETS");
-  assert.deepEqual(config.assets.run_worker_first, ["/api/*"]);
+  assert.deepEqual(config.assets.run_worker_first, ["/", "/api/*"]);
+  assert.deepEqual(contract.candidatePackage.workerFirstPaths, ["/", "/api/*"]);
   assert.equal(config.observability.enabled, true);
   assert.deepEqual(config.version_metadata, { binding: "CF_VERSION_METADATA" });
   assert.equal(config.vars.ROUTE_IQ_CUSTOMER_PWA_LAUNCH_ENABLED, "OFF");
@@ -213,6 +223,11 @@ test("stateful, target, and activation mutations fail closed before packaging", 
     ["version metadata renamed", null, candidate => {
       candidate.version_metadata.binding = "OTHER_VERSION_METADATA";
     }],
+    ["canonical root removed from Worker-first paths", candidate => {
+      candidate.candidatePackage.workerFirstPaths = ["/api/*"];
+    }, candidate => {
+      candidate.assets.run_worker_first = ["/api/*"];
+    }],
     ["route override added", null, candidate => { candidate.routes = ["example.invalid/*"]; }],
     ["public configuration included", candidate => { candidate.candidatePackage.publicWorkerConfigurationIncluded = true; }, null],
     ["effective cohort count changed", candidate => { candidate.runtimeBoundary.effectiveActiveCohortCount = 1; }, null]
@@ -274,6 +289,106 @@ test("builder emits one deterministic private-only artifact pinned to the retain
   } finally {
     rmSync(firstRoot, { recursive: true, force: true });
     rmSync(secondRoot, { recursive: true, force: true });
+  }
+});
+
+test("authenticated canonical rollback root traverses the generated guard wrapper", async () => {
+  const outputRoot = mkdtempSync(join(tmpdir(), "route-iq-private-forward-rollback-v3-root-"));
+  const outputDirectory = join(outputRoot, "candidate");
+  const priorFetch = globalThis.fetch;
+  const issuer = "https://rollback-root-test.cloudflareaccess.com";
+  const audience = "rollback-root-test-audience";
+  const clientId = `${"a".repeat(32)}.access`;
+  const workerVersion = "11111111-1111-4111-8111-111111111111";
+  const keyId = "rollback-root-test-key";
+  let jwksRequests = 0;
+  let assetRequests = 0;
+
+  try {
+    buildRouteIqPrivateForwardRollbackCandidateV3({
+      outputDirectory,
+      sourceRef: "WORKTREE"
+    });
+    symlinkSync(resolve(root, "node_modules"), join(outputDirectory, "node_modules"), "dir");
+
+    const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+    const publicJwk = await exportJWK(publicKey);
+    publicJwk.alg = "RS256";
+    publicJwk.kid = keyId;
+    const token = await new SignJWT({
+      type: "app",
+      sub: "",
+      common_name: clientId
+    })
+      .setProtectedHeader({ alg: "RS256", kid: keyId, typ: "JWT" })
+      .setIssuer(issuer)
+      .setAudience(audience)
+      .setIssuedAt(1)
+      .setExpirationTime(4_102_444_800)
+      .sign(privateKey);
+
+    globalThis.fetch = async input => {
+      const url = input instanceof Request ? input.url : String(input);
+      assert.equal(url, `${issuer}/cdn-cgi/access/certs`);
+      jwksRequests += 1;
+      return new Response(JSON.stringify({ keys: [publicJwk] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      });
+    };
+
+    const entrypointUrl = pathToFileURL(
+      join(outputDirectory, "workers/prometheus-iq-worker.js")
+    );
+    entrypointUrl.searchParams.set("rollback-root-test", "1");
+    const rollbackWorker = await import(entrypointUrl.href);
+    const response = await rollbackWorker.default.fetch(
+      new Request(`${CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN}/`, {
+        method: "GET",
+        headers: {
+          "Cf-Access-Jwt-Assertion": token,
+          [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.requestHeader]:
+            CLOUDFLARE_UNATTENDED_SMOKE_MARKER.requestValue
+        }
+      }),
+      {
+        [CLOUDFLARE_UNATTENDED_SMOKE_ENV.enabled]: "ON",
+        [CLOUDFLARE_UNATTENDED_SMOKE_ENV.teamDomain]: issuer,
+        [CLOUDFLARE_UNATTENDED_SMOKE_ENV.audience]: audience,
+        [CLOUDFLARE_UNATTENDED_SMOKE_ENV.serviceTokenClientId]: clientId,
+        [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding]: { id: workerVersion },
+        ASSETS: {
+          async fetch(request) {
+            assetRequests += 1;
+            assert.equal(new URL(request.url).pathname, "/");
+            assert.equal(
+              request.headers.has(CLOUDFLARE_UNATTENDED_SMOKE_MARKER.requestHeader),
+              false
+            );
+            assert.equal(request.headers.has("Cf-Access-Jwt-Assertion"), false);
+            return new Response("rollback-root");
+          }
+        }
+      },
+      {}
+    );
+
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), "rollback-root");
+    assert.equal(
+      response.headers.get(CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader),
+      CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue
+    );
+    assert.equal(
+      response.headers.get(CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader),
+      workerVersion
+    );
+    assert.equal(jwksRequests, 1);
+    assert.equal(assetRequests, 1);
+  } finally {
+    globalThis.fetch = priorFetch;
+    removeTransientNodeModulesPath(join(outputDirectory, "node_modules"));
+    rmSync(outputRoot, { recursive: true, force: true });
   }
 });
 
