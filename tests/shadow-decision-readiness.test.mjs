@@ -1526,8 +1526,18 @@ test("unattended runtime guard successor remains the historical predecessor to t
       "utf8",
     ),
   );
-  const currentWorkerTransition =
+  const zipFounderSuccessor = JSON.parse(
+    readFileSync(
+      "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+      "utf8",
+    ),
+  );
+  const historicalWorkerTransition =
     crossIndustrySuccessor.infrastructureTransitions.find(
+      (transition) => transition.path === worker.path,
+    );
+  const currentWorkerTransition =
+    zipFounderSuccessor.protectedBaselineSuccessors.find(
       (transition) => transition.path === worker.path,
     );
 
@@ -1546,8 +1556,12 @@ test("unattended runtime guard successor remains the historical predecessor to t
     "3c8ca61910358c13cc0c05e1fbda5d3052b31a9b",
   );
   assert.equal(
-    currentWorkerTransition.previousSha256,
+    historicalWorkerTransition.previousSha256,
     worker.sha256,
+  );
+  assert.equal(
+    currentWorkerTransition.previousSha256,
+    historicalWorkerTransition.currentSha256,
   );
   assert.equal(
     currentWorkerTransition.currentSha256,

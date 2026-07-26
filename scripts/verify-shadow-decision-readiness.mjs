@@ -667,18 +667,28 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     commercialReadinessSuccessor.sourceTransitions.worker.currentSha256,
   );
   assert.equal(workerTransition.currentSha256, workerBaseline.sha256);
-  const currentWorkerTransition =
+  const crossIndustryWorkerTransition =
     currentProtectedTransitions[workerBaseline.path];
+  const currentWorkerTransition =
+    zipFounderAdoption.transitionByPath.get(workerBaseline.path);
+  assert.ok(crossIndustryWorkerTransition);
   assert.ok(currentWorkerTransition);
   assert.equal(
-    currentWorkerTransition.ownerSubsystem,
+    crossIndustryWorkerTransition.ownerSubsystem,
     "Prometheus Infrastructure",
   );
   assert.equal(
-    currentWorkerTransition.commit,
+    crossIndustryWorkerTransition.commit,
     "c1d029def71efab6c555ffa851fda6be7c3fc3cc",
   );
-  assert.equal(currentWorkerTransition.previousSha256, workerBaseline.sha256);
+  assert.equal(
+    crossIndustryWorkerTransition.previousSha256,
+    workerBaseline.sha256,
+  );
+  assert.equal(
+    currentWorkerTransition.previousSha256,
+    crossIndustryWorkerTransition.currentSha256,
+  );
   assert.equal(
     currentWorkerTransition.currentSha256,
     sha256File(workerBaseline.path),

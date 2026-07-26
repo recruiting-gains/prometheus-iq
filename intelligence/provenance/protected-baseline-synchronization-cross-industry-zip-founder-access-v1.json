@@ -3,7 +3,15 @@
   "directive": "ZIP Coverage, Multi-Company Founder Access, and 72-Hour Onboarding",
   "status": "OWNER_REVIEWED_PROTECTED_BASELINE_SUCCESSOR",
   "ownerSubsystem": "Prometheus Intelligence Engine",
-  "purpose": "Adopt the approved Dashboard and Infrastructure ZIP-coverage and Founder workspace-switching output as the current protected presentation baseline without rewriting historical Intelligence checkpoints or changing Intelligence runtime behavior.",
+  "purpose": "Adopt the approved Dashboard and Infrastructure ZIP-coverage, Founder workspace-switching, and private Worker guard-hardening output as the current protected baseline without rewriting historical Intelligence checkpoints or changing Intelligence runtime behavior.",
+  "predecessorCheckpoint": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+    "commit": "4b7a18556e7e424f8c643c38f154ec6ed504a354",
+    "tree": "230199ba017e3f0c39d180d4642c7fff3d463c69",
+    "sha256": "2ef9f139487d4ca666870e4a38489cc66a2c2f760742b7aa0d37d83ee4bc2437",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
   "predecessors": [
     {
       "path": "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json",
@@ -56,6 +64,29 @@
           "currentSha256": "2f156319b08a5f463682815deb6db93be2344f751afaa93ea3db00bbacd97d91"
         }
       ]
+    },
+    {
+      "path": "workers/prometheus-iq-worker.js",
+      "previousSha256": "7fcb0b3e4e6772e4831a808cbd0f02ef9e28f017ebb6c2d69a9b368248ac76c9",
+      "currentSha256": "cb94edb98f424de58d113722b743d16fa1512320d2fc5812f752b75b361985a6",
+      "transitions": [
+        {
+          "ownerSubsystem": "Prometheus Infrastructure",
+          "commit": "25ff53a7e61b50962144c5c689cc7a546875f724",
+          "tree": "25f27adbd21a281d1294a68362b994403934095e",
+          "subject": "Harden private release propagation verification",
+          "previousSha256": "7fcb0b3e4e6772e4831a808cbd0f02ef9e28f017ebb6c2d69a9b368248ac76c9",
+          "currentSha256": "cb94edb98f424de58d113722b743d16fa1512320d2fc5812f752b75b361985a6"
+        }
+      ],
+      "guardSuccessor": {
+        "path": "workers/infrastructure/cloudflare-unattended-smoke-guard.js",
+        "sha256": "a67375594478bc4bed3b3f9341778da1f07252a5cc711a45d81e11cf71ac8f62",
+        "contractPath": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+        "contractSha256": "b2a175fefd963f52c9b9738b8cd00074dc72ba97d11460887cda2a49bda9247e",
+        "exactWorkerVersionIdentityRequired": true,
+        "intelligenceBehaviorChanged": false
+      }
     }
   ],
   "approvedDashboardOutput": {
