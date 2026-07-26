@@ -13,6 +13,7 @@ import {
   renameSync,
   rmSync,
   symlinkSync,
+  unlinkSync,
   writeFileSync
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -731,7 +732,7 @@ test("qualified artifact contains actual no-bundle forward payload and rollback 
       () => verifyPrivateV2RuntimeRelease(runtimeRelease, settings),
       PrivateWorkflowV2Error
     );
-    rmSync(deployOutdir);
+    unlinkSync(deployOutdir);
     mkdirSync(deployOutdir, { mode: 0o700 });
     chmodSync(deployOutdir, 0o700);
     assert.throws(
