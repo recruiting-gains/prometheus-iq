@@ -150,7 +150,27 @@
       "unexpectedGuardResponseMarkerAllowed": false
     },
     "postDeployment": {
-      "exactGuardResponseMarkerRequired": true
+      "exactGuardResponseMarkerRequired": true,
+      "propagationFence": {
+        "method": "GET",
+        "path": "/",
+        "retryableConditions": [
+          "2xx_guard_marker_missing",
+          "2xx_exact_guard_marker_stale_qualified_root_sha256"
+        ],
+        "expectedReleaseIdentity": "qualified_forward_root_asset_sha256",
+        "maximumResponseBytes": 2097152,
+        "maxAttempts": 12,
+        "delayMilliseconds": 1500,
+        "requestTimeoutMilliseconds": 2500,
+        "maximumWaitMilliseconds": 46500,
+        "unsafeResponseRetryAllowed": false,
+        "requestDeadlineEnforced": true,
+        "responseBodiesConsumedOrCancelled": true,
+        "releaseIdentityHashLogged": false,
+        "fullFixedSmokeRunsAfterReadiness": true,
+        "timeoutTriggersForwardRollback": true
+      }
     },
     "crmSubmissionAllowed": false,
     "notificationAllowed": false

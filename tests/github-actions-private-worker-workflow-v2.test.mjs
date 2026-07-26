@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   chmodSync,
   existsSync,
@@ -52,9 +53,14 @@ import {
 } from "../scripts/lib/github-actions-public-worker-deployment.mjs";
 import {
   CLOUDFLARE_UNATTENDED_SMOKE_FAILURE,
+  CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION,
   CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY,
-  CloudflareUnattendedSmokeError
+  CloudflareUnattendedSmokeError,
+  runCloudflareUnattendedPostDeploymentSmoke
 } from "../scripts/run-cloudflare-unattended-smoke.mjs";
+import {
+  CLOUDFLARE_UNATTENDED_SMOKE_MARKER
+} from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 import { verifyGithubActionsPrivateWorkerWorkflowV2 } from "../scripts/verify-github-actions-private-worker-workflow-v2.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -217,7 +223,9 @@ function passingSmoke(
 function lifecycleFixture({
   postSmoke = passingSmoke(),
   postSmokeError,
-  deployUncertain = false
+  deployUncertain = false,
+  postSmokeImplementation,
+  expectRollback = Boolean(postSmokeError) || deployUncertain
 } = {}) {
   const runtimeBindings = Object.freeze([
     ...requiredBindings,
@@ -235,8 +243,7 @@ function lifecycleFixture({
     "private-deployment-3",
     runtimeBindings
   );
-  const rollbackExpected = Boolean(postSmokeError)
-    || deployUncertain
+  const rollbackExpected = expectRollback
     || postSmoke.status !== "passed"
     || postSmoke.attemptedWriteCount !== 0
     || postSmoke.requestCount <= 0
@@ -310,6 +317,7 @@ function lifecycleFixture({
       calls.postSmoke += 1;
       assert.equal(markerPolicy, CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT);
       if (postSmokeError) throw postSmokeError;
+      if (postSmokeImplementation) return postSmokeImplementation();
       return postSmoke;
     },
     runRollback: async () => {
@@ -1008,6 +1016,136 @@ test("a postdeployment guard-marker failure preserves its dimension through one 
   assert.equal(completed.failureClassification, "SMOKE_FAILURE|DIMENSION=GUARD_MARKER_MISSING");
   assert.equal(calls.deploy, 1);
   assert.equal(calls.rollback, 1);
+});
+
+test("a bounded postdeployment propagation timeout triggers one forward rollback", async () => {
+  const { result, calls } = lifecycleFixture({
+    postSmokeError: new CloudflareUnattendedSmokeError(
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_PROPAGATION_TIMEOUT
+    )
+  });
+  const completed = await result;
+  assert.equal(completed.status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
+  assert.equal(
+    completed.failureClassification,
+    "SMOKE_FAILURE|DIMENSION=GUARD_PROPAGATION_TIMEOUT"
+  );
+  assert.equal(calls.deploy, 1);
+  assert.equal(calls.rollback, 1);
+});
+
+test("a stale guarded release identity triggers one forward rollback", async () => {
+  const { result, calls } = lifecycleFixture({
+    postSmokeError: new CloudflareUnattendedSmokeError(
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH
+    )
+  });
+  const completed = await result;
+  assert.equal(completed.status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
+  assert.equal(
+    completed.failureClassification,
+    "SMOKE_FAILURE|DIMENSION=RELEASE_IDENTITY_MISMATCH"
+  );
+  assert.equal(calls.deploy, 1);
+  assert.equal(calls.rollback, 1);
+});
+
+test("real bounded propagation timeout reaches the lifecycle rollback exactly once", async () => {
+  let readinessRequests = 0;
+  const expectedRootSha256 = createHash("sha256")
+    .update("qualified-forward-root")
+    .digest("hex");
+  const { result, calls } = lifecycleFixture({
+    expectRollback: true,
+    postSmokeImplementation: () => runCloudflareUnattendedPostDeploymentSmoke({
+      dryRun: false,
+      expectedRootSha256,
+      credentials: {
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
+      },
+      sleepImpl: async () => {},
+      async fetchImpl(url) {
+        readinessRequests += 1;
+        assert.equal(new URL(url).pathname, "/");
+        return new Response(null, { status: 200 });
+      }
+    })
+  });
+  const completed = await result;
+  assert.equal(completed.status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
+  assert.equal(
+    completed.failureClassification,
+    "SMOKE_FAILURE|DIMENSION=GUARD_PROPAGATION_TIMEOUT"
+  );
+  assert.equal(readinessRequests, CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts);
+  assert.equal(calls.deploy, 1);
+  assert.equal(calls.postSmoke, 1);
+  assert.equal(calls.rollback, 1);
+});
+
+test("real unsafe propagation responses never retry before lifecycle rollback", async () => {
+  const expectedRootSha256 = createHash("sha256")
+    .update("qualified-forward-root")
+    .digest("hex");
+  const cases = [
+    [
+      () => new Response(null, {
+        status: 200,
+        headers: {
+          [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]: "invalid-marker"
+        }
+      }),
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_INVALID
+    ],
+    [
+      () => new Response(null, {
+        status: 302,
+        headers: { Location: "https://example.invalid/blocked" }
+      }),
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.REDIRECT_DENIED
+    ],
+    [
+      () => new Response(null, { status: 403 }),
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.HTTP_STATUS_REJECTED
+    ],
+    [
+      () => {
+        throw new Error("sensitive transport detail");
+      },
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.NETWORK_FAILED
+    ]
+  ];
+  for (const [response, dimension] of cases) {
+    let readinessRequests = 0;
+    const { result, calls } = lifecycleFixture({
+      expectRollback: true,
+      postSmokeImplementation: () => runCloudflareUnattendedPostDeploymentSmoke({
+        dryRun: false,
+        expectedRootSha256,
+        credentials: {
+          [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
+          [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
+        },
+        sleepImpl: async () => {
+          assert.fail("unsafe response classes must not wait or retry");
+        },
+        async fetchImpl() {
+          readinessRequests += 1;
+          return response();
+        }
+      })
+    });
+    const completed = await result;
+    assert.equal(completed.status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
+    assert.equal(completed.failureClassification, `SMOKE_FAILURE|DIMENSION=${dimension}`);
+    assert.equal(completed.failureClassification.includes("sensitive"), false);
+    assert.equal(completed.failureClassification.includes("example.invalid"), false);
+    assert.equal(readinessRequests, 1);
+    assert.equal(calls.deploy, 1);
+    assert.equal(calls.postSmoke, 1);
+    assert.equal(calls.rollback, 1);
+  }
 });
 
 test("an uncertain deployment after process start triggers one forward rollback without retry", async () => {

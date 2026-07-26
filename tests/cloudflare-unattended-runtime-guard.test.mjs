@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
-import { generateKeyPairSync } from "node:crypto";
+import { createHash, generateKeyPairSync } from "node:crypto";
 import {
   chmodSync,
   existsSync,
@@ -48,8 +48,11 @@ import {
 import {
   CLOUDFLARE_UNATTENDED_SMOKE_FAILURE,
   CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY,
+  CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION,
   CloudflareUnattendedSmokeError,
   fixedCloudflareUnattendedSmokePlan,
+  runCloudflareUnattendedPostDeploymentSmoke,
+  waitForCloudflareUnattendedSmokeGuard,
   runCloudflareUnattendedSmoke
 } from "../scripts/run-cloudflare-unattended-smoke.mjs";
 
@@ -64,6 +67,10 @@ const publicJwk = await exportJWK(signingKeys.publicKey);
 publicJwk.kid = "smoke-test-key";
 publicJwk.alg = "RS256";
 const keyResolver = createLocalJWKSet({ keys: [publicJwk] });
+
+function sha256Text(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
 
 function guardEnv(overrides = {}) {
   return {
@@ -435,6 +442,263 @@ test("postdeployment smoke requires the exact marker and exposes only its fixed 
       && error.message.includes("200") === false
     )
   );
+});
+
+test("postdeployment propagation fence waits only for the exact root guard marker", async () => {
+  const syntheticId = "synthetic-propagation-id";
+  const syntheticSecret = "synthetic-propagation-secret";
+  const qualifiedRoot = "qualified-forward-root";
+  const staleRoot = "previous-rollback-root";
+  const credentials = {
+    [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: syntheticId,
+    [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: syntheticSecret
+  };
+  const observed = [];
+  const sleeps = [];
+  const result = await waitForCloudflareUnattendedSmokeGuard({
+    dryRun: false,
+    credentials,
+    expectedRootSha256: sha256Text(qualifiedRoot),
+    sleepImpl: async milliseconds => {
+      sleeps.push(milliseconds);
+    },
+    async fetchImpl(url, options) {
+      observed.push({ url: String(url), options });
+      return new Response(observed.length === 3 ? qualifiedRoot : staleRoot, {
+        status: 200,
+        headers: observed.length === 1
+          ? {}
+          : {
+              [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
+                CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue
+            }
+      });
+    }
+  });
+  assert.deepEqual(result, {
+    status: "ready",
+    requestCount: 3,
+    attemptedWriteCount: 0
+  });
+  assert.deepEqual(sleeps, [
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds,
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds
+  ]);
+  assert.equal(observed.length, 3);
+  for (const { url, options } of observed) {
+    assert.equal(new URL(url).pathname, "/");
+    assert.equal(options.method, "GET");
+    assert.equal(options.redirect, "manual");
+    assert.equal(options.credentials, "omit");
+    assert.equal(options.cache, "no-store");
+    assert.equal(options.referrerPolicy, "no-referrer");
+    assert.equal(options.keepalive, false);
+    assert.equal(options.signal instanceof AbortSignal, true);
+    assert.equal(Object.hasOwn(options, "body"), false);
+    assert.equal(Object.hasOwn(options.headers, "Cookie"), false);
+  }
+  const output = JSON.stringify(result);
+  assert.equal(output.includes(syntheticId), false);
+  assert.equal(output.includes(syntheticSecret), false);
+  assert.equal(output.includes(CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN), false);
+});
+
+test("postdeployment propagation fence fails closed when the marker never appears", async () => {
+  let calls = 0;
+  let sleeps = 0;
+  await assert.rejects(
+    waitForCloudflareUnattendedSmokeGuard({
+      dryRun: false,
+      expectedRootSha256: sha256Text("qualified-forward-root"),
+      credentials: {
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
+      },
+      sleepImpl: async milliseconds => {
+        assert.equal(
+          milliseconds,
+          CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds
+        );
+        sleeps += 1;
+      },
+      async fetchImpl() {
+        calls += 1;
+        return new Response(null, { status: 200 });
+      }
+    }),
+    error => (
+      error instanceof CloudflareUnattendedSmokeError
+      && error.dimension === CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_PROPAGATION_TIMEOUT
+    )
+  );
+  assert.equal(calls, CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts);
+  assert.equal(sleeps, CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts - 1);
+});
+
+test("postdeployment propagation fence rejects an older guarded release identity", async () => {
+  let calls = 0;
+  await assert.rejects(
+    waitForCloudflareUnattendedSmokeGuard({
+      dryRun: false,
+      expectedRootSha256: sha256Text("qualified-forward-root"),
+      credentials: {
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
+      },
+      sleepImpl: async () => {},
+      async fetchImpl() {
+        calls += 1;
+        return new Response("previous-guarded-release-root", {
+          status: 200,
+          headers: {
+            [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
+              CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue
+          }
+        });
+      }
+    }),
+    error => (
+      error instanceof CloudflareUnattendedSmokeError
+      && error.dimension === CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH
+    )
+  );
+  assert.equal(calls, CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts);
+});
+
+test("postdeployment propagation fence never retries unsafe response classes", async () => {
+  const credentials = {
+    [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
+    [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
+  };
+  const cases = [
+    [
+      async () => new Response(null, {
+        status: 200,
+        headers: {
+          [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]: "unexpected-marker"
+        }
+      }),
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_INVALID
+    ],
+    [
+      async () => new Response(null, {
+        status: 302,
+        headers: { Location: "https://example.invalid/blocked" }
+      }),
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.REDIRECT_DENIED
+    ],
+    [
+      async () => new Response(null, { status: 403 }),
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.HTTP_STATUS_REJECTED
+    ],
+    [
+      async () => {
+        throw new Error("sensitive transport detail");
+      },
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.NETWORK_FAILED
+    ]
+  ];
+  for (const [response, dimension] of cases) {
+    let calls = 0;
+    let sleeps = 0;
+    await assert.rejects(
+      waitForCloudflareUnattendedSmokeGuard({
+        dryRun: false,
+        credentials,
+        expectedRootSha256: sha256Text("qualified-forward-root"),
+        sleepImpl: async () => {
+          sleeps += 1;
+        },
+        async fetchImpl() {
+          calls += 1;
+          return response();
+        }
+      }),
+      error => (
+        error instanceof CloudflareUnattendedSmokeError
+        && error.dimension === dimension
+        && error.message.includes("sensitive") === false
+        && error.message.includes("example.invalid") === false
+      )
+    );
+    assert.equal(calls, 1);
+    assert.equal(sleeps, 0);
+  }
+});
+
+test("postdeployment propagation fence has a hard request deadline", async () => {
+  let calls = 0;
+  let sleeps = 0;
+  const startedAt = Date.now();
+  await assert.rejects(
+    waitForCloudflareUnattendedSmokeGuard({
+      dryRun: false,
+      expectedRootSha256: sha256Text("qualified-forward-root"),
+      credentials: {
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
+      },
+      sleepImpl: async () => {
+        sleeps += 1;
+      },
+      fetchImpl() {
+        calls += 1;
+        return new Promise(() => {});
+      }
+    }),
+    error => (
+      error instanceof CloudflareUnattendedSmokeError
+      && error.dimension === CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.NETWORK_FAILED
+    )
+  );
+  assert.equal(calls, 1);
+  assert.equal(sleeps, 0);
+  assert.ok(
+    Date.now() - startedAt
+      < CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds + 1_500
+  );
+});
+
+test("full postdeployment smoke begins only after propagation readiness", async () => {
+  const credentials = {
+    [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
+    [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
+  };
+  const expectedSmokeRequests = fixedCloudflareUnattendedSmokePlan().length;
+  const qualifiedRoot = "qualified-forward-root";
+  let calls = 0;
+  let sleeps = 0;
+  const observedPaths = [];
+  const result = await runCloudflareUnattendedPostDeploymentSmoke({
+    dryRun: false,
+    credentials,
+    expectedRootSha256: sha256Text(qualifiedRoot),
+    sleepImpl: async () => {
+      sleeps += 1;
+    },
+    async fetchImpl(url) {
+      calls += 1;
+      observedPaths.push(new URL(url).pathname);
+      return new Response(calls === 2 ? qualifiedRoot : null, {
+        status: 200,
+        headers: calls === 1
+          ? {}
+          : {
+              [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
+                CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue
+            }
+      });
+    }
+  });
+  assert.equal(sleeps, 1);
+  assert.equal(calls, 2 + expectedSmokeRequests);
+  assert.deepEqual(observedPaths.slice(0, 2), ["/", "/"]);
+  assert.equal(observedPaths.slice(2).includes("/"), true);
+  assert.equal(result.status, "passed");
+  assert.equal(result.requestCount, expectedSmokeRequests);
+  assert.equal(result.attemptedWriteCount, 0);
+  assert.equal(result.markerVerifiedCount, expectedSmokeRequests);
+  assert.equal(result.markerOmittedCount, 0);
 });
 
 test("smoke redirects are rejected without a follow-up request", async () => {

@@ -17,7 +17,10 @@ import {
   PRIVATE_WORKFLOW_V2_POLICY,
   buildQualifiedPrivateWranglerInvocation
 } from "./lib/github-actions-private-worker-workflow-v2.mjs";
-import { fixedCloudflareUnattendedSmokePlan } from "./run-cloudflare-unattended-smoke.mjs";
+import {
+  CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION,
+  fixedCloudflareUnattendedSmokePlan
+} from "./run-cloudflare-unattended-smoke.mjs";
 import { inspectRouteIqPrivateDashboardDeployAssets } from "./sync-route-iq-private-dashboard-deploy-assets.mjs";
 import { validateRouteIqPrivateForwardRollbackBoundaryV3 } from "./build-route-iq-private-forward-rollback-candidate-v3.mjs";
 
@@ -291,6 +294,35 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     true
   );
   assert.equal(contract.smoke.postDeployment.exactGuardResponseMarkerRequired, true);
+  assert.deepEqual(contract.smoke.postDeployment.propagationFence, {
+    method: "GET",
+    path: "/",
+    retryableConditions: [
+      "2xx_guard_marker_missing",
+      "2xx_exact_guard_marker_stale_qualified_root_sha256"
+    ],
+    expectedReleaseIdentity: "qualified_forward_root_asset_sha256",
+    maximumResponseBytes: 2_097_152,
+    maxAttempts: CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts,
+    delayMilliseconds: CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds,
+    requestTimeoutMilliseconds:
+      CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds,
+    maximumWaitMilliseconds:
+      CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds,
+    unsafeResponseRetryAllowed: false,
+    requestDeadlineEnforced: true,
+    responseBodiesConsumedOrCancelled: true,
+    releaseIdentityHashLogged: false,
+    fullFixedSmokeRunsAfterReadiness: true,
+    timeoutTriggersForwardRollback: true
+  });
+  assert.equal(
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds,
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts
+      * CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds
+      + (CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts - 1)
+        * CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds
+  );
   assert.equal(contract.smoke.crmSubmissionAllowed, false);
   assert.equal(contract.runtimeGuardInjection.artifactMutationAllowed, false);
   assert.equal(contract.runtimeGuardInjection.temporaryDirectoryMode, "0700");
@@ -367,6 +399,9 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
       < deploymentRunner.indexOf("takeDeploymentCredentials(environment)")
   );
   assert.match(deploymentRunner, /runCloudflareUnattendedSmoke/u);
+  assert.match(deploymentRunner, /runCloudflareUnattendedPostDeploymentSmoke/u);
+  assert.match(deploymentRunner, /qualifiedRootAssetSha256/u);
+  assert.match(deploymentRunner, /expectedRootSha256/u);
   assert.match(deploymentRunner, /createPrivateV2RuntimeWorkspace/u);
   assert.match(deploymentRunner, /createPrivateV2RuntimeRelease/u);
   assert.match(deploymentRunner, /verifyPrivateV2RuntimeRelease/u);
@@ -394,6 +429,9 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.match(deploymentRunner, /runRollback/u);
   assert.match(smokeRunner, /BOOTSTRAP_ALLOW_MISSING/u);
   assert.match(smokeRunner, /GUARD_MARKER_MISSING/u);
+  assert.match(smokeRunner, /GUARD_PROPAGATION_TIMEOUT/u);
+  assert.match(smokeRunner, /RELEASE_IDENTITY_MISMATCH/u);
+  assert.match(smokeRunner, /waitForCloudflareUnattendedSmokeGuard/u);
   assert.doesNotMatch(smokeRunner, /smoke_guard_verification_failed:/u);
   assert.match(qualificationRunner, /assertNoProductionSecrets/u);
   assert.match(metadataRunner, /verifyPrivateQualificationArtifactMetadata/u);
