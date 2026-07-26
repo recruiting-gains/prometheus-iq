@@ -9,6 +9,7 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  realpathSync,
   rmSync,
   symlinkSync,
   writeFileSync
@@ -711,12 +712,14 @@ function copyPrivateV2RuntimeTarget({
   }
 }
 
-export function createPrivateV2RuntimeWorkspace(baseDirectory = tmpdir()) {
+export function createPrivateV2RuntimeWorkspace(baseDirectory) {
   try {
-    if (typeof baseDirectory !== "string" || baseDirectory.length < 1) {
+    const defaultBase = baseDirectory === undefined;
+    const candidate = defaultBase ? tmpdir() : baseDirectory;
+    if (typeof candidate !== "string" || candidate.length < 1) {
       fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
     }
-    const base = resolve(baseDirectory);
+    const base = defaultBase ? realpathSync(candidate) : resolve(candidate);
     const baseStats = lstatSync(base);
     if (!baseStats.isDirectory() || baseStats.isSymbolicLink()) {
       fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);

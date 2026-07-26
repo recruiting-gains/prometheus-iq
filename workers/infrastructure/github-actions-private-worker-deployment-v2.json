@@ -166,6 +166,8 @@
     "temporaryDirectoryMode": "0700",
     "temporaryConfigMode": "0600",
     "temporaryBaseSource": "node:os.tmpdir()",
+    "defaultTemporaryBaseCanonicalized": true,
+    "explicitTemporaryBaseAliasesAllowed": false,
     "runnerTempEnvironmentAliasAllowed": false,
     "exclusiveCreateRequired": true,
     "symlinksAllowed": false,

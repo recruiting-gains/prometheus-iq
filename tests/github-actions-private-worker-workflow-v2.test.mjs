@@ -7,6 +7,7 @@ import {
   mkdtempSync,
   mkdirSync,
   readFileSync,
+  realpathSync,
   renameSync,
   rmSync,
   symlinkSync,
@@ -428,13 +429,18 @@ test("runtime guard settings are consumed, strictly validated, scrubbed, and nev
   }
 });
 
-test("runtime workspace rejects temporary aliases and insecure modes", () => {
+test("runtime workspace canonicalizes only the default temporary alias", () => {
   const temporary = mkdtempSync(join(tmpdir(), "prometheus-private-v2-runtime-boundary-"));
   let workspace;
-  const previousRunnerTemp = process.env.RUNNER_TEMP;
+  const temporaryEnvironmentNames = ["RUNNER_TEMP", "TMPDIR", "TMP", "TEMP"];
+  const previousTemporaryEnvironment = Object.fromEntries(
+    temporaryEnvironmentNames.map(name => [name, process.env[name]])
+  );
   try {
+    const canonicalBase = join(temporary, "canonical-base");
     const symlink = join(temporary, "linked-base");
-    symlinkSync(temporary, symlink);
+    mkdirSync(canonicalBase, { mode: 0o700 });
+    symlinkSync(canonicalBase, symlink);
     assert.throws(
       () => createPrivateV2RuntimeWorkspace(symlink),
       error => (
@@ -442,9 +448,13 @@ test("runtime workspace rejects temporary aliases and insecure modes", () => {
         && error.code === PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID
       )
     );
-    process.env.RUNNER_TEMP = symlink;
+    for (const name of temporaryEnvironmentNames) process.env[name] = symlink;
     workspace = createPrivateV2RuntimeWorkspace();
     assert.equal(resolve(workspace).startsWith(`${resolve(symlink)}${sep}`), false);
+    assert.equal(
+      resolve(workspace).startsWith(`${realpathSync(canonicalBase)}${sep}`),
+      true
+    );
     assert.equal(lstatSync(workspace).mode & 0o777, 0o700);
     chmodSync(workspace, 0o755);
     assert.throws(
@@ -456,8 +466,11 @@ test("runtime workspace rejects temporary aliases and insecure modes", () => {
       PrivateWorkflowV2Error
     );
   } finally {
-    if (previousRunnerTemp === undefined) delete process.env.RUNNER_TEMP;
-    else process.env.RUNNER_TEMP = previousRunnerTemp;
+    for (const name of temporaryEnvironmentNames) {
+      const value = previousTemporaryEnvironment[name];
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
     removePrivateV2RuntimeWorkspace(workspace);
     rmSync(temporary, { recursive: true, force: true });
   }

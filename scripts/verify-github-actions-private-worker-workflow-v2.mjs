@@ -296,6 +296,8 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.equal(contract.runtimeGuardInjection.temporaryDirectoryMode, "0700");
   assert.equal(contract.runtimeGuardInjection.temporaryConfigMode, "0600");
   assert.equal(contract.runtimeGuardInjection.temporaryBaseSource, "node:os.tmpdir()");
+  assert.equal(contract.runtimeGuardInjection.defaultTemporaryBaseCanonicalized, true);
+  assert.equal(contract.runtimeGuardInjection.explicitTemporaryBaseAliasesAllowed, false);
   assert.equal(contract.runtimeGuardInjection.runnerTempEnvironmentAliasAllowed, false);
   assert.equal(contract.runtimeGuardInjection.symlinksAllowed, false);
   assert.equal(contract.runtimeGuardInjection.cleanupRequiredInFinally, true);
@@ -333,6 +335,10 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.match(library, /REQUIRED_PROTECTED_SECRET_NAMES_MISSING/u);
   assert.match(library, /BOOTSTRAP_ALLOW_MISSING/u);
   assert.match(library, /RUNTIME_GUARD_WORKSPACE_INVALID/u);
+  assert.match(
+    library,
+    /const base = defaultBase \? realpathSync\(candidate\) : resolve\(candidate\)/u
+  );
   assert.match(library, /PUBLIC_DEPLOYMENT_POLICY_FAILURE/u);
   assert.match(library, /SMOKE_FAILURE\|DIMENSION=/u);
   assert.doesNotMatch(library, /console\.(?:log|error|warn)/u);
