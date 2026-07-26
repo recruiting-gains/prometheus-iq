@@ -9,13 +9,18 @@ import { runInNewContext } from "node:vm";
 import {
   closeHarnessResources,
   createNoncanonicalTestClockSource,
+  dashboardRuntimeWorkflowTestClock,
   eventbriteExpansionContract,
   eventbriteExpansionFixture,
   installHarnessSignalCleanup,
   launchChrome,
   parseDevToolsActivePort,
-  resolveChromeExecutable
+  resolveChromeExecutable,
+  resolveRuntimeWorkflowScenarioClock
 } from "../scripts/verify-dashboard-runtime-workflows.mjs";
+import {
+  evaluateRouteBusinessHoursEligibility
+} from "../intelligence/route-business-hours-eligibility.mjs";
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -170,6 +175,64 @@ test("Eventbrite expansion uses an explicit advancing clock instead of the wall-
   assert.equal(clock.marker.mode, "advancing-offset");
   assert.equal(eventbriteExpansionFixture.timezoneId, "America/Chicago");
   assert.equal(eventbriteExpansionFixture.localDate, "2026-07-19");
+});
+
+test("runtime workflow hours stay anchored to the harness clock while stale evidence still fails closed", () => {
+  const simulatedFutureWallClock = Date.parse("2099-01-01T00:00:00.000Z");
+  const verifiedAt = Date.parse(dashboardRuntimeWorkflowTestClock.businessHoursVerifiedAt);
+  assert.ok(
+    simulatedFutureWallClock - verifiedAt
+      > dashboardRuntimeWorkflowTestClock.freshnessThresholdHours * 3_600_000
+  );
+  assert.equal(
+    resolveRuntimeWorkflowScenarioClock({ wallClockNow: simulatedFutureWallClock }),
+    dashboardRuntimeWorkflowTestClock
+  );
+
+  const record = {
+    workspaceId: "northstar_outside_sales_synthetic",
+    operatingProfileId: "general_outside_sales",
+    recordId: "synthetic_runtime_clock_regression",
+    businessName: "Synthetic Runtime Clock Regression",
+    permanentOperationalStatus: "OPERATIONAL",
+    regularWeeklyBusinessHours: {
+      periods: [{
+        open: { date: null, day: 0, hour: 0, minute: 0, truncated: null },
+        close: null
+      }]
+    },
+    specialOrHolidayHours: [],
+    currentOpeningHoursWindow: null,
+    appointmentAccessRequired: false,
+    appointmentAccessWindows: [],
+    businessTimezone: dashboardRuntimeWorkflowTestClock.timezoneId,
+    sourceRetrievedAt: dashboardRuntimeWorkflowTestClock.businessHoursVerifiedAt,
+    hoursVerifiedAt: dashboardRuntimeWorkflowTestClock.businessHoursVerifiedAt
+  };
+  const fresh = evaluateRouteBusinessHoursEligibility({
+    record,
+    evaluatedAt: dashboardRuntimeWorkflowTestClock.now
+  });
+  assert.equal(fresh.status, "OPEN_VERIFIED");
+  assert.equal(fresh.availabilityReasonCode, "VERIFIED_REGULAR_PERIOD_OPEN");
+
+  const staleVerifiedAt = new Date(
+    Date.parse(dashboardRuntimeWorkflowTestClock.now)
+      - dashboardRuntimeWorkflowTestClock.freshnessThresholdHours * 3_600_000
+      - 1
+  ).toISOString();
+  const staleRecord = {
+    ...record,
+    sourceRetrievedAt: staleVerifiedAt,
+    hoursVerifiedAt: staleVerifiedAt
+  };
+  const staleRouteDecision = evaluateRouteBusinessHoursEligibility({
+    record: staleRecord,
+    evaluatedAt: dashboardRuntimeWorkflowTestClock.now
+  });
+  assert.equal(staleRouteDecision.status, "HOURS_STALE");
+  assert.equal(staleRouteDecision.availabilityReasonCode, "HOURS_SOURCE_STALE");
+  assert.equal(staleRouteDecision.immediateRecommendationEligible, false);
 });
 
 test("Eventbrite expansion contract rejects count, access, map, Add, and state regressions", () => {

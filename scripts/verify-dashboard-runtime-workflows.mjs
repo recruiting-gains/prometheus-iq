@@ -35,9 +35,11 @@ const summitRehearsalRuntimeAssetPaths = Object.freeze({
   businessRoster: `/${summitRehearsalBusinessRosterPath}`,
   businessHours: `/${summitRehearsalBusinessHoursPath}`
 });
-const customerPwaTestClock = Object.freeze({
+export const dashboardRuntimeWorkflowTestClock = Object.freeze({
   now: "2026-07-23T16:00:00.000Z",
-  timezoneId: "America/Chicago"
+  timezoneId: "America/Chicago",
+  businessHoursVerifiedAt: "2026-07-23T15:55:00.000Z",
+  freshnessThresholdHours: 24
 });
 const cloneJson = value => JSON.parse(JSON.stringify(value));
 const canonicalWorkspaceConfigurationRegistry = JSON.parse(readFileSync(
@@ -139,9 +141,9 @@ Object.assign(customerPwaBusinessManifest, {
 const customerPwaBusinessHours = Object.freeze({
   schemaVersion: "prometheus-data-business-hours-v1",
   artifactVersion: "business-hours-v1",
-  generatedAt: "2026-07-23T15:55:00.000Z",
-  statusEvaluatedAt: customerPwaTestClock.now,
-  sourceRetrievedAt: "2026-07-23T15:55:00.000Z",
+  generatedAt: dashboardRuntimeWorkflowTestClock.businessHoursVerifiedAt,
+  statusEvaluatedAt: dashboardRuntimeWorkflowTestClock.now,
+  sourceRetrievedAt: dashboardRuntimeWorkflowTestClock.businessHoursVerifiedAt,
   workspaceId: "northstar_outside_sales_synthetic",
   operatingProfileId: "general_outside_sales",
   sourceDatasetVersion: "route-iq-dashboard-runtime-harness-hours-v2",
@@ -198,22 +200,22 @@ const customerPwaBusinessHours = Object.freeze({
     currentOpeningHoursWindow: null,
     businessTimezone: "America/Chicago",
     currentHoursSource: "SYNTHETIC_NONCANONICAL",
-    sourceRetrievedAt: "2026-07-23T15:55:00.000Z",
-    hoursVerifiedAt: "2026-07-23T15:55:00.000Z",
+    sourceRetrievedAt: dashboardRuntimeWorkflowTestClock.businessHoursVerifiedAt,
+    hoursVerifiedAt: dashboardRuntimeWorkflowTestClock.businessHoursVerifiedAt,
     hoursFreshnessStatus: "FRESH",
     hoursConfidence: "HIGH",
     hoursProvenance: {
       sourceSystem: "SYNTHETIC_NONCANONICAL",
       sourceMethod: "test_fixture",
       sourcePlaceId: record.recordId,
-      retrievedAt: "2026-07-23T15:55:00.000Z",
-      normalizedAt: "2026-07-23T15:55:00.000Z",
+      retrievedAt: dashboardRuntimeWorkflowTestClock.businessHoursVerifiedAt,
+      normalizedAt: dashboardRuntimeWorkflowTestClock.businessHoursVerifiedAt,
       fieldEvidenceIds: []
     },
     currentOpenClosedEligibilityStatus: "OPEN_VERIFIED",
     currentStatusReasonCode: "VERIFIED_24_HOUR_OPERATION",
     currentStatusReason: "Synthetic governed fixture verifies continuous operation.",
-    currentStatusEvaluatedAt: customerPwaTestClock.now,
+    currentStatusEvaluatedAt: dashboardRuntimeWorkflowTestClock.now,
     currentStatusBusinessLocalDate: "2026-07-23",
     currentStatusBusinessLocalTime: "11:00"
   }))
@@ -1651,6 +1653,12 @@ async function setNoncanonicalTestClock(cdp, fixture) {
   await cdp.send("Page.addScriptToEvaluateOnNewDocument", {
     source: createNoncanonicalTestClockSource(fixture.now)
   });
+}
+
+export function resolveRuntimeWorkflowScenarioClock(options = {}) {
+  return Object.prototype.hasOwnProperty.call(options, "noncanonicalTestClock")
+    ? options.noncanonicalTestClock
+    : dashboardRuntimeWorkflowTestClock;
 }
 
 async function waitForDashboardReady(cdp, timeoutMs = 10000) {
@@ -3195,7 +3203,7 @@ async function runPageScenario(chrome, server, path, name, options = {}) {
   try {
     await setViewport(cdp, options.viewport);
     await setStandaloneMode(cdp, options.standalone);
-    await setNoncanonicalTestClock(cdp, options.noncanonicalTestClock);
+    await setNoncanonicalTestClock(cdp, resolveRuntimeWorkflowScenarioClock(options));
     const url = `${server.origin}${path}`;
     await navigateAndWait(cdp, url);
     const routeLoadMs = await waitForDashboardReady(cdp, 60000);
@@ -3999,7 +4007,7 @@ async function runHarness() {
     const customerPwa = await runPageScenario(chrome, customerPwaServer, "/app", "customer-pwa", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true },
       standalone: true,
-      noncanonicalTestClock: customerPwaTestClock
+      noncanonicalTestClock: dashboardRuntimeWorkflowTestClock
     });
     const customerPwaSnap = customerPwa.initial;
     const customerPwaBoundary = await customerPwa.cdp.evaluate(`(() => {
