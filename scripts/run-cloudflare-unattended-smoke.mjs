@@ -14,6 +14,11 @@ const SMOKE_CREDENTIAL_NAMES = Object.freeze([
 ]);
 const ACCESS_CLIENT_ID_HEADER = ["CF", "Access", "Client", "Id"].join("-");
 const ACCESS_CLIENT_SECRET_HEADER = ["CF", "Access", "Client", "Secret"].join("-");
+const CANONICAL_SMOKE_REQUESTS = Object.freeze(
+  CLOUDFLARE_UNATTENDED_SMOKE_FIXED_REQUESTS.filter(entry => (
+    entry.path !== "/index.html"
+  ))
+);
 
 export const CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY = Object.freeze({
   BOOTSTRAP_ALLOW_MISSING: "BOOTSTRAP_ALLOW_MISSING",
@@ -57,7 +62,7 @@ function requireCredential(credentials, name) {
 }
 
 export function fixedCloudflareUnattendedSmokePlan() {
-  return Object.freeze(CLOUDFLARE_UNATTENDED_SMOKE_FIXED_REQUESTS.map(entry => Object.freeze({
+  return Object.freeze(CANONICAL_SMOKE_REQUESTS.map(entry => Object.freeze({
     method: entry.method,
     url: `${CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN}${entry.path}`,
     redirect: "manual",
@@ -93,7 +98,7 @@ export async function runCloudflareUnattendedSmoke({
   let markerVerifiedCount = 0;
   let markerOmittedCount = 0;
 
-  for (const entry of CLOUDFLARE_UNATTENDED_SMOKE_FIXED_REQUESTS) {
+  for (const entry of CANONICAL_SMOKE_REQUESTS) {
     const url = new URL(entry.path, CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN);
     if (!isCloudflareUnattendedSmokeRequestAllowed(entry.method, url)) {
       fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);

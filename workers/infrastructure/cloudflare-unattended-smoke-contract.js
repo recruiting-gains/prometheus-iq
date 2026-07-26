@@ -42,12 +42,10 @@ export const CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS = Object.freeze([
 ]);
 
 export const CLOUDFLARE_UNATTENDED_SMOKE_FIXED_REQUESTS = Object.freeze([
-  ...CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS
-    .filter(path => path !== "/index.html")
-    .map(path => Object.freeze({
-      method: "GET",
-      path
-    })),
+  ...CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.map(path => Object.freeze({
+    method: "GET",
+    path
+  })),
   Object.freeze({ method: "HEAD", path: "/" })
 ]);
 
