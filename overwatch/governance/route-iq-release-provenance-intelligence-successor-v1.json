@@ -1,0 +1,67 @@
+{
+  "governanceId": "route-iq-release-provenance-intelligence-successor-v1",
+  "version": "1.0.0",
+  "status": "OVERWATCH_ACCEPTED_OWNER_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "purpose": "Append the current owner-authored Intelligence smoke-guard provenance successor to the release-provenance verification chain without rewriting historical Intelligence or Overwatch evidence.",
+  "historicalEvidence": {
+    "releaseProvenanceMapping": {
+      "path": "overwatch/artifact-contracts/provenance/route-iq-release-provenance-repair-v1.json",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    "zipFounderAccessSuccessor": {
+      "commit": "4b7a18556e7e424f8c643c38f154ec6ed504a354",
+      "tree": "230199ba017e3f0c39d180d4642c7fff3d463c69",
+      "remainsHistorical": true,
+      "rewritten": false
+    }
+  },
+  "intelligenceOwnerSuccessor": {
+    "commit": "0bda1d1fff7e8bee09c72e0248970b52dd013382",
+    "parent": "94c642d85a2870af4ec6c312a4e2aa3294b4aa68",
+    "tree": "53925227263d7fa3ebd8182550f6094c3fa84a90",
+    "author": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "committer": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "subject": "intelligence: synchronize hardened smoke guard provenance",
+    "changedPaths": [
+      "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
+      "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+      "scripts/verify-shadow-decision-readiness.mjs",
+      "tests/shadow-decision-readiness.test.mjs"
+    ],
+    "transitions": [
+      {
+        "path": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
+        "previousSha256": "29199759ec8782df53d13c770b66271f190766b6bf8291077a02e05fa7bcdd2e",
+        "currentSha256": "411fee907170b091f017e0360cb89850a8db9268c41daf450fe5136a7ecaf465"
+      },
+      {
+        "path": "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+        "previousSha256": "2ef9f139487d4ca666870e4a38489cc66a2c2f760742b7aa0d37d83ee4bc2437",
+        "currentSha256": "408a2e3976644467228d0687273c831b55c6766e20fba11509081d0514401fb0"
+      },
+      {
+        "path": "scripts/verify-shadow-decision-readiness.mjs",
+        "previousSha256": "8e02eef578dd4fe6a9bb9602f5735addecd2d864d4b064b2faf01eef7d5b8579",
+        "currentSha256": "e1215fc559b73b8e0f8e5c42ade9898c9e11a0d0b24786f285492c896fe17220"
+      },
+      {
+        "path": "tests/shadow-decision-readiness.test.mjs",
+        "previousSha256": "509324768e3387776a9ce6bea998d47b8389ded7af571e2280afbd3b477bfbbf",
+        "currentSha256": "ff82f1037e4967595a250f88d325e54332a74bb45f8f6b0e4f5c375f2f286d05"
+      }
+    ]
+  },
+  "reviewedBoundaries": {
+    "intelligenceImplementationChangedByOverwatch": false,
+    "intelligenceProvenanceChangedByOverwatch": false,
+    "runtimeChangedByOverwatch": false,
+    "websiteChangedByOverwatch": false,
+    "deploymentPayloadChangedByOverwatch": false,
+    "historicalEvidenceRewritten": false,
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF"
+  }
+}

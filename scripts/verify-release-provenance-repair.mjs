@@ -58,6 +58,20 @@ const currentZipFounderAccessIntelligencePaths = [
   "tests/read-only-field-session-learning.test.mjs",
   "tests/shadow-decision-readiness.test.mjs"
 ].sort();
+const currentHardenedSmokeGuardIntelligenceSuccessorPath =
+  "overwatch/governance/route-iq-release-provenance-intelligence-successor-v1.json";
+const currentHardenedSmokeGuardIntelligenceSuccessorCommit =
+  "0bda1d1fff7e8bee09c72e0248970b52dd013382";
+const currentHardenedSmokeGuardIntelligenceSuccessorParent =
+  "94c642d85a2870af4ec6c312a4e2aa3294b4aa68";
+const currentHardenedSmokeGuardIntelligenceSuccessorTree =
+  "53925227263d7fa3ebd8182550f6094c3fa84a90";
+const currentHardenedSmokeGuardIntelligenceSuccessorPaths = [
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
+  "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+  "scripts/verify-shadow-decision-readiness.mjs",
+  "tests/shadow-decision-readiness.test.mjs"
+].sort();
 const currentAugust1IntelligenceSuccessorPaths = [
   "intelligence/contracts/shadow-decision-readiness-contracts.json",
   "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
@@ -339,6 +353,125 @@ function isCurrentZipFounderAccessIntelligenceTransition(path, currentSha256) {
     && sha256(read(path)) === currentSha256;
 }
 
+function verifyCurrentHardenedSmokeGuardIntelligenceSuccessor() {
+  const governance = readJson(currentHardenedSmokeGuardIntelligenceSuccessorPath);
+  assert.equal(
+    governance.governanceId,
+    "route-iq-release-provenance-intelligence-successor-v1"
+  );
+  assert.equal(governance.version, "1.0.0");
+  assert.equal(governance.status, "OVERWATCH_ACCEPTED_OWNER_SUCCESSOR");
+  assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(governance.historicalEvidence.releaseProvenanceMapping.remainsHistorical, true);
+  assert.equal(governance.historicalEvidence.releaseProvenanceMapping.rewritten, false);
+  assert.equal(
+    governance.historicalEvidence.zipFounderAccessSuccessor.commit,
+    currentZipFounderAccessIntelligenceCommit
+  );
+  assert.equal(
+    governance.historicalEvidence.zipFounderAccessSuccessor.tree,
+    currentZipFounderAccessIntelligenceTree
+  );
+  assert.equal(governance.historicalEvidence.zipFounderAccessSuccessor.remainsHistorical, true);
+  assert.equal(governance.historicalEvidence.zipFounderAccessSuccessor.rewritten, false);
+
+  const successor = governance.intelligenceOwnerSuccessor;
+  assert.deepEqual(
+    git(
+      "show",
+      "-s",
+      "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      currentHardenedSmokeGuardIntelligenceSuccessorCommit
+    ).split("\n"),
+    [
+      currentHardenedSmokeGuardIntelligenceSuccessorCommit,
+      currentHardenedSmokeGuardIntelligenceSuccessorParent,
+      currentHardenedSmokeGuardIntelligenceSuccessorTree,
+      "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "intelligence: synchronize hardened smoke guard provenance"
+    ]
+  );
+  assert.equal(successor.commit, currentHardenedSmokeGuardIntelligenceSuccessorCommit);
+  assert.equal(successor.parent, currentHardenedSmokeGuardIntelligenceSuccessorParent);
+  assert.equal(successor.tree, currentHardenedSmokeGuardIntelligenceSuccessorTree);
+  assert.equal(successor.author, "Prometheus Intelligence Engine <intelligence@prometheus.local>");
+  assert.equal(successor.committer, "Prometheus Intelligence Engine <intelligence@prometheus.local>");
+  assert.equal(successor.subject, "intelligence: synchronize hardened smoke guard provenance");
+  assert.deepEqual(successor.changedPaths.slice().sort(), currentHardenedSmokeGuardIntelligenceSuccessorPaths);
+  assert.deepEqual(
+    changedPaths(currentHardenedSmokeGuardIntelligenceSuccessorCommit),
+    currentHardenedSmokeGuardIntelligenceSuccessorPaths
+  );
+  assert.doesNotThrow(() => git(
+    "merge-base",
+    "--is-ancestor",
+    currentZipFounderAccessIntelligenceCommit,
+    currentHardenedSmokeGuardIntelligenceSuccessorCommit
+  ));
+  assert.doesNotThrow(() => git(
+    "merge-base",
+    "--is-ancestor",
+    currentHardenedSmokeGuardIntelligenceSuccessorCommit,
+    "HEAD"
+  ));
+
+  const transitions = new Map(
+    successor.transitions.map(transition => [transition.path, transition])
+  );
+  assert.deepEqual(
+    [...transitions.keys()].sort(),
+    currentHardenedSmokeGuardIntelligenceSuccessorPaths
+  );
+  for (const path of currentHardenedSmokeGuardIntelligenceSuccessorPaths) {
+    const transition = transitions.get(path);
+    assert.equal(
+      transition.previousSha256,
+      sha256(gitBytes(
+        "show",
+        `${currentHardenedSmokeGuardIntelligenceSuccessorParent}:${path}`
+      )),
+      `${path} hardened smoke-guard predecessor hash drifted.`
+    );
+    assert.equal(
+      transition.currentSha256,
+      sha256(gitBytes(
+        "show",
+        `${currentHardenedSmokeGuardIntelligenceSuccessorCommit}:${path}`
+      )),
+      `${path} hardened smoke-guard owner-successor hash drifted.`
+    );
+    assert.equal(
+      transition.currentSha256,
+      sha256(read(path)),
+      `${path} current hardened smoke-guard successor drifted.`
+    );
+  }
+
+  assert.deepEqual(governance.reviewedBoundaries, {
+    intelligenceImplementationChangedByOverwatch: false,
+    intelligenceProvenanceChangedByOverwatch: false,
+    runtimeChangedByOverwatch: false,
+    websiteChangedByOverwatch: false,
+    deploymentPayloadChangedByOverwatch: false,
+    historicalEvidenceRewritten: false,
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF"
+  });
+  return transitions;
+}
+
+function isCurrentHardenedSmokeGuardIntelligenceTransition(
+  transitions,
+  path,
+  currentSha256
+) {
+  const transition = transitions.get(path);
+  return transition?.currentSha256 === currentSha256
+    && sha256(read(path)) === currentSha256;
+}
+
 export function verifyReleaseProvenanceRepair() {
   const mapping = readJson(mappingPath);
   const registry = readJson(registryPath);
@@ -363,6 +496,8 @@ export function verifyReleaseProvenanceRepair() {
   assert.equal(mapping.workspaceId, "fitness_connection");
   assert.equal(mapping.operatingProfileId, "fitness");
   verifyCurrentAugust1IntelligenceSuccessor();
+  const hardenedSmokeGuardIntelligenceTransitions =
+    verifyCurrentHardenedSmokeGuardIntelligenceSuccessor();
 
   const gap = mapping.legacyProvenanceGap;
   assert.equal(gap.commit, legacyCommit);
@@ -883,6 +1018,11 @@ export function verifyReleaseProvenanceRepair() {
         || isCurrentZipFounderAccessIntelligenceTransition(
           reference.consumerPath,
           currentConsumerSha256
+        )
+        || isCurrentHardenedSmokeGuardIntelligenceTransition(
+          hardenedSmokeGuardIntelligenceTransitions,
+          reference.consumerPath,
+          currentConsumerSha256
         ),
       true,
       `${reference.consumerPath} current Intelligence successor drifted.`
@@ -902,6 +1042,11 @@ export function verifyReleaseProvenanceRepair() {
           currentMirrorSha256
         )
         || isCurrentZipFounderAccessIntelligenceTransition(
+          mirror.path,
+          currentMirrorSha256
+        )
+        || isCurrentHardenedSmokeGuardIntelligenceTransition(
+          hardenedSmokeGuardIntelligenceTransitions,
           mirror.path,
           currentMirrorSha256
         ),
