@@ -15,7 +15,7 @@ import {
   writeFileSync
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, isAbsolute, join, relative, resolve } from "node:path";
+import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 
 import {
   DeploymentPolicyError,
@@ -712,6 +712,88 @@ function copyPrivateV2RuntimeTarget({
   }
 }
 
+const PRIVATE_V2_WRANGLER_SCRATCH_DIRECTORY = "wrangler-scratch";
+const PRIVATE_V2_WRANGLER_OUTDIR_NAMES = Object.freeze({
+  "dry-run": "dry-run",
+  deploy: "deploy",
+  rollback: "rollback"
+});
+
+function createPrivateV2WranglerScratch(workspace) {
+  const scratchDirectory = join(workspace, PRIVATE_V2_WRANGLER_SCRATCH_DIRECTORY);
+  try {
+    mkdirSync(scratchDirectory, { recursive: false, mode: 0o700 });
+    chmodSync(scratchDirectory, 0o700);
+    requireOwnerOnlyDirectory(scratchDirectory);
+    const wranglerOutdirs = {};
+    for (const [mode, name] of Object.entries(PRIVATE_V2_WRANGLER_OUTDIR_NAMES)) {
+      const outdir = join(scratchDirectory, name);
+      mkdirSync(outdir, { recursive: false, mode: 0o700 });
+      chmodSync(outdir, 0o700);
+      requireOwnerOnlyDirectory(outdir);
+      wranglerOutdirs[mode] = outdir;
+    }
+    return Object.freeze({
+      scratchDirectory,
+      wranglerOutdirs: Object.freeze(wranglerOutdirs)
+    });
+  } catch (error) {
+    if (error instanceof PrivateWorkflowV2Error) throw error;
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  }
+}
+
+function privateV2WranglerScratchLayout(runtimeRelease) {
+  if (!runtimeRelease
+    || typeof runtimeRelease.forwardDirectory !== "string"
+    || typeof runtimeRelease.rollbackDirectory !== "string"
+    || typeof runtimeRelease.scratchDirectory !== "string"
+    || !runtimeRelease.wranglerOutdirs
+    || typeof runtimeRelease.wranglerOutdirs !== "object") {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  }
+  const workspace = dirname(resolve(runtimeRelease.forwardDirectory));
+  const scratchDirectory = join(workspace, PRIVATE_V2_WRANGLER_SCRATCH_DIRECTORY);
+  const expectedOutdirs = Object.fromEntries(
+    Object.entries(PRIVATE_V2_WRANGLER_OUTDIR_NAMES).map(([mode, name]) => [
+      mode,
+      join(scratchDirectory, name)
+    ])
+  );
+  if (resolve(runtimeRelease.forwardDirectory) !== join(workspace, "forward")
+    || resolve(runtimeRelease.rollbackDirectory) !== join(workspace, "rollback")
+    || resolve(runtimeRelease.scratchDirectory) !== scratchDirectory
+    || Object.keys(runtimeRelease.wranglerOutdirs).sort().join("\0")
+      !== Object.keys(expectedOutdirs).sort().join("\0")
+    || Object.values(runtimeRelease.wranglerOutdirs).some(value => typeof value !== "string")
+    || Object.entries(expectedOutdirs).some(([mode, outdir]) => (
+      resolve(runtimeRelease.wranglerOutdirs[mode]) !== outdir
+    ))) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  }
+  return Object.freeze({
+    workspace,
+    scratchDirectory,
+    wranglerOutdirs: Object.freeze(expectedOutdirs)
+  });
+}
+
+function verifyPrivateV2WranglerScratch(runtimeRelease) {
+  const layout = privateV2WranglerScratchLayout(runtimeRelease);
+  requireOwnerOnlyDirectory(layout.workspace);
+  requireOwnerOnlyDirectory(layout.scratchDirectory);
+  if (JSON.stringify(readdirSync(layout.workspace).sort())
+      !== JSON.stringify(["forward", "rollback", PRIVATE_V2_WRANGLER_SCRATCH_DIRECTORY].sort())
+    || JSON.stringify(readdirSync(layout.scratchDirectory).sort())
+      !== JSON.stringify(Object.values(PRIVATE_V2_WRANGLER_OUTDIR_NAMES).sort())) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  }
+  for (const outdir of Object.values(layout.wranglerOutdirs)) {
+    requireOwnerOnlyDirectory(outdir);
+  }
+  return layout;
+}
+
 export function createPrivateV2RuntimeWorkspace(baseDirectory) {
   try {
     const defaultBase = baseDirectory === undefined;
@@ -755,6 +837,7 @@ export function createPrivateV2RuntimeRelease({
     destinationDirectory: join(workspace, "rollback"),
     settings
   });
+  const scratch = createPrivateV2WranglerScratch(workspace);
   return Object.freeze({
     status: "PRIVATE_WORKER_V2_RUNTIME_GUARD_CONFIGURED",
     forwardDirectory: forward.directory,
@@ -764,7 +847,9 @@ export function createPrivateV2RuntimeRelease({
     forwardAssetsSha256: forward.assetsSha256,
     forwardWorkerSha256: forward.workerSha256,
     rollbackAssetsSha256: rollback.assetsSha256,
-    rollbackWorkerSha256: rollback.workerSha256
+    rollbackWorkerSha256: rollback.workerSha256,
+    scratchDirectory: scratch.scratchDirectory,
+    wranglerOutdirs: scratch.wranglerOutdirs
   });
 }
 
@@ -801,6 +886,7 @@ function verifyPrivateV2RuntimeTarget({
 
 export function verifyPrivateV2RuntimeRelease(runtimeRelease, settings) {
   if (!runtimeRelease) fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  verifyPrivateV2WranglerScratch(runtimeRelease);
   verifyPrivateV2RuntimeTarget({
     sourceDirectory: runtimeRelease.sourceForwardDirectory,
     runtimeDirectory: runtimeRelease.forwardDirectory,
@@ -1464,6 +1550,8 @@ export function buildQualifiedPrivateWranglerInvocation(mode, inputs, verifiedRe
   const releaseRoot = mode === "rollback"
     ? verifiedRelease.rollbackDirectory
     : verifiedRelease.forwardDirectory;
+  const scratch = privateV2WranglerScratchLayout(verifiedRelease);
+  const outdir = scratch.wranglerOutdirs[mode];
   const config = resolve(releaseRoot, PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile);
   const argumentsList = [
     PRIVATE_WORKER_DEPLOYMENT_POLICY.wranglerModule,
@@ -1471,6 +1559,8 @@ export function buildQualifiedPrivateWranglerInvocation(mode, inputs, verifiedRe
     "--no-bundle",
     "--config",
     config,
+    "--outdir",
+    outdir,
     "--keep-vars",
     "--strict",
     "--message",
@@ -1486,6 +1576,7 @@ export function buildQualifiedPrivateWranglerInvocation(mode, inputs, verifiedRe
   if (!argumentsList.includes("--no-bundle")
     || argumentsList.includes("--name")
     || argumentsList.includes(PRIVATE_WORKFLOW_V2_POLICY.publicWorker)
+    || argumentsList.filter(value => value === "--outdir").length !== 1
     || basename(config) !== PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile) {
     fail(PRIVATE_WORKFLOW_V2_FAILURE.DEPLOYMENT_BOUNDARY_INVALID);
   }

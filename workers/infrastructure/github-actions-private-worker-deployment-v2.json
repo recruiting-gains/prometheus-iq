@@ -172,6 +172,22 @@
     "exclusiveCreateRequired": true,
     "symlinksAllowed": false,
     "cleanupRequiredInFinally": true,
+    "wranglerScratch": {
+      "directoryName": "wrangler-scratch",
+      "location": "runtime-workspace-sibling-of-forward-and-rollback",
+      "directoryMode": "0700",
+      "outdirNames": {
+        "dry-run": "dry-run",
+        "deploy": "deploy",
+        "rollback": "rollback"
+      },
+      "outdirsDistinct": true,
+      "outdirsUserControlled": false,
+      "outdirFlagRequiredForEveryPhase": true,
+      "guardedRootMutationAllowed": false,
+      "dotWranglerAllowlistedInGuardedRoots": false,
+      "cleanupWithRuntimeWorkspace": true
+    },
     "enabledValue": "ON",
     "teamDomainSource": "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
     "audienceSource": "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE",

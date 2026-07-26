@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import {
   chmodSync,
   existsSync,
@@ -7,6 +8,7 @@ import {
   mkdtempSync,
   mkdirSync,
   readFileSync,
+  readdirSync,
   realpathSync,
   renameSync,
   rmSync,
@@ -673,6 +675,83 @@ test("qualified artifact contains actual no-bundle forward payload and rollback 
       verifyPrivateV2RuntimeRelease(runtimeRelease, settings).status,
       "PRIVATE_WORKER_V2_RUNTIME_GUARD_CONFIG_VERIFIED"
     );
+    assert.equal(new Set(Object.values(runtimeRelease.wranglerOutdirs)).size, 3);
+    const guardedRootEntries = [
+      "assets",
+      PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile,
+      "worker"
+    ].sort();
+    const dryRunInvocation = buildQualifiedPrivateWranglerInvocation(
+      "dry-run",
+      { approvedCommit: commit, approvedTree: tree, batchId },
+      runtimeRelease
+    );
+    const dryRun = spawnSync(process.execPath, dryRunInvocation, {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      env: {
+        PATH: process.env.PATH,
+        HOME: process.env.HOME,
+        CI: "true",
+        NO_COLOR: "1",
+        WRANGLER_SEND_METRICS: "false",
+        CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: "false"
+      }
+    });
+    assert.equal(dryRun.status, 0);
+    assert.deepEqual(readdirSync(runtimeRelease.forwardDirectory).sort(), guardedRootEntries);
+    assert.deepEqual(readdirSync(runtimeRelease.rollbackDirectory).sort(), guardedRootEntries);
+    assert.equal(
+      readdirSync(runtimeRelease.wranglerOutdirs["dry-run"])
+        .includes(PRIVATE_WORKFLOW_V2_POLICY.generatedWorkerFile),
+      true
+    );
+    assert.equal(
+      verifyPrivateV2RuntimeRelease(runtimeRelease, settings).status,
+      "PRIVATE_WORKER_V2_RUNTIME_GUARD_CONFIG_VERIFIED"
+    );
+    const unexpectedWranglerDirectory = join(runtimeRelease.forwardDirectory, ".wrangler");
+    mkdirSync(unexpectedWranglerDirectory, { mode: 0o700 });
+    assert.throws(
+      () => verifyPrivateV2RuntimeRelease(runtimeRelease, settings),
+      PrivateWorkflowV2Error
+    );
+    rmSync(unexpectedWranglerDirectory, { recursive: true });
+    chmodSync(runtimeRelease.scratchDirectory, 0o755);
+    assert.throws(
+      () => verifyPrivateV2RuntimeRelease(runtimeRelease, settings),
+      PrivateWorkflowV2Error
+    );
+    chmodSync(runtimeRelease.scratchDirectory, 0o700);
+    const deployOutdir = runtimeRelease.wranglerOutdirs.deploy;
+    rmSync(deployOutdir, { recursive: true });
+    symlinkSync(runtimeRelease.wranglerOutdirs.rollback, deployOutdir);
+    assert.throws(
+      () => verifyPrivateV2RuntimeRelease(runtimeRelease, settings),
+      PrivateWorkflowV2Error
+    );
+    rmSync(deployOutdir);
+    mkdirSync(deployOutdir, { mode: 0o700 });
+    chmodSync(deployOutdir, 0o700);
+    assert.throws(
+      () => buildQualifiedPrivateWranglerInvocation(
+        "deploy",
+        { approvedCommit: commit, approvedTree: tree, batchId },
+        {
+          ...runtimeRelease,
+          wranglerOutdirs: {
+            ...runtimeRelease.wranglerOutdirs,
+            deploy: join(runtimeRelease.forwardDirectory, "cross-target")
+          }
+        }
+      ),
+      PrivateWorkflowV2Error
+    );
+    assert.equal(
+      verifyPrivateV2RuntimeRelease(runtimeRelease, settings).status,
+      "PRIVATE_WORKER_V2_RUNTIME_GUARD_CONFIG_VERIFIED"
+    );
     const bindingTransition = assertQualifiedPrivateConfigCanPreserveBindings(
       runtimeRelease,
       requiredBindings
@@ -766,8 +845,14 @@ test("Wrangler invocations are private-only, no-bundle, strict, and carry no nam
     batchId
   };
   const release = {
-    forwardDirectory: "/qualified/private/forward",
-    rollbackDirectory: "/qualified/private/rollback"
+    forwardDirectory: "/qualified/private/runtime/forward",
+    rollbackDirectory: "/qualified/private/runtime/rollback",
+    scratchDirectory: "/qualified/private/runtime/wrangler-scratch",
+    wranglerOutdirs: {
+      "dry-run": "/qualified/private/runtime/wrangler-scratch/dry-run",
+      deploy: "/qualified/private/runtime/wrangler-scratch/deploy",
+      rollback: "/qualified/private/runtime/wrangler-scratch/rollback"
+    }
   };
   for (const mode of ["dry-run", "deploy", "rollback"]) {
     const invocation = buildQualifiedPrivateWranglerInvocation(mode, inputs, release);
@@ -777,6 +862,11 @@ test("Wrangler invocations are private-only, no-bundle, strict, and carry no nam
     assert.equal(invocation.includes("--name"), false);
     assert.equal(invocation.includes(PRIVATE_WORKFLOW_V2_POLICY.publicWorker), false);
     assert.equal(invocation.includes("--dry-run"), mode === "dry-run");
+    assert.equal(invocation.filter(value => value === "--outdir").length, 1);
+    assert.equal(
+      invocation[invocation.indexOf("--outdir") + 1],
+      release.wranglerOutdirs[mode]
+    );
   }
 });
 

@@ -301,6 +301,22 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.equal(contract.runtimeGuardInjection.runnerTempEnvironmentAliasAllowed, false);
   assert.equal(contract.runtimeGuardInjection.symlinksAllowed, false);
   assert.equal(contract.runtimeGuardInjection.cleanupRequiredInFinally, true);
+  assert.deepEqual(contract.runtimeGuardInjection.wranglerScratch, {
+    directoryName: "wrangler-scratch",
+    location: "runtime-workspace-sibling-of-forward-and-rollback",
+    directoryMode: "0700",
+    outdirNames: {
+      "dry-run": "dry-run",
+      deploy: "deploy",
+      rollback: "rollback"
+    },
+    outdirsDistinct: true,
+    outdirsUserControlled: false,
+    outdirFlagRequiredForEveryPhase: true,
+    guardedRootMutationAllowed: false,
+    dotWranglerAllowlistedInGuardedRoots: false,
+    cleanupWithRuntimeWorkspace: true
+  });
   assert.equal(
     contract.runtimeGuardInjection.teamDomainSource,
     "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN"
@@ -339,6 +355,9 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     library,
     /const base = defaultBase \? realpathSync\(candidate\) : resolve\(candidate\)/u
   );
+  assert.match(library, /PRIVATE_V2_WRANGLER_SCRATCH_DIRECTORY/u);
+  assert.match(library, /"--outdir"/u);
+  assert.doesNotMatch(deploymentRunner, /--outdir/u);
   assert.match(library, /PUBLIC_DEPLOYMENT_POLICY_FAILURE/u);
   assert.match(library, /SMOKE_FAILURE\|DIMENSION=/u);
   assert.doesNotMatch(library, /console\.(?:log|error|warn)/u);
@@ -385,8 +404,14 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     batchId: "BATCH-20260725-001"
   });
   const verifiedRelease = Object.freeze({
-    forwardDirectory: "/qualified/private/forward",
-    rollbackDirectory: "/qualified/private/rollback"
+    forwardDirectory: "/qualified/private/runtime/forward",
+    rollbackDirectory: "/qualified/private/runtime/rollback",
+    scratchDirectory: "/qualified/private/runtime/wrangler-scratch",
+    wranglerOutdirs: Object.freeze({
+      "dry-run": "/qualified/private/runtime/wrangler-scratch/dry-run",
+      deploy: "/qualified/private/runtime/wrangler-scratch/deploy",
+      rollback: "/qualified/private/runtime/wrangler-scratch/rollback"
+    })
   });
   const deploy = buildQualifiedPrivateWranglerInvocation("deploy", syntheticInputs, verifiedRelease);
   const rollback = buildQualifiedPrivateWranglerInvocation("rollback", syntheticInputs, verifiedRelease);
@@ -395,7 +420,15 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.equal(deploy.includes("--strict"), true);
   assert.equal(deploy.includes("--name"), false);
   assert.equal(deploy.includes(PRIVATE_WORKFLOW_V2_POLICY.publicWorker), false);
+  assert.equal(
+    deploy[deploy.indexOf("--outdir") + 1],
+    verifiedRelease.wranglerOutdirs.deploy
+  );
   assert.equal(rollback.includes("--no-bundle"), true);
+  assert.equal(
+    rollback[rollback.indexOf("--outdir") + 1],
+    verifiedRelease.wranglerOutdirs.rollback
+  );
 
   const smoke = fixedCloudflareUnattendedSmokePlan();
   assert.ok(smoke.length > 0);
