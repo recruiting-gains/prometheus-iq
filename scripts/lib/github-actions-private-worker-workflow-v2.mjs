@@ -66,6 +66,12 @@ export const PRIVATE_WORKFLOW_V2_POLICY = Object.freeze({
     "PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-private-worker-v2.yml@refs/heads/main",
   qualificationRunnerPath: "scripts/run-github-actions-private-worker-qualification-v2.mjs",
   deploymentRunnerPath: "scripts/run-github-actions-private-worker-deployment-v2.mjs",
+  browserAcceptanceRunnerPath:
+    "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+  browserAcceptanceContractPath:
+    "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
+  browserAcceptanceTestPath:
+    "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
   smokeRunnerPath: "scripts/run-cloudflare-unattended-smoke.mjs",
   metadataRunnerPath: "scripts/run-github-actions-private-worker-artifact-metadata-v2.mjs",
   libraryPath: "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
@@ -108,8 +114,8 @@ export const PRIVATE_WORKFLOW_V2_POLICY = Object.freeze({
     candidateTree: "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
     qualificationArtifactContentTreeSha256:
       "de7b35909f9bd1bf8f15c8fe605cf494a5f39171e6b2bdf822e60031c590b0e7",
-    deployParitySha256: "35a564e4f3fed2961d7658bac57cc4ce66cb9c103e4ab03d5b17fff836ca7731",
-    forwardPayloadSha256: "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c",
+    deployParitySha256: "aeb423f9ef35f790c5d6b28cb3c1d7037dc168a4aef797a1ecf5b13182047ca3",
+    forwardPayloadSha256: "25d49f283bc07c212bf0c1a5f53fae17602bb149ba8870a9ad3519b6295a9707",
     rollbackBundleSha256: "0350e6281b228321509c59fadc1fe612f6400b6d025c27dddd01ea980daddb79"
   })
 });
@@ -214,6 +220,9 @@ const GOVERNED_SOURCE_PATHS = Object.freeze([
   PRIVATE_WORKFLOW_V2_POLICY.deploymentWorkflowPath,
   PRIVATE_WORKFLOW_V2_POLICY.qualificationRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.deploymentRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceContractPath,
+  PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceTestPath,
   PRIVATE_WORKFLOW_V2_POLICY.smokeRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.metadataRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.libraryPath,

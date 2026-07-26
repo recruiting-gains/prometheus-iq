@@ -35,6 +35,9 @@ const REQUIRED_PATHS = Object.freeze([
   PRIVATE_WORKFLOW_V2_POLICY.libraryPath,
   PRIVATE_WORKFLOW_V2_POLICY.qualificationRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.deploymentRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceContractPath,
+  PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceTestPath,
   PRIVATE_WORKFLOW_V2_POLICY.smokeRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.metadataRunnerPath,
   "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
@@ -140,6 +143,12 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   const library = read(PRIVATE_WORKFLOW_V2_POLICY.libraryPath);
   const qualificationRunner = read(PRIVATE_WORKFLOW_V2_POLICY.qualificationRunnerPath);
   const deploymentRunner = read(PRIVATE_WORKFLOW_V2_POLICY.deploymentRunnerPath);
+  const browserAcceptanceRunner = read(
+    PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceRunnerPath
+  );
+  const browserAcceptanceContract = JSON.parse(read(
+    PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceContractPath
+  ));
   const smokeRunner = read(PRIVATE_WORKFLOW_V2_POLICY.smokeRunnerPath);
   const metadataRunner = read(PRIVATE_WORKFLOW_V2_POLICY.metadataRunnerPath);
   const deploymentPreflight = section(deployment, "  preflight:\n", "  deploy:\n");
@@ -353,6 +362,48 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
       > CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds
   );
   assert.equal(contract.smoke.crmSubmissionAllowed, false);
+  assert.deepEqual(contract.browserAcceptance, {
+    contract: PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceContractPath,
+    runner: PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceRunnerPath,
+    authentication:
+      "Cloudflare Access service principal values injected only into intercepted request headers",
+    viewports: ["1440x900", "390x844"],
+    allowedMethods: ["GET", "HEAD", "OPTIONS"],
+    writeAttemptsRequired: 0,
+    serviceWorkerPersistenceAllowed: false,
+    configuredOrSafeEmptyStateRequired: true,
+    exactPrivateWorkerVersionRequired: true,
+    publicWorkerIdentityFencedBeforeAndAfter: true,
+    credentialValuesInOutputAllowed: false
+  });
+  assert.equal(
+    browserAcceptanceContract.contractVersion,
+    "route-iq-private-paid-customer-browser-acceptance-v1"
+  );
+  assert.equal(browserAcceptanceContract.ownerSubsystem, "Prometheus Infrastructure");
+  assert.equal(browserAcceptanceContract.targetWorker, PRIVATE_WORKFLOW_V2_POLICY.privateWorker);
+  assert.deepEqual(browserAcceptanceContract.viewports, [
+    { name: "desktop", width: 1440, height: 900 },
+    { name: "mobile", width: 390, height: 844 }
+  ]);
+  assert.deepEqual(
+    browserAcceptanceContract.network.allowedMethods,
+    ["GET", "HEAD", "OPTIONS"]
+  );
+  assert.equal(browserAcceptanceContract.network.writeAttemptsRequired, 0);
+  assert.equal(browserAcceptanceContract.network.serviceWorkerPersistenceAllowed, false);
+  assert.equal(
+    browserAcceptanceContract.acceptance.configuredOrSafeEmptyStateRequired,
+    true
+  );
+  assert.equal(
+    browserAcceptanceContract.acceptance.publicWorkerIdentityMustRemainExact,
+    true
+  );
+  assert.equal(browserAcceptanceContract.safety.productionWritesAllowed, false);
+  assert.equal(browserAcceptanceContract.safety.collection, "OFF");
+  assert.equal(browserAcceptanceContract.safety.activeCohorts, 0);
+  assert.equal(browserAcceptanceContract.safety.recommendationInfluence, "OFF");
   assert.equal(contract.runtimeGuardInjection.artifactMutationAllowed, false);
   assert.equal(contract.runtimeGuardInjection.temporaryDirectoryMode, "0700");
   assert.equal(contract.runtimeGuardInjection.temporaryConfigMode, "0600");
@@ -433,6 +484,19 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   );
   assert.match(deploymentRunner, /runCloudflareUnattendedSmoke/u);
   assert.match(deploymentRunner, /runCloudflareUnattendedPostDeploymentSmoke/u);
+  assert.match(deploymentRunner, /runRouteIqPrivateProductionBrowserAcceptance/u);
+  const browserAcceptanceCall = deploymentRunner.indexOf(
+    "await runRouteIqPrivateProductionBrowserAcceptance"
+  );
+  assert.equal(
+    deploymentRunner.indexOf("publicBeforeBrowser")
+      < browserAcceptanceCall,
+    true
+  );
+  assert.equal(
+    browserAcceptanceCall < deploymentRunner.indexOf("publicAfterBrowser"),
+    true
+  );
   assert.match(deploymentRunner, /expectedWorkerVersion/u);
   assert.doesNotMatch(deploymentRunner, /qualifiedRootAssetSha256|expectedRootSha256/u);
   assert.match(deploymentRunner, /createPrivateV2RuntimeWorkspace/u);
@@ -472,6 +536,13 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.doesNotMatch(smokeRunner, /smoke_guard_verification_failed:/u);
   assert.match(qualificationRunner, /assertNoProductionSecrets/u);
   assert.match(metadataRunner, /verifyPrivateQualificationArtifactMetadata/u);
+  assert.match(browserAcceptanceRunner, /Network\.setBypassServiceWorker/u);
+  assert.match(browserAcceptanceRunner, /Fetch\.failRequest/u);
+  assert.match(browserAcceptanceRunner, /attemptedWrites !== 0/u);
+  assert.match(browserAcceptanceRunner, /configuredOrSafeEmpty/u);
+  assert.match(browserAcceptanceRunner, /horizontalOverflow/u);
+  assert.match(browserAcceptanceRunner, /expectedWorkerVersion/u);
+  assert.doesNotMatch(browserAcceptanceRunner, /console\.(?:log|error|warn)/u);
 
   const syntheticInputs = Object.freeze({
     approvedCommit: "a".repeat(40),

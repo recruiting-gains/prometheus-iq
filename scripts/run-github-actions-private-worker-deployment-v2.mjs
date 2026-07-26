@@ -20,6 +20,9 @@ import {
   createPrivateV2EvidenceDirectory,
   currentPrivateV2RuntimeIdentity,
   formatPrivateWorkflowV2Failure,
+  PrivateWorkflowV2Error,
+  PRIVATE_WORKFLOW_V2_FAILURE,
+  PRIVATE_WORKFLOW_V2_POLICY,
   removePrivateV2RuntimeWorkspace,
   requirePrivateV2ProtectedSecretNames,
   releaseDirectoryFromEnvironment,
@@ -37,6 +40,9 @@ import {
   runCloudflareUnattendedPostDeploymentSmoke,
   runCloudflareUnattendedSmoke
 } from "./run-cloudflare-unattended-smoke.mjs";
+import {
+  runRouteIqPrivateProductionBrowserAcceptance
+} from "./verify-route-iq-private-paid-customer-production-browser-acceptance.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const smokeCredentialNames = Object.freeze([
@@ -149,13 +155,40 @@ export async function runPrivateWorkerDeploymentV2Command({
           release
         )
       }),
-      runPostSmoke: ({ expectedWorkerVersion }) =>
-        runCloudflareUnattendedPostDeploymentSmoke({
-        fetchImpl,
-        credentials: smokeCredentials,
-        expectedWorkerVersion,
-        dryRun: false
-      }),
+      runPostSmoke: async ({ expectedWorkerVersion }) => {
+        const smoke = await runCloudflareUnattendedPostDeploymentSmoke({
+          fetchImpl,
+          credentials: smokeCredentials,
+          expectedWorkerVersion,
+          dryRun: false
+        });
+        const publicBeforeBrowser = await fetchPublicWorkerState(
+          PRIVATE_WORKFLOW_V2_POLICY.publicWorker,
+          deploymentCredentials,
+          fetchImpl
+        );
+        if (publicBeforeBrowser.deployment.versionId !== inputs.currentPublicVersion) {
+          throw new PrivateWorkflowV2Error(PRIVATE_WORKFLOW_V2_FAILURE.PUBLIC_WORKER_CHANGED);
+        }
+        await runRouteIqPrivateProductionBrowserAcceptance({
+          credentials: {
+            clientId: smokeCredentials.CLOUDFLARE_ACCESS_CLIENT_ID,
+            clientSecret: smokeCredentials.CLOUDFLARE_ACCESS_CLIENT_SECRET
+          },
+          expectedWorkerVersion,
+          publicIsolationVerified: true,
+          fetchImpl
+        });
+        const publicAfterBrowser = await fetchPublicWorkerState(
+          PRIVATE_WORKFLOW_V2_POLICY.publicWorker,
+          deploymentCredentials,
+          fetchImpl
+        );
+        if (publicAfterBrowser.deployment.versionId !== inputs.currentPublicVersion) {
+          throw new PrivateWorkflowV2Error(PRIVATE_WORKFLOW_V2_FAILURE.PUBLIC_WORKER_CHANGED);
+        }
+        return smoke;
+      },
       runRollback: release => runBoundedPublicWrangler({
         root,
         mode: "deploy",

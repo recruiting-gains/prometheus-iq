@@ -4,6 +4,10 @@
   "worker": "prometheus-iq",
   "deliveryState": "AUTHENTICATED_NON_ACTIVATING_FOUNDATION",
   "routes": {
+    "dashboardPreview": "/api/dashboard/route-iq/internal/paid-customer-configuration-preview",
+    "dashboardPreviewMethod": "GET",
+    "dashboardPreviewQueryAllowed": false,
+    "dashboardPreviewUnconfiguredBehavior": "PRIVATE_NO_STORE_CONFIGURATION_UNAVAILABLE",
     "root": "/api/dashboard/route-iq/paid-customer-onboarding",
     "preview": "/api/dashboard/route-iq/paid-customer-onboarding/preview",
     "provisioningPlan": "/api/dashboard/route-iq/paid-customer-onboarding/provisioning-plan",
@@ -21,6 +25,7 @@
     "AEGIS_API_CONTROLS",
     "EXACT_ROUTE_AND_QUERY_VALIDATION",
     "SERVER_PRINCIPAL_AUTHORIZATION",
+    "PROMETHEUS_SECURITY_TRUSTED_DECISION_AND_STORAGE_SCOPE",
     "BOUNDED_BODY_READ",
     "COMPANY_AND_WORKSPACE_SCOPE_MATCH",
     "OWNER_CONTRACT_VALIDATION",
@@ -28,6 +33,8 @@
   ],
   "authentication": {
     "productionAuthority": "existing Route IQ customer PWA Cloudflare Access verifier",
+    "serverAuthorityContract": "Prometheus Security route-iq-paid-customer-security-v1",
+    "storageScopeAuthority": "trusted Security decision before owner operation",
     "principalAuthority": "server_authenticated_principal",
     "callerSuppliedIdentityAccepted": false,
     "displayNameAuthorizationAccepted": false,
@@ -49,6 +56,15 @@
     "runtimeDelivery": "Prometheus Infrastructure"
   },
   "operations": {
+    "dashboardConfigurationPreview": {
+      "dashboardContract": "route-iq-paid-customer-dashboard-preview-v1",
+      "selectionAuthority": "Prometheus Administration",
+      "productionSelectionConfigured": false,
+      "unconfiguredResponse": "route_iq_paid_customer_configuration_unavailable",
+      "demoOrSyntheticFallbackAllowed": false,
+      "activationPerformed": false,
+      "persistencePerformed": false
+    },
     "configurationPreview": {
       "allowedLifecycleStates": [
         "VALIDATED",

@@ -80,17 +80,29 @@ function activeConfiguration() {
 }
 
 function principalFor(configuration, overrides = {}) {
+  const companyId = overrides.companyId || configuration.company.companyId;
+  const { companyId: _companyId, ...principalOverrides } = overrides;
   return {
-    authorized: true,
-    companyId: configuration.company.companyId,
-    workspaceId: configuration.company.workspaceId,
-    userId: "user_synthetic_founder",
-    accessMode: "founder_explicit_workspace_read_only",
-    capabilities: {
-      readWorkspaceOperations: true,
-      administerWorkspaceRoster: false
+    principal: {
+      authorized: true,
+      companyId,
+      workspaceId: configuration.company.workspaceId,
+      operatingProfileId: configuration.operatingProfile.industryTemplateId,
+      userId: "user_synthetic_founder",
+      accessMode: "founder_explicit_workspace_read_only",
+      capabilities: {
+        readWorkspaceOperations: true,
+        administerWorkspaceRoster: false
+      },
+      ...principalOverrides
     },
-    ...overrides
+    runtimeAuthorization: {
+      zipCoverage: {
+        companyId,
+        workspaceId: configuration.company.workspaceId
+      }
+    },
+    accessExpiresAt: "2027-01-01T00:00:00.000Z"
   };
 }
 
@@ -224,10 +236,10 @@ test("workspace administrators can preview while representatives and caller-supp
       })
     }
   );
-  assert.equal(representative.status, 403);
+  assert.equal(representative.status, 404);
   assert.equal(
     (await representative.json()).code,
-    ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.roleDenied
+    ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.resourceUnavailable
   );
 });
 
@@ -251,10 +263,10 @@ test("company, workspace, and requested-workspace substitutions fail without dis
       configuration,
       options
     );
-    assert.equal(response.status, 403);
+    assert.equal(response.status, 404);
     assert.deepEqual(await response.json(), {
       ok: false,
-      code: ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.scopeDenied,
+      code: ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.resourceUnavailable,
       message: "Route IQ paid-customer onboarding is unavailable."
     });
   }

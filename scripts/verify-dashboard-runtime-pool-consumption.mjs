@@ -31,7 +31,9 @@ assert(
   "The Dashboard must not load legacy runtime-pool catalogs."
 );
 assert(
-  index.includes('const dashboardPlatformModulePath = "./dashboard/route-iq-dashboard-platform.mjs";'),
+  index.includes(
+    'const dashboardPlatformModulePath = "./dashboard/route-iq-dashboard-platform.mjs?paid-customer-preview-v1";'
+  ),
   "The Dashboard must load the generic configuration platform."
 );
 assert(

@@ -54,6 +54,11 @@ import {
   isRouteIqPaidCustomerOnboardingPath
 } from "./infrastructure/route-iq-paid-customer-onboarding-runtime.js";
 import {
+  ROUTE_IQ_PAID_CUSTOMER_DASHBOARD_PREVIEW_PATH,
+  handleRouteIqPaidCustomerDashboardPreviewRequest,
+  isRouteIqPaidCustomerDashboardPreviewPath
+} from "./infrastructure/route-iq-paid-customer-dashboard-preview-runtime.js";
+import {
   authorizeCloudflareUnattendedSmokeRequest,
   markCloudflareUnattendedSmokeResponse,
   sanitizeCloudflareUnattendedSmokeAssetRequest
@@ -974,9 +979,17 @@ async function handleRouteIqCustomerAwareFieldSessionRequest(request, env, execu
 
 async function handleApiRequest(request, env, executionContext, {
   dailySnapshotTestHooks,
-  paidCustomerOnboardingTestHooks
+  paidCustomerOnboardingTestHooks,
+  paidCustomerDashboardPreviewTestHooks
 } = {}) {
   const url = new URL(request.url);
+  if (isRouteIqPaidCustomerDashboardPreviewPath(url.pathname)) {
+    return handleRouteIqPaidCustomerDashboardPreviewRequest(
+      request,
+      env,
+      paidCustomerDashboardPreviewTestHooks
+    );
+  }
   if (isRouteIqPaidCustomerOnboardingPath(url.pathname)) {
     return handleRouteIqPaidCustomerOnboardingRequest(
       request,
@@ -1008,7 +1021,8 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
   customerPwaTestHooks,
   unattendedSmokeTestHooks,
   dailySnapshotTestHooks,
-  paidCustomerOnboardingTestHooks
+  paidCustomerOnboardingTestHooks,
+  paidCustomerDashboardPreviewTestHooks
 } = {}) {
   const smokeAuthorization = await authorizeCloudflareUnattendedSmokeRequest(request, env, {
     noncanonicalTestHooks: unattendedSmokeTestHooks
@@ -1038,7 +1052,8 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
       } else {
         response = withAegisHeaders(await handleApiRequest(request, env, executionContext, {
           dailySnapshotTestHooks,
-          paidCustomerOnboardingTestHooks
+          paidCustomerOnboardingTestHooks,
+          paidCustomerDashboardPreviewTestHooks
         }), aegis);
       }
     } else {
@@ -1076,6 +1091,7 @@ export {
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PRINCIPAL_ID,
+  ROUTE_IQ_PAID_CUSTOMER_DASHBOARD_PREVIEW_PATH,
   ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_ROOT,
   ROUTE_IQ_BUSINESS_AVAILABILITY_PATH,
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
@@ -1086,6 +1102,7 @@ export {
   handleRouteIqBusinessAvailabilityRequest,
   handleRouteIqBusinessAvailabilityScheduled,
   handleRouteIqFounderDailySnapshot,
+  handleRouteIqPaidCustomerDashboardPreviewRequest,
   handleRouteIqPaidCustomerOnboardingRequest,
   handleRouteIqFieldSessionHandoff,
   handleRouteIqProspectiveShadowRequest,

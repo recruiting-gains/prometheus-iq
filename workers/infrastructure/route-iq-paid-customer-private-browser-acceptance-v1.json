@@ -1,0 +1,55 @@
+{
+  "contractVersion": "route-iq-private-paid-customer-browser-acceptance-v1",
+  "ownerSubsystem": "Prometheus Infrastructure",
+  "releaseLane": "github-actions-private-worker-deployment-v2",
+  "targetWorker": "prometheus-iq",
+  "authentication": {
+    "type": "Cloudflare Access service principal",
+    "clientIdSource": "CLOUDFLARE_ACCESS_CLIENT_ID",
+    "clientSecretSource": "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+    "valuesMayBePrintedLoggedOrReturned": false
+  },
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "network": {
+    "allowedMethods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ],
+    "writeAttemptsRequired": 0,
+    "externalOriginsAllowed": false,
+    "serviceWorkerBypassRequired": true,
+    "serviceWorkerPersistenceAllowed": false
+  },
+  "acceptance": {
+    "exactPrivateWorkerVersionRequired": true,
+    "exactSmokeGuardMarkerRequired": true,
+    "configuredOrSafeEmptyStateRequired": true,
+    "horizontalOverflowAllowed": false,
+    "consoleErrorsAllowed": 0,
+    "runtimeExceptionsAllowed": 0,
+    "networkFailuresAllowed": 0,
+    "publicWorkerIdentityMustRemainExact": true
+  },
+  "safety": {
+    "productionWritesAllowed": false,
+    "crmSubmissionAllowed": false,
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providerRefresh": "OFF",
+    "scheduler": "OFF",
+    "customerActivation": "OFF"
+  }
+}

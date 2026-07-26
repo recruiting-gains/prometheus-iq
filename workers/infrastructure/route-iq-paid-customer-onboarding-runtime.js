@@ -13,10 +13,16 @@ import {
   routeIqVerifiedBusinessNormalizedVersion,
   routeIqVerifiedBusinessStorageVersion
 } from "../../data/route-iq-paid-customer-v1/route-iq-verified-business-evidence.mjs";
+import {
+  ROUTE_IQ_PAID_CUSTOMER_OPERATIONS
+} from "../../security/route-iq-paid-customer-isolation-v1.mjs";
 import { AEGIS_API_HEADERS } from "./aegis-security-controls.js";
 import {
   authorizeRouteIqCustomerPwaRequest
 } from "./route-iq-august-1-customer-pwa-runtime.js";
+import {
+  authorizeRouteIqPaidCustomerInfrastructureOperation
+} from "./route-iq-paid-customer-server-authority.js";
 
 export const ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_RUNTIME_VERSION =
   "route-iq-paid-customer-onboarding-runtime-v1";
@@ -38,6 +44,7 @@ export const ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES = Object.freeze({
   authenticationRequired: "route_iq_paid_customer_onboarding_authentication_required",
   roleDenied: "route_iq_paid_customer_onboarding_role_denied",
   scopeDenied: "route_iq_paid_customer_onboarding_scope_denied",
+  resourceUnavailable: "route_iq_resource_unavailable",
   configurationInvalid: "route_iq_paid_customer_onboarding_configuration_invalid",
   runtimeUnavailable: "route_iq_paid_customer_onboarding_runtime_unavailable"
 });
@@ -209,40 +216,41 @@ async function readBoundedJson(request) {
 }
 
 async function defaultAuthorizePrincipal(request, env) {
-  let authorization;
   try {
-    authorization = await authorizeRouteIqCustomerPwaRequest(request, env);
+    return await authorizeRouteIqCustomerPwaRequest(request, env);
   } catch {
     fail(ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.authenticationRequired, 401);
   }
-  return {
-    ...clone(authorization.principal),
-    companyId: authorization.runtimeAuthorization?.companyId
-  };
 }
 
-function normalizePrincipal(principal, requestedWorkspaceId) {
-  if (!principal?.authorized
-    || !STRICT_ID.test(principal.companyId || "")
-    || !STRICT_ID.test(principal.workspaceId || "")
-    || !STRICT_ID.test(principal.userId || "")
-    || principal.workspaceId !== requestedWorkspaceId) {
-    fail(ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.scopeDenied, 403);
+function securityOperation(operation) {
+  if (["CONFIGURATION_PREVIEW", "PROVISIONING_PLAN"].includes(operation)) {
+    return ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.configurationPreview;
   }
-  const founder = principal.accessMode === "founder_explicit_workspace_read_only"
-    && principal.capabilities?.readWorkspaceOperations === true;
-  const workspaceAdmin = principal.capabilities?.readWorkspaceOperations === true
-    && principal.capabilities?.administerWorkspaceRoster === true;
-  if (!founder && !workspaceAdmin) {
-    fail(ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.roleDenied, 403);
+  if (operation === "SUSPENSION_PREVIEW") {
+    return ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.workspaceSuspend;
   }
-  return deepFreeze({
-    authority: "server_authenticated_principal",
-    companyId: principal.companyId,
-    workspaceId: principal.workspaceId,
-    userId: principal.userId,
-    role: founder ? "founder" : "workspace_admin"
-  });
+  if (operation === "OFFBOARDING_PREVIEW") {
+    return ROUTE_IQ_PAID_CUSTOMER_OPERATIONS.workspaceOffboard;
+  }
+  fail(ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.resourceUnavailable, 404);
+}
+
+function serverPrincipalFromAuthorization(authorization, requestedWorkspaceId, operation) {
+  const companyId = authorization?.runtimeAuthorization?.zipCoverage?.companyId;
+  const workspaceId = authorization?.principal?.workspaceId;
+  if (workspaceId !== requestedWorkspaceId) {
+    fail(ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.resourceUnavailable, 404);
+  }
+  try {
+    return authorizeRouteIqPaidCustomerInfrastructureOperation({
+      authorization,
+      operation: securityOperation(operation),
+      requestedScope: { companyId, workspaceId }
+    }).principal;
+  } catch {
+    fail(ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.resourceUnavailable, 404);
+  }
 }
 
 function assertConfigurationScope(configuration, principal) {
@@ -252,7 +260,7 @@ function assertConfigurationScope(configuration, principal) {
     fail(ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.configurationInvalid, 422);
   }
   if (companyId !== principal.companyId || workspaceId !== principal.workspaceId) {
-    fail(ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.scopeDenied, 403);
+    fail(ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.resourceUnavailable, 404);
   }
 }
 
@@ -455,12 +463,14 @@ export async function handleRouteIqPaidCustomerOnboardingRequest(
       }, 405, { Allow: "POST" });
     }
     assertSafetyEnvironment(env);
+    const operation = operationForPath(url.pathname);
 
     let serverPrincipal;
     try {
-      serverPrincipal = normalizePrincipal(
+      serverPrincipal = serverPrincipalFromAuthorization(
         await authorizePrincipal(request, env),
-        requestedWorkspaceId
+        requestedWorkspaceId,
+        operation
       );
     } catch (error) {
       if (error instanceof RouteIqPaidCustomerOnboardingRuntimeError) throw error;
@@ -482,7 +492,7 @@ export async function handleRouteIqPaidCustomerOnboardingRequest(
     }
     if (execution.configuration.company.companyId !== serverPrincipal.companyId
       || execution.configuration.company.workspaceId !== serverPrincipal.workspaceId) {
-      fail(ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.scopeDenied, 403);
+      fail(ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_FAILURES.resourceUnavailable, 404);
     }
     const configurationIdentity =
       `${execution.configuration.configurationId}@${execution.configuration.configurationRevision}`;
