@@ -91,6 +91,8 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "b540084521c87ccad85b41b5e9d1714a497f73e0");
   assert.equal(result.immutableWorkflowV2UnconditionalGuardRoutingCommit,
     "ceea5b6496f81341a49f605622d78daf084d9f6f");
+  assert.equal(result.immutableWorkflowV2PaidCustomerAcceptanceCommit,
+    "3872b30d1f16acde85518ae857bae09336aaed3b");
   assert.equal(result.localRealWranglerDryRunPassed, true);
   assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
@@ -162,6 +164,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
       value.ownership.implementationUnconditionalGuardRoutingCommit.commit =
         "0".repeat(40);
     },
+    value => {
+      value.ownership.implementationPaidCustomerAcceptanceCommit.commit =
+        "0".repeat(40);
+    },
     value => { value.ownership.bootstrapRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.runnerWorkspaceRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.trustedTempAliasRepairEvidence[0].sha256 = "0".repeat(64); },
@@ -198,6 +204,9 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => {
       value.ownership.unconditionalGuardRoutingEvidence[0].sha256 = "0".repeat(64);
     },
+    value => {
+      value.ownership.paidCustomerAcceptanceEvidence[0].sha256 = "0".repeat(64);
+    },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },
     value => { value.rootCause.firstDeploymentReachedProductionMutation = true; },
     value => { value.rootCause.secondDeploymentReachedProductionMutation = true; },
@@ -230,6 +239,7 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.workflowBoundary.forwardDeploymentAttempts = 2; },
     value => { value.workflowBoundary.automaticRetryAllowed = true; },
     value => { value.continuity.qualifiedForwardPayloadSha256 = "0".repeat(64); },
+    value => { value.continuity.previousQualifiedForwardPayloadSha256 = "0".repeat(64); },
     value => { value.continuity.qualifiedRollbackBundleSha256 = "0".repeat(64); },
     value => { value.artifactBoundary.workerNameOverrideAllowed = true; },
     value => { value.artifactBoundary.phaseSpecificOutdirRequired = false; },
@@ -296,6 +306,13 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
   assert.equal(evaluateGithubActionsPrivateWorkerV2Governance({
     governance: governanceV2,
     contract: changedContract
+  }).ok, false);
+
+  const changedBrowserAcceptance = clone(contractV2);
+  changedBrowserAcceptance.browserAcceptance.allowedMethods.push("POST");
+  assert.equal(evaluateGithubActionsPrivateWorkerV2Governance({
+    governance: governanceV2,
+    contract: changedBrowserAcceptance
   }).ok, false);
 });
 

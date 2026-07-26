@@ -1,8 +1,8 @@
 {
   "governanceId": "github-actions-private-worker-deployment-governance-v2",
-  "version": "1.11.0",
-  "batchId": "BATCH-20260726-004",
-  "directive": "Founder Standing Directive - End-to-End Engineering Execution",
+  "version": "1.12.0",
+  "batchId": "BATCH-20260726-006",
+  "directive": "Paid-Customer Onboarding Foundation and Multi-Industry Configuration v1",
   "status": "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED",
   "owningSubsystem": "Prometheus Overwatch",
   "ownership": {
@@ -135,6 +135,14 @@
       "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Enforce unconditional private Worker guard routing"
+    },
+    "implementationPaidCustomerAcceptanceCommit": {
+      "commit": "3872b30d1f16acde85518ae857bae09336aaed3b",
+      "parent": "77185e882f0be8e7928de42c9e478d866ed91571",
+      "tree": "d1a12d7336e1739b33a0f83a8e33213939b0ea6c",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "infrastructure: bridge paid-customer preview and acceptance"
     },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
@@ -697,6 +705,120 @@
         "path": "wrangler.jsonc",
         "sha256": "b888732c12aa34d07f538d7ae112b6eb3f966c75d24839bac76d4e8ea6b9a835"
       }
+    ],
+    "paidCustomerAcceptancePaths": [
+      "_headers",
+      "deploy/cloudflare-pages/_headers",
+      "deploy/cloudflare-pages/index.html",
+      "index.html",
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "scripts/refresh-route-iq-private-dashboard-csp.mjs",
+      "scripts/run-github-actions-private-worker-deployment-v2.mjs",
+      "scripts/verify-dashboard-runtime-pool-consumption.mjs",
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+      "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+      "tests/route-iq-paid-customer-infrastructure-csp.test.mjs",
+      "tests/route-iq-paid-customer-infrastructure-dashboard-preview.test.mjs",
+      "tests/route-iq-paid-customer-infrastructure.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+      "workers/infrastructure/route-iq-paid-customer-dashboard-preview-runtime.js",
+      "workers/infrastructure/route-iq-paid-customer-onboarding-forward-rollback-v1.json",
+      "workers/infrastructure/route-iq-paid-customer-onboarding-runtime-v1.json",
+      "workers/infrastructure/route-iq-paid-customer-onboarding-runtime.js",
+      "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
+      "workers/infrastructure/route-iq-paid-customer-server-authority.js",
+      "workers/prometheus-iq-worker.js"
+    ],
+    "paidCustomerAcceptanceEvidence": [
+      {
+        "path": "_headers",
+        "sha256": "acb5b88a4b10b30a19e9baeecd4ce98e283ce6648b5a8e02338d95dedfd806c3"
+      },
+      {
+        "path": "deploy/cloudflare-pages/_headers",
+        "sha256": "acb5b88a4b10b30a19e9baeecd4ce98e283ce6648b5a8e02338d95dedfd806c3"
+      },
+      {
+        "path": "deploy/cloudflare-pages/index.html",
+        "sha256": "f15389cba2412dac883eeb19f355939983f15aca1d5ef6e38f333ad85d4f2fe4"
+      },
+      {
+        "path": "index.html",
+        "sha256": "f15389cba2412dac883eeb19f355939983f15aca1d5ef6e38f333ad85d4f2fe4"
+      },
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "04fe1e62308d3fb8712052f3b6f8b1215b5d29e1c7bf85ae5607ecd7a8a3641f"
+      },
+      {
+        "path": "scripts/refresh-route-iq-private-dashboard-csp.mjs",
+        "sha256": "e9bfaf4bd0a236560413dc58d21615f7ef98bbe43854727ee9048fbda9dc3499"
+      },
+      {
+        "path": "scripts/run-github-actions-private-worker-deployment-v2.mjs",
+        "sha256": "dfd20bbfbb17f71dd0711167828c3ea1b22d5ffea2a323572d9d426ba970627d"
+      },
+      {
+        "path": "scripts/verify-dashboard-runtime-pool-consumption.mjs",
+        "sha256": "ab59013d46e02c361227269b280eeb3c0cbbba282d5ca11ea3ac8685d75ae78c"
+      },
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "09c1f9971916dfbd539e195151d0267fb4df46992b77dc6762f31f2ec56f46b6"
+      },
+      {
+        "path": "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+        "sha256": "ed271e3ca5e04b8c696bcd200514bb103e7e6b8b05faa534da5d1af2ee3cd0eb"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+        "sha256": "89f69b4598dbb656b2eec415bc474061ed15d5b841a7cbfe88da06ba14aac1cf"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-csp.test.mjs",
+        "sha256": "c7fe39491bdfd217a44bcf388368738e762cddd3416bb3c44b44f293661df46a"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-dashboard-preview.test.mjs",
+        "sha256": "15df723a9748d5389cf7a5ffdcc00fb2b9731bcc791c65049e36875a018283f5"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure.test.mjs",
+        "sha256": "d6fa41e57efb5c07554663a3e0990dca9c4f4eacf873247f3458b47de625deb8"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "1fa01a2d9127cc276dc1d5ecef323ef897c06cb9de56623ce08f49ad1e09cdd6"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-paid-customer-dashboard-preview-runtime.js",
+        "sha256": "93867482c6c084579839195cec88523a6e64371da584cc1a2f4ba3779cbbfb3c"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-paid-customer-onboarding-forward-rollback-v1.json",
+        "sha256": "eb3666911fd0b6646e48a045229ee39b1b4756a1130e46a00ddc28ed550c3f19"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-paid-customer-onboarding-runtime-v1.json",
+        "sha256": "d6244a1fa4de28fb31877cac6be1c4a889fd7bace3d2c4d8e1af812da520cc7d"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-paid-customer-onboarding-runtime.js",
+        "sha256": "08520b40853759cbe6365e3b32bb3fe4cb1bfe1cbf404558b180ba02edb00ba8"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
+        "sha256": "bb310130b0833ca40c49442dc1d1aecdf8ca752d72dd5ad69191a5f083e7a70b"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-paid-customer-server-authority.js",
+        "sha256": "3785deadd067bfbbfb3c88465b75b114b5d60587214c5f3e4e962daa14eab0be"
+      },
+      {
+        "path": "workers/prometheus-iq-worker.js",
+        "sha256": "58d52967de329daa034751c1cf95ad1ae3da8a853c5cceeb950f0656ed51e2c8"
+      }
     ]
   },
   "rootCause": {
@@ -770,7 +892,8 @@
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
     "previousQualifiedTree": "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
     "releaseScopeUnchangedThroughBaselineCommit": "8976c077eef91147368c9b5566b5310c04fd6630",
-    "qualifiedForwardPayloadSha256": "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c",
+    "previousQualifiedForwardPayloadSha256": "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c",
+    "qualifiedForwardPayloadSha256": "25d49f283bc07c212bf0c1a5f53fae17602bb149ba8870a9ad3519b6295a9707",
     "qualifiedRollbackBundleSha256": "0350e6281b228321509c59fadc1fe612f6400b6d025c27dddd01ea980daddb79"
   },
   "workflowBoundary": {

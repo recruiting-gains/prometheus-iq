@@ -33,6 +33,10 @@ materialized clean-runner payload identity. Infrastructure successor
 `ceea5b6496f81341a49f605622d78daf084d9f6f` then replaces the selective
 route-pattern boundary with unconditional boolean Worker-first routing and
 replaces the premature attempt count with a measured monotonic deadline.
+Paid-customer Infrastructure successor
+`3872b30d1f16acde85518ae857bae09336aaed3b` preserves those deployment
+controls while adding authenticated, write-free desktop and exact 390x844
+mobile production acceptance for the private Dashboard.
 
 ## Corrective
 
@@ -185,8 +189,10 @@ The corrective requires `assets.run_worker_first: true` in forward and
 rollback and rejects every array substitute, including `["/*"]`. Its smoke
 fence measures a monotonic 46.5-second deadline rather than counting attempts.
 The complete fixed GET/HEAD plan must still converge in one round, and unsafe
-responses still fail immediately. The corrected forward payload identity is
-`81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c`;
+responses still fail immediately. The prior corrected forward payload identity
+was `81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c`.
+The paid-customer acceptance successor advances the exact forward payload to
+`25d49f283bc07c212bf0c1a5f53fae17602bb149ba8870a9ad3519b6295a9707`;
 the paired rollback identity is
 `0350e6281b228321509c59fadc1fe612f6400b6d025c27dddd01ea980daddb79`.
 

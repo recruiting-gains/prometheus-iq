@@ -232,7 +232,9 @@
         "releasePropagationRepairCommit": "25ff53a7e61b50962144c5c689cc7a546875f724",
         "releasePropagationRepairTree": "25f27adbd21a281d1294a68362b994403934095e",
         "rollbackRootGuardRepairCommit": "6f7216afa09b72442f53a271a8b9fc749aa34d4b",
-        "rollbackRootGuardRepairTree": "414e500a735885f460cb25afc18b0387d43e8125"
+        "rollbackRootGuardRepairTree": "414e500a735885f460cb25afc18b0387d43e8125",
+        "paidCustomerAcceptanceCommit": "3872b30d1f16acde85518ae857bae09336aaed3b",
+        "paidCustomerAcceptanceTree": "d1a12d7336e1739b33a0f83a8e33213939b0ea6c"
       },
       "cleanRunnerRealWranglerEvidenceRequired": true,
       "writeAllowed": [
