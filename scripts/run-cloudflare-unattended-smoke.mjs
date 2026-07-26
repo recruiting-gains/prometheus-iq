@@ -20,7 +20,6 @@ const CANONICAL_SMOKE_REQUESTS = Object.freeze(
     entry.path !== "/index.html"
   ))
 );
-const PROPAGATION_PROBE = Object.freeze({ method: "GET", path: "/" });
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 
 export const CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY = Object.freeze({
@@ -33,6 +32,25 @@ export const CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION = Object.freeze({
   delayMilliseconds: 1_500,
   requestTimeoutMilliseconds: 2_500,
   maximumWaitMilliseconds: 46_500
+});
+
+export const CLOUDFLARE_UNATTENDED_SMOKE_PROBE = Object.freeze({
+  UNSPECIFIED: "UNSPECIFIED",
+  ROOT_GET: "ROOT_GET",
+  SERVICE_WORKER_GET: "SERVICE_WORKER_GET",
+  WEB_MANIFEST_GET: "WEB_MANIFEST_GET",
+  BRAND_ICON_GET: "BRAND_ICON_GET",
+  ACTIVE_POOL_GET: "ACTIVE_POOL_GET",
+  QUARANTINE_POOL_GET: "QUARANTINE_POOL_GET",
+  RUNTIME_POOLS_GET: "RUNTIME_POOLS_GET",
+  BUSINESS_HOURS_GET: "BUSINESS_HOURS_GET",
+  ROUTE_REPLENISHMENT_GET: "ROUTE_REPLENISHMENT_GET",
+  ROUTE_REPLENISHMENT_CONTRACT_GET: "ROUTE_REPLENISHMENT_CONTRACT_GET",
+  OPERATING_PROFILES_GET: "OPERATING_PROFILES_GET",
+  OPERATING_PROFILE_CONTRACT_GET: "OPERATING_PROFILE_CONTRACT_GET",
+  HOURS_ELIGIBILITY_GET: "HOURS_ELIGIBILITY_GET",
+  HOURS_GOVERNANCE_GET: "HOURS_GOVERNANCE_GET",
+  ROOT_HEAD: "ROOT_HEAD"
 });
 
 export const CLOUDFLARE_UNATTENDED_SMOKE_FAILURE = Object.freeze({
@@ -50,19 +68,70 @@ export const CLOUDFLARE_UNATTENDED_SMOKE_FAILURE = Object.freeze({
 
 const MARKER_POLICIES = new Set(Object.values(CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY));
 const FAILURE_DIMENSIONS = new Set(Object.values(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE));
+const PROBES = new Set(Object.values(CLOUDFLARE_UNATTENDED_SMOKE_PROBE));
+const FIXED_PROBES = new Map([
+  ["GET /", CLOUDFLARE_UNATTENDED_SMOKE_PROBE.ROOT_GET],
+  ["GET /sw.js", CLOUDFLARE_UNATTENDED_SMOKE_PROBE.SERVICE_WORKER_GET],
+  ["GET /manifest.webmanifest", CLOUDFLARE_UNATTENDED_SMOKE_PROBE.WEB_MANIFEST_GET],
+  ["GET /icons/prometheus.svg", CLOUDFLARE_UNATTENDED_SMOKE_PROBE.BRAND_ICON_GET],
+  [
+    "GET /data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+    CLOUDFLARE_UNATTENDED_SMOKE_PROBE.ACTIVE_POOL_GET
+  ],
+  [
+    "GET /data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+    CLOUDFLARE_UNATTENDED_SMOKE_PROBE.QUARANTINE_POOL_GET
+  ],
+  [
+    "GET /data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+    CLOUDFLARE_UNATTENDED_SMOKE_PROBE.RUNTIME_POOLS_GET
+  ],
+  [
+    "GET /data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+    CLOUDFLARE_UNATTENDED_SMOKE_PROBE.BUSINESS_HOURS_GET
+  ],
+  [
+    "GET /intelligence/continuous-adaptive-route-replenishment.mjs",
+    CLOUDFLARE_UNATTENDED_SMOKE_PROBE.ROUTE_REPLENISHMENT_GET
+  ],
+  [
+    "GET /intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json",
+    CLOUDFLARE_UNATTENDED_SMOKE_PROBE.ROUTE_REPLENISHMENT_CONTRACT_GET
+  ],
+  [
+    "GET /intelligence/profiles/operating-profiles.json",
+    CLOUDFLARE_UNATTENDED_SMOKE_PROBE.OPERATING_PROFILES_GET
+  ],
+  [
+    "GET /intelligence/contracts/operating-profile-contracts.json",
+    CLOUDFLARE_UNATTENDED_SMOKE_PROBE.OPERATING_PROFILE_CONTRACT_GET
+  ],
+  [
+    "GET /intelligence/route-business-hours-eligibility.mjs",
+    CLOUDFLARE_UNATTENDED_SMOKE_PROBE.HOURS_ELIGIBILITY_GET
+  ],
+  [
+    "GET /scripts/lib/business-hours-governance.mjs",
+    CLOUDFLARE_UNATTENDED_SMOKE_PROBE.HOURS_GOVERNANCE_GET
+  ],
+  ["HEAD /", CLOUDFLARE_UNATTENDED_SMOKE_PROBE.ROOT_HEAD]
+]);
 
 export class CloudflareUnattendedSmokeError extends Error {
-  constructor(dimension) {
+  constructor(dimension, probe = CLOUDFLARE_UNATTENDED_SMOKE_PROBE.UNSPECIFIED) {
     super("CLOUDFLARE_UNATTENDED_SMOKE_FAILED");
     this.name = "CloudflareUnattendedSmokeError";
     this.dimension = FAILURE_DIMENSIONS.has(dimension)
       ? dimension
       : CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID;
+    this.probe = PROBES.has(probe)
+      ? probe
+      : CLOUDFLARE_UNATTENDED_SMOKE_PROBE.UNSPECIFIED;
   }
 }
 
-function fail(dimension) {
-  throw new CloudflareUnattendedSmokeError(dimension);
+function fail(dimension, probe) {
+  throw new CloudflareUnattendedSmokeError(dimension, probe);
 }
 
 function requireCredential(credentials, name) {
@@ -75,7 +144,7 @@ function requireCredential(credentials, name) {
 
 function smokeRequestOptions(clientId, clientSecret) {
   return {
-    method: PROPAGATION_PROBE.method,
+    method: "GET",
     headers: {
       [ACCESS_CLIENT_ID_HEADER]: clientId,
       [ACCESS_CLIENT_SECRET_HEADER]: clientSecret,
@@ -90,7 +159,13 @@ function smokeRequestOptions(clientId, clientSecret) {
   };
 }
 
-async function withSmokeResponse(fetchImpl, url, options, timeoutMilliseconds, inspect) {
+function fixedProbe(entry) {
+  const probe = FIXED_PROBES.get(`${entry.method} ${entry.path}`);
+  if (!probe) fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);
+  return probe;
+}
+
+async function withSmokeResponse(fetchImpl, url, options, timeoutMilliseconds, probe, inspect) {
   const controller = new AbortController();
   let timeoutId;
   try {
@@ -101,13 +176,13 @@ async function withSmokeResponse(fetchImpl, url, options, timeoutMilliseconds, i
       });
       try {
         if (response?.redirected || (response?.status >= 300 && response?.status < 400)) {
-          fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.REDIRECT_DENIED);
+          fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.REDIRECT_DENIED, probe);
         }
         if (!Number.isInteger(response?.status)
           || response.status < 200
           || response.status >= 300
           || typeof response.headers?.get !== "function") {
-          fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.HTTP_STATUS_REJECTED);
+          fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.HTTP_STATUS_REJECTED, probe);
         }
         return await inspect(response);
       } finally {
@@ -125,29 +200,29 @@ async function withSmokeResponse(fetchImpl, url, options, timeoutMilliseconds, i
     ]);
   } catch (error) {
     if (error instanceof CloudflareUnattendedSmokeError) throw error;
-    fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.NETWORK_FAILED);
+    fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.NETWORK_FAILED, probe);
   } finally {
     if (timeoutId !== undefined) clearTimeout(timeoutId);
     controller.abort();
   }
 }
 
-function markerState(response) {
+function markerState(response, probe) {
   const marker = response.headers.get(CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader);
   if (marker === null) return "missing";
   if (marker !== CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue) {
-    fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_INVALID);
+    fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_INVALID, probe);
   }
   return "exact";
 }
 
-function workerVersionState(response, expectedWorkerVersion) {
+function workerVersionState(response, expectedWorkerVersion, probe) {
   const version = response.headers.get(
     CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader
   );
   if (version === null) return "missing";
   if (!UUID.test(version)) {
-    fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH);
+    fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH, probe);
   }
   return version === expectedWorkerVersion ? "exact" : "stale";
 }
@@ -204,35 +279,54 @@ export async function waitForCloudflareUnattendedSmokeGuard({
   }
   const clientId = requireCredential(credentials, SMOKE_CREDENTIAL_NAMES[0]);
   const clientSecret = requireCredential(credentials, SMOKE_CREDENTIAL_NAMES[1]);
-  const url = new URL(PROPAGATION_PROBE.path, CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN);
-  if (!isCloudflareUnattendedSmokeRequestAllowed(PROPAGATION_PROBE.method, url)) {
-    fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);
-  }
+  let requestCount = 0;
 
   for (let attempt = 1;
     attempt <= CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts;
     attempt += 1) {
-    const observed = await withSmokeResponse(
-      fetchImpl,
-      url,
-      smokeRequestOptions(clientId, clientSecret),
-      CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds,
-      async response => Object.freeze({
-        marker: markerState(response),
-        workerVersion: workerVersionState(response, expectedWorkerVersion)
-      })
-    );
-    if (observed.marker === "exact" && observed.workerVersion === "exact") {
+    const settled = await Promise.allSettled(CANONICAL_SMOKE_REQUESTS.map(async entry => {
+      const probe = fixedProbe(entry);
+      const url = new URL(entry.path, CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN);
+      if (!isCloudflareUnattendedSmokeRequestAllowed(entry.method, url)) {
+        fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);
+      }
+      return withSmokeResponse(
+        fetchImpl,
+        url,
+        {
+          ...smokeRequestOptions(clientId, clientSecret),
+          method: entry.method
+        },
+        CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds,
+        probe,
+        async response => Object.freeze({
+          marker: markerState(response, probe),
+          workerVersion: workerVersionState(response, expectedWorkerVersion, probe),
+          probe
+        })
+      );
+    }));
+    requestCount += CANONICAL_SMOKE_REQUESTS.length;
+    const rejected = settled.find(result => result.status === "rejected");
+    if (rejected) throw rejected.reason;
+    const incomplete = settled
+      .map(result => result.value)
+      .find(observed => observed.marker !== "exact" || observed.workerVersion !== "exact");
+    if (!incomplete) {
       return Object.freeze({
         status: "ready",
-        requestCount: attempt,
+        attemptCount: attempt,
+        requestCount,
         attemptedWriteCount: 0
       });
     }
     if (attempt === CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts) {
-      fail(observed.marker === "exact"
-        ? CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH
-        : CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_PROPAGATION_TIMEOUT);
+      fail(
+        incomplete.marker === "exact"
+          ? CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH
+          : CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_PROPAGATION_TIMEOUT,
+        incomplete.probe
+      );
     }
     await sleepImpl(CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds);
   }
@@ -240,10 +334,24 @@ export async function waitForCloudflareUnattendedSmokeGuard({
 }
 
 export async function runCloudflareUnattendedPostDeploymentSmoke(options = {}) {
-  await waitForCloudflareUnattendedSmokeGuard(options);
-  return runCloudflareUnattendedSmoke({
-    ...options,
-    markerPolicy: CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
+  if (options.dryRun !== false) {
+    return runCloudflareUnattendedSmoke({
+      ...options,
+      markerPolicy: CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
+    });
+  }
+  const readiness = await waitForCloudflareUnattendedSmokeGuard(options);
+  return Object.freeze({
+    status: "passed",
+    requestCount: CANONICAL_SMOKE_REQUESTS.length,
+    attemptedWriteCount: 0,
+    markerPolicy: CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT,
+    markerVerifiedCount: CANONICAL_SMOKE_REQUESTS.length,
+    markerOmittedCount: 0,
+    expectedWorkerVersion: options.expectedWorkerVersion,
+    versionVerifiedCount: CANONICAL_SMOKE_REQUESTS.length,
+    propagationAttemptCount: readiness.attemptCount,
+    propagationRequestCount: readiness.requestCount
   });
 }
 
@@ -280,6 +388,7 @@ export async function runCloudflareUnattendedSmoke({
   let versionVerifiedCount = 0;
 
   for (const entry of CANONICAL_SMOKE_REQUESTS) {
+    const probe = fixedProbe(entry);
     const url = new URL(entry.path, CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN);
     if (!isCloudflareUnattendedSmokeRequestAllowed(entry.method, url)) {
       fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);
@@ -292,17 +401,18 @@ export async function runCloudflareUnattendedSmoke({
         method: entry.method
       },
       CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds,
+      probe,
       async response => Object.freeze({
-        marker: markerState(response),
+        marker: markerState(response, probe),
         workerVersion: expectedWorkerVersion === undefined
           ? "not_required"
-          : workerVersionState(response, expectedWorkerVersion)
+          : workerVersionState(response, expectedWorkerVersion, probe)
       })
     );
     requestCount += 1;
     if (observed.marker === "missing") {
       if (markerPolicy === CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT) {
-        fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_MISSING);
+        fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_MISSING, probe);
       }
       markerOmittedCount += 1;
     } else {
@@ -310,7 +420,7 @@ export async function runCloudflareUnattendedSmoke({
     }
     if (expectedWorkerVersion !== undefined) {
       if (observed.workerVersion !== "exact") {
-        fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH);
+        fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH, probe);
       }
       versionVerifiedCount += 1;
     }
@@ -346,7 +456,10 @@ if (isMain) {
     const dimension = error instanceof CloudflareUnattendedSmokeError
       ? error.dimension
       : CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID;
-    process.stdout.write(`SMOKE_FAILURE|DIMENSION=${dimension}\n`);
+    const probe = error instanceof CloudflareUnattendedSmokeError
+      ? error.probe
+      : CLOUDFLARE_UNATTENDED_SMOKE_PROBE.UNSPECIFIED;
+    process.stdout.write(`SMOKE_FAILURE|DIMENSION=${dimension}|PROBE=${probe}\n`);
     process.exitCode = 1;
   }
 }

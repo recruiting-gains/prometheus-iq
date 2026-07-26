@@ -34,6 +34,7 @@ import {
 import {
   CLOUDFLARE_UNATTENDED_SMOKE_FAILURE,
   CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY,
+  CLOUDFLARE_UNATTENDED_SMOKE_PROBE,
   CloudflareUnattendedSmokeError
 } from "../run-cloudflare-unattended-smoke.mjs";
 import {
@@ -101,16 +102,15 @@ export const PRIVATE_WORKFLOW_V2_POLICY = Object.freeze({
   githubApiOrigin: "https://api.github.com",
   githubResponseByteLimit: 65_536,
   githubRequestTimeoutMs: 10_000,
-  bootstrapGuardlessPrivateVersion: "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
-  verifiedGuardlessRollbackPrivateVersion: "e303f3ca-8d2b-4248-85a5-eaad938219a9",
+  bootstrapGuardlessPrivateVersion: "9ffb32d3-313a-4209-ad1d-0a6702ba8a83",
   continuityBaseline: Object.freeze({
     candidateCommit: "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
     candidateTree: "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
     qualificationArtifactContentTreeSha256:
       "de7b35909f9bd1bf8f15c8fe605cf494a5f39171e6b2bdf822e60031c590b0e7",
     deployParitySha256: "35a564e4f3fed2961d7658bac57cc4ce66cb9c103e4ab03d5b17fff836ca7731",
-    forwardPayloadSha256: "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c",
-    rollbackBundleSha256: "24cb31665b74c2abc6c51c5c932165c51cacf1eac1813c3bb794005194ed17cc"
+    forwardPayloadSha256: "34ec532c9325569b6f04593d2caad0e88c2efc68df3c8defb1d3ad30a5ca687d",
+    rollbackBundleSha256: "f2edb9475f09fcf9b3469c133585c82333c218d0f6efe9f696d192665a8bf8df"
   })
 });
 
@@ -638,11 +638,11 @@ function requireSourceDeployableDirectory(path) {
   }
 }
 
-function runtimeQualifiedConfig(sourceConfigPath, settings) {
+function runtimeQualifiedConfig(sourceConfigPath, settings, { rollback = false } = {}) {
   const config = readJson(sourceConfigPath);
   validatePrivateConfig(config, {
     qualified: true,
-    rollback: Array.isArray(config.assets?.run_worker_first)
+    rollback
   });
   if (PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS.some(name => (
     Object.hasOwn(config.vars || {}, name)
@@ -659,7 +659,8 @@ function runtimeQualifiedConfig(sourceConfigPath, settings) {
 function copyPrivateV2RuntimeTarget({
   sourceDirectory,
   destinationDirectory,
-  settings
+  settings,
+  rollback = false
 }) {
   requireSourceDeployableDirectory(sourceDirectory);
   const sourceConfig = join(
@@ -697,7 +698,7 @@ function copyPrivateV2RuntimeTarget({
       destinationDirectory,
       PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile
     );
-    writeExclusive(runtimeConfig, runtimeQualifiedConfig(sourceConfig, settings));
+    writeExclusive(runtimeConfig, runtimeQualifiedConfig(sourceConfig, settings, { rollback }));
     chmodSync(runtimeConfig, 0o600);
     requireOwnerOnlyConfig(runtimeConfig);
     if (sha256PrivateWorkflowFile(sourceConfig) !== sourceConfigSha256) {
@@ -833,12 +834,14 @@ export function createPrivateV2RuntimeRelease({
   const forward = copyPrivateV2RuntimeTarget({
     sourceDirectory: verifiedRelease.forwardDirectory,
     destinationDirectory: join(workspace, "forward"),
-    settings
+    settings,
+    rollback: false
   });
   const rollback = copyPrivateV2RuntimeTarget({
     sourceDirectory: verifiedRelease.rollbackDirectory,
     destinationDirectory: join(workspace, "rollback"),
-    settings
+    settings,
+    rollback: true
   });
   const scratch = createPrivateV2WranglerScratch(workspace);
   return Object.freeze({
@@ -861,7 +864,8 @@ function verifyPrivateV2RuntimeTarget({
   runtimeDirectory,
   expectedAssetsSha256,
   expectedWorkerSha256,
-  settings
+  settings,
+  rollback = false
 }) {
   requireSourceDeployableDirectory(sourceDirectory);
   requireSourceDeployableDirectory(runtimeDirectory);
@@ -881,7 +885,8 @@ function verifyPrivateV2RuntimeTarget({
       !== expectedWorkerSha256
     || readFileSync(runtimeConfig, "utf8") !== runtimeQualifiedConfig(
       join(sourceDirectory, PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile),
-      settings
+      settings,
+      { rollback }
     )) {
     fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
   }
@@ -895,14 +900,16 @@ export function verifyPrivateV2RuntimeRelease(runtimeRelease, settings) {
     runtimeDirectory: runtimeRelease.forwardDirectory,
     expectedAssetsSha256: runtimeRelease.forwardAssetsSha256,
     expectedWorkerSha256: runtimeRelease.forwardWorkerSha256,
-    settings
+    settings,
+    rollback: false
   });
   verifyPrivateV2RuntimeTarget({
     sourceDirectory: runtimeRelease.sourceRollbackDirectory,
     runtimeDirectory: runtimeRelease.rollbackDirectory,
     expectedAssetsSha256: runtimeRelease.rollbackAssetsSha256,
     expectedWorkerSha256: runtimeRelease.rollbackWorkerSha256,
-    settings
+    settings,
+    rollback: true
   });
   return Object.freeze({ status: "PRIVATE_WORKER_V2_RUNTIME_GUARD_CONFIG_VERIFIED" });
 }
@@ -1008,8 +1015,9 @@ function validatePrivateConfig(config, { qualified, rollback = false }) {
     ? `./worker/${PRIVATE_WORKFLOW_V2_POLICY.generatedWorkerFile}`
     : "workers/prometheus-iq-worker.js";
   const expectedAssets = qualified ? "./assets" : "./deploy/cloudflare-pages";
-  const expectedRunWorkerFirst = rollback ? ["/", "/api/*"] : true;
-  if (!isPlainObject(config)
+  const expectedRunWorkerFirst = ["/*"];
+  if (typeof rollback !== "boolean"
+    || !isPlainObject(config)
     || config.name !== PRIVATE_WORKFLOW_V2_POLICY.privateWorker
     || config.main !== expectedMain
     || config.assets?.directory !== expectedAssets
@@ -1597,10 +1605,7 @@ export function privateV2PredeploymentSmokeMarkerPolicy(currentPrivateVersion) {
   if (!UUID.test(currentPrivateVersion || "")) {
     fail(PRIVATE_WORKFLOW_V2_FAILURE.INPUT_INVALID);
   }
-  return [
-    PRIVATE_WORKFLOW_V2_POLICY.bootstrapGuardlessPrivateVersion,
-    PRIVATE_WORKFLOW_V2_POLICY.verifiedGuardlessRollbackPrivateVersion
-  ].includes(currentPrivateVersion)
+  return currentPrivateVersion === PRIVATE_WORKFLOW_V2_POLICY.bootstrapGuardlessPrivateVersion
     ? CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.BOOTSTRAP_ALLOW_MISSING
     : CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT;
 }
@@ -2018,7 +2023,10 @@ export function formatPrivateWorkflowV2Failure(error) {
   }
   if (error instanceof CloudflareUnattendedSmokeError
     && Object.values(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE).includes(error.dimension)) {
-    return `SMOKE_FAILURE|DIMENSION=${error.dimension}`;
+    const probe = Object.values(CLOUDFLARE_UNATTENDED_SMOKE_PROBE).includes(error.probe)
+      ? error.probe
+      : CLOUDFLARE_UNATTENDED_SMOKE_PROBE.UNSPECIFIED;
+    return `SMOKE_FAILURE|DIMENSION=${error.dimension}|PROBE=${probe}`;
   }
   if (error instanceof PublicDeploymentPolicyError
     && PUBLIC_FAILURE_CODES.has(error.code)) {

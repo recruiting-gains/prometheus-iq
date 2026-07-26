@@ -79,8 +79,7 @@
     "smokeContractSource": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
     "versionMetadataBinding": "CF_VERSION_METADATA",
     "workerFirstPaths": [
-      "/",
-      "/api/*"
+      "/*"
     ],
     "generatedEntrypoint": "workers/prometheus-iq-worker.js",
     "retainedEntrypoint": "workers/prometheus-iq-retained-version-55.js",
@@ -92,10 +91,10 @@
   },
   "artifactIdentity": {
     "algorithm": "sha256",
-    "configSha256": "7ad3877abf9f9b94ef7100fc48cfd8c1dfaa3a5f1401e493ae362862c856d7d0",
+    "configSha256": "dbcb4a6991035968b8a46bb83f69a64d1a7ac99edb113b43f1907cd37e855760",
     "inertClassSha256": "c668e6d69c734c637ccb942767b7107c5725e62cc2deec18f6552b1726c7e47d",
     "generatedEntrypointSha256": "164b9e1843c2aecc074a4bda0eb2efc15c83bf890ba595959ae920690f028116",
-    "contentTreeSha256": "24cb31665b74c2abc6c51c5c932165c51cacf1eac1813c3bb794005194ed17cc"
+    "contentTreeSha256": "f2edb9475f09fcf9b3469c133585c82333c218d0f6efe9f696d192665a8bf8df"
   },
   "monitoringAndCost": {
     "observabilityPreserved": true,

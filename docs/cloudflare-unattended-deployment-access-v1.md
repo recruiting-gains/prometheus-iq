@@ -50,7 +50,7 @@ Cloudflare Access authenticates the service principal; it does not make the resu
 
 Missing, malformed, stale, or OFF guard configuration denies service-principal smoke requests while preserving ordinary Founder and representative Access behavior. Source implementation is not deployment: no Access policy or production Worker change is authorized by this batch.
 
-The private `wrangler.jsonc` sets `assets.run_worker_first` to `true`, so every private static and API request reaches the guard before `ASSETS` or API routing. The public Worker configuration is unchanged. A JWT that structurally claims service-token identity is forced into this restricted branch even without the marker and is denied when the marker is missing. The marker alone never authorizes a request.
+The private `wrangler.jsonc` sets `assets.run_worker_first` to `["/*"]`, so every private static and API request reaches the guard before `ASSETS` or API routing. Forward and rollback artifacts use this same explicit static-routing representation. The public Worker configuration is unchanged. A JWT that structurally claims service-token identity is forced into this restricted branch even without the marker and is denied when the marker is missing. The marker alone never authorizes a request.
 
 The future runtime configuration names are:
 

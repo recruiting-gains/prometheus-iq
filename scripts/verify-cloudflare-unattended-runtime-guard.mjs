@@ -59,7 +59,7 @@ export function verifyCloudflareUnattendedRuntimeGuard() {
   assert.equal(guardContract.productionConfigured, false);
   assert.equal(guardContract.productionDeployed, false);
   assert.equal(guardContract.privateWorkerRunsFirstForAllRequestsInSource, true);
-  assert.match(wrangler, /"run_worker_first": true/u);
+  assert.match(wrangler, /"run_worker_first": \[\s*"\/\*"\s*\]/u);
   assert.match(publicWrangler, /"run_worker_first": \[\s*"\/api\/\*"\s*\]/u);
   assert.deepEqual(guardContract.allowedMethods, CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_METHODS);
   assert.deepEqual(guardContract.allowedPaths, CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS);
@@ -178,7 +178,7 @@ export function verifyCloudflareUnattendedRuntimeGuard() {
     "Cloudflare's JWKS",
     "empty `sub`",
     "default-deny fixed-origin smoke client",
-    "assets.run_worker_first` to `true`",
+    "assets.run_worker_first` to `[\"/*\"]`",
     "marker alone never authorizes",
     "exact mode `0600`",
     "exclusive `0600` consumed marker",

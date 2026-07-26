@@ -296,8 +296,8 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     PRIVATE_WORKFLOW_V2_POLICY.bootstrapGuardlessPrivateVersion
   );
   assert.equal(
-    contract.smoke.bootstrap.additionalVerifiedGuardlessRollbackVersion,
-    PRIVATE_WORKFLOW_V2_POLICY.verifiedGuardlessRollbackPrivateVersion
+    Object.hasOwn(contract.smoke.bootstrap, "additionalVerifiedGuardlessRollbackVersion"),
+    false
   );
   assert.equal(contract.smoke.bootstrap.oneTimeTransition, true);
   assert.equal(contract.smoke.bootstrap.accessServiceTokenRequired, true);
@@ -307,8 +307,9 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   );
   assert.equal(contract.smoke.postDeployment.exactGuardResponseMarkerRequired, true);
   assert.deepEqual(contract.smoke.postDeployment.propagationFence, {
-    method: "GET",
-    path: "/",
+    scope: "full_fixed_get_head_plan",
+    concurrentRequestsPerAttempt: true,
+    fixedNonsecretProbeClassification: true,
     retryableConditions: [
       "2xx_guard_marker_missing",
       "2xx_exact_guard_marker_worker_version_missing",
@@ -328,7 +329,8 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     fullSmokeRequestLifecycleDeadlineEnforced: true,
     responseBodiesConsumedOrCancelled: true,
     releaseIdentityValueLogged: false,
-    fullFixedSmokeRunsAfterReadiness: true,
+    finalExactWholePlanAttemptIsAcceptance: true,
+    fullFixedSmokeRunsAfterReadiness: false,
     timeoutTriggersForwardRollback: true
   });
   assert.equal(

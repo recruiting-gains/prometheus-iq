@@ -51,7 +51,7 @@ const generatedWrapper = [
 const expectedAssets = Object.freeze({
   directory: "./deploy/cloudflare-pages",
   binding: "ASSETS",
-  run_worker_first: ["/", "/api/*"],
+  run_worker_first: ["/*"],
   not_found_handling: "single-page-application"
 });
 const expectedSecrets = Object.freeze([

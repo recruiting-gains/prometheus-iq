@@ -55,9 +55,11 @@ import {
 } from "../scripts/lib/github-actions-public-worker-deployment.mjs";
 import {
   CLOUDFLARE_UNATTENDED_SMOKE_FAILURE,
-  CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION,
   CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY,
+  CLOUDFLARE_UNATTENDED_SMOKE_PROBE,
+  CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION,
   CloudflareUnattendedSmokeError,
+  fixedCloudflareUnattendedSmokePlan,
   runCloudflareUnattendedPostDeploymentSmoke
 } from "../scripts/run-cloudflare-unattended-smoke.mjs";
 import {
@@ -71,7 +73,7 @@ const commit = "8976c077eef91147368c9b5566b5310c04fd6630";
 const tree = "e6d74758013d711547ff77c7a31952d73d5deee7";
 const batchId = "BATCH-20260725-001";
 const publicVersion = "6a8713c0-0712-4cda-8a13-daa893ca45f2";
-const privateVersion = "b8cba784-dfd3-4f8e-8356-816cccf6aecc";
+const privateVersion = "9ffb32d3-313a-4209-ad1d-0a6702ba8a83";
 const deployedPrivateVersion = "11111111-1111-4111-8111-111111111111";
 const rolledBackPrivateVersion = "22222222-2222-4222-8222-222222222222";
 const runtimeIdentity = Object.freeze({
@@ -542,7 +544,7 @@ test("only the pinned guardless baseline may use bootstrap marker omission", () 
   );
 });
 
-test("forward and rollback qualified configurations retain their distinct request boundaries", () => {
+test("forward and rollback qualified configurations use the same all-path request boundary", () => {
   const forward = JSON.parse(qualifiedPrivateConfigForArtifact(
     readFileSync(resolve(root, "wrangler.jsonc"), "utf8")
   ));
@@ -555,19 +557,10 @@ test("forward and rollback qualified configurations retain their distinct reques
   ));
   assert.equal(forward.name, PRIVATE_WORKFLOW_V2_POLICY.privateWorker);
   assert.equal(forward.keep_vars, true);
-  assert.equal(forward.assets.run_worker_first, true);
-  assert.deepEqual(rollback.assets.run_worker_first, ["/", "/api/*"]);
+  assert.deepEqual(forward.assets.run_worker_first, ["/*"]);
+  assert.deepEqual(rollback.assets.run_worker_first, ["/*"]);
   assert.equal(Object.hasOwn(forward, "routes"), false);
   assert.equal(Object.hasOwn(rollback, "routes"), false);
-  assert.throws(
-    () => qualifiedPrivateConfigForArtifact(
-      readFileSync(
-        resolve(root, "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json"),
-        "utf8"
-      )
-    ),
-    PrivateWorkflowV2Error
-  );
 });
 
 test("binding transition permits only qualified additions plus guard settings", () => {
@@ -1008,10 +1001,14 @@ test("failure output preserves only fixed public and smoke classifications", () 
 
   const smokeFailure = formatPrivateWorkflowV2Failure(
     new CloudflareUnattendedSmokeError(
-      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_MISSING
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_MISSING,
+      CLOUDFLARE_UNATTENDED_SMOKE_PROBE.WEB_MANIFEST_GET
     )
   );
-  assert.equal(smokeFailure, "SMOKE_FAILURE|DIMENSION=GUARD_MARKER_MISSING");
+  assert.equal(
+    smokeFailure,
+    "SMOKE_FAILURE|DIMENSION=GUARD_MARKER_MISSING|PROBE=WEB_MANIFEST_GET"
+  );
   assert.equal(smokeFailure.includes("http"), false);
   assert.equal(smokeFailure.includes("/"), false);
 });
@@ -1043,12 +1040,16 @@ test("a critical post-deployment write attempt triggers one forward rollback", a
 test("a postdeployment guard-marker failure preserves its dimension through one rollback", async () => {
   const { result, calls } = lifecycleFixture({
     postSmokeError: new CloudflareUnattendedSmokeError(
-      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_MISSING
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_MISSING,
+      CLOUDFLARE_UNATTENDED_SMOKE_PROBE.WEB_MANIFEST_GET
     )
   });
   const completed = await result;
   assert.equal(completed.status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
-  assert.equal(completed.failureClassification, "SMOKE_FAILURE|DIMENSION=GUARD_MARKER_MISSING");
+  assert.equal(
+    completed.failureClassification,
+    "SMOKE_FAILURE|DIMENSION=GUARD_MARKER_MISSING|PROBE=WEB_MANIFEST_GET"
+  );
   assert.equal(calls.deploy, 1);
   assert.equal(calls.rollback, 1);
 });
@@ -1063,7 +1064,7 @@ test("a bounded postdeployment propagation timeout triggers one forward rollback
   assert.equal(completed.status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
   assert.equal(
     completed.failureClassification,
-    "SMOKE_FAILURE|DIMENSION=GUARD_PROPAGATION_TIMEOUT"
+    "SMOKE_FAILURE|DIMENSION=GUARD_PROPAGATION_TIMEOUT|PROBE=UNSPECIFIED"
   );
   assert.equal(calls.deploy, 1);
   assert.equal(calls.rollback, 1);
@@ -1079,7 +1080,7 @@ test("a stale guarded release identity triggers one forward rollback", async () 
   assert.equal(completed.status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
   assert.equal(
     completed.failureClassification,
-    "SMOKE_FAILURE|DIMENSION=RELEASE_IDENTITY_MISMATCH"
+    "SMOKE_FAILURE|DIMENSION=RELEASE_IDENTITY_MISMATCH|PROBE=UNSPECIFIED"
   );
   assert.equal(calls.deploy, 1);
   assert.equal(calls.rollback, 1);
@@ -1100,7 +1101,9 @@ test("real bounded propagation timeout reaches the lifecycle rollback exactly on
       sleepImpl: async () => {},
       async fetchImpl(url) {
         readinessRequests += 1;
-        assert.equal(new URL(url).pathname, "/");
+        assert.ok(fixedCloudflareUnattendedSmokePlan().some(entry => (
+          new URL(entry.url).pathname === new URL(url).pathname
+        )));
         return new Response(null, { status: 200 });
       }
     })
@@ -1109,9 +1112,13 @@ test("real bounded propagation timeout reaches the lifecycle rollback exactly on
   assert.equal(completed.status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
   assert.equal(
     completed.failureClassification,
-    "SMOKE_FAILURE|DIMENSION=GUARD_PROPAGATION_TIMEOUT"
+    "SMOKE_FAILURE|DIMENSION=GUARD_PROPAGATION_TIMEOUT|PROBE=ROOT_GET"
   );
-  assert.equal(readinessRequests, CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts);
+  assert.equal(
+    readinessRequests,
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts
+      * fixedCloudflareUnattendedSmokePlan().length
+  );
   assert.equal(calls.deploy, 1);
   assert.equal(calls.postSmoke, 1);
   assert.equal(calls.rollback, 1);
@@ -1169,10 +1176,13 @@ test("real unsafe propagation responses never retry before lifecycle rollback", 
     });
     const completed = await result;
     assert.equal(completed.status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
-    assert.equal(completed.failureClassification, `SMOKE_FAILURE|DIMENSION=${dimension}`);
+    assert.equal(
+      completed.failureClassification,
+      `SMOKE_FAILURE|DIMENSION=${dimension}|PROBE=ROOT_GET`
+    );
     assert.equal(completed.failureClassification.includes("sensitive"), false);
     assert.equal(completed.failureClassification.includes("example.invalid"), false);
-    assert.equal(readinessRequests, 1);
+    assert.equal(readinessRequests, fixedCloudflareUnattendedSmokePlan().length);
     assert.equal(calls.deploy, 1);
     assert.equal(calls.postSmoke, 1);
     assert.equal(calls.rollback, 1);

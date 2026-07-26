@@ -154,8 +154,8 @@ test("rollback config preserves stateful and static bindings while forcing every
   assert.equal(config.main, "workers/prometheus-iq-worker.js");
   assert.equal(config.keep_vars, true);
   assert.equal(config.assets.binding, "ASSETS");
-  assert.deepEqual(config.assets.run_worker_first, ["/", "/api/*"]);
-  assert.deepEqual(contract.candidatePackage.workerFirstPaths, ["/", "/api/*"]);
+  assert.deepEqual(config.assets.run_worker_first, ["/*"]);
+  assert.deepEqual(contract.candidatePackage.workerFirstPaths, ["/*"]);
   assert.equal(config.observability.enabled, true);
   assert.deepEqual(config.version_metadata, { binding: "CF_VERSION_METADATA" });
   assert.equal(config.vars.ROUTE_IQ_CUSTOMER_PWA_LAUNCH_ENABLED, "OFF");

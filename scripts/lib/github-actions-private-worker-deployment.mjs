@@ -357,7 +357,7 @@ export function verifyStaticDeploymentPolicy(root) {
     || Object.hasOwn(privateConfig, "env")
     || !isPlainObject(privateConfig.assets)
     || privateConfig.assets.directory !== "./deploy/cloudflare-pages"
-    || privateConfig.assets.run_worker_first !== true
+    || JSON.stringify(privateConfig.assets.run_worker_first) !== JSON.stringify(["/*"])
     || !isPlainObject(privateConfig.vars)
     || Object.keys(privateConfig.vars).length === 0
     || !nonemptyArray(privateConfig.kv_namespaces)

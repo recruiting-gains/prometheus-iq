@@ -16,8 +16,8 @@
     "previousQualifiedCandidateTree": "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
     "previousQualificationArtifactContentTreeSha256": "de7b35909f9bd1bf8f15c8fe605cf494a5f39171e6b2bdf822e60031c590b0e7",
     "privateDeployParitySha256": "35a564e4f3fed2961d7658bac57cc4ce66cb9c103e4ab03d5b17fff836ca7731",
-    "qualifiedForwardPayloadSha256": "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c",
-    "qualifiedRollbackBundleSha256": "24cb31665b74c2abc6c51c5c932165c51cacf1eac1813c3bb794005194ed17cc",
+    "qualifiedForwardPayloadSha256": "34ec532c9325569b6f04593d2caad0e88c2efc68df3c8defb1d3ad30a5ca687d",
+    "qualifiedRollbackBundleSha256": "f2edb9475f09fcf9b3469c133585c82333c218d0f6efe9f696d192665a8bf8df",
     "candidateMayBeAnAncestorOfCurrentMain": true,
     "currentMainMayContainUnrelatedPublicOnlySuccessors": true,
     "candidatePrivateScopeMustRemainByteIdentical": true,
@@ -144,8 +144,7 @@
     "fixedAllowlistContract": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
     "bootstrap": {
       "oneTimeTransition": true,
-      "currentPrivateVersionWithoutGuard": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
-      "additionalVerifiedGuardlessRollbackVersion": "e303f3ca-8d2b-4248-85a5-eaad938219a9",
+      "currentPrivateVersionWithoutGuard": "9ffb32d3-313a-4209-ad1d-0a6702ba8a83",
       "accessServiceTokenRequired": true,
       "guardRequestMarkerSent": true,
       "guardResponseMarkerMayBeOmittedOnlyForPinnedCurrentVersion": true,
@@ -154,8 +153,9 @@
     "postDeployment": {
       "exactGuardResponseMarkerRequired": true,
       "propagationFence": {
-        "method": "GET",
-        "path": "/",
+        "scope": "full_fixed_get_head_plan",
+        "concurrentRequestsPerAttempt": true,
+        "fixedNonsecretProbeClassification": true,
         "retryableConditions": [
           "2xx_guard_marker_missing",
           "2xx_exact_guard_marker_worker_version_missing",
@@ -173,7 +173,8 @@
         "fullSmokeRequestLifecycleDeadlineEnforced": true,
         "responseBodiesConsumedOrCancelled": true,
         "releaseIdentityValueLogged": false,
-        "fullFixedSmokeRunsAfterReadiness": true,
+        "finalExactWholePlanAttemptIsAcceptance": true,
+        "fullFixedSmokeRunsAfterReadiness": false,
         "timeoutTriggersForwardRollback": true
       }
     },
