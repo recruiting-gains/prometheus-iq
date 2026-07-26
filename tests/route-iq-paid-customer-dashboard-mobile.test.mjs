@@ -36,6 +36,10 @@ test("exact 390x844 mobile contract keeps the preview single-column and overflow
 
 test("preview fetch is network-only and never receives an offline cached response", () => {
   assert.equal(governedRuntimeNetworkOnlyPath(routeIqPaidCustomerPreviewPath), true);
+  assert.match(
+    dashboard,
+    /dashboardPlatformModulePath = "\.\/dashboard\/route-iq-dashboard-platform\.mjs\?paid-customer-preview-v1"/u
+  );
   assert.match(serviceWorker, /"\/api\/dashboard\/"/u);
   assert.match(serviceWorker, /fetch\(event\.request, \{ cache: "no-store" \}\)\.catch/u);
   assert.doesNotMatch(serviceWorker, /caches\.match\(event\.request\).*\/api\/dashboard/su);
