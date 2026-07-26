@@ -45,6 +45,9 @@ import {
   runCloudflareUnattendedLauncher
 } from "../scripts/lib/cloudflare-unattended-launcher.mjs";
 import {
+  CLOUDFLARE_UNATTENDED_SMOKE_FAILURE,
+  CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY,
+  CloudflareUnattendedSmokeError,
   runCloudflareUnattendedSmoke
 } from "../scripts/run-cloudflare-unattended-smoke.mjs";
 
@@ -282,6 +285,12 @@ test("default-deny smoke client uses only fixed GET and HEAD requests without pe
   });
   assert.equal(result.status, "passed");
   assert.equal(result.attemptedWriteCount, 0);
+  assert.equal(
+    result.markerPolicy,
+    CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
+  );
+  assert.equal(result.markerVerifiedCount, result.requestCount);
+  assert.equal(result.markerOmittedCount, 0);
   assert.equal(observed.length, result.requestCount);
   for (const { url, options } of observed) {
     assert.equal(new URL(url).origin, CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN);
@@ -297,6 +306,59 @@ test("default-deny smoke client uses only fixed GET and HEAD requests without pe
   const output = JSON.stringify(result);
   assert.equal(output.includes(syntheticId), false);
   assert.equal(output.includes(syntheticSecret), false);
+  assert.equal(output.includes(CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN), false);
+  assert.equal(output.includes("\"path\""), false);
+  assert.equal(output.includes("\"status\":200"), false);
+});
+
+test("bootstrap smoke permits an omitted guard marker but still requires Access, 2xx, and zero writes", async () => {
+  const clientIdName = ["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_");
+  const clientSecretName = ["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_");
+  let calls = 0;
+  const result = await runCloudflareUnattendedSmoke({
+    dryRun: false,
+    markerPolicy: CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.BOOTSTRAP_ALLOW_MISSING,
+    credentials: {
+      [clientIdName]: "synthetic-client-id",
+      [clientSecretName]: "synthetic-client-secret"
+    },
+    async fetchImpl(_url, options) {
+      calls += 1;
+      assert.ok(options.headers["CF-Access-Client-Id"]);
+      assert.ok(options.headers["CF-Access-Client-Secret"]);
+      return new Response(null, { status: 204 });
+    }
+  });
+  assert.equal(result.status, "passed");
+  assert.equal(result.requestCount, calls);
+  assert.equal(result.attemptedWriteCount, 0);
+  assert.equal(result.markerVerifiedCount, 0);
+  assert.equal(result.markerOmittedCount, result.requestCount);
+});
+
+test("postdeployment smoke requires the exact marker and exposes only its fixed failure dimension", async () => {
+  const clientIdName = ["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_");
+  const clientSecretName = ["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_");
+  await assert.rejects(
+    runCloudflareUnattendedSmoke({
+      dryRun: false,
+      markerPolicy: CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT,
+      credentials: {
+        [clientIdName]: "synthetic-client-id",
+        [clientSecretName]: "synthetic-client-secret"
+      },
+      async fetchImpl() {
+        return new Response(null, { status: 200 });
+      }
+    }),
+    error => (
+      error instanceof CloudflareUnattendedSmokeError
+      && error.dimension === CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_MISSING
+      && error.message.includes("http") === false
+      && error.message.includes("/") === false
+      && error.message.includes("200") === false
+    )
+  );
 });
 
 test("smoke redirects are rejected without a follow-up request", async () => {
@@ -316,9 +378,44 @@ test("smoke redirects are rejected without a follow-up request", async () => {
         });
       }
     }),
-    /smoke_guard_verification_failed/u
+    error => (
+      error instanceof CloudflareUnattendedSmokeError
+      && error.dimension === CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.REDIRECT_DENIED
+      && error.message.includes("302") === false
+      && error.message.includes("example.invalid") === false
+    )
   );
   assert.equal(calls, 1);
+});
+
+test("smoke non-2xx and transport failures retain fixed nonsecret dimensions", async () => {
+  const credentials = {
+    [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
+    [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
+  };
+  const cases = [
+    [
+      async () => new Response(null, { status: 503 }),
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.HTTP_STATUS_REJECTED
+    ],
+    [
+      async () => {
+        throw new Error("sensitive transport detail");
+      },
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.NETWORK_FAILED
+    ]
+  ];
+  for (const [fetchImpl, dimension] of cases) {
+    await assert.rejects(
+      runCloudflareUnattendedSmoke({ dryRun: false, credentials, fetchImpl }),
+      error => (
+        error instanceof CloudflareUnattendedSmokeError
+        && error.dimension === dimension
+        && error.message.includes("503") === false
+        && error.message.includes("sensitive") === false
+      )
+    );
+  }
 });
 
 function validControl(overrides = {}) {

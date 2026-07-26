@@ -246,6 +246,8 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}
           CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}
+          PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN: ${{ secrets.PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN }}
+          PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE: ${{ secrets.PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE }}
         run: node scripts/run-github-actions-private-worker-deployment-v2.mjs deploy
 
       - name: Reverify immutable artifact after successful deployment

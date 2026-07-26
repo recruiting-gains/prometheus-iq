@@ -29,9 +29,11 @@ const REQUIRED_PATHS = Object.freeze([
   PRIVATE_WORKFLOW_V2_POLICY.libraryPath,
   PRIVATE_WORKFLOW_V2_POLICY.qualificationRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.deploymentRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.smokeRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.metadataRunnerPath,
   "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
-  "tests/github-actions-private-worker-workflow-v2.test.mjs"
+  "tests/github-actions-private-worker-workflow-v2.test.mjs",
+  PRIVATE_WORKFLOW_V2_POLICY.runtimeGuardTestPath
 ]);
 const QUALIFICATION_INPUTS = Object.freeze([
   "candidate_commit",
@@ -60,7 +62,15 @@ const REQUIRED_SECRET_NAMES = Object.freeze([
   "CLOUDFLARE_API_TOKEN",
   "CLOUDFLARE_ACCOUNT_ID",
   "CLOUDFLARE_ACCESS_CLIENT_ID",
-  "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+  "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+  "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+  "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE"
+]);
+const RUNTIME_GUARD_BINDINGS = Object.freeze([
+  "PROMETHEUS_UNATTENDED_SMOKE_GUARD",
+  "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+  "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE",
+  "PROMETHEUS_UNATTENDED_SMOKE_SERVICE_TOKEN_CLIENT_ID"
 ]);
 
 function read(path) {
@@ -124,6 +134,7 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   const library = read(PRIVATE_WORKFLOW_V2_POLICY.libraryPath);
   const qualificationRunner = read(PRIVATE_WORKFLOW_V2_POLICY.qualificationRunnerPath);
   const deploymentRunner = read(PRIVATE_WORKFLOW_V2_POLICY.deploymentRunnerPath);
+  const smokeRunner = read(PRIVATE_WORKFLOW_V2_POLICY.smokeRunnerPath);
   const metadataRunner = read(PRIVATE_WORKFLOW_V2_POLICY.metadataRunnerPath);
   const deploymentPreflight = section(deployment, "  preflight:\n", "  deploy:\n");
   const deploymentJob = deployment.slice(deployment.indexOf("  deploy:\n"));
@@ -230,6 +241,8 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.equal(contract.qualification.secretAccessAllowed, false);
   assert.equal(contract.qualification.artifactIncludesActualDeployableForwardPayload, true);
   assert.equal(contract.qualification.artifactIncludesForwardCompatibleRollback, true);
+  assert.equal(contract.qualification.runtimeSmokeSourcePinnedInManifest, true);
+  assert.equal(contract.qualification.runtimeGuardRegressionPinnedInManifest, true);
   assert.equal(contract.deployment.rebuildAllowed, false);
   assert.equal(contract.deployment.artifactSubstitutionAllowed, false);
   assert.equal(contract.deployment.wranglerMode, "no-bundle");
@@ -246,9 +259,62 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     PRIVATE_WORKFLOW_V2_FAILURE.REQUIRED_PROTECTED_SECRET_NAMES_MISSING
   );
   assert.equal(contract.protectedEnvironment.missingRequiredNameBlocksBeforeCloudflareRequest, true);
+  assert.equal(
+    contract.configurationPreservation.bindingTransition.everyPreexistingBindingRequired,
+    true
+  );
+  assert.deepEqual(
+    contract.configurationPreservation.bindingTransition.runtimeGuardPlainTextAdditionsAllowed,
+    RUNTIME_GUARD_BINDINGS
+  );
+  assert.equal(
+    contract.configurationPreservation.bindingTransition.unexpectedAdditionsAllowed,
+    false
+  );
+  assert.equal(contract.configurationPreservation.bindingTransition.deletionsAllowed, false);
+  assert.equal(
+    contract.configurationPreservation.bindingTransition.rollbackPreservesTransitionBindings,
+    true
+  );
   assert.equal(contract.smoke.writeMethodsAllowed, false);
   assert.equal(contract.smoke.attemptedApplicationWritesRequired, 0);
+  assert.equal(contract.smoke.successStatusClass, "2xx");
+  assert.equal(contract.smoke.redirectsAllowed, false);
+  assert.equal(
+    contract.smoke.bootstrap.currentPrivateVersionWithoutGuard,
+    PRIVATE_WORKFLOW_V2_POLICY.bootstrapGuardlessPrivateVersion
+  );
+  assert.equal(contract.smoke.bootstrap.oneTimeTransition, true);
+  assert.equal(contract.smoke.bootstrap.accessServiceTokenRequired, true);
+  assert.equal(
+    contract.smoke.bootstrap.guardResponseMarkerMayBeOmittedOnlyForPinnedCurrentVersion,
+    true
+  );
+  assert.equal(contract.smoke.postDeployment.exactGuardResponseMarkerRequired, true);
   assert.equal(contract.smoke.crmSubmissionAllowed, false);
+  assert.equal(contract.runtimeGuardInjection.artifactMutationAllowed, false);
+  assert.equal(contract.runtimeGuardInjection.temporaryDirectoryMode, "0700");
+  assert.equal(contract.runtimeGuardInjection.temporaryConfigMode, "0600");
+  assert.equal(contract.runtimeGuardInjection.cleanupRequiredInFinally, true);
+  assert.equal(
+    contract.runtimeGuardInjection.teamDomainSource,
+    "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN"
+  );
+  assert.equal(
+    contract.runtimeGuardInjection.audienceSource,
+    "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE"
+  );
+  assert.equal(
+    contract.runtimeGuardInjection.serviceTokenClientIdSource,
+    "CLOUDFLARE_ACCESS_CLIENT_ID"
+  );
+  assert.deepEqual(contract.runtimeGuardInjection.plainTextSettings, RUNTIME_GUARD_BINDINGS);
+  assert.equal(contract.failureClassification.fixedNonsecretOnly, true);
+  assert.equal(contract.failureClassification.publicDeploymentPolicyDiagnosticsPreserved, true);
+  assert.equal(contract.failureClassification.smokeFailureDimensionPreserved, true);
+  assert.equal(contract.failureClassification.urlAllowed, false);
+  assert.equal(contract.failureClassification.pathAllowed, false);
+  assert.equal(contract.failureClassification.httpStatusAllowed, false);
   assert.equal(contract.rollback.nativeCloudflareRollbackAllowed, false);
   assert.equal(contract.rollback.rollbackAttemptsAfterCriticalFailure, 1);
   assert.equal(contract.runtimeBoundaries.prospectiveCollection, "OFF");
@@ -262,6 +328,10 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.match(library, /AUTHORIZATION_CONSUMED/u);
   assert.match(library, /PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED/u);
   assert.match(library, /REQUIRED_PROTECTED_SECRET_NAMES_MISSING/u);
+  assert.match(library, /BOOTSTRAP_ALLOW_MISSING/u);
+  assert.match(library, /RUNTIME_GUARD_WORKSPACE_INVALID/u);
+  assert.match(library, /PUBLIC_DEPLOYMENT_POLICY_FAILURE/u);
+  assert.match(library, /SMOKE_FAILURE\|DIMENSION=/u);
   assert.doesNotMatch(library, /console\.(?:log|error|warn)/u);
   assert.match(deploymentRunner, /requirePrivateV2ProtectedSecretNames\(environment\)/u);
   assert.ok(
@@ -269,7 +339,18 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
       < deploymentRunner.indexOf("takeDeploymentCredentials(environment)")
   );
   assert.match(deploymentRunner, /runCloudflareUnattendedSmoke/u);
+  assert.match(deploymentRunner, /createPrivateV2RuntimeWorkspace/u);
+  assert.match(deploymentRunner, /createPrivateV2RuntimeRelease/u);
+  assert.match(deploymentRunner, /verifyPrivateV2RuntimeRelease/u);
+  assert.match(deploymentRunner, /removePrivateV2RuntimeWorkspace\(runtimeWorkspace\)/u);
+  assert.ok(
+    deploymentRunner.indexOf("removePrivateV2RuntimeWorkspace(runtimeWorkspace)")
+      < deploymentRunner.indexOf("scrubDeploymentCredentials(deploymentCredentials)")
+  );
   assert.match(deploymentRunner, /runRollback/u);
+  assert.match(smokeRunner, /BOOTSTRAP_ALLOW_MISSING/u);
+  assert.match(smokeRunner, /GUARD_MARKER_MISSING/u);
+  assert.doesNotMatch(smokeRunner, /smoke_guard_verification_failed:/u);
   assert.match(qualificationRunner, /assertNoProductionSecrets/u);
   assert.match(metadataRunner, /verifyPrivateQualificationArtifactMetadata/u);
 

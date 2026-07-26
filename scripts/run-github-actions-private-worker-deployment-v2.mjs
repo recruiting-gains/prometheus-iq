@@ -15,17 +15,25 @@ import {
   assertQualifiedPrivateConfigCanPreserveBindings,
   buildQualifiedPrivateWranglerInvocation,
   createPrivateDeploymentEvidenceRecorder,
+  createPrivateV2RuntimeRelease,
+  createPrivateV2RuntimeWorkspace,
   createPrivateV2EvidenceDirectory,
   currentPrivateV2RuntimeIdentity,
   formatPrivateWorkflowV2Failure,
+  removePrivateV2RuntimeWorkspace,
   requirePrivateV2ProtectedSecretNames,
   releaseDirectoryFromEnvironment,
   runQualifiedPrivateDeploymentLifecycle,
+  scrubPrivateV2RuntimeGuardSettings,
+  takePrivateV2RuntimeGuardSettings,
   validatePrivateV2DeploymentInputs,
+  verifyPrivateV2RuntimeRelease,
   verifyPrivateV2RepositoryBoundary,
   verifyQualifiedPrivateRelease
 } from "./lib/github-actions-private-worker-workflow-v2.mjs";
 import {
+  CLOUDFLARE_UNATTENDED_SMOKE_FAILURE,
+  CloudflareUnattendedSmokeError,
   runCloudflareUnattendedSmoke
 } from "./run-cloudflare-unattended-smoke.mjs";
 
@@ -44,7 +52,9 @@ function takeSmokeCredentials(environment) {
       || credentials[name].length < 1
       || credentials[name].length > 4096) {
       scrubSmokeCredentials(credentials);
-      throw new Error("smoke_credentials_invalid");
+      throw new CloudflareUnattendedSmokeError(
+        CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.CREDENTIALS_INVALID
+      );
     }
   }
   return credentials;
@@ -64,18 +74,37 @@ export async function runPrivateWorkerDeploymentV2Command({
   const inputs = validatePrivateV2DeploymentInputs(environment);
   const releaseDirectory = releaseDirectoryFromEnvironment(environment);
   const runtimeIdentity = currentPrivateV2RuntimeIdentity(root, environment);
-  const verifyRelease = () => verifyQualifiedPrivateRelease(
+  const verifyImmutableRelease = () => verifyQualifiedPrivateRelease(
     root,
     releaseDirectory,
     inputs,
     runtimeIdentity
   );
-  verifyRelease();
+  const verifiedArtifact = verifyImmutableRelease();
   requirePrivateV2ProtectedSecretNames(environment);
 
-  const deploymentCredentials = takeDeploymentCredentials(environment);
-  const smokeCredentials = takeSmokeCredentials(environment);
+  let deploymentCredentials;
+  let smokeCredentials;
+  let runtimeGuardSettings;
+  let runtimeWorkspace;
   try {
+    deploymentCredentials = takeDeploymentCredentials(environment);
+    smokeCredentials = takeSmokeCredentials(environment);
+    runtimeGuardSettings = takePrivateV2RuntimeGuardSettings(
+      environment,
+      smokeCredentials.CLOUDFLARE_ACCESS_CLIENT_ID
+    );
+    runtimeWorkspace = createPrivateV2RuntimeWorkspace(environment.RUNNER_TEMP);
+    const runtimeRelease = createPrivateV2RuntimeRelease({
+      workspace: runtimeWorkspace,
+      verifiedRelease: verifiedArtifact,
+      settings: runtimeGuardSettings
+    });
+    const verifyRelease = () => {
+      verifyImmutableRelease();
+      verifyPrivateV2RuntimeRelease(runtimeRelease, runtimeGuardSettings);
+      return runtimeRelease;
+    };
     const result = await runQualifiedPrivateDeploymentLifecycle({
       inputs,
       verifyRelease,
@@ -90,10 +119,11 @@ export async function runPrivateWorkerDeploymentV2Command({
         fetchImpl
       ),
       verifyInitialBindings: assertQualifiedPrivateConfigCanPreserveBindings,
-      runPreSmoke: () => runCloudflareUnattendedSmoke({
+      runPreSmoke: ({ markerPolicy }) => runCloudflareUnattendedSmoke({
         fetchImpl,
         credentials: smokeCredentials,
-        dryRun: false
+        dryRun: false,
+        markerPolicy
       }),
       runDryRun: release => runBoundedPublicWrangler({
         root,
@@ -118,10 +148,11 @@ export async function runPrivateWorkerDeploymentV2Command({
           release
         )
       }),
-      runPostSmoke: () => runCloudflareUnattendedSmoke({
+      runPostSmoke: ({ markerPolicy }) => runCloudflareUnattendedSmoke({
         fetchImpl,
         credentials: smokeCredentials,
-        dryRun: false
+        dryRun: false,
+        markerPolicy
       }),
       runRollback: release => runBoundedPublicWrangler({
         root,
@@ -141,6 +172,8 @@ export async function runPrivateWorkerDeploymentV2Command({
     verifyRelease();
     return result;
   } finally {
+    removePrivateV2RuntimeWorkspace(runtimeWorkspace);
+    scrubPrivateV2RuntimeGuardSettings(runtimeGuardSettings);
     scrubSmokeCredentials(smokeCredentials);
     scrubDeploymentCredentials(deploymentCredentials);
   }
@@ -155,7 +188,10 @@ if (isMain) {
       throw new Error("private_deployment_v2_arguments_invalid");
     }
     const result = await runPrivateWorkerDeploymentV2Command({ mode });
-    process.stdout.write(`${result.status}\n`);
+    const classification = result.failureClassification
+      ? `${result.status}|CAUSE=${result.failureClassification}`
+      : result.status;
+    process.stdout.write(`${classification}\n`);
     if (result.status === "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED") {
       process.exitCode = 1;
     }

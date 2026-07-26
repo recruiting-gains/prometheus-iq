@@ -1,10 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  chmodSync,
+  existsSync,
+  lstatSync,
   mkdtempSync,
+  mkdirSync,
   readFileSync,
   renameSync,
-  rmSync
+  rmSync,
+  symlinkSync,
+  writeFileSync
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -12,21 +18,39 @@ import { join, resolve } from "node:path";
 import {
   PRIVATE_WORKFLOW_V2_FAILURE,
   PRIVATE_WORKFLOW_V2_POLICY,
+  PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS,
   PrivateWorkflowV2Error,
+  assertPrivateBindingsPreserved,
   assertQualifiedPrivateConfigCanPreserveBindings,
   buildQualifiedPrivateRelease,
   buildQualifiedPrivateWranglerInvocation,
   createPrivateDeploymentEvidenceRecorder,
+  createPrivateV2RuntimeRelease,
+  createPrivateV2RuntimeWorkspace,
   formatPrivateWorkflowV2Failure,
   privateWorkflowV2SecretEnvironmentNames,
+  privateV2PredeploymentSmokeMarkerPolicy,
   qualifiedPrivateConfigForArtifact,
+  removePrivateV2RuntimeWorkspace,
   requirePrivateV2ProtectedSecretNames,
   runQualifiedPrivateDeploymentLifecycle,
+  scrubPrivateV2RuntimeGuardSettings,
+  takePrivateV2RuntimeGuardSettings,
   validatePrivateV2DeploymentInputs,
   validatePrivateV2QualificationInputs,
   verifyPrivateQualificationArtifactMetadata,
+  verifyPrivateV2RuntimeRelease,
   verifyQualifiedPrivateRelease
 } from "../scripts/lib/github-actions-private-worker-workflow-v2.mjs";
+import {
+  PUBLIC_DEPLOYMENT_FAILURE,
+  PublicDeploymentPolicyError
+} from "../scripts/lib/github-actions-public-worker-deployment.mjs";
+import {
+  CLOUDFLARE_UNATTENDED_SMOKE_FAILURE,
+  CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY,
+  CloudflareUnattendedSmokeError
+} from "../scripts/run-cloudflare-unattended-smoke.mjs";
 import { verifyGithubActionsPrivateWorkerWorkflowV2 } from "../scripts/verify-github-actions-private-worker-workflow-v2.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -163,29 +187,59 @@ function workerState(versionId, deploymentId, bindings = requiredBindings) {
   });
 }
 
-function passingSmoke() {
+function runtimeGuardSettings() {
+  return {
+    teamDomain: "https://synthetic-private-smoke.cloudflareaccess.com",
+    audience: "synthetic-private-smoke-audience",
+    serviceTokenClientId: `${"a".repeat(32)}.access`
+  };
+}
+
+function passingSmoke(
+  markerPolicy = CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT,
+  { markerOmitted = false } = {}
+) {
+  const requestCount = 3;
   return Object.freeze({
     status: "passed",
     attemptedWriteCount: 0,
-    requestCount: 3
+    requestCount,
+    markerPolicy,
+    markerVerifiedCount: markerOmitted ? 0 : requestCount,
+    markerOmittedCount: markerOmitted ? requestCount : 0
   });
 }
 
-function lifecycleFixture({ postSmoke = passingSmoke(), deployUncertain = false } = {}) {
+function lifecycleFixture({
+  postSmoke = passingSmoke(),
+  postSmokeError,
+  deployUncertain = false
+} = {}) {
+  const runtimeBindings = Object.freeze([
+    ...requiredBindings,
+    ...PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS.map(name => `${name}:plain_text`)
+  ].sort());
   const initialPrivate = workerState(privateVersion, "private-deployment-1");
   const initialPublic = workerState(publicVersion, "public-deployment-1", ["PUBLIC:plain_text"]);
   const deployedPrivate = workerState(
     "11111111-1111-4111-8111-111111111111",
-    "private-deployment-2"
+    "private-deployment-2",
+    runtimeBindings
   );
   const rolledBackPrivate = workerState(
     "22222222-2222-4222-8222-222222222222",
-    "private-deployment-3"
+    "private-deployment-3",
+    runtimeBindings
   );
-  const rollbackExpected = deployUncertain
+  const rollbackExpected = Boolean(postSmokeError)
+    || deployUncertain
     || postSmoke.status !== "passed"
     || postSmoke.attemptedWriteCount !== 0
-    || postSmoke.requestCount <= 0;
+    || postSmoke.requestCount <= 0
+    || postSmoke.markerPolicy
+      !== CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
+    || postSmoke.markerVerifiedCount !== postSmoke.requestCount
+    || postSmoke.markerOmittedCount !== 0;
   const privateStates = [
     initialPrivate,
     initialPrivate,
@@ -224,10 +278,21 @@ function lifecycleFixture({ postSmoke = passingSmoke(), deployUncertain = false 
         ? privateStates.shift()
         : publicStates.shift()
     ),
-    verifyInitialBindings: (_release, bindings) => assert.deepEqual(bindings, requiredBindings),
-    runPreSmoke: async () => {
+    verifyInitialBindings: (_release, bindings) => {
+      assert.deepEqual(bindings, requiredBindings);
+      return Object.freeze({
+        initialBindings: requiredBindings,
+        forwardExpectedBindings: runtimeBindings,
+        rollbackExpectedBindings: runtimeBindings
+      });
+    },
+    runPreSmoke: async ({ markerPolicy }) => {
       calls.preSmoke += 1;
-      return passingSmoke();
+      assert.equal(
+        markerPolicy,
+        CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.BOOTSTRAP_ALLOW_MISSING
+      );
+      return passingSmoke(markerPolicy, { markerOmitted: true });
     },
     runDryRun: async () => {
       calls.dryRun += 1;
@@ -237,8 +302,10 @@ function lifecycleFixture({ postSmoke = passingSmoke(), deployUncertain = false 
       consume();
       if (deployUncertain) throw new Error("synthetic_uncertain_deploy");
     },
-    runPostSmoke: async () => {
+    runPostSmoke: async ({ markerPolicy }) => {
       calls.postSmoke += 1;
+      assert.equal(markerPolicy, CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT);
+      if (postSmokeError) throw postSmokeError;
       return postSmoke;
     },
     runRollback: async () => {
@@ -298,11 +365,11 @@ test("deployment input validation pins every artifact identity without requiring
   }
 });
 
-test("all four protected names are required before any production request", () => {
+test("all six protected names are required before any production request", () => {
   const complete = Object.fromEntries(
     privateWorkflowV2SecretEnvironmentNames.map(name => [name, "fixture"])
   );
-  assert.equal(Object.keys(complete).length, 4);
+  assert.equal(Object.keys(complete).length, 6);
   assert.equal(
     requirePrivateV2ProtectedSecretNames({ ...complete }).status,
     "PRIVATE_WORKER_V2_REQUIRED_PROTECTED_SECRET_NAMES_PRESENT"
@@ -320,6 +387,85 @@ test("all four protected names are required before any production request", () =
       )
     );
   }
+});
+
+test("runtime guard settings are consumed, strictly validated, scrubbed, and never returned", () => {
+  const [teamDomainName, audienceName] = privateWorkflowV2SecretEnvironmentNames.slice(-2);
+  const environment = {
+    [teamDomainName]: "https://synthetic-private-smoke.cloudflareaccess.com",
+    [audienceName]: "synthetic-private-smoke-audience"
+  };
+  const settings = takePrivateV2RuntimeGuardSettings(
+    environment,
+    `${"a".repeat(32)}.access`
+  );
+  assert.equal(Object.hasOwn(environment, teamDomainName), false);
+  assert.equal(Object.hasOwn(environment, audienceName), false);
+  assert.equal(settings.teamDomain, "https://synthetic-private-smoke.cloudflareaccess.com");
+  scrubPrivateV2RuntimeGuardSettings(settings);
+  assert.deepEqual(settings, {
+    teamDomain: "",
+    audience: "",
+    serviceTokenClientId: ""
+  });
+
+  for (const [teamDomain, audience, clientId] of [
+    ["http://synthetic-private-smoke.cloudflareaccess.com", "valid-audience", `${"a".repeat(32)}.access`],
+    ["https://synthetic-private-smoke.cloudflareaccess.com/", "valid-audience", `${"a".repeat(32)}.access`],
+    ["https://synthetic-private-smoke.cloudflareaccess.com", "contains whitespace", `${"a".repeat(32)}.access`],
+    ["https://synthetic-private-smoke.cloudflareaccess.com", "valid-audience", "invalid-client"]
+  ]) {
+    assert.throws(
+      () => takePrivateV2RuntimeGuardSettings({
+        [teamDomainName]: teamDomain,
+        [audienceName]: audience
+      }, clientId),
+      error => (
+        error instanceof PrivateWorkflowV2Error
+        && error.code === PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_CONFIGURATION_INVALID
+      )
+    );
+  }
+});
+
+test("runtime workspace rejects symlink parents and insecure modes", () => {
+  const temporary = mkdtempSync(join(tmpdir(), "prometheus-private-v2-runtime-boundary-"));
+  let workspace;
+  try {
+    const symlink = join(temporary, "linked-base");
+    symlinkSync(temporary, symlink);
+    assert.throws(
+      () => createPrivateV2RuntimeWorkspace(symlink),
+      error => (
+        error instanceof PrivateWorkflowV2Error
+        && error.code === PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID
+      )
+    );
+    workspace = createPrivateV2RuntimeWorkspace(temporary);
+    chmodSync(workspace, 0o755);
+    assert.throws(
+      () => createPrivateV2RuntimeRelease({
+        workspace,
+        verifiedRelease: {},
+        settings: runtimeGuardSettings()
+      }),
+      PrivateWorkflowV2Error
+    );
+  } finally {
+    removePrivateV2RuntimeWorkspace(workspace);
+    rmSync(temporary, { recursive: true, force: true });
+  }
+});
+
+test("only the pinned guardless baseline may use bootstrap marker omission", () => {
+  assert.equal(
+    privateV2PredeploymentSmokeMarkerPolicy(privateVersion),
+    CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.BOOTSTRAP_ALLOW_MISSING
+  );
+  assert.equal(
+    privateV2PredeploymentSmokeMarkerPolicy("11111111-1111-4111-8111-111111111111"),
+    CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
+  );
 });
 
 test("forward and rollback qualified configurations retain their distinct request boundaries", () => {
@@ -350,9 +496,83 @@ test("forward and rollback qualified configurations retain their distinct reques
   );
 });
 
+test("binding transition permits only qualified additions plus guard settings", () => {
+  const temporary = mkdtempSync(join(tmpdir(), "prometheus-private-v2-bindings-"));
+  const forwardDirectory = join(temporary, "forward");
+  const rollbackDirectory = join(temporary, "rollback");
+  mkdirSync(forwardDirectory, { mode: 0o700 });
+  mkdirSync(rollbackDirectory, { mode: 0o700 });
+  const guardVars = Object.fromEntries(
+    PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS.map(name => [name, "synthetic"])
+  );
+  const config = {
+    assets: { binding: "ASSETS" },
+    vars: { QUALIFIED_ADDITION: "ON", ...guardVars },
+    kv_namespaces: [{ binding: "EXISTING_STORE" }],
+    durable_objects: { bindings: [{ name: "QUALIFIED_COORDINATOR" }] }
+  };
+  const configName = PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile;
+  try {
+    writeFileSync(join(forwardDirectory, configName), JSON.stringify(config), { mode: 0o600 });
+    writeFileSync(join(rollbackDirectory, configName), JSON.stringify(config), { mode: 0o600 });
+    const initial = [
+      "ASSETS:assets",
+      "EXISTING_STORE:kv_namespace",
+      "LEGACY_RUNTIME_VALUE:plain_text",
+      "PROTECTED_AUTHORITY:secret_text"
+    ].sort();
+    const plan = assertQualifiedPrivateConfigCanPreserveBindings({
+      forwardDirectory,
+      rollbackDirectory
+    }, initial);
+    for (const expected of [
+      "QUALIFIED_ADDITION:plain_text",
+      "QUALIFIED_COORDINATOR:durable_object_namespace",
+      ...PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS.map(name => `${name}:plain_text`)
+    ]) {
+      assert.ok(plan.forwardExpectedBindings.includes(expected));
+      assert.ok(plan.rollbackExpectedBindings.includes(expected));
+    }
+    assertPrivateBindingsPreserved(
+      plan.forwardExpectedBindings,
+      [...plan.forwardExpectedBindings].reverse()
+    );
+    assert.throws(
+      () => assertPrivateBindingsPreserved(
+        plan.forwardExpectedBindings,
+        [...plan.forwardExpectedBindings, "UNEXPECTED:plain_text"]
+      ),
+      PrivateWorkflowV2Error
+    );
+    assert.throws(
+      () => assertPrivateBindingsPreserved(
+        plan.forwardExpectedBindings,
+        plan.forwardExpectedBindings.slice(1)
+      ),
+      PrivateWorkflowV2Error
+    );
+
+    writeFileSync(
+      join(rollbackDirectory, configName),
+      JSON.stringify({ ...config, kv_namespaces: [] }),
+      { mode: 0o600 }
+    );
+    assert.throws(
+      () => assertQualifiedPrivateConfigCanPreserveBindings({
+        forwardDirectory,
+        rollbackDirectory
+      }, initial),
+      PrivateWorkflowV2Error
+    );
+  } finally {
+    rmSync(temporary, { recursive: true, force: true });
+  }
+});
+
 test("qualified artifact contains actual no-bundle forward payload and rollback and detects tampering", () => {
   const temporary = mkdtempSync(join(tmpdir(), "prometheus-private-v2-artifact-test-"));
   const release = join(temporary, "release");
+  let runtimeWorkspace;
   try {
     const result = buildQualifiedPrivateRelease(root, {
       outputDirectory: release,
@@ -369,6 +589,18 @@ test("qualified artifact contains actual no-bundle forward payload and rollback 
       result.rollbackBundleSha256,
       PRIVATE_WORKFLOW_V2_POLICY.continuityBaseline.rollbackBundleSha256
     );
+    const manifest = JSON.parse(readFileSync(
+      join(release, PRIVATE_WORKFLOW_V2_POLICY.manifestFile),
+      "utf8"
+    ));
+    assert.ok(Object.hasOwn(
+      manifest.identities.governedSourceSha256,
+      PRIVATE_WORKFLOW_V2_POLICY.smokeRunnerPath
+    ));
+    assert.ok(Object.hasOwn(
+      manifest.identities.governedSourceSha256,
+      PRIVATE_WORKFLOW_V2_POLICY.runtimeGuardTestPath
+    ));
     const verified = verifyQualifiedPrivateRelease(
       root,
       release,
@@ -376,7 +608,6 @@ test("qualified artifact contains actual no-bundle forward payload and rollback 
       runtimeIdentity,
       { verifyRepositoryBoundary: false }
     );
-    assertQualifiedPrivateConfigCanPreserveBindings(verified, requiredBindings);
     assert.equal(
       readFileSync(join(
         verified.forwardDirectory,
@@ -384,6 +615,74 @@ test("qualified artifact contains actual no-bundle forward payload and rollback 
       ), "utf8").includes("\"main\":\"./worker/prometheus-iq-worker.js\""),
       true
     );
+    const sourceConfigPath = join(
+      verified.forwardDirectory,
+      PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile
+    );
+    const sourceConfigBefore = readFileSync(sourceConfigPath, "utf8");
+    const settings = runtimeGuardSettings();
+    runtimeWorkspace = createPrivateV2RuntimeWorkspace(temporary);
+    const runtimeRelease = createPrivateV2RuntimeRelease({
+      workspace: runtimeWorkspace,
+      verifiedRelease: verified,
+      settings
+    });
+    assert.equal(
+      verifyPrivateV2RuntimeRelease(runtimeRelease, settings).status,
+      "PRIVATE_WORKER_V2_RUNTIME_GUARD_CONFIG_VERIFIED"
+    );
+    const bindingTransition = assertQualifiedPrivateConfigCanPreserveBindings(
+      runtimeRelease,
+      requiredBindings
+    );
+    for (const name of PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS) {
+      assert.ok(bindingTransition.forwardExpectedBindings.includes(`${name}:plain_text`));
+      assert.ok(bindingTransition.rollbackExpectedBindings.includes(`${name}:plain_text`));
+    }
+    const runtimeConfigPath = join(
+      runtimeRelease.forwardDirectory,
+      PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile
+    );
+    assert.equal(lstatSync(runtimeWorkspace).mode & 0o077, 0);
+    assert.equal(lstatSync(runtimeConfigPath).mode & 0o777, 0o600);
+    assert.equal(JSON.stringify(runtimeRelease).includes(settings.teamDomain), false);
+    assert.equal(JSON.stringify(runtimeRelease).includes(settings.audience), false);
+    assert.equal(JSON.stringify(runtimeRelease).includes(settings.serviceTokenClientId), false);
+    assert.equal(readFileSync(sourceConfigPath, "utf8"), sourceConfigBefore);
+    assert.equal(sourceConfigBefore.includes(settings.teamDomain), false);
+    assert.throws(
+      () => createPrivateV2RuntimeRelease({
+        workspace: runtimeWorkspace,
+        verifiedRelease: verified,
+        settings
+      }),
+      PrivateWorkflowV2Error
+    );
+    chmodSync(runtimeConfigPath, 0o644);
+    assert.throws(
+      () => verifyPrivateV2RuntimeRelease(runtimeRelease, settings),
+      error => (
+        error instanceof PrivateWorkflowV2Error
+        && error.code === PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID
+      )
+    );
+    chmodSync(runtimeConfigPath, 0o600);
+    const runtimeConfigBackup = join(runtimeWorkspace, "forward-config-backup");
+    renameSync(runtimeConfigPath, runtimeConfigBackup);
+    symlinkSync(sourceConfigPath, runtimeConfigPath);
+    assert.throws(
+      () => verifyPrivateV2RuntimeRelease(runtimeRelease, settings),
+      PrivateWorkflowV2Error
+    );
+    rmSync(runtimeConfigPath);
+    renameSync(runtimeConfigBackup, runtimeConfigPath);
+    assert.equal(
+      verifyPrivateV2RuntimeRelease(runtimeRelease, settings).status,
+      "PRIVATE_WORKER_V2_RUNTIME_GUARD_CONFIG_VERIFIED"
+    );
+    removePrivateV2RuntimeWorkspace(runtimeWorkspace);
+    assert.equal(existsSync(runtimeWorkspace), false);
+    runtimeWorkspace = undefined;
     const worker = join(
       verified.forwardDirectory,
       "worker",
@@ -413,6 +712,7 @@ test("qualified artifact contains actual no-bundle forward payload and rollback 
       "PRIVATE_WORKER_V2_QUALIFIED_ARTIFACT_VERIFIED"
     );
   } finally {
+    removePrivateV2RuntimeWorkspace(runtimeWorkspace);
     rmSync(temporary, { recursive: true, force: true });
   }
 });
@@ -502,6 +802,44 @@ test("GitHub artifact metadata is exact, GET-only, redirect-denying, and token-s
   }
 });
 
+test("failure output preserves only fixed public and smoke classifications", () => {
+  const publicFailure = formatPrivateWorkflowV2Failure(new PublicDeploymentPolicyError(
+    PUBLIC_DEPLOYMENT_FAILURE.HTTP_FAILED,
+    [
+      "CLOUDFLARE_READ_PHASE=PRIVATE_DEPLOYMENTS",
+      "HTTP_STATUS=403",
+      "URL=https://sensitive.invalid/private"
+    ]
+  ));
+  assert.equal(
+    publicFailure,
+    "PUBLIC_DEPLOYMENT_POLICY_FAILURE|CODE=HTTP_FAILED|PHASE=PRIVATE_DEPLOYMENTS|REASON=UNSPECIFIED"
+  );
+  assert.equal(publicFailure.includes("403"), false);
+  assert.equal(publicFailure.includes("sensitive"), false);
+
+  assert.equal(
+    formatPrivateWorkflowV2Failure(new PublicDeploymentPolicyError(
+      PUBLIC_DEPLOYMENT_FAILURE.DEPLOY_FAILED,
+      [
+        "WRANGLER_PHASE=DEPLOY",
+        "WRANGLER_FAILURE_REASON=AUTHORIZATION_DENIED",
+        "HTTP_STATUS=403"
+      ]
+    )),
+    "PUBLIC_DEPLOYMENT_POLICY_FAILURE|CODE=DEPLOY_FAILED|PHASE=DEPLOY|REASON=AUTHORIZATION_DENIED"
+  );
+
+  const smokeFailure = formatPrivateWorkflowV2Failure(
+    new CloudflareUnattendedSmokeError(
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_MISSING
+    )
+  );
+  assert.equal(smokeFailure, "SMOKE_FAILURE|DIMENSION=GUARD_MARKER_MISSING");
+  assert.equal(smokeFailure.includes("http"), false);
+  assert.equal(smokeFailure.includes("/"), false);
+});
+
 test("successful lifecycle performs one private deployment and zero rollback attempts", async () => {
   const { result, calls } = lifecycleFixture();
   assert.equal((await result).status, "PRIVATE_WORKER_V2_DEPLOYMENT_VERIFIED");
@@ -522,6 +860,19 @@ test("a critical post-deployment write attempt triggers one forward rollback", a
     })
   });
   assert.equal((await result).status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
+  assert.equal(calls.deploy, 1);
+  assert.equal(calls.rollback, 1);
+});
+
+test("a postdeployment guard-marker failure preserves its dimension through one rollback", async () => {
+  const { result, calls } = lifecycleFixture({
+    postSmokeError: new CloudflareUnattendedSmokeError(
+      CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_MARKER_MISSING
+    )
+  });
+  const completed = await result;
+  assert.equal(completed.status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
+  assert.equal(completed.failureClassification, "SMOKE_FAILURE|DIMENSION=GUARD_MARKER_MISSING");
   assert.equal(calls.deploy, 1);
   assert.equal(calls.rollback, 1);
 });

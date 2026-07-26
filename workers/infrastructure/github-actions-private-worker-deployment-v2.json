@@ -35,6 +35,8 @@
     "secretAccessAllowed": false,
     "artifactIncludesActualDeployableForwardPayload": true,
     "artifactIncludesForwardCompatibleRollback": true,
+    "runtimeSmokeSourcePinnedInManifest": true,
+    "runtimeGuardRegressionPinnedInManifest": true,
     "artifactRetentionDays": 30
   },
   "deployment": {
@@ -82,7 +84,9 @@
       "CLOUDFLARE_API_TOKEN",
       "CLOUDFLARE_ACCOUNT_ID",
       "CLOUDFLARE_ACCESS_CLIENT_ID",
-      "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+      "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE"
     ],
     "valuesInSourceAllowed": false,
     "valuesInLogsAllowed": false,
@@ -107,6 +111,20 @@
     "durableObjectMigrationHistoryPreserved": true,
     "routesPreserved": true,
     "publicWorkerPreserved": true,
+    "bindingTransition": {
+      "everyPreexistingBindingRequired": true,
+      "qualifiedConfiguredAdditionsAllowed": true,
+      "runtimeGuardPlainTextAdditionsAllowed": [
+        "PROMETHEUS_UNATTENDED_SMOKE_GUARD",
+        "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+        "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE",
+        "PROMETHEUS_UNATTENDED_SMOKE_SERVICE_TOKEN_CLIENT_ID"
+      ],
+      "unexpectedAdditionsAllowed": false,
+      "deletionsAllowed": false,
+      "typeChangesAllowed": false,
+      "rollbackPreservesTransitionBindings": true
+    },
     "secretCreateUpdateDeleteAllowed": false,
     "nativeCloudflareRollbackAllowed": false
   },
@@ -120,8 +138,55 @@
     "serviceWorkerWritesAllowed": false,
     "formSubmissionAllowed": false,
     "attemptedApplicationWritesRequired": 0,
+    "successStatusClass": "2xx",
+    "redirectsAllowed": false,
+    "fixedAllowlistContract": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+    "bootstrap": {
+      "oneTimeTransition": true,
+      "currentPrivateVersionWithoutGuard": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+      "accessServiceTokenRequired": true,
+      "guardRequestMarkerSent": true,
+      "guardResponseMarkerMayBeOmittedOnlyForPinnedCurrentVersion": true,
+      "unexpectedGuardResponseMarkerAllowed": false
+    },
+    "postDeployment": {
+      "exactGuardResponseMarkerRequired": true
+    },
     "crmSubmissionAllowed": false,
     "notificationAllowed": false
+  },
+  "runtimeGuardInjection": {
+    "artifactMutationAllowed": false,
+    "applicationWorkerMutationAllowed": false,
+    "applicationAssetsMutationAllowed": false,
+    "commandLineValueInjectionAllowed": false,
+    "sourceValueStorageAllowed": false,
+    "logValueOutputAllowed": false,
+    "artifactValueOutputAllowed": false,
+    "temporaryDirectoryMode": "0700",
+    "temporaryConfigMode": "0600",
+    "exclusiveCreateRequired": true,
+    "symlinksAllowed": false,
+    "cleanupRequiredInFinally": true,
+    "enabledValue": "ON",
+    "teamDomainSource": "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+    "audienceSource": "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE",
+    "serviceTokenClientIdSource": "CLOUDFLARE_ACCESS_CLIENT_ID",
+    "plainTextSettings": [
+      "PROMETHEUS_UNATTENDED_SMOKE_GUARD",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE",
+      "PROMETHEUS_UNATTENDED_SMOKE_SERVICE_TOKEN_CLIENT_ID"
+    ]
+  },
+  "failureClassification": {
+    "fixedNonsecretOnly": true,
+    "publicDeploymentPolicyDiagnosticsPreserved": true,
+    "smokeFailureDimensionPreserved": true,
+    "urlAllowed": false,
+    "pathAllowed": false,
+    "httpStatusAllowed": false,
+    "credentialValueAllowed": false
   },
   "rollback": {
     "strategy": "verified_new_forward_deployment",

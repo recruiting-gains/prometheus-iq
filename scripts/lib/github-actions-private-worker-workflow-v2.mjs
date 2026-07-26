@@ -24,6 +24,18 @@ import {
   verifyWranglerPin
 } from "./github-actions-private-worker-deployment.mjs";
 import {
+  PUBLIC_CLOUDFLARE_READ_PHASE,
+  PUBLIC_DEPLOYMENT_FAILURE,
+  PUBLIC_WRANGLER_FAILURE_REASON,
+  PUBLIC_WRANGLER_PHASE,
+  PublicDeploymentPolicyError
+} from "./github-actions-public-worker-deployment.mjs";
+import {
+  CLOUDFLARE_UNATTENDED_SMOKE_FAILURE,
+  CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY,
+  CloudflareUnattendedSmokeError
+} from "../run-cloudflare-unattended-smoke.mjs";
+import {
   canonicalizeGeneratedSourceMap,
   canonicalizeGeneratedWorkerSource
 } from "./route-iq-public-forward-rollback.mjs";
@@ -34,6 +46,9 @@ import {
 import {
   inspectRouteIqPrivateDashboardDeployAssets
 } from "../sync-route-iq-private-dashboard-deploy-assets.mjs";
+import {
+  CLOUDFLARE_UNATTENDED_SMOKE_ENV
+} from "../../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 
 export const PRIVATE_WORKFLOW_V2_POLICY = Object.freeze({
   contractVersion: "github-actions-private-worker-deployment-v2",
@@ -48,10 +63,12 @@ export const PRIVATE_WORKFLOW_V2_POLICY = Object.freeze({
     "PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-private-worker-v2.yml@refs/heads/main",
   qualificationRunnerPath: "scripts/run-github-actions-private-worker-qualification-v2.mjs",
   deploymentRunnerPath: "scripts/run-github-actions-private-worker-deployment-v2.mjs",
+  smokeRunnerPath: "scripts/run-cloudflare-unattended-smoke.mjs",
   metadataRunnerPath: "scripts/run-github-actions-private-worker-artifact-metadata-v2.mjs",
   libraryPath: "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
   verifierPath: "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
   testPath: "tests/github-actions-private-worker-workflow-v2.test.mjs",
+  runtimeGuardTestPath: "tests/cloudflare-unattended-runtime-guard.test.mjs",
   repository: PRIVATE_WORKER_DEPLOYMENT_POLICY.repository,
   branch: PRIVATE_WORKER_DEPLOYMENT_POLICY.branch,
   ref: PRIVATE_WORKER_DEPLOYMENT_POLICY.ref,
@@ -82,6 +99,7 @@ export const PRIVATE_WORKFLOW_V2_POLICY = Object.freeze({
   githubApiOrigin: "https://api.github.com",
   githubResponseByteLimit: 65_536,
   githubRequestTimeoutMs: 10_000,
+  bootstrapGuardlessPrivateVersion: "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
   continuityBaseline: Object.freeze({
     candidateCommit: "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
     candidateTree: "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
@@ -110,6 +128,8 @@ export const PRIVATE_WORKFLOW_V2_FAILURE = Object.freeze({
   PUBLIC_WORKER_CHANGED: "PUBLIC_WORKER_CHANGED",
   PRIVATE_WORKER_UNCHANGED: "PRIVATE_WORKER_UNCHANGED",
   SMOKE_INVALID: "SMOKE_INVALID",
+  RUNTIME_GUARD_CONFIGURATION_INVALID: "RUNTIME_GUARD_CONFIGURATION_INVALID",
+  RUNTIME_GUARD_WORKSPACE_INVALID: "RUNTIME_GUARD_WORKSPACE_INVALID",
   ROLLBACK_BOUNDARY_INVALID: "ROLLBACK_BOUNDARY_INVALID",
   EVIDENCE_INVALID: "EVIDENCE_INVALID",
   REQUIRED_PROTECTED_SECRET_NAMES_MISSING: "REQUIRED_PROTECTED_SECRET_NAMES_MISSING"
@@ -166,18 +186,36 @@ const SECRET_ENVIRONMENT_NAMES = Object.freeze([
   "CLOUDFLARE_API_TOKEN",
   "CLOUDFLARE_ACCOUNT_ID",
   "CLOUDFLARE_ACCESS_CLIENT_ID",
-  "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+  "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+  "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+  "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE"
 ]);
+const RUNTIME_GUARD_PROTECTED_ENVIRONMENT_NAMES = Object.freeze([
+  "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+  "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE"
+]);
+export const PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS = Object.freeze([
+  CLOUDFLARE_UNATTENDED_SMOKE_ENV.enabled,
+  CLOUDFLARE_UNATTENDED_SMOKE_ENV.teamDomain,
+  CLOUDFLARE_UNATTENDED_SMOKE_ENV.audience,
+  CLOUDFLARE_UNATTENDED_SMOKE_ENV.serviceTokenClientId
+]);
+const PUBLIC_FAILURE_CODES = new Set(Object.values(PUBLIC_DEPLOYMENT_FAILURE));
+const PUBLIC_READ_PHASES = new Set(Object.values(PUBLIC_CLOUDFLARE_READ_PHASE));
+const PUBLIC_WRANGLER_PHASES = new Set(Object.values(PUBLIC_WRANGLER_PHASE));
+const PUBLIC_WRANGLER_REASONS = new Set(Object.values(PUBLIC_WRANGLER_FAILURE_REASON));
 const GOVERNED_SOURCE_PATHS = Object.freeze([
   PRIVATE_WORKFLOW_V2_POLICY.contractPath,
   PRIVATE_WORKFLOW_V2_POLICY.qualificationWorkflowPath,
   PRIVATE_WORKFLOW_V2_POLICY.deploymentWorkflowPath,
   PRIVATE_WORKFLOW_V2_POLICY.qualificationRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.deploymentRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.smokeRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.metadataRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.libraryPath,
   PRIVATE_WORKFLOW_V2_POLICY.verifierPath,
-  PRIVATE_WORKFLOW_V2_POLICY.testPath
+  PRIVATE_WORKFLOW_V2_POLICY.testPath,
+  PRIVATE_WORKFLOW_V2_POLICY.runtimeGuardTestPath
 ]);
 
 export class PrivateWorkflowV2Error extends Error {
@@ -453,6 +491,334 @@ export function requirePrivateV2ProtectedSecretNames(environment) {
   return Object.freeze({
     status: "PRIVATE_WORKER_V2_REQUIRED_PROTECTED_SECRET_NAMES_PRESENT"
   });
+}
+
+function boundedRuntimeGuardValue(value, pattern) {
+  return typeof value === "string"
+    && value.length > 0
+    && value.length <= 512
+    && value.trim() === value
+    && pattern.test(value);
+}
+
+function normalizeRuntimeGuardTeamDomain(value) {
+  if (!boundedRuntimeGuardValue(value, /^[\u0021-\u007e]+$/u)) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_CONFIGURATION_INVALID);
+  }
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:"
+      || !/^[a-z0-9-]+\.cloudflareaccess\.com$/u.test(url.hostname)
+      || url.origin !== value
+      || url.pathname !== "/"
+      || url.search
+      || url.hash
+      || url.username
+      || url.password
+      || url.port) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_CONFIGURATION_INVALID);
+    }
+    return url.origin;
+  } catch (error) {
+    if (error instanceof PrivateWorkflowV2Error) throw error;
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_CONFIGURATION_INVALID);
+  }
+}
+
+export function takePrivateV2RuntimeGuardSettings(environment, serviceTokenClientId) {
+  if (!environment || typeof environment !== "object") {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_CONFIGURATION_INVALID);
+  }
+  const settings = {
+    teamDomain: environment[RUNTIME_GUARD_PROTECTED_ENVIRONMENT_NAMES[0]],
+    audience: environment[RUNTIME_GUARD_PROTECTED_ENVIRONMENT_NAMES[1]],
+    serviceTokenClientId
+  };
+  for (const name of RUNTIME_GUARD_PROTECTED_ENVIRONMENT_NAMES) delete environment[name];
+  try {
+    settings.teamDomain = normalizeRuntimeGuardTeamDomain(settings.teamDomain);
+    if (!boundedRuntimeGuardValue(settings.audience, /^[A-Za-z0-9._:-]+$/u)
+      || !boundedRuntimeGuardValue(
+        settings.serviceTokenClientId,
+        /^[a-z0-9]{32,64}\.access$/u
+      )) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_CONFIGURATION_INVALID);
+    }
+    return settings;
+  } catch (error) {
+    scrubPrivateV2RuntimeGuardSettings(settings);
+    throw error;
+  }
+}
+
+export function scrubPrivateV2RuntimeGuardSettings(settings) {
+  if (!settings || typeof settings !== "object") return;
+  settings.teamDomain = "";
+  settings.audience = "";
+  settings.serviceTokenClientId = "";
+}
+
+function runtimeGuardVariables(settings) {
+  if (!settings
+    || !boundedRuntimeGuardValue(settings.teamDomain, /^[\u0021-\u007e]+$/u)
+    || normalizeRuntimeGuardTeamDomain(settings.teamDomain) !== settings.teamDomain
+    || !boundedRuntimeGuardValue(settings.audience, /^[A-Za-z0-9._:-]+$/u)
+    || !boundedRuntimeGuardValue(
+      settings.serviceTokenClientId,
+      /^[a-z0-9]{32,64}\.access$/u
+    )) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_CONFIGURATION_INVALID);
+  }
+  return Object.freeze({
+    [CLOUDFLARE_UNATTENDED_SMOKE_ENV.enabled]: "ON",
+    [CLOUDFLARE_UNATTENDED_SMOKE_ENV.teamDomain]: settings.teamDomain,
+    [CLOUDFLARE_UNATTENDED_SMOKE_ENV.audience]: settings.audience,
+    [CLOUDFLARE_UNATTENDED_SMOKE_ENV.serviceTokenClientId]:
+      settings.serviceTokenClientId
+  });
+}
+
+function currentOwner(stats) {
+  return typeof process.getuid !== "function" || stats.uid === process.getuid();
+}
+
+function requireOwnerOnlyDirectory(path) {
+  try {
+    const stats = lstatSync(path);
+    if (!stats.isDirectory()
+      || stats.isSymbolicLink()
+      || !currentOwner(stats)
+      || (stats.mode & 0o777) !== 0o700) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+    }
+  } catch (error) {
+    if (error instanceof PrivateWorkflowV2Error) throw error;
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  }
+}
+
+function requireOwnerOnlyConfig(path) {
+  try {
+    const stats = lstatSync(path);
+    if (!stats.isFile()
+      || stats.isSymbolicLink()
+      || stats.nlink !== 1
+      || !currentOwner(stats)
+      || (stats.mode & 0o077) !== 0
+      || (stats.mode & 0o700) !== 0o600) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+    }
+  } catch (error) {
+    if (error instanceof PrivateWorkflowV2Error) throw error;
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  }
+}
+
+function requireSourceDeployableDirectory(path) {
+  try {
+    const stats = lstatSync(path);
+    if (!stats.isDirectory() || stats.isSymbolicLink()) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+    }
+    const entries = readdirSync(path).sort();
+    if (JSON.stringify(entries) !== JSON.stringify([
+      "assets",
+      PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile,
+      "worker"
+    ].sort())) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+    }
+  } catch (error) {
+    if (error instanceof PrivateWorkflowV2Error) throw error;
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  }
+}
+
+function runtimeQualifiedConfig(sourceConfigPath, settings) {
+  const config = readJson(sourceConfigPath);
+  validatePrivateConfig(config, {
+    qualified: true,
+    rollback: Array.isArray(config.assets?.run_worker_first)
+  });
+  if (PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS.some(name => (
+    Object.hasOwn(config.vars || {}, name)
+  ))) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_CONFIGURATION_INVALID);
+  }
+  config.vars = {
+    ...(config.vars || {}),
+    ...runtimeGuardVariables(settings)
+  };
+  return `${canonicalPrivateWorkflowJson(config)}\n`;
+}
+
+function copyPrivateV2RuntimeTarget({
+  sourceDirectory,
+  destinationDirectory,
+  settings
+}) {
+  requireSourceDeployableDirectory(sourceDirectory);
+  const sourceConfig = join(
+    sourceDirectory,
+    PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile
+  );
+  const sourceConfigSha256 = sha256PrivateWorkflowFile(sourceConfig);
+  const sourceAssets = join(sourceDirectory, "assets");
+  const sourceWorker = join(sourceDirectory, "worker");
+  const sourceAssetsSha256 = hashPrivateWorkflowRawDirectory(sourceAssets);
+  const sourceWorkerSha256 = hashPrivateWorkflowRawDirectory(sourceWorker);
+  try {
+    mkdirSync(destinationDirectory, { recursive: false, mode: 0o700 });
+    chmodSync(destinationDirectory, 0o700);
+    requireOwnerOnlyDirectory(destinationDirectory);
+    cpSync(sourceAssets, join(destinationDirectory, "assets"), {
+      recursive: true,
+      errorOnExist: true,
+      force: false,
+      dereference: false
+    });
+    cpSync(sourceWorker, join(destinationDirectory, "worker"), {
+      recursive: true,
+      errorOnExist: true,
+      force: false,
+      dereference: false
+    });
+    if (hashPrivateWorkflowRawDirectory(join(destinationDirectory, "assets"))
+        !== sourceAssetsSha256
+      || hashPrivateWorkflowRawDirectory(join(destinationDirectory, "worker"))
+        !== sourceWorkerSha256) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+    }
+    const runtimeConfig = join(
+      destinationDirectory,
+      PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile
+    );
+    writeExclusive(runtimeConfig, runtimeQualifiedConfig(sourceConfig, settings));
+    chmodSync(runtimeConfig, 0o600);
+    requireOwnerOnlyConfig(runtimeConfig);
+    if (sha256PrivateWorkflowFile(sourceConfig) !== sourceConfigSha256) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_TAMPERED);
+    }
+    return Object.freeze({
+      directory: destinationDirectory,
+      assetsSha256: sourceAssetsSha256,
+      workerSha256: sourceWorkerSha256,
+      sourceConfigSha256
+    });
+  } catch (error) {
+    if (error instanceof PrivateWorkflowV2Error) throw error;
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  }
+}
+
+export function createPrivateV2RuntimeWorkspace(baseDirectory = tmpdir()) {
+  try {
+    if (typeof baseDirectory !== "string" || baseDirectory.length < 1) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+    }
+    const base = resolve(baseDirectory);
+    const baseStats = lstatSync(base);
+    if (!baseStats.isDirectory() || baseStats.isSymbolicLink()) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+    }
+    const workspace = mkdtempSync(join(base, "prometheus-private-runtime-v2-"));
+    chmodSync(workspace, 0o700);
+    requireOwnerOnlyDirectory(workspace);
+    return workspace;
+  } catch (error) {
+    if (error instanceof PrivateWorkflowV2Error) throw error;
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  }
+}
+
+export function createPrivateV2RuntimeRelease({
+  workspace,
+  verifiedRelease,
+  settings
+}) {
+  requireOwnerOnlyDirectory(workspace);
+  if (!verifiedRelease
+    || typeof verifiedRelease.forwardDirectory !== "string"
+    || typeof verifiedRelease.rollbackDirectory !== "string") {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  }
+  const forward = copyPrivateV2RuntimeTarget({
+    sourceDirectory: verifiedRelease.forwardDirectory,
+    destinationDirectory: join(workspace, "forward"),
+    settings
+  });
+  const rollback = copyPrivateV2RuntimeTarget({
+    sourceDirectory: verifiedRelease.rollbackDirectory,
+    destinationDirectory: join(workspace, "rollback"),
+    settings
+  });
+  return Object.freeze({
+    status: "PRIVATE_WORKER_V2_RUNTIME_GUARD_CONFIGURED",
+    forwardDirectory: forward.directory,
+    rollbackDirectory: rollback.directory,
+    sourceForwardDirectory: verifiedRelease.forwardDirectory,
+    sourceRollbackDirectory: verifiedRelease.rollbackDirectory,
+    forwardAssetsSha256: forward.assetsSha256,
+    forwardWorkerSha256: forward.workerSha256,
+    rollbackAssetsSha256: rollback.assetsSha256,
+    rollbackWorkerSha256: rollback.workerSha256
+  });
+}
+
+function verifyPrivateV2RuntimeTarget({
+  sourceDirectory,
+  runtimeDirectory,
+  expectedAssetsSha256,
+  expectedWorkerSha256,
+  settings
+}) {
+  requireSourceDeployableDirectory(sourceDirectory);
+  requireSourceDeployableDirectory(runtimeDirectory);
+  requireOwnerOnlyDirectory(runtimeDirectory);
+  const runtimeConfig = join(
+    runtimeDirectory,
+    PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile
+  );
+  requireOwnerOnlyConfig(runtimeConfig);
+  if (hashPrivateWorkflowRawDirectory(join(sourceDirectory, "assets"))
+      !== expectedAssetsSha256
+    || hashPrivateWorkflowRawDirectory(join(runtimeDirectory, "assets"))
+      !== expectedAssetsSha256
+    || hashPrivateWorkflowRawDirectory(join(sourceDirectory, "worker"))
+      !== expectedWorkerSha256
+    || hashPrivateWorkflowRawDirectory(join(runtimeDirectory, "worker"))
+      !== expectedWorkerSha256
+    || readFileSync(runtimeConfig, "utf8") !== runtimeQualifiedConfig(
+      join(sourceDirectory, PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile),
+      settings
+    )) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  }
+}
+
+export function verifyPrivateV2RuntimeRelease(runtimeRelease, settings) {
+  if (!runtimeRelease) fail(PRIVATE_WORKFLOW_V2_FAILURE.RUNTIME_GUARD_WORKSPACE_INVALID);
+  verifyPrivateV2RuntimeTarget({
+    sourceDirectory: runtimeRelease.sourceForwardDirectory,
+    runtimeDirectory: runtimeRelease.forwardDirectory,
+    expectedAssetsSha256: runtimeRelease.forwardAssetsSha256,
+    expectedWorkerSha256: runtimeRelease.forwardWorkerSha256,
+    settings
+  });
+  verifyPrivateV2RuntimeTarget({
+    sourceDirectory: runtimeRelease.sourceRollbackDirectory,
+    runtimeDirectory: runtimeRelease.rollbackDirectory,
+    expectedAssetsSha256: runtimeRelease.rollbackAssetsSha256,
+    expectedWorkerSha256: runtimeRelease.rollbackWorkerSha256,
+    settings
+  });
+  return Object.freeze({ status: "PRIVATE_WORKER_V2_RUNTIME_GUARD_CONFIG_VERIFIED" });
+}
+
+export function removePrivateV2RuntimeWorkspace(path) {
+  if (typeof path === "string" && path.length > 0) {
+    rmSync(path, { recursive: true, force: true });
+  }
 }
 
 function runGit(root, argumentsList, { allowExitOne = false } = {}) {
@@ -1129,31 +1495,58 @@ function sameState(left, right) {
     && JSON.stringify(left.bindings) === JSON.stringify(right.bindings);
 }
 
-function validSmoke(smoke) {
-  return isPlainObject(smoke)
+export function privateV2PredeploymentSmokeMarkerPolicy(currentPrivateVersion) {
+  if (!UUID.test(currentPrivateVersion || "")) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.INPUT_INVALID);
+  }
+  return currentPrivateVersion === PRIVATE_WORKFLOW_V2_POLICY.bootstrapGuardlessPrivateVersion
+    ? CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.BOOTSTRAP_ALLOW_MISSING
+    : CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT;
+}
+
+function validSmoke(smoke, markerPolicy) {
+  const base = isPlainObject(smoke)
     && smoke.status === "passed"
     && smoke.attemptedWriteCount === 0
     && Number.isInteger(smoke.requestCount)
-    && smoke.requestCount > 0;
+    && smoke.requestCount > 0
+    && smoke.markerPolicy === markerPolicy
+    && Number.isInteger(smoke.markerVerifiedCount)
+    && smoke.markerVerifiedCount >= 0
+    && Number.isInteger(smoke.markerOmittedCount)
+    && smoke.markerOmittedCount >= 0
+    && smoke.markerVerifiedCount + smoke.markerOmittedCount === smoke.requestCount;
+  if (!base) return false;
+  return markerPolicy === CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
+    ? smoke.markerVerifiedCount === smoke.requestCount && smoke.markerOmittedCount === 0
+    : true;
 }
 
 export function assertPrivateBindingsPreserved(before, after) {
   if (!Array.isArray(before)
     || !Array.isArray(after)
-    || JSON.stringify(before) !== JSON.stringify(after)) {
+    || JSON.stringify([...before].sort()) !== JSON.stringify([...after].sort())) {
     fail(PRIVATE_WORKFLOW_V2_FAILURE.BINDING_PRESERVATION_FAILED);
   }
 }
 
-export function assertQualifiedPrivateConfigCanPreserveBindings(verifiedRelease, bindings) {
-  if (!verifiedRelease || !Array.isArray(bindings)) {
+function bindingIdentity(binding) {
+  if (typeof binding !== "string") {
     fail(PRIVATE_WORKFLOW_V2_FAILURE.BINDING_PRESERVATION_FAILED);
   }
-  const config = readJson(join(
-    verifiedRelease.forwardDirectory,
-    PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile
-  ));
-  const configured = new Set([
+  const separator = binding.lastIndexOf(":");
+  const name = binding.slice(0, separator);
+  const type = binding.slice(separator + 1);
+  if (separator < 1
+    || !/^[A-Z][A-Z0-9_]{0,127}$/u.test(name)
+    || !/^[a-z][a-z0-9_]{0,63}$/u.test(type)) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.BINDING_PRESERVATION_FAILED);
+  }
+  return Object.freeze({ binding, name, type });
+}
+
+function configuredPrivateBindings(config) {
+  const bindings = [
     ...(config.assets?.binding ? [`${config.assets.binding}:assets`] : []),
     ...Object.keys(config.vars || {}).map(name => `${name}:plain_text`),
     ...(config.kv_namespaces || []).map(binding => `${binding.binding}:kv_namespace`),
@@ -1161,13 +1554,73 @@ export function assertQualifiedPrivateConfigCanPreserveBindings(verifiedRelease,
     ...(config.durable_objects?.bindings || []).map(
       binding => `${binding.name}:durable_object_namespace`
     )
-  ]);
-  for (const binding of bindings) {
-    const type = binding.slice(binding.lastIndexOf(":") + 1);
-    if (!configured.has(binding) && !["secret_text", "plain_text"].includes(type)) {
+  ].sort();
+  if (new Set(bindings).size !== bindings.length) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.BINDING_PRESERVATION_FAILED);
+  }
+  return bindings;
+}
+
+function assertNoBindingTypeCollisions(bindingGroups) {
+  const typesByName = new Map();
+  for (const binding of bindingGroups.flat()) {
+    const identity = bindingIdentity(binding);
+    const prior = typesByName.get(identity.name);
+    if (prior && prior !== identity.type) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.BINDING_PRESERVATION_FAILED);
+    }
+    typesByName.set(identity.name, identity.type);
+  }
+}
+
+export function assertQualifiedPrivateConfigCanPreserveBindings(verifiedRelease, bindings) {
+  if (!verifiedRelease || !Array.isArray(bindings)) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.BINDING_PRESERVATION_FAILED);
+  }
+  const forwardConfig = readJson(join(
+    verifiedRelease.forwardDirectory,
+    PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile
+  ));
+  const rollbackConfig = readJson(join(
+    verifiedRelease.rollbackDirectory,
+    PRIVATE_WORKFLOW_V2_POLICY.qualifiedConfigFile
+  ));
+  const initial = [...bindings].sort();
+  if (new Set(initial).size !== initial.length) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.BINDING_PRESERVATION_FAILED);
+  }
+  const forward = configuredPrivateBindings(forwardConfig);
+  const rollback = configuredPrivateBindings(rollbackConfig);
+  const guard = PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS
+    .map(name => `${name}:plain_text`)
+    .sort();
+  assertNoBindingTypeCollisions([initial, forward, rollback, guard]);
+  const forwardSet = new Set(forward);
+  const rollbackSet = new Set(rollback);
+  for (const name of guard) {
+    if (!forwardSet.has(name) || !rollbackSet.has(name)) {
       fail(PRIVATE_WORKFLOW_V2_FAILURE.BINDING_PRESERVATION_FAILED);
     }
   }
+  for (const binding of initial) {
+    const { type } = bindingIdentity(binding);
+    if (!["secret_text", "plain_text"].includes(type)
+      && (!forwardSet.has(binding) || !rollbackSet.has(binding))) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.BINDING_PRESERVATION_FAILED);
+    }
+  }
+  for (const binding of forward) {
+    const { type } = bindingIdentity(binding);
+    if (!["secret_text", "plain_text"].includes(type) && !rollbackSet.has(binding)) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.BINDING_PRESERVATION_FAILED);
+    }
+  }
+  return Object.freeze({
+    initialBindings: Object.freeze(initial),
+    forwardExpectedBindings: Object.freeze([...new Set([...initial, ...forward, ...guard])].sort()),
+    rollbackExpectedBindings:
+      Object.freeze([...new Set([...initial, ...forward, ...rollback, ...guard])].sort())
+  });
 }
 
 export function createPrivateDeploymentEvidenceRecorder(directory) {
@@ -1233,9 +1686,22 @@ export async function runQualifiedPrivateDeploymentLifecycle({
     || initialPublic.deployment.versionId !== inputs.currentPublicVersion) {
     fail(PRIVATE_WORKFLOW_V2_FAILURE.PRODUCTION_PREREQUISITE_MISMATCH);
   }
-  verifyInitialBindings(release, initialPrivate.bindings);
+  const bindingTransition = verifyInitialBindings(release, initialPrivate.bindings);
+  if (!isPlainObject(bindingTransition)
+    || !Array.isArray(bindingTransition.forwardExpectedBindings)
+    || !Array.isArray(bindingTransition.rollbackExpectedBindings)) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.BINDING_PRESERVATION_FAILED);
+  }
   evidence.append(PRIVATE_WORKFLOW_V2_PHASE.PRODUCTION_PREREQUISITES_PASSED);
-  if (!validSmoke(await runPreSmoke())) fail(PRIVATE_WORKFLOW_V2_FAILURE.SMOKE_INVALID);
+  const predeploymentMarkerPolicy = privateV2PredeploymentSmokeMarkerPolicy(
+    inputs.currentPrivateVersion
+  );
+  if (!validSmoke(
+    await runPreSmoke(Object.freeze({ markerPolicy: predeploymentMarkerPolicy })),
+    predeploymentMarkerPolicy
+  )) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.SMOKE_INVALID);
+  }
   evidence.append(PRIVATE_WORKFLOW_V2_PHASE.PREDEPLOYMENT_SMOKE_PASSED);
 
   const boundaryPrivate = await fetchState(PRIVATE_WORKFLOW_V2_POLICY.privateWorker);
@@ -1246,7 +1712,7 @@ export async function runQualifiedPrivateDeploymentLifecycle({
   await verifyRelease();
   await inspectRepository();
 
-  const rollback = async deployedPrivate => {
+  const rollback = async (deployedPrivate, failureClassification) => {
     if (rollbackAttempts !== 0) fail(PRIVATE_WORKFLOW_V2_FAILURE.ROLLBACK_BOUNDARY_INVALID);
     rollbackAttempts += 1;
     evidence.append(PRIVATE_WORKFLOW_V2_PHASE.CRITICAL_FAILURE_DETECTED);
@@ -1261,12 +1727,16 @@ export async function runQualifiedPrivateDeploymentLifecycle({
       || rolledBackPrivate.deployment.deploymentId === deployedPrivate.deployment.deploymentId) {
       fail(PRIVATE_WORKFLOW_V2_FAILURE.ROLLBACK_BOUNDARY_INVALID);
     }
-    assertPrivateBindingsPreserved(initialPrivate.bindings, rolledBackPrivate.bindings);
+    assertPrivateBindingsPreserved(
+      bindingTransition.rollbackExpectedBindings,
+      rolledBackPrivate.bindings
+    );
     evidence.append(PRIVATE_WORKFLOW_V2_PHASE.ROLLBACK_VERIFIED);
     return Object.freeze({
       status: "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED",
       deploymentAttempts,
-      rollbackAttempts
+      rollbackAttempts,
+      failureClassification
     });
   };
 
@@ -1288,7 +1758,7 @@ export async function runQualifiedPrivateDeploymentLifecycle({
       fail(PRIVATE_WORKFLOW_V2_FAILURE.PUBLIC_WORKER_CHANGED);
     }
     if (sameState(initialPrivate, uncertainPrivate)) throw error;
-    return rollback(uncertainPrivate);
+    return rollback(uncertainPrivate, formatPrivateWorkflowV2Failure(error));
   }
   if (!authorizationConsumed) fail(PRIVATE_WORKFLOW_V2_FAILURE.DEPLOYMENT_BOUNDARY_INVALID);
   evidence.append(PRIVATE_WORKFLOW_V2_PHASE.DEPLOYMENT_REQUEST_COMPLETED);
@@ -1303,12 +1773,22 @@ export async function runQualifiedPrivateDeploymentLifecycle({
       || deployedPrivate.deployment.deploymentId === initialPrivate.deployment.deploymentId) {
       fail(PRIVATE_WORKFLOW_V2_FAILURE.PRIVATE_WORKER_UNCHANGED);
     }
-    assertPrivateBindingsPreserved(initialPrivate.bindings, deployedPrivate.bindings);
+    assertPrivateBindingsPreserved(
+      bindingTransition.forwardExpectedBindings,
+      deployedPrivate.bindings
+    );
     evidence.append(PRIVATE_WORKFLOW_V2_PHASE.POST_DEPLOYMENT_VERIFIED);
-    if (!validSmoke(await runPostSmoke())) fail(PRIVATE_WORKFLOW_V2_FAILURE.SMOKE_INVALID);
+    if (!validSmoke(
+      await runPostSmoke(Object.freeze({
+        markerPolicy: CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
+      })),
+      CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
+    )) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.SMOKE_INVALID);
+    }
     evidence.append(PRIVATE_WORKFLOW_V2_PHASE.POSTDEPLOYMENT_SMOKE_PASSED);
-  } catch {
-    return rollback(deployedPrivate);
+  } catch (error) {
+    return rollback(deployedPrivate, formatPrivateWorkflowV2Failure(error));
   }
   return Object.freeze({
     status: "PRIVATE_WORKER_V2_DEPLOYMENT_VERIFIED",
@@ -1420,6 +1900,22 @@ export function writePrivateV2QualificationOutputs(path, result) {
 export function formatPrivateWorkflowV2Failure(error) {
   if (error instanceof PrivateWorkflowV2Error || error instanceof DeploymentPolicyError) {
     return error.code;
+  }
+  if (error instanceof CloudflareUnattendedSmokeError
+    && Object.values(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE).includes(error.dimension)) {
+    return `SMOKE_FAILURE|DIMENSION=${error.dimension}`;
+  }
+  if (error instanceof PublicDeploymentPolicyError
+    && PUBLIC_FAILURE_CODES.has(error.code)) {
+    let phase = "UNSPECIFIED";
+    let reason = "UNSPECIFIED";
+    for (const diagnostic of error.diagnostics) {
+      const [key, value] = diagnostic.split("=", 2);
+      if (key === "CLOUDFLARE_READ_PHASE" && PUBLIC_READ_PHASES.has(value)) phase = value;
+      if (key === "WRANGLER_PHASE" && PUBLIC_WRANGLER_PHASES.has(value)) phase = value;
+      if (key === "WRANGLER_FAILURE_REASON" && PUBLIC_WRANGLER_REASONS.has(value)) reason = value;
+    }
+    return `PUBLIC_DEPLOYMENT_POLICY_FAILURE|CODE=${error.code}|PHASE=${phase}|REASON=${reason}`;
   }
   return PRIVATE_WORKFLOW_V2_FAILURE.QUALIFICATION_FAILED;
 }
