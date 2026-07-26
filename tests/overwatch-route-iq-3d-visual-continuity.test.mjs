@@ -17,7 +17,7 @@ test("Overwatch verifies the owned 3D successor, generated assets, CRM boundary,
   assert.equal(result.ownerCommits.length, 7);
   assert.equal(result.deploymentAssetsSha256, "ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e");
   assert.equal(result.historicalDeploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
-  assert.equal(result.rollbackArtifactSha256, "f8fceee62838c182a4e093d4d8bc57c71bf5ec8dbe71707db76c63ecd7a4b1eb");
+  assert.equal(result.rollbackArtifactSha256, "37f215ffe57df61aaa741352111806b07ff1a97dabd07c36188080e62857e582");
   assert.equal(result.historicalRollbackArtifactSha256, "381b471ed3fa0a1fdab0b612600be2f2b6e77b45d3b9c02418a056e0eb500b5a");
   assert.equal(result.initialCriticalBytes, 459699);
   assert.equal(result.lazy3dBytes, 892213);

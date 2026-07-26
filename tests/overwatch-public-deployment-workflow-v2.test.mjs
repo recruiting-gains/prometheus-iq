@@ -111,7 +111,7 @@ test("historical Workflow v2 evidence remains historical beside exact current ow
   assert.deepEqual(current.currentReleaseIdentities, {
     deploymentAssetSha256: "ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e",
     rollbackContractSha256: "df9a90e39076df62bb6c3ec521a9dd86afe8d65f0836645237dbc2d08c69302d",
-    rollbackArtifactSha256: "f8fceee62838c182a4e093d4d8bc57c71bf5ec8dbe71707db76c63ecd7a4b1eb",
+    rollbackArtifactSha256: "37f215ffe57df61aaa741352111806b07ff1a97dabd07c36188080e62857e582",
     workflowContractSha256: "17ac6ac53220f77fe2d49339e7a93566c7c2419bb19c462200a2077f1df34ca7"
   });
 });
