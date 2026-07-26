@@ -1,0 +1,90 @@
+{
+  "contractVersion": "route_iq_paid_customer_crm_workflow.v1",
+  "owner": "Prometheus CRM",
+  "purpose": "Versioned, company-and-workspace-scoped CRM workflow configuration for paid Route IQ customers.",
+  "executionBoundary": {
+    "mode": "local_configuration_projection",
+    "productionMutationAuthorized": false,
+    "notificationAuthorized": false,
+    "customerActivationAuthorized": false,
+    "customerRecordMutationAuthorized": false
+  },
+  "scope": {
+    "required": [
+      "companyId",
+      "workspaceId"
+    ],
+    "immutableAcrossProvisioningPlan": true,
+    "serverSideAuthorizationRequired": true,
+    "clientFilteringIsAuthorization": false
+  },
+  "configuration": {
+    "required": [
+      "contractVersion",
+      "configurationVersion",
+      "companyId",
+      "workspaceId",
+      "industryTemplateId",
+      "lifecycleState",
+      "roles",
+      "stages",
+      "workflows",
+      "metrics"
+    ],
+    "stableIdentifiers": [
+      "roleId",
+      "stageId",
+      "workflowId",
+      "transitionId",
+      "metricId",
+      "semanticKey"
+    ],
+    "displayLabelsAreIdentifiers": false,
+    "unknownFieldsRejected": true,
+    "unsafeLabelsRejected": true,
+    "semanticMetricDriftRejected": true
+  },
+  "lifecycleStates": [
+    "draft",
+    "validation_failed",
+    "validated",
+    "preview_ready",
+    "awaiting_approval",
+    "provisioning",
+    "provisioning_failed",
+    "ready_for_activation",
+    "active",
+    "suspended",
+    "offboarded"
+  ],
+  "provisioning": {
+    "planDeterministic": true,
+    "operationsIdempotent": true,
+    "attemptReplayRejected": true,
+    "partialFailureRecovery": "RETRY_SAME_PLAN_WITH_FRESH_ATTEMPT_ID",
+    "duplicateStagesAllowed": false,
+    "duplicateRolesAllowed": false,
+    "duplicateWorkflowsAllowed": false,
+    "duplicateMetricsAllowed": false,
+    "customerRecordsCreated": false
+  },
+  "audit": {
+    "appendOnly": true,
+    "hashChained": true,
+    "displayLabelsStored": false,
+    "credentialsStored": false,
+    "freeFormFailureTextStored": false
+  },
+  "suspension": {
+    "writesAllowed": false,
+    "configurationRetained": true,
+    "auditRetained": true
+  },
+  "offboarding": {
+    "writesAllowed": false,
+    "configurationRetained": true,
+    "auditRetained": true,
+    "destructiveDeletionAuthorized": false,
+    "reactivationAuthorized": false
+  }
+}

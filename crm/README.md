@@ -13,6 +13,10 @@ CRM also owns the operating architecture for company accounts, pilot companies, 
 - `crm-foundation.mjs`: local beta CRM records, leads, follow-ups, tasks, visits, notes, sales activity, and reports.
 - `enterprise-lifecycle-architecture.md`: account/customer-success architecture for 1 company, 10 companies, 100 companies, and enterprise deployments.
 - `enterprise-lifecycle-model.json`: machine-readable CRM operating model for validation and future implementation.
+- `paid-customer-workflow-configuration-v1.mjs`: production-readiness foundation for versioned, company-and-workspace-scoped CRM roles, stages, workflows, metrics, preview, idempotent provisioning projections, lifecycle controls, and append-only audit.
+- `paid-customer-workflow-contract-v1.json`: machine-readable execution boundary for the paid-customer CRM foundation. Preview and provisioning remain non-activating, perform no production CRM mutation, and send no notification.
+
+The earlier beta-oriented modules remain historical compatibility surfaces. New paid-customer workflow configuration must use the versioned paid-customer contract and stable internal identifiers rather than customer-specific branches or display labels as keys.
 
 ## Attribution
 
