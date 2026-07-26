@@ -72,6 +72,16 @@ const currentHardenedSmokeGuardIntelligenceSuccessorPaths = [
   "scripts/verify-shadow-decision-readiness.mjs",
   "tests/shadow-decision-readiness.test.mjs"
 ].sort();
+const currentPaidCustomerIntelligenceSuccessorCommit =
+  "bf5c665035923f5f56fd923d0cb3df8610c2c33a";
+const currentPaidCustomerIntelligenceSuccessorParent =
+  "5955632a7229b5fd66d799f73dd717233077375c";
+const currentPaidCustomerIntelligenceSuccessorTree =
+  "9fa2bd9dbfbb0b84df89a6bba8de24fd7390e785";
+const currentPaidCustomerIntelligenceSuccessorPaths = [
+  "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+  "tests/read-only-field-session-learning.test.mjs"
+].sort();
 const currentAugust1IntelligenceSuccessorPaths = [
   "intelligence/contracts/shadow-decision-readiness-contracts.json",
   "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
@@ -353,6 +363,50 @@ function isCurrentZipFounderAccessIntelligenceTransition(path, currentSha256) {
     && sha256(read(path)) === currentSha256;
 }
 
+function verifyCurrentPaidCustomerIntelligenceSuccessor() {
+  const fields = git(
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    currentPaidCustomerIntelligenceSuccessorCommit
+  ).split("\n");
+  assert.deepEqual(fields, [
+    currentPaidCustomerIntelligenceSuccessorCommit,
+    currentPaidCustomerIntelligenceSuccessorParent,
+    currentPaidCustomerIntelligenceSuccessorTree,
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "intelligence: adopt paid-customer protected baselines"
+  ]);
+  assert.deepEqual(
+    changedPaths(currentPaidCustomerIntelligenceSuccessorCommit),
+    currentPaidCustomerIntelligenceSuccessorPaths
+  );
+  assert.doesNotThrow(() => git(
+    "merge-base",
+    "--is-ancestor",
+    currentPaidCustomerIntelligenceSuccessorCommit,
+    "HEAD"
+  ));
+}
+
+function isCurrentPaidCustomerIntelligenceTransition(
+  path,
+  previousSha256,
+  currentSha256
+) {
+  if (!currentPaidCustomerIntelligenceSuccessorPaths.includes(path)) return false;
+  return sha256(gitBytes(
+    "show",
+    `${currentPaidCustomerIntelligenceSuccessorParent}:${path}`
+  )) === previousSha256
+    && sha256(gitBytes(
+      "show",
+      `${currentPaidCustomerIntelligenceSuccessorCommit}:${path}`
+    )) === currentSha256
+    && sha256(read(path)) === currentSha256;
+}
+
 function verifyCurrentHardenedSmokeGuardIntelligenceSuccessor() {
   const governance = readJson(currentHardenedSmokeGuardIntelligenceSuccessorPath);
   assert.equal(
@@ -441,9 +495,15 @@ function verifyCurrentHardenedSmokeGuardIntelligenceSuccessor() {
       )),
       `${path} hardened smoke-guard owner-successor hash drifted.`
     );
+    const currentSha256 = sha256(read(path));
     assert.equal(
-      transition.currentSha256,
-      sha256(read(path)),
+      transition.currentSha256 === currentSha256
+        || isCurrentPaidCustomerIntelligenceTransition(
+          path,
+          transition.currentSha256,
+          currentSha256
+        ),
+      true,
       `${path} current hardened smoke-guard successor drifted.`
     );
   }
@@ -496,6 +556,7 @@ export function verifyReleaseProvenanceRepair() {
   assert.equal(mapping.workspaceId, "fitness_connection");
   assert.equal(mapping.operatingProfileId, "fitness");
   verifyCurrentAugust1IntelligenceSuccessor();
+  verifyCurrentPaidCustomerIntelligenceSuccessor();
   const hardenedSmokeGuardIntelligenceTransitions =
     verifyCurrentHardenedSmokeGuardIntelligenceSuccessor();
 
@@ -1178,7 +1239,8 @@ export function verifyReleaseProvenanceRepair() {
     commercialRouteQualitySuccessor: commercialRouteQualitySuccessorCommit,
     currentDashboardSourceCommit,
     currentDashboardValidationCommit,
-    currentAugust1IntelligenceSuccessorCommit
+    currentAugust1IntelligenceSuccessorCommit,
+    currentPaidCustomerIntelligenceSuccessorCommit
   };
 }
 
