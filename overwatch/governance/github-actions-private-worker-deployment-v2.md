@@ -4,7 +4,9 @@ Prometheus Overwatch independently accepts the Infrastructure-owned immutable
 private Worker release lane introduced by commit
 `5c9621e29c4d613e997c8fee3c75d67c6fd0828c`, including its
 Infrastructure-owned secret-scan fixture repair
-`266fb19637fc11dc0c27e42bbfc7a1816cc7cdad`.
+`266fb19637fc11dc0c27e42bbfc7a1816cc7cdad` and its independently reviewed
+bootstrap-guard repair
+`a5ae6578bc0c030def8df5d4713d5ecbe5206212`.
 
 ## Corrective
 
@@ -17,6 +19,21 @@ The v2 lane fixes that defect by qualifying the actual no-bundle Worker payload,
 assets, configuration, manifest, and paired forward-compatible rollback. The
 deployment lane downloads that exact artifact, verifies every pinned identity,
 and deploys it without rebuilding.
+
+The first protected deployment run, `30187966068`, failed before production
+mutation. The retained private Worker predates the runtime guard, while the
+predeployment smoke gate required a guard response before the successor that
+implements the guard could be installed. The Infrastructure successor permits
+only that pinned retained version to omit the predeployment marker. It still
+requires the exact service principal and fixed GET/HEAD request contract, and
+postdeployment smoke always requires the marker.
+
+The successor injects the four governed runtime guard settings through an
+exclusive `0600` temporary config inside an owner-only `0700` directory. It
+does not alter the qualified application payload or assets, cleans the
+temporary material in `finally`, and verifies an additive binding transition
+that preserves every preexisting binding and rejects unexpected additions,
+deletions, or type changes.
 
 ## Boundary
 
@@ -39,12 +56,22 @@ and deploys it without rebuilding.
 
 ## External Readiness
 
-A read-only name audit found the protected environment main-only and found
-`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCESS_CLIENT_ID` present. The required
-`CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_ACCESS_CLIENT_SECRET` names were absent.
-No value was accessed.
+A name-only audit found the protected environment main-only and all six
+contract-required settings present:
 
-The v2 deployment command checks all four names before reading credentials or
-making any Cloudflare request. Deployment therefore remains fail-closed until
-the two missing protected values are supplied through an authorized external
-credential procedure. Qualification is independent of those values.
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_ACCESS_CLIENT_ID`
+- `CLOUDFLARE_ACCESS_CLIENT_SECRET`
+- `PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN`
+- `PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE`
+
+The dedicated Cloudflare Access Service Auth policy is attached to the existing
+private application under policy ID
+`14fc787c-beb8-4abc-9923-8eaa9ae7d3d3`. Existing owner access and unrelated
+credentials remain unchanged. Credential values were handled only through the
+authenticated Cloudflare and GitHub interfaces and were not printed, logged,
+committed, or included in this record.
+
+The deployment command checks all six names before making any Cloudflare
+request. Source qualification remains independent of their values.

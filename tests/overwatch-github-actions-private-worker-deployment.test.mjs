@@ -62,7 +62,11 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
   assert.equal(result.firstDeploymentReady, false);
   assert.equal(result.immutableWorkflowV2SourceGoverned, true);
   assert.equal(result.immutableWorkflowV2QualificationPending, true);
-  assert.equal(result.immutableWorkflowV2DeploymentReady, false);
+  assert.equal(result.immutableWorkflowV2DeploymentReady, true);
+  assert.equal(result.immutableWorkflowV2BootstrapRepairCommit,
+    "a5ae6578bc0c030def8df5d4713d5ecbe5206212");
+  assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
+  assert.equal(result.failedDeploymentRunReachedProductionMutation, false);
 });
 
 test("Overwatch governance accepts the immutable private Workflow v2 owner release", () => {
@@ -77,7 +81,12 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.ownership.implementationOwner = "Prometheus Overwatch"; },
     value => { value.ownership.overwatchModifiedInfrastructureImplementation = true; },
     value => { value.ownership.implementationCommit.commit = "0".repeat(40); },
+    value => {
+      value.ownership.implementationBootstrapRepairCommit.commit = "0".repeat(40);
+    },
+    value => { value.ownership.bootstrapRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },
+    value => { value.rootCause.firstDeploymentReachedProductionMutation = true; },
     value => { value.workflowBoundary.onlyTrigger = "push"; },
     value => { value.workflowBoundary.publicWorkerMutationAllowed = true; },
     value => { value.workflowBoundary.rebuildDuringDeploymentAllowed = true; },
@@ -90,7 +99,13 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.runtimeBoundary.activeCohorts = 1; },
     value => { value.runtimeBoundary.recommendationInfluence = "ON"; },
     value => { value.protectedEnvironment.secretValuesAccessed = true; },
-    value => { value.protectedEnvironment.deploymentReady = true; },
+    value => {
+      value.protectedEnvironment.readOnlyNameAudit.CLOUDFLARE_ACCOUNT_ID = "ABSENT";
+    },
+    value => { value.protectedEnvironment.deploymentReady = false; },
+    value => {
+      value.releaseBoundary.failedDeploymentRunReachedProductionMutation = true;
+    },
     value => { value.releaseBoundary.productionContactPerformedByThisGovernanceCommit = true; }
   ];
   for (const mutate of governanceMutations) {

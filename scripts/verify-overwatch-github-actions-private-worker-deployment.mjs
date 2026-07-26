@@ -52,6 +52,9 @@ const v2OwnerParent = "8976c077eef91147368c9b5566b5310c04fd6630";
 const v2OwnerTree = "a910015245eccb1f3af9b4ecba947c0ced0835fb";
 const v2OwnerRepairCommit = "266fb19637fc11dc0c27e42bbfc7a1816cc7cdad";
 const v2OwnerRepairTree = "09f50df144a4f4890c327306d051bbcf11bd362a";
+const v2BootstrapRepairCommit = "a5ae6578bc0c030def8df5d4713d5ecbe5206212";
+const v2BootstrapRepairParent = "2dda98c901889b9a115592d9f1f74b8d24deb56f";
+const v2BootstrapRepairTree = "fba13a295f427eefad01b1f3c9b84c5a08eb7d37";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -72,6 +75,25 @@ const v2OwnerHashes = Object.freeze({
     "8bba6f343c4996b3b8a8e506ffb778e9f788bbcf3f6bba6a3e21651fe28ec848",
   "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
     "d01d6011a0e675326a9405d9f09b4c96a28fee8928b082c41342c9c2baba8f8e"
+});
+
+const v2BootstrapRepairHashes = Object.freeze({
+  ".github/workflows/deploy-prometheus-private-worker-v2.yml":
+    "8288903bee7e628c84217d4a08a8c9f9035be65a0ed0f17f249454be4dd0a4e1",
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+    "72834da031493c33821eced53d7d99017d01ee3bc07f216e18b0595223df6067",
+  "scripts/run-cloudflare-unattended-smoke.mjs":
+    "21fd114e389d5066ee309998546893017631004700a347bba922d9743e76152f",
+  "scripts/run-github-actions-private-worker-deployment-v2.mjs":
+    "af6c604899b13bc2b994d62a733436cc6424223626dbab0e80425ad2c89e3063",
+  "scripts/verify-github-actions-private-worker-workflow-v2.mjs":
+    "48a7595b95d422f8f3def9f6e603a0b67bf0acd08ababb54738c28c610e415f7",
+  "tests/cloudflare-unattended-runtime-guard.test.mjs":
+    "36522c07666df278ec2791246bbcfdf0a9fd5193051b5ba1fdcbe623120ae40b",
+  "tests/github-actions-private-worker-workflow-v2.test.mjs":
+    "fb945a51a5556aaf5b9e22c659c49429aec83465f10920b6e634b772f872ca4c",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "87dfe2db6bb803b528ad73656ddd9fba31efd35a049d4e1bfe140c52edee6b22"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -196,7 +218,8 @@ const overwatchIdentity = "Prometheus Overwatch <overwatch@prometheus.local>";
 const infrastructureOwnedPaths = new Set([
   ...Object.keys(historicalOwnerHashes),
   ...Object.keys(compatibilityOwnerHashes),
-  ...Object.keys(v2OwnerHashes)
+  ...Object.keys(v2OwnerHashes),
+  ...Object.keys(v2BootstrapRepairHashes)
 ]);
 const overwatchOwnedPaths = new Set([
   ...expectedOverwatchPaths,
@@ -649,7 +672,8 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(governance?.governanceId ===
     "github-actions-private-worker-deployment-governance-v2",
   "Private Workflow v2 governance identity drifted.");
-  require(governance?.status === "SOURCE_GOVERNED_QUALIFICATION_PENDING_NOT_DEPLOYED"
+  require(governance?.status ===
+    "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED"
     && governance?.owningSubsystem === "Prometheus Overwatch",
   "Private Workflow v2 governance status or owner drifted.");
   require(governance?.ownership?.implementationOwner === "Prometheus Infrastructure"
@@ -662,13 +686,37 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership?.implementationCommit?.tree === v2OwnerTree
     && governance?.ownership?.implementationRepairCommit?.commit === v2OwnerRepairCommit
     && governance?.ownership?.implementationRepairCommit?.parent === v2OwnerCommit
-    && governance?.ownership?.implementationRepairCommit?.tree === v2OwnerRepairTree,
+    && governance?.ownership?.implementationRepairCommit?.tree === v2OwnerRepairTree
+    && governance?.ownership?.implementationBootstrapRepairCommit?.commit ===
+      v2BootstrapRepairCommit
+    && governance?.ownership?.implementationBootstrapRepairCommit?.parent ===
+      v2BootstrapRepairParent
+    && governance?.ownership?.implementationBootstrapRepairCommit?.tree ===
+      v2BootstrapRepairTree
+    && governance?.ownership?.implementationBootstrapRepairCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationBootstrapRepairCommit?.committer ===
+      infrastructureIdentity,
   "Private Workflow v2 owner provenance drifted.");
   require(equal(governance?.ownership?.implementationPaths, Object.keys(v2OwnerHashes)),
     "Private Workflow v2 owner path set drifted.");
+  require(equal(governance?.ownership?.bootstrapRepairPaths,
+    Object.keys(v2BootstrapRepairHashes)),
+  "Private Workflow v2 bootstrap repair path set drifted.");
+  require(equal(governance?.ownership?.bootstrapRepairEvidence,
+    Object.entries(v2BootstrapRepairHashes).map(([path, sha256Value]) => ({
+      path,
+      sha256: sha256Value
+    }))),
+  "Private Workflow v2 bootstrap repair evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
-    && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false,
+    && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
+    && governance?.rootCause?.firstDeploymentWorkflowRun === "30187966068"
+    && governance?.rootCause?.firstDeploymentReachedProductionMutation === false
+    && governance?.rootCause?.firstDeploymentRollbackRequired === false
+    && typeof governance?.rootCause?.bootstrapDeadlock === "string"
+    && typeof governance?.rootCause?.bootstrapRepair === "string",
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
     && governance?.workflowBoundary?.branch === "main"
@@ -712,16 +760,39 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       "CLOUDFLARE_API_TOKEN",
       "CLOUDFLARE_ACCOUNT_ID",
       "CLOUDFLARE_ACCESS_CLIENT_ID",
-      "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+      "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE"
     ])
+    && equal(governance?.protectedEnvironment?.readOnlyNameAudit, {
+      CLOUDFLARE_API_TOKEN: "PRESENT",
+      CLOUDFLARE_ACCOUNT_ID: "PRESENT",
+      CLOUDFLARE_ACCESS_CLIENT_ID: "PRESENT",
+      CLOUDFLARE_ACCESS_CLIENT_SECRET: "PRESENT",
+      PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN: "PRESENT",
+      PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE: "PRESENT"
+    })
     && governance?.protectedEnvironment?.secretValuesAccessed === false
+    && governance?.protectedEnvironment
+      ?.externalCredentialValuesHandledEphemerallyByAuthenticatedInterface === true
+    && governance?.protectedEnvironment
+      ?.externalCredentialValuesPrintedLoggedCommittedOrReported === false
+    && governance?.protectedEnvironment?.accessApplicationId ===
+      "ff70fcc7-13a0-4582-9f33-a6d5186f6bc7"
+    && governance?.protectedEnvironment?.accessServiceAuthPolicyId ===
+      "14fc787c-beb8-4abc-9923-8eaa9ae7d3d3"
+    && governance?.protectedEnvironment?.unrelatedAccessPoliciesOrCredentialsModified ===
+      false
     && governance?.protectedEnvironment?.missingNamesFailBeforeCloudflareRequest === true
-    && governance?.protectedEnvironment?.deploymentReady === false,
+    && governance?.protectedEnvironment?.deploymentReady === true,
   "Private Workflow v2 protected-environment boundary drifted.");
   require(governance?.releaseBoundary?.qualificationAuthorizedByStandingDirective === true
     && governance?.releaseBoundary?.deploymentPerformedByThisGovernanceCommit === false
     && governance?.releaseBoundary?.productionContactPerformedByThisGovernanceCommit === false
     && governance?.releaseBoundary?.qualificationPerformedByThisGovernanceCommit === false
+    && governance?.releaseBoundary?.externalCredentialAndAccessConfigurationPerformed ===
+      true
+    && governance?.releaseBoundary?.failedDeploymentRunReachedProductionMutation === false
     && governance?.releaseBoundary?.pushMayTriggerDeployment === false,
   "Private Workflow v2 release boundary drifted.");
   require(contract?.contractVersion === "github-actions-private-worker-deployment-v2"
@@ -735,6 +806,37 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && contract?.deployment?.artifactSubstitutionAllowed === false
     && contract?.deployment?.forwardDeploymentAttempts === 1
     && contract?.deployment?.automaticRetryAllowed === false
+    && equal(contract?.protectedEnvironment?.requiredSecretNames, [
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE"
+    ])
+    && contract?.configurationPreservation?.bindingTransition
+      ?.everyPreexistingBindingRequired === true
+    && contract?.configurationPreservation?.bindingTransition
+      ?.qualifiedConfiguredAdditionsAllowed === true
+    && contract?.configurationPreservation?.bindingTransition
+      ?.unexpectedAdditionsAllowed === false
+    && contract?.configurationPreservation?.bindingTransition?.deletionsAllowed === false
+    && contract?.configurationPreservation?.bindingTransition?.typeChangesAllowed === false
+    && contract?.smoke?.bootstrap?.currentPrivateVersionWithoutGuard ===
+      "b8cba784-dfd3-4f8e-8356-816cccf6aecc"
+    && contract?.smoke?.bootstrap?.accessServiceTokenRequired === true
+    && contract?.smoke?.bootstrap?.guardResponseMarkerMayBeOmittedOnlyForPinnedCurrentVersion
+      === true
+    && contract?.smoke?.postDeployment?.exactGuardResponseMarkerRequired === true
+    && equal(contract?.runtimeGuardInjection?.plainTextSettings, [
+      "PROMETHEUS_UNATTENDED_SMOKE_GUARD",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE",
+      "PROMETHEUS_UNATTENDED_SMOKE_SERVICE_TOKEN_CLIENT_ID"
+    ])
+    && contract?.runtimeGuardInjection?.temporaryDirectoryMode === "0700"
+    && contract?.runtimeGuardInjection?.temporaryConfigMode === "0600"
+    && contract?.runtimeGuardInjection?.cleanupRequiredInFinally === true
     && contract?.smoke?.writeMethodsAllowed === false
     && contract?.smoke?.attemptedApplicationWritesRequired === 0
     && contract?.releaseBoundary?.deploymentAuthorized === false
@@ -866,13 +968,63 @@ function verifyV2OwnerAndGovernance() {
     throw new Error("Private Workflow v2 Infrastructure crossed the Overwatch boundary.");
   }
 
-  const recorded = new Map(
+  const historicalRecorded = new Map(
     governance.ownership.ownerEvidence.map(item => [item.path, item.sha256])
   );
   for (const [path, expected] of Object.entries(v2OwnerHashes)) {
-    if (sha256(readFileSync(resolve(root, path))) !== expected
-      || recorded.get(path) !== expected) {
+    const historical = execFileSync("/usr/bin/git", [
+      "show", `${v2OwnerRepairCommit}:${path}`
+    ], {
+      cwd: root,
+      encoding: null,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    if (sha256(historical) !== expected
+      || historicalRecorded.get(path) !== expected) {
       throw new Error(`Private Workflow v2 owner evidence drifted: ${path}`);
+    }
+  }
+
+  const bootstrapMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    v2BootstrapRepairCommit
+  ]).split("\n");
+  if (!equal(bootstrapMetadata, [
+    v2BootstrapRepairCommit,
+    v2BootstrapRepairParent,
+    v2BootstrapRepairTree,
+    infrastructureIdentity,
+    infrastructureIdentity,
+    "infrastructure: repair private deployment bootstrap guard"
+  ])) throw new Error("Private Workflow v2 bootstrap repair provenance drifted.");
+
+  const bootstrapPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", v2BootstrapRepairCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(bootstrapPaths, Object.keys(v2BootstrapRepairHashes))) {
+    throw new Error("Private Workflow v2 bootstrap repair path set drifted.");
+  }
+  if (bootstrapPaths.some(path => path.startsWith("overwatch/")
+    || path === "package.json")) {
+    throw new Error("Private Workflow v2 bootstrap repair crossed the Overwatch boundary.");
+  }
+
+  const bootstrapRecorded = new Map(
+    governance.ownership.bootstrapRepairEvidence
+      .map(item => [item.path, item.sha256])
+  );
+  for (const [path, expected] of Object.entries(v2BootstrapRepairHashes)) {
+    const committed = execFileSync("/usr/bin/git", [
+      "show", `${v2BootstrapRepairCommit}:${path}`
+    ], {
+      cwd: root,
+      encoding: null,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    if (sha256(committed) !== expected
+      || sha256(readFileSync(resolve(root, path))) !== expected
+      || bootstrapRecorded.get(path) !== expected) {
+      throw new Error(`Private Workflow v2 bootstrap evidence drifted: ${path}`);
     }
   }
 
@@ -1109,7 +1261,10 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
     firstDeploymentReady: false,
     immutableWorkflowV2SourceGoverned: true,
     immutableWorkflowV2QualificationPending: true,
-    immutableWorkflowV2DeploymentReady: false
+    immutableWorkflowV2DeploymentReady: true,
+    immutableWorkflowV2BootstrapRepairCommit: v2BootstrapRepairCommit,
+    protectedEnvironmentRequiredNamesPresent: true,
+    failedDeploymentRunReachedProductionMutation: false
   });
 }
 
