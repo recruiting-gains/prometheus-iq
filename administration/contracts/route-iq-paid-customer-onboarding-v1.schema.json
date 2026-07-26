@@ -1,0 +1,1208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prometheus.local/administration/contracts/route-iq-paid-customer-onboarding-v1.schema.json",
+  "title": "Route IQ Paid-Customer Onboarding Contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "contractVersion",
+    "configurationId",
+    "configurationRevision",
+    "company",
+    "operatingProfile",
+    "targeting",
+    "territory",
+    "access",
+    "sales",
+    "terminology",
+    "verification",
+    "dashboard",
+    "crm",
+    "supportContacts",
+    "governance",
+    "safety",
+    "lifecycle",
+    "provenance"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "route-iq-paid-customer-onboarding-v1"
+    },
+    "contractVersion": {
+      "const": "1.0.0"
+    },
+    "configurationId": {
+      "$ref": "#/$defs/opaqueId"
+    },
+    "configurationRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "company": {
+      "$ref": "#/$defs/company"
+    },
+    "operatingProfile": {
+      "$ref": "#/$defs/operatingProfile"
+    },
+    "targeting": {
+      "$ref": "#/$defs/targeting"
+    },
+    "territory": {
+      "$ref": "#/$defs/territory"
+    },
+    "access": {
+      "$ref": "#/$defs/access"
+    },
+    "sales": {
+      "$ref": "#/$defs/sales"
+    },
+    "terminology": {
+      "$ref": "#/$defs/terminology"
+    },
+    "verification": {
+      "$ref": "#/$defs/verification"
+    },
+    "dashboard": {
+      "$ref": "#/$defs/dashboard"
+    },
+    "crm": {
+      "$ref": "#/$defs/crm"
+    },
+    "supportContacts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/$defs/supportContact"
+      }
+    },
+    "governance": {
+      "$ref": "#/$defs/governance"
+    },
+    "safety": {
+      "$ref": "#/$defs/safety"
+    },
+    "lifecycle": {
+      "$ref": "#/$defs/lifecycle"
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    }
+  },
+  "$defs": {
+    "opaqueId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{2,127}$"
+    },
+    "semanticVersion": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*\\.[0-9]+\\.[0-9]+$"
+    },
+    "safeLabel": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[^<>\\{\\}`\\\\\\u0000-\\u001f\\u007f]+$"
+    },
+    "idArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/opaqueId"
+      }
+    },
+    "company": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "companyId",
+        "workspaceId",
+        "identityImmutable",
+        "legalName",
+        "displayName"
+      ],
+      "properties": {
+        "companyId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "workspaceId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "identityImmutable": {
+          "const": true
+        },
+        "legalName": {
+          "$ref": "#/$defs/safeLabel"
+        },
+        "displayName": {
+          "$ref": "#/$defs/safeLabel"
+        }
+      }
+    },
+    "operatingProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "industryTemplateId",
+        "industryTemplateVersion",
+        "operatingModelId",
+        "productsAndServices",
+        "targetCustomerProfile"
+      ],
+      "properties": {
+        "industryTemplateId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "industryTemplateVersion": {
+          "$ref": "#/$defs/semanticVersion"
+        },
+        "operatingModelId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "productsAndServices": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "offeringId",
+              "displayLabel",
+              "kind"
+            ],
+            "properties": {
+              "offeringId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "displayLabel": {
+                "$ref": "#/$defs/safeLabel"
+              },
+              "kind": {
+                "enum": [
+                  "PRODUCT",
+                  "SERVICE",
+                  "SUBSCRIPTION",
+                  "PROGRAM"
+                ]
+              }
+            }
+          }
+        },
+        "targetCustomerProfile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "profileId",
+            "displayLabel",
+            "description"
+          ],
+          "properties": {
+            "profileId": {
+              "$ref": "#/$defs/opaqueId"
+            },
+            "displayLabel": {
+              "$ref": "#/$defs/safeLabel"
+            },
+            "description": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            }
+          }
+        }
+      }
+    },
+    "targeting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "includedCategoryIds",
+        "excludedCategoryIds",
+        "excludedBusinessIds",
+        "targetingDefaultsAllowed",
+        "missingRulesBehavior",
+        "conflictBehavior"
+      ],
+      "properties": {
+        "includedCategoryIds": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/idArray"
+            },
+            {
+              "minItems": 1
+            }
+          ]
+        },
+        "excludedCategoryIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "excludedBusinessIds": {
+          "$ref": "#/$defs/idArray"
+        },
+        "targetingDefaultsAllowed": {
+          "const": false
+        },
+        "missingRulesBehavior": {
+          "const": "FAIL_CLOSED_CONFIGURATION_REQUIRED"
+        },
+        "conflictBehavior": {
+          "const": "FAIL_CLOSED_CONFLICT_REQUIRES_RESOLUTION"
+        }
+      }
+    },
+    "territory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "territoryId",
+        "displayLabel",
+        "timeZone",
+        "authorizedCities",
+        "authorizedZipCodes",
+        "travelLimit"
+      ],
+      "properties": {
+        "territoryId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "displayLabel": {
+          "$ref": "#/$defs/safeLabel"
+        },
+        "timeZone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "authorizedCities": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "cityId",
+              "name",
+              "stateCode"
+            ],
+            "properties": {
+              "cityId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "name": {
+                "$ref": "#/$defs/safeLabel"
+              },
+              "stateCode": {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              }
+            }
+          }
+        },
+        "authorizedZipCodes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9]{5}$"
+          }
+        },
+        "travelLimit": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "value",
+            "unit"
+          ],
+          "properties": {
+            "mode": {
+              "enum": [
+                "DISTANCE",
+                "TRAVEL_TIME"
+              ]
+            },
+            "value": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "unit": {
+              "enum": [
+                "MILES",
+                "MINUTES"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "scheduleWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "type": "string",
+          "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+        },
+        "end": {
+          "type": "string",
+          "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+        }
+      }
+    },
+    "access": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "roles",
+        "representativeSchedules",
+        "unknownRoleBehavior",
+        "crossWorkspaceAccessAllowed"
+      ],
+      "properties": {
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "roleId",
+              "displayLabel",
+              "permissions"
+            ],
+            "properties": {
+              "roleId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "displayLabel": {
+                "$ref": "#/$defs/safeLabel"
+              },
+              "permissions": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/idArray"
+                  },
+                  {
+                    "minItems": 1
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "representativeSchedules": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "scheduleId",
+              "roleIds",
+              "timeZone",
+              "weeklySchedule",
+              "operatingConstraints"
+            ],
+            "properties": {
+              "scheduleId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "roleIds": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/idArray"
+                  },
+                  {
+                    "minItems": 1
+                  }
+                ]
+              },
+              "timeZone": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "weeklySchedule": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 7,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "day",
+                    "windows"
+                  ],
+                  "properties": {
+                    "day": {
+                      "enum": [
+                        "MONDAY",
+                        "TUESDAY",
+                        "WEDNESDAY",
+                        "THURSDAY",
+                        "FRIDAY",
+                        "SATURDAY",
+                        "SUNDAY"
+                      ]
+                    },
+                    "windows": {
+                      "type": "array",
+                      "minItems": 1,
+                      "maxItems": 8,
+                      "items": {
+                        "$ref": "#/$defs/scheduleWindow"
+                      }
+                    }
+                  }
+                }
+              },
+              "operatingConstraints": {
+                "type": "array",
+                "maxItems": 30,
+                "items": {
+                  "$ref": "#/$defs/safeLabel"
+                }
+              }
+            }
+          }
+        },
+        "unknownRoleBehavior": {
+          "const": "DENY"
+        },
+        "crossWorkspaceAccessAllowed": {
+          "const": false
+        }
+      }
+    },
+    "goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goalId",
+        "metricId",
+        "target",
+        "period"
+      ],
+      "properties": {
+        "goalId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "metricId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "target": {
+          "type": "number",
+          "minimum": 0
+        },
+        "period": {
+          "enum": [
+            "DAY",
+            "WEEK",
+            "MONTH",
+            "QUARTER"
+          ]
+        }
+      }
+    },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stageId",
+        "displayLabel",
+        "sequence",
+        "terminal"
+      ],
+      "properties": {
+        "stageId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "displayLabel": {
+          "$ref": "#/$defs/safeLabel"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "terminal": {
+          "type": "boolean"
+        }
+      }
+    },
+    "sales": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goals",
+        "outcomes",
+        "conversionEvents",
+        "processStages",
+        "followUpStages"
+      ],
+      "properties": {
+        "goals": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/goal"
+          }
+        },
+        "outcomes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "outcomeId",
+              "displayLabel",
+              "classification",
+              "conversionEventId"
+            ],
+            "properties": {
+              "outcomeId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "displayLabel": {
+                "$ref": "#/$defs/safeLabel"
+              },
+              "classification": {
+                "enum": [
+                  "OBSERVATION",
+                  "PROGRESS",
+                  "SUCCESS",
+                  "EXCLUSION",
+                  "FOLLOW_UP"
+                ]
+              },
+              "conversionEventId": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/opaqueId"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "conversionEvents": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "conversionEventId",
+              "metricId",
+              "displayLabel"
+            ],
+            "properties": {
+              "conversionEventId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "metricId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "displayLabel": {
+                "$ref": "#/$defs/safeLabel"
+              }
+            }
+          }
+        },
+        "processStages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/stage"
+          }
+        },
+        "followUpStages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/stage"
+          }
+        }
+      }
+    },
+    "term": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "termId",
+        "singular",
+        "plural",
+        "fallbackSingular",
+        "fallbackPlural"
+      ],
+      "properties": {
+        "termId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "singular": {
+          "$ref": "#/$defs/safeLabel"
+        },
+        "plural": {
+          "$ref": "#/$defs/safeLabel"
+        },
+        "fallbackSingular": {
+          "$ref": "#/$defs/safeLabel"
+        },
+        "fallbackPlural": {
+          "$ref": "#/$defs/safeLabel"
+        }
+      }
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metricId",
+        "semanticVersion",
+        "displayTermId",
+        "aggregation",
+        "description",
+        "historyIdentity"
+      ],
+      "properties": {
+        "metricId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "semanticVersion": {
+          "$ref": "#/$defs/semanticVersion"
+        },
+        "displayTermId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "aggregation": {
+          "enum": [
+            "COUNT",
+            "RATE",
+            "SUM",
+            "AVERAGE",
+            "DURATION"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 320
+        },
+        "historyIdentity": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 160
+        }
+      }
+    },
+    "terminology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "templateId",
+        "templateVersion",
+        "terms",
+        "metrics",
+        "fallbackPolicy",
+        "historyPolicy"
+      ],
+      "properties": {
+        "templateId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "templateVersion": {
+          "$ref": "#/$defs/semanticVersion"
+        },
+        "terms": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/term"
+          }
+        },
+        "metrics": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/metric"
+          }
+        },
+        "fallbackPolicy": {
+          "const": "CONTROLLED_INTERNAL_FALLBACKS_ONLY"
+        },
+        "historyPolicy": {
+          "const": "IMMUTABLE_METRIC_ID_AND_SEMANTIC_VERSION"
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verifiedIdentityRequired",
+        "physicalAddressRequired",
+        "authorizedTerritoryRequired",
+        "businessCategoryRequired",
+        "currentOperatingStatusRequired",
+        "operatingHoursRequired",
+        "verificationSourceRequired",
+        "verificationTimestampRequired",
+        "duplicateResolutionRequired",
+        "targetProfileMatchRequired",
+        "recommendationReasonRequired",
+        "evidenceQualityRequired",
+        "freshnessCeilingHours",
+        "missingEvidenceBehavior",
+        "staleEvidenceBehavior",
+        "conflictingEvidenceBehavior",
+        "providerFailureBehavior",
+        "closedBusinessBehavior",
+        "outsideTerritoryBehavior",
+        "excludedBusinessBehavior",
+        "duplicateBusinessBehavior"
+      ],
+      "properties": {
+        "verifiedIdentityRequired": {
+          "const": true
+        },
+        "physicalAddressRequired": {
+          "const": true
+        },
+        "authorizedTerritoryRequired": {
+          "const": true
+        },
+        "businessCategoryRequired": {
+          "const": true
+        },
+        "currentOperatingStatusRequired": {
+          "const": true
+        },
+        "operatingHoursRequired": {
+          "const": true
+        },
+        "verificationSourceRequired": {
+          "const": true
+        },
+        "verificationTimestampRequired": {
+          "const": true
+        },
+        "duplicateResolutionRequired": {
+          "const": true
+        },
+        "targetProfileMatchRequired": {
+          "const": true
+        },
+        "recommendationReasonRequired": {
+          "const": true
+        },
+        "evidenceQualityRequired": {
+          "const": true
+        },
+        "freshnessCeilingHours": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "missingEvidenceBehavior": {
+          "const": "INELIGIBLE"
+        },
+        "staleEvidenceBehavior": {
+          "const": "INELIGIBLE"
+        },
+        "conflictingEvidenceBehavior": {
+          "const": "INELIGIBLE"
+        },
+        "providerFailureBehavior": {
+          "const": "INELIGIBLE_PRESERVE_PRIOR_EVIDENCE"
+        },
+        "closedBusinessBehavior": {
+          "const": "INELIGIBLE"
+        },
+        "outsideTerritoryBehavior": {
+          "const": "INELIGIBLE"
+        },
+        "excludedBusinessBehavior": {
+          "const": "INELIGIBLE"
+        },
+        "duplicateBusinessBehavior": {
+          "const": "INELIGIBLE_UNTIL_RESOLVED"
+        }
+      }
+    },
+    "dashboard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dashboardProfileId",
+        "metricIds",
+        "cardFieldIds",
+        "capabilityIds",
+        "missingConfigurationState",
+        "unsupportedFieldBehavior"
+      ],
+      "properties": {
+        "dashboardProfileId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "metricIds": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/idArray"
+            },
+            {
+              "minItems": 1
+            }
+          ]
+        },
+        "cardFieldIds": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/idArray"
+            },
+            {
+              "minItems": 1
+            }
+          ]
+        },
+        "capabilityIds": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/idArray"
+            },
+            {
+              "minItems": 1
+            }
+          ]
+        },
+        "missingConfigurationState": {
+          "const": "NO_PAID_CUSTOMER_CONFIGURATION_SELECTED"
+        },
+        "unsupportedFieldBehavior": {
+          "const": "HIDE"
+        }
+      }
+    },
+    "crm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workflowId",
+        "processStageIds",
+        "followUpStageIds",
+        "outcomeMappings",
+        "productionMutationAuthorized",
+        "crossWorkspaceRecordsAllowed"
+      ],
+      "properties": {
+        "workflowId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "processStageIds": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/idArray"
+            },
+            {
+              "minItems": 1
+            }
+          ]
+        },
+        "followUpStageIds": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/idArray"
+            },
+            {
+              "minItems": 1
+            }
+          ]
+        },
+        "outcomeMappings": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "outcomeId",
+              "processStageId",
+              "followUpStageId"
+            ],
+            "properties": {
+              "outcomeId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "processStageId": {
+                "$ref": "#/$defs/opaqueId"
+              },
+              "followUpStageId": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/opaqueId"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "productionMutationAuthorized": {
+          "const": false
+        },
+        "crossWorkspaceRecordsAllowed": {
+          "const": false
+        }
+      }
+    },
+    "supportContact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contactId",
+        "contactType",
+        "displayLabel",
+        "contactReference",
+        "active"
+      ],
+      "properties": {
+        "contactId": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "contactType": {
+          "enum": [
+            "OPERATIONAL",
+            "SECURITY",
+            "TECHNICAL",
+            "BILLING"
+          ]
+        },
+        "displayLabel": {
+          "$ref": "#/$defs/safeLabel"
+        },
+        "contactReference": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "active": {
+          "type": "boolean"
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "retentionMonths",
+        "customerMayShortenRetention",
+        "customerMayExpandRetention",
+        "legalHoldSupported",
+        "dispositionMode",
+        "auditMode"
+      ],
+      "properties": {
+        "retentionMonths": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18
+        },
+        "customerMayShortenRetention": {
+          "const": true
+        },
+        "customerMayExpandRetention": {
+          "const": false
+        },
+        "legalHoldSupported": {
+          "const": true
+        },
+        "dispositionMode": {
+          "const": "APPEND_ONLY_AUDITABLE"
+        },
+        "auditMode": {
+          "const": "COMPANY_WORKSPACE_SCOPED"
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "customerActivation",
+        "activationAuthorizationRef",
+        "collection",
+        "activeCohorts",
+        "recommendationInfluence",
+        "providerRefresh",
+        "scheduler"
+      ],
+      "properties": {
+        "customerActivation": {
+          "enum": [
+            "OFF",
+            "ON"
+          ]
+        },
+        "activationAuthorizationRef": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "collection": {
+          "const": "OFF"
+        },
+        "activeCohorts": {
+          "const": 0
+        },
+        "recommendationInfluence": {
+          "const": "OFF"
+        },
+        "providerRefresh": {
+          "const": "OFF"
+        },
+        "scheduler": {
+          "const": "OFF"
+        }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "revision",
+        "lastTransitionAt",
+        "approvalReference",
+        "failure"
+      ],
+      "properties": {
+        "state": {
+          "enum": [
+            "DRAFT",
+            "VALIDATION_FAILED",
+            "VALIDATED",
+            "PREVIEW_READY",
+            "AWAITING_APPROVAL",
+            "PROVISIONING",
+            "PROVISIONING_FAILED",
+            "READY_FOR_ACTIVATION",
+            "ACTIVE",
+            "SUSPENDED",
+            "OFFBOARDED"
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "lastTransitionAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "approvalReference": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "failure": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "code",
+                "recoveryAction"
+              ],
+              "properties": {
+                "code": {
+                  "$ref": "#/$defs/opaqueId"
+                },
+                "recoveryAction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 320
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority",
+        "sourceSystem",
+        "sourceReferences",
+        "createdAt",
+        "createdByReference",
+        "configurationIdentity"
+      ],
+      "properties": {
+        "authority": {
+          "const": "prometheus_administration"
+        },
+        "sourceSystem": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "sourceReferences": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 320
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "createdByReference": {
+          "$ref": "#/$defs/opaqueId"
+        },
+        "configurationIdentity": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200
+        }
+      }
+    }
+  }
+}

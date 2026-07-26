@@ -1,0 +1,873 @@
+{
+  "fixtureVersion": "route-iq-paid-customer-synthetic-fixtures-v1.0.0",
+  "classification": "SYNTHETIC_NONCUSTOMER_CONFIGURATION_ONLY",
+  "productionUseAuthorized": false,
+  "configurations": [
+    {
+      "schemaVersion": "route-iq-paid-customer-onboarding-v1",
+      "contractVersion": "1.0.0",
+      "configurationId": "config_aster_security_services_v1",
+      "configurationRevision": 1,
+      "company": {
+        "companyId": "company_aster_security_synthetic",
+        "workspaceId": "workspace_aster_security_synthetic",
+        "identityImmutable": true,
+        "legalName": "Aster Security Services Synthetic LLC",
+        "displayName": "Aster Security Services"
+      },
+      "operatingProfile": {
+        "industryTemplateId": "security_services",
+        "industryTemplateVersion": "1.0.0",
+        "operatingModelId": "territory_business_development",
+        "productsAndServices": [
+          {
+            "offeringId": "facility_risk_assessment",
+            "displayLabel": "Facility risk assessment",
+            "kind": "SERVICE"
+          },
+          {
+            "offeringId": "managed_security_program",
+            "displayLabel": "Managed security program",
+            "kind": "SUBSCRIPTION"
+          }
+        ],
+        "targetCustomerProfile": {
+          "profileId": "commercial_facility_operators",
+          "displayLabel": "Commercial facility operators",
+          "description": "Synthetic commercial facilities with an authorized need for security assessments."
+        }
+      },
+      "targeting": {
+        "includedCategoryIds": [
+          "commercial_property_management",
+          "light_industrial_facility"
+        ],
+        "excludedCategoryIds": [
+          "private_residence",
+          "public_school"
+        ],
+        "excludedBusinessIds": [],
+        "targetingDefaultsAllowed": false,
+        "missingRulesBehavior": "FAIL_CLOSED_CONFIGURATION_REQUIRED",
+        "conflictBehavior": "FAIL_CLOSED_CONFLICT_REQUIRES_RESOLUTION"
+      },
+      "territory": {
+        "territoryId": "aster_central_territory",
+        "displayLabel": "Aster Central Territory",
+        "timeZone": "America/Chicago",
+        "authorizedCities": [
+          {
+            "cityId": "cedar_plains",
+            "name": "Cedar Plains",
+            "stateCode": "TX"
+          },
+          {
+            "cityId": "lake_junction",
+            "name": "Lake Junction",
+            "stateCode": "TX"
+          }
+        ],
+        "authorizedZipCodes": [
+          "75001",
+          "75002",
+          "75006"
+        ],
+        "travelLimit": {
+          "mode": "TRAVEL_TIME",
+          "value": 45,
+          "unit": "MINUTES"
+        }
+      },
+      "access": {
+        "roles": [
+          {
+            "roleId": "security_field_advisor",
+            "displayLabel": "Field advisor",
+            "permissions": [
+              "view_assigned_territory",
+              "record_assessment",
+              "record_follow_up"
+            ]
+          },
+          {
+            "roleId": "security_operations_manager",
+            "displayLabel": "Operations manager",
+            "permissions": [
+              "view_company_dashboard",
+              "manage_territory_assignments",
+              "review_assessment_outcomes"
+            ]
+          }
+        ],
+        "representativeSchedules": [
+          {
+            "scheduleId": "aster_standard_field_week",
+            "roleIds": [
+              "security_field_advisor"
+            ],
+            "timeZone": "America/Chicago",
+            "weeklySchedule": [
+              {
+                "day": "MONDAY",
+                "windows": [
+                  {
+                    "start": "08:00",
+                    "end": "17:00"
+                  }
+                ]
+              },
+              {
+                "day": "TUESDAY",
+                "windows": [
+                  {
+                    "start": "08:00",
+                    "end": "17:00"
+                  }
+                ]
+              },
+              {
+                "day": "WEDNESDAY",
+                "windows": [
+                  {
+                    "start": "08:00",
+                    "end": "17:00"
+                  }
+                ]
+              },
+              {
+                "day": "THURSDAY",
+                "windows": [
+                  {
+                    "start": "08:00",
+                    "end": "17:00"
+                  }
+                ]
+              },
+              {
+                "day": "FRIDAY",
+                "windows": [
+                  {
+                    "start": "08:00",
+                    "end": "15:00"
+                  }
+                ]
+              }
+            ],
+            "operatingConstraints": [
+              "Assessments require a verified facility access window."
+            ]
+          }
+        ],
+        "unknownRoleBehavior": "DENY",
+        "crossWorkspaceAccessAllowed": false
+      },
+      "sales": {
+        "goals": [
+          {
+            "goalId": "weekly_assessment_goal",
+            "metricId": "completed_assessments",
+            "target": 12,
+            "period": "WEEK"
+          },
+          {
+            "goalId": "monthly_contract_goal",
+            "metricId": "signed_service_contracts",
+            "target": 4,
+            "period": "MONTH"
+          }
+        ],
+        "outcomes": [
+          {
+            "outcomeId": "assessment_completed",
+            "displayLabel": "Assessment completed",
+            "classification": "PROGRESS",
+            "conversionEventId": "assessment_completion"
+          },
+          {
+            "outcomeId": "proposal_requested",
+            "displayLabel": "Proposal requested",
+            "classification": "FOLLOW_UP",
+            "conversionEventId": null
+          },
+          {
+            "outcomeId": "service_contract_signed",
+            "displayLabel": "Service contract signed",
+            "classification": "SUCCESS",
+            "conversionEventId": "service_contract_signature"
+          }
+        ],
+        "conversionEvents": [
+          {
+            "conversionEventId": "assessment_completion",
+            "metricId": "completed_assessments",
+            "displayLabel": "Completed assessment"
+          },
+          {
+            "conversionEventId": "service_contract_signature",
+            "metricId": "signed_service_contracts",
+            "displayLabel": "Signed service contract"
+          }
+        ],
+        "processStages": [
+          {
+            "stageId": "facility_identified",
+            "displayLabel": "Facility identified",
+            "sequence": 1,
+            "terminal": false
+          },
+          {
+            "stageId": "assessment_scheduled",
+            "displayLabel": "Assessment scheduled",
+            "sequence": 2,
+            "terminal": false
+          },
+          {
+            "stageId": "contract_complete",
+            "displayLabel": "Contract complete",
+            "sequence": 3,
+            "terminal": true
+          }
+        ],
+        "followUpStages": [
+          {
+            "stageId": "proposal_follow_up",
+            "displayLabel": "Proposal follow-up",
+            "sequence": 1,
+            "terminal": false
+          },
+          {
+            "stageId": "follow_up_complete",
+            "displayLabel": "Follow-up complete",
+            "sequence": 2,
+            "terminal": true
+          }
+        ]
+      },
+      "terminology": {
+        "templateId": "security_services_terms",
+        "templateVersion": "1.0.0",
+        "terms": [
+          {
+            "termId": "business",
+            "singular": "facility",
+            "plural": "facilities",
+            "fallbackSingular": "business",
+            "fallbackPlural": "businesses"
+          },
+          {
+            "termId": "manager",
+            "singular": "operations manager",
+            "plural": "operations managers",
+            "fallbackSingular": "manager",
+            "fallbackPlural": "managers"
+          },
+          {
+            "termId": "representative",
+            "singular": "field advisor",
+            "plural": "field advisors",
+            "fallbackSingular": "representative",
+            "fallbackPlural": "representatives"
+          },
+          {
+            "termId": "visit",
+            "singular": "assessment",
+            "plural": "assessments",
+            "fallbackSingular": "visit",
+            "fallbackPlural": "visits"
+          },
+          {
+            "termId": "outcome",
+            "singular": "contract",
+            "plural": "contracts",
+            "fallbackSingular": "outcome",
+            "fallbackPlural": "outcomes"
+          },
+          {
+            "termId": "follow_up",
+            "singular": "proposal follow-up",
+            "plural": "proposal follow-ups",
+            "fallbackSingular": "follow-up",
+            "fallbackPlural": "follow-ups"
+          }
+        ],
+        "metrics": [
+          {
+            "metricId": "completed_assessments",
+            "semanticVersion": "1.0.0",
+            "displayTermId": "visit",
+            "aggregation": "COUNT",
+            "description": "Count of governed facility assessments completed.",
+            "historyIdentity": "completed_assessments@1.0.0"
+          },
+          {
+            "metricId": "signed_service_contracts",
+            "semanticVersion": "1.0.0",
+            "displayTermId": "outcome",
+            "aggregation": "COUNT",
+            "description": "Count of governed service contracts signed.",
+            "historyIdentity": "signed_service_contracts@1.0.0"
+          }
+        ],
+        "fallbackPolicy": "CONTROLLED_INTERNAL_FALLBACKS_ONLY",
+        "historyPolicy": "IMMUTABLE_METRIC_ID_AND_SEMANTIC_VERSION"
+      },
+      "verification": {
+        "verifiedIdentityRequired": true,
+        "physicalAddressRequired": true,
+        "authorizedTerritoryRequired": true,
+        "businessCategoryRequired": true,
+        "currentOperatingStatusRequired": true,
+        "operatingHoursRequired": true,
+        "verificationSourceRequired": true,
+        "verificationTimestampRequired": true,
+        "duplicateResolutionRequired": true,
+        "targetProfileMatchRequired": true,
+        "recommendationReasonRequired": true,
+        "evidenceQualityRequired": true,
+        "freshnessCeilingHours": 24,
+        "missingEvidenceBehavior": "INELIGIBLE",
+        "staleEvidenceBehavior": "INELIGIBLE",
+        "conflictingEvidenceBehavior": "INELIGIBLE",
+        "providerFailureBehavior": "INELIGIBLE_PRESERVE_PRIOR_EVIDENCE",
+        "closedBusinessBehavior": "INELIGIBLE",
+        "outsideTerritoryBehavior": "INELIGIBLE",
+        "excludedBusinessBehavior": "INELIGIBLE",
+        "duplicateBusinessBehavior": "INELIGIBLE_UNTIL_RESOLVED"
+      },
+      "dashboard": {
+        "dashboardProfileId": "aster_security_dashboard",
+        "metricIds": [
+          "completed_assessments",
+          "signed_service_contracts"
+        ],
+        "cardFieldIds": [
+          "business_name",
+          "operating_hours",
+          "verification_state",
+          "assessment_status"
+        ],
+        "capabilityIds": [
+          "view_assigned_territory",
+          "record_assessment",
+          "record_follow_up"
+        ],
+        "missingConfigurationState": "NO_PAID_CUSTOMER_CONFIGURATION_SELECTED",
+        "unsupportedFieldBehavior": "HIDE"
+      },
+      "crm": {
+        "workflowId": "aster_security_crm_workflow",
+        "processStageIds": [
+          "facility_identified",
+          "assessment_scheduled",
+          "contract_complete"
+        ],
+        "followUpStageIds": [
+          "proposal_follow_up",
+          "follow_up_complete"
+        ],
+        "outcomeMappings": [
+          {
+            "outcomeId": "assessment_completed",
+            "processStageId": "assessment_scheduled",
+            "followUpStageId": null
+          },
+          {
+            "outcomeId": "proposal_requested",
+            "processStageId": "assessment_scheduled",
+            "followUpStageId": "proposal_follow_up"
+          },
+          {
+            "outcomeId": "service_contract_signed",
+            "processStageId": "contract_complete",
+            "followUpStageId": "follow_up_complete"
+          }
+        ],
+        "productionMutationAuthorized": false,
+        "crossWorkspaceRecordsAllowed": false
+      },
+      "supportContacts": [
+        {
+          "contactId": "aster_operations_contact",
+          "contactType": "OPERATIONAL",
+          "displayLabel": "Synthetic operations contact",
+          "contactReference": "contact_ref_aster_operations",
+          "active": true
+        },
+        {
+          "contactId": "aster_security_contact",
+          "contactType": "SECURITY",
+          "displayLabel": "Synthetic security contact",
+          "contactReference": "contact_ref_aster_security",
+          "active": true
+        }
+      ],
+      "governance": {
+        "retentionMonths": 18,
+        "customerMayShortenRetention": true,
+        "customerMayExpandRetention": false,
+        "legalHoldSupported": true,
+        "dispositionMode": "APPEND_ONLY_AUDITABLE",
+        "auditMode": "COMPANY_WORKSPACE_SCOPED"
+      },
+      "safety": {
+        "customerActivation": "OFF",
+        "activationAuthorizationRef": null,
+        "collection": "OFF",
+        "activeCohorts": 0,
+        "recommendationInfluence": "OFF",
+        "providerRefresh": "OFF",
+        "scheduler": "OFF"
+      },
+      "lifecycle": {
+        "state": "VALIDATED",
+        "revision": 2,
+        "lastTransitionAt": "2026-07-26T12:00:00.000Z",
+        "approvalReference": null,
+        "failure": null
+      },
+      "provenance": {
+        "authority": "prometheus_administration",
+        "sourceSystem": "synthetic_contract_fixture",
+        "sourceReferences": [
+          "route-iq-paid-customer-synthetic-fixtures-v1"
+        ],
+        "createdAt": "2026-07-26T12:00:00.000Z",
+        "createdByReference": "synthetic_administration_owner",
+        "configurationIdentity": "config_aster_security_services_v1@1"
+      }
+    },
+    {
+      "schemaVersion": "route-iq-paid-customer-onboarding-v1",
+      "contractVersion": "1.0.0",
+      "configurationId": "config_harborline_distribution_v1",
+      "configurationRevision": 1,
+      "company": {
+        "companyId": "company_harborline_distribution_synthetic",
+        "workspaceId": "workspace_harborline_distribution_synthetic",
+        "identityImmutable": true,
+        "legalName": "Harborline Commercial Supply Synthetic Inc",
+        "displayName": "Harborline Commercial Supply"
+      },
+      "operatingProfile": {
+        "industryTemplateId": "commercial_distribution",
+        "industryTemplateVersion": "1.0.0",
+        "operatingModelId": "territory_product_sales",
+        "productsAndServices": [
+          {
+            "offeringId": "commercial_cleaning_supplies",
+            "displayLabel": "Commercial cleaning supplies",
+            "kind": "PRODUCT"
+          },
+          {
+            "offeringId": "inventory_replenishment_service",
+            "displayLabel": "Inventory replenishment service",
+            "kind": "SERVICE"
+          }
+        ],
+        "targetCustomerProfile": {
+          "profileId": "regional_commercial_buyers",
+          "displayLabel": "Regional commercial buyers",
+          "description": "Synthetic commercial buyers with qualified recurring supply demand."
+        }
+      },
+      "targeting": {
+        "includedCategoryIds": [
+          "hospitality_buyer",
+          "commercial_facility_buyer"
+        ],
+        "excludedCategoryIds": [
+          "consumer_household",
+          "unauthorized_reseller"
+        ],
+        "excludedBusinessIds": [],
+        "targetingDefaultsAllowed": false,
+        "missingRulesBehavior": "FAIL_CLOSED_CONFIGURATION_REQUIRED",
+        "conflictBehavior": "FAIL_CLOSED_CONFLICT_REQUIRES_RESOLUTION"
+      },
+      "territory": {
+        "territoryId": "harborline_coastal_territory",
+        "displayLabel": "Harborline Coastal Territory",
+        "timeZone": "America/New_York",
+        "authorizedCities": [
+          {
+            "cityId": "port_haven",
+            "name": "Port Haven",
+            "stateCode": "GA"
+          },
+          {
+            "cityId": "marsh_point",
+            "name": "Marsh Point",
+            "stateCode": "GA"
+          }
+        ],
+        "authorizedZipCodes": [
+          "31401",
+          "31404",
+          "31405"
+        ],
+        "travelLimit": {
+          "mode": "DISTANCE",
+          "value": 35,
+          "unit": "MILES"
+        }
+      },
+      "access": {
+        "roles": [
+          {
+            "roleId": "distribution_territory_specialist",
+            "displayLabel": "Territory specialist",
+            "permissions": [
+              "view_assigned_territory",
+              "record_buyer_visit",
+              "record_purchase_order"
+            ]
+          },
+          {
+            "roleId": "distribution_regional_manager",
+            "displayLabel": "Regional manager",
+            "permissions": [
+              "view_company_dashboard",
+              "manage_territory_assignments",
+              "review_purchase_order_outcomes"
+            ]
+          }
+        ],
+        "representativeSchedules": [
+          {
+            "scheduleId": "harborline_standard_sales_week",
+            "roleIds": [
+              "distribution_territory_specialist"
+            ],
+            "timeZone": "America/New_York",
+            "weeklySchedule": [
+              {
+                "day": "MONDAY",
+                "windows": [
+                  {
+                    "start": "07:30",
+                    "end": "16:30"
+                  }
+                ]
+              },
+              {
+                "day": "TUESDAY",
+                "windows": [
+                  {
+                    "start": "07:30",
+                    "end": "16:30"
+                  }
+                ]
+              },
+              {
+                "day": "WEDNESDAY",
+                "windows": [
+                  {
+                    "start": "07:30",
+                    "end": "16:30"
+                  }
+                ]
+              },
+              {
+                "day": "THURSDAY",
+                "windows": [
+                  {
+                    "start": "07:30",
+                    "end": "16:30"
+                  }
+                ]
+              },
+              {
+                "day": "FRIDAY",
+                "windows": [
+                  {
+                    "start": "07:30",
+                    "end": "14:30"
+                  }
+                ]
+              }
+            ],
+            "operatingConstraints": [
+              "Buyer visits require verified receiving or purchasing hours."
+            ]
+          }
+        ],
+        "unknownRoleBehavior": "DENY",
+        "crossWorkspaceAccessAllowed": false
+      },
+      "sales": {
+        "goals": [
+          {
+            "goalId": "weekly_buyer_visit_goal",
+            "metricId": "qualified_buyer_visits",
+            "target": 18,
+            "period": "WEEK"
+          },
+          {
+            "goalId": "monthly_purchase_order_goal",
+            "metricId": "purchase_orders_received",
+            "target": 10,
+            "period": "MONTH"
+          }
+        ],
+        "outcomes": [
+          {
+            "outcomeId": "buyer_visit_completed",
+            "displayLabel": "Buyer visit completed",
+            "classification": "PROGRESS",
+            "conversionEventId": "qualified_buyer_visit"
+          },
+          {
+            "outcomeId": "sample_follow_up_requested",
+            "displayLabel": "Sample follow-up requested",
+            "classification": "FOLLOW_UP",
+            "conversionEventId": null
+          },
+          {
+            "outcomeId": "purchase_order_received",
+            "displayLabel": "Purchase order received",
+            "classification": "SUCCESS",
+            "conversionEventId": "purchase_order_receipt"
+          }
+        ],
+        "conversionEvents": [
+          {
+            "conversionEventId": "qualified_buyer_visit",
+            "metricId": "qualified_buyer_visits",
+            "displayLabel": "Qualified buyer visit"
+          },
+          {
+            "conversionEventId": "purchase_order_receipt",
+            "metricId": "purchase_orders_received",
+            "displayLabel": "Purchase order received"
+          }
+        ],
+        "processStages": [
+          {
+            "stageId": "buyer_identified",
+            "displayLabel": "Buyer identified",
+            "sequence": 1,
+            "terminal": false
+          },
+          {
+            "stageId": "sample_delivered",
+            "displayLabel": "Sample delivered",
+            "sequence": 2,
+            "terminal": false
+          },
+          {
+            "stageId": "order_received",
+            "displayLabel": "Order received",
+            "sequence": 3,
+            "terminal": true
+          }
+        ],
+        "followUpStages": [
+          {
+            "stageId": "sample_review_follow_up",
+            "displayLabel": "Sample review follow-up",
+            "sequence": 1,
+            "terminal": false
+          },
+          {
+            "stageId": "order_follow_up_complete",
+            "displayLabel": "Order follow-up complete",
+            "sequence": 2,
+            "terminal": true
+          }
+        ]
+      },
+      "terminology": {
+        "templateId": "commercial_distribution_terms",
+        "templateVersion": "1.0.0",
+        "terms": [
+          {
+            "termId": "business",
+            "singular": "buyer",
+            "plural": "buyers",
+            "fallbackSingular": "business",
+            "fallbackPlural": "businesses"
+          },
+          {
+            "termId": "manager",
+            "singular": "regional manager",
+            "plural": "regional managers",
+            "fallbackSingular": "manager",
+            "fallbackPlural": "managers"
+          },
+          {
+            "termId": "representative",
+            "singular": "territory specialist",
+            "plural": "territory specialists",
+            "fallbackSingular": "representative",
+            "fallbackPlural": "representatives"
+          },
+          {
+            "termId": "visit",
+            "singular": "buyer visit",
+            "plural": "buyer visits",
+            "fallbackSingular": "visit",
+            "fallbackPlural": "visits"
+          },
+          {
+            "termId": "outcome",
+            "singular": "purchase order",
+            "plural": "purchase orders",
+            "fallbackSingular": "outcome",
+            "fallbackPlural": "outcomes"
+          },
+          {
+            "termId": "follow_up",
+            "singular": "sample follow-up",
+            "plural": "sample follow-ups",
+            "fallbackSingular": "follow-up",
+            "fallbackPlural": "follow-ups"
+          }
+        ],
+        "metrics": [
+          {
+            "metricId": "qualified_buyer_visits",
+            "semanticVersion": "1.0.0",
+            "displayTermId": "visit",
+            "aggregation": "COUNT",
+            "description": "Count of governed visits to qualified commercial buyers.",
+            "historyIdentity": "qualified_buyer_visits@1.0.0"
+          },
+          {
+            "metricId": "purchase_orders_received",
+            "semanticVersion": "1.0.0",
+            "displayTermId": "outcome",
+            "aggregation": "COUNT",
+            "description": "Count of governed purchase orders received.",
+            "historyIdentity": "purchase_orders_received@1.0.0"
+          }
+        ],
+        "fallbackPolicy": "CONTROLLED_INTERNAL_FALLBACKS_ONLY",
+        "historyPolicy": "IMMUTABLE_METRIC_ID_AND_SEMANTIC_VERSION"
+      },
+      "verification": {
+        "verifiedIdentityRequired": true,
+        "physicalAddressRequired": true,
+        "authorizedTerritoryRequired": true,
+        "businessCategoryRequired": true,
+        "currentOperatingStatusRequired": true,
+        "operatingHoursRequired": true,
+        "verificationSourceRequired": true,
+        "verificationTimestampRequired": true,
+        "duplicateResolutionRequired": true,
+        "targetProfileMatchRequired": true,
+        "recommendationReasonRequired": true,
+        "evidenceQualityRequired": true,
+        "freshnessCeilingHours": 24,
+        "missingEvidenceBehavior": "INELIGIBLE",
+        "staleEvidenceBehavior": "INELIGIBLE",
+        "conflictingEvidenceBehavior": "INELIGIBLE",
+        "providerFailureBehavior": "INELIGIBLE_PRESERVE_PRIOR_EVIDENCE",
+        "closedBusinessBehavior": "INELIGIBLE",
+        "outsideTerritoryBehavior": "INELIGIBLE",
+        "excludedBusinessBehavior": "INELIGIBLE",
+        "duplicateBusinessBehavior": "INELIGIBLE_UNTIL_RESOLVED"
+      },
+      "dashboard": {
+        "dashboardProfileId": "harborline_distribution_dashboard",
+        "metricIds": [
+          "qualified_buyer_visits",
+          "purchase_orders_received"
+        ],
+        "cardFieldIds": [
+          "business_name",
+          "operating_hours",
+          "verification_state",
+          "buyer_status"
+        ],
+        "capabilityIds": [
+          "view_assigned_territory",
+          "record_buyer_visit",
+          "record_purchase_order"
+        ],
+        "missingConfigurationState": "NO_PAID_CUSTOMER_CONFIGURATION_SELECTED",
+        "unsupportedFieldBehavior": "HIDE"
+      },
+      "crm": {
+        "workflowId": "harborline_distribution_crm_workflow",
+        "processStageIds": [
+          "buyer_identified",
+          "sample_delivered",
+          "order_received"
+        ],
+        "followUpStageIds": [
+          "sample_review_follow_up",
+          "order_follow_up_complete"
+        ],
+        "outcomeMappings": [
+          {
+            "outcomeId": "buyer_visit_completed",
+            "processStageId": "sample_delivered",
+            "followUpStageId": null
+          },
+          {
+            "outcomeId": "sample_follow_up_requested",
+            "processStageId": "sample_delivered",
+            "followUpStageId": "sample_review_follow_up"
+          },
+          {
+            "outcomeId": "purchase_order_received",
+            "processStageId": "order_received",
+            "followUpStageId": "order_follow_up_complete"
+          }
+        ],
+        "productionMutationAuthorized": false,
+        "crossWorkspaceRecordsAllowed": false
+      },
+      "supportContacts": [
+        {
+          "contactId": "harborline_operations_contact",
+          "contactType": "OPERATIONAL",
+          "displayLabel": "Synthetic operations contact",
+          "contactReference": "contact_ref_harborline_operations",
+          "active": true
+        },
+        {
+          "contactId": "harborline_technical_contact",
+          "contactType": "TECHNICAL",
+          "displayLabel": "Synthetic technical contact",
+          "contactReference": "contact_ref_harborline_technical",
+          "active": true
+        }
+      ],
+      "governance": {
+        "retentionMonths": 12,
+        "customerMayShortenRetention": true,
+        "customerMayExpandRetention": false,
+        "legalHoldSupported": true,
+        "dispositionMode": "APPEND_ONLY_AUDITABLE",
+        "auditMode": "COMPANY_WORKSPACE_SCOPED"
+      },
+      "safety": {
+        "customerActivation": "OFF",
+        "activationAuthorizationRef": null,
+        "collection": "OFF",
+        "activeCohorts": 0,
+        "recommendationInfluence": "OFF",
+        "providerRefresh": "OFF",
+        "scheduler": "OFF"
+      },
+      "lifecycle": {
+        "state": "VALIDATED",
+        "revision": 2,
+        "lastTransitionAt": "2026-07-26T12:00:00.000Z",
+        "approvalReference": null,
+        "failure": null
+      },
+      "provenance": {
+        "authority": "prometheus_administration",
+        "sourceSystem": "synthetic_contract_fixture",
+        "sourceReferences": [
+          "route-iq-paid-customer-synthetic-fixtures-v1"
+        ],
+        "createdAt": "2026-07-26T12:00:00.000Z",
+        "createdByReference": "synthetic_administration_owner",
+        "configurationIdentity": "config_harborline_distribution_v1@1"
+      }
+    }
+  ]
+}
