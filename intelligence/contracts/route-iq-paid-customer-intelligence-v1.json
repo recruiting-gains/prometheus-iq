@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "route-iq-paid-customer-intelligence-contract-v1",
+  "owner": "Prometheus Intelligence Engine",
+  "implementation": "intelligence/route-iq-paid-customer-intelligence.mjs",
+  "consumes": {
+    "onboarding": "route-iq-paid-customer-onboarding-v1",
+    "verifiedBusinessEvidence": "route-iq-verified-business-evidence-v1"
+  },
+  "scope": {
+    "companyIdentityImmutable": true,
+    "workspaceIdentityImmutable": true,
+    "serverAuthenticatedPrincipalRequired": true,
+    "crossCompanyEnumerationAllowed": false,
+    "crossWorkspaceInferenceAllowed": false
+  },
+  "admissionGates": [
+    "configuration_version",
+    "company_scope",
+    "workspace_scope",
+    "approved_territory",
+    "approved_zip",
+    "included_category",
+    "business_exclusion",
+    "verified_identity",
+    "physical_address",
+    "current_operating_status",
+    "verified_open_or_access_window",
+    "provider_success",
+    "freshness",
+    "duplicate_resolution",
+    "conflict_resolution",
+    "target_profile_match",
+    "evidence_quality"
+  ],
+  "failClosedStates": [
+    "missing",
+    "stale",
+    "invalid",
+    "closed",
+    "provider_failed",
+    "outside_territory",
+    "excluded",
+    "duplicated",
+    "conflicting",
+    "cross_company",
+    "cross_workspace"
+  ],
+  "roles": {
+    "founder": [
+      "RECOMMENDATION_ADMISSION",
+      "CONFIGURATION_PREVIEW"
+    ],
+    "manager": [
+      "RECOMMENDATION_ADMISSION",
+      "CONFIGURATION_PREVIEW"
+    ],
+    "representative": [
+      "RECOMMENDATION_ADMISSION"
+    ],
+    "auditor": [
+      "CONFIGURATION_PREVIEW"
+    ]
+  },
+  "metricModel": {
+    "stableInternalIdentifiers": true,
+    "displayLabelsSeparate": true,
+    "singularPluralRequired": true,
+    "historicalSnapshotsImmutable": true,
+    "controlledGenericFallbackOnly": true,
+    "customerSpecificCodeBranchesAllowed": false
+  },
+  "industryTemplates": [
+    "gym_sales",
+    "medical_business_development",
+    "security_services",
+    "franchise_development",
+    "merchant_payroll_services",
+    "commercial_distribution"
+  ],
+  "safety": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "customerActivation": "OFF",
+    "routeOrderingChanged": false,
+    "routeScoringWeightsChanged": false
+  }
+}
