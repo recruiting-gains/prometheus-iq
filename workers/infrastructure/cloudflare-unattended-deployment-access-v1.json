@@ -220,7 +220,6 @@
     ],
     "allowedPaths": [
       "/",
-      "/index.html",
       "/sw.js",
       "/manifest.webmanifest",
       "/icons/prometheus.svg",
@@ -250,6 +249,9 @@
     "requestBodiesAllowed": false,
     "cookiesAllowed": false,
     "redirectMode": "manual",
+    "canonicalHtmlPath": "/",
+    "noncanonicalHtmlAliasesAllowed": false,
+    "redirectsFollowed": false,
     "credentialsMode": "omit",
     "browserOrServiceWorkerUsed": false,
     "responseBodiesReadOrPersisted": false,

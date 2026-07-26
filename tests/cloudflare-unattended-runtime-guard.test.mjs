@@ -19,6 +19,7 @@ import { pathToFileURL } from "node:url";
 import test from "node:test";
 
 import { SignJWT, createLocalJWKSet, exportJWK } from "jose";
+import { Miniflare } from "miniflare";
 
 import {
   handlePrometheusIqWorkerRequest
@@ -48,6 +49,7 @@ import {
   CLOUDFLARE_UNATTENDED_SMOKE_FAILURE,
   CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY,
   CloudflareUnattendedSmokeError,
+  fixedCloudflareUnattendedSmokePlan,
   runCloudflareUnattendedSmoke
 } from "../scripts/run-cloudflare-unattended-smoke.mjs";
 
@@ -161,6 +163,7 @@ test("valid service principal is signature-verified and confined to the read-onl
   );
   assert.deepEqual(CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_METHODS, ["GET", "HEAD"]);
   assert.ok(CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.length >= 10);
+  assert.equal(CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.includes("/index.html"), false);
 });
 
 test("missing or OFF guard configuration fails closed without calling assets", async () => {
@@ -227,6 +230,7 @@ test("broad methods, paths, query strings, origins, and malformed markers are de
   const attempts = [
     smokeRequest(token, { method: "POST" }),
     smokeRequest(token, { path: "/api/dashboard/route-iq/field-session" }),
+    smokeRequest(token, { path: "/index.html" }),
     smokeRequest(token, { path: "/?expand=true" }),
     smokeRequest(token, { path: "/index.html/" }),
     smokeRequest(token, { path: "/%69ndex.html" }),
@@ -334,6 +338,79 @@ test("bootstrap smoke permits an omitted guard marker but still requires Access,
   assert.equal(result.attemptedWriteCount, 0);
   assert.equal(result.markerVerifiedCount, 0);
   assert.equal(result.markerOmittedCount, result.requestCount);
+});
+
+test("smoke uses the canonical root asset and never requests Cloudflare's redirecting index alias", async () => {
+  const clientIdName = ["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_");
+  const clientSecretName = ["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_");
+  const observedPaths = [];
+  const result = await runCloudflareUnattendedSmoke({
+    dryRun: false,
+    markerPolicy: CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.BOOTSTRAP_ALLOW_MISSING,
+    credentials: {
+      [clientIdName]: "synthetic-client-id",
+      [clientSecretName]: "synthetic-client-secret"
+    },
+    async fetchImpl(url) {
+      const path = new URL(url).pathname;
+      observedPaths.push(path);
+      if (path === "/index.html") {
+        return new Response(null, {
+          status: 307,
+          headers: { Location: "/" }
+        });
+      }
+      return new Response(null, { status: 204 });
+    }
+  });
+  assert.equal(result.status, "passed");
+  assert.ok(observedPaths.includes("/"));
+  assert.equal(observedPaths.includes("/index.html"), false);
+});
+
+test("real Miniflare assets runtime proves the canonical root and redirecting index alias", async t => {
+  const miniflare = new Miniflare({
+    modules: true,
+    script: `export default {
+      async fetch(request, env) {
+        return env.ASSETS.fetch(request);
+      }
+    };`,
+    compatibilityDate: "2026-06-30",
+    assets: {
+      directory: resolve(root, "deploy/cloudflare-pages"),
+      binding: "ASSETS",
+      routerConfig: {
+        invoke_user_worker_ahead_of_assets: true,
+        has_user_worker: true
+      },
+      assetConfig: {
+        not_found_handling: "single-page-application"
+      }
+    }
+  });
+  t.after(() => miniflare.dispose());
+
+  const dispatch = path => miniflare.dispatchFetch(
+    `${CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN}${path}`,
+    { method: "GET", redirect: "manual" }
+  );
+  const rootResponse = await dispatch("/");
+  const indexResponse = await dispatch("/index.html");
+  const manifestResponse = await dispatch("/manifest.webmanifest");
+
+  assert.equal(rootResponse.status, 200);
+  assert.equal(rootResponse.headers.get("Location"), null);
+  assert.equal(indexResponse.status, 307);
+  assert.equal(indexResponse.headers.get("Location"), "/");
+  assert.equal(manifestResponse.status, 200);
+  assert.equal(manifestResponse.headers.get("Location"), null);
+
+  const fixedPaths = fixedCloudflareUnattendedSmokePlan()
+    .map(entry => new URL(entry.url).pathname);
+  assert.ok(fixedPaths.includes("/"));
+  assert.ok(fixedPaths.includes("/manifest.webmanifest"));
+  assert.equal(fixedPaths.includes("/index.html"), false);
 });
 
 test("postdeployment smoke requires the exact marker and exposes only its fixed failure dimension", async () => {

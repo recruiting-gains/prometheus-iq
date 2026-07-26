@@ -61,6 +61,12 @@ The future runtime configuration names are:
 
 None are added to `wrangler.jsonc` or production by this batch. The guard defaults OFF unless the first value is exactly `ON` and every other value validates.
 
+The fixed smoke profile uses `/` as the sole HTML entry path. Cloudflare Workers
+static assets canonically serve the root `index.html` at `/` and redirect the
+noncanonical `/index.html` alias under the default HTML handling mode. The
+service-principal allowlist therefore rejects `/index.html`; the client never
+follows that or any other redirect.
+
 ## Local Storage
 
 Store each item in macOS Keychain using these source-controlled names only:

@@ -25,7 +25,6 @@ export const CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_METHODS = Object.freeze([
 
 export const CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS = Object.freeze([
   "/",
-  "/index.html",
   "/sw.js",
   "/manifest.webmanifest",
   "/icons/prometheus.svg",
