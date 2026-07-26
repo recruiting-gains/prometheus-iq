@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import {
+  appendFileSync,
+  copyFileSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync
+} from "node:fs";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import {
   buildReadOnlyFieldSessionLearningSnapshot,
@@ -23,6 +33,9 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const read = path => readFileSync(new URL(path, root));
 const readJson = path => JSON.parse(read(path).toString("utf8"));
 const sha256 = path => createHash("sha256").update(read(path)).digest("hex");
+const rootPath = fileURLToPath(root);
+const zipFounderProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json";
 
 function fixtures() {
   const contract = loadReadOnlyFieldSessionLearningContract();
@@ -76,6 +89,54 @@ test("approved ZIP and Founder Dashboard output advances only the protected pres
   assert.equal(adoption.intelligenceRuntimeIntegrity.routeOrderingChanged, false);
   assert.equal(adoption.intelligenceRuntimeIntegrity.routeScoringChanged, false);
   assert.equal(adoption.boundaries.recommendationInfluence, "OFF");
+});
+
+test("approved ZIP and Founder Dashboard adoption rejects matching arbitrary source and mirror drift", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-intelligence-adoption-"));
+  try {
+    execFileSync("/usr/bin/git", [
+      "clone",
+      "--quiet",
+      "--no-hardlinks",
+      rootPath,
+      fixture
+    ], {
+      stdio: "ignore"
+    });
+    copyFileSync(
+      join(rootPath, zipFounderProvenancePath),
+      join(fixture, zipFounderProvenancePath)
+    );
+
+    const verify = [
+      "import('./intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs')",
+      ".then(module => module.verifyCrossIndustryZipFounderAccessAdoption())"
+    ].join("");
+    execFileSync(process.execPath, ["--input-type=module", "--eval", verify], {
+      cwd: fixture,
+      stdio: "pipe"
+    });
+
+    for (const path of ["index.html", "deploy/cloudflare-pages/index.html"]) {
+      appendFileSync(join(fixture, path), "\n<!-- unapproved-dashboard-drift -->\n");
+    }
+    assert.throws(
+      () => execFileSync(
+        process.execPath,
+        ["--input-type=module", "--eval", verify],
+        { cwd: fixture, stdio: "pipe" }
+      ),
+      (error) => {
+        assert.match(
+          error.stderr.toString("utf8"),
+          /Current ZIP\/Founder protected source changed: index\.html/u
+        );
+        return true;
+      }
+    );
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
 });
 
 test("read-only learning rejects an ungoverned protected-behavior successor", () => {

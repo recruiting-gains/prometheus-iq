@@ -30,7 +30,7 @@
     {
       "path": "index.html",
       "previousSha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108",
-      "currentSha256": "2f156319b08a5f463682815deb6db93be2344f751afaa93ea3db00bbacd97d91",
+      "currentSha256": "f15389cba2412dac883eeb19f355939983f15aca1d5ef6e38f333ad85d4f2fe4",
       "transitions": [
         {
           "ownerSubsystem": "Prometheus Dashboard",
@@ -47,13 +47,37 @@
           "subject": "infrastructure: integrate canonical ZIP coverage runtime",
           "previousSha256": "217b4fcd4a2fd32451c654d70c568531e27cfb8952149491ad69e2c52ea88417",
           "currentSha256": "2f156319b08a5f463682815deb6db93be2344f751afaa93ea3db00bbacd97d91"
+        },
+        {
+          "ownerSubsystem": "Prometheus Dashboard",
+          "commit": "85ce5ba7d87b64eb63035173944c2aa7c5f10bc3",
+          "tree": "8f9050d9890fe9eb6a4cfcd5897ed4e63b4e78f0",
+          "subject": "dashboard: add paid-customer configuration preview",
+          "previousSha256": "2f156319b08a5f463682815deb6db93be2344f751afaa93ea3db00bbacd97d91",
+          "currentSha256": "9f6ae252f1b276f6b2448a69434cdc3d321bd2c29412cbc7b5b24b443d9c2f2d"
+        },
+        {
+          "ownerSubsystem": "Prometheus Dashboard",
+          "commit": "e603acd26c9866518cecf70183cae0695d525cb5",
+          "tree": "dc50ee93a8499416c96c5379108642adaaf739e3",
+          "subject": "dashboard: version paid-customer preview module load",
+          "previousSha256": "9f6ae252f1b276f6b2448a69434cdc3d321bd2c29412cbc7b5b24b443d9c2f2d",
+          "currentSha256": "60f133174555c836f9ff68eb288a181046c3d7391d06a5c51018385f364e0055"
+        },
+        {
+          "ownerSubsystem": "Prometheus Infrastructure",
+          "commit": "3872b30d1f16acde85518ae857bae09336aaed3b",
+          "tree": "d1a12d7336e1739b33a0f83a8e33213939b0ea6c",
+          "subject": "infrastructure: bridge paid-customer preview and acceptance",
+          "previousSha256": "60f133174555c836f9ff68eb288a181046c3d7391d06a5c51018385f364e0055",
+          "currentSha256": "f15389cba2412dac883eeb19f355939983f15aca1d5ef6e38f333ad85d4f2fe4"
         }
       ]
     },
     {
       "path": "deploy/cloudflare-pages/index.html",
       "previousSha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108",
-      "currentSha256": "2f156319b08a5f463682815deb6db93be2344f751afaa93ea3db00bbacd97d91",
+      "currentSha256": "f15389cba2412dac883eeb19f355939983f15aca1d5ef6e38f333ad85d4f2fe4",
       "transitions": [
         {
           "ownerSubsystem": "Prometheus Infrastructure",
@@ -62,13 +86,37 @@
           "subject": "infrastructure: integrate canonical ZIP coverage runtime",
           "previousSha256": "e3f4d9580946e5508fe6b8d6202887da01dba72b960852a038f8922edc580108",
           "currentSha256": "2f156319b08a5f463682815deb6db93be2344f751afaa93ea3db00bbacd97d91"
+        },
+        {
+          "ownerSubsystem": "Prometheus Dashboard",
+          "commit": "85ce5ba7d87b64eb63035173944c2aa7c5f10bc3",
+          "tree": "8f9050d9890fe9eb6a4cfcd5897ed4e63b4e78f0",
+          "subject": "dashboard: add paid-customer configuration preview",
+          "previousSha256": "2f156319b08a5f463682815deb6db93be2344f751afaa93ea3db00bbacd97d91",
+          "currentSha256": "9f6ae252f1b276f6b2448a69434cdc3d321bd2c29412cbc7b5b24b443d9c2f2d"
+        },
+        {
+          "ownerSubsystem": "Prometheus Dashboard",
+          "commit": "e603acd26c9866518cecf70183cae0695d525cb5",
+          "tree": "dc50ee93a8499416c96c5379108642adaaf739e3",
+          "subject": "dashboard: version paid-customer preview module load",
+          "previousSha256": "9f6ae252f1b276f6b2448a69434cdc3d321bd2c29412cbc7b5b24b443d9c2f2d",
+          "currentSha256": "60f133174555c836f9ff68eb288a181046c3d7391d06a5c51018385f364e0055"
+        },
+        {
+          "ownerSubsystem": "Prometheus Infrastructure",
+          "commit": "3872b30d1f16acde85518ae857bae09336aaed3b",
+          "tree": "d1a12d7336e1739b33a0f83a8e33213939b0ea6c",
+          "subject": "infrastructure: bridge paid-customer preview and acceptance",
+          "previousSha256": "60f133174555c836f9ff68eb288a181046c3d7391d06a5c51018385f364e0055",
+          "currentSha256": "f15389cba2412dac883eeb19f355939983f15aca1d5ef6e38f333ad85d4f2fe4"
         }
       ]
     },
     {
       "path": "workers/prometheus-iq-worker.js",
       "previousSha256": "7fcb0b3e4e6772e4831a808cbd0f02ef9e28f017ebb6c2d69a9b368248ac76c9",
-      "currentSha256": "cb94edb98f424de58d113722b743d16fa1512320d2fc5812f752b75b361985a6",
+      "currentSha256": "58d52967de329daa034751c1cf95ad1ae3da8a853c5cceeb950f0656ed51e2c8",
       "transitions": [
         {
           "ownerSubsystem": "Prometheus Infrastructure",
@@ -77,6 +125,22 @@
           "subject": "Harden private release propagation verification",
           "previousSha256": "7fcb0b3e4e6772e4831a808cbd0f02ef9e28f017ebb6c2d69a9b368248ac76c9",
           "currentSha256": "cb94edb98f424de58d113722b743d16fa1512320d2fc5812f752b75b361985a6"
+        },
+        {
+          "ownerSubsystem": "Prometheus Infrastructure",
+          "commit": "e3a9c2c60e41e84508dca1fb9734673f1019d888",
+          "tree": "54bc79410dc20285e583938f481282413c2656ef",
+          "subject": "infrastructure: add paid-customer onboarding runtime",
+          "previousSha256": "cb94edb98f424de58d113722b743d16fa1512320d2fc5812f752b75b361985a6",
+          "currentSha256": "131df24ca839b532b28a1d52408c104b5147c9e5df1b0b913ee782738a9944fe"
+        },
+        {
+          "ownerSubsystem": "Prometheus Infrastructure",
+          "commit": "3872b30d1f16acde85518ae857bae09336aaed3b",
+          "tree": "d1a12d7336e1739b33a0f83a8e33213939b0ea6c",
+          "subject": "infrastructure: bridge paid-customer preview and acceptance",
+          "previousSha256": "131df24ca839b532b28a1d52408c104b5147c9e5df1b0b913ee782738a9944fe",
+          "currentSha256": "58d52967de329daa034751c1cf95ad1ae3da8a853c5cceeb950f0656ed51e2c8"
         }
       ],
       "guardSuccessor": {
