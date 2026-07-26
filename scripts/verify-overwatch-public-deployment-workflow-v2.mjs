@@ -866,11 +866,15 @@ export function isGovernedPublicDeploymentWorkflowV2VerifierCommit({
 }) {
   if (!WORKFLOW_V2_TAIL_PATHS.includes(path) || !Array.isArray(files)) return false;
   if (!files.includes(path)) return true;
+  const isOverwatchOwnedPath = file => WORKFLOW_V2_TAIL_PATHS.includes(file)
+    || file.startsWith("overwatch/")
+    || /^scripts\/verify-overwatch-[a-z0-9-]+\.mjs$/u.test(file)
+    || /^tests\/overwatch-[a-z0-9-]+\.test\.mjs$/u.test(file);
   return author === "overwatch@prometheus.local"
     && committer === "overwatch@prometheus.local"
     && subject.startsWith("overwatch:")
     && files.length > 0
-    && files.every(file => WORKFLOW_V2_TAIL_PATHS.includes(file));
+    && files.every(isOverwatchOwnedPath);
 }
 
 export function hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({

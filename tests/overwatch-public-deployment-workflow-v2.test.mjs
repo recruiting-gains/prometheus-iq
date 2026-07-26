@@ -346,6 +346,18 @@ test("protected verifier ownership rejects subsystem edits without rejecting unr
     author: "overwatch@prometheus.local",
     committer: "overwatch@prometheus.local",
     subject: "overwatch: advance verifier",
+    files: [
+      path,
+      "overwatch/governance/github-actions-private-worker-deployment-v2.json",
+      "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
+      "tests/overwatch-github-actions-private-worker-deployment.test.mjs"
+    ]
+  }), true);
+  assert.equal(isGovernedPublicDeploymentWorkflowV2VerifierCommit({
+    path,
+    author: "overwatch@prometheus.local",
+    committer: "overwatch@prometheus.local",
+    subject: "overwatch: advance verifier",
     files: [path, "workers/infrastructure/unrelated-runtime.js"]
   }), false);
   assert.equal(isGovernedPublicDeploymentWorkflowV2VerifierCommit({
