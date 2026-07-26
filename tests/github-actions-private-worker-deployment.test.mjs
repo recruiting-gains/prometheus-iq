@@ -199,7 +199,7 @@ function createStaticPolicyFixture() {
   const privateConfig = {
     name: "prometheus-iq",
     main: "workers/prometheus-iq-worker.js",
-    assets: { directory: "./deploy/cloudflare-pages", run_worker_first: ["/*"] },
+    assets: { directory: "./deploy/cloudflare-pages", run_worker_first: true },
     vars: { SYNTHETIC_NONSECRET: "fixed" },
     kv_namespaces: [{ binding: "SYNTHETIC", id: "0".repeat(32) }],
     send_email: [{ name: "FOUNDER_EMAIL", destination_address: "nobody@example.invalid" }],
@@ -386,6 +386,15 @@ test("static policy accepts only the exact private and public config identities"
   writeFileSync(join(fixture.root, "wrangler.jsonc"), JSON.stringify({
     ...fixture.privateConfig,
     name: "prometheusrouteiq-website"
+  }));
+  expectCode(() => verifyStaticDeploymentPolicy(fixture.root), DEPLOYMENT_FAILURE.CONFIG_INVALID);
+
+  writeFileSync(join(fixture.root, "wrangler.jsonc"), JSON.stringify({
+    ...fixture.privateConfig,
+    assets: {
+      ...fixture.privateConfig.assets,
+      run_worker_first: ["/*"]
+    }
   }));
   expectCode(() => verifyStaticDeploymentPolicy(fixture.root), DEPLOYMENT_FAILURE.CONFIG_INVALID);
 

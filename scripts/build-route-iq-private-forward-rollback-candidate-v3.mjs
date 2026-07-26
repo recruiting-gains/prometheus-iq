@@ -51,7 +51,7 @@ const generatedWrapper = [
 const expectedAssets = Object.freeze({
   directory: "./deploy/cloudflare-pages",
   binding: "ASSETS",
-  run_worker_first: ["/*"],
+  run_worker_first: true,
   not_found_handling: "single-page-application"
 });
 const expectedSecrets = Object.freeze([
@@ -196,8 +196,7 @@ export function validateRouteIqPrivateForwardRollbackBoundaryV3(contract, config
     || contract.candidatePackage?.smokeGuardSource !== smokeGuardPath
     || contract.candidatePackage?.smokeContractSource !== smokeContractPath
     || contract.candidatePackage?.versionMetadataBinding !== "CF_VERSION_METADATA"
-    || JSON.stringify(contract.candidatePackage?.workerFirstPaths)
-      !== JSON.stringify(expectedAssets.run_worker_first)
+    || contract.candidatePackage?.workerFirstUnconditional !== true
     || config.name !== "prometheus-iq"
     || config.main !== "workers/prometheus-iq-worker.js"
     || config.keep_vars !== true

@@ -50,7 +50,19 @@ Cloudflare Access authenticates the service principal; it does not make the resu
 
 Missing, malformed, stale, or OFF guard configuration denies service-principal smoke requests while preserving ordinary Founder and representative Access behavior. Source implementation is not deployment: no Access policy or production Worker change is authorized by this batch.
 
-The private `wrangler.jsonc` sets `assets.run_worker_first` to `["/*"]`, so every private static and API request reaches the guard before `ASSETS` or API routing. Forward and rollback artifacts use this same explicit static-routing representation. The public Worker configuration is unchanged. A JWT that structurally claims service-token identity is forced into this restricted branch even without the marker and is denied when the marker is missing. The marker alone never authorizes a request.
+The private `wrangler.jsonc` sets `assets.run_worker_first` to boolean `true`, Cloudflare's unconditional Worker-first mode, so every private static and API request reaches the guard before `ASSETS` or API routing. Forward and rollback artifacts use this same unconditional representation; route-pattern arrays are rejected for this security boundary. The public Worker configuration is unchanged. A JWT that structurally claims service-token identity is forced into this restricted branch even without the marker and is denied when the marker is missing. The marker alone never authorizes a request.
+
+Deployment run `30213341082` proved why the representation is part of the
+security contract. Although `["/*"]` appeared to describe all paths, the
+authenticated `RUNTIME_POOLS_GET` asset never produced the Worker guard marker
+within the bounded convergence window. The workflow failed closed and verified
+the qualified forward rollback. The attempt-count fence also exhausted after
+roughly 16.5 seconds when responses returned quickly, despite claiming a
+46.5-second maximum. Cloudflare documents boolean `true` as the unconditional
+mode and string arrays as selective route-pattern mode, so both forward and
+rollback now require boolean `true`; any array representation is a
+release-blocking configuration error. The smoke fence now measures the full
+46.5-second window with a monotonic clock and no attempt-count acceptance limit.
 
 The future runtime configuration names are:
 
@@ -172,3 +184,4 @@ The launcher exposes only `presence`, `smoke-dry-run`, `smoke-read-only`, and `d
 - [Cloudflare Access application token claims](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/application-token/)
 - [Validate Cloudflare Access JWTs](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/)
 - [Workers secret handling](https://developers.cloudflare.com/workers/configuration/secrets/)
+- [Workers static asset binding and `run_worker_first`](https://developers.cloudflare.com/workers/static-assets/binding/)

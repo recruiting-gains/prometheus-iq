@@ -544,7 +544,7 @@ test("only the pinned guardless baseline may use bootstrap marker omission", () 
   );
 });
 
-test("forward and rollback qualified configurations use the same all-path request boundary", () => {
+test("forward and rollback qualified configurations use unconditional Worker-first routing", () => {
   const forward = JSON.parse(qualifiedPrivateConfigForArtifact(
     readFileSync(resolve(root, "wrangler.jsonc"), "utf8")
   ));
@@ -557,10 +557,26 @@ test("forward and rollback qualified configurations use the same all-path reques
   ));
   assert.equal(forward.name, PRIVATE_WORKFLOW_V2_POLICY.privateWorker);
   assert.equal(forward.keep_vars, true);
-  assert.deepEqual(forward.assets.run_worker_first, ["/*"]);
-  assert.deepEqual(rollback.assets.run_worker_first, ["/*"]);
+  assert.equal(forward.assets.run_worker_first, true);
+  assert.equal(rollback.assets.run_worker_first, true);
   assert.equal(Object.hasOwn(forward, "routes"), false);
   assert.equal(Object.hasOwn(rollback, "routes"), false);
+
+  for (const selective of [
+    ["/api/*"],
+    ["/*"],
+    ["/", "/api/*"]
+  ]) {
+    const source = readFileSync(resolve(root, "wrangler.jsonc"), "utf8")
+      .replace('"run_worker_first": true', `"run_worker_first": ${JSON.stringify(selective)}`);
+    assert.throws(
+      () => qualifiedPrivateConfigForArtifact(source),
+      error => (
+        error instanceof PrivateWorkflowV2Error
+        && error.code === PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID
+      )
+    );
+  }
 });
 
 test("binding transition permits only qualified additions plus guard settings", () => {
@@ -1088,6 +1104,11 @@ test("a stale guarded release identity triggers one forward rollback", async () 
 
 test("real bounded propagation timeout reaches the lifecycle rollback exactly once", async () => {
   let readinessRequests = 0;
+  let monotonicNow = 0;
+  const expectedRounds = Math.ceil(
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds
+      / CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds
+  );
   const { result, calls } = lifecycleFixture({
     expectRollback: true,
     postSmokeImplementation: expectedWorkerVersion =>
@@ -1098,7 +1119,10 @@ test("real bounded propagation timeout reaches the lifecycle rollback exactly on
         [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
         [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
       },
-      sleepImpl: async () => {},
+      nowImpl: () => monotonicNow,
+      sleepImpl: async milliseconds => {
+        monotonicNow += milliseconds;
+      },
       async fetchImpl(url) {
         readinessRequests += 1;
         assert.ok(fixedCloudflareUnattendedSmokePlan().some(entry => (
@@ -1116,8 +1140,7 @@ test("real bounded propagation timeout reaches the lifecycle rollback exactly on
   );
   assert.equal(
     readinessRequests,
-    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts
-      * fixedCloudflareUnattendedSmokePlan().length
+    expectedRounds * fixedCloudflareUnattendedSmokePlan().length
   );
   assert.equal(calls.deploy, 1);
   assert.equal(calls.postSmoke, 1);

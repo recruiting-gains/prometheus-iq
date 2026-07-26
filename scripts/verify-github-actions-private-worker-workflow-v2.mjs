@@ -306,8 +306,21 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     true
   );
   assert.equal(contract.smoke.postDeployment.exactGuardResponseMarkerRequired, true);
+  assert.equal(contract.smoke.postDeployment.latestFailedRun, "30213341082");
+  assert.equal(
+    contract.smoke.postDeployment.latestFailureClassification,
+    "SMOKE_FAILURE|DIMENSION=GUARD_PROPAGATION_TIMEOUT|PROBE=RUNTIME_POOLS_GET"
+  );
+  assert.equal(contract.smoke.postDeployment.latestFailureForwardRollbackVerified, true);
+  assert.match(
+    contract.smoke.postDeployment.routingCorrection,
+    /unconditional boolean Worker-first mode/u
+  );
+  assert.match(contract.smoke.postDeployment.routingCorrection, /arrays.*rejected/u);
+  assert.match(contract.smoke.postDeployment.routingCorrection, /monotonic deadline/u);
   assert.deepEqual(contract.smoke.postDeployment.propagationFence, {
     scope: "full_fixed_get_head_plan",
+    unconditionalWorkerFirst: true,
     concurrentRequestsPerAttempt: true,
     fixedNonsecretProbeClassification: true,
     retryableConditions: [
@@ -318,12 +331,14 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     expectedReleaseIdentity: "cloudflare_worker_version_id",
     versionMetadataBinding: CLOUDFLARE_UNATTENDED_SMOKE_VERSION.binding,
     versionResponseHeader: CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader,
-    maxAttempts: CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts,
+    monotonicElapsedDeadline: true,
+    attemptLimitControlsAcceptance: false,
     delayMilliseconds: CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds,
     requestTimeoutMilliseconds:
       CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds,
     maximumWaitMilliseconds:
       CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds,
+    sleepMustAdvanceMonotonicClock: true,
     unsafeResponseRetryAllowed: false,
     requestAndResponseLifecycleDeadlineEnforced: true,
     fullSmokeRequestLifecycleDeadlineEnforced: true,
@@ -333,12 +348,9 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     fullFixedSmokeRunsAfterReadiness: false,
     timeoutTriggersForwardRollback: true
   });
-  assert.equal(
-    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds,
-    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts
-      * CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds
-      + (CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts - 1)
-        * CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds
+  assert.ok(
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds
+      > CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds
   );
   assert.equal(contract.smoke.crmSubmissionAllowed, false);
   assert.equal(contract.runtimeGuardInjection.artifactMutationAllowed, false);

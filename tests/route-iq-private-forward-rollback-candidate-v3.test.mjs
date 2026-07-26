@@ -154,8 +154,8 @@ test("rollback config preserves stateful and static bindings while forcing every
   assert.equal(config.main, "workers/prometheus-iq-worker.js");
   assert.equal(config.keep_vars, true);
   assert.equal(config.assets.binding, "ASSETS");
-  assert.deepEqual(config.assets.run_worker_first, ["/*"]);
-  assert.deepEqual(contract.candidatePackage.workerFirstPaths, ["/*"]);
+  assert.equal(config.assets.run_worker_first, true);
+  assert.equal(contract.candidatePackage.workerFirstUnconditional, true);
   assert.equal(config.observability.enabled, true);
   assert.deepEqual(config.version_metadata, { binding: "CF_VERSION_METADATA" });
   assert.equal(config.vars.ROUTE_IQ_CUSTOMER_PWA_LAUNCH_ENABLED, "OFF");
@@ -223,8 +223,8 @@ test("stateful, target, and activation mutations fail closed before packaging", 
     ["version metadata renamed", null, candidate => {
       candidate.version_metadata.binding = "OTHER_VERSION_METADATA";
     }],
-    ["canonical root removed from Worker-first paths", candidate => {
-      candidate.candidatePackage.workerFirstPaths = ["/api/*"];
+    ["unconditional Worker-first mode weakened", candidate => {
+      candidate.candidatePackage.workerFirstUnconditional = false;
     }, candidate => {
       candidate.assets.run_worker_first = ["/api/*"];
     }],

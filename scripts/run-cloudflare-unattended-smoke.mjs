@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { performance } from "node:perf_hooks";
 
 import {
   CLOUDFLARE_UNATTENDED_SMOKE_FIXED_REQUESTS,
@@ -28,7 +29,6 @@ export const CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY = Object.freeze({
 });
 
 export const CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION = Object.freeze({
-  maxAttempts: 12,
   delayMilliseconds: 1_500,
   requestTimeoutMilliseconds: 2_500,
   maximumWaitMilliseconds: 46_500
@@ -231,6 +231,10 @@ function defaultSleep(milliseconds) {
   return new Promise(resolveSleep => setTimeout(resolveSleep, milliseconds));
 }
 
+function defaultMonotonicNow() {
+  return performance.now();
+}
+
 async function discardResponseBody(response) {
   try {
     await response?.body?.cancel();
@@ -253,6 +257,7 @@ export async function waitForCloudflareUnattendedSmokeGuard({
   fetchImpl = globalThis.fetch,
   credentials = process.env,
   sleepImpl = defaultSleep,
+  nowImpl = defaultMonotonicNow,
   expectedWorkerVersion,
   dryRun = true
 } = {}) {
@@ -261,7 +266,6 @@ export async function waitForCloudflareUnattendedSmokeGuard({
       status: "dry_run",
       requestCount: 0,
       attemptedWriteCount: 0,
-      maxAttempts: CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts,
       requestTimeoutMilliseconds:
         CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds,
       maximumWaitMilliseconds:
@@ -274,16 +278,48 @@ export async function waitForCloudflareUnattendedSmokeGuard({
   if (typeof sleepImpl !== "function") {
     fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);
   }
+  if (typeof nowImpl !== "function") {
+    fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);
+  }
   if (!UUID.test(expectedWorkerVersion || "")) {
     fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);
   }
   const clientId = requireCredential(credentials, SMOKE_CREDENTIAL_NAMES[0]);
   const clientSecret = requireCredential(credentials, SMOKE_CREDENTIAL_NAMES[1]);
   let requestCount = 0;
+  let lastClock;
+  const monotonicNow = () => {
+    const observed = nowImpl();
+    if (!Number.isFinite(observed)
+      || observed < 0
+      || (lastClock !== undefined && observed < lastClock)) {
+      fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);
+    }
+    lastClock = observed;
+    return observed;
+  };
+  const startedAt = monotonicNow();
+  const deadline = startedAt
+    + CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds;
+  let attempt = 0;
+  let incomplete;
 
-  for (let attempt = 1;
-    attempt <= CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts;
-    attempt += 1) {
+  while (true) {
+    const attemptStartedAt = monotonicNow();
+    const remainingMilliseconds = deadline - attemptStartedAt;
+    if (attempt > 0 && remainingMilliseconds <= 0) {
+      fail(
+        incomplete?.marker === "exact"
+          ? CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH
+          : CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_PROPAGATION_TIMEOUT,
+        incomplete?.probe
+      );
+    }
+    attempt += 1;
+    const requestTimeoutMilliseconds = Math.min(
+      CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds,
+      Math.max(1, Math.floor(remainingMilliseconds))
+    );
     const settled = await Promise.allSettled(CANONICAL_SMOKE_REQUESTS.map(async entry => {
       const probe = fixedProbe(entry);
       const url = new URL(entry.path, CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN);
@@ -297,7 +333,7 @@ export async function waitForCloudflareUnattendedSmokeGuard({
           ...smokeRequestOptions(clientId, clientSecret),
           method: entry.method
         },
-        CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds,
+        requestTimeoutMilliseconds,
         probe,
         async response => Object.freeze({
           marker: markerState(response, probe),
@@ -309,7 +345,7 @@ export async function waitForCloudflareUnattendedSmokeGuard({
     requestCount += CANONICAL_SMOKE_REQUESTS.length;
     const rejected = settled.find(result => result.status === "rejected");
     if (rejected) throw rejected.reason;
-    const incomplete = settled
+    incomplete = settled
       .map(result => result.value)
       .find(observed => observed.marker !== "exact" || observed.workerVersion !== "exact");
     if (!incomplete) {
@@ -320,7 +356,9 @@ export async function waitForCloudflareUnattendedSmokeGuard({
         attemptedWriteCount: 0
       });
     }
-    if (attempt === CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maxAttempts) {
+    const beforeSleep = monotonicNow();
+    const remainingBeforeSleep = deadline - beforeSleep;
+    if (remainingBeforeSleep <= 0) {
       fail(
         incomplete.marker === "exact"
           ? CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH
@@ -328,9 +366,15 @@ export async function waitForCloudflareUnattendedSmokeGuard({
         incomplete.probe
       );
     }
-    await sleepImpl(CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds);
+    const sleepMilliseconds = Math.min(
+      CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds,
+      remainingBeforeSleep
+    );
+    await sleepImpl(sleepMilliseconds);
+    if (monotonicNow() <= beforeSleep) {
+      fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);
+    }
   }
-  fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_PROPAGATION_TIMEOUT);
 }
 
 export async function runCloudflareUnattendedPostDeploymentSmoke(options = {}) {
