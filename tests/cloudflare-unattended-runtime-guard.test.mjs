@@ -163,7 +163,7 @@ test("valid service principal is signature-verified and confined to the read-onl
   );
   assert.deepEqual(CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_METHODS, ["GET", "HEAD"]);
   assert.ok(CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.length >= 10);
-  assert.equal(CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.includes("/index.html"), false);
+  assert.equal(CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.includes("/index.html"), true);
 });
 
 test("missing or OFF guard configuration fails closed without calling assets", async () => {
@@ -230,7 +230,6 @@ test("broad methods, paths, query strings, origins, and malformed markers are de
   const attempts = [
     smokeRequest(token, { method: "POST" }),
     smokeRequest(token, { path: "/api/dashboard/route-iq/field-session" }),
-    smokeRequest(token, { path: "/index.html" }),
     smokeRequest(token, { path: "/?expand=true" }),
     smokeRequest(token, { path: "/index.html/" }),
     smokeRequest(token, { path: "/%69ndex.html" }),

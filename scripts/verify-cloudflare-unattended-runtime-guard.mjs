@@ -94,8 +94,12 @@ export function verifyCloudflareUnattendedRuntimeGuard() {
   assert.equal(contract.defaultDenySmokeClient.redirectsFollowed, false);
   assert.equal(contract.defaultDenySmokeClient.credentialsMode, "omit");
   assert.equal(contract.defaultDenySmokeClient.productionNetworkAccessPerformedByThisBatch, false);
-  assert.equal(CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.includes("/index.html"), false);
-  assert.equal(fixedCloudflareUnattendedSmokePlan().length, CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.length + 1);
+  assert.equal(CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.includes("/index.html"), true);
+  assert.equal(fixedCloudflareUnattendedSmokePlan().some(request => (
+    new URL(request.url).pathname === "/index.html"
+  )), false);
+  assert.equal(fixedCloudflareUnattendedSmokePlan().length,
+    CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.length);
   assert.match(smokeClient, /redirect: "manual"/u);
   assert.match(smokeClient, /credentials: "omit"/u);
   assert.doesNotMatch(smokeClient, /WebSocket|serviceWorker|document\.cookie/u);

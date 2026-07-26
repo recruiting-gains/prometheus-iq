@@ -64,8 +64,9 @@ None are added to `wrangler.jsonc` or production by this batch. The guard defaul
 The fixed smoke profile uses `/` as the sole HTML entry path. Cloudflare Workers
 static assets canonically serve the root `index.html` at `/` and redirect the
 noncanonical `/index.html` alias under the default HTML handling mode. The
-service-principal allowlist therefore rejects `/index.html`; the client never
-follows that or any other redirect.
+client therefore omits `/index.html` and never follows that or any other
+redirect. The guard retains its historical read-only alias so this private
+smoke correction does not alter the shared public Worker bundle.
 
 ## Local Storage
 

@@ -220,6 +220,7 @@
     ],
     "allowedPaths": [
       "/",
+      "/index.html",
       "/sw.js",
       "/manifest.webmanifest",
       "/icons/prometheus.svg",
