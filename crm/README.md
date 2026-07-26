@@ -6,7 +6,7 @@ Prometheus CRM owns local CRM state for contacts, leads, follow-ups, task queues
 
 CRM consumes existing Runtime Data / Dashboard-compatible route records. It does not choose routes, score prospects, render Dashboard UI, modify Companion behavior, or connect external communication providers such as Gmail, SMS, or Outlook.
 
-CRM also owns the operating architecture for company accounts, pilot companies, enterprise opportunities, customer onboarding, customer success, expansion, renewal, account health, and executive relationships. Sales owns go-to-market method and customer-facing narrative; CRM owns the internal account system of record.
+CRM also owns the operating architecture for company accounts, retained pre-commercial records, enterprise opportunities, paid-customer onboarding, customer success, expansion, renewal, account health, and executive relationships. Sales owns go-to-market method and customer-facing narrative; CRM owns the internal account system of record.
 
 ## Current Foundations
 
@@ -37,13 +37,13 @@ Only workspaces explicitly registered in `supportedWorkspaceLeadIntakeWorkspaces
 
 Production CRM workspace leads use the dedicated Cloudflare Workers KV binding `CRM_WORKSPACE_LEAD_STORE` and namespace `f20a0a4f66fb4b53ab26644e2d3bd0dd`. `createCloudflareKvCrmWorkspaceLeadStore` implements the existing readable/writable persistence interface, while `persistWorkspaceLeadIntakeWithProductionStore` composes the Infrastructure handoff packet into CRM-owned durable records. `readWorkspaceLeadIntakeFromProductionStore` resolves the submission index and verifies the workspace partition before returning a record.
 
-The production Worker persists the currently approved Fitness Connection lead handoffs and fails closed when the CRM binding is unavailable. Additional companies require a separately validated workspace configuration and runtime approval before CRM routing or persistence is possible.
+The production Worker retains the narrowly approved Fitness Connection workspace lead handoff as a legacy compatibility route and fails closed when the CRM binding is unavailable. That route preserves historical Founder-research evidence; it is not a paid-customer dependency, onboarding default, or reusable CRM architecture. Every paid customer requires a separately validated workspace configuration and runtime approval before CRM routing or persistence is possible.
 
 ## Route IQ Requests
 
 `route-iq-request-crm.mjs` extends the existing CRM lead persistence model for commercial Route IQ requests. It strictly validates the approved request fields, assigns a server timestamp, stores no idempotency key in the canonical lead record, and requires an atomic `putIfAbsent` store primitive for deterministic duplicate and conflict handling. Identical content receives one stable receipt; reuse of an idempotency key with changed content fails closed.
 
-Founder retrieval and JSON/CSV export require the exact immutable Cruz principal from Data's canonical `route-iq-commercial-workspace-registry-v1.json`. CRM does not maintain a second identity mapping. A display name, Founder role claim by itself, representative identity, or Anthony identity without a separately governed exact Data mapping is not sufficient. Failure telemetry contains only an opaque attempt identifier and fixed nonsecret status fields.
+Founder retrieval and JSON/CSV export require the exact immutable Cruz principal from Data's canonical `route-iq-commercial-workspace-registry-v1.json`. CRM does not maintain a second identity mapping. A display name, Founder role claim by itself, representative identity, or any unmapped identity is not sufficient. Anthony remains unmapped; references to him are historical compatibility evidence, not a paid-customer identity dependency. Any future additional Founder principal requires a separately governed exact Data mapping. Failure telemetry contains only an opaque attempt identifier and fixed nonsecret status fields.
 
 The public `POST /api/partner-intake` boundary does not require Cloudflare Access. Founder retrieval is limited to `GET /api/partner-intake/founder/requests`, `GET /api/partner-intake/founder/requests/{receiptId}`, `GET /api/partner-intake/founder/monitoring`, `GET /api/partner-intake/founder/monitoring/{receiptId}`, and `GET /api/partner-intake/founder/export`, all beneath the protected `/api/partner-intake/founder/*` application path. Monitoring responses contain only counts, exact receipt identifiers, fixed statuses, and fixed failure codes; they never contain contact or request fields. The Infrastructure adapter must verify the Cloudflare Access JWT and compare the SHA-256 digest of its immutable `sub` claim before it may construct CRM's canonical Founder principal. `Everyone`, `Bypass`, and display-name authorization are prohibited.
 
@@ -65,18 +65,18 @@ Route visit outcomes update lead state and append immutable visit entries to bot
 
 - Today's follow-ups
 - Overdue follow-ups
-- Legacy Anthony activity retained only in the historical compatibility report
+- Legacy Anthony activity retained only in the historical compatibility report; Anthony-specific behavior is not part of paid-customer CRM architecture
 - Founder activity summary
 - Contact pipeline counts
 - Task completion status
 
 ## v2 Enterprise Lifecycle
 
-CRM v2 prepares Prometheus for multiple customer accounts without modifying legacy pre-commercial systems. It defines:
+CRM v2 is a retained enterprise-lifecycle compatibility model for multiple customer accounts without modifying legacy pre-commercial systems. Active paid-customer onboarding uses the versioned paid-customer workflow contract described above. The retained model documents:
 
 - Company accounts and account hierarchy.
 - Contacts, decision makers, champions, and executive sponsors.
-- Beta, pilot, customer, expansion, and renewal lifecycle records.
+- Historical pre-commercial lifecycle records originally labeled beta or pilot, plus customer, expansion, and renewal records.
 - Account timeline, meeting history, adoption, success milestones, and health scoring.
 - District, regional, company, location, team, and rep hierarchy.
 - Duplicate-prevention rules for Sales, Dashboard, Companion, Infrastructure, Data, and Intelligence Engine boundaries.
