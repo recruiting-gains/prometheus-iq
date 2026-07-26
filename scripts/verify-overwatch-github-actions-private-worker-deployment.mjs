@@ -63,6 +63,9 @@ const v2TrustedTempAliasRepairParent = "d33792af0cb6d544ba5ae15990994089dbd7ccc1
 const v2TrustedTempAliasRepairTree = "a1ec42af2b0049cfc15020f37e921885f75ad0ce";
 const v2WranglerScratchIsolationCommit = "947720badd46cb053c6e199b96b3739180b26690";
 const v2WranglerScratchIsolationTree = "ccf08603d668bb7bc0bba76c76aefd5a4954852d";
+const v2Node24CleanupRepairCommit = "1341e8edf6e96603437b7bff95768531e2f5446a";
+const v2Node24CleanupRepairParent = "a887033b1840f8933f59b1bc6b783248bd56271c";
+const v2Node24CleanupRepairTree = "c9c9330c8a9b3fc805e751698f85a75ee1817eb2";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -135,6 +138,11 @@ const v2WranglerScratchIsolationHashes = Object.freeze({
     "4f594733088d7e138c53cd69988765fcfd1d4db6b7fadce5d152bbdc4c228659",
   "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
     "4b7f7faf9f4d59f60fecb17431bb43ae768e8b7cd80b3f9c75adf9b2bcb05c03"
+});
+
+const v2Node24CleanupRepairHashes = Object.freeze({
+  "tests/github-actions-private-worker-workflow-v2.test.mjs":
+    "4f18145316c10be2f425c153ba56a4785c8934fa0a80d0930c61830418f44d17"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -263,7 +271,8 @@ const infrastructureOwnedPaths = new Set([
   ...Object.keys(v2BootstrapRepairHashes),
   ...Object.keys(v2RunnerWorkspaceRepairHashes),
   ...Object.keys(v2TrustedTempAliasRepairHashes),
-  ...Object.keys(v2WranglerScratchIsolationHashes)
+  ...Object.keys(v2WranglerScratchIsolationHashes),
+  ...Object.keys(v2Node24CleanupRepairHashes)
 ]);
 const overwatchOwnedPaths = new Set([
   ...expectedOverwatchPaths,
@@ -716,7 +725,7 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(governance?.governanceId ===
     "github-actions-private-worker-deployment-governance-v2",
   "Private Workflow v2 governance identity drifted.");
-  require(governance?.version === "1.3.0"
+  require(governance?.version === "1.4.0"
     && governance?.status ===
     "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED"
     && governance?.owningSubsystem === "Prometheus Overwatch",
@@ -771,6 +780,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership?.implementationWranglerScratchIsolationCommit?.author ===
       infrastructureIdentity
     && governance?.ownership?.implementationWranglerScratchIsolationCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationNode24CleanupRepairCommit?.commit ===
+      v2Node24CleanupRepairCommit
+    && governance?.ownership?.implementationNode24CleanupRepairCommit?.parent ===
+      v2Node24CleanupRepairParent
+    && governance?.ownership?.implementationNode24CleanupRepairCommit?.tree ===
+      v2Node24CleanupRepairTree
+    && governance?.ownership?.implementationNode24CleanupRepairCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationNode24CleanupRepairCommit?.committer ===
       infrastructureIdentity,
   "Private Workflow v2 owner provenance drifted.");
   require(equal(governance?.ownership?.implementationPaths, Object.keys(v2OwnerHashes)),
@@ -811,6 +830,15 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       sha256: sha256Value
     }))),
   "Private Workflow v2 Wrangler-scratch isolation evidence drifted.");
+  require(equal(governance?.ownership?.node24CleanupRepairPaths,
+    Object.keys(v2Node24CleanupRepairHashes)),
+  "Private Workflow v2 Node 24 cleanup repair path set drifted.");
+  require(equal(governance?.ownership?.node24CleanupRepairEvidence,
+    Object.entries(v2Node24CleanupRepairHashes).map(([path, sha256Value]) => ({
+      path,
+      sha256: sha256Value
+    }))),
+  "Private Workflow v2 Node 24 cleanup repair evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -844,7 +872,12 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.rootCause?.trustedTempAliasRepair?.includes(
       "caller-supplied aliases remain rejected"
     )
-    && governance?.rootCause?.wranglerScratchIsolationRepair?.includes("--outdir"),
+    && governance?.rootCause?.wranglerScratchIsolationRepair?.includes("--outdir")
+    && governance?.rootCause?.fourthQualificationWorkflowRun === "30193359749"
+    && governance?.rootCause?.fourthQualificationReachedArtifactBuild === false
+    && governance?.rootCause?.fourthQualificationReachedProductionMutation === false
+    && governance?.rootCause?.node24CleanupCause?.includes("ERR_FS_EISDIR")
+    && governance?.rootCause?.node24CleanupRepair?.includes("unlinkSync"),
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
     && governance?.workflowBoundary?.branch === "main"
@@ -898,6 +931,13 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.qualificationEvidence?.cleanGithubRunner
       ?.noSecretQualificationRequired === true
     && governance?.qualificationEvidence?.cleanGithubRunner?.acceptedRun === null
+    && governance?.qualificationEvidence?.cleanGithubRunner?.failedRun === "30193359749"
+    && governance?.qualificationEvidence?.cleanGithubRunner?.failedRunClassification ===
+      "NODE_24_TEST_FIXTURE_SYMLINK_CLEANUP"
+    && governance?.qualificationEvidence?.cleanGithubRunner
+      ?.failedRunReachedArtifactBuild === false
+    && governance?.qualificationEvidence?.cleanGithubRunner
+      ?.failedRunReachedProductionMutation === false
     && governance?.qualificationEvidence?.cleanGithubRunner
       ?.qualificationMayPassWithoutEvidence === false,
   "Private Workflow v2 real-Wrangler qualification evidence drifted.");
@@ -1265,6 +1305,15 @@ function verifyV2OwnerAndGovernance() {
       subject: "Isolate private Wrangler runtime scratch",
       hashes: v2WranglerScratchIsolationHashes,
       recorded: governance.ownership.wranglerScratchIsolationEvidence
+    },
+    {
+      label: "Node-24 cleanup",
+      commit: v2Node24CleanupRepairCommit,
+      parent: v2Node24CleanupRepairParent,
+      tree: v2Node24CleanupRepairTree,
+      subject: "Repair private Workflow v2 Node 24 cleanup",
+      hashes: v2Node24CleanupRepairHashes,
+      recorded: governance.ownership.node24CleanupRepairEvidence
     }
   ]) {
     const metadata = git([
@@ -1312,7 +1361,8 @@ function verifyV2OwnerAndGovernance() {
   const currentInfrastructureHashes = {
     ...v2BootstrapRepairHashes,
     ...v2RunnerWorkspaceRepairHashes,
-    ...v2WranglerScratchIsolationHashes
+    ...v2WranglerScratchIsolationHashes,
+    ...v2Node24CleanupRepairHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -1428,7 +1478,9 @@ function verifyRegistryAndReleaseWiring() {
       trustedTempAliasCommit: v2TrustedTempAliasRepairCommit,
       trustedTempAliasTree: v2TrustedTempAliasRepairTree,
       wranglerScratchIsolationCommit: v2WranglerScratchIsolationCommit,
-      wranglerScratchIsolationTree: v2WranglerScratchIsolationTree
+      wranglerScratchIsolationTree: v2WranglerScratchIsolationTree,
+      node24CleanupCommit: v2Node24CleanupRepairCommit,
+      node24CleanupTree: v2Node24CleanupRepairTree
     })
     || artifactV2.cleanRunnerRealWranglerEvidenceRequired !== true
     || !equal(artifactV2.writeAllowed, ["Prometheus Overwatch"])) {
@@ -1584,6 +1636,7 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
     immutableWorkflowV2TrustedTempAliasRepairCommit: v2TrustedTempAliasRepairCommit,
     immutableWorkflowV2WranglerScratchIsolationCommit:
       v2WranglerScratchIsolationCommit,
+    immutableWorkflowV2Node24CleanupRepairCommit: v2Node24CleanupRepairCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,

@@ -218,7 +218,9 @@
         "trustedTempAliasCommit": "6a764ad86ad4f99e0bd9ed835c8f1aba20f91a3b",
         "trustedTempAliasTree": "a1ec42af2b0049cfc15020f37e921885f75ad0ce",
         "wranglerScratchIsolationCommit": "947720badd46cb053c6e199b96b3739180b26690",
-        "wranglerScratchIsolationTree": "ccf08603d668bb7bc0bba76c76aefd5a4954852d"
+        "wranglerScratchIsolationTree": "ccf08603d668bb7bc0bba76c76aefd5a4954852d",
+        "node24CleanupCommit": "1341e8edf6e96603437b7bff95768531e2f5446a",
+        "node24CleanupTree": "c9c9330c8a9b3fc805e751698f85a75ee1817eb2"
       },
       "cleanRunnerRealWranglerEvidenceRequired": true,
       "writeAllowed": [

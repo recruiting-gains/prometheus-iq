@@ -71,6 +71,8 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "6a764ad86ad4f99e0bd9ed835c8f1aba20f91a3b");
   assert.equal(result.immutableWorkflowV2WranglerScratchIsolationCommit,
     "947720badd46cb053c6e199b96b3739180b26690");
+  assert.equal(result.immutableWorkflowV2Node24CleanupRepairCommit,
+    "1341e8edf6e96603437b7bff95768531e2f5446a");
   assert.equal(result.localRealWranglerDryRunPassed, true);
   assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
@@ -104,11 +106,17 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => {
       value.ownership.implementationWranglerScratchIsolationCommit.commit = "0".repeat(40);
     },
+    value => {
+      value.ownership.implementationNode24CleanupRepairCommit.commit = "0".repeat(40);
+    },
     value => { value.ownership.bootstrapRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.runnerWorkspaceRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.trustedTempAliasRepairEvidence[0].sha256 = "0".repeat(64); },
     value => {
       value.ownership.wranglerScratchIsolationEvidence[0].sha256 = "0".repeat(64);
+    },
+    value => {
+      value.ownership.node24CleanupRepairEvidence[0].sha256 = "0".repeat(64);
     },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },
     value => { value.rootCause.firstDeploymentReachedProductionMutation = true; },
@@ -116,6 +124,7 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.rootCause.thirdDeploymentDryRunCompleted = false; },
     value => { value.rootCause.thirdDeploymentForwardWranglerSpawned = true; },
     value => { value.rootCause.thirdDeploymentReachedProductionMutation = true; },
+    value => { value.rootCause.fourthQualificationReachedArtifactBuild = true; },
     value => {
       value.rootCause.runnerWorkspaceCause =
         "The temporary alias was rejected before the Wrangler process could start.";

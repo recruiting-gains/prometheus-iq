@@ -10,7 +10,9 @@ bootstrap-guard repair
 `254fea23e18fec27228e15e75986a1c6bb3dffd6`. Overwatch also accepts the exact
 Infrastructure successor chain that canonicalizes the trusted default temporary
 alias in `6a764ad86ad4f99e0bd9ed835c8f1aba20f91a3b` and isolates Wrangler scratch
-output in `947720badd46cb053c6e199b96b3739180b26690`.
+output in `947720badd46cb053c6e199b96b3739180b26690`. The Node 24 portability
+successor `1341e8edf6e96603437b7bff95768531e2f5446a` changes only the
+Infrastructure-owned Workflow v2 test fixture.
 
 ## Corrective
 
@@ -64,8 +66,17 @@ smoke boundary remain unchanged.
 The release-blocking local verifier executes a real no-secret Wrangler 4.110.0
 dry run and proves the guarded roots remain unchanged afterward. The same gate
 must pass on a clean `ubuntu-24.04` GitHub runner with Node 24 before a new
-qualification can be accepted. That clean-runner evidence is pending; this
-governance update does not claim qualification or deployment.
+qualification can be accepted.
+
+Qualification run `30193359749` reached that gate and failed before artifact
+creation or production access. The symlink-substitution assertion had already
+passed, but its cleanup used `rmSync` on a directory symlink. Node 24.4.1
+returned `ERR_FS_EISDIR`; the same cleanup happened to succeed under Node 25.
+The owner fixture now removes the known symlink with `unlinkSync` before
+recreating the directory. This is a test portability repair only: the symlink
+attack remains rejected, the real Wrangler test remains mandatory, and no
+runtime, payload, or production boundary changed. Fresh clean-runner evidence
+is pending; this governance update does not claim qualification or deployment.
 
 ## Boundary
 
