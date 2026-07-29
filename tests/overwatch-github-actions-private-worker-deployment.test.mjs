@@ -97,6 +97,8 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "ff01434aac512f46b6c582d013056fe5b466ce6e");
   assert.equal(result.immutableWorkflowV2SmokeSequencingRepairCommit,
     "d41f900930d1c6036a536ea4d64ba5beb1779195");
+  assert.equal(result.immutableWorkflowV2ProbePropagationRepairCommit,
+    "89bd37ad4a05b89ed624b0f18edcffdcb7e8129d");
   assert.equal(result.localRealWranglerDryRunPassed, true);
   assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
@@ -180,6 +182,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
       value.ownership.implementationSmokeSequencingRepairCommit.commit =
         "0".repeat(40);
     },
+    value => {
+      value.ownership.implementationProbePropagationRepairCommit.commit =
+        "0".repeat(40);
+    },
     value => { value.ownership.bootstrapRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.runnerWorkspaceRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.trustedTempAliasRepairEvidence[0].sha256 = "0".repeat(64); },
@@ -225,6 +231,9 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => {
       value.ownership.smokeSequencingRepairEvidence[0].sha256 = "0".repeat(64);
     },
+    value => {
+      value.ownership.probePropagationRepairEvidence[0].sha256 = "0".repeat(64);
+    },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },
     value => { value.rootCause.firstDeploymentReachedProductionMutation = true; },
     value => { value.rootCause.secondDeploymentReachedProductionMutation = true; },
@@ -250,6 +259,9 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.rootCause.concurrentSmokeFailureRollbackVerified = false; },
     value => { value.rootCause.concurrentSmokeFailureCause = "No cause."; },
     value => { value.rootCause.smokeSequencingRepair = "No repair."; },
+    value => { value.rootCause.probePropagationFailureRollbackVerified = false; },
+    value => { value.rootCause.probePropagationFailureCause = "No cause."; },
+    value => { value.rootCause.probePropagationRepair = "No repair."; },
     value => {
       value.rootCause.runnerWorkspaceCause =
         "The temporary alias was rejected before the Wrangler process could start.";

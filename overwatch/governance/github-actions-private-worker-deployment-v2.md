@@ -212,6 +212,18 @@ the complete fixed smoke plan runs exactly once in deterministic sequence.
 Unsafe responses and transport failures still trigger the single qualified
 rollback, and the approved Dashboard payload remains unchanged.
 
+Deployment run `30487336591` proved one remaining edge-propagation race. The
+canonical readiness request reached the new Worker, but the immediately
+following fixed-plan root request reached an older edge instance and carried a
+stale Worker version. The workflow failed closed and verified the paired
+forward-compatible rollback to `2182c9bd-b753-4beb-b034-d5d13e02f9fd`.
+Infrastructure successor `89bd37ad4a05b89ed624b0f18edcffdcb7e8129d`
+keeps the full plan sequential while allowing each probe to wait only through
+missing guard evidence or missing/stale Worker-version evidence under one
+shared monotonic 46.5-second deadline. Redirects, non-2xx responses, malformed
+markers or versions, transport failures, and nonadvancing clocks still fail
+immediately.
+
 ## Boundary
 
 - Target: `prometheus-iq` only.
@@ -227,11 +239,11 @@ rollback, and the approved Dashboard payload remains unchanged.
   rollback is prohibited.
 - Automated smoke requests are authenticated GET or HEAD only, use canonical
   paths, reject every redirect, and permit zero attempted application writes.
-- The postdeployment readiness window evaluates the complete fixed GET/HEAD
-  plan. Every probe must prove the exact guard marker and deployed Worker
-  version in one converged attempt. Forward and rollback use unconditional
-  boolean Worker-first routing, and the bounded wait is measured by a monotonic
-  clock rather than an attempt count.
+- Postdeployment readiness first proves canonical `GET /`. The fixed GET/HEAD
+  plan then runs sequentially, and each probe must prove the exact guard marker
+  and deployed Worker version. Only bounded missing or stale propagation
+  evidence may wait under one shared monotonic deadline; unsafe responses never
+  retry. Forward and rollback use unconditional boolean Worker-first routing.
 - Collection, cohorts, recommendation influence, availability refresh,
   customer activation, Anthony mapping, the public Worker, and CRM remain
   outside this release.

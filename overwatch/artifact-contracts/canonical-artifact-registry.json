@@ -238,7 +238,9 @@
         "browserAcceptanceRepairCommit": "ff01434aac512f46b6c582d013056fe5b466ce6e",
         "browserAcceptanceRepairTree": "fd5088993a06935a92d3f8d4301a632355571d9f",
         "smokeSequencingRepairCommit": "d41f900930d1c6036a536ea4d64ba5beb1779195",
-        "smokeSequencingRepairTree": "525c78893aad8b461c829789c9ef71cb40b18c1b"
+        "smokeSequencingRepairTree": "525c78893aad8b461c829789c9ef71cb40b18c1b",
+        "probePropagationRepairCommit": "89bd37ad4a05b89ed624b0f18edcffdcb7e8129d",
+        "probePropagationRepairTree": "362785385b713d1be4a501b273357cb33a1eeca6"
       },
       "cleanRunnerRealWranglerEvidenceRequired": true,
       "writeAllowed": [

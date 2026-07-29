@@ -160,6 +160,14 @@
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Repair private postdeployment smoke sequencing"
     },
+    "implementationProbePropagationRepairCommit": {
+      "commit": "89bd37ad4a05b89ed624b0f18edcffdcb7e8129d",
+      "parent": "a14339d7a737d02f0b10763a215b56a69a6fb503",
+      "tree": "362785385b713d1be4a501b273357cb33a1eeca6",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Bound private smoke propagation per probe"
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "implementationPaths": [
@@ -888,6 +896,30 @@
         "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
         "sha256": "2cd10bd6a6e1c126073309dc6cf3a39d2d96b3716c2c5a3868b298b823b9d192"
       }
+    ],
+    "probePropagationRepairPaths": [
+      "scripts/run-cloudflare-unattended-smoke.mjs",
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "tests/cloudflare-unattended-runtime-guard.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ],
+    "probePropagationRepairEvidence": [
+      {
+        "path": "scripts/run-cloudflare-unattended-smoke.mjs",
+        "sha256": "b10c32c8b76188ee8b4ee2fc059ebb13f2760b74845c20ad1c2d3d99c54f9d97"
+      },
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "0f41c326c0bc9d82975d0edff3bb4783aef60f90a8797d9a4a02e82169138ba3"
+      },
+      {
+        "path": "tests/cloudflare-unattended-runtime-guard.test.mjs",
+        "sha256": "dad08a93fb0c9a62f50a30dc4890e9afa53ed9495b6fdb3a1eab8810487ab462"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "6c3de9e73983aa7dd15781c19449a4add62b3b063cd36276aa6ac90d1b8bf845"
+      }
     ]
   },
   "rootCause": {
@@ -961,7 +993,13 @@
     "concurrentSmokeFailureClassification": "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=ROOT_GET",
     "concurrentSmokeFailureRollbackVerified": true,
     "concurrentSmokeFailureCause": "Postdeployment readiness launched the entire fixed 15-request GET/HEAD plan concurrently under individual 2.5-second deadlines. One transport stall rejected the batch, and plan-order classification reported ROOT_GET even though the canonical root remained directly reachable after rollback.",
-    "smokeSequencingRepair": "Postdeployment propagation readiness now uses only canonical GET / under the existing monotonic deadline. After the exact guard marker and Worker version converge, the complete fixed 15-request GET/HEAD smoke runs exactly once in deterministic sequence. Unsafe responses and transport failures remain immediate fail-closed rollback triggers, and no blanket retry was added."
+    "smokeSequencingRepair": "Postdeployment propagation readiness now uses only canonical GET / under the existing monotonic deadline. After the exact guard marker and Worker version converge, the complete fixed 15-request GET/HEAD smoke runs exactly once in deterministic sequence. Unsafe responses and transport failures remain immediate fail-closed rollback triggers, and no blanket retry was added.",
+    "probePropagationFailureDeploymentRun": "30487336591",
+    "probePropagationFailureReachedProductionMutation": true,
+    "probePropagationFailureClassification": "SMOKE_FAILURE|DIMENSION=RELEASE_IDENTITY_MISMATCH|PROBE=ROOT_GET",
+    "probePropagationFailureRollbackVerified": true,
+    "probePropagationFailureCause": "Canonical readiness reached the new private Worker, but the immediately following fixed-plan root request reached an older edge instance. The sequential plan treated that bounded stale-version propagation state as final and entered the qualified rollback.",
+    "probePropagationRepair": "After canonical readiness, each fixed GET/HEAD probe may wait only through missing guard evidence or missing/stale Worker-version evidence under one shared monotonic 46.5-second deadline. Redirects, non-2xx responses, malformed markers or versions, transport failures, and nonadvancing clocks still fail immediately; accepted probes remain sequential and application writes remain zero."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
@@ -1067,6 +1105,8 @@
     "rollbackRootVersionIdentityRequired": true,
     "rollbackRootComposedGuardTestRequired": true,
     "fullFixedPlanConvergenceRequired": true,
+    "fullFixedPlanSafePropagationRetryPerProbe": true,
+    "fullFixedPlanSharedPropagationDeadline": true,
     "fixedNonsecretProbeClassificationRequired": true,
     "forwardAndRollbackWorkerFirstUnconditional": true,
     "selectiveWorkerFirstArraysAccepted": false,

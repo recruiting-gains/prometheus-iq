@@ -100,6 +100,9 @@ const v2BrowserAcceptanceRepairTree = "fd5088993a06935a92d3f8d4301a632355571d9f"
 const v2SmokeSequencingRepairCommit = "d41f900930d1c6036a536ea4d64ba5beb1779195";
 const v2SmokeSequencingRepairParent = "b2dff15cb69fcc21210ddc283ebbee90d3a70d5d";
 const v2SmokeSequencingRepairTree = "525c78893aad8b461c829789c9ef71cb40b18c1b";
+const v2ProbePropagationRepairCommit = "89bd37ad4a05b89ed624b0f18edcffdcb7e8129d";
+const v2ProbePropagationRepairParent = "a14339d7a737d02f0b10763a215b56a69a6fb503";
+const v2ProbePropagationRepairTree = "362785385b713d1be4a501b273357cb33a1eeca6";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -415,6 +418,17 @@ const v2SmokeSequencingRepairHashes = Object.freeze({
     "7e015c3429802a918b306ca94f704e5cd3a8ef94972294f5fe4606010da4f022",
   "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
     "2cd10bd6a6e1c126073309dc6cf3a39d2d96b3716c2c5a3868b298b823b9d192"
+});
+
+const v2ProbePropagationRepairHashes = Object.freeze({
+  "scripts/run-cloudflare-unattended-smoke.mjs":
+    "b10c32c8b76188ee8b4ee2fc059ebb13f2760b74845c20ad1c2d3d99c54f9d97",
+  "scripts/verify-github-actions-private-worker-workflow-v2.mjs":
+    "0f41c326c0bc9d82975d0edff3bb4783aef60f90a8797d9a4a02e82169138ba3",
+  "tests/cloudflare-unattended-runtime-guard.test.mjs":
+    "dad08a93fb0c9a62f50a30dc4890e9afa53ed9495b6fdb3a1eab8810487ab462",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "6c3de9e73983aa7dd15781c19449a4add62b3b063cd36276aa6ac90d1b8bf845"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -1187,6 +1201,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership?.implementationSmokeSequencingRepairCommit?.author ===
       infrastructureIdentity
     && governance?.ownership?.implementationSmokeSequencingRepairCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationProbePropagationRepairCommit?.commit ===
+      v2ProbePropagationRepairCommit
+    && governance?.ownership?.implementationProbePropagationRepairCommit?.parent ===
+      v2ProbePropagationRepairParent
+    && governance?.ownership?.implementationProbePropagationRepairCommit?.tree ===
+      v2ProbePropagationRepairTree
+    && governance?.ownership?.implementationProbePropagationRepairCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationProbePropagationRepairCommit?.committer ===
       infrastructureIdentity,
   "Private Workflow v2 owner provenance drifted.");
   require(equal(governance?.ownership?.implementationPaths, Object.keys(v2OwnerHashes)),
@@ -1311,6 +1335,12 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.smokeSequencingRepairEvidence,
     evidenceMap(v2SmokeSequencingRepairHashes)),
   "Private Workflow v2 smoke-sequencing repair evidence drifted.");
+  require(equal(governance?.ownership?.probePropagationRepairPaths,
+    Object.keys(v2ProbePropagationRepairHashes)),
+  "Private Workflow v2 probe-propagation repair path set drifted.");
+  require(equal(governance?.ownership?.probePropagationRepairEvidence,
+    evidenceMap(v2ProbePropagationRepairHashes)),
+  "Private Workflow v2 probe-propagation repair evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -1440,6 +1470,17 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     )
     && governance?.rootCause?.smokeSequencingRepair?.includes(
       "exactly once in deterministic sequence"
+    )
+    && governance?.rootCause?.probePropagationFailureDeploymentRun === "30487336591"
+    && governance?.rootCause?.probePropagationFailureReachedProductionMutation === true
+    && governance?.rootCause?.probePropagationFailureClassification ===
+      "SMOKE_FAILURE|DIMENSION=RELEASE_IDENTITY_MISMATCH|PROBE=ROOT_GET"
+    && governance?.rootCause?.probePropagationFailureRollbackVerified === true
+    && governance?.rootCause?.probePropagationFailureCause?.includes(
+      "immediately following fixed-plan root request"
+    )
+    && governance?.rootCause?.probePropagationRepair?.includes(
+      "one shared monotonic 46.5-second deadline"
     ),
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
@@ -1526,6 +1567,8 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.smokeBoundary?.rollbackRootVersionIdentityRequired === true
     && governance?.smokeBoundary?.rollbackRootComposedGuardTestRequired === true
     && governance?.smokeBoundary?.fullFixedPlanConvergenceRequired === true
+    && governance?.smokeBoundary?.fullFixedPlanSafePropagationRetryPerProbe === true
+    && governance?.smokeBoundary?.fullFixedPlanSharedPropagationDeadline === true
     && governance?.smokeBoundary?.fixedNonsecretProbeClassificationRequired === true
     && governance?.smokeBoundary?.forwardAndRollbackWorkerFirstUnconditional === true
     && governance?.smokeBoundary?.selectiveWorkerFirstArraysAccepted === false
@@ -1626,12 +1669,12 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && contract?.smoke?.bootstrap?.guardResponseMarkerMayBeOmittedOnlyForPinnedCurrentVersion
       === true
     && contract?.smoke?.postDeployment?.exactGuardResponseMarkerRequired === true
-    && contract?.smoke?.postDeployment?.latestFailedRun === "30482733457"
+    && contract?.smoke?.postDeployment?.latestFailedRun === "30487336591"
     && contract?.smoke?.postDeployment?.latestFailureClassification ===
-      "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=ROOT_GET"
+      "SMOKE_FAILURE|DIMENSION=RELEASE_IDENTITY_MISMATCH|PROBE=ROOT_GET"
     && contract?.smoke?.postDeployment?.latestFailureForwardRollbackVerified === true
     && contract?.smoke?.postDeployment?.propagationFence?.scope ===
-      "canonical_root_get"
+      "canonical_root_get_then_each_fixed_probe"
     && contract?.smoke?.postDeployment?.propagationFence?.readinessProbe === "GET /"
     && contract?.smoke?.postDeployment?.propagationFence
       ?.fixedNonsecretProbeClassification === true
@@ -1640,7 +1683,9 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && contract?.smoke?.postDeployment?.propagationFence
       ?.fullFixedSmokeRunsAfterReadiness === true
     && contract?.smoke?.postDeployment?.propagationFence
-      ?.fullFixedSmokeExecution === "sequential_once"
+      ?.fullFixedSmokeExecution === "sequential_bounded_propagation_per_probe"
+    && contract?.smoke?.postDeployment?.propagationFence
+      ?.fullFixedSmokeSharedDeadline === true
     && contract?.smoke?.postDeployment?.propagationFence
       ?.concurrentRequestsPerAttempt === false
     && contract?.smoke?.postDeployment?.propagationFence
@@ -2054,6 +2099,15 @@ function verifyV2OwnerAndGovernance() {
       subject: "Repair private postdeployment smoke sequencing",
       hashes: v2SmokeSequencingRepairHashes,
       recorded: governance.ownership.smokeSequencingRepairEvidence
+    },
+    {
+      label: "postdeployment per-probe propagation",
+      commit: v2ProbePropagationRepairCommit,
+      parent: v2ProbePropagationRepairParent,
+      tree: v2ProbePropagationRepairTree,
+      subject: "Bound private smoke propagation per probe",
+      hashes: v2ProbePropagationRepairHashes,
+      recorded: governance.ownership.probePropagationRepairEvidence
     }
   ]) {
     const metadata = git([
@@ -2114,7 +2168,8 @@ function verifyV2OwnerAndGovernance() {
     ...v2UnconditionalGuardRoutingHashes,
     ...v2PaidCustomerAcceptanceHashes,
     ...v2BrowserAcceptanceRepairHashes,
-    ...v2SmokeSequencingRepairHashes
+    ...v2SmokeSequencingRepairHashes,
+    ...v2ProbePropagationRepairHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -2250,7 +2305,9 @@ function verifyRegistryAndReleaseWiring() {
       browserAcceptanceRepairCommit: v2BrowserAcceptanceRepairCommit,
       browserAcceptanceRepairTree: v2BrowserAcceptanceRepairTree,
       smokeSequencingRepairCommit: v2SmokeSequencingRepairCommit,
-      smokeSequencingRepairTree: v2SmokeSequencingRepairTree
+      smokeSequencingRepairTree: v2SmokeSequencingRepairTree,
+      probePropagationRepairCommit: v2ProbePropagationRepairCommit,
+      probePropagationRepairTree: v2ProbePropagationRepairTree
     })
     || artifactV2.cleanRunnerRealWranglerEvidenceRequired !== true
     || !equal(artifactV2.writeAllowed, ["Prometheus Overwatch"])) {
@@ -2429,6 +2486,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2BrowserAcceptanceRepairCommit,
     immutableWorkflowV2SmokeSequencingRepairCommit:
       v2SmokeSequencingRepairCommit,
+    immutableWorkflowV2ProbePropagationRepairCommit:
+      v2ProbePropagationRepairCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,
