@@ -201,6 +201,17 @@ classification. It fully awaits the browser Service Worker registration query,
 keeps numeric zero mandatory, and fails closed on unresolved or malformed
 evidence without changing the qualified application payload.
 
+Deployment run `30482733457` installed the qualified forward release, then the
+postdeployment fence launched all fifteen fixed GET/HEAD probes concurrently.
+One request exceeded its bounded transport deadline, the workflow failed closed,
+and the qualified forward-compatible rollback restored private production to
+`2182c9bd-b753-4beb-b034-d5d13e02f9fd`. Infrastructure successor
+`d41f900930d1c6036a536ea4d64ba5beb1779195` uses only canonical `GET /` for
+bounded guard/version propagation readiness. Once that exact identity converges,
+the complete fixed smoke plan runs exactly once in deterministic sequence.
+Unsafe responses and transport failures still trigger the single qualified
+rollback, and the approved Dashboard payload remains unchanged.
+
 ## Boundary
 
 - Target: `prometheus-iq` only.

@@ -95,6 +95,8 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "3872b30d1f16acde85518ae857bae09336aaed3b");
   assert.equal(result.immutableWorkflowV2BrowserAcceptanceRepairCommit,
     "ff01434aac512f46b6c582d013056fe5b466ce6e");
+  assert.equal(result.immutableWorkflowV2SmokeSequencingRepairCommit,
+    "d41f900930d1c6036a536ea4d64ba5beb1779195");
   assert.equal(result.localRealWranglerDryRunPassed, true);
   assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
@@ -174,6 +176,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
       value.ownership.implementationBrowserAcceptanceRepairCommit.commit =
         "0".repeat(40);
     },
+    value => {
+      value.ownership.implementationSmokeSequencingRepairCommit.commit =
+        "0".repeat(40);
+    },
     value => { value.ownership.bootstrapRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.runnerWorkspaceRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.trustedTempAliasRepairEvidence[0].sha256 = "0".repeat(64); },
@@ -216,6 +222,9 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => {
       value.ownership.browserAcceptanceRepairEvidence[0].sha256 = "0".repeat(64);
     },
+    value => {
+      value.ownership.smokeSequencingRepairEvidence[0].sha256 = "0".repeat(64);
+    },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },
     value => { value.rootCause.firstDeploymentReachedProductionMutation = true; },
     value => { value.rootCause.secondDeploymentReachedProductionMutation = true; },
@@ -238,6 +247,9 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.rootCause.unconditionalGuardRoutingGap = "No gap."; },
     value => { value.rootCause.prematureConvergenceDeadlineGap = "No gap."; },
     value => { value.rootCause.unconditionalGuardRoutingRepair = "No repair."; },
+    value => { value.rootCause.concurrentSmokeFailureRollbackVerified = false; },
+    value => { value.rootCause.concurrentSmokeFailureCause = "No cause."; },
+    value => { value.rootCause.smokeSequencingRepair = "No repair."; },
     value => {
       value.rootCause.runnerWorkspaceCause =
         "The temporary alias was rejected before the Wrangler process could start.";

@@ -152,6 +152,14 @@
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Repair private browser acceptance registration evidence"
     },
+    "implementationSmokeSequencingRepairCommit": {
+      "commit": "d41f900930d1c6036a536ea4d64ba5beb1779195",
+      "parent": "b2dff15cb69fcc21210ddc283ebbee90d3a70d5d",
+      "tree": "525c78893aad8b461c829789c9ef71cb40b18c1b",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Repair private postdeployment smoke sequencing"
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "implementationPaths": [
@@ -851,6 +859,35 @@
         "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
         "sha256": "ef4a30917c249b72b9542f86a0e2a5f0743a53bb3d351fc7a645a178bc75a3b2"
       }
+    ],
+    "smokeSequencingRepairPaths": [
+      "scripts/run-cloudflare-unattended-smoke.mjs",
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "tests/cloudflare-unattended-runtime-guard.test.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ],
+    "smokeSequencingRepairEvidence": [
+      {
+        "path": "scripts/run-cloudflare-unattended-smoke.mjs",
+        "sha256": "0a9b6c06af714e4671a9bff1f279113de19addd150b032258cef4171bf72c0b4"
+      },
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "81c1d4552be75907c642c1793c23f295e583e31e02f73469065b04c60a95b3b8"
+      },
+      {
+        "path": "tests/cloudflare-unattended-runtime-guard.test.mjs",
+        "sha256": "3a264aabc33655a852d95db5ee6b328554d4c1049433cd620ccaf19544c89314"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "sha256": "7e015c3429802a918b306ca94f704e5cd3a8ef94972294f5fe4606010da4f022"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "2cd10bd6a6e1c126073309dc6cf3a39d2d96b3716c2c5a3868b298b823b9d192"
+      }
     ]
   },
   "rootCause": {
@@ -918,7 +955,13 @@
     "thirdPropagationFailureRollbackVerified": true,
     "unconditionalGuardRoutingGap": "The selective route-pattern array [\"/*\"] did not provide the unconditional Worker-first security invariant for the cached runtime-pools asset. The valid 2xx response bypassed the Worker guard and therefore lacked its exact marker.",
     "prematureConvergenceDeadlineGap": "The smoke fence advertised a 46.5-second convergence window but exhausted twelve fast attempts after roughly 16.5 seconds because acceptance was controlled by attempt count rather than measured elapsed time.",
-    "unconditionalGuardRoutingRepair": "Forward and rollback now require Cloudflare's boolean true unconditional Worker-first mode and reject every route-pattern array. The full-plan smoke fence uses a monotonic 46.5-second deadline with no attempt-count acceptance limit; unsafe response classes still fail immediately into the one verified forward rollback."
+    "unconditionalGuardRoutingRepair": "Forward and rollback now require Cloudflare's boolean true unconditional Worker-first mode and reject every route-pattern array. The full-plan smoke fence uses a monotonic 46.5-second deadline with no attempt-count acceptance limit; unsafe response classes still fail immediately into the one verified forward rollback.",
+    "concurrentSmokeFailureDeploymentRun": "30482733457",
+    "concurrentSmokeFailureReachedProductionMutation": true,
+    "concurrentSmokeFailureClassification": "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=ROOT_GET",
+    "concurrentSmokeFailureRollbackVerified": true,
+    "concurrentSmokeFailureCause": "Postdeployment readiness launched the entire fixed 15-request GET/HEAD plan concurrently under individual 2.5-second deadlines. One transport stall rejected the batch, and plan-order classification reported ROOT_GET even though the canonical root remained directly reachable after rollback.",
+    "smokeSequencingRepair": "Postdeployment propagation readiness now uses only canonical GET / under the existing monotonic deadline. After the exact guard marker and Worker version converge, the complete fixed 15-request GET/HEAD smoke runs exactly once in deterministic sequence. Unsafe responses and transport failures remain immediate fail-closed rollback triggers, and no blanket retry was added."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
