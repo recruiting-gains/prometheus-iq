@@ -224,6 +224,14 @@ shared monotonic 46.5-second deadline. Redirects, non-2xx responses, malformed
 markers or versions, transport failures, and nonadvancing clocks still fail
 immediately.
 
+Deployment run `30492810689` reached the qualified candidate but the automated
+browser gate returned a generic health failure and completed the verified
+forward-compatible rollback. Infrastructure successor
+`dba70aa70f863518d9afdb7343788b998ef567e1` preserves the same fail-closed
+acceptance boundary while classifying only the failing viewport and fixed cause:
+console error, runtime exception, network failure, or external request. It emits
+no URL, message, count, claim, credential, or secret value, and it adds no retry.
+
 ## Boundary
 
 - Target: `prometheus-iq` only.

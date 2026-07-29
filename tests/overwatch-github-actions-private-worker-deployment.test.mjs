@@ -99,6 +99,8 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "d41f900930d1c6036a536ea4d64ba5beb1779195");
   assert.equal(result.immutableWorkflowV2ProbePropagationRepairCommit,
     "89bd37ad4a05b89ed624b0f18edcffdcb7e8129d");
+  assert.equal(result.immutableWorkflowV2BrowserHealthDiagnosticsRepairCommit,
+    "dba70aa70f863518d9afdb7343788b998ef567e1");
   assert.equal(result.localRealWranglerDryRunPassed, true);
   assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
@@ -234,6 +236,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => {
       value.ownership.probePropagationRepairEvidence[0].sha256 = "0".repeat(64);
     },
+    value => {
+      value.ownership.browserHealthDiagnosticsRepairEvidence[0].sha256 =
+        "0".repeat(64);
+    },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },
     value => { value.rootCause.firstDeploymentReachedProductionMutation = true; },
     value => { value.rootCause.secondDeploymentReachedProductionMutation = true; },
@@ -262,6 +268,9 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.rootCause.probePropagationFailureRollbackVerified = false; },
     value => { value.rootCause.probePropagationFailureCause = "No cause."; },
     value => { value.rootCause.probePropagationRepair = "No repair."; },
+    value => { value.rootCause.browserHealthFailureRollbackVerified = false; },
+    value => { value.rootCause.browserHealthDiagnosticGap = "No gap."; },
+    value => { value.rootCause.browserHealthDiagnosticRepair = "No repair."; },
     value => {
       value.rootCause.runnerWorkspaceCause =
         "The temporary alias was rejected before the Wrangler process could start.";
@@ -346,6 +355,14 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
   assert.equal(evaluateGithubActionsPrivateWorkerV2Governance({
     governance: governanceV2,
     contract: changedBrowserAcceptance
+  }).ok, false);
+
+  const changedHealthClassification = clone(contractV2);
+  changedHealthClassification.browserAcceptance.healthFailureClassification
+    .arbitraryMessagesAllowed = true;
+  assert.equal(evaluateGithubActionsPrivateWorkerV2Governance({
+    governance: governanceV2,
+    contract: changedHealthClassification
   }).ok, false);
 });
 
@@ -530,4 +547,16 @@ test("historical deployment gate rejects protected cross-owner successors", () =
       paths: ["scripts/lib/github-actions-private-worker-deployment.mjs"]
     }]);
   assert.equal(overwatchTouchesInfrastructure.ok, false);
+
+  const overwatchTouchesBrowserAcceptance =
+    evaluateGithubActionsPrivateWorkerSuccessorOwnership([{
+      commit: "overwatch-crosses-browser-acceptance-boundary",
+      author: "Prometheus Overwatch <overwatch@prometheus.local>",
+      committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+      paths: [
+        "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+        "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs"
+      ]
+    }]);
+  assert.equal(overwatchTouchesBrowserAcceptance.ok, false);
 });

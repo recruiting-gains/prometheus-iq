@@ -103,6 +103,12 @@ const v2SmokeSequencingRepairTree = "525c78893aad8b461c829789c9ef71cb40b18c1b";
 const v2ProbePropagationRepairCommit = "89bd37ad4a05b89ed624b0f18edcffdcb7e8129d";
 const v2ProbePropagationRepairParent = "a14339d7a737d02f0b10763a215b56a69a6fb503";
 const v2ProbePropagationRepairTree = "362785385b713d1be4a501b273357cb33a1eeca6";
+const v2BrowserHealthDiagnosticsRepairCommit =
+  "dba70aa70f863518d9afdb7343788b998ef567e1";
+const v2BrowserHealthDiagnosticsRepairParent =
+  "dc7038b31e726f3d9e48115534c9f269bb44906a";
+const v2BrowserHealthDiagnosticsRepairTree =
+  "306f4afd26b51fe5d0cc064bf8e0b3571923b97d";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -431,6 +437,19 @@ const v2ProbePropagationRepairHashes = Object.freeze({
     "6c3de9e73983aa7dd15781c19449a4add62b3b063cd36276aa6ac90d1b8bf845"
 });
 
+const v2BrowserHealthDiagnosticsRepairHashes = Object.freeze({
+  "scripts/verify-github-actions-private-worker-workflow-v2.mjs":
+    "cae7e1eb5dbb72b10873bad0e0ededc709450ad48c5470ac77e1a4f4f0f816ba",
+  "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs":
+    "3e883c6a3625a0784c77956940f1d699d1cd47f76803d3383e990c53c344c02b",
+  "tests/github-actions-private-worker-workflow-v2.test.mjs":
+    "e8be20975c181bdee2d71bff2944a0c27b2de0837c10cacef7378b4954bb4fc0",
+  "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs":
+    "011922fe023b6df44568c87c8b414c981b92e67a229a38997ee0a772771c270e",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "93e760cf82e389a9ced61ea9df7031924805600a76abc54da92fe7dc8c4bd470"
+});
+
 const historicalOwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker.yml":
     "f2e672729d9bee7a4a173627e51a622b944d3b545e4ed1f4851414b5e31897e9",
@@ -563,7 +582,8 @@ const infrastructureOwnedPaths = new Set([
   ...Object.keys(v2PublicBundlePreservationHashes),
   ...Object.keys(v2CanonicalClientIsolationHashes),
   ...Object.keys(v2PayloadContinuityHashes),
-  ...Object.keys(v2ReleasePropagationRepairHashes)
+  ...Object.keys(v2ReleasePropagationRepairHashes),
+  ...Object.keys(v2BrowserHealthDiagnosticsRepairHashes)
 ]);
 const overwatchOwnedPaths = new Set([
   ...expectedOverwatchPaths,
@@ -1341,6 +1361,12 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.probePropagationRepairEvidence,
     evidenceMap(v2ProbePropagationRepairHashes)),
   "Private Workflow v2 probe-propagation repair evidence drifted.");
+  require(equal(governance?.ownership?.browserHealthDiagnosticsRepairPaths,
+    Object.keys(v2BrowserHealthDiagnosticsRepairHashes)),
+  "Private Workflow v2 browser-health diagnostics repair path set drifted.");
+  require(equal(governance?.ownership?.browserHealthDiagnosticsRepairEvidence,
+    evidenceMap(v2BrowserHealthDiagnosticsRepairHashes)),
+  "Private Workflow v2 browser-health diagnostics repair evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -1481,6 +1507,17 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     )
     && governance?.rootCause?.probePropagationRepair?.includes(
       "one shared monotonic 46.5-second deadline"
+    )
+    && governance?.rootCause?.browserHealthFailureDeploymentRun === "30492810689"
+    && governance?.rootCause?.browserHealthFailureReachedProductionMutation === true
+    && governance?.rootCause?.browserHealthFailureClassification ===
+      "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED|CAUSE=QUALIFICATION_FAILED|DIMENSION=HEALTH"
+    && governance?.rootCause?.browserHealthFailureRollbackVerified === true
+    && governance?.rootCause?.browserHealthDiagnosticGap?.includes(
+      "collapsed eight viewport-specific health causes"
+    )
+    && governance?.rootCause?.browserHealthDiagnosticRepair?.includes(
+      "fixed viewport-and-cause classification"
     ),
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
@@ -1710,6 +1747,21 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && contract?.browserAcceptance?.exactPrivateWorkerVersionRequired === true
     && contract?.browserAcceptance?.publicWorkerIdentityFencedBeforeAndAfter === true
     && contract?.browserAcceptance?.credentialValuesInOutputAllowed === false
+    && equal(contract?.browserAcceptance?.healthFailureClassification?.closedVocabulary, [
+      "DESKTOP_CONSOLE_ERROR",
+      "DESKTOP_RUNTIME_EXCEPTION",
+      "DESKTOP_NETWORK_FAILURE",
+      "DESKTOP_EXTERNAL_REQUEST",
+      "MOBILE_CONSOLE_ERROR",
+      "MOBILE_RUNTIME_EXCEPTION",
+      "MOBILE_NETWORK_FAILURE",
+      "MOBILE_EXTERNAL_REQUEST"
+    ])
+    && contract?.browserAcceptance?.healthFailureClassification?.viewportEncoded === true
+    && contract?.browserAcceptance?.healthFailureClassification
+      ?.arbitraryMessagesAllowed === false
+    && contract?.browserAcceptance?.healthFailureClassification
+      ?.sensitiveValuesAllowed === false
     && equal(contract?.runtimeGuardInjection?.plainTextSettings, [
       "PROMETHEUS_UNATTENDED_SMOKE_GUARD",
       "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
@@ -2108,6 +2160,15 @@ function verifyV2OwnerAndGovernance() {
       subject: "Bound private smoke propagation per probe",
       hashes: v2ProbePropagationRepairHashes,
       recorded: governance.ownership.probePropagationRepairEvidence
+    },
+    {
+      label: "browser-health diagnostics",
+      commit: v2BrowserHealthDiagnosticsRepairCommit,
+      parent: v2BrowserHealthDiagnosticsRepairParent,
+      tree: v2BrowserHealthDiagnosticsRepairTree,
+      subject: "Classify private browser health failures",
+      hashes: v2BrowserHealthDiagnosticsRepairHashes,
+      recorded: governance.ownership.browserHealthDiagnosticsRepairEvidence
     }
   ]) {
     const metadata = git([
@@ -2169,7 +2230,8 @@ function verifyV2OwnerAndGovernance() {
     ...v2PaidCustomerAcceptanceHashes,
     ...v2BrowserAcceptanceRepairHashes,
     ...v2SmokeSequencingRepairHashes,
-    ...v2ProbePropagationRepairHashes
+    ...v2ProbePropagationRepairHashes,
+    ...v2BrowserHealthDiagnosticsRepairHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -2307,7 +2369,9 @@ function verifyRegistryAndReleaseWiring() {
       smokeSequencingRepairCommit: v2SmokeSequencingRepairCommit,
       smokeSequencingRepairTree: v2SmokeSequencingRepairTree,
       probePropagationRepairCommit: v2ProbePropagationRepairCommit,
-      probePropagationRepairTree: v2ProbePropagationRepairTree
+      probePropagationRepairTree: v2ProbePropagationRepairTree,
+      browserHealthDiagnosticsRepairCommit: v2BrowserHealthDiagnosticsRepairCommit,
+      browserHealthDiagnosticsRepairTree: v2BrowserHealthDiagnosticsRepairTree
     })
     || artifactV2.cleanRunnerRealWranglerEvidenceRequired !== true
     || !equal(artifactV2.writeAllowed, ["Prometheus Overwatch"])) {
@@ -2488,6 +2552,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2SmokeSequencingRepairCommit,
     immutableWorkflowV2ProbePropagationRepairCommit:
       v2ProbePropagationRepairCommit,
+    immutableWorkflowV2BrowserHealthDiagnosticsRepairCommit:
+      v2BrowserHealthDiagnosticsRepairCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,

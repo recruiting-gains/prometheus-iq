@@ -168,6 +168,14 @@
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Bound private smoke propagation per probe"
     },
+    "implementationBrowserHealthDiagnosticsRepairCommit": {
+      "commit": "dba70aa70f863518d9afdb7343788b998ef567e1",
+      "parent": "dc7038b31e726f3d9e48115534c9f269bb44906a",
+      "tree": "306f4afd26b51fe5d0cc064bf8e0b3571923b97d",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Classify private browser health failures"
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "implementationPaths": [
@@ -920,6 +928,35 @@
         "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
         "sha256": "6c3de9e73983aa7dd15781c19449a4add62b3b063cd36276aa6ac90d1b8bf845"
       }
+    ],
+    "browserHealthDiagnosticsRepairPaths": [
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ],
+    "browserHealthDiagnosticsRepairEvidence": [
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "cae7e1eb5dbb72b10873bad0e0ededc709450ad48c5470ac77e1a4f4f0f816ba"
+      },
+      {
+        "path": "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+        "sha256": "3e883c6a3625a0784c77956940f1d699d1cd47f76803d3383e990c53c344c02b"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "sha256": "e8be20975c181bdee2d71bff2944a0c27b2de0837c10cacef7378b4954bb4fc0"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+        "sha256": "011922fe023b6df44568c87c8b414c981b92e67a229a38997ee0a772771c270e"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "93e760cf82e389a9ced61ea9df7031924805600a76abc54da92fe7dc8c4bd470"
+      }
     ]
   },
   "rootCause": {
@@ -999,7 +1036,13 @@
     "probePropagationFailureClassification": "SMOKE_FAILURE|DIMENSION=RELEASE_IDENTITY_MISMATCH|PROBE=ROOT_GET",
     "probePropagationFailureRollbackVerified": true,
     "probePropagationFailureCause": "Canonical readiness reached the new private Worker, but the immediately following fixed-plan root request reached an older edge instance. The sequential plan treated that bounded stale-version propagation state as final and entered the qualified rollback.",
-    "probePropagationRepair": "After canonical readiness, each fixed GET/HEAD probe may wait only through missing guard evidence or missing/stale Worker-version evidence under one shared monotonic 46.5-second deadline. Redirects, non-2xx responses, malformed markers or versions, transport failures, and nonadvancing clocks still fail immediately; accepted probes remain sequential and application writes remain zero."
+    "probePropagationRepair": "After canonical readiness, each fixed GET/HEAD probe may wait only through missing guard evidence or missing/stale Worker-version evidence under one shared monotonic 46.5-second deadline. Redirects, non-2xx responses, malformed markers or versions, transport failures, and nonadvancing clocks still fail immediately; accepted probes remain sequential and application writes remain zero.",
+    "browserHealthFailureDeploymentRun": "30492810689",
+    "browserHealthFailureReachedProductionMutation": true,
+    "browserHealthFailureClassification": "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED|CAUSE=QUALIFICATION_FAILED|DIMENSION=HEALTH",
+    "browserHealthFailureRollbackVerified": true,
+    "browserHealthDiagnosticGap": "The browser acceptance runner collapsed eight viewport-specific health causes into one HEALTH result, preventing a safe corrective from distinguishing console, runtime, network, and external-request failures.",
+    "browserHealthDiagnosticRepair": "The runner now emits only one fixed viewport-and-cause classification while preserving fail-closed acceptance, zero retries, zero arbitrary diagnostic content, and zero secret or claim-value disclosure."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
