@@ -315,10 +315,10 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     true
   );
   assert.equal(contract.smoke.postDeployment.exactGuardResponseMarkerRequired, true);
-  assert.equal(contract.smoke.postDeployment.latestFailedRun, "30482733457");
+  assert.equal(contract.smoke.postDeployment.latestFailedRun, "30487336591");
   assert.equal(
     contract.smoke.postDeployment.latestFailureClassification,
-    "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=ROOT_GET"
+    "SMOKE_FAILURE|DIMENSION=RELEASE_IDENTITY_MISMATCH|PROBE=ROOT_GET"
   );
   assert.equal(contract.smoke.postDeployment.latestFailureForwardRollbackVerified, true);
   assert.match(
@@ -326,9 +326,10 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     /canonical root GET/u
   );
   assert.match(contract.smoke.postDeployment.routingCorrection, /monotonic deadline/u);
-  assert.match(contract.smoke.postDeployment.routingCorrection, /sequentially once/u);
+  assert.match(contract.smoke.postDeployment.routingCorrection, /each probe/u);
+  assert.match(contract.smoke.postDeployment.routingCorrection, /shared deadline/u);
   assert.deepEqual(contract.smoke.postDeployment.propagationFence, {
-    scope: "canonical_root_get",
+    scope: "canonical_root_get_then_each_fixed_probe",
     readinessProbe: "GET /",
     unconditionalWorkerFirst: true,
     concurrentRequestsPerAttempt: false,
@@ -356,7 +357,8 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     releaseIdentityValueLogged: false,
     finalExactRootProbeIsReadiness: true,
     fullFixedSmokeRunsAfterReadiness: true,
-    fullFixedSmokeExecution: "sequential_once",
+    fullFixedSmokeExecution: "sequential_bounded_propagation_per_probe",
+    fullFixedSmokeSharedDeadline: true,
     timeoutTriggersForwardRollback: true
   });
   assert.ok(
@@ -537,10 +539,7 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     smokeRunner,
     /Promise\.allSettled\(CANONICAL_SMOKE_REQUESTS/u
   );
-  assert.match(
-    smokeRunner,
-    /const smoke = await runCloudflareUnattendedSmoke\(\{/u
-  );
+  assert.match(smokeRunner, /fullPlanPropagationRequestCount/u);
   assert.match(smokeRunner, /CLOUDFLARE_UNATTENDED_SMOKE_VERSION/u);
   assert.match(smokeRunner, /new AbortController\(\)/u);
   assert.match(smokeRunner, /discardResponseBody\(response\)/u);

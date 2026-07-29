@@ -388,10 +388,104 @@ export async function runCloudflareUnattendedPostDeploymentSmoke(options = {}) {
     });
   }
   const readiness = await waitForCloudflareUnattendedSmokeGuard(options);
-  const smoke = await runCloudflareUnattendedSmoke({
-    ...options,
-    dryRun: false,
-    markerPolicy: CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT
+  const {
+    fetchImpl = globalThis.fetch,
+    credentials = process.env,
+    expectedWorkerVersion,
+    nowImpl = defaultMonotonicNow,
+    sleepImpl = defaultSleep
+  } = options;
+  if (typeof fetchImpl !== "function") {
+    fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FETCH_UNAVAILABLE);
+  }
+  if (!UUID.test(expectedWorkerVersion || "")) {
+    fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);
+  }
+  const clientId = requireCredential(credentials, SMOKE_CREDENTIAL_NAMES[0]);
+  const clientSecret = requireCredential(credentials, SMOKE_CREDENTIAL_NAMES[1]);
+  let lastClock;
+  const monotonicNow = () => {
+    const observed = nowImpl();
+    if (!Number.isFinite(observed)
+      || observed < 0
+      || (lastClock !== undefined && observed < lastClock)) {
+      fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);
+    }
+    lastClock = observed;
+    return observed;
+  };
+  const deadline = monotonicNow()
+    + CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds;
+  let fullPlanAttemptCount = 0;
+  let fullPlanPropagationRequestCount = 0;
+
+  for (const entry of CANONICAL_SMOKE_REQUESTS) {
+    const probe = fixedProbe(entry);
+    const url = new URL(entry.path, CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN);
+    if (!isCloudflareUnattendedSmokeRequestAllowed(entry.method, url)) {
+      fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID);
+    }
+    let incomplete;
+    while (true) {
+      const remainingMilliseconds = deadline - monotonicNow();
+      if (remainingMilliseconds <= 0) {
+        fail(
+          incomplete?.marker === "exact"
+            ? CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH
+            : CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_PROPAGATION_TIMEOUT,
+          probe
+        );
+      }
+      incomplete = await withSmokeResponse(
+        fetchImpl,
+        url,
+        {
+          ...smokeRequestOptions(clientId, clientSecret),
+          method: entry.method
+        },
+        Math.min(
+          CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds,
+          Math.max(1, Math.floor(remainingMilliseconds))
+        ),
+        probe,
+        async response => Object.freeze({
+          marker: markerState(response, probe),
+          workerVersion: workerVersionState(response, expectedWorkerVersion, probe)
+        })
+      );
+      fullPlanAttemptCount += 1;
+      if (incomplete.marker === "exact" && incomplete.workerVersion === "exact") break;
+      fullPlanPropagationRequestCount += 1;
+      const beforeSleep = monotonicNow();
+      const remainingBeforeSleep = deadline - beforeSleep;
+      if (remainingBeforeSleep <= 0) {
+        fail(
+          incomplete.marker === "exact"
+            ? CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH
+            : CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.GUARD_PROPAGATION_TIMEOUT,
+          probe
+        );
+      }
+      await sleepImpl(Math.min(
+        CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds,
+        remainingBeforeSleep
+      ));
+      if (monotonicNow() <= beforeSleep) {
+        fail(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.FIXED_PLAN_INVALID, probe);
+      }
+    }
+  }
+  const smoke = Object.freeze({
+    status: "passed",
+    requestCount: CANONICAL_SMOKE_REQUESTS.length,
+    attemptedWriteCount: 0,
+    markerPolicy: CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY.REQUIRE_EXACT,
+    markerVerifiedCount: CANONICAL_SMOKE_REQUESTS.length,
+    markerOmittedCount: 0,
+    expectedWorkerVersion,
+    versionVerifiedCount: CANONICAL_SMOKE_REQUESTS.length,
+    fullPlanAttemptCount,
+    fullPlanPropagationRequestCount
   });
   return Object.freeze({
     ...smoke,

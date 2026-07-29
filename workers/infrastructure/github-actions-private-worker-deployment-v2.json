@@ -152,12 +152,12 @@
     },
     "postDeployment": {
       "exactGuardResponseMarkerRequired": true,
-      "latestFailedRun": "30482733457",
-      "latestFailureClassification": "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=ROOT_GET",
+      "latestFailedRun": "30487336591",
+      "latestFailureClassification": "SMOKE_FAILURE|DIMENSION=RELEASE_IDENTITY_MISMATCH|PROBE=ROOT_GET",
       "latestFailureForwardRollbackVerified": true,
-      "routingCorrection": "Forward and rollback require Cloudflare's unconditional boolean Worker-first mode. Propagation readiness uses only the canonical root GET under a measured monotonic deadline; after exact guard and version convergence, the complete fixed GET/HEAD smoke executes sequentially once.",
+      "routingCorrection": "Forward and rollback require Cloudflare's unconditional boolean Worker-first mode. Propagation readiness uses only the canonical root GET under a measured monotonic deadline. The complete fixed GET/HEAD smoke then executes sequentially, and each probe may wait only through bounded missing or stale guard/version propagation evidence under one shared deadline.",
       "propagationFence": {
-        "scope": "canonical_root_get",
+        "scope": "canonical_root_get_then_each_fixed_probe",
         "readinessProbe": "GET /",
         "unconditionalWorkerFirst": true,
         "concurrentRequestsPerAttempt": false,
@@ -183,7 +183,8 @@
         "releaseIdentityValueLogged": false,
         "finalExactRootProbeIsReadiness": true,
         "fullFixedSmokeRunsAfterReadiness": true,
-        "fullFixedSmokeExecution": "sequential_once",
+        "fullFixedSmokeExecution": "sequential_bounded_propagation_per_probe",
+        "fullFixedSmokeSharedDeadline": true,
         "timeoutTriggersForwardRollback": true
       }
     },
