@@ -20,9 +20,24 @@ export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS = Object.freeze([
   Object.freeze({ name: "desktop", width: 1440, height: 900, mobile: false }),
   Object.freeze({ name: "mobile", width: 390, height: 844, mobile: true })
 ]);
+export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION = Object.freeze({
+  IDENTITY: "IDENTITY",
+  VIEWPORT: "VIEWPORT",
+  DOCUMENT_STATUS: "DOCUMENT_STATUS",
+  WORKER_IDENTITY: "WORKER_IDENTITY",
+  RENDER: "RENDER",
+  HEALTH: "HEALTH",
+  WRITE_ATTEMPT: "WRITE_ATTEMPT",
+  SERVICE_WORKER_REGISTRATION_COUNT_INVALID: "SERVICE_WORKER_REGISTRATION_COUNT_INVALID",
+  SERVICE_WORKER_REGISTRATION_COUNT_NONZERO: "SERVICE_WORKER_REGISTRATION_COUNT_NONZERO",
+  SERVICE_WORKER_REQUEST_GUARD: "SERVICE_WORKER_REQUEST_GUARD"
+});
 
 const READ_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
+const FAILURE_DIMENSIONS = new Set(
+  Object.values(ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION)
+);
 const CHROME_CANDIDATES = Object.freeze([
   "/usr/bin/google-chrome-stable",
   "/usr/bin/google-chrome",
@@ -33,6 +48,17 @@ const CHROME_CANDIDATES = Object.freeze([
 
 function fail(code) {
   throw new Error(code);
+}
+
+export class RouteIqPrivateBrowserAcceptanceError extends Error {
+  constructor(failureDimensions) {
+    super("route_iq_private_browser_acceptance_failed");
+    this.name = "RouteIqPrivateBrowserAcceptanceError";
+    this.code = "route_iq_private_browser_acceptance_failed";
+    this.failureDimensions = Object.freeze(
+      [...new Set(failureDimensions)].filter(value => FAILURE_DIMENSIONS.has(value))
+    );
+  }
 }
 
 function wait(milliseconds) {
@@ -278,6 +304,53 @@ async function waitForReadyPage(client, sessionId) {
   fail("route_iq_private_browser_page_readiness_timeout");
 }
 
+export async function collectRouteIqPrivateBrowserPageEvidence(
+  browserGlobal = globalThis,
+  registrationTimeoutMilliseconds = 5_000
+) {
+  const documentValue = browserGlobal.document;
+  const text = documentValue?.body?.innerText || "";
+  const preview = browserGlobal.prometheusDebugState?.paidCustomerConfigurationPreview;
+  const workspaceId = documentValue?.body?.dataset?.workspaceId || "";
+  const safeEmpty = workspaceId === "route_iq_unconfigured"
+    || preview?.status === "unavailable"
+    || text.includes("No paid-customer configuration selected");
+  const configured = preview?.status === "ready"
+    || (workspaceId && workspaceId !== "route_iq_unconfigured");
+  const timeoutMilliseconds = Number.isInteger(registrationTimeoutMilliseconds)
+    && registrationTimeoutMilliseconds > 0
+    ? registrationTimeoutMilliseconds
+    : 5_000;
+  let timeoutHandle;
+  let registrations = null;
+  try {
+    const serviceWorker = browserGlobal.navigator?.serviceWorker;
+    if (typeof serviceWorker?.getRegistrations === "function") {
+      const items = await Promise.race([
+        Promise.resolve(serviceWorker.getRegistrations()),
+        new Promise(resolve => {
+          timeoutHandle = browserGlobal.setTimeout(() => resolve(null), timeoutMilliseconds);
+        })
+      ]);
+      if (Array.isArray(items)) registrations = items.length;
+    }
+  } catch {
+    registrations = null;
+  } finally {
+    if (timeoutHandle !== undefined) browserGlobal.clearTimeout(timeoutHandle);
+  }
+  return {
+    rendered: /Route IQ|Prometheus/u.test(text) && text.trim().length > 20,
+    configuredOrSafeEmpty: configured || safeEmpty,
+    windowWidth: browserGlobal.innerWidth,
+    windowHeight: browserGlobal.innerHeight,
+    documentWidth: documentValue?.documentElement?.scrollWidth,
+    bodyWidth: documentValue?.body?.scrollWidth || 0,
+    registrations,
+    guard: browserGlobal.__routeIqPrivateAcceptance || null
+  };
+}
+
 async function runViewportScenario({
   debugPort,
   credentials,
@@ -452,28 +525,11 @@ async function runViewportScenario({
     if (pendingInterceptions.size > 0) {
       await Promise.allSettled([...pendingInterceptions]);
     }
-    const page = await evaluate(client, sessionId, `(() => {
-      const text = document.body?.innerText || "";
-      const preview = globalThis.prometheusDebugState?.paidCustomerConfigurationPreview;
-      const workspaceId = document.body?.dataset?.workspaceId || "";
-      const safeEmpty = workspaceId === "route_iq_unconfigured"
-        || preview?.status === "unavailable"
-        || text.includes("No paid-customer configuration selected");
-      const configured = preview?.status === "ready"
-        || (workspaceId && workspaceId !== "route_iq_unconfigured");
-      return {
-        rendered: /Route IQ|Prometheus/u.test(text) && text.trim().length > 20,
-        configuredOrSafeEmpty: configured || safeEmpty,
-        windowWidth: innerWidth,
-        windowHeight: innerHeight,
-        documentWidth: document.documentElement.scrollWidth,
-        bodyWidth: document.body?.scrollWidth || 0,
-        registrations: navigator.serviceWorker?.getRegistrations
-          ? navigator.serviceWorker.getRegistrations().then(items => items.length).catch(() => 0)
-          : Promise.resolve(0),
-        guard: globalThis.__routeIqPrivateAcceptance || null
-      };
-    })()`);
+    const page = await evaluate(
+      client,
+      sessionId,
+      `(${collectRouteIqPrivateBrowserPageEvidence.toString()})()`
+    );
     evidence.rendered = page.rendered === true;
     evidence.configuredOrSafeEmpty = page.configuredOrSafeEmpty === true;
     evidence.horizontalOverflow = page.documentWidth > viewport.width + 1
@@ -501,44 +557,107 @@ export function evaluateRouteIqPrivateBrowserAcceptance({
   scenarios
 }) {
   const failures = [];
+  const failureDimensions = new Set();
+  const recordFailure = (failure, dimension) => {
+    failures.push(failure);
+    failureDimensions.add(dimension);
+  };
   if (!UUID.test(expectedWorkerVersion || "") || publicIsolationVerified !== true) {
-    failures.push("identity");
+    recordFailure(
+      "identity",
+      ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.IDENTITY
+    );
   }
   if (!Array.isArray(scenarios)
     || scenarios.length !== ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.length) {
-    failures.push("viewport_count");
+    recordFailure(
+      "viewport_count",
+      ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.VIEWPORT
+    );
   } else {
     for (const expected of ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS) {
       const scenario = scenarios.find(item => item.viewport === expected.name);
       if (!scenario
         || scenario.width !== expected.width
         || scenario.height !== expected.height
-        || scenario.viewportExact !== true) failures.push(`${expected.name}_viewport`);
-      if (scenario?.documentStatus < 200 || scenario?.documentStatus >= 300) {
-        failures.push(`${expected.name}_status`);
+        || scenario.viewportExact !== true) {
+        recordFailure(
+          `${expected.name}_viewport`,
+          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.VIEWPORT
+        );
       }
-      if (scenario?.workerVersion !== expectedWorkerVersion
-        || scenario?.markerVerified !== true) failures.push(`${expected.name}_worker_identity`);
+      if (scenario?.documentStatus < 200 || scenario?.documentStatus >= 300) {
+        recordFailure(
+          `${expected.name}_status`,
+          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DOCUMENT_STATUS
+        );
+      }
+      if (scenario?.workerVersion !== expectedWorkerVersion || scenario?.markerVerified !== true) {
+        recordFailure(
+          `${expected.name}_worker_identity`,
+          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.WORKER_IDENTITY
+        );
+      }
       if (scenario?.rendered !== true
         || scenario?.configuredOrSafeEmpty !== true
-        || scenario?.horizontalOverflow !== false) failures.push(`${expected.name}_render`);
+        || scenario?.horizontalOverflow !== false) {
+        recordFailure(
+          `${expected.name}_render`,
+          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.RENDER
+        );
+      }
       if (scenario?.consoleErrors !== 0
         || scenario?.runtimeExceptions !== 0
         || scenario?.networkFailures !== 0
-        || scenario?.externalRequests !== 0) failures.push(`${expected.name}_health`);
+        || scenario?.externalRequests !== 0) {
+        recordFailure(
+          `${expected.name}_health`,
+          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.HEALTH
+        );
+      }
       if (scenario?.attemptedWrites !== 0
         || scenario?.blockedWrites !== 0
         || scenario?.formAttempts !== 0
-        || scenario?.popupAttempts !== 0) failures.push(`${expected.name}_write_attempt`);
-      if (scenario?.serviceWorkerRegistrations !== 0
-        || scenario?.blockedServiceWorkerRequests !== scenario?.serviceWorkerRequests) {
-        failures.push(`${expected.name}_service_worker`);
+        || scenario?.popupAttempts !== 0) {
+        recordFailure(
+          `${expected.name}_write_attempt`,
+          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.WRITE_ATTEMPT
+        );
+      }
+      const registrationCount = scenario?.serviceWorkerRegistrations;
+      if (!Number.isFinite(registrationCount)
+        || !Number.isInteger(registrationCount)
+        || registrationCount < 0) {
+        recordFailure(
+          `${expected.name}_service_worker_registration_count_invalid`,
+          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION
+            .SERVICE_WORKER_REGISTRATION_COUNT_INVALID
+        );
+      } else if (registrationCount !== 0) {
+        recordFailure(
+          `${expected.name}_service_worker_registration_count_nonzero`,
+          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION
+            .SERVICE_WORKER_REGISTRATION_COUNT_NONZERO
+        );
+      }
+      if (!Number.isFinite(scenario?.serviceWorkerRequests)
+        || !Number.isInteger(scenario.serviceWorkerRequests)
+        || scenario.serviceWorkerRequests < 0
+        || !Number.isFinite(scenario?.blockedServiceWorkerRequests)
+        || !Number.isInteger(scenario.blockedServiceWorkerRequests)
+        || scenario.blockedServiceWorkerRequests < 0
+        || scenario.blockedServiceWorkerRequests !== scenario.serviceWorkerRequests) {
+        recordFailure(
+          `${expected.name}_service_worker_request_guard`,
+          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.SERVICE_WORKER_REQUEST_GUARD
+        );
       }
     }
   }
   return Object.freeze({
     status: failures.length === 0 ? "PASS" : "FAIL",
-    failures: Object.freeze(failures)
+    failures: Object.freeze(failures),
+    failureDimensions: Object.freeze([...failureDimensions])
   });
 }
 
@@ -577,7 +696,9 @@ export async function runRouteIqPrivateProductionBrowserAcceptance({
       publicIsolationVerified,
       scenarios
     });
-    if (evaluation.status !== "PASS") fail("route_iq_private_browser_acceptance_failed");
+    if (evaluation.status !== "PASS") {
+      throw new RouteIqPrivateBrowserAcceptanceError(evaluation.failureDimensions);
+    }
     return Object.freeze({
       contractVersion: ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VERSION,
       status: "PASS",

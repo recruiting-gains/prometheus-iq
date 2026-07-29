@@ -52,6 +52,10 @@ import {
   CLOUDFLARE_UNATTENDED_SMOKE_ENV,
   CLOUDFLARE_UNATTENDED_SMOKE_VERSION
 } from "../../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
+import {
+  ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION,
+  RouteIqPrivateBrowserAcceptanceError
+} from "../verify-route-iq-private-paid-customer-production-browser-acceptance.mjs";
 
 export const PRIVATE_WORKFLOW_V2_POLICY = Object.freeze({
   contractVersion: "github-actions-private-worker-deployment-v2",
@@ -214,6 +218,9 @@ const PUBLIC_FAILURE_CODES = new Set(Object.values(PUBLIC_DEPLOYMENT_FAILURE));
 const PUBLIC_READ_PHASES = new Set(Object.values(PUBLIC_CLOUDFLARE_READ_PHASE));
 const PUBLIC_WRANGLER_PHASES = new Set(Object.values(PUBLIC_WRANGLER_PHASE));
 const PUBLIC_WRANGLER_REASONS = new Set(Object.values(PUBLIC_WRANGLER_FAILURE_REASON));
+const PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSIONS = new Set(
+  Object.values(ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION)
+);
 const GOVERNED_SOURCE_PATHS = Object.freeze([
   PRIVATE_WORKFLOW_V2_POLICY.contractPath,
   PRIVATE_WORKFLOW_V2_POLICY.qualificationWorkflowPath,
@@ -2029,6 +2036,13 @@ export function writePrivateV2QualificationOutputs(path, result) {
 export function formatPrivateWorkflowV2Failure(error) {
   if (error instanceof PrivateWorkflowV2Error || error instanceof DeploymentPolicyError) {
     return error.code;
+  }
+  if (error instanceof RouteIqPrivateBrowserAcceptanceError) {
+    const dimension = Array.isArray(error.failureDimensions)
+      ? error.failureDimensions.find(value =>
+        PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSIONS.has(value))
+      : undefined;
+    return `${PRIVATE_WORKFLOW_V2_FAILURE.QUALIFICATION_FAILED}|DIMENSION=${dimension || "UNSPECIFIED"}`;
   }
   if (error instanceof CloudflareUnattendedSmokeError
     && Object.values(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE).includes(error.dimension)) {

@@ -3,10 +3,16 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION,
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS,
+  RouteIqPrivateBrowserAcceptanceError,
+  collectRouteIqPrivateBrowserPageEvidence,
   evaluateRouteIqPrivateBrowserAcceptance,
   runRouteIqPrivateProductionBrowserAcceptance
 } from "../scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs";
+import {
+  formatPrivateWorkflowV2Failure
+} from "../scripts/lib/github-actions-private-worker-workflow-v2.mjs";
 
 const VERSION = "16e40509-0173-4712-9138-0393a2ae1924";
 const contract = JSON.parse(readFileSync(new URL(
@@ -41,6 +47,34 @@ function passingScenario(viewport) {
   };
 }
 
+function browserPage(getRegistrations) {
+  return {
+    document: {
+      body: {
+        innerText: "Route IQ paid-customer configuration is ready",
+        dataset: { workspaceId: "workspace_1" },
+        scrollWidth: 390
+      },
+      documentElement: { scrollWidth: 390 }
+    },
+    navigator: {
+      serviceWorker: { getRegistrations }
+    },
+    prometheusDebugState: {
+      paidCustomerConfigurationPreview: { status: "ready" }
+    },
+    __routeIqPrivateAcceptance: {
+      formAttempts: 0,
+      popupAttempts: 0,
+      serviceWorkerAttempts: 0
+    },
+    innerWidth: 390,
+    innerHeight: 844,
+    setTimeout,
+    clearTimeout
+  };
+}
+
 test("browser contract fixes exact desktop/mobile, no-write, and isolation boundaries", () => {
   assert.equal(contract.ownerSubsystem, "Prometheus Infrastructure");
   assert.deepEqual(contract.viewports, [
@@ -62,7 +96,7 @@ test("evaluator accepts only exact healthy configured-or-safe-empty evidence", (
     expectedWorkerVersion: VERSION,
     publicIsolationVerified: true,
     scenarios
-  }), { status: "PASS", failures: [] });
+  }), { status: "PASS", failures: [], failureDimensions: [] });
 
   for (const mutation of [
     scenario => { scenario.attemptedWrites = 1; scenario.blockedWrites = 1; },
@@ -80,6 +114,88 @@ test("evaluator accepts only exact healthy configured-or-safe-empty evidence", (
       publicIsolationVerified: true,
       scenarios: adversarial
     }).status, "FAIL");
+  }
+});
+
+test("browser page evidence awaits asynchronous service-worker registration counts", async () => {
+  let resolved = false;
+  const pending = collectRouteIqPrivateBrowserPageEvidence(browserPage(async () => {
+    await Promise.resolve();
+    resolved = true;
+    return [];
+  }));
+  assert.equal(resolved, false);
+  const evidence = await pending;
+  assert.equal(resolved, true);
+  assert.equal(evidence.registrations, 0);
+
+  const positive = await collectRouteIqPrivateBrowserPageEvidence(
+    browserPage(async () => [{ scope: "/" }])
+  );
+  assert.equal(positive.registrations, 1);
+
+  const unresolved = await collectRouteIqPrivateBrowserPageEvidence(
+    browserPage(() => new Promise(() => {})),
+    5
+  );
+  assert.equal(unresolved.registrations, null);
+});
+
+test("service-worker registration evidence accepts only finite nonnegative integer zero", () => {
+  const invalidValues = [
+    {},
+    undefined,
+    null,
+    "0",
+    -1,
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+    Promise.resolve(0),
+    { then() {} }
+  ];
+  for (const value of invalidValues) {
+    const scenarios = ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.map(passingScenario);
+    scenarios[0].serviceWorkerRegistrations = value;
+    const result = evaluateRouteIqPrivateBrowserAcceptance({
+      expectedWorkerVersion: VERSION,
+      publicIsolationVerified: true,
+      scenarios
+    });
+    assert.equal(result.status, "FAIL");
+    assert.deepEqual(result.failureDimensions, [
+      ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION
+        .SERVICE_WORKER_REGISTRATION_COUNT_INVALID
+    ]);
+  }
+});
+
+test("desktop and exact mobile evidence share strict service-worker count classification", () => {
+  for (const viewport of ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS) {
+    const malformed = ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.map(passingScenario);
+    malformed.find(item => item.viewport === viewport.name).serviceWorkerRegistrations = {};
+    const malformedResult = evaluateRouteIqPrivateBrowserAcceptance({
+      expectedWorkerVersion: VERSION,
+      publicIsolationVerified: true,
+      scenarios: malformed
+    });
+    assert.ok(malformedResult.failures.includes(
+      `${viewport.name}_service_worker_registration_count_invalid`
+    ));
+
+    const positive = ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.map(passingScenario);
+    positive.find(item => item.viewport === viewport.name).serviceWorkerRegistrations = 1;
+    const positiveResult = evaluateRouteIqPrivateBrowserAcceptance({
+      expectedWorkerVersion: VERSION,
+      publicIsolationVerified: true,
+      scenarios: positive
+    });
+    assert.ok(positiveResult.failures.includes(
+      `${viewport.name}_service_worker_registration_count_nonzero`
+    ));
+    assert.deepEqual(positiveResult.failureDimensions, [
+      ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION
+        .SERVICE_WORKER_REGISTRATION_COUNT_NONZERO
+    ]);
   }
 });
 
@@ -106,6 +222,49 @@ test("runner never returns or serializes service credential values", async () =>
   assert.equal(closed, 1);
   assert.equal(JSON.stringify(result).includes(canaryId), false);
   assert.equal(JSON.stringify(result).includes(canarySecret), false);
+});
+
+test("runner exposes only safe dimensions and workflow preserves the fixed dimension", async () => {
+  const canaryId = "classification-client-id-canary";
+  const canarySecret = "classification-client-secret-canary";
+  let captured;
+  try {
+    await runRouteIqPrivateProductionBrowserAcceptance({
+      credentials: {
+        clientId: canaryId,
+        clientSecret: canarySecret
+      },
+      expectedWorkerVersion: VERSION,
+      publicIsolationVerified: true,
+      launchBrowser: async () => ({
+        debugPort: 12345,
+        async close() {}
+      }),
+      runScenario: async ({ viewport }) => ({
+        ...passingScenario(viewport),
+        serviceWorkerRegistrations: {}
+      })
+    });
+  } catch (error) {
+    captured = error;
+  }
+  assert.ok(captured instanceof RouteIqPrivateBrowserAcceptanceError);
+  assert.deepEqual(captured.failureDimensions, [
+    ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION
+      .SERVICE_WORKER_REGISTRATION_COUNT_INVALID
+  ]);
+  assert.equal(
+    formatPrivateWorkflowV2Failure(captured),
+    "QUALIFICATION_FAILED|DIMENSION=SERVICE_WORKER_REGISTRATION_COUNT_INVALID"
+  );
+  const safeFailure = [
+    captured.name,
+    captured.message,
+    captured.code,
+    JSON.stringify(captured.failureDimensions)
+  ].join("|");
+  assert.equal(safeFailure.includes(canaryId), false);
+  assert.equal(safeFailure.includes(canarySecret), false);
 });
 
 test("public isolation or a failed viewport closes the browser and fails closed", async () => {

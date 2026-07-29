@@ -63,6 +63,10 @@ import {
   runCloudflareUnattendedPostDeploymentSmoke
 } from "../scripts/run-cloudflare-unattended-smoke.mjs";
 import {
+  ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION,
+  RouteIqPrivateBrowserAcceptanceError
+} from "../scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs";
+import {
   CLOUDFLARE_UNATTENDED_SMOKE_MARKER,
   CLOUDFLARE_UNATTENDED_SMOKE_VERSION
 } from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
@@ -1029,6 +1033,39 @@ test("failure output preserves only fixed public and smoke classifications", () 
   assert.equal(smokeFailure.includes("/"), false);
 });
 
+test("failure output preserves only fixed browser acceptance dimensions", () => {
+  const knownFailure = new RouteIqPrivateBrowserAcceptanceError([
+    ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION
+      .SERVICE_WORKER_REGISTRATION_COUNT_INVALID
+  ]);
+  knownFailure.message = "credential-canary-known";
+  assert.equal(
+    formatPrivateWorkflowV2Failure(knownFailure),
+    "QUALIFICATION_FAILED|DIMENSION=SERVICE_WORKER_REGISTRATION_COUNT_INVALID"
+  );
+
+  const malformedFailure = new RouteIqPrivateBrowserAcceptanceError([]);
+  malformedFailure.failureDimensions = {
+    value: "credential-canary-malformed"
+  };
+  malformedFailure.message = "credential-canary-message";
+  const malformedClassification = formatPrivateWorkflowV2Failure(malformedFailure);
+  assert.equal(
+    malformedClassification,
+    "QUALIFICATION_FAILED|DIMENSION=UNSPECIFIED"
+  );
+  assert.equal(malformedClassification.includes("canary"), false);
+
+  const unknownFailure = new RouteIqPrivateBrowserAcceptanceError([]);
+  unknownFailure.failureDimensions = ["credential-canary-unknown"];
+  const unknownClassification = formatPrivateWorkflowV2Failure(unknownFailure);
+  assert.equal(
+    unknownClassification,
+    "QUALIFICATION_FAILED|DIMENSION=UNSPECIFIED"
+  );
+  assert.equal(unknownClassification.includes("canary"), false);
+});
+
 test("successful lifecycle performs one private deployment and zero rollback attempts", async () => {
   const { result, calls } = lifecycleFixture();
   assert.equal((await result).status, "PRIVATE_WORKER_V2_DEPLOYMENT_VERIFIED");
@@ -1065,6 +1102,23 @@ test("a postdeployment guard-marker failure preserves its dimension through one 
   assert.equal(
     completed.failureClassification,
     "SMOKE_FAILURE|DIMENSION=GUARD_MARKER_MISSING|PROBE=WEB_MANIFEST_GET"
+  );
+  assert.equal(calls.deploy, 1);
+  assert.equal(calls.rollback, 1);
+});
+
+test("a browser acceptance failure preserves its safe dimension through one rollback", async () => {
+  const { result, calls } = lifecycleFixture({
+    postSmokeError: new RouteIqPrivateBrowserAcceptanceError([
+      ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION
+        .SERVICE_WORKER_REGISTRATION_COUNT_INVALID
+    ])
+  });
+  const completed = await result;
+  assert.equal(completed.status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
+  assert.equal(
+    completed.failureClassification,
+    "QUALIFICATION_FAILED|DIMENSION=SERVICE_WORKER_REGISTRATION_COUNT_INVALID"
   );
   assert.equal(calls.deploy, 1);
   assert.equal(calls.rollback, 1);
