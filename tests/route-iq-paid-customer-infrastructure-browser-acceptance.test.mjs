@@ -1,13 +1,16 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import vm from "node:vm";
 
 import {
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION,
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS,
   RouteIqPrivateBrowserAcceptanceError,
+  classifyRouteIqPrivateBrowserLogEntry,
   collectRouteIqPrivateBrowserPageEvidence,
   evaluateRouteIqPrivateBrowserAcceptance,
+  routeIqPrivateBrowserGuardScript,
   runRouteIqPrivateProductionBrowserAcceptance
 } from "../scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs";
 import {
@@ -36,12 +39,16 @@ function passingScenario(viewport) {
     consoleWarnings: 0,
     runtimeExceptions: 0,
     networkFailures: 0,
+    networkHttpFailures: 0,
+    networkHttpFailureClassifications: [],
+    consoleErrorClassifications: [],
     attemptedWrites: 0,
     blockedWrites: 0,
     formAttempts: 0,
     popupAttempts: 0,
     serviceWorkerRequests: 1,
     blockedServiceWorkerRequests: 1,
+    guardedServiceWorkerLogErrors: 0,
     serviceWorkerRegistrations: 0,
     externalRequests: 0
   };
@@ -96,7 +103,12 @@ test("evaluator accepts only exact healthy configured-or-safe-empty evidence", (
     expectedWorkerVersion: VERSION,
     publicIsolationVerified: true,
     scenarios
-  }), { status: "PASS", failures: [], failureDimensions: [] });
+  }), {
+    status: "PASS",
+    failures: [],
+    failureDimensions: [],
+    failureDiagnostics: []
+  });
 
   for (const mutation of [
     scenario => { scenario.attemptedWrites = 1; scenario.blockedWrites = 1; },
@@ -122,10 +134,12 @@ test("health diagnostics distinguish every cause and exact viewport", () => {
     ["desktop", "consoleErrors", "DESKTOP_CONSOLE_ERROR"],
     ["desktop", "runtimeExceptions", "DESKTOP_RUNTIME_EXCEPTION"],
     ["desktop", "networkFailures", "DESKTOP_NETWORK_FAILURE"],
+    ["desktop", "networkHttpFailures", "DESKTOP_NETWORK_HTTP_FAILURE"],
     ["desktop", "externalRequests", "DESKTOP_EXTERNAL_REQUEST"],
     ["mobile", "consoleErrors", "MOBILE_CONSOLE_ERROR"],
     ["mobile", "runtimeExceptions", "MOBILE_RUNTIME_EXCEPTION"],
     ["mobile", "networkFailures", "MOBILE_NETWORK_FAILURE"],
+    ["mobile", "networkHttpFailures", "MOBILE_NETWORK_HTTP_FAILURE"],
     ["mobile", "externalRequests", "MOBILE_EXTERNAL_REQUEST"]
   ];
   for (const [viewport, counter, expectedDimension] of cases) {
@@ -180,9 +194,10 @@ test("health diagnostics remain deterministic and contain no observed browser va
     "MOBILE_NETWORK_FAILURE",
     "MOBILE_EXTERNAL_REQUEST"
   ]);
+  assert.deepEqual(captured.failureDiagnostics, []);
   assert.equal(
     formatPrivateWorkflowV2Failure(captured),
-    "QUALIFICATION_FAILED|DIMENSION=DESKTOP_CONSOLE_ERROR"
+    "QUALIFICATION_FAILED|DIMENSIONS=DESKTOP_CONSOLE_ERROR,DESKTOP_RUNTIME_EXCEPTION,MOBILE_NETWORK_FAILURE,MOBILE_EXTERNAL_REQUEST|DETAILS=NONE"
   );
   const serialized = JSON.stringify({
     name: captured.name,
@@ -191,6 +206,89 @@ test("health diagnostics remain deterministic and contain no observed browser va
     failureDimensions: captured.failureDimensions
   });
   for (const canary of canaries) assert.equal(serialized.includes(canary), false);
+});
+
+test("browser log classification suppresses only a correlated exact service-worker guard event", () => {
+  const requestId = "request-1";
+  const blockedNetworkIds = new Set([requestId]);
+  assert.deepEqual(classifyRouteIqPrivateBrowserLogEntry({
+    level: "error",
+    source: "network",
+    url: "https://prometheus-iq.prometheusrouteiq.workers.dev/sw.js",
+    networkRequestId: requestId
+  }, { blockedNetworkIds }), {
+    counted: false,
+    classification: "GUARDED_SERVICE_WORKER_NETWORK_LOG"
+  });
+
+  for (const entry of [
+    {
+      level: "error",
+      source: "network",
+      url: "https://prometheus-iq.prometheusrouteiq.workers.dev/dashboard/module.mjs",
+      networkRequestId: requestId
+    },
+    {
+      level: "error",
+      source: "security",
+      url: "https://prometheus-iq.prometheusrouteiq.workers.dev/sw.js",
+      networkRequestId: requestId
+    },
+    {
+      level: "error",
+      source: "network",
+      url: "https://external.invalid/sw.js",
+      networkRequestId: requestId
+    }
+  ]) {
+    assert.equal(
+      classifyRouteIqPrivateBrowserLogEntry(entry, { blockedNetworkIds }).counted,
+      true
+    );
+  }
+});
+
+test("service-worker guard returns the complete inert registration interface", async () => {
+  const serviceWorker = {};
+  const context = {
+    navigator: { serviceWorker },
+    location: { origin: "https://prometheus-iq.prometheusrouteiq.workers.dev" },
+    addEventListener() {},
+    globalThis: null
+  };
+  context.globalThis = context;
+  vm.runInNewContext(routeIqPrivateBrowserGuardScript(), context);
+  const registration = await serviceWorker.register("sw.js");
+  assert.equal(context.__routeIqPrivateAcceptance.serviceWorkerGuardInstalled, true);
+  assert.equal(context.__routeIqPrivateAcceptance.serviceWorkerAttempts, 1);
+  assert.equal(registration.waiting, null);
+  assert.equal(registration.installing, null);
+  assert.equal(typeof registration.addEventListener, "function");
+  assert.equal(typeof registration.removeEventListener, "function");
+  assert.equal(await registration.unregister(), true);
+  assert.equal(await registration.update(), undefined);
+});
+
+test("fixed diagnostics distinguish browser source and same-origin HTTP class", () => {
+  const scenarios = ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.map(passingScenario);
+  scenarios[0].consoleErrors = 2;
+  scenarios[0].consoleErrorClassifications = ["LOG_NETWORK", "LOG_SECURITY"];
+  scenarios[0].networkHttpFailures = 1;
+  scenarios[0].networkHttpFailureClassifications = ["HTTP_MANIFEST_4XX"];
+  const result = evaluateRouteIqPrivateBrowserAcceptance({
+    expectedWorkerVersion: VERSION,
+    publicIsolationVerified: true,
+    scenarios
+  });
+  assert.deepEqual(result.failureDimensions, [
+    "DESKTOP_CONSOLE_ERROR",
+    "DESKTOP_NETWORK_HTTP_FAILURE"
+  ]);
+  assert.deepEqual(result.failureDiagnostics, [
+    "DESKTOP_LOG_NETWORK",
+    "DESKTOP_LOG_SECURITY",
+    "DESKTOP_HTTP_MANIFEST_4XX"
+  ]);
 });
 
 test("browser page evidence awaits asynchronous service-worker registration counts", async () => {
@@ -331,7 +429,7 @@ test("runner exposes only safe dimensions and workflow preserves the fixed dimen
   ]);
   assert.equal(
     formatPrivateWorkflowV2Failure(captured),
-    "QUALIFICATION_FAILED|DIMENSION=SERVICE_WORKER_REGISTRATION_COUNT_INVALID"
+    "QUALIFICATION_FAILED|DIMENSIONS=SERVICE_WORKER_REGISTRATION_COUNT_INVALID|DETAILS=NONE"
   );
   const safeFailure = [
     captured.name,

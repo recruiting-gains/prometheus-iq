@@ -215,13 +215,18 @@
         "DESKTOP_CONSOLE_ERROR",
         "DESKTOP_RUNTIME_EXCEPTION",
         "DESKTOP_NETWORK_FAILURE",
+        "DESKTOP_NETWORK_HTTP_FAILURE",
         "DESKTOP_EXTERNAL_REQUEST",
         "MOBILE_CONSOLE_ERROR",
         "MOBILE_RUNTIME_EXCEPTION",
         "MOBILE_NETWORK_FAILURE",
+        "MOBILE_NETWORK_HTTP_FAILURE",
         "MOBILE_EXTERNAL_REQUEST"
       ],
       "viewportEncoded": true,
+      "allMatchingDimensionsReported": true,
+      "safeDiagnosticCategoriesReported": true,
+      "guardedServiceWorkerNetworkLogRequiresExactCorrelatedBlock": true,
       "arbitraryMessagesAllowed": false,
       "sensitiveValuesAllowed": false
     }

@@ -29,10 +29,12 @@ export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION = Object.free
   DESKTOP_CONSOLE_ERROR: "DESKTOP_CONSOLE_ERROR",
   DESKTOP_RUNTIME_EXCEPTION: "DESKTOP_RUNTIME_EXCEPTION",
   DESKTOP_NETWORK_FAILURE: "DESKTOP_NETWORK_FAILURE",
+  DESKTOP_NETWORK_HTTP_FAILURE: "DESKTOP_NETWORK_HTTP_FAILURE",
   DESKTOP_EXTERNAL_REQUEST: "DESKTOP_EXTERNAL_REQUEST",
   MOBILE_CONSOLE_ERROR: "MOBILE_CONSOLE_ERROR",
   MOBILE_RUNTIME_EXCEPTION: "MOBILE_RUNTIME_EXCEPTION",
   MOBILE_NETWORK_FAILURE: "MOBILE_NETWORK_FAILURE",
+  MOBILE_NETWORK_HTTP_FAILURE: "MOBILE_NETWORK_HTTP_FAILURE",
   MOBILE_EXTERNAL_REQUEST: "MOBILE_EXTERNAL_REQUEST",
   WRITE_ATTEMPT: "WRITE_ATTEMPT",
   SERVICE_WORKER_REGISTRATION_COUNT_INVALID: "SERVICE_WORKER_REGISTRATION_COUNT_INVALID",
@@ -61,6 +63,12 @@ const HEALTH_FAILURES_BY_VIEWPORT = Object.freeze({
         ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_NETWORK_FAILURE
     }),
     Object.freeze({
+      counter: "networkHttpFailures",
+      failure: "desktop_network_http_failure",
+      dimension:
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_NETWORK_HTTP_FAILURE
+    }),
+    Object.freeze({
       counter: "externalRequests",
       failure: "desktop_external_request",
       dimension:
@@ -87,6 +95,12 @@ const HEALTH_FAILURES_BY_VIEWPORT = Object.freeze({
         ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_NETWORK_FAILURE
     }),
     Object.freeze({
+      counter: "networkHttpFailures",
+      failure: "mobile_network_http_failure",
+      dimension:
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_NETWORK_HTTP_FAILURE
+    }),
+    Object.freeze({
       counter: "externalRequests",
       failure: "mobile_external_request",
       dimension:
@@ -100,6 +114,42 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const FAILURE_DIMENSIONS = new Set(
   Object.values(ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION)
 );
+const CONSOLE_ERROR_CLASSIFICATIONS = new Set([
+  "CONSOLE_API",
+  "LOG_NETWORK",
+  "LOG_SECURITY",
+  "LOG_JAVASCRIPT",
+  "LOG_RENDERING",
+  "LOG_WORKER",
+  "LOG_DEPRECATION",
+  "LOG_VIOLATION",
+  "LOG_INTERVENTION",
+  "LOG_RECOMMENDATION",
+  "LOG_OTHER"
+]);
+const HTTP_RESOURCE_CLASSIFICATIONS = new Set([
+  "DOCUMENT",
+  "STYLESHEET",
+  "IMAGE",
+  "MEDIA",
+  "FONT",
+  "SCRIPT",
+  "XHR",
+  "FETCH",
+  "MANIFEST",
+  "OTHER"
+]);
+const FAILURE_DIAGNOSTICS = new Set(
+  ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.flatMap(viewport => [
+    ...[...CONSOLE_ERROR_CLASSIFICATIONS].map(value =>
+      `${viewport.name.toUpperCase()}_${value}`),
+    ...[...HTTP_RESOURCE_CLASSIFICATIONS].flatMap(resource =>
+      [`${viewport.name.toUpperCase()}_HTTP_${resource}_4XX`,
+        `${viewport.name.toUpperCase()}_HTTP_${resource}_5XX`])
+  ])
+);
+export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIAGNOSTICS =
+  Object.freeze([...FAILURE_DIAGNOSTICS]);
 const CHROME_CANDIDATES = Object.freeze([
   "/usr/bin/google-chrome-stable",
   "/usr/bin/google-chrome",
@@ -113,12 +163,15 @@ function fail(code) {
 }
 
 export class RouteIqPrivateBrowserAcceptanceError extends Error {
-  constructor(failureDimensions) {
+  constructor(failureDimensions, failureDiagnostics = []) {
     super("route_iq_private_browser_acceptance_failed");
     this.name = "RouteIqPrivateBrowserAcceptanceError";
     this.code = "route_iq_private_browser_acceptance_failed";
     this.failureDimensions = Object.freeze(
       [...new Set(failureDimensions)].filter(value => FAILURE_DIMENSIONS.has(value))
+    );
+    this.failureDiagnostics = Object.freeze(
+      [...new Set(failureDiagnostics)].filter(value => FAILURE_DIAGNOSTICS.has(value))
     );
   }
 }
@@ -322,10 +375,11 @@ function lowerHeaders(headers) {
   );
 }
 
-function guardScript() {
+export function routeIqPrivateBrowserGuardScript() {
   return `(() => {
     globalThis.__routeIqPrivateAcceptance = {
       serviceWorkerAttempts: 0,
+      serviceWorkerGuardInstalled: false,
       formAttempts: 0,
       popupAttempts: 0
     };
@@ -335,9 +389,20 @@ function guardScript() {
           configurable: true,
           value: async () => {
             globalThis.__routeIqPrivateAcceptance.serviceWorkerAttempts += 1;
-            return Object.freeze({ unregister: async () => true });
+            return Object.freeze({
+              waiting: null,
+              installing: null,
+              active: null,
+              scope: location.origin + "/",
+              updateViaCache: "none",
+              addEventListener() {},
+              removeEventListener() {},
+              unregister: async () => true,
+              update: async () => undefined
+            });
           }
         });
+        globalThis.__routeIqPrivateAcceptance.serviceWorkerGuardInstalled = true;
       } catch {}
     }
     addEventListener("submit", event => {
@@ -350,6 +415,68 @@ function guardScript() {
       return null;
     };
   })();`;
+}
+
+function consoleLogClassification(source) {
+  const value = String(source || "").toUpperCase();
+  const classification = `LOG_${value}`;
+  return CONSOLE_ERROR_CLASSIFICATIONS.has(classification)
+    ? classification
+    : "LOG_OTHER";
+}
+
+function httpResourceClassification(type) {
+  const value = String(type || "").toUpperCase();
+  return HTTP_RESOURCE_CLASSIFICATIONS.has(value) ? value : "OTHER";
+}
+
+function httpStatusClassification(status) {
+  if (status >= 400 && status < 500) return "4XX";
+  if (status >= 500 && status < 600) return "5XX";
+  return null;
+}
+
+export function classifyRouteIqPrivateBrowserLogEntry(
+  entry,
+  { blockedNetworkIds = new Set() } = {}
+) {
+  if (entry?.level !== "error") return Object.freeze({ counted: false, classification: null });
+  let url;
+  try {
+    url = new URL(entry.url);
+  } catch {
+    url = null;
+  }
+  const exactServiceWorker = entry.source === "network"
+    && url?.origin === CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN
+    && url.pathname === "/sw.js";
+  const correlatedBlock = typeof entry.networkRequestId === "string"
+    && blockedNetworkIds.has(entry.networkRequestId);
+  if (exactServiceWorker && correlatedBlock) {
+    return Object.freeze({
+      counted: false,
+      classification: "GUARDED_SERVICE_WORKER_NETWORK_LOG"
+    });
+  }
+  return Object.freeze({
+    counted: true,
+    classification: consoleLogClassification(entry.source)
+  });
+}
+
+async function waitForBrowserQuiescence({
+  pendingInterceptions,
+  lastObservedEventAt,
+  quietMilliseconds = 500,
+  timeoutMilliseconds = 5_000
+}) {
+  const deadline = Date.now() + timeoutMilliseconds;
+  while (Date.now() < deadline) {
+    if (pendingInterceptions.size === 0
+      && Date.now() - lastObservedEventAt() >= quietMilliseconds) return;
+    await wait(25);
+  }
+  fail("route_iq_private_browser_event_quiescence_timeout");
 }
 
 async function waitForReadyPage(client, sessionId) {
@@ -426,6 +553,13 @@ async function runViewportScenario({
   let browserContextId;
   const pendingInterceptions = new Set();
   const blockedNetworkIds = new Set();
+  const consoleErrorClassifications = new Set();
+  const networkHttpFailureClassifications = new Set();
+  const guardedServiceWorkerLogRequestIds = new Set();
+  let lastObservedEvent = Date.now();
+  const observe = () => {
+    lastObservedEvent = Date.now();
+  };
   const evidence = {
     viewport: viewport.name,
     width: viewport.width,
@@ -440,10 +574,12 @@ async function runViewportScenario({
     consoleWarnings: 0,
     runtimeExceptions: 0,
     networkFailures: 0,
+    networkHttpFailures: 0,
     attemptedWrites: 0,
     blockedWrites: 0,
     serviceWorkerRequests: 0,
     blockedServiceWorkerRequests: 0,
+    guardedServiceWorkerLogErrors: 0,
     serviceWorkerRegistrations: null,
     externalRequests: 0,
     publicIsolationVerified: true
@@ -483,29 +619,57 @@ async function runViewportScenario({
       screenHeight: viewport.height
     }, sessionId);
     await client.send("Page.addScriptToEvaluateOnNewDocument", {
-      source: guardScript()
+      source: routeIqPrivateBrowserGuardScript()
     }, sessionId);
 
     client.on("Runtime.exceptionThrown", () => {
+      observe();
       evidence.runtimeExceptions += 1;
     }, { sessionId });
     client.on("Runtime.consoleAPICalled", params => {
-      if (params.type === "error") evidence.consoleErrors += 1;
+      observe();
+      if (params.type === "error") {
+        evidence.consoleErrors += 1;
+        consoleErrorClassifications.add("CONSOLE_API");
+      }
       if (params.type === "warning") evidence.consoleWarnings += 1;
     }, { sessionId });
     client.on("Log.entryAdded", params => {
-      if (params.entry?.level === "error") evidence.consoleErrors += 1;
+      observe();
+      const result = classifyRouteIqPrivateBrowserLogEntry(params.entry, {
+        blockedNetworkIds
+      });
+      if (result.classification === "GUARDED_SERVICE_WORKER_NETWORK_LOG") {
+        guardedServiceWorkerLogRequestIds.add(
+          params.entry?.networkRequestId || "uncorrelated-exact-service-worker"
+        );
+      } else if (result.counted) {
+        evidence.consoleErrors += 1;
+        consoleErrorClassifications.add(result.classification);
+      }
       if (params.entry?.level === "warning") evidence.consoleWarnings += 1;
     }, { sessionId });
     client.on("Network.loadingFailed", params => {
+      observe();
       if (!blockedNetworkIds.has(params.requestId)) evidence.networkFailures += 1;
     }, { sessionId });
     client.on("Network.responseReceived", params => {
+      observe();
       let responseUrl;
       try {
         responseUrl = new URL(params.response?.url);
       } catch {
         return;
+      }
+      if (responseUrl.origin === CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN
+        && params.type !== "Document") {
+        const statusClass = httpStatusClassification(params.response?.status);
+        if (statusClass) {
+          evidence.networkHttpFailures += 1;
+          networkHttpFailureClassifications.add(
+            `HTTP_${httpResourceClassification(params.type)}_${statusClass}`
+          );
+        }
       }
       if (params.type !== "Document"
         || responseUrl.origin !== CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN
@@ -519,6 +683,7 @@ async function runViewportScenario({
           === CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue;
     }, { sessionId });
     client.on("Fetch.requestPaused", (params, eventSessionId) => {
+      observe();
       const task = (async () => {
         const method = String(params.request?.method || "").toUpperCase();
         let url;
@@ -583,10 +748,10 @@ async function runViewportScenario({
       url: `${CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN}/`
     }, sessionId);
     await waitForReadyPage(client, sessionId);
-    await wait(250);
-    if (pendingInterceptions.size > 0) {
-      await Promise.allSettled([...pendingInterceptions]);
-    }
+    await waitForBrowserQuiescence({
+      pendingInterceptions,
+      lastObservedEventAt: () => lastObservedEvent
+    });
     const page = await evaluate(
       client,
       sessionId,
@@ -597,11 +762,17 @@ async function runViewportScenario({
     evidence.horizontalOverflow = page.documentWidth > viewport.width + 1
       || page.bodyWidth > viewport.width + 1;
     evidence.serviceWorkerRegistrations = page.registrations;
+    evidence.serviceWorkerGuardInstalled =
+      page.guard?.serviceWorkerGuardInstalled === true;
     evidence.viewportExact = page.windowWidth === viewport.width
       && page.windowHeight === viewport.height;
     evidence.formAttempts = page.guard?.formAttempts ?? 0;
     evidence.popupAttempts = page.guard?.popupAttempts ?? 0;
     evidence.serviceWorkerRegistrationAttempts = page.guard?.serviceWorkerAttempts ?? 0;
+    evidence.guardedServiceWorkerLogErrors = guardedServiceWorkerLogRequestIds.size;
+    evidence.consoleErrorClassifications = Object.freeze([...consoleErrorClassifications]);
+    evidence.networkHttpFailureClassifications =
+      Object.freeze([...networkHttpFailureClassifications]);
     return Object.freeze(evidence);
   } finally {
     if (browserContextId) {
@@ -620,6 +791,7 @@ export function evaluateRouteIqPrivateBrowserAcceptance({
 }) {
   const failures = [];
   const failureDimensions = new Set();
+  const failureDiagnostics = new Set();
   const recordFailure = (failure, dimension) => {
     failures.push(failure);
     failureDimensions.add(dimension);
@@ -673,6 +845,15 @@ export function evaluateRouteIqPrivateBrowserAcceptance({
           recordFailure(healthFailure.failure, healthFailure.dimension);
         }
       }
+      const diagnosticPrefix = expected.name.toUpperCase();
+      for (const classification of scenario?.consoleErrorClassifications || []) {
+        const diagnostic = `${diagnosticPrefix}_${classification}`;
+        if (FAILURE_DIAGNOSTICS.has(diagnostic)) failureDiagnostics.add(diagnostic);
+      }
+      for (const classification of scenario?.networkHttpFailureClassifications || []) {
+        const diagnostic = `${diagnosticPrefix}_${classification}`;
+        if (FAILURE_DIAGNOSTICS.has(diagnostic)) failureDiagnostics.add(diagnostic);
+      }
       if (scenario?.attemptedWrites !== 0
         || scenario?.blockedWrites !== 0
         || scenario?.formAttempts !== 0
@@ -710,12 +891,22 @@ export function evaluateRouteIqPrivateBrowserAcceptance({
           ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.SERVICE_WORKER_REQUEST_GUARD
         );
       }
+      if (!Number.isFinite(scenario?.guardedServiceWorkerLogErrors)
+        || !Number.isInteger(scenario.guardedServiceWorkerLogErrors)
+        || scenario.guardedServiceWorkerLogErrors < 0
+        || scenario.guardedServiceWorkerLogErrors > scenario.blockedServiceWorkerRequests) {
+        recordFailure(
+          `${expected.name}_service_worker_log_guard`,
+          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.SERVICE_WORKER_REQUEST_GUARD
+        );
+      }
     }
   }
   return Object.freeze({
     status: failures.length === 0 ? "PASS" : "FAIL",
     failures: Object.freeze(failures),
-    failureDimensions: Object.freeze([...failureDimensions])
+    failureDimensions: Object.freeze([...failureDimensions]),
+    failureDiagnostics: Object.freeze([...failureDiagnostics])
   });
 }
 
@@ -755,7 +946,10 @@ export async function runRouteIqPrivateProductionBrowserAcceptance({
       scenarios
     });
     if (evaluation.status !== "PASS") {
-      throw new RouteIqPrivateBrowserAcceptanceError(evaluation.failureDimensions);
+      throw new RouteIqPrivateBrowserAcceptanceError(
+        evaluation.failureDimensions,
+        evaluation.failureDiagnostics
+      );
     }
     return Object.freeze({
       contractVersion: ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VERSION,

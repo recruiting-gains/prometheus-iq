@@ -30,7 +30,16 @@
     "writeAttemptsRequired": 0,
     "externalOriginsAllowed": false,
     "serviceWorkerBypassRequired": true,
-    "serviceWorkerPersistenceAllowed": false
+    "serviceWorkerPersistenceAllowed": false,
+    "sameOriginHttp4xxOr5xxAllowed": false,
+    "guardedServiceWorkerNetworkLogAcceptance": {
+      "source": "network",
+      "exactPath": "/sw.js",
+      "correlatedBlockedRequestRequired": true,
+      "allServiceWorkerRequestsBlockedRequired": true,
+      "persistedRegistrationCountRequired": 0,
+      "allOtherBrowserErrorsAllowed": false
+    }
   },
   "acceptance": {
     "exactPrivateWorkerVersionRequired": true,
@@ -40,7 +49,29 @@
     "consoleErrorsAllowed": 0,
     "runtimeExceptionsAllowed": 0,
     "networkFailuresAllowed": 0,
+    "networkHttpFailuresAllowed": 0,
     "publicWorkerIdentityMustRemainExact": true
+  },
+  "diagnostics": {
+    "allMatchingFailureDimensionsReported": true,
+    "consoleSourceClassifications": [
+      "CONSOLE_API",
+      "LOG_NETWORK",
+      "LOG_SECURITY",
+      "LOG_JAVASCRIPT",
+      "LOG_RENDERING",
+      "LOG_WORKER",
+      "LOG_DEPRECATION",
+      "LOG_VIOLATION",
+      "LOG_INTERVENTION",
+      "LOG_RECOMMENDATION",
+      "LOG_OTHER"
+    ],
+    "httpStatusClassifications": [
+      "4XX",
+      "5XX"
+    ],
+    "rawMessagesUrlsHeadersStacksOrCredentialsAllowed": false
   },
   "safety": {
     "productionWritesAllowed": false,

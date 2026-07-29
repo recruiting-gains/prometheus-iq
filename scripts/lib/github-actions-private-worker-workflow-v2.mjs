@@ -53,6 +53,7 @@ import {
   CLOUDFLARE_UNATTENDED_SMOKE_VERSION
 } from "../../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 import {
+  ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIAGNOSTICS,
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION,
   RouteIqPrivateBrowserAcceptanceError
 } from "../verify-route-iq-private-paid-customer-production-browser-acceptance.mjs";
@@ -220,6 +221,9 @@ const PUBLIC_WRANGLER_PHASES = new Set(Object.values(PUBLIC_WRANGLER_PHASE));
 const PUBLIC_WRANGLER_REASONS = new Set(Object.values(PUBLIC_WRANGLER_FAILURE_REASON));
 const PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSIONS = new Set(
   Object.values(ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION)
+);
+const PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIAGNOSTICS = new Set(
+  ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIAGNOSTICS
 );
 const GOVERNED_SOURCE_PATHS = Object.freeze([
   PRIVATE_WORKFLOW_V2_POLICY.contractPath,
@@ -2038,11 +2042,17 @@ export function formatPrivateWorkflowV2Failure(error) {
     return error.code;
   }
   if (error instanceof RouteIqPrivateBrowserAcceptanceError) {
-    const dimension = Array.isArray(error.failureDimensions)
-      ? error.failureDimensions.find(value =>
+    const dimensions = Array.isArray(error.failureDimensions)
+      ? [...new Set(error.failureDimensions)].filter(value =>
         PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSIONS.has(value))
-      : undefined;
-    return `${PRIVATE_WORKFLOW_V2_FAILURE.QUALIFICATION_FAILED}|DIMENSION=${dimension || "UNSPECIFIED"}`;
+      : [];
+    const diagnostics = Array.isArray(error.failureDiagnostics)
+      ? [...new Set(error.failureDiagnostics)].filter(value =>
+        PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIAGNOSTICS.has(value))
+      : [];
+    return `${PRIVATE_WORKFLOW_V2_FAILURE.QUALIFICATION_FAILED}`
+      + `|DIMENSIONS=${dimensions.join(",") || "UNSPECIFIED"}`
+      + `|DETAILS=${diagnostics.join(",") || "NONE"}`;
   }
   if (error instanceof CloudflareUnattendedSmokeError
     && Object.values(CLOUDFLARE_UNATTENDED_SMOKE_FAILURE).includes(error.dimension)) {

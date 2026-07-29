@@ -1041,7 +1041,7 @@ test("failure output preserves only fixed browser acceptance dimensions", () => 
   knownFailure.message = "credential-canary-known";
   assert.equal(
     formatPrivateWorkflowV2Failure(knownFailure),
-    "QUALIFICATION_FAILED|DIMENSION=SERVICE_WORKER_REGISTRATION_COUNT_INVALID"
+    "QUALIFICATION_FAILED|DIMENSIONS=SERVICE_WORKER_REGISTRATION_COUNT_INVALID|DETAILS=NONE"
   );
 
   const malformedFailure = new RouteIqPrivateBrowserAcceptanceError([]);
@@ -1052,7 +1052,7 @@ test("failure output preserves only fixed browser acceptance dimensions", () => 
   const malformedClassification = formatPrivateWorkflowV2Failure(malformedFailure);
   assert.equal(
     malformedClassification,
-    "QUALIFICATION_FAILED|DIMENSION=UNSPECIFIED"
+    "QUALIFICATION_FAILED|DIMENSIONS=UNSPECIFIED|DETAILS=NONE"
   );
   assert.equal(malformedClassification.includes("canary"), false);
 
@@ -1061,7 +1061,7 @@ test("failure output preserves only fixed browser acceptance dimensions", () => 
   const unknownClassification = formatPrivateWorkflowV2Failure(unknownFailure);
   assert.equal(
     unknownClassification,
-    "QUALIFICATION_FAILED|DIMENSION=UNSPECIFIED"
+    "QUALIFICATION_FAILED|DIMENSIONS=UNSPECIFIED|DETAILS=NONE"
   );
   assert.equal(unknownClassification.includes("canary"), false);
 });
@@ -1071,10 +1071,12 @@ test("workflow preserves fixed health cause and viewport without arbitrary brows
     "DESKTOP_CONSOLE_ERROR",
     "DESKTOP_RUNTIME_EXCEPTION",
     "DESKTOP_NETWORK_FAILURE",
+    "DESKTOP_NETWORK_HTTP_FAILURE",
     "DESKTOP_EXTERNAL_REQUEST",
     "MOBILE_CONSOLE_ERROR",
     "MOBILE_RUNTIME_EXCEPTION",
     "MOBILE_NETWORK_FAILURE",
+    "MOBILE_NETWORK_HTTP_FAILURE",
     "MOBILE_EXTERNAL_REQUEST"
   ];
   for (const dimension of expectedDimensions) {
@@ -1083,12 +1085,33 @@ test("workflow preserves fixed health cause and viewport without arbitrary brows
     const classification = formatPrivateWorkflowV2Failure(failure);
     assert.equal(
       classification,
-      `QUALIFICATION_FAILED|DIMENSION=${dimension}`
+      `QUALIFICATION_FAILED|DIMENSIONS=${dimension}|DETAILS=NONE`
     );
     assert.equal(classification.includes("http"), false);
     assert.equal(classification.includes("/"), false);
     assert.equal(classification.includes("canary"), false);
   }
+});
+
+test("workflow reports every fixed browser dimension and safe diagnostic only", () => {
+  const failure = new RouteIqPrivateBrowserAcceptanceError([
+    "DESKTOP_CONSOLE_ERROR",
+    "DESKTOP_NETWORK_HTTP_FAILURE",
+    "credential-canary-dimension"
+  ], [
+    "DESKTOP_LOG_NETWORK",
+    "DESKTOP_HTTP_MANIFEST_4XX",
+    "credential-canary-diagnostic"
+  ]);
+  failure.message = "https://credential-canary.invalid/private";
+  const classification = formatPrivateWorkflowV2Failure(failure);
+  assert.equal(
+    classification,
+    "QUALIFICATION_FAILED|DIMENSIONS=DESKTOP_CONSOLE_ERROR,DESKTOP_NETWORK_HTTP_FAILURE"
+      + "|DETAILS=DESKTOP_LOG_NETWORK,DESKTOP_HTTP_MANIFEST_4XX"
+  );
+  assert.equal(classification.includes("canary"), false);
+  assert.equal(classification.includes("http:"), false);
 });
 
 test("successful lifecycle performs one private deployment and zero rollback attempts", async () => {
@@ -1143,7 +1166,7 @@ test("a browser acceptance failure preserves its safe dimension through one roll
   assert.equal(completed.status, "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED");
   assert.equal(
     completed.failureClassification,
-    "QUALIFICATION_FAILED|DIMENSION=SERVICE_WORKER_REGISTRATION_COUNT_INVALID"
+    "QUALIFICATION_FAILED|DIMENSIONS=SERVICE_WORKER_REGISTRATION_COUNT_INVALID|DETAILS=NONE"
   );
   assert.equal(calls.deploy, 1);
   assert.equal(calls.rollback, 1);

@@ -387,13 +387,18 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
         ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_CONSOLE_ERROR,
         ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_RUNTIME_EXCEPTION,
         ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_NETWORK_FAILURE,
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_NETWORK_HTTP_FAILURE,
         ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_EXTERNAL_REQUEST,
         ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_CONSOLE_ERROR,
         ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_RUNTIME_EXCEPTION,
         ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_NETWORK_FAILURE,
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_NETWORK_HTTP_FAILURE,
         ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_EXTERNAL_REQUEST
       ],
       viewportEncoded: true,
+      allMatchingDimensionsReported: true,
+      safeDiagnosticCategoriesReported: true,
+      guardedServiceWorkerNetworkLogRequiresExactCorrelatedBlock: true,
       arbitraryMessagesAllowed: false,
       sensitiveValuesAllowed: false
     }
@@ -414,6 +419,15 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   );
   assert.equal(browserAcceptanceContract.network.writeAttemptsRequired, 0);
   assert.equal(browserAcceptanceContract.network.serviceWorkerPersistenceAllowed, false);
+  assert.equal(browserAcceptanceContract.network.sameOriginHttp4xxOr5xxAllowed, false);
+  assert.deepEqual(browserAcceptanceContract.network.guardedServiceWorkerNetworkLogAcceptance, {
+    source: "network",
+    exactPath: "/sw.js",
+    correlatedBlockedRequestRequired: true,
+    allServiceWorkerRequestsBlockedRequired: true,
+    persistedRegistrationCountRequired: 0,
+    allOtherBrowserErrorsAllowed: false
+  });
   assert.equal(
     browserAcceptanceContract.acceptance.configuredOrSafeEmptyStateRequired,
     true
@@ -421,6 +435,12 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.equal(
     browserAcceptanceContract.acceptance.publicWorkerIdentityMustRemainExact,
     true
+  );
+  assert.equal(browserAcceptanceContract.acceptance.networkHttpFailuresAllowed, 0);
+  assert.equal(browserAcceptanceContract.diagnostics.allMatchingFailureDimensionsReported, true);
+  assert.equal(
+    browserAcceptanceContract.diagnostics.rawMessagesUrlsHeadersStacksOrCredentialsAllowed,
+    false
   );
   assert.equal(browserAcceptanceContract.safety.productionWritesAllowed, false);
   assert.equal(browserAcceptanceContract.safety.collection, "OFF");
