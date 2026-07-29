@@ -1177,11 +1177,10 @@ test("real bounded propagation timeout reaches the lifecycle rollback exactly on
       sleepImpl: async milliseconds => {
         monotonicNow += milliseconds;
       },
-      async fetchImpl(url) {
+      async fetchImpl(url, options) {
         readinessRequests += 1;
-        assert.ok(fixedCloudflareUnattendedSmokePlan().some(entry => (
-          new URL(entry.url).pathname === new URL(url).pathname
-        )));
+        assert.equal(new URL(url).pathname, "/");
+        assert.equal(options.method, "GET");
         return new Response(null, { status: 200 });
       }
     })
@@ -1192,10 +1191,7 @@ test("real bounded propagation timeout reaches the lifecycle rollback exactly on
     completed.failureClassification,
     "SMOKE_FAILURE|DIMENSION=GUARD_PROPAGATION_TIMEOUT|PROBE=ROOT_GET"
   );
-  assert.equal(
-    readinessRequests,
-    expectedRounds * fixedCloudflareUnattendedSmokePlan().length
-  );
+  assert.equal(readinessRequests, expectedRounds);
   assert.equal(calls.deploy, 1);
   assert.equal(calls.postSmoke, 1);
   assert.equal(calls.rollback, 1);
@@ -1259,7 +1255,7 @@ test("real unsafe propagation responses never retry before lifecycle rollback", 
     );
     assert.equal(completed.failureClassification.includes("sensitive"), false);
     assert.equal(completed.failureClassification.includes("example.invalid"), false);
-    assert.equal(readinessRequests, fixedCloudflareUnattendedSmokePlan().length);
+    assert.equal(readinessRequests, 1);
     assert.equal(calls.deploy, 1);
     assert.equal(calls.postSmoke, 1);
     assert.equal(calls.rollback, 1);

@@ -463,7 +463,7 @@ test("postdeployment smoke requires the exact marker and exposes only its fixed 
   );
 });
 
-test("postdeployment propagation fence waits for the whole fixed GET/HEAD plan", async () => {
+test("postdeployment propagation fence retries only the canonical root GET", async () => {
   const syntheticId = "synthetic-propagation-id";
   const syntheticSecret = "synthetic-propagation-secret";
   const credentials = {
@@ -473,7 +473,6 @@ test("postdeployment propagation fence waits for the whole fixed GET/HEAD plan",
   const observed = [];
   const sleeps = [];
   const clock = createMonotonicClock();
-  const planLength = fixedCloudflareUnattendedSmokePlan().length;
   const result = await waitForCloudflareUnattendedSmokeGuard({
     dryRun: false,
     credentials,
@@ -485,7 +484,7 @@ test("postdeployment propagation fence waits for the whole fixed GET/HEAD plan",
     },
     async fetchImpl(url, options) {
       observed.push({ url: String(url), options });
-      const round = Math.ceil(observed.length / planLength);
+      const round = observed.length;
       return new Response("same-root-html", {
         status: 200,
         headers: round === 1
@@ -502,18 +501,17 @@ test("postdeployment propagation fence waits for the whole fixed GET/HEAD plan",
   assert.deepEqual(result, {
     status: "ready",
     attemptCount: 3,
-    requestCount: planLength * 3,
+    requestCount: 3,
     attemptedWriteCount: 0
   });
   assert.deepEqual(sleeps, [
     CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds,
     CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds
   ]);
-  assert.equal(observed.length, planLength * 3);
+  assert.equal(observed.length, 3);
   for (const { url, options } of observed) {
-    assert.ok(fixedCloudflareUnattendedSmokePlan().some(entry => (
-      entry.url === url && entry.method === options.method
-    )));
+    assert.equal(new URL(url).pathname, "/");
+    assert.equal(options.method, "GET");
     assert.equal(options.redirect, "manual");
     assert.equal(options.credentials, "omit");
     assert.equal(options.cache, "no-store");
@@ -566,7 +564,7 @@ test("postdeployment propagation fence fails closed when the marker never appear
   );
   assert.equal(
     calls,
-    expectedRounds * fixedCloudflareUnattendedSmokePlan().length
+    expectedRounds
   );
   assert.equal(sleeps, expectedRounds);
   assert.equal(
@@ -612,13 +610,55 @@ test("postdeployment propagation fence rejects an older guarded release identity
   );
   assert.equal(
     calls,
-    expectedRounds * fixedCloudflareUnattendedSmokePlan().length
+    expectedRounds
   );
 });
 
-test("postdeployment propagation fence accepts whole-plan convergence just before its deadline", async () => {
+test("postdeployment propagation fence bounds an exact marker with missing version metadata", async () => {
+  let calls = 0;
   const clock = createMonotonicClock();
-  const planLength = fixedCloudflareUnattendedSmokePlan().length;
+  const expectedRounds = Math.ceil(
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds
+      / CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds
+  );
+  await assert.rejects(
+    waitForCloudflareUnattendedSmokeGuard({
+      dryRun: false,
+      expectedWorkerVersion: qualifiedWorkerVersion,
+      nowImpl: clock.now,
+      credentials: {
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
+      },
+      sleepImpl: clock.sleep,
+      async fetchImpl(url, options) {
+        calls += 1;
+        assert.equal(new URL(url).pathname, "/");
+        assert.equal(options.method, "GET");
+        return new Response(null, {
+          status: 200,
+          headers: {
+            [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
+              CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue
+          }
+        });
+      }
+    }),
+    error => (
+      error instanceof CloudflareUnattendedSmokeError
+      && error.dimension === CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.RELEASE_IDENTITY_MISMATCH
+      && error.probe === CLOUDFLARE_UNATTENDED_SMOKE_PROBE.ROOT_GET
+    )
+  );
+  assert.equal(calls, expectedRounds);
+  assert.equal(
+    clock.now(),
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds
+  );
+});
+
+test("postdeployment propagation fence accepts root convergence just before its deadline", async () => {
+  const clock = createMonotonicClock();
   const finalRoundAt = CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds
     - CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds;
   let calls = 0;
@@ -635,11 +675,11 @@ test("postdeployment propagation fence accepts whole-plan convergence just befor
       sleeps += 1;
       await clock.sleep(milliseconds);
     },
-    async fetchImpl(url) {
+    async fetchImpl(url, options) {
       calls += 1;
-      const guarded = clock.now() >= finalRoundAt
-        || new URL(url).pathname
-          !== "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
+      assert.equal(new URL(url).pathname, "/");
+      assert.equal(options.method, "GET");
+      const guarded = clock.now() >= finalRoundAt;
       return new Response(null, {
         status: 200,
         headers: guarded
@@ -662,7 +702,7 @@ test("postdeployment propagation fence accepts whole-plan convergence just befor
     )
   );
   assert.equal(sleeps, result.attemptCount - 1);
-  assert.equal(calls, result.attemptCount * planLength);
+  assert.equal(calls, result.attemptCount);
 });
 
 test("postdeployment propagation fence rejects a nonadvancing monotonic clock", async () => {
@@ -687,7 +727,7 @@ test("postdeployment propagation fence rejects a nonadvancing monotonic clock", 
   );
 });
 
-test("postdeployment propagation fence never retries unsafe response classes", async () => {
+test("postdeployment propagation fence fails immediately on unsafe root responses and transport failure", async () => {
   const credentials = {
     [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
     [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
@@ -750,11 +790,12 @@ test("postdeployment propagation fence never retries unsafe response classes", a
       error => (
         error instanceof CloudflareUnattendedSmokeError
         && error.dimension === dimension
+        && error.probe === CLOUDFLARE_UNATTENDED_SMOKE_PROBE.ROOT_GET
         && error.message.includes("sensitive") === false
         && error.message.includes("example.invalid") === false
       )
     );
-    assert.equal(calls, fixedCloudflareUnattendedSmokePlan().length);
+    assert.equal(calls, 1);
     assert.equal(sleeps, 0);
   }
 });
@@ -784,7 +825,7 @@ test("postdeployment propagation fence has a hard request deadline", async () =>
       && error.dimension === CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.NETWORK_FAILED
     )
   );
-  assert.equal(calls, fixedCloudflareUnattendedSmokePlan().length);
+  assert.equal(calls, 1);
   assert.equal(sleeps, 0);
   assert.ok(
     Date.now() - startedAt
@@ -829,16 +870,18 @@ test("postdeployment propagation fence bounds a stalled response body lifecycle"
   );
 });
 
-test("whole-plan convergence catches a guarded root with an unguarded static asset", async () => {
+test("postdeployment readiness is followed by the complete fixed smoke plan exactly once in sequence", async () => {
   const credentials = {
     [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
     [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
   };
-  const expectedSmokeRequests = fixedCloudflareUnattendedSmokePlan().length;
+  const plan = fixedCloudflareUnattendedSmokePlan();
   let calls = 0;
   let sleeps = 0;
+  let inFlight = 0;
+  let maximumInFlight = 0;
   const clock = createMonotonicClock();
-  const observedPaths = [];
+  const observed = [];
   const result = await runCloudflareUnattendedPostDeploymentSmoke({
     dryRun: false,
     credentials,
@@ -848,45 +891,46 @@ test("whole-plan convergence catches a guarded root with an unguarded static ass
       sleeps += 1;
       await clock.sleep(milliseconds);
     },
-    async fetchImpl(url) {
+    async fetchImpl(url, options) {
       calls += 1;
-      const path = new URL(url).pathname;
-      observedPaths.push(path);
-      const round = Math.ceil(calls / expectedSmokeRequests);
-      const converged = round > 1 || path !== "/manifest.webmanifest";
+      inFlight += 1;
+      maximumInFlight = Math.max(maximumInFlight, inFlight);
+      observed.push(`${options.method} ${new URL(url).pathname}`);
+      await new Promise(resolveImmediate => setImmediate(resolveImmediate));
+      inFlight -= 1;
       return new Response(null, {
         status: 200,
-        headers: converged
-          ? {
-              [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
-                CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
-              [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]:
-                qualifiedWorkerVersion
-            }
-          : {}
+        headers: {
+          [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
+            CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
+          [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]:
+            qualifiedWorkerVersion
+        }
       });
     }
   });
-  assert.equal(sleeps, 1);
-  assert.equal(calls, 2 * expectedSmokeRequests);
-  assert.equal(observedPaths.slice(0, expectedSmokeRequests).includes("/"), true);
-  assert.equal(
-    observedPaths.slice(0, expectedSmokeRequests).includes("/manifest.webmanifest"),
-    true
+  assert.equal(sleeps, 0);
+  assert.equal(calls, plan.length + 1);
+  assert.equal(maximumInFlight, 1);
+  assert.equal(observed[0], "GET /");
+  assert.deepEqual(
+    observed.slice(1),
+    plan.map(entry => `${entry.method} ${new URL(entry.url).pathname}`)
   );
   assert.equal(result.status, "passed");
-  assert.equal(result.requestCount, expectedSmokeRequests);
+  assert.equal(result.requestCount, plan.length);
   assert.equal(result.attemptedWriteCount, 0);
-  assert.equal(result.markerVerifiedCount, expectedSmokeRequests);
+  assert.equal(result.markerVerifiedCount, plan.length);
   assert.equal(result.markerOmittedCount, 0);
   assert.equal(result.expectedWorkerVersion, qualifiedWorkerVersion);
-  assert.equal(result.versionVerifiedCount, expectedSmokeRequests);
-  assert.equal(result.propagationAttemptCount, 2);
-  assert.equal(result.propagationRequestCount, 2 * expectedSmokeRequests);
+  assert.equal(result.versionVerifiedCount, plan.length);
+  assert.equal(result.propagationAttemptCount, 1);
+  assert.equal(result.propagationRequestCount, 1);
 });
 
-test("full postdeployment smoke bounds every request lifecycle", async () => {
+test("full postdeployment smoke reports the exact non-root probe without exposing transport details", async () => {
   let calls = 0;
+  const observed = [];
   await assert.rejects(
     runCloudflareUnattendedPostDeploymentSmoke({
       dryRun: false,
@@ -895,28 +939,86 @@ test("full postdeployment smoke bounds every request lifecycle", async () => {
         [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
         [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: "synthetic-secret"
       },
-      async fetchImpl() {
+      async fetchImpl(url, options) {
         calls += 1;
-        if (calls === 1) {
-          return new Response(null, {
-            status: 200,
-            headers: {
-              [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
-                CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
-              [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]:
-                qualifiedWorkerVersion
-            }
-          });
+        observed.push(`${options.method} ${new URL(url).pathname}`);
+        if (new URL(url).pathname === "/sw.js") {
+          throw new Error("sensitive transport detail");
         }
-        return new Promise(() => {});
+        return new Response(null, {
+          status: 200,
+          headers: {
+            [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
+              CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
+            [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]:
+              qualifiedWorkerVersion
+          }
+        });
       }
     }),
     error => (
       error instanceof CloudflareUnattendedSmokeError
       && error.dimension === CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.NETWORK_FAILED
+      && error.probe === CLOUDFLARE_UNATTENDED_SMOKE_PROBE.SERVICE_WORKER_GET
+      && error.message.includes("sensitive") === false
+      && JSON.stringify(error).includes("synthetic-secret") === false
     )
   );
-  assert.equal(calls, fixedCloudflareUnattendedSmokePlan().length);
+  assert.equal(calls, 3);
+  assert.deepEqual(observed, ["GET /", "GET /", "GET /sw.js"]);
+});
+
+test("full postdeployment smoke bounds a stalled non-root request and runs no later probes", async () => {
+  const sensitiveDetail = "sensitive stalled transport detail";
+  const sensitiveCredential = "synthetic-secret";
+  const observed = [];
+  const startedAt = Date.now();
+  await assert.rejects(
+    runCloudflareUnattendedPostDeploymentSmoke({
+      dryRun: false,
+      expectedWorkerVersion: qualifiedWorkerVersion,
+      credentials: {
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]: "synthetic-id",
+        [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]: sensitiveCredential
+      },
+      async fetchImpl(url, options) {
+        const request = `${options.method} ${new URL(url).pathname}`;
+        observed.push(request);
+        if (request === "GET /sw.js") {
+          return new Promise((_resolve, _reject) => {
+            void sensitiveDetail;
+          });
+        }
+        return new Response(null, {
+          status: 200,
+          headers: {
+            [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
+              CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
+            [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]:
+              qualifiedWorkerVersion
+          }
+        });
+      }
+    }),
+    error => (
+      error instanceof CloudflareUnattendedSmokeError
+      && error.dimension === CLOUDFLARE_UNATTENDED_SMOKE_FAILURE.NETWORK_FAILED
+      && error.probe === CLOUDFLARE_UNATTENDED_SMOKE_PROBE.SERVICE_WORKER_GET
+      && error.message.includes(sensitiveDetail) === false
+      && JSON.stringify(error).includes(sensitiveDetail) === false
+      && JSON.stringify(error).includes(sensitiveCredential) === false
+    )
+  );
+  const elapsedMilliseconds = Date.now() - startedAt;
+  assert.ok(
+    elapsedMilliseconds
+      >= CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds - 250
+  );
+  assert.ok(
+    elapsedMilliseconds
+      < CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds + 1_500
+  );
+  assert.deepEqual(observed, ["GET /", "GET /", "GET /sw.js"]);
 });
 
 test("smoke redirects are rejected without a follow-up request", async () => {

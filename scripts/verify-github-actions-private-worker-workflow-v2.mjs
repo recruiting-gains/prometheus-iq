@@ -315,22 +315,23 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     true
   );
   assert.equal(contract.smoke.postDeployment.exactGuardResponseMarkerRequired, true);
-  assert.equal(contract.smoke.postDeployment.latestFailedRun, "30213341082");
+  assert.equal(contract.smoke.postDeployment.latestFailedRun, "30482733457");
   assert.equal(
     contract.smoke.postDeployment.latestFailureClassification,
-    "SMOKE_FAILURE|DIMENSION=GUARD_PROPAGATION_TIMEOUT|PROBE=RUNTIME_POOLS_GET"
+    "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=ROOT_GET"
   );
   assert.equal(contract.smoke.postDeployment.latestFailureForwardRollbackVerified, true);
   assert.match(
     contract.smoke.postDeployment.routingCorrection,
-    /unconditional boolean Worker-first mode/u
+    /canonical root GET/u
   );
-  assert.match(contract.smoke.postDeployment.routingCorrection, /arrays.*rejected/u);
   assert.match(contract.smoke.postDeployment.routingCorrection, /monotonic deadline/u);
+  assert.match(contract.smoke.postDeployment.routingCorrection, /sequentially once/u);
   assert.deepEqual(contract.smoke.postDeployment.propagationFence, {
-    scope: "full_fixed_get_head_plan",
+    scope: "canonical_root_get",
+    readinessProbe: "GET /",
     unconditionalWorkerFirst: true,
-    concurrentRequestsPerAttempt: true,
+    concurrentRequestsPerAttempt: false,
     fixedNonsecretProbeClassification: true,
     retryableConditions: [
       "2xx_guard_marker_missing",
@@ -353,8 +354,9 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     fullSmokeRequestLifecycleDeadlineEnforced: true,
     responseBodiesConsumedOrCancelled: true,
     releaseIdentityValueLogged: false,
-    finalExactWholePlanAttemptIsAcceptance: true,
-    fullFixedSmokeRunsAfterReadiness: false,
+    finalExactRootProbeIsReadiness: true,
+    fullFixedSmokeRunsAfterReadiness: true,
+    fullFixedSmokeExecution: "sequential_once",
     timeoutTriggersForwardRollback: true
   });
   assert.ok(
@@ -529,6 +531,16 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.match(smokeRunner, /GUARD_PROPAGATION_TIMEOUT/u);
   assert.match(smokeRunner, /RELEASE_IDENTITY_MISMATCH/u);
   assert.match(smokeRunner, /waitForCloudflareUnattendedSmokeGuard/u);
+  assert.match(smokeRunner, /CANONICAL_READINESS_REQUEST/u);
+  assert.match(smokeRunner, /entry\.method === "GET" && entry\.path === "\/"/u);
+  assert.doesNotMatch(
+    smokeRunner,
+    /Promise\.allSettled\(CANONICAL_SMOKE_REQUESTS/u
+  );
+  assert.match(
+    smokeRunner,
+    /const smoke = await runCloudflareUnattendedSmoke\(\{/u
+  );
   assert.match(smokeRunner, /CLOUDFLARE_UNATTENDED_SMOKE_VERSION/u);
   assert.match(smokeRunner, /new AbortController\(\)/u);
   assert.match(smokeRunner, /discardResponseBody\(response\)/u);
