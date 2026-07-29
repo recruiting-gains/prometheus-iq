@@ -24,6 +24,9 @@ import {
 import {
   CLOUDFLARE_UNATTENDED_SMOKE_VERSION
 } from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
+import {
+  ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION
+} from "./verify-route-iq-private-paid-customer-production-browser-acceptance.mjs";
 import { inspectRouteIqPrivateDashboardDeployAssets } from "./sync-route-iq-private-dashboard-deploy-assets.mjs";
 import { validateRouteIqPrivateForwardRollbackBoundaryV3 } from "./build-route-iq-private-forward-rollback-candidate-v3.mjs";
 
@@ -378,7 +381,22 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     configuredOrSafeEmptyStateRequired: true,
     exactPrivateWorkerVersionRequired: true,
     publicWorkerIdentityFencedBeforeAndAfter: true,
-    credentialValuesInOutputAllowed: false
+    credentialValuesInOutputAllowed: false,
+    healthFailureClassification: {
+      closedVocabulary: [
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_CONSOLE_ERROR,
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_RUNTIME_EXCEPTION,
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_NETWORK_FAILURE,
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_EXTERNAL_REQUEST,
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_CONSOLE_ERROR,
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_RUNTIME_EXCEPTION,
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_NETWORK_FAILURE,
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_EXTERNAL_REQUEST
+      ],
+      viewportEncoded: true,
+      arbitraryMessagesAllowed: false,
+      sensitiveValuesAllowed: false
+    }
   });
   assert.equal(
     browserAcceptanceContract.contractVersion,

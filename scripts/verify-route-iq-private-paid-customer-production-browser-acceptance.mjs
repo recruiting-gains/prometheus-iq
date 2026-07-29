@@ -26,11 +26,73 @@ export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION = Object.free
   DOCUMENT_STATUS: "DOCUMENT_STATUS",
   WORKER_IDENTITY: "WORKER_IDENTITY",
   RENDER: "RENDER",
-  HEALTH: "HEALTH",
+  DESKTOP_CONSOLE_ERROR: "DESKTOP_CONSOLE_ERROR",
+  DESKTOP_RUNTIME_EXCEPTION: "DESKTOP_RUNTIME_EXCEPTION",
+  DESKTOP_NETWORK_FAILURE: "DESKTOP_NETWORK_FAILURE",
+  DESKTOP_EXTERNAL_REQUEST: "DESKTOP_EXTERNAL_REQUEST",
+  MOBILE_CONSOLE_ERROR: "MOBILE_CONSOLE_ERROR",
+  MOBILE_RUNTIME_EXCEPTION: "MOBILE_RUNTIME_EXCEPTION",
+  MOBILE_NETWORK_FAILURE: "MOBILE_NETWORK_FAILURE",
+  MOBILE_EXTERNAL_REQUEST: "MOBILE_EXTERNAL_REQUEST",
   WRITE_ATTEMPT: "WRITE_ATTEMPT",
   SERVICE_WORKER_REGISTRATION_COUNT_INVALID: "SERVICE_WORKER_REGISTRATION_COUNT_INVALID",
   SERVICE_WORKER_REGISTRATION_COUNT_NONZERO: "SERVICE_WORKER_REGISTRATION_COUNT_NONZERO",
   SERVICE_WORKER_REQUEST_GUARD: "SERVICE_WORKER_REQUEST_GUARD"
+});
+
+const HEALTH_FAILURES_BY_VIEWPORT = Object.freeze({
+  desktop: Object.freeze([
+    Object.freeze({
+      counter: "consoleErrors",
+      failure: "desktop_console_error",
+      dimension:
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_CONSOLE_ERROR
+    }),
+    Object.freeze({
+      counter: "runtimeExceptions",
+      failure: "desktop_runtime_exception",
+      dimension:
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_RUNTIME_EXCEPTION
+    }),
+    Object.freeze({
+      counter: "networkFailures",
+      failure: "desktop_network_failure",
+      dimension:
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_NETWORK_FAILURE
+    }),
+    Object.freeze({
+      counter: "externalRequests",
+      failure: "desktop_external_request",
+      dimension:
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_EXTERNAL_REQUEST
+    })
+  ]),
+  mobile: Object.freeze([
+    Object.freeze({
+      counter: "consoleErrors",
+      failure: "mobile_console_error",
+      dimension:
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_CONSOLE_ERROR
+    }),
+    Object.freeze({
+      counter: "runtimeExceptions",
+      failure: "mobile_runtime_exception",
+      dimension:
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_RUNTIME_EXCEPTION
+    }),
+    Object.freeze({
+      counter: "networkFailures",
+      failure: "mobile_network_failure",
+      dimension:
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_NETWORK_FAILURE
+    }),
+    Object.freeze({
+      counter: "externalRequests",
+      failure: "mobile_external_request",
+      dimension:
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.MOBILE_EXTERNAL_REQUEST
+    })
+  ])
 });
 
 const READ_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
@@ -606,14 +668,10 @@ export function evaluateRouteIqPrivateBrowserAcceptance({
           ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.RENDER
         );
       }
-      if (scenario?.consoleErrors !== 0
-        || scenario?.runtimeExceptions !== 0
-        || scenario?.networkFailures !== 0
-        || scenario?.externalRequests !== 0) {
-        recordFailure(
-          `${expected.name}_health`,
-          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.HEALTH
-        );
+      for (const healthFailure of HEALTH_FAILURES_BY_VIEWPORT[expected.name]) {
+        if (scenario?.[healthFailure.counter] !== 0) {
+          recordFailure(healthFailure.failure, healthFailure.dimension);
+        }
       }
       if (scenario?.attemptedWrites !== 0
         || scenario?.blockedWrites !== 0

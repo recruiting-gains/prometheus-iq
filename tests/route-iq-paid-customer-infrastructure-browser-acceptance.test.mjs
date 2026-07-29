@@ -117,6 +117,82 @@ test("evaluator accepts only exact healthy configured-or-safe-empty evidence", (
   }
 });
 
+test("health diagnostics distinguish every cause and exact viewport", () => {
+  const cases = [
+    ["desktop", "consoleErrors", "DESKTOP_CONSOLE_ERROR"],
+    ["desktop", "runtimeExceptions", "DESKTOP_RUNTIME_EXCEPTION"],
+    ["desktop", "networkFailures", "DESKTOP_NETWORK_FAILURE"],
+    ["desktop", "externalRequests", "DESKTOP_EXTERNAL_REQUEST"],
+    ["mobile", "consoleErrors", "MOBILE_CONSOLE_ERROR"],
+    ["mobile", "runtimeExceptions", "MOBILE_RUNTIME_EXCEPTION"],
+    ["mobile", "networkFailures", "MOBILE_NETWORK_FAILURE"],
+    ["mobile", "externalRequests", "MOBILE_EXTERNAL_REQUEST"]
+  ];
+  for (const [viewport, counter, expectedDimension] of cases) {
+    const scenarios = ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.map(passingScenario);
+    scenarios.find(scenario => scenario.viewport === viewport)[counter] = 1;
+    const evaluation = evaluateRouteIqPrivateBrowserAcceptance({
+      expectedWorkerVersion: VERSION,
+      publicIsolationVerified: true,
+      scenarios
+    });
+    assert.equal(evaluation.status, "FAIL");
+    assert.deepEqual(evaluation.failureDimensions, [expectedDimension]);
+  }
+});
+
+test("health diagnostics remain deterministic and contain no observed browser values", async () => {
+  const canaries = [
+    "https://credential-canary.invalid/private",
+    "authorization-header-canary",
+    "runtime-message-canary"
+  ];
+  let captured;
+  try {
+    await runRouteIqPrivateProductionBrowserAcceptance({
+      credentials: {
+        clientId: canaries[1],
+        clientSecret: canaries[2]
+      },
+      expectedWorkerVersion: VERSION,
+      publicIsolationVerified: true,
+      launchBrowser: async () => ({
+        debugPort: 12345,
+        async close() {}
+      }),
+      runScenario: async ({ viewport }) => ({
+        ...passingScenario(viewport),
+        consoleErrors: viewport.name === "desktop" ? 1 : 0,
+        runtimeExceptions: viewport.name === "desktop" ? 1 : 0,
+        networkFailures: viewport.name === "mobile" ? 1 : 0,
+        externalRequests: viewport.name === "mobile" ? 1 : 0,
+        observedUrl: canaries[0],
+        observedMessage: canaries[2]
+      })
+    });
+  } catch (error) {
+    captured = error;
+  }
+  assert.ok(captured instanceof RouteIqPrivateBrowserAcceptanceError);
+  assert.deepEqual(captured.failureDimensions, [
+    "DESKTOP_CONSOLE_ERROR",
+    "DESKTOP_RUNTIME_EXCEPTION",
+    "MOBILE_NETWORK_FAILURE",
+    "MOBILE_EXTERNAL_REQUEST"
+  ]);
+  assert.equal(
+    formatPrivateWorkflowV2Failure(captured),
+    "QUALIFICATION_FAILED|DIMENSION=DESKTOP_CONSOLE_ERROR"
+  );
+  const serialized = JSON.stringify({
+    name: captured.name,
+    message: captured.message,
+    code: captured.code,
+    failureDimensions: captured.failureDimensions
+  });
+  for (const canary of canaries) assert.equal(serialized.includes(canary), false);
+});
+
 test("browser page evidence awaits asynchronous service-worker registration counts", async () => {
   let resolved = false;
   const pending = collectRouteIqPrivateBrowserPageEvidence(browserPage(async () => {

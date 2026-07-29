@@ -1066,6 +1066,31 @@ test("failure output preserves only fixed browser acceptance dimensions", () => 
   assert.equal(unknownClassification.includes("canary"), false);
 });
 
+test("workflow preserves fixed health cause and viewport without arbitrary browser output", () => {
+  const expectedDimensions = [
+    "DESKTOP_CONSOLE_ERROR",
+    "DESKTOP_RUNTIME_EXCEPTION",
+    "DESKTOP_NETWORK_FAILURE",
+    "DESKTOP_EXTERNAL_REQUEST",
+    "MOBILE_CONSOLE_ERROR",
+    "MOBILE_RUNTIME_EXCEPTION",
+    "MOBILE_NETWORK_FAILURE",
+    "MOBILE_EXTERNAL_REQUEST"
+  ];
+  for (const dimension of expectedDimensions) {
+    const failure = new RouteIqPrivateBrowserAcceptanceError([dimension]);
+    failure.message = "https://credential-canary.invalid/arbitrary-browser-message";
+    const classification = formatPrivateWorkflowV2Failure(failure);
+    assert.equal(
+      classification,
+      `QUALIFICATION_FAILED|DIMENSION=${dimension}`
+    );
+    assert.equal(classification.includes("http"), false);
+    assert.equal(classification.includes("/"), false);
+    assert.equal(classification.includes("canary"), false);
+  }
+});
+
 test("successful lifecycle performs one private deployment and zero rollback attempts", async () => {
   const { result, calls } = lifecycleFixture();
   assert.equal((await result).status, "PRIVATE_WORKER_V2_DEPLOYMENT_VERIFIED");

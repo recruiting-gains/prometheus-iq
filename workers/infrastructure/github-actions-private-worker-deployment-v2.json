@@ -209,7 +209,22 @@
     "configuredOrSafeEmptyStateRequired": true,
     "exactPrivateWorkerVersionRequired": true,
     "publicWorkerIdentityFencedBeforeAndAfter": true,
-    "credentialValuesInOutputAllowed": false
+    "credentialValuesInOutputAllowed": false,
+    "healthFailureClassification": {
+      "closedVocabulary": [
+        "DESKTOP_CONSOLE_ERROR",
+        "DESKTOP_RUNTIME_EXCEPTION",
+        "DESKTOP_NETWORK_FAILURE",
+        "DESKTOP_EXTERNAL_REQUEST",
+        "MOBILE_CONSOLE_ERROR",
+        "MOBILE_RUNTIME_EXCEPTION",
+        "MOBILE_NETWORK_FAILURE",
+        "MOBILE_EXTERNAL_REQUEST"
+      ],
+      "viewportEncoded": true,
+      "arbitraryMessagesAllowed": false,
+      "sensitiveValuesAllowed": false
+    }
   },
   "runtimeGuardInjection": {
     "artifactMutationAllowed": false,
