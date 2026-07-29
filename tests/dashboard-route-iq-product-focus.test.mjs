@@ -94,6 +94,39 @@ function createFakeChrome(fixtureRoot, {
   return executablePath;
 }
 
+function createStalledChromeReadinessFixture() {
+  const processHandle = new EventEmitter();
+  processHandle.pid = 4242;
+  processHandle.exitCode = null;
+  processHandle.signalCode = null;
+  processHandle.stderr = new EventEmitter();
+  processHandle.kill = signal => {
+    if (processHandle.exitCode !== null || processHandle.signalCode !== null) return false;
+    processHandle.signalCode = signal;
+    queueMicrotask(() => processHandle.emit("exit", null, signal));
+    return true;
+  };
+  return {
+    spawnImpl(_executablePath, args) {
+      const userDataArg = args.find(argument => argument.startsWith("--user-data-dir="));
+      assert.ok(userDataArg);
+      const userDataDir = userDataArg.slice("--user-data-dir=".length);
+      writeFileSync(
+        join(userDataDir, "DevToolsActivePort"),
+        "41235\n/devtools/browser/fake\n"
+      );
+      return processHandle;
+    },
+    fetchImpl(_endpoint, { signal }) {
+      return new Promise((_resolve, reject) => {
+        const rejectAborted = () => reject(signal.reason);
+        if (signal.aborted) rejectAborted();
+        else signal.addEventListener("abort", rejectAborted, { once: true });
+      });
+    }
+  };
+}
+
 test("Route IQ is the only active Dashboard product", () => {
   assert.match(source, /<title>Route IQ<\/title>/);
   assert.match(source, /apple-mobile-web-app-title" content="Route IQ"/);
@@ -352,14 +385,16 @@ test("Dashboard harness gives concurrent DevTools readiness one bounded transact
 
 test("Dashboard harness preserves the DevTools endpoint and timeout cause in readiness diagnostics", async t => {
   const { fixtureRoot, profileRoot } = createHarnessFixture(t);
-  const executablePath = createFakeChrome(fixtureRoot, { neverRespond: true });
+  const fixture = createStalledChromeReadinessFixture();
   await assert.rejects(
     launchChrome({
-      executablePath,
+      executablePath: createFakeChrome(fixtureRoot),
       tempRoot: profileRoot,
-      readinessTimeoutMs: 1500,
+      readinessTimeoutMs: 100,
       gracefulShutdownTimeoutMs: 250,
-      forceShutdownTimeoutMs: 500
+      forceShutdownTimeoutMs: 500,
+      spawnImpl: fixture.spawnImpl,
+      fetchImpl: fixture.fetchImpl
     }),
     error => {
       assert.match(error.message, /Chrome published DevToolsActivePort but its readiness transaction failed/u);
