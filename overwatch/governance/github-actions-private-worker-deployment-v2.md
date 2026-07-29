@@ -195,6 +195,11 @@ The paid-customer acceptance successor advances the exact forward payload to
 `25d49f283bc07c212bf0c1a5f53fae17602bb149ba8870a9ad3519b6295a9707`;
 the paired rollback identity is
 `0350e6281b228321509c59fadc1fe612f6400b6d025c27dddd01ea980daddb79`.
+Infrastructure successor `ff01434aac512f46b6c582d013056fe5b466ce6e`
+repairs only production-acceptance evidence collection and failure
+classification. It fully awaits the browser Service Worker registration query,
+keeps numeric zero mandatory, and fails closed on unresolved or malformed
+evidence without changing the qualified application payload.
 
 ## Boundary
 

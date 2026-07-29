@@ -144,6 +144,14 @@
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "infrastructure: bridge paid-customer preview and acceptance"
     },
+    "implementationBrowserAcceptanceRepairCommit": {
+      "commit": "ff01434aac512f46b6c582d013056fe5b466ce6e",
+      "parent": "25f0f2dedbdec8aab184c9384bc5c9731e25ee40",
+      "tree": "fd5088993a06935a92d3f8d4301a632355571d9f",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Repair private browser acceptance registration evidence"
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "implementationPaths": [
@@ -818,6 +826,30 @@
       {
         "path": "workers/prometheus-iq-worker.js",
         "sha256": "58d52967de329daa034751c1cf95ad1ae3da8a853c5cceeb950f0656ed51e2c8"
+      }
+    ],
+    "browserAcceptanceRepairPaths": [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs"
+    ],
+    "browserAcceptanceRepairEvidence": [
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "0060230c51d522f60c9fe74416e0fac7485ddb4d2b0de0ebd2b27e1c78fb310b"
+      },
+      {
+        "path": "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+        "sha256": "7c2d1f88514f12328a6cf7e34bd4e722b5c8216cb5ad2e1bd4c661f7ec644840"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "sha256": "4e65f661605cdccfd62062ef56e1ecc20d3f61516777dc7e865e08cbe795e028"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+        "sha256": "ef4a30917c249b72b9542f86a0e2a5f0743a53bb3d351fc7a645a178bc75a3b2"
       }
     ]
   },

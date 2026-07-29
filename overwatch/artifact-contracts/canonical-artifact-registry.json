@@ -234,7 +234,9 @@
         "rollbackRootGuardRepairCommit": "6f7216afa09b72442f53a271a8b9fc749aa34d4b",
         "rollbackRootGuardRepairTree": "414e500a735885f460cb25afc18b0387d43e8125",
         "paidCustomerAcceptanceCommit": "3872b30d1f16acde85518ae857bae09336aaed3b",
-        "paidCustomerAcceptanceTree": "d1a12d7336e1739b33a0f83a8e33213939b0ea6c"
+        "paidCustomerAcceptanceTree": "d1a12d7336e1739b33a0f83a8e33213939b0ea6c",
+        "browserAcceptanceRepairCommit": "ff01434aac512f46b6c582d013056fe5b466ce6e",
+        "browserAcceptanceRepairTree": "fd5088993a06935a92d3f8d4301a632355571d9f"
       },
       "cleanRunnerRealWranglerEvidenceRequired": true,
       "writeAllowed": [

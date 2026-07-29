@@ -94,6 +94,9 @@ const v2UnconditionalGuardRoutingTree = "4ae9572745cc260b347309a51f8e98a39720d1d
 const v2PaidCustomerAcceptanceCommit = "3872b30d1f16acde85518ae857bae09336aaed3b";
 const v2PaidCustomerAcceptanceParent = "77185e882f0be8e7928de42c9e478d866ed91571";
 const v2PaidCustomerAcceptanceTree = "d1a12d7336e1739b33a0f83a8e33213939b0ea6c";
+const v2BrowserAcceptanceRepairCommit = "ff01434aac512f46b6c582d013056fe5b466ce6e";
+const v2BrowserAcceptanceRepairParent = "25f0f2dedbdec8aab184c9384bc5c9731e25ee40";
+const v2BrowserAcceptanceRepairTree = "fd5088993a06935a92d3f8d4301a632355571d9f";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -385,6 +388,17 @@ const v2PaidCustomerAcceptanceHashes = Object.freeze({
     "3785deadd067bfbbfb3c88465b75b114b5d60587214c5f3e4e962daa14eab0be",
   "workers/prometheus-iq-worker.js":
     "58d52967de329daa034751c1cf95ad1ae3da8a853c5cceeb950f0656ed51e2c8"
+});
+
+const v2BrowserAcceptanceRepairHashes = Object.freeze({
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+    "0060230c51d522f60c9fe74416e0fac7485ddb4d2b0de0ebd2b27e1c78fb310b",
+  "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs":
+    "7c2d1f88514f12328a6cf7e34bd4e722b5c8216cb5ad2e1bd4c661f7ec644840",
+  "tests/github-actions-private-worker-workflow-v2.test.mjs":
+    "4e65f661605cdccfd62062ef56e1ecc20d3f61516777dc7e865e08cbe795e028",
+  "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs":
+    "ef4a30917c249b72b9542f86a0e2a5f0743a53bb3d351fc7a645a178bc75a3b2"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -1137,6 +1151,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership?.implementationPaidCustomerAcceptanceCommit?.author ===
       infrastructureIdentity
     && governance?.ownership?.implementationPaidCustomerAcceptanceCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationBrowserAcceptanceRepairCommit?.commit ===
+      v2BrowserAcceptanceRepairCommit
+    && governance?.ownership?.implementationBrowserAcceptanceRepairCommit?.parent ===
+      v2BrowserAcceptanceRepairParent
+    && governance?.ownership?.implementationBrowserAcceptanceRepairCommit?.tree ===
+      v2BrowserAcceptanceRepairTree
+    && governance?.ownership?.implementationBrowserAcceptanceRepairCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationBrowserAcceptanceRepairCommit?.committer ===
       infrastructureIdentity,
   "Private Workflow v2 owner provenance drifted.");
   require(equal(governance?.ownership?.implementationPaths, Object.keys(v2OwnerHashes)),
@@ -1249,6 +1273,12 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.paidCustomerAcceptanceEvidence,
     evidenceMap(v2PaidCustomerAcceptanceHashes)),
   "Private Workflow v2 paid-customer acceptance evidence drifted.");
+  require(equal(governance?.ownership?.browserAcceptanceRepairPaths,
+    Object.keys(v2BrowserAcceptanceRepairHashes)),
+  "Private Workflow v2 browser-acceptance repair path set drifted.");
+  require(equal(governance?.ownership?.browserAcceptanceRepairEvidence,
+    evidenceMap(v2BrowserAcceptanceRepairHashes)),
+  "Private Workflow v2 browser-acceptance repair evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -1949,6 +1979,15 @@ function verifyV2OwnerAndGovernance() {
       subject: "infrastructure: bridge paid-customer preview and acceptance",
       hashes: v2PaidCustomerAcceptanceHashes,
       recorded: governance.ownership.paidCustomerAcceptanceEvidence
+    },
+    {
+      label: "browser-acceptance registration evidence",
+      commit: v2BrowserAcceptanceRepairCommit,
+      parent: v2BrowserAcceptanceRepairParent,
+      tree: v2BrowserAcceptanceRepairTree,
+      subject: "Repair private browser acceptance registration evidence",
+      hashes: v2BrowserAcceptanceRepairHashes,
+      recorded: governance.ownership.browserAcceptanceRepairEvidence
     }
   ]) {
     const metadata = git([
@@ -2007,7 +2046,8 @@ function verifyV2OwnerAndGovernance() {
     ...v2GuardConvergenceRepairHashes,
     ...v2ForwardPayloadPinCorrectionHashes,
     ...v2UnconditionalGuardRoutingHashes,
-    ...v2PaidCustomerAcceptanceHashes
+    ...v2PaidCustomerAcceptanceHashes,
+    ...v2BrowserAcceptanceRepairHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -2139,7 +2179,9 @@ function verifyRegistryAndReleaseWiring() {
       rollbackRootGuardRepairCommit: v2RollbackRootGuardRepairCommit,
       rollbackRootGuardRepairTree: v2RollbackRootGuardRepairTree,
       paidCustomerAcceptanceCommit: v2PaidCustomerAcceptanceCommit,
-      paidCustomerAcceptanceTree: v2PaidCustomerAcceptanceTree
+      paidCustomerAcceptanceTree: v2PaidCustomerAcceptanceTree,
+      browserAcceptanceRepairCommit: v2BrowserAcceptanceRepairCommit,
+      browserAcceptanceRepairTree: v2BrowserAcceptanceRepairTree
     })
     || artifactV2.cleanRunnerRealWranglerEvidenceRequired !== true
     || !equal(artifactV2.writeAllowed, ["Prometheus Overwatch"])) {
@@ -2314,6 +2356,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2UnconditionalGuardRoutingCommit,
     immutableWorkflowV2PaidCustomerAcceptanceCommit:
       v2PaidCustomerAcceptanceCommit,
+    immutableWorkflowV2BrowserAcceptanceRepairCommit:
+      v2BrowserAcceptanceRepairCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,
