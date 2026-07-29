@@ -28,6 +28,7 @@ const source = read("index.html");
 const serviceWorker = read("sw.js");
 const runtimeWorkflowVerifier = read("scripts/verify-dashboard-runtime-workflows.mjs");
 const canonicalFounderSnapshot = JSON.parse(read("intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json"));
+const loadedHarnessReadinessTimeoutMs = 15000;
 
 function createHarnessFixture(t) {
   const fixtureRoot = mkdtempSync(join(tmpdir(), "prometheus-dashboard-harness-test-"));
@@ -124,6 +125,50 @@ function createStalledChromeReadinessFixture() {
         else signal.addEventListener("abort", rejectAborted, { once: true });
       });
     }
+  };
+}
+
+function createRecoveringChromeReadinessFixture() {
+  const processHandle = new EventEmitter();
+  processHandle.pid = 4243;
+  processHandle.exitCode = null;
+  processHandle.signalCode = null;
+  processHandle.stderr = new EventEmitter();
+  processHandle.kill = signal => {
+    if (processHandle.exitCode !== null || processHandle.signalCode !== null) return false;
+    processHandle.signalCode = signal;
+    queueMicrotask(() => processHandle.emit("exit", null, signal));
+    return true;
+  };
+  let fetchAttempts = 0;
+  return {
+    spawnImpl(_executablePath, args) {
+      const userDataArg = args.find(argument => argument.startsWith("--user-data-dir="));
+      assert.ok(userDataArg);
+      const userDataDir = userDataArg.slice("--user-data-dir=".length);
+      writeFileSync(
+        join(userDataDir, "DevToolsActivePort"),
+        "41236\n/devtools/browser/recovered\n"
+      );
+      return processHandle;
+    },
+    fetchImpl(_endpoint, { signal }) {
+      fetchAttempts += 1;
+      if (fetchAttempts === 1) {
+        return new Promise((_resolve, reject) => {
+          const rejectAborted = () => reject(signal.reason);
+          if (signal.aborted) rejectAborted();
+          else signal.addEventListener("abort", rejectAborted, { once: true });
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          webSocketDebuggerUrl: "ws://127.0.0.1:41236/devtools/browser/recovered"
+        })
+      });
+    },
+    getFetchAttempts: () => fetchAttempts
   };
 }
 
@@ -348,7 +393,7 @@ test("Dashboard harness waits for DevTools readiness on an OS-assigned loopback 
   const chrome = await launchChrome({
     executablePath,
     tempRoot: profileRoot,
-    readinessTimeoutMs: 3000,
+    readinessTimeoutMs: loadedHarnessReadinessTimeoutMs,
     gracefulShutdownTimeoutMs: 500,
     forceShutdownTimeoutMs: 500
   });
@@ -370,7 +415,7 @@ test("Dashboard harness gives concurrent DevTools readiness one bounded transact
   const launches = await Promise.all(Array.from({ length: 4 }, () => launchChrome({
     executablePath,
     tempRoot: profileRoot,
-    readinessTimeoutMs: 5000,
+    readinessTimeoutMs: loadedHarnessReadinessTimeoutMs,
     gracefulShutdownTimeoutMs: 500,
     forceShutdownTimeoutMs: 500
   })));
@@ -383,6 +428,24 @@ test("Dashboard harness gives concurrent DevTools readiness one bounded transact
   assert.deepEqual(readdirSync(profileRoot), []);
 });
 
+test("Dashboard harness recovers from one bounded DevTools transport stall within one readiness deadline", async t => {
+  const { fixtureRoot, profileRoot } = createHarnessFixture(t);
+  const fixture = createRecoveringChromeReadinessFixture();
+  const chrome = await launchChrome({
+    executablePath: createFakeChrome(fixtureRoot),
+    tempRoot: profileRoot,
+    readinessTimeoutMs: 500,
+    readinessProbeTimeoutMs: 100,
+    gracefulShutdownTimeoutMs: 100,
+    forceShutdownTimeoutMs: 100,
+    spawnImpl: fixture.spawnImpl,
+    fetchImpl: fixture.fetchImpl
+  });
+  assert.equal(fixture.getFetchAttempts(), 2);
+  await chrome.close();
+  assert.deepEqual(readdirSync(profileRoot), []);
+});
+
 test("Dashboard harness preserves the DevTools endpoint and timeout cause in readiness diagnostics", async t => {
   const { fixtureRoot, profileRoot } = createHarnessFixture(t);
   const fixture = createStalledChromeReadinessFixture();
@@ -390,7 +453,8 @@ test("Dashboard harness preserves the DevTools endpoint and timeout cause in rea
     launchChrome({
       executablePath: createFakeChrome(fixtureRoot),
       tempRoot: profileRoot,
-      readinessTimeoutMs: 100,
+      readinessTimeoutMs: 250,
+      readinessProbeTimeoutMs: 75,
       gracefulShutdownTimeoutMs: 250,
       forceShutdownTimeoutMs: 500,
       spawnImpl: fixture.spawnImpl,
@@ -399,6 +463,7 @@ test("Dashboard harness preserves the DevTools endpoint and timeout cause in rea
     error => {
       assert.match(error.message, /Chrome published DevToolsActivePort but its readiness transaction failed/u);
       assert.match(error.message, /endpoint=http:\/\/127\.0\.0\.1:\d+\/json\/version/u);
+      assert.match(error.message, /attempts=\d+/u);
       assert.match(error.message, /cause=(?:TimeoutError|AbortError)(?: \[\d+\])?: .*timeout/iu);
       assert.ok(["TimeoutError", "AbortError"].includes(error.cause?.name));
       return true;
@@ -453,7 +518,7 @@ test("Dashboard harness escalates shutdown and removes the Chrome profile", asyn
   const chrome = await launchChrome({
     executablePath,
     tempRoot: profileRoot,
-    readinessTimeoutMs: 3000,
+    readinessTimeoutMs: loadedHarnessReadinessTimeoutMs,
     gracefulShutdownTimeoutMs: 100,
     forceShutdownTimeoutMs: 1000
   });

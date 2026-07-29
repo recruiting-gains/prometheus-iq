@@ -603,6 +603,7 @@ function summitRehearsalBrowserDocument() {
 }
 const chromeStartupTimeoutMs = 30000;
 const chromeControlTimeoutMs = 30000;
+const chromeReadinessProbeTimeoutMs = 3000;
 const chromeTargetCloseTimeoutMs = 10000;
 export const eventbriteExpansionFixture = Object.freeze({
   now: "2026-07-19T17:00:00.000Z",
@@ -1169,12 +1170,38 @@ function errorCauseDiagnostic(error) {
   return details.join(" <- caused by ");
 }
 
+function isRetryableChromeReadinessTransportError(error, {
+  allowFetchTypeError = false
+} = {}) {
+  const retryableNames = new Set(["AbortError", "TimeoutError"]);
+  const retryableCodes = new Set([
+    "ECONNREFUSED",
+    "ECONNRESET",
+    "ETIMEDOUT",
+    "UND_ERR_CONNECT_TIMEOUT",
+    "UND_ERR_SOCKET"
+  ]);
+  const seen = new Set();
+  let current = error;
+  while (current && !seen.has(current)) {
+    seen.add(current);
+    if (
+      retryableNames.has(current.name)
+      || retryableCodes.has(current.code)
+      || (allowFetchTypeError && current.name === "TypeError")
+    ) return true;
+    current = current.cause;
+  }
+  return false;
+}
+
 async function waitForChromeReadiness({
   processHandle,
   userDataDir,
   getStderr,
   fetchImpl,
-  timeoutMs
+  timeoutMs,
+  probeTimeoutMs
 }) {
   const activePortPath = join(userDataDir, "DevToolsActivePort");
   const startedAt = Date.now();
@@ -1229,24 +1256,52 @@ async function waitForChromeReadiness({
     }
 
     const endpoint = `http://127.0.0.1:${activePort.debugPort}/json/version`;
-    const remainingMs = Math.max(1, deadline - Date.now());
-    try {
-      const response = await raceTerminal(fetchImpl(endpoint, {
-        signal: AbortSignal.timeout(remainingMs)
-      }));
-      if (!response.ok) throw new Error(`Chrome DevTools readiness returned HTTP ${response.status}.`);
-      const version = await raceTerminal(response.json());
-      if (typeof version?.webSocketDebuggerUrl !== "string" || !version.webSocketDebuggerUrl) {
-        throw new Error("Chrome DevTools readiness response omitted webSocketDebuggerUrl.");
+    let probeAttempts = 0;
+    let lastProbeError;
+    while (Date.now() < deadline) {
+      const remainingMs = Math.max(1, deadline - Date.now());
+      const boundedProbeTimeoutMs = Math.max(1, Math.min(probeTimeoutMs, remainingMs));
+      probeAttempts += 1;
+      let response;
+      try {
+        response = await raceTerminal(fetchImpl(endpoint, {
+          signal: AbortSignal.timeout(boundedProbeTimeoutMs)
+        }));
+      } catch (error) {
+        if (terminalError) throw terminalError;
+        lastProbeError = error;
+        if (!isRetryableChromeReadinessTransportError(error, { allowFetchTypeError: true })) break;
+        if (Date.now() < deadline) await raceTerminal(wait(Math.min(50, Math.max(1, deadline - Date.now()))));
+        continue;
       }
-      return { ...activePort, version };
-    } catch (error) {
-      if (terminalError) throw terminalError;
+      if (!response.ok) {
+        lastProbeError = new Error(`Chrome DevTools readiness returned HTTP ${response.status}.`);
+        break;
+      }
+      try {
+        const version = await raceTerminal(response.json());
+        if (typeof version?.webSocketDebuggerUrl !== "string" || !version.webSocketDebuggerUrl) {
+          lastProbeError = new Error("Chrome DevTools readiness response omitted webSocketDebuggerUrl.");
+          break;
+        }
+        return { ...activePort, version };
+      } catch (error) {
+        if (terminalError) throw terminalError;
+        lastProbeError = error;
+        if (!isRetryableChromeReadinessTransportError(error)) break;
+        if (Date.now() < deadline) await raceTerminal(wait(Math.min(50, Math.max(1, deadline - Date.now()))));
+      }
+    }
+
+    if (lastProbeError) {
       throw new Error(
-        `Chrome published DevToolsActivePort but its readiness transaction failed after ${Date.now() - startedAt}ms; endpoint=${endpoint}; cause=${errorCauseDiagnostic(error)}${chromeStderrSuffix(getStderr())}`,
-        { cause: error }
+        `Chrome published DevToolsActivePort but its readiness transaction failed after ${Date.now() - startedAt}ms; endpoint=${endpoint}; attempts=${probeAttempts}; cause=${errorCauseDiagnostic(lastProbeError)}${chromeStderrSuffix(getStderr())}`,
+        { cause: lastProbeError }
       );
     }
+    throw new Error(
+      `Chrome published DevToolsActivePort but its readiness transaction exhausted its deadline after ${Date.now() - startedAt}ms; endpoint=${endpoint}; attempts=${probeAttempts}${chromeStderrSuffix(getStderr())}`
+    );
   } finally {
     processHandle.off("error", onError);
     processHandle.off("exit", onExit);
@@ -1478,6 +1533,7 @@ export async function launchChrome({
   executablePath,
   tempRoot = tmpdir(),
   readinessTimeoutMs = chromeStartupTimeoutMs,
+  readinessProbeTimeoutMs = chromeReadinessProbeTimeoutMs,
   gracefulShutdownTimeoutMs = 1500,
   forceShutdownTimeoutMs = 1500,
   spawnImpl = spawn,
@@ -1538,7 +1594,8 @@ export async function launchChrome({
       userDataDir,
       getStderr: () => stderr,
       fetchImpl,
-      timeoutMs: readinessTimeoutMs
+      timeoutMs: readinessTimeoutMs,
+      probeTimeoutMs: readinessProbeTimeoutMs
     });
   } catch (startupError) {
     try {
