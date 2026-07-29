@@ -176,6 +176,14 @@
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Classify private browser health failures"
     },
+    "implementationBrowserAcceptanceEvidenceRepairCommit": {
+      "commit": "f27544bfc21a1ae7ceae05a6421a6b9d02007366",
+      "parent": "9d2d05a3e5927fc727cec73896efd8ac95cb396d",
+      "tree": "631e108004fed45183e3e936e92ed33b5cf82f1b",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Repair private browser acceptance evidence"
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "implementationPaths": [
@@ -956,6 +964,45 @@
       {
         "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
         "sha256": "93e760cf82e389a9ced61ea9df7031924805600a76abc54da92fe7dc8c4bd470"
+      }
+    ],
+    "browserAcceptanceEvidenceRepairPaths": [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+      "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
+    ],
+    "browserAcceptanceEvidenceRepairEvidence": [
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "f93ce0fe38ea752b3785178aedcb27c1c5f16d7175238bdbed0bbaf8dd852fd6"
+      },
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "354d5e3988dc077d369bced2f7354d1a1c093310f85a45adfb18beac710d46f9"
+      },
+      {
+        "path": "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+        "sha256": "a17ee007193be9ae932c6fe0896594a96855a3b7973b0effa7ce52cab44e2762"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "sha256": "eca5a8e5d37c4e98a51b14777e191a1bb6dccf6571724fcdb3156ea7913c680d"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+        "sha256": "3ce4a163bef9fb901ca5c8e76e76fdfcf762837bd6690c636877d83b07cf09c8"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "af6050b0f3d82f3df6ffc7f50b89a404fc26073db192ef757732b41423f9eab8"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
+        "sha256": "99ff838b3430e1160cf40e06f38cd18c9caf65936e90a8792b4f0fac1356d843"
       }
     ]
   },

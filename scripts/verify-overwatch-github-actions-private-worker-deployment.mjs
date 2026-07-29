@@ -109,6 +109,12 @@ const v2BrowserHealthDiagnosticsRepairParent =
   "dc7038b31e726f3d9e48115534c9f269bb44906a";
 const v2BrowserHealthDiagnosticsRepairTree =
   "306f4afd26b51fe5d0cc064bf8e0b3571923b97d";
+const v2BrowserAcceptanceEvidenceRepairCommit =
+  "f27544bfc21a1ae7ceae05a6421a6b9d02007366";
+const v2BrowserAcceptanceEvidenceRepairParent =
+  "9d2d05a3e5927fc727cec73896efd8ac95cb396d";
+const v2BrowserAcceptanceEvidenceRepairTree =
+  "631e108004fed45183e3e936e92ed33b5cf82f1b";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -448,6 +454,23 @@ const v2BrowserHealthDiagnosticsRepairHashes = Object.freeze({
     "011922fe023b6df44568c87c8b414c981b92e67a229a38997ee0a772771c270e",
   "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
     "93e760cf82e389a9ced61ea9df7031924805600a76abc54da92fe7dc8c4bd470"
+});
+
+const v2BrowserAcceptanceEvidenceRepairHashes = Object.freeze({
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+    "f93ce0fe38ea752b3785178aedcb27c1c5f16d7175238bdbed0bbaf8dd852fd6",
+  "scripts/verify-github-actions-private-worker-workflow-v2.mjs":
+    "354d5e3988dc077d369bced2f7354d1a1c093310f85a45adfb18beac710d46f9",
+  "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs":
+    "a17ee007193be9ae932c6fe0896594a96855a3b7973b0effa7ce52cab44e2762",
+  "tests/github-actions-private-worker-workflow-v2.test.mjs":
+    "eca5a8e5d37c4e98a51b14777e191a1bb6dccf6571724fcdb3156ea7913c680d",
+  "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs":
+    "3ce4a163bef9fb901ca5c8e76e76fdfcf762837bd6690c636877d83b07cf09c8",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "af6050b0f3d82f3df6ffc7f50b89a404fc26073db192ef757732b41423f9eab8",
+  "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json":
+    "99ff838b3430e1160cf40e06f38cd18c9caf65936e90a8792b4f0fac1356d843"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -1367,6 +1390,12 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.browserHealthDiagnosticsRepairEvidence,
     evidenceMap(v2BrowserHealthDiagnosticsRepairHashes)),
   "Private Workflow v2 browser-health diagnostics repair evidence drifted.");
+  require(equal(governance?.ownership?.browserAcceptanceEvidenceRepairPaths,
+    Object.keys(v2BrowserAcceptanceEvidenceRepairHashes)),
+  "Private Workflow v2 browser-acceptance evidence repair path set drifted.");
+  require(equal(governance?.ownership?.browserAcceptanceEvidenceRepairEvidence,
+    evidenceMap(v2BrowserAcceptanceEvidenceRepairHashes)),
+  "Private Workflow v2 browser-acceptance evidence repair evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -1751,13 +1780,21 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       "DESKTOP_CONSOLE_ERROR",
       "DESKTOP_RUNTIME_EXCEPTION",
       "DESKTOP_NETWORK_FAILURE",
+      "DESKTOP_NETWORK_HTTP_FAILURE",
       "DESKTOP_EXTERNAL_REQUEST",
       "MOBILE_CONSOLE_ERROR",
       "MOBILE_RUNTIME_EXCEPTION",
       "MOBILE_NETWORK_FAILURE",
+      "MOBILE_NETWORK_HTTP_FAILURE",
       "MOBILE_EXTERNAL_REQUEST"
     ])
     && contract?.browserAcceptance?.healthFailureClassification?.viewportEncoded === true
+    && contract?.browserAcceptance?.healthFailureClassification
+      ?.allMatchingDimensionsReported === true
+    && contract?.browserAcceptance?.healthFailureClassification
+      ?.safeDiagnosticCategoriesReported === true
+    && contract?.browserAcceptance?.healthFailureClassification
+      ?.guardedServiceWorkerNetworkLogRequiresExactCorrelatedBlock === true
     && contract?.browserAcceptance?.healthFailureClassification
       ?.arbitraryMessagesAllowed === false
     && contract?.browserAcceptance?.healthFailureClassification
@@ -2169,6 +2206,15 @@ function verifyV2OwnerAndGovernance() {
       subject: "Classify private browser health failures",
       hashes: v2BrowserHealthDiagnosticsRepairHashes,
       recorded: governance.ownership.browserHealthDiagnosticsRepairEvidence
+    },
+    {
+      label: "browser-acceptance evidence repair",
+      commit: v2BrowserAcceptanceEvidenceRepairCommit,
+      parent: v2BrowserAcceptanceEvidenceRepairParent,
+      tree: v2BrowserAcceptanceEvidenceRepairTree,
+      subject: "Repair private browser acceptance evidence",
+      hashes: v2BrowserAcceptanceEvidenceRepairHashes,
+      recorded: governance.ownership.browserAcceptanceEvidenceRepairEvidence
     }
   ]) {
     const metadata = git([
@@ -2231,7 +2277,8 @@ function verifyV2OwnerAndGovernance() {
     ...v2BrowserAcceptanceRepairHashes,
     ...v2SmokeSequencingRepairHashes,
     ...v2ProbePropagationRepairHashes,
-    ...v2BrowserHealthDiagnosticsRepairHashes
+    ...v2BrowserHealthDiagnosticsRepairHashes,
+    ...v2BrowserAcceptanceEvidenceRepairHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -2554,6 +2601,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2ProbePropagationRepairCommit,
     immutableWorkflowV2BrowserHealthDiagnosticsRepairCommit:
       v2BrowserHealthDiagnosticsRepairCommit,
+    immutableWorkflowV2BrowserAcceptanceEvidenceRepairCommit:
+      v2BrowserAcceptanceEvidenceRepairCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,
