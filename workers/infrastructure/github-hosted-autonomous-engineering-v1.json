@@ -1,0 +1,213 @@
+{
+  "contractVersion": "github-hosted-autonomous-engineering-v1",
+  "product": "Route IQ",
+  "owner": "Prometheus Infrastructure",
+  "status": "IMPLEMENTED_NOT_QUALIFIED_NOT_DEPLOYED",
+  "baseline": {
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "branch": "main",
+    "commit": "278deb57eef0558fbf2666ed6962cbbd73dad42d",
+    "tree": "e2464723b8ac82dfebaf4bed6bc41a800e5a7c76",
+    "privateWorker": "prometheus-iq",
+    "acceptedPrivateVersion": "e4ef2246-892a-448a-9e43-90391571f067",
+    "publicWorker": "prometheusrouteiq-website",
+    "acceptedPublicVersion": "6a8713c0-0712-4cda-8a13-daa893ca45f2",
+    "candidateMustDescendFromBaseline": true,
+    "candidateMustBeExactOriginMainAtDispatch": true,
+    "mergeCommitsAllowed": false
+  },
+  "workflow": {
+    "name": "Prometheus GitHub-Hosted Autonomous Engineering v1",
+    "path": ".github/workflows/github-hosted-autonomous-engineering-v1.yml",
+    "trigger": "workflow_dispatch",
+    "otherTriggersAllowed": false,
+    "founderActor": "PrometheusRouteIQ",
+    "requiredBranch": "main",
+    "requiredRunAttempt": 1,
+    "exactConfirmation": "I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT",
+    "runner": "ubuntu-24.04",
+    "architecture": "X64",
+    "nodeVersion": "24.4.1",
+    "protectedEnvironment": "prometheus-private-worker-production",
+    "concurrencyGroup": "prometheus-github-hosted-autonomous-engineering-v1",
+    "cancelInProgress": false,
+    "maximumWallClockMinutes": 290,
+    "selfDispatchAllowed": false,
+    "workflowCallAllowed": false,
+    "repositoryWriteAllowed": false,
+    "sourceMutationAllowed": false
+  },
+  "boundedRepair": {
+    "maximumRepairAttempts": 2,
+    "maximumInRunTransientRecoveryAttempts": 1,
+    "maximumChangedFiles": 16,
+    "maximumChangedLines": 5000,
+    "maximumChangedPatchBytes": 524288,
+    "maximumChangedFileBytes": 524288,
+    "maximumSuccessorCommits": 6,
+    "maximumWorkflowRecursionDepth": 0,
+    "automaticSourceEditsAllowed": false,
+    "automaticCommitsAllowed": false,
+    "automaticPushAllowed": false,
+    "isolatedRetryMayEstablishAcceptance": false,
+    "inRunRecovery": {
+      "scope": "complete_clean_qualification_on_fresh_runner",
+      "eligibleClassifications": [
+        "DEPENDENCY_TRANSPORT_TRANSIENT",
+        "AUDIT_TRANSPORT_TRANSIENT"
+      ],
+      "sourceOrTestFailureEligible": false,
+      "artifactUploadOrVerificationFailureEligible": false,
+      "productionFailureEligible": false,
+      "applicationBuildMayHaveRunBeforeRecovery": false
+    },
+    "completeCleanQualificationAfterRepairRequired": true,
+    "artifactRegenerationAfterRepairRequired": true,
+    "productionCertaintyLossRequiresRollback": true,
+    "outOfScopeFailureRequiresStop": true,
+    "allowedOwners": [
+      "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "Prometheus Overwatch <overwatch@prometheus.local>"
+    ],
+    "infrastructureOwnedPaths": [
+      ".github/workflows/github-hosted-autonomous-engineering-v1.yml",
+      "docs/github-hosted-autonomous-engineering-v1.md",
+      "scripts/lib/github-hosted-autonomous-engineering-v1.mjs",
+      "scripts/run-github-hosted-autonomous-engineering-v1.mjs",
+      "scripts/verify-github-hosted-autonomous-engineering-v1.mjs",
+      "tests/github-hosted-autonomous-engineering-infrastructure-v1.test.mjs",
+      "workers/infrastructure/github-hosted-autonomous-engineering-v1.json"
+    ],
+    "overwatchOwnedPaths": [
+      "overwatch/governance/github-hosted-autonomous-engineering-v1.json",
+      "overwatch/governance/github-hosted-autonomous-engineering-v1.md",
+      "overwatch/reports/github-hosted-autonomous-engineering-v1.json",
+      "scripts/verify-overwatch-github-hosted-autonomous-engineering-v1.mjs",
+      "tests/overwatch-github-hosted-autonomous-engineering-v1.test.mjs"
+    ],
+    "productPathsAllowed": false,
+    "customerDataPathsAllowed": false,
+    "publicWorkerPathsAllowed": false
+  },
+  "inheritedLegacyLane": {
+    "path": ".github/workflows/deploy-prometheus-private-worker.yml",
+    "disabledByThisFeature": false,
+    "reason": "The accepted legacy lane has no workflow_call, repository_dispatch, push, or schedule trigger; requires its own exact Founder workflow_dispatch context; and cannot be invoked by this non-recursive read-only-source orchestrator. Altering it would change accepted predecessor behavior and Overwatch evidence outside this feature.",
+    "newLaneCanInvokeLegacyLane": false,
+    "newLaneCanSelfDispatch": false,
+    "legacyAuthorizationReusableByNewLane": false
+  },
+  "qualification": {
+    "fullNoSecretRepositorySuiteRequired": true,
+    "sourceBuilds": 1,
+    "buildCommandSource": "npm test",
+    "additionalBuildCommandAllowed": false,
+    "cloudflareRequestsAllowed": false,
+    "productionSecretsAllowed": false,
+    "cleanGithubHostedRunnerRequired": true,
+    "existingPrivateV2QualificationReused": true,
+    "immutableArtifactUploadRequired": true,
+    "artifactRetentionDays": 30,
+    "independentRedownloadRequired": true,
+    "artifactMetadataApiVerificationRequired": true,
+    "artifactMetadataGithubTokenScope": "metadata_verification_steps_only",
+    "installReceivesArtifactToken": false,
+    "fullSuiteReceivesArtifactToken": false,
+    "deploymentProcessReceivesArtifactToken": false,
+    "finalizationReceivesArtifactToken": false,
+    "contentTreeVerificationRequired": true,
+    "manifestVerificationRequired": true,
+    "deploymentAssetVerificationRequired": true,
+    "rollbackContractVerificationRequired": true,
+    "rollbackBundleVerificationRequired": true
+  },
+  "rollbackDemonstration": {
+    "productionMutationAllowed": false,
+    "productionCredentialsAllowed": false,
+    "mechanism": "qualified_rollback_payload_dry_run_and_in_memory_lifecycle",
+    "forcedFailure": "fixed_nonsecret_postdeployment_smoke_rejection",
+    "forwardAttempts": 1,
+    "rollbackAttempts": 1,
+    "automaticRetryAllowed": false,
+    "publicWorkerMutationAllowed": false,
+    "productBehaviorMutationAllowed": false,
+    "independentFreshRunnerVerificationRequired": true,
+    "evidenceVocabularyFixed": true
+  },
+  "deployment": {
+    "existingPrivateV2DeploymentReused": true,
+    "target": "prometheus-iq",
+    "publicTargetAllowed": false,
+    "rebuildAllowed": false,
+    "artifactSubstitutionAllowed": false,
+    "forwardAttempts": 1,
+    "automaticRetryAllowed": false,
+    "qualifiedForwardRollbackRequired": true,
+    "nativeRollbackAllowed": false,
+    "authenticatedDesktopAcceptanceRequired": true,
+    "authenticatedMobileAcceptanceViewport": "390x844",
+    "privateIdentityBeforeScriptExecutionRequired": true,
+    "publicIdentityBeforeAndAfterRequired": true,
+    "writeAttemptsRequired": 0,
+    "methods": [
+      "GET",
+      "HEAD",
+      "OPTIONS"
+    ]
+  },
+  "evidence": {
+    "safeFixedFieldsOnly": true,
+    "immutableExclusiveCreateRequired": true,
+    "directoryMode": "0700",
+    "fileMode": "0400",
+    "credentialValuesAllowed": false,
+    "identityClaimsAllowed": false,
+    "requestHeadersAllowed": false,
+    "responseBodiesAllowed": false,
+    "customerRecordsAllowed": false,
+    "artifacts": [
+      "qualified_private_release",
+      "controlled_rollback_demonstration",
+      "independent_recovery_verification",
+      "production_deployment_evidence",
+      "independent_production_acceptance"
+    ]
+  },
+  "protectedEnvironment": {
+    "name": "prometheus-private-worker-production",
+    "requiredSecretNames": [
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE"
+    ],
+    "secretValuesInSourceAllowed": false,
+    "secretValuesInArtifactsAllowed": false,
+    "secretValuesInLogsAllowed": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohortCount": 0,
+    "recommendationInfluence": "OFF",
+    "providerRefresh": "OFF",
+    "scheduler": "OFF",
+    "customerActivation": "OFF",
+    "anthonyMapped": false,
+    "activeBusinessCount": 0,
+    "reserveBusinessCount": 0,
+    "quarantinedBusinessCount": 398,
+    "crmReceipt": "riq_receipt_e74e57903a211291a9f1f37a",
+    "crmMutationAllowed": false,
+    "customerDataMutationAllowed": false,
+    "publicWorkerMutationAllowed": false
+  },
+  "releaseBoundary": {
+    "deploymentPerformedByThisEngineeringBatch": false,
+    "workflowDispatchedByThisEngineeringBatch": false,
+    "productionContactPerformedByThisEngineeringBatch": false,
+    "secretValueAccessPerformedByThisEngineeringBatch": false,
+    "commitAuthorizedForInfrastructureOwner": false
+  }
+}

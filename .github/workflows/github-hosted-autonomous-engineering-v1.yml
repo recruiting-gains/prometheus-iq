@@ -1,0 +1,843 @@
+name: Prometheus GitHub-Hosted Autonomous Engineering v1
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_commit:
+        description: Exact private release candidate at current origin/main (40 lowercase hex)
+        required: true
+        type: string
+      candidate_tree:
+        description: Exact tree for the private release candidate (40 lowercase hex)
+        required: true
+        type: string
+      batch_id:
+        description: Autonomous engineering batch ID (BATCH-YYYYMMDD-NNN)
+        required: true
+        type: string
+      current_public_version:
+        description: Exact current public Worker version (canonical lowercase UUID)
+        required: true
+        type: string
+      current_private_version:
+        description: Exact current private Worker version (canonical lowercase UUID)
+        required: true
+        type: string
+      repair_attempt:
+        description: Bounded owner-produced repair attempt (0, 1, or 2)
+        required: true
+        type: string
+        default: "0"
+      founder_authorization:
+        description: Type exactly I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  PROMETHEUS_CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+  PROMETHEUS_CANDIDATE_TREE: ${{ inputs.candidate_tree }}
+  PROMETHEUS_BATCH_ID: ${{ inputs.batch_id }}
+  PROMETHEUS_CURRENT_PUBLIC_VERSION: ${{ inputs.current_public_version }}
+  PROMETHEUS_CURRENT_PRIVATE_VERSION: ${{ inputs.current_private_version }}
+  PROMETHEUS_REPAIR_ATTEMPT: ${{ inputs.repair_attempt }}
+  PROMETHEUS_FOUNDER_AUTHORIZATION: ${{ inputs.founder_authorization }}
+  PROMETHEUS_AUTONOMOUS_DISPATCH_INPUTS_JSON: ${{ toJSON(github.event.inputs) }}
+
+concurrency:
+  group: prometheus-github-hosted-autonomous-engineering-v1
+  cancel-in-progress: false
+
+jobs:
+  authorize:
+    name: Validate one exact Founder-authorized release
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' &&
+        github.repository == 'PrometheusRouteIQ/prometheus-iq' &&
+        github.actor == 'PrometheusRouteIQ' &&
+        github.triggering_actor == 'PrometheusRouteIQ' &&
+        github.ref == 'refs/heads/main' &&
+        github.ref_name == 'main' &&
+        github.ref_type == 'branch' &&
+        github.workflow == 'Prometheus GitHub-Hosted Autonomous Engineering v1' &&
+        github.workflow_ref == 'PrometheusRouteIQ/prometheus-iq/.github/workflows/github-hosted-autonomous-engineering-v1.yml@refs/heads/main' &&
+        github.run_attempt == 1 &&
+        inputs.founder_authorization == 'I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT'
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact main control source
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Gate exact checkout before repository code
+        shell: bash
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"
+
+      - name: Set up the governed Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Verify baseline, ownership, bounded scope, and authorization
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs authorize
+
+  production-baseline:
+    name: Verify exact production identities read only
+    needs: authorize
+    if: ${{ needs.authorize.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: prometheus-private-worker-production
+    permissions:
+      contents: read
+    outputs:
+      public_version: ${{ steps.identity.outputs.public_version }}
+      private_version: ${{ steps.identity.outputs.private_version }}
+    steps:
+      - name: Checkout exact main control source
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Gate exact checkout before repository code
+        shell: bash
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"
+
+      - name: Set up the governed Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Read and verify both Worker identities
+        id: identity
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs inspect-baseline
+
+  qualify-primary:
+    name: Run primary clean qualification
+    needs: production-baseline
+    if: ${{ needs.production-baseline.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      actions: write
+    outputs:
+      suite_status: ${{ steps.suite.outputs.suite_status }}
+      suite_failure_classification: ${{ steps.suite.outputs.suite_failure_classification }}
+      qualification_artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      qualification_artifact_zip_sha256: ${{ steps.upload.outputs.artifact-digest }}
+      qualified_content_tree_sha256: ${{ steps.freeze.outputs.qualified_content_tree_sha256 }}
+      qualified_manifest_sha256: ${{ steps.freeze.outputs.qualified_manifest_sha256 }}
+      forward_payload_sha256: ${{ steps.freeze.outputs.forward_payload_sha256 }}
+      deployment_assets_sha256: ${{ steps.freeze.outputs.deployment_assets_sha256 }}
+      rollback_contract_sha256: ${{ steps.freeze.outputs.rollback_contract_sha256 }}
+      rollback_bundle_sha256: ${{ steps.freeze.outputs.rollback_bundle_sha256 }}
+      workflow_contract_sha256: ${{ steps.freeze.outputs.workflow_contract_sha256 }}
+      autonomous_contract_sha256: ${{ steps.freeze.outputs.autonomous_contract_sha256 }}
+    steps:
+      - name: Checkout exact main control source
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Gate exact checkout before repository code
+        shell: bash
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"
+
+      - name: Set up exact qualification and deployment Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Run the primary complete no-secret suite
+        id: suite
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs full-suite
+
+      - name: Freeze the accepted private v2 payload and rollback exactly once
+        id: freeze
+        if: ${{ steps.suite.outputs.suite_status == 'PASSED' }}
+        env:
+          PROMETHEUS_QUALIFIED_RELEASE_OUTPUT: ${{ runner.temp }}/prometheus-private-qualified-release
+          PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs qualify
+
+      - name: Upload the immutable private release
+        id: upload
+        if: ${{ steps.suite.outputs.suite_status == 'PASSED' }}
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prometheus-private-qualified-${{ inputs.candidate_commit }}
+          path: ${{ runner.temp }}/prometheus-private-qualified-release
+          if-no-files-found: error
+          include-hidden-files: true
+          compression-level: 0
+          retention-days: 30
+
+      - name: Require unchanged exact qualification source
+        if: ${{ steps.suite.outputs.suite_status == 'PASSED' }}
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"
+
+      - name: Enforce the primary result classification
+        if: ${{ always() }}
+        env:
+          SUITE_STATUS: ${{ steps.suite.outputs.suite_status }}
+          FAILURE_CLASSIFICATION: ${{ steps.suite.outputs.suite_failure_classification }}
+          FREEZE_OUTCOME: ${{ steps.freeze.outcome }}
+          UPLOAD_OUTCOME: ${{ steps.upload.outcome }}
+        run: |
+          if test "$SUITE_STATUS" = "PASSED"; then
+            test "$FAILURE_CLASSIFICATION" = "NONE"
+            test "$FREEZE_OUTCOME" = "success"
+            test "$UPLOAD_OUTCOME" = "success"
+          else
+            test "$SUITE_STATUS" = "TRANSIENT_FAILURE"
+            test "$FAILURE_CLASSIFICATION" = "DEPENDENCY_TRANSPORT_TRANSIENT" \
+              -o "$FAILURE_CLASSIFICATION" = "AUDIT_TRANSPORT_TRANSIENT"
+            test "$FREEZE_OUTCOME" = "skipped"
+            test "$UPLOAD_OUTCOME" = "skipped"
+          fi
+
+  qualify-recovery:
+    name: Run one bounded fresh-runner qualification recovery
+    needs: qualify-primary
+    if: >-
+      ${{
+        needs.qualify-primary.result == 'success' &&
+        needs.qualify-primary.outputs.suite_status == 'TRANSIENT_FAILURE' &&
+        (
+          needs.qualify-primary.outputs.suite_failure_classification == 'DEPENDENCY_TRANSPORT_TRANSIENT' ||
+          needs.qualify-primary.outputs.suite_failure_classification == 'AUDIT_TRANSPORT_TRANSIENT'
+        )
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      actions: write
+    outputs:
+      suite_status: ${{ steps.suite.outputs.suite_status }}
+      suite_failure_classification: ${{ steps.suite.outputs.suite_failure_classification }}
+      qualification_artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      qualification_artifact_zip_sha256: ${{ steps.upload.outputs.artifact-digest }}
+      qualified_content_tree_sha256: ${{ steps.freeze.outputs.qualified_content_tree_sha256 }}
+      qualified_manifest_sha256: ${{ steps.freeze.outputs.qualified_manifest_sha256 }}
+      forward_payload_sha256: ${{ steps.freeze.outputs.forward_payload_sha256 }}
+      deployment_assets_sha256: ${{ steps.freeze.outputs.deployment_assets_sha256 }}
+      rollback_contract_sha256: ${{ steps.freeze.outputs.rollback_contract_sha256 }}
+      rollback_bundle_sha256: ${{ steps.freeze.outputs.rollback_bundle_sha256 }}
+      workflow_contract_sha256: ${{ steps.freeze.outputs.workflow_contract_sha256 }}
+      autonomous_contract_sha256: ${{ steps.freeze.outputs.autonomous_contract_sha256 }}
+    steps:
+      - name: Checkout exact main control source on a fresh runner
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Gate exact checkout before repository code
+        shell: bash
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"
+
+      - name: Set up exact recovery Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Rerun the entire no-secret suite once
+        id: suite
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs full-suite
+
+      - name: Freeze the recovered private v2 payload
+        id: freeze
+        if: ${{ steps.suite.outputs.suite_status == 'PASSED' }}
+        env:
+          PROMETHEUS_QUALIFIED_RELEASE_OUTPUT: ${{ runner.temp }}/prometheus-private-qualified-release
+          PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs qualify
+
+      - name: Upload the recovered immutable private release
+        id: upload
+        if: ${{ steps.suite.outputs.suite_status == 'PASSED' }}
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prometheus-private-qualified-${{ inputs.candidate_commit }}
+          path: ${{ runner.temp }}/prometheus-private-qualified-release
+          if-no-files-found: error
+          include-hidden-files: true
+          compression-level: 0
+          retention-days: 30
+
+      - name: Require unchanged recovery source
+        if: ${{ steps.suite.outputs.suite_status == 'PASSED' }}
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"
+
+      - name: Enforce one successful complete recovery
+        if: ${{ always() }}
+        env:
+          SUITE_STATUS: ${{ steps.suite.outputs.suite_status }}
+          FAILURE_CLASSIFICATION: ${{ steps.suite.outputs.suite_failure_classification }}
+          FREEZE_OUTCOME: ${{ steps.freeze.outcome }}
+          UPLOAD_OUTCOME: ${{ steps.upload.outcome }}
+        run: |
+          test "$SUITE_STATUS" = "PASSED"
+          test "$FAILURE_CLASSIFICATION" = "NONE"
+          test "$FREEZE_OUTCOME" = "success"
+          test "$UPLOAD_OUTCOME" = "success"
+
+  qualify:
+    name: Select exactly one complete qualification
+    needs:
+      - production-baseline
+      - qualify-primary
+      - qualify-recovery
+    if: ${{ always() && needs.production-baseline.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      qualification_artifact_id: ${{ steps.select.outputs.qualification_artifact_id }}
+      qualification_artifact_zip_sha256: ${{ steps.select.outputs.qualification_artifact_zip_sha256 }}
+      qualified_content_tree_sha256: ${{ steps.select.outputs.qualified_content_tree_sha256 }}
+      qualified_manifest_sha256: ${{ steps.select.outputs.qualified_manifest_sha256 }}
+      forward_payload_sha256: ${{ steps.select.outputs.forward_payload_sha256 }}
+      deployment_assets_sha256: ${{ steps.select.outputs.deployment_assets_sha256 }}
+      rollback_contract_sha256: ${{ steps.select.outputs.rollback_contract_sha256 }}
+      rollback_bundle_sha256: ${{ steps.select.outputs.rollback_bundle_sha256 }}
+      workflow_contract_sha256: ${{ steps.select.outputs.workflow_contract_sha256 }}
+      autonomous_contract_sha256: ${{ steps.select.outputs.autonomous_contract_sha256 }}
+      selected_qualification: ${{ steps.select.outputs.selected_qualification }}
+      in_run_recovery_attempts: ${{ steps.select.outputs.in_run_recovery_attempts }}
+    steps:
+      - name: Checkout exact main control source
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Gate exact checkout before repository code
+        shell: bash
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"
+
+      - name: Set up the governed Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Select only a complete primary or bounded recovery artifact
+        id: select
+        env:
+          PROMETHEUS_PRIMARY_JOB_RESULT: ${{ needs.qualify-primary.result }}
+          PROMETHEUS_PRIMARY_SUITE_STATUS: ${{ needs.qualify-primary.outputs.suite_status }}
+          PROMETHEUS_PRIMARY_QUALIFICATION_ARTIFACT_ID: ${{ needs.qualify-primary.outputs.qualification_artifact_id }}
+          PROMETHEUS_PRIMARY_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ needs.qualify-primary.outputs.qualification_artifact_zip_sha256 }}
+          PROMETHEUS_PRIMARY_QUALIFIED_CONTENT_TREE_SHA256: ${{ needs.qualify-primary.outputs.qualified_content_tree_sha256 }}
+          PROMETHEUS_PRIMARY_QUALIFIED_MANIFEST_SHA256: ${{ needs.qualify-primary.outputs.qualified_manifest_sha256 }}
+          PROMETHEUS_PRIMARY_FORWARD_PAYLOAD_SHA256: ${{ needs.qualify-primary.outputs.forward_payload_sha256 }}
+          PROMETHEUS_PRIMARY_DEPLOYMENT_ASSETS_SHA256: ${{ needs.qualify-primary.outputs.deployment_assets_sha256 }}
+          PROMETHEUS_PRIMARY_ROLLBACK_CONTRACT_SHA256: ${{ needs.qualify-primary.outputs.rollback_contract_sha256 }}
+          PROMETHEUS_PRIMARY_ROLLBACK_BUNDLE_SHA256: ${{ needs.qualify-primary.outputs.rollback_bundle_sha256 }}
+          PROMETHEUS_PRIMARY_WORKFLOW_CONTRACT_SHA256: ${{ needs.qualify-primary.outputs.workflow_contract_sha256 }}
+          PROMETHEUS_PRIMARY_AUTONOMOUS_CONTRACT_SHA256: ${{ needs.qualify-primary.outputs.autonomous_contract_sha256 }}
+          PROMETHEUS_RECOVERY_JOB_RESULT: ${{ needs.qualify-recovery.result }}
+          PROMETHEUS_RECOVERY_SUITE_STATUS: ${{ needs.qualify-recovery.outputs.suite_status }}
+          PROMETHEUS_RECOVERY_QUALIFICATION_ARTIFACT_ID: ${{ needs.qualify-recovery.outputs.qualification_artifact_id }}
+          PROMETHEUS_RECOVERY_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ needs.qualify-recovery.outputs.qualification_artifact_zip_sha256 }}
+          PROMETHEUS_RECOVERY_QUALIFIED_CONTENT_TREE_SHA256: ${{ needs.qualify-recovery.outputs.qualified_content_tree_sha256 }}
+          PROMETHEUS_RECOVERY_QUALIFIED_MANIFEST_SHA256: ${{ needs.qualify-recovery.outputs.qualified_manifest_sha256 }}
+          PROMETHEUS_RECOVERY_FORWARD_PAYLOAD_SHA256: ${{ needs.qualify-recovery.outputs.forward_payload_sha256 }}
+          PROMETHEUS_RECOVERY_DEPLOYMENT_ASSETS_SHA256: ${{ needs.qualify-recovery.outputs.deployment_assets_sha256 }}
+          PROMETHEUS_RECOVERY_ROLLBACK_CONTRACT_SHA256: ${{ needs.qualify-recovery.outputs.rollback_contract_sha256 }}
+          PROMETHEUS_RECOVERY_ROLLBACK_BUNDLE_SHA256: ${{ needs.qualify-recovery.outputs.rollback_bundle_sha256 }}
+          PROMETHEUS_RECOVERY_WORKFLOW_CONTRACT_SHA256: ${{ needs.qualify-recovery.outputs.workflow_contract_sha256 }}
+          PROMETHEUS_RECOVERY_AUTONOMOUS_CONTRACT_SHA256: ${{ needs.qualify-recovery.outputs.autonomous_contract_sha256 }}
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs select-qualification
+
+  reverify-and-demonstrate:
+    name: Independently reverify artifact and demonstrate rollback
+    needs: qualify
+    if: ${{ needs.qualify.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: write
+    env:
+      PROMETHEUS_QUALIFICATION_RUN_ID: ${{ github.run_id }}
+      PROMETHEUS_QUALIFICATION_ARTIFACT_ID: ${{ needs.qualify.outputs.qualification_artifact_id }}
+      PROMETHEUS_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ needs.qualify.outputs.qualification_artifact_zip_sha256 }}
+      PROMETHEUS_QUALIFIED_CONTENT_TREE_SHA256: ${{ needs.qualify.outputs.qualified_content_tree_sha256 }}
+      PROMETHEUS_QUALIFIED_MANIFEST_SHA256: ${{ needs.qualify.outputs.qualified_manifest_sha256 }}
+      PROMETHEUS_DEPLOYMENT_ASSETS_SHA256: ${{ needs.qualify.outputs.deployment_assets_sha256 }}
+      PROMETHEUS_WORKFLOW_CONTRACT_SHA256: ${{ needs.qualify.outputs.workflow_contract_sha256 }}
+      PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ needs.qualify.outputs.rollback_contract_sha256 }}
+      PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ needs.qualify.outputs.rollback_bundle_sha256 }}
+      PROMETHEUS_AUTONOMOUS_CONTRACT_SHA256: ${{ needs.qualify.outputs.autonomous_contract_sha256 }}
+      PROMETHEUS_SELECTED_QUALIFICATION: ${{ needs.qualify.outputs.selected_qualification }}
+      PROMETHEUS_IN_RUN_RECOVERY_ATTEMPTS: ${{ needs.qualify.outputs.in_run_recovery_attempts }}
+      PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
+      PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
+    outputs:
+      rollback_evidence_artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      rollback_evidence_artifact_zip_sha256: ${{ steps.upload.outputs.artifact-digest }}
+      rollback_demonstration_sha256: ${{ steps.demonstrate.outputs.rollback_demonstration_sha256 }}
+    steps:
+      - name: Checkout exact main control source
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Gate exact checkout before repository code
+        shell: bash
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"
+
+      - name: Set up exact qualification and deployment Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Install exact locked tooling
+        run: npm ci
+
+      - name: Download only this run's immutable private release
+        # actions/download-artifact v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ needs.qualify.outputs.qualification_artifact_id }}
+          github-token: ${{ github.token }}
+          repository: PrometheusRouteIQ/prometheus-iq
+          run-id: ${{ github.run_id }}
+          path: ${{ runner.temp }}/prometheus-private-qualified-release
+
+      - name: Independently verify metadata and every release identity
+        env:
+          PROMETHEUS_GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs verify-artifact
+
+      - name: Demonstrate one controlled non-product rollback
+        id: demonstrate
+        env:
+          PROMETHEUS_AUTONOMOUS_EVIDENCE_OUTPUT: ${{ runner.temp }}/autonomous-rollback-demonstration
+          PROMETHEUS_GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs rollback-demo
+
+      - name: Upload immutable controlled-rollback evidence
+        id: upload
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prometheus-autonomous-rollback-${{ inputs.candidate_commit }}
+          path: ${{ runner.temp }}/autonomous-rollback-demonstration
+          if-no-files-found: error
+          include-hidden-files: false
+          compression-level: 0
+          retention-days: 30
+
+  verify-recovery:
+    name: Independently reverify controlled recovery
+    needs:
+      - qualify
+      - reverify-and-demonstrate
+    if: >-
+      ${{
+        needs.qualify.result == 'success' &&
+        needs.reverify-and-demonstrate.result == 'success'
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: write
+    env:
+      PROMETHEUS_QUALIFICATION_RUN_ID: ${{ github.run_id }}
+      PROMETHEUS_QUALIFICATION_ARTIFACT_ID: ${{ needs.qualify.outputs.qualification_artifact_id }}
+      PROMETHEUS_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ needs.qualify.outputs.qualification_artifact_zip_sha256 }}
+      PROMETHEUS_QUALIFIED_CONTENT_TREE_SHA256: ${{ needs.qualify.outputs.qualified_content_tree_sha256 }}
+      PROMETHEUS_QUALIFIED_MANIFEST_SHA256: ${{ needs.qualify.outputs.qualified_manifest_sha256 }}
+      PROMETHEUS_DEPLOYMENT_ASSETS_SHA256: ${{ needs.qualify.outputs.deployment_assets_sha256 }}
+      PROMETHEUS_WORKFLOW_CONTRACT_SHA256: ${{ needs.qualify.outputs.workflow_contract_sha256 }}
+      PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ needs.qualify.outputs.rollback_contract_sha256 }}
+      PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ needs.qualify.outputs.rollback_bundle_sha256 }}
+      PROMETHEUS_AUTONOMOUS_CONTRACT_SHA256: ${{ needs.qualify.outputs.autonomous_contract_sha256 }}
+      PROMETHEUS_SELECTED_QUALIFICATION: ${{ needs.qualify.outputs.selected_qualification }}
+      PROMETHEUS_IN_RUN_RECOVERY_ATTEMPTS: ${{ needs.qualify.outputs.in_run_recovery_attempts }}
+      PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
+      PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
+    outputs:
+      recovery_evidence_artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      recovery_evidence_artifact_zip_sha256: ${{ steps.upload.outputs.artifact-digest }}
+      recovery_verification_sha256: ${{ steps.recovery.outputs.recovery_verification_sha256 }}
+    steps:
+      - name: Checkout exact main control source
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Gate exact checkout before repository code
+        shell: bash
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"
+
+      - name: Set up exact qualification and deployment Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Install exact locked tooling
+        run: npm ci
+
+      - name: Redownload the immutable private release
+        # actions/download-artifact v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ needs.qualify.outputs.qualification_artifact_id }}
+          github-token: ${{ github.token }}
+          repository: PrometheusRouteIQ/prometheus-iq
+          run-id: ${{ github.run_id }}
+          path: ${{ runner.temp }}/prometheus-private-qualified-release
+
+      - name: Redownload only the controlled-rollback evidence
+        # actions/download-artifact v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ needs.reverify-and-demonstrate.outputs.rollback_evidence_artifact_id }}
+          github-token: ${{ github.token }}
+          repository: PrometheusRouteIQ/prometheus-iq
+          run-id: ${{ github.run_id }}
+          path: ${{ runner.temp }}/autonomous-rollback-demonstration
+
+      - name: Independently verify artifact, rollback evidence, and recovery
+        id: recovery
+        env:
+          PROMETHEUS_AUTONOMOUS_ROLLBACK_EVIDENCE_PATH: ${{ runner.temp }}/autonomous-rollback-demonstration
+          PROMETHEUS_ROLLBACK_DEMONSTRATION_SHA256: ${{ needs.reverify-and-demonstrate.outputs.rollback_demonstration_sha256 }}
+          PROMETHEUS_AUTONOMOUS_EVIDENCE_OUTPUT: ${{ runner.temp }}/autonomous-recovery-verification
+          PROMETHEUS_GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs verify-recovery
+
+      - name: Upload immutable independent-recovery evidence
+        id: upload
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prometheus-autonomous-recovery-${{ inputs.candidate_commit }}
+          path: ${{ runner.temp }}/autonomous-recovery-verification
+          if-no-files-found: error
+          include-hidden-files: false
+          compression-level: 0
+          retention-days: 30
+
+  deploy:
+    name: Deploy and accept the exact qualified private release
+    needs:
+      - qualify
+      - reverify-and-demonstrate
+      - verify-recovery
+    if: >-
+      ${{
+        needs.qualify.result == 'success' &&
+        needs.reverify-and-demonstrate.result == 'success' &&
+        needs.verify-recovery.result == 'success'
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    environment:
+      name: prometheus-private-worker-production
+    permissions:
+      contents: read
+      actions: write
+    env:
+      PROMETHEUS_QUALIFICATION_RUN_ID: ${{ github.run_id }}
+      PROMETHEUS_QUALIFICATION_ARTIFACT_ID: ${{ needs.qualify.outputs.qualification_artifact_id }}
+      PROMETHEUS_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ needs.qualify.outputs.qualification_artifact_zip_sha256 }}
+      PROMETHEUS_QUALIFIED_CONTENT_TREE_SHA256: ${{ needs.qualify.outputs.qualified_content_tree_sha256 }}
+      PROMETHEUS_QUALIFIED_MANIFEST_SHA256: ${{ needs.qualify.outputs.qualified_manifest_sha256 }}
+      PROMETHEUS_DEPLOYMENT_ASSETS_SHA256: ${{ needs.qualify.outputs.deployment_assets_sha256 }}
+      PROMETHEUS_WORKFLOW_CONTRACT_SHA256: ${{ needs.qualify.outputs.workflow_contract_sha256 }}
+      PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ needs.qualify.outputs.rollback_contract_sha256 }}
+      PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ needs.qualify.outputs.rollback_bundle_sha256 }}
+      PROMETHEUS_AUTONOMOUS_CONTRACT_SHA256: ${{ needs.qualify.outputs.autonomous_contract_sha256 }}
+      PROMETHEUS_SELECTED_QUALIFICATION: ${{ needs.qualify.outputs.selected_qualification }}
+      PROMETHEUS_IN_RUN_RECOVERY_ATTEMPTS: ${{ needs.qualify.outputs.in_run_recovery_attempts }}
+      PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
+      PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
+    outputs:
+      final_private_version: ${{ steps.finalize.outputs.final_private_version }}
+      production_evidence_sha256: ${{ steps.finalize.outputs.production_evidence_sha256 }}
+      production_evidence_artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      production_evidence_artifact_zip_sha256: ${{ steps.upload.outputs.artifact-digest }}
+    steps:
+      - name: Checkout exact main control source
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Gate exact checkout before repository code
+        shell: bash
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"
+
+      - name: Set up exact qualification and deployment Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Install exact locked tooling
+        run: npm ci
+
+      - name: Create the owner-only safe evidence package root
+        run: install -d -m 700 "$RUNNER_TEMP/autonomous-deployment-evidence"
+
+      - name: Download only this run's immutable private release
+        # actions/download-artifact v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ needs.qualify.outputs.qualification_artifact_id }}
+          github-token: ${{ github.token }}
+          repository: PrometheusRouteIQ/prometheus-iq
+          run-id: ${{ github.run_id }}
+          path: ${{ runner.temp }}/prometheus-private-qualified-release
+
+      - name: Reverify every immutable identity before production access
+        env:
+          PROMETHEUS_GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs verify-artifact
+
+      - name: Cross the private production boundary exactly once
+        id: production
+        continue-on-error: true
+        env:
+          PROMETHEUS_AUTONOMOUS_DEPLOYMENT_OUTCOME_PATH: ${{ runner.temp }}/autonomous-deployment-evidence/outcome
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}
+          CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}
+          PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN: ${{ secrets.PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN }}
+          PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE: ${{ secrets.PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE }}
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs deploy
+
+      - name: Reverify immutable artifact after successful deployment
+        if: ${{ steps.production.outcome == 'success' }}
+        env:
+          PROMETHEUS_GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs verify-artifact
+
+      - name: Finalize safe production evidence
+        id: finalize
+        if: ${{ always() }}
+        continue-on-error: true
+        env:
+          PROMETHEUS_AUTONOMOUS_DEPLOYMENT_OUTCOME_PATH: ${{ runner.temp }}/autonomous-deployment-evidence/outcome
+          PROMETHEUS_AUTONOMOUS_DEPLOYMENT_OUTCOME_SHA256: ${{ steps.production.outputs.deployment_outcome_sha256 }}
+          PROMETHEUS_ROLLBACK_DEMONSTRATION_SHA256: ${{ needs.reverify-and-demonstrate.outputs.rollback_demonstration_sha256 }}
+          PROMETHEUS_RECOVERY_VERIFICATION_SHA256: ${{ needs.verify-recovery.outputs.recovery_verification_sha256 }}
+          PROMETHEUS_AUTONOMOUS_EVIDENCE_OUTPUT: ${{ runner.temp }}/autonomous-deployment-evidence/production
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs finalize-deployment
+
+      - name: Upload immutable safe production evidence
+        id: upload
+        if: ${{ always() }}
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prometheus-autonomous-production-${{ inputs.candidate_commit }}
+          path: ${{ runner.temp }}/autonomous-deployment-evidence
+          if-no-files-found: error
+          include-hidden-files: false
+          compression-level: 0
+          retention-days: 30
+
+      - name: Require deployment and automated acceptance success
+        if: ${{ always() }}
+        env:
+          PRODUCTION_OUTCOME: ${{ steps.production.outcome }}
+          FINALIZE_OUTCOME: ${{ steps.finalize.outcome }}
+          FINAL_STATUS: ${{ steps.finalize.outputs.final_status }}
+        run: |
+          test "$PRODUCTION_OUTCOME" = "success"
+          test "$FINALIZE_OUTCOME" = "success"
+          test "$FINAL_STATUS" = "AUTONOMOUS_PRIVATE_DEPLOYMENT_ACCEPTED"
+
+  independent-acceptance:
+    name: Independently verify final production and safe evidence
+    needs:
+      - qualify
+      - deploy
+    if: ${{ needs.deploy.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: prometheus-private-worker-production
+    permissions:
+      contents: read
+      actions: write
+    env:
+      PROMETHEUS_SELECTED_QUALIFICATION: ${{ needs.qualify.outputs.selected_qualification }}
+      PROMETHEUS_IN_RUN_RECOVERY_ATTEMPTS: ${{ needs.qualify.outputs.in_run_recovery_attempts }}
+    steps:
+      - name: Checkout exact main control source
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Gate exact checkout before repository code
+        shell: bash
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
+          test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"
+
+      - name: Set up the governed Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Download only this run's production evidence
+        # actions/download-artifact v4.3.0
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ needs.deploy.outputs.production_evidence_artifact_id }}
+          github-token: ${{ github.token }}
+          repository: PrometheusRouteIQ/prometheus-iq
+          run-id: ${{ github.run_id }}
+          path: ${{ runner.temp }}/autonomous-deployment-evidence
+
+      - name: Independently verify production identities and acceptance evidence
+        id: acceptance
+        env:
+          PROMETHEUS_AUTONOMOUS_PRODUCTION_EVIDENCE_PATH: ${{ runner.temp }}/autonomous-deployment-evidence/production
+          PROMETHEUS_PRODUCTION_EVIDENCE_SHA256: ${{ needs.deploy.outputs.production_evidence_sha256 }}
+          PROMETHEUS_AUTONOMOUS_EVIDENCE_OUTPUT: ${{ runner.temp }}/autonomous-independent-acceptance
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs verify-production
+
+      - name: Upload immutable independent acceptance evidence
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prometheus-autonomous-accepted-${{ inputs.candidate_commit }}
+          path: ${{ runner.temp }}/autonomous-independent-acceptance
+          if-no-files-found: error
+          include-hidden-files: false
+          compression-level: 0
+          retention-days: 30
+
+      - name: Require exact GitHub-hosted completion
+        env:
+          ACCEPTANCE_STATUS: ${{ steps.acceptance.outputs.acceptance_evidence_sha256 }}
+          ACCEPTED_PRIVATE: ${{ steps.acceptance.outputs.accepted_private_version }}
+          ACCEPTED_PUBLIC: ${{ steps.acceptance.outputs.accepted_public_version }}
+        run: |
+          test -n "$ACCEPTANCE_STATUS"
+          test "$ACCEPTED_PRIVATE" = "${{ needs.deploy.outputs.final_private_version }}"
+          test "$ACCEPTED_PUBLIC" = "${{ inputs.current_public_version }}"

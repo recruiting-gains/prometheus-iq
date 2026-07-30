@@ -1,0 +1,367 @@
+#!/usr/bin/env node
+
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import {
+  AUTONOMOUS_ENGINEERING_V1_POLICY,
+  autonomousFullSuiteCommands,
+  autonomousQualificationOutputNames
+} from "./lib/github-hosted-autonomous-engineering-v1.mjs";
+
+const root = resolve(import.meta.dirname, "..");
+const JOBS = Object.freeze([
+  "authorize",
+  "production-baseline",
+  "qualify-primary",
+  "qualify-recovery",
+  "qualify",
+  "reverify-and-demonstrate",
+  "verify-recovery",
+  "deploy",
+  "independent-acceptance"
+]);
+const SECRET_JOBS = Object.freeze({
+  "production-baseline": Object.freeze([
+    "CLOUDFLARE_ACCOUNT_ID",
+    "CLOUDFLARE_API_TOKEN"
+  ]),
+  deploy: Object.freeze([
+    "CLOUDFLARE_ACCESS_CLIENT_ID",
+    "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+    "CLOUDFLARE_ACCOUNT_ID",
+    "CLOUDFLARE_API_TOKEN",
+    "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE",
+    "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN"
+  ]),
+  "independent-acceptance": Object.freeze([
+    "CLOUDFLARE_ACCOUNT_ID",
+    "CLOUDFLARE_API_TOKEN"
+  ])
+});
+
+function read(path) {
+  return readFileSync(resolve(root, path), "utf8");
+}
+
+function count(source, pattern) {
+  return [...source.matchAll(pattern)].length;
+}
+
+function jobSection(workflow, job, nextJob) {
+  const start = workflow.indexOf(`  ${job}:\n`);
+  const end = nextJob
+    ? workflow.indexOf(`  ${nextJob}:\n`, start + job.length + 3)
+    : workflow.length;
+  assert.ok(start >= 0 && end > start, `job section missing: ${job}`);
+  return workflow.slice(start, end);
+}
+
+function stepSection(job, name) {
+  const start = job.indexOf(`      - name: ${name}\n`);
+  const end = job.indexOf("\n      - name:", start + name.length + 15);
+  assert.ok(start >= 0, `step section missing: ${name}`);
+  return job.slice(start, end < 0 ? job.length : end);
+}
+
+function parseWorkflow(path) {
+  const result = spawnSync("ruby", [
+    "-e",
+    "require 'yaml'; YAML.safe_load(File.read(ARGV.fetch(0)), permitted_classes: [], permitted_symbols: [], aliases: false)",
+    path
+  ], {
+    cwd: root,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 30_000
+  });
+  assert.equal(result.status, 0, `workflow YAML parse failed: ${result.stderr}`);
+}
+
+function assertImmediateIdentityGate(section, job) {
+  const checkout = section.indexOf("uses: actions/checkout@");
+  const clean = section.indexOf("clean: true", checkout);
+  const gate = section.indexOf("- name: Gate exact checkout before repository code");
+  const setup = section.indexOf("uses: actions/setup-node@", checkout);
+  assert.ok(checkout >= 0 && clean > checkout, `${job} checkout missing`);
+  assert.ok(gate > clean && setup > gate, `${job} identity gate ordering invalid`);
+  const between = section.slice(clean + "clean: true".length, gate);
+  assert.doesNotMatch(between, /^\s+- name:|^\s+run:/mu);
+  const gateBody = section.slice(gate, setup);
+  for (const exact of [
+    'test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"',
+    'test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"',
+    'test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"'
+  ]) {
+    assert.ok(gateBody.includes(exact), `${job} gate missing ${exact}`);
+  }
+  assert.match(gateBody, /shell: bash/u);
+  assert.match(gateBody, /set -eu/u);
+}
+
+function assertSecretSeparation(workflow) {
+  for (const [index, job] of JOBS.entries()) {
+    const section = jobSection(workflow, job, JOBS[index + 1]);
+    const actual = [...new Set([...section.matchAll(
+      /\$\{\{\s*secrets\.([A-Z0-9_]+)\s*\}\}/gu
+    )].map(match => match[1]))].sort();
+    assert.deepEqual(actual, [...(SECRET_JOBS[job] || [])].sort(), job);
+  }
+}
+
+function assertArtifactTokenSeparation(workflow) {
+  assert.equal(count(
+    workflow,
+    /^          PROMETHEUS_GITHUB_TOKEN: \$\{\{ github\.token \}\}$/gmu
+  ), 5);
+  const expected = Object.freeze({
+    "reverify-and-demonstrate": Object.freeze([
+      "Independently verify metadata and every release identity",
+      "Demonstrate one controlled non-product rollback"
+    ]),
+    "verify-recovery": Object.freeze([
+      "Independently verify artifact, rollback evidence, and recovery"
+    ]),
+    deploy: Object.freeze([
+      "Reverify every immutable identity before production access",
+      "Reverify immutable artifact after successful deployment"
+    ])
+  });
+  for (const [index, jobName] of JOBS.entries()) {
+    const job = jobSection(workflow, jobName, JOBS[index + 1]);
+    const jobHeader = job.slice(0, job.indexOf("    steps:\n"));
+    assert.equal(jobHeader.includes("PROMETHEUS_GITHUB_TOKEN"), false, jobName);
+    const permitted = expected[jobName] || [];
+    for (const step of permitted) {
+      assert.equal(
+        count(stepSection(job, step), /PROMETHEUS_GITHUB_TOKEN/gu),
+        1,
+        `${jobName}: ${step}`
+      );
+    }
+  }
+  const deploy = jobSection(workflow, "deploy", "independent-acceptance");
+  const production = stepSection(
+    deploy,
+    "Cross the private production boundary exactly once"
+  );
+  const credentialNames = [...production.matchAll(
+    /\$\{\{\s*secrets\.([A-Z0-9_]+)\s*\}\}/gu
+  )].map(match => match[1]).sort();
+  assert.deepEqual(credentialNames, [
+    "CLOUDFLARE_ACCESS_CLIENT_ID",
+    "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+    "CLOUDFLARE_ACCOUNT_ID",
+    "CLOUDFLARE_API_TOKEN",
+    "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE",
+    "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN"
+  ]);
+  assert.equal(production.includes("PROMETHEUS_GITHUB_TOKEN"), false);
+  for (const name of [
+    "Install exact locked tooling",
+    "Finalize safe production evidence"
+  ]) {
+    assert.equal(
+      stepSection(deploy, name).includes("PROMETHEUS_GITHUB_TOKEN"),
+      false
+    );
+  }
+}
+
+function assertLegacyLaneIsolation(workflow, contract) {
+  const legacyPath = ".github/workflows/deploy-prometheus-private-worker.yml";
+  const legacy = read(legacyPath);
+  const baseline = spawnSync("git", [
+    "show",
+    `${AUTONOMOUS_ENGINEERING_V1_POLICY.baselineCommit}:${legacyPath}`
+  ], {
+    cwd: root,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 30_000
+  });
+  assert.equal(baseline.status, 0);
+  assert.equal(legacy, baseline.stdout);
+  assert.doesNotMatch(legacy, /workflow_call:|repository_dispatch:|schedule:|push:/u);
+  assert.equal(workflow.includes(legacyPath), false);
+  assert.equal(contract.inheritedLegacyLane.disabledByThisFeature, false);
+  assert.equal(contract.inheritedLegacyLane.newLaneCanInvokeLegacyLane, false);
+  assert.equal(contract.inheritedLegacyLane.newLaneCanSelfDispatch, false);
+}
+
+export function verifyGithubHostedAutonomousEngineeringV1() {
+  for (const path of AUTONOMOUS_ENGINEERING_V1_POLICY.infrastructureOwnedPaths) {
+    assert.equal(existsSync(resolve(root, path)), true, `${path} must exist`);
+  }
+  const workflowPath = resolve(root, AUTONOMOUS_ENGINEERING_V1_POLICY.workflowPath);
+  const workflow = read(AUTONOMOUS_ENGINEERING_V1_POLICY.workflowPath);
+  const contract = JSON.parse(read(AUTONOMOUS_ENGINEERING_V1_POLICY.contractPath));
+  const library = read(AUTONOMOUS_ENGINEERING_V1_POLICY.libraryPath);
+  const runner = read(AUTONOMOUS_ENGINEERING_V1_POLICY.runnerPath);
+  const documentation = read(
+    AUTONOMOUS_ENGINEERING_V1_POLICY.documentationPath
+  );
+
+  parseWorkflow(workflowPath);
+  assert.doesNotMatch(workflow, /(?:^|\s)<<:|(?:^|\s)[&*][A-Za-z0-9_-]+/mu);
+  assert.match(
+    workflow,
+    /^name: Prometheus GitHub-Hosted Autonomous Engineering v1$/mu
+  );
+  const trigger = workflow.slice(
+    workflow.indexOf("on:\n"),
+    workflow.indexOf("permissions:\n")
+  );
+  assert.deepEqual(
+    [...trigger.matchAll(/^  ([a-z_]+):$/gmu)].map(match => match[1]),
+    ["workflow_dispatch"]
+  );
+  for (const forbidden of [
+    "push:",
+    "pull_request:",
+    "schedule:",
+    "repository_dispatch:",
+    "workflow_call:"
+  ]) {
+    assert.equal(trigger.includes(forbidden), false);
+  }
+  assert.match(workflow, /^permissions:\n  contents: read$/mu);
+  assert.doesNotMatch(workflow, /contents:\s*write/u);
+  assert.doesNotMatch(workflow, /git push|gh workflow run|createWorkflowDispatch/u);
+  assert.match(workflow, /cancel-in-progress: false/u);
+  assert.equal(
+    count(workflow.slice(workflow.indexOf("jobs:\n")), /^  [a-z][a-z-]+:$/gmu),
+    JOBS.length
+  );
+
+  for (const [index, job] of JOBS.entries()) {
+    assertImmediateIdentityGate(
+      jobSection(workflow, job, JOBS[index + 1]),
+      job
+    );
+  }
+  const timeouts = [...workflow.matchAll(
+    /^    timeout-minutes: ([0-9]+)$/gmu
+  )].map(match => Number(match[1]));
+  assert.equal(timeouts.length, JOBS.length);
+  assert.equal(
+    timeouts.reduce((sum, value) => sum + value, 0),
+    AUTONOMOUS_ENGINEERING_V1_POLICY.maximumWallClockMinutes
+  );
+  assert.equal(contract.workflow.maximumWallClockMinutes, 290);
+
+  assertSecretSeparation(workflow);
+  assertArtifactTokenSeparation(workflow);
+  assert.equal(
+    count(
+      workflow,
+      /run: node scripts\/run-github-hosted-autonomous-engineering-v1\.mjs full-suite/gmu
+    ),
+    2
+  );
+  assert.equal(
+    count(
+      workflow,
+      /run: node scripts\/run-github-hosted-autonomous-engineering-v1\.mjs deploy/gmu
+    ),
+    1
+  );
+  assert.equal(
+    count(
+      workflow,
+      /run: node scripts\/run-github-hosted-autonomous-engineering-v1\.mjs rollback-demo/gmu
+    ),
+    1
+  );
+  assert.equal(
+    count(
+      workflow,
+      /run: node scripts\/run-github-hosted-autonomous-engineering-v1\.mjs verify-recovery/gmu
+    ),
+    1
+  );
+  assert.match(workflow, /needs\.qualify-primary\.outputs\.suite_status == 'TRANSIENT_FAILURE'/u);
+  assert.match(workflow, /test "\$SUITE_STATUS" = "PASSED"/u);
+  assert.match(workflow, /PROMETHEUS_RECOVERY_JOB_RESULT: \$\{\{ needs\.qualify-recovery\.result \}\}/u);
+  assert.match(workflow, /PROMETHEUS_SELECTED_QUALIFICATION: \$\{\{ needs\.qualify\.outputs\.selected_qualification \}\}/u);
+  assert.match(workflow, /PROMETHEUS_IN_RUN_RECOVERY_ATTEMPTS: \$\{\{ needs\.qualify\.outputs\.in_run_recovery_attempts \}\}/u);
+  for (const output of autonomousQualificationOutputNames) {
+    assert.ok(
+      workflow.includes(
+        `      ${output}: \${{ steps.select.outputs.${output} }}`
+      ),
+      `selector output missing: ${output}`
+    );
+  }
+  assert.ok(
+    workflow.includes(
+      "PROMETHEUS_QUALIFICATION_RUN_ID: ${{ github.run_id }}"
+    )
+  );
+  assert.match(
+    library,
+    /PROMETHEUS_QUALIFICATION_RUN_ID\s*!==\s*environment\.GITHUB_RUN_ID/u
+  );
+  assert.match(workflow, /artifact-ids: \$\{\{ needs\.qualify\.outputs\.qualification_artifact_id \}\}/u);
+  assert.match(workflow, /run-id: \$\{\{ github\.run_id \}\}/u);
+
+  assert.equal(contract.boundedRepair.maximumChangedFiles, 16);
+  assert.equal(contract.boundedRepair.maximumChangedLines, 5000);
+  assert.equal(contract.boundedRepair.maximumChangedPatchBytes, 524288);
+  assert.equal(contract.boundedRepair.maximumChangedFileBytes, 524288);
+  assert.equal(contract.boundedRepair.maximumInRunTransientRecoveryAttempts, 1);
+  assert.equal(contract.boundedRepair.maximumWorkflowRecursionDepth, 0);
+  assert.equal(contract.boundedRepair.automaticSourceEditsAllowed, false);
+  assert.equal(contract.boundedRepair.isolatedRetryMayEstablishAcceptance, false);
+  assert.equal(
+    contract.qualification.artifactMetadataGithubTokenScope,
+    "metadata_verification_steps_only"
+  );
+  assert.equal(contract.qualification.installReceivesArtifactToken, false);
+  assert.equal(contract.qualification.fullSuiteReceivesArtifactToken, false);
+  assert.equal(
+    contract.qualification.deploymentProcessReceivesArtifactToken,
+    false
+  );
+  assert.equal(contract.qualification.finalizationReceivesArtifactToken, false);
+  assert.deepEqual(
+    autonomousFullSuiteCommands.slice(0, 2).map(command =>
+      command.transientClassification),
+    ["DEPENDENCY_TRANSPORT_TRANSIENT", "AUDIT_TRANSPORT_TRANSIENT"]
+  );
+  assert.ok(autonomousFullSuiteCommands.slice(2).every(command =>
+    command.transientClassification === null));
+  for (const source of [library, documentation]) {
+    assert.match(source, /source|test/iu);
+    assert.match(source, /fail|stops?/iu);
+  }
+  assertLegacyLaneIsolation(workflow, contract);
+
+  assert.match(workflow, /name: prometheus-private-worker-production/u);
+  assert.doesNotMatch(workflow, /environment:\n\s+name: .*public/u);
+  assert.doesNotMatch(workflow, /wrangler(?:\.js)?\s+deploy/u);
+  assert.doesNotMatch(workflow, /prometheusrouteiq-website.*deploy/iu);
+  assert.equal(
+    contract.deployment.authenticatedMobileAcceptanceViewport,
+    "390x844"
+  );
+  assert.match(documentation, /authenticated.*390x844|390x844.*acceptance/isu);
+  assert.match(workflow, /if: \$\{\{ steps\.production\.outcome == 'success' \}\}/u);
+  assert.match(workflow, /if: \$\{\{ always\(\) \}\}/u);
+  assert.match(runner, /"full-suite"/u);
+  assert.match(runner, /"select-qualification"/u);
+
+  return Object.freeze({
+    status: "GITHUB_HOSTED_AUTONOMOUS_ENGINEERING_V1_VERIFIED"
+  });
+}
+
+const isMain = process.argv[1]
+  && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  verifyGithubHostedAutonomousEngineeringV1();
+  process.stdout.write("GITHUB_HOSTED_AUTONOMOUS_ENGINEERING_V1_VERIFIED\n");
+}
