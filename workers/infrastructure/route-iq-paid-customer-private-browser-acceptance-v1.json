@@ -39,6 +39,15 @@
       "externalRequestsAllowed": 0,
       "applicationExecutionBeforeStabilityAllowed": false
     },
+    "applicationDocumentIdentityGate": {
+      "responsePausedBeforeApplicationExecution": true,
+      "cacheAllowed": false,
+      "acceptedStatus": "2XX",
+      "exactWorkerVersionRequired": true,
+      "exactSmokeMarkerRequired": true,
+      "mismatchResponseExecutionAllowed": false,
+      "failureBehavior": "BLOCK_RESPONSE"
+    },
     "externalOriginsAllowed": false,
     "serviceWorkerBypassRequired": true,
     "serviceWorkerPersistenceAllowed": false,

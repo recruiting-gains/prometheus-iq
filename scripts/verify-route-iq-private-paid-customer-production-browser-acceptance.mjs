@@ -169,6 +169,13 @@ const FAILURE_DIAGNOSTICS = new Set(
     "BROWSER_STABILITY_NON_READ_REQUEST",
     "BROWSER_STABILITY_EXTERNAL_REQUEST",
     ...ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.flatMap(viewport => [
+      ...[
+        "STATUS",
+        "VERSION",
+        "MARKER",
+        "TIMEOUT"
+      ].map(value =>
+        `${viewport.name.toUpperCase()}_DOCUMENT_GATE_${value}`),
       ...[...CONSOLE_ERROR_CLASSIFICATIONS].map(value =>
         `${viewport.name.toUpperCase()}_${value}`),
       ...[...HTTP_RESOURCE_CLASSIFICATIONS].flatMap(resource =>
@@ -401,6 +408,56 @@ function lowerHeaders(headers) {
   return Object.fromEntries(
     Object.entries(headers || {}).map(([name, value]) => [name.toLowerCase(), String(value)])
   );
+}
+
+function lowerProtocolHeaders(headers) {
+  if (!Array.isArray(headers)) return lowerHeaders(headers);
+  return Object.fromEntries(headers.map(header => [
+    String(header?.name || "").toLowerCase(),
+    typeof header?.value === "string" ? header.value : ""
+  ]));
+}
+
+export function classifyRouteIqPrivateBrowserDocumentResponse({
+  url,
+  resourceType,
+  status,
+  headers,
+  expectedWorkerVersion
+} = {}) {
+  let parsedUrl;
+  try {
+    parsedUrl = url instanceof URL ? url : new URL(url);
+  } catch {
+    return Object.freeze({ target: false, exact: false, reason: null });
+  }
+  if (resourceType !== "Document"
+    || parsedUrl.origin !== CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN
+    || parsedUrl.pathname !== "/") {
+    return Object.freeze({ target: false, exact: false, reason: null });
+  }
+  const normalizedHeaders = lowerProtocolHeaders(headers);
+  const workerVersion =
+    normalizedHeaders[CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader.toLowerCase()]
+      || null;
+  const markerVerified =
+    normalizedHeaders[CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader.toLowerCase()]
+      === CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue;
+  const reason = !Number.isInteger(status) || status < 200 || status >= 300
+    ? "STATUS"
+    : workerVersion !== expectedWorkerVersion
+      ? "VERSION"
+      : !markerVerified
+        ? "MARKER"
+        : null;
+  return Object.freeze({
+    target: true,
+    exact: reason === null,
+    reason,
+    status: Number.isInteger(status) ? status : null,
+    workerVersion,
+    markerVerified
+  });
 }
 
 export function routeIqPrivateBrowserGuardScript() {
@@ -690,6 +747,25 @@ async function waitForReadyPage(client, sessionId) {
     await wait(50);
   }
   fail("route_iq_private_browser_page_readiness_timeout");
+}
+
+async function waitForDocumentIdentityGate(evidence, viewport) {
+  const deadline = Date.now() + 15_000;
+  while (evidence.documentIdentityGateChecked !== true && Date.now() < deadline) {
+    await wait(25);
+  }
+  if (evidence.documentIdentityGateExact === true) return;
+  const reason = [
+    "STATUS",
+    "VERSION",
+    "MARKER"
+  ].includes(evidence.documentIdentityGateReason)
+    ? evidence.documentIdentityGateReason
+    : "TIMEOUT";
+  throw new RouteIqPrivateBrowserAcceptanceError(
+    [ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.WORKER_IDENTITY],
+    [`${viewport.name.toUpperCase()}_DOCUMENT_GATE_${reason}`]
+  );
 }
 
 async function runRouteIqPrivateBrowserVersionProbe({
@@ -1000,7 +1076,10 @@ async function runViewportScenario({
     browserManagedIconBridgeSuccesses: 0,
     serviceWorkerRegistrations: null,
     externalRequests: 0,
-    publicIsolationVerified: true
+    publicIsolationVerified: true,
+    documentIdentityGateChecked: false,
+    documentIdentityGateExact: false,
+    documentIdentityGateReason: null
   };
   try {
     ({ browserContextId } = await client.send("Target.createBrowserContext", {
@@ -1020,9 +1099,17 @@ async function runViewportScenario({
       client.send("Network.enable", {}, sessionId),
       client.send("Log.enable", {}, sessionId),
       client.send("Fetch.enable", {
-        patterns: [{ urlPattern: "*", requestStage: "Request" }]
+        patterns: [
+          { urlPattern: "*", requestStage: "Request" },
+          {
+            urlPattern: `${CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN}/`,
+            resourceType: "Document",
+            requestStage: "Response"
+          }
+        ]
       }, sessionId),
       client.send("Network.setBypassServiceWorker", { bypass: true }, sessionId),
+      client.send("Network.setCacheDisabled", { cacheDisabled: true }, sessionId),
       client.send("Browser.setDownloadBehavior", {
         behavior: "deny",
         browserContextId
@@ -1095,6 +1182,39 @@ async function runViewportScenario({
     client.on("Fetch.requestPaused", (params, eventSessionId) => {
       observe();
       const task = (async () => {
+        if (Number.isInteger(params.responseStatusCode)) {
+          const gate = classifyRouteIqPrivateBrowserDocumentResponse({
+            url: params.request?.url,
+            resourceType: params.resourceType,
+            status: params.responseStatusCode,
+            headers: params.responseHeaders,
+            expectedWorkerVersion
+          });
+          if (!gate.target) {
+            await client.send("Fetch.continueResponse", {
+              requestId: params.requestId
+            }, eventSessionId);
+            return;
+          }
+          evidence.documentIdentityGateChecked = true;
+          evidence.documentIdentityGateExact = gate.exact;
+          evidence.documentIdentityGateReason = gate.reason;
+          evidence.documentStatus = gate.status;
+          evidence.workerVersion = gate.workerVersion;
+          evidence.markerVerified = gate.markerVerified;
+          if (!gate.exact) {
+            if (params.networkId) blockedNetworkIds.add(params.networkId);
+            await client.send("Fetch.failRequest", {
+              requestId: params.requestId,
+              errorReason: "BlockedByClient"
+            }, eventSessionId);
+            return;
+          }
+          await client.send("Fetch.continueResponse", {
+            requestId: params.requestId
+          }, eventSessionId);
+          return;
+        }
         const method = String(params.request?.method || "").toUpperCase();
         let url;
         try {
@@ -1196,6 +1316,7 @@ async function runViewportScenario({
     await client.send("Page.navigate", {
       url: `${CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN}/`
     }, sessionId);
+    await waitForDocumentIdentityGate(evidence, viewport);
     await waitForReadyPage(client, sessionId);
     await waitForBrowserQuiescence({
       pendingInterceptions,

@@ -8,6 +8,7 @@ import {
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_STABILITY,
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS,
   RouteIqPrivateBrowserAcceptanceError,
+  classifyRouteIqPrivateBrowserDocumentResponse,
   classifyRouteIqPrivateBrowserHttpPath,
   classifyRouteIqPrivateBrowserLogEntry,
   collectRouteIqPrivateBrowserPageEvidence,
@@ -114,6 +115,15 @@ test("browser contract fixes exact desktop/mobile, no-write, and isolation bound
     externalRequestsAllowed: 0,
     applicationExecutionBeforeStabilityAllowed: false
   });
+  assert.deepEqual(contract.network.applicationDocumentIdentityGate, {
+    responsePausedBeforeApplicationExecution: true,
+    cacheAllowed: false,
+    acceptedStatus: "2XX",
+    exactWorkerVersionRequired: true,
+    exactSmokeMarkerRequired: true,
+    mismatchResponseExecutionAllowed: false,
+    failureBehavior: "BLOCK_RESPONSE"
+  });
   assert.equal(contract.network.serviceWorkerPersistenceAllowed, false);
   assert.deepEqual(contract.network.sameOriginAuthenticatedRequests, {
     servicePrincipalHeadersRequired: true,
@@ -211,6 +221,111 @@ test("browser release stability source disables scripts and cache before navigat
   assert.match(stabilitySource, /if \(!READ_METHODS\.has\(method\)\)/u);
   assert.match(stabilitySource, /evidence\.externalRequests \+= 1/u);
   assert.doesNotMatch(stabilitySource, /console\.(?:log|error|warn)|process\.stdout/u);
+});
+
+test("application document is cache-disabled and identity-gated before scripts execute", () => {
+  const source = readFileSync(new URL(
+    "../scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+    import.meta.url
+  ), "utf8");
+  const scenarioStart = source.indexOf("async function runViewportScenario");
+  const scenarioEnd = source.indexOf(
+    "export function evaluateRouteIqPrivateBrowserAcceptance"
+  );
+  assert.ok(scenarioStart >= 0);
+  assert.ok(scenarioEnd > scenarioStart);
+  const scenarioSource = source.slice(scenarioStart, scenarioEnd);
+  const responsePauseAt = scenarioSource.indexOf('requestStage: "Response"');
+  const cacheDisabledAt = scenarioSource.indexOf(
+    '"Network.setCacheDisabled", { cacheDisabled: true }'
+  );
+  const navigateAt = scenarioSource.indexOf('"Page.navigate"');
+  const identityGateAt = scenarioSource.indexOf(
+    "await waitForDocumentIdentityGate(evidence, viewport)"
+  );
+  const pageReadyAt = scenarioSource.indexOf(
+    "await waitForReadyPage(client, sessionId)"
+  );
+  assert.ok(responsePauseAt >= 0);
+  assert.ok(cacheDisabledAt >= 0);
+  assert.ok(navigateAt > responsePauseAt);
+  assert.ok(navigateAt > cacheDisabledAt);
+  assert.ok(identityGateAt > navigateAt);
+  assert.ok(pageReadyAt > identityGateAt);
+  assert.match(
+    scenarioSource,
+    /if \(!gate\.exact\) \{[\s\S]*?"Fetch\.failRequest"/u
+  );
+  assert.doesNotMatch(
+    scenarioSource,
+    /documentIdentityGateExact\s*=\s*true/u
+  );
+});
+
+test("document response gate accepts only the exact 2xx Worker identity and marker", () => {
+  const responseHeaders = [
+    { name: "X-Prometheus-Private-Worker-Version", value: VERSION },
+    {
+      name: "X-Prometheus-Unattended-Smoke-Guard",
+      value: "verified-read-only-v1"
+    }
+  ];
+  const exact = classifyRouteIqPrivateBrowserDocumentResponse({
+    url: "https://prometheus-iq.prometheusrouteiq.workers.dev/",
+    resourceType: "Document",
+    status: 200,
+    headers: responseHeaders,
+    expectedWorkerVersion: VERSION
+  });
+  assert.deepEqual(exact, {
+    target: true,
+    exact: true,
+    reason: null,
+    status: 200,
+    workerVersion: VERSION,
+    markerVerified: true
+  });
+
+  const cases = [
+    { status: 302, reason: "STATUS" },
+    {
+      headers: responseHeaders.map(header =>
+        header.name === "X-Prometheus-Private-Worker-Version"
+          ? { ...header, value: "00000000-0000-4000-8000-000000000000" }
+          : header),
+      reason: "VERSION"
+    },
+    {
+      headers: responseHeaders.filter(
+        header => header.name !== "X-Prometheus-Unattended-Smoke-Guard"
+      ),
+      reason: "MARKER"
+    }
+  ];
+  for (const item of cases) {
+    const result = classifyRouteIqPrivateBrowserDocumentResponse({
+      url: "https://prometheus-iq.prometheusrouteiq.workers.dev/",
+      resourceType: "Document",
+      status: item.status ?? 200,
+      headers: item.headers ?? responseHeaders,
+      expectedWorkerVersion: VERSION
+    });
+    assert.equal(result.target, true);
+    assert.equal(result.exact, false);
+    assert.equal(result.reason, item.reason);
+  }
+
+  assert.deepEqual(classifyRouteIqPrivateBrowserDocumentResponse({
+    url: "https://prometheus-iq.prometheusrouteiq.workers.dev/api/dashboard",
+    resourceType: "Fetch",
+    status: 200,
+    headers: responseHeaders,
+    expectedWorkerVersion: VERSION
+  }), {
+    target: false,
+    exact: false,
+    reason: null
+  });
 });
 
 test("browser release stability fails closed without running the application", async () => {
