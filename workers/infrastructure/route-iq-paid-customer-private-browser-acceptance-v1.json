@@ -39,6 +39,24 @@
       "allServiceWorkerRequestsBlockedRequired": true,
       "persistedRegistrationCountRequired": 0,
       "allOtherBrowserErrorsAllowed": false
+    },
+    "browserManagedIconAuthenticatedResourceBridge": {
+      "exactOrigin": "https://prometheus-iq.prometheusrouteiq.workers.dev",
+      "exactPath": "/icons/prometheus.svg",
+      "queryAllowed": false,
+      "resourceType": "Other",
+      "method": "GET",
+      "redirectMode": "manual",
+      "acceptedStatus": "2XX",
+      "acceptedContentType": "image/svg+xml",
+      "maximumResponseBytes": 16384,
+      "maximumAttemptsPerViewport": 1,
+      "retryAllowed": false,
+      "syntheticBodyAllowed": false,
+      "credentialLoggingAllowed": false,
+      "responseBodyLoggingAllowed": false,
+      "failedBridgeIsFatal": true,
+      "allOtherHttpOrBrowserErrorsAllowed": false
     }
   },
   "acceptance": {

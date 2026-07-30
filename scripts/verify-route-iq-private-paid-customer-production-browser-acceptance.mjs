@@ -39,7 +39,8 @@ export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION = Object.free
   WRITE_ATTEMPT: "WRITE_ATTEMPT",
   SERVICE_WORKER_REGISTRATION_COUNT_INVALID: "SERVICE_WORKER_REGISTRATION_COUNT_INVALID",
   SERVICE_WORKER_REGISTRATION_COUNT_NONZERO: "SERVICE_WORKER_REGISTRATION_COUNT_NONZERO",
-  SERVICE_WORKER_REQUEST_GUARD: "SERVICE_WORKER_REQUEST_GUARD"
+  SERVICE_WORKER_REQUEST_GUARD: "SERVICE_WORKER_REQUEST_GUARD",
+  BROWSER_MANAGED_ICON_BRIDGE: "BROWSER_MANAGED_ICON_BRIDGE"
 });
 
 const HEALTH_FAILURES_BY_VIEWPORT = Object.freeze({
@@ -110,6 +111,12 @@ const HEALTH_FAILURES_BY_VIEWPORT = Object.freeze({
 });
 
 const READ_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+const GUARDED_BROWSER_MANAGED_ICON_PATH = "/icons/prometheus.svg";
+const GUARDED_BROWSER_MANAGED_ICON_URL =
+  `${CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN}${GUARDED_BROWSER_MANAGED_ICON_PATH}`;
+const MAX_BROWSER_MANAGED_ICON_BRIDGE_ATTEMPTS_PER_VIEWPORT = 1;
+const MAX_BROWSER_MANAGED_ICON_BYTES = 16 * 1024;
+const BROWSER_MANAGED_ICON_TIMEOUT_MILLISECONDS = 10_000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 const FAILURE_DIMENSIONS = new Set(
   Object.values(ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION)
@@ -497,6 +504,148 @@ export function classifyRouteIqPrivateBrowserLogEntry(
   });
 }
 
+function exactGuardedBrowserManagedIconUrl(value) {
+  let url;
+  try {
+    url = value instanceof URL ? value : new URL(value);
+  } catch {
+    return false;
+  }
+  return url.origin === CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN
+    && url.pathname === GUARDED_BROWSER_MANAGED_ICON_PATH
+    && url.search === ""
+    && url.hash === "";
+}
+
+export function isRouteIqPrivateBrowserManagedIconRequest(url, resourceType) {
+  return resourceType === "Other" && exactGuardedBrowserManagedIconUrl(url);
+}
+
+export async function fetchRouteIqPrivateBrowserManagedIcon({
+  fetchImpl,
+  credentials,
+  timeoutMilliseconds = BROWSER_MANAGED_ICON_TIMEOUT_MILLISECONDS,
+  maximumBytes = MAX_BROWSER_MANAGED_ICON_BYTES
+}) {
+  if (typeof fetchImpl !== "function"
+    || typeof credentials?.clientId !== "string"
+    || credentials.clientId.length < 1
+    || credentials.clientId.length > 4096
+    || typeof credentials?.clientSecret !== "string"
+    || credentials.clientSecret.length < 1
+    || credentials.clientSecret.length > 4096
+    || !Number.isInteger(timeoutMilliseconds)
+    || timeoutMilliseconds < 1
+    || timeoutMilliseconds > BROWSER_MANAGED_ICON_TIMEOUT_MILLISECONDS
+    || !Number.isInteger(maximumBytes)
+    || maximumBytes < 1
+    || maximumBytes > MAX_BROWSER_MANAGED_ICON_BYTES) {
+    fail("route_iq_private_browser_icon_bridge_input_invalid");
+  }
+  let response;
+  try {
+    response = await fetchImpl(GUARDED_BROWSER_MANAGED_ICON_URL, {
+      method: "GET",
+      headers: {
+        "CF-Access-Client-Id": credentials.clientId,
+        "CF-Access-Client-Secret": credentials.clientSecret
+      },
+      redirect: "manual",
+      cache: "no-store",
+      signal: AbortSignal.timeout(timeoutMilliseconds)
+    });
+  } catch {
+    fail("route_iq_private_browser_icon_bridge_fetch_failed");
+  }
+  if (!Number.isInteger(response?.status)
+    || response.status < 200
+    || response.status >= 300
+    || response.redirected === true) {
+    fail("route_iq_private_browser_icon_bridge_status_invalid");
+  }
+  const contentType = String(response.headers?.get?.("content-type") || "")
+    .split(";", 1)[0]
+    .trim()
+    .toLowerCase();
+  if (contentType !== "image/svg+xml") {
+    fail("route_iq_private_browser_icon_bridge_content_type_invalid");
+  }
+  const contentLength = response.headers?.get?.("content-length");
+  if (contentLength !== null && contentLength !== undefined) {
+    if (!/^[0-9]+$/u.test(contentLength)
+      || Number(contentLength) < 1
+      || Number(contentLength) > maximumBytes) {
+      fail("route_iq_private_browser_icon_bridge_content_length_invalid");
+    }
+  }
+  let body;
+  try {
+    body = Buffer.from(await response.arrayBuffer());
+  } catch {
+    fail("route_iq_private_browser_icon_bridge_body_failed");
+  }
+  if (body.length < 1 || body.length > maximumBytes) {
+    fail("route_iq_private_browser_icon_bridge_body_size_invalid");
+  }
+  return Object.freeze({
+    responseCode: response.status,
+    responseHeaders: Object.freeze([
+      Object.freeze({ name: "Content-Type", value: "image/svg+xml" }),
+      Object.freeze({ name: "Content-Length", value: String(body.length) }),
+      Object.freeze({ name: "Cache-Control", value: "no-store" })
+    ]),
+    body: body.toString("base64")
+  });
+}
+
+export function reconcileRouteIqPrivateBrowserNetworkEvents({
+  httpFailures = [],
+  errorLogEntries = [],
+  blockedNetworkIds = new Set()
+} = {}) {
+  const consoleErrorClassifications = new Set();
+  const networkHttpFailureClassifications = new Set();
+  const guardedServiceWorkerLogRequestIds = new Set();
+  let consoleErrors = 0;
+  let networkHttpFailures = 0;
+  for (const item of httpFailures) {
+    let url;
+    try {
+      url = item?.url instanceof URL ? item.url : new URL(item?.url);
+    } catch {
+      continue;
+    }
+    const statusClass = httpStatusClassification(item?.status);
+    if (!statusClass
+      || url.origin !== CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN
+      || item?.resourceType === "Document") continue;
+    networkHttpFailures += 1;
+    networkHttpFailureClassifications.add(
+      `HTTP_${httpResourceClassification(item.resourceType)}_${statusClass}_`
+        + classifyRouteIqPrivateBrowserHttpPath(url)
+    );
+  }
+  for (const entry of errorLogEntries) {
+    const result = classifyRouteIqPrivateBrowserLogEntry(entry, {
+      blockedNetworkIds
+    });
+    if (result.classification === "GUARDED_SERVICE_WORKER_NETWORK_LOG") {
+      guardedServiceWorkerLogRequestIds.add(entry.networkRequestId);
+    } else if (result.counted) {
+      consoleErrors += 1;
+      consoleErrorClassifications.add(result.classification);
+    }
+  }
+  return Object.freeze({
+    consoleErrors,
+    consoleErrorClassifications: Object.freeze([...consoleErrorClassifications]),
+    networkHttpFailures,
+    networkHttpFailureClassifications:
+      Object.freeze([...networkHttpFailureClassifications]),
+    guardedServiceWorkerLogErrors: guardedServiceWorkerLogRequestIds.size
+  });
+}
+
 async function waitForBrowserQuiescence({
   pendingInterceptions,
   lastObservedEventAt,
@@ -588,7 +737,8 @@ async function runViewportScenario({
   const blockedNetworkIds = new Set();
   const consoleErrorClassifications = new Set();
   const networkHttpFailureClassifications = new Set();
-  const guardedServiceWorkerLogRequestIds = new Set();
+  const pendingHttpFailures = [];
+  const pendingErrorLogEntries = [];
   let lastObservedEvent = Date.now();
   const observe = () => {
     lastObservedEvent = Date.now();
@@ -613,6 +763,8 @@ async function runViewportScenario({
     serviceWorkerRequests: 0,
     blockedServiceWorkerRequests: 0,
     guardedServiceWorkerLogErrors: 0,
+    browserManagedIconBridgeAttempts: 0,
+    browserManagedIconBridgeSuccesses: 0,
     serviceWorkerRegistrations: null,
     externalRequests: 0,
     publicIsolationVerified: true
@@ -669,17 +821,7 @@ async function runViewportScenario({
     }, { sessionId });
     client.on("Log.entryAdded", params => {
       observe();
-      const result = classifyRouteIqPrivateBrowserLogEntry(params.entry, {
-        blockedNetworkIds
-      });
-      if (result.classification === "GUARDED_SERVICE_WORKER_NETWORK_LOG") {
-        guardedServiceWorkerLogRequestIds.add(
-          params.entry?.networkRequestId || "uncorrelated-exact-service-worker"
-        );
-      } else if (result.counted) {
-        evidence.consoleErrors += 1;
-        consoleErrorClassifications.add(result.classification);
-      }
+      if (params.entry?.level === "error") pendingErrorLogEntries.push(params.entry);
       if (params.entry?.level === "warning") evidence.consoleWarnings += 1;
     }, { sessionId });
     client.on("Network.loadingFailed", params => {
@@ -698,11 +840,12 @@ async function runViewportScenario({
         && params.type !== "Document") {
         const statusClass = httpStatusClassification(params.response?.status);
         if (statusClass) {
-          evidence.networkHttpFailures += 1;
-          networkHttpFailureClassifications.add(
-            `HTTP_${httpResourceClassification(params.type)}_${statusClass}_`
-              + classifyRouteIqPrivateBrowserHttpPath(responseUrl)
-          );
+          pendingHttpFailures.push({
+            requestId: params.requestId,
+            resourceType: params.type,
+            status: params.response?.status,
+            url: responseUrl
+          });
         }
       }
       if (params.type !== "Document"
@@ -751,6 +894,42 @@ async function runViewportScenario({
           }, eventSessionId);
           return;
         }
+        if (isRouteIqPrivateBrowserManagedIconRequest(url, params.resourceType)) {
+          evidence.browserManagedIconBridgeAttempts += 1;
+          if (evidence.browserManagedIconBridgeAttempts
+            > MAX_BROWSER_MANAGED_ICON_BRIDGE_ATTEMPTS_PER_VIEWPORT) {
+            evidence.networkFailures += 1;
+            if (params.networkId) blockedNetworkIds.add(params.networkId);
+            await client.send("Fetch.failRequest", {
+              requestId: params.requestId,
+              errorReason: "BlockedByClient"
+            }, eventSessionId);
+            return;
+          }
+          try {
+            const icon = await fetchRouteIqPrivateBrowserManagedIcon({
+              fetchImpl,
+              credentials
+            });
+            await client.send("Fetch.fulfillRequest", {
+              requestId: params.requestId,
+              responseCode: icon.responseCode,
+              responseHeaders: icon.responseHeaders,
+              body: icon.body
+            }, eventSessionId);
+            evidence.browserManagedIconBridgeSuccesses += 1;
+          } catch {
+            evidence.networkFailures += 1;
+            if (params.networkId) blockedNetworkIds.add(params.networkId);
+            try {
+              await client.send("Fetch.failRequest", {
+                requestId: params.requestId,
+                errorReason: "BlockedByClient"
+              }, eventSessionId);
+            } catch {}
+          }
+          return;
+        }
         if (url.origin === CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN) {
           const marker = params.resourceType === "Document" && url.pathname === "/";
           await client.send("Fetch.continueRequest", {
@@ -787,6 +966,21 @@ async function runViewportScenario({
       pendingInterceptions,
       lastObservedEventAt: () => lastObservedEvent
     });
+    const networkEvidence = reconcileRouteIqPrivateBrowserNetworkEvents({
+      httpFailures: pendingHttpFailures,
+      errorLogEntries: pendingErrorLogEntries,
+      blockedNetworkIds
+    });
+    evidence.consoleErrors += networkEvidence.consoleErrors;
+    for (const classification of networkEvidence.consoleErrorClassifications) {
+      consoleErrorClassifications.add(classification);
+    }
+    evidence.networkHttpFailures += networkEvidence.networkHttpFailures;
+    for (const classification of networkEvidence.networkHttpFailureClassifications) {
+      networkHttpFailureClassifications.add(classification);
+    }
+    evidence.guardedServiceWorkerLogErrors =
+      networkEvidence.guardedServiceWorkerLogErrors;
     const page = await evaluate(
       client,
       sessionId,
@@ -804,7 +998,6 @@ async function runViewportScenario({
     evidence.formAttempts = page.guard?.formAttempts ?? 0;
     evidence.popupAttempts = page.guard?.popupAttempts ?? 0;
     evidence.serviceWorkerRegistrationAttempts = page.guard?.serviceWorkerAttempts ?? 0;
-    evidence.guardedServiceWorkerLogErrors = guardedServiceWorkerLogRequestIds.size;
     evidence.consoleErrorClassifications = Object.freeze([...consoleErrorClassifications]);
     evidence.networkHttpFailureClassifications =
       Object.freeze([...networkHttpFailureClassifications]);
@@ -933,6 +1126,24 @@ export function evaluateRouteIqPrivateBrowserAcceptance({
         recordFailure(
           `${expected.name}_service_worker_log_guard`,
           ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.SERVICE_WORKER_REQUEST_GUARD
+        );
+      }
+      if (!Number.isFinite(scenario?.browserManagedIconBridgeAttempts)
+        || !Number.isInteger(scenario.browserManagedIconBridgeAttempts)
+        || scenario.browserManagedIconBridgeAttempts < 0
+        || scenario.browserManagedIconBridgeAttempts
+          > MAX_BROWSER_MANAGED_ICON_BRIDGE_ATTEMPTS_PER_VIEWPORT
+        || !Number.isFinite(scenario?.browserManagedIconBridgeSuccesses)
+        || !Number.isInteger(scenario.browserManagedIconBridgeSuccesses)
+        || scenario.browserManagedIconBridgeSuccesses < 0
+        || scenario.browserManagedIconBridgeSuccesses
+          > MAX_BROWSER_MANAGED_ICON_BRIDGE_ATTEMPTS_PER_VIEWPORT
+        || scenario.browserManagedIconBridgeAttempts
+          !== scenario.browserManagedIconBridgeSuccesses) {
+        recordFailure(
+          `${expected.name}_browser_managed_icon_bridge`,
+          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION
+            .BROWSER_MANAGED_ICON_BRIDGE
         );
       }
     }

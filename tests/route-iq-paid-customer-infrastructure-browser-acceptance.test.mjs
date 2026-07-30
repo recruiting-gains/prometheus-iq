@@ -11,7 +11,10 @@ import {
   classifyRouteIqPrivateBrowserLogEntry,
   collectRouteIqPrivateBrowserPageEvidence,
   evaluateRouteIqPrivateBrowserAcceptance,
+  fetchRouteIqPrivateBrowserManagedIcon,
   isGuardedRouteIqServiceWorkerRequest,
+  isRouteIqPrivateBrowserManagedIconRequest,
+  reconcileRouteIqPrivateBrowserNetworkEvents,
   routeIqPrivateBrowserGuardScript,
   runRouteIqPrivateProductionBrowserAcceptance
 } from "../scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs";
@@ -51,6 +54,8 @@ function passingScenario(viewport) {
     serviceWorkerRequests: 1,
     blockedServiceWorkerRequests: 1,
     guardedServiceWorkerLogErrors: 0,
+    browserManagedIconBridgeAttempts: 0,
+    browserManagedIconBridgeSuccesses: 0,
     serviceWorkerRegistrations: 0,
     externalRequests: 0
   };
@@ -93,6 +98,24 @@ test("browser contract fixes exact desktop/mobile, no-write, and isolation bound
   assert.deepEqual(contract.network.allowedMethods, ["GET", "HEAD", "OPTIONS"]);
   assert.equal(contract.network.writeAttemptsRequired, 0);
   assert.equal(contract.network.serviceWorkerPersistenceAllowed, false);
+  assert.deepEqual(contract.network.browserManagedIconAuthenticatedResourceBridge, {
+    exactOrigin: "https://prometheus-iq.prometheusrouteiq.workers.dev",
+    exactPath: "/icons/prometheus.svg",
+    queryAllowed: false,
+    resourceType: "Other",
+    method: "GET",
+    redirectMode: "manual",
+    acceptedStatus: "2XX",
+    acceptedContentType: "image/svg+xml",
+    maximumResponseBytes: 16384,
+    maximumAttemptsPerViewport: 1,
+    retryAllowed: false,
+    syntheticBodyAllowed: false,
+    credentialLoggingAllowed: false,
+    responseBodyLoggingAllowed: false,
+    failedBridgeIsFatal: true,
+    allOtherHttpOrBrowserErrorsAllowed: false
+  });
   assert.equal(contract.acceptance.publicWorkerIdentityMustRemainExact, true);
   assert.equal(contract.safety.collection, "OFF");
   assert.equal(contract.safety.activeCohorts, 0);
@@ -248,6 +271,186 @@ test("browser log classification suppresses only a correlated exact service-work
       true
     );
   }
+});
+
+test("browser-managed icon bridge matches only the exact same-origin Other request", () => {
+  const icon = new URL(
+    "https://prometheus-iq.prometheusrouteiq.workers.dev/icons/prometheus.svg"
+  );
+  assert.equal(isRouteIqPrivateBrowserManagedIconRequest(icon, "Other"), true);
+  for (const [url, resourceType] of [
+    [new URL(`${icon.href}?v=1`), "Other"],
+    [new URL("https://external.invalid/icons/prometheus.svg"), "Other"],
+    [new URL("https://prometheus-iq.prometheusrouteiq.workers.dev/icons/other.svg"), "Other"],
+    [icon, "Image"],
+    [icon, "Manifest"],
+    [icon, "Fetch"]
+  ]) {
+    assert.equal(isRouteIqPrivateBrowserManagedIconRequest(url, resourceType), false);
+  }
+});
+
+test("browser-managed icon bridge fetches one authenticated real SVG without retry or leakage", async () => {
+  const credentialCanaries = {
+    clientId: "client-id-canary",
+    clientSecret: "client-secret-canary"
+  };
+  const bodyBytes = Uint8Array.from([60, 115, 118, 103, 47, 62]);
+  const calls = [];
+  const result = await fetchRouteIqPrivateBrowserManagedIcon({
+    credentials: credentialCanaries,
+    fetchImpl: async (url, options) => {
+      calls.push({ url, options });
+      return {
+        status: 200,
+        redirected: false,
+        headers: new Headers({
+          "content-type": "image/svg+xml; charset=utf-8",
+          "content-length": String(bodyBytes.byteLength)
+        }),
+        async arrayBuffer() {
+          return bodyBytes.buffer;
+        }
+      };
+    }
+  });
+  assert.equal(calls.length, 1);
+  assert.equal(
+    calls[0].url,
+    "https://prometheus-iq.prometheusrouteiq.workers.dev/icons/prometheus.svg"
+  );
+  assert.equal(calls[0].options.method, "GET");
+  assert.equal(calls[0].options.redirect, "manual");
+  assert.equal(calls[0].options.cache, "no-store");
+  assert.equal("body" in calls[0].options, false);
+  assert.equal(result.responseCode, 200);
+  assert.equal(result.body, Buffer.from(bodyBytes).toString("base64"));
+  const serializedResult = JSON.stringify(result);
+  assert.equal(serializedResult.includes(credentialCanaries.clientId), false);
+  assert.equal(serializedResult.includes(credentialCanaries.clientSecret), false);
+});
+
+test("browser-managed icon bridge rejects status, redirect, type, length, and body failures once", async () => {
+  const credentials = {
+    clientId: "client-id-canary",
+    clientSecret: "client-secret-canary"
+  };
+  const validBody = Uint8Array.from([60, 115, 118, 103, 47, 62]);
+  const cases = [
+    { status: 403 },
+    { status: 503 },
+    { status: 302 },
+    { redirected: true },
+    { contentType: "image/png" },
+    { contentLength: "16385" },
+    { contentLength: "invalid" },
+    { body: new Uint8Array(16385) },
+    { body: new Uint8Array(0) },
+    { bodyFailure: true },
+    { fetchFailure: true }
+  ];
+  for (const item of cases) {
+    let calls = 0;
+    let captured;
+    try {
+      await fetchRouteIqPrivateBrowserManagedIcon({
+        credentials,
+        fetchImpl: async () => {
+          calls += 1;
+          if (item.fetchFailure) throw new Error("credential-canary-must-not-escape");
+          const body = item.body || validBody;
+          return {
+            status: item.status ?? 200,
+            redirected: item.redirected ?? false,
+            headers: new Headers({
+              "content-type": item.contentType || "image/svg+xml",
+              "content-length": item.contentLength ?? String(body.byteLength)
+            }),
+            async arrayBuffer() {
+              if (item.bodyFailure) throw new Error("body-canary-must-not-escape");
+              return body.buffer;
+            }
+          };
+        }
+      });
+    } catch (error) {
+      captured = error;
+    }
+    assert.equal(calls, 1);
+    assert.match(captured?.message || "", /^route_iq_private_browser_icon_bridge_/u);
+    assert.equal(String(captured).includes("canary-must-not-escape"), false);
+  }
+});
+
+test("browser-managed icon bridge does not suppress any HTTP or network log failure", () => {
+  const iconUrl = "https://prometheus-iq.prometheusrouteiq.workers.dev/icons/prometheus.svg";
+  for (const status of [403, 503]) {
+    const result = reconcileRouteIqPrivateBrowserNetworkEvents({
+      httpFailures: [{
+        requestId: "request-id",
+        resourceType: "Other",
+        status,
+        url: iconUrl
+      }],
+      errorLogEntries: [{
+        level: "error",
+        source: "network",
+        url: iconUrl,
+        networkRequestId: "request-id"
+      }]
+    });
+    assert.equal(result.networkHttpFailures, 1);
+    assert.equal(result.consoleErrors, 1);
+    assert.deepEqual(result.networkHttpFailureClassifications, [
+      `HTTP_OTHER_${status === 403 ? "4XX" : "5XX"}_ICON`
+    ]);
+    assert.deepEqual(result.consoleErrorClassifications, ["LOG_NETWORK"]);
+  }
+});
+
+test("browser-managed icon bridge evidence is bounded and failed or repeated bridges fail", () => {
+  const accepted = ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.map(passingScenario);
+  Object.assign(accepted[0], {
+    browserManagedIconBridgeAttempts: 1,
+    browserManagedIconBridgeSuccesses: 1
+  });
+  assert.equal(evaluateRouteIqPrivateBrowserAcceptance({
+    expectedWorkerVersion: VERSION,
+    publicIsolationVerified: true,
+    scenarios: accepted
+  }).status, "PASS");
+
+  for (const values of [
+    { browserManagedIconBridgeAttempts: 1, browserManagedIconBridgeSuccesses: 0 },
+    { browserManagedIconBridgeAttempts: 2, browserManagedIconBridgeSuccesses: 2 },
+    { browserManagedIconBridgeAttempts: 0, browserManagedIconBridgeSuccesses: 1 }
+  ]) {
+    const scenarios = ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.map(passingScenario);
+    Object.assign(scenarios[0], values);
+    const evaluation = evaluateRouteIqPrivateBrowserAcceptance({
+      expectedWorkerVersion: VERSION,
+      publicIsolationVerified: true,
+      scenarios
+    });
+    assert.ok(evaluation.failureDimensions.includes(
+      ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION
+        .BROWSER_MANAGED_ICON_BRIDGE
+    ));
+  }
+
+  const loadingFailure = ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.map(passingScenario);
+  Object.assign(loadingFailure[0], {
+    networkFailures: 1,
+    browserManagedIconBridgeAttempts: 1,
+    browserManagedIconBridgeSuccesses: 1
+  });
+  assert.ok(evaluateRouteIqPrivateBrowserAcceptance({
+    expectedWorkerVersion: VERSION,
+    publicIsolationVerified: true,
+    scenarios: loadingFailure
+  }).failureDimensions.includes(
+    ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.DESKTOP_NETWORK_FAILURE
+  ));
 });
 
 test("service-worker request guard covers Chromium Other classification by exact path", () => {
