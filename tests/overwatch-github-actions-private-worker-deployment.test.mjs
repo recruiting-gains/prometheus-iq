@@ -192,6 +192,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
       value.ownership.implementationProbePropagationRepairCommit.commit =
         "0".repeat(40);
     },
+    value => {
+      value.ownership.implementationHttpPathDiagnosticsRepairCommit.commit =
+        "0".repeat(40);
+    },
     value => { value.ownership.bootstrapRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.runnerWorkspaceRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.trustedTempAliasRepairEvidence[0].sha256 = "0".repeat(64); },
@@ -242,6 +246,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     },
     value => {
       value.ownership.browserHealthDiagnosticsRepairEvidence[0].sha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.ownership.httpPathDiagnosticsRepairEvidence[0].sha256 =
         "0".repeat(64);
     },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },

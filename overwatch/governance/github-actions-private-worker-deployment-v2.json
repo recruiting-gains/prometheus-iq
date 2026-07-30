@@ -192,6 +192,14 @@
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Guard exact service worker acceptance request"
     },
+    "implementationHttpPathDiagnosticsRepairCommit": {
+      "commit": "c08bd2a6a0bf162a5bf3b312e0c680eb0d6f68e3",
+      "parent": "b3469efb9cf33cbea2ed13484f4eb89dc8846ae9",
+      "tree": "e3d1bf576a098319293a6d0591cad16f7046f837",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Classify private browser acceptance paths"
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "implementationPaths": [
@@ -1025,6 +1033,30 @@
       {
         "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
         "sha256": "318468b12e0c01106e6726f58db0b4447a3c5ea39e72024fbfdc49cb5ecf3060"
+      }
+    ],
+    "httpPathDiagnosticsRepairPaths": [
+      "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+      "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
+    ],
+    "httpPathDiagnosticsRepairEvidence": [
+      {
+        "path": "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+        "sha256": "4a77896bb238758e68e7f52f0e1406215eb8aadfac460d487fc1734805005d1c"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "sha256": "c63a4c5f16e457641323ed4c44dea04a369b694fc02bf6e0593bbc8b4f70e83f"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+        "sha256": "4437e9ad5bbee2814fd0b16b426c645e3f4592b89c57d57a552abb5dad60a6e2"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
+        "sha256": "b7bcf24619d3c9568a3e12b39cbd7d59bf429a118ceb52891b15aa222563b483"
       }
     ]
   },

@@ -121,6 +121,12 @@ const v2ServiceWorkerGuardRepairParent =
   "952e2ee7c016b255451d564af5d12dd2f42f1db5";
 const v2ServiceWorkerGuardRepairTree =
   "ab7a82bd64232c275860a0d0540b4992538364b9";
+const v2HttpPathDiagnosticsRepairCommit =
+  "c08bd2a6a0bf162a5bf3b312e0c680eb0d6f68e3";
+const v2HttpPathDiagnosticsRepairParent =
+  "b3469efb9cf33cbea2ed13484f4eb89dc8846ae9";
+const v2HttpPathDiagnosticsRepairTree =
+  "e3d1bf576a098319293a6d0591cad16f7046f837";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -484,6 +490,17 @@ const v2ServiceWorkerGuardRepairHashes = Object.freeze({
     "85cdf335cc0618d8bc34758799333817fa884ab0e952e42d8a8732047be963bb",
   "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs":
     "318468b12e0c01106e6726f58db0b4447a3c5ea39e72024fbfdc49cb5ecf3060"
+});
+
+const v2HttpPathDiagnosticsRepairHashes = Object.freeze({
+  "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs":
+    "4a77896bb238758e68e7f52f0e1406215eb8aadfac460d487fc1734805005d1c",
+  "tests/github-actions-private-worker-workflow-v2.test.mjs":
+    "c63a4c5f16e457641323ed4c44dea04a369b694fc02bf6e0593bbc8b4f70e83f",
+  "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs":
+    "4437e9ad5bbee2814fd0b16b426c645e3f4592b89c57d57a552abb5dad60a6e2",
+  "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json":
+    "b7bcf24619d3c9568a3e12b39cbd7d59bf429a118ceb52891b15aa222563b483"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -1267,6 +1284,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership?.implementationProbePropagationRepairCommit?.author ===
       infrastructureIdentity
     && governance?.ownership?.implementationProbePropagationRepairCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationHttpPathDiagnosticsRepairCommit?.commit ===
+      v2HttpPathDiagnosticsRepairCommit
+    && governance?.ownership?.implementationHttpPathDiagnosticsRepairCommit?.parent ===
+      v2HttpPathDiagnosticsRepairParent
+    && governance?.ownership?.implementationHttpPathDiagnosticsRepairCommit?.tree ===
+      v2HttpPathDiagnosticsRepairTree
+    && governance?.ownership?.implementationHttpPathDiagnosticsRepairCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationHttpPathDiagnosticsRepairCommit?.committer ===
       infrastructureIdentity,
   "Private Workflow v2 owner provenance drifted.");
   require(equal(governance?.ownership?.implementationPaths, Object.keys(v2OwnerHashes)),
@@ -1415,6 +1442,12 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.serviceWorkerGuardRepairEvidence,
     evidenceMap(v2ServiceWorkerGuardRepairHashes)),
   "Private Workflow v2 service-worker guard repair evidence drifted.");
+  require(equal(governance?.ownership?.httpPathDiagnosticsRepairPaths,
+    Object.keys(v2HttpPathDiagnosticsRepairHashes)),
+  "Private Workflow v2 HTTP-path diagnostics repair path set drifted.");
+  require(equal(governance?.ownership?.httpPathDiagnosticsRepairEvidence,
+    evidenceMap(v2HttpPathDiagnosticsRepairHashes)),
+  "Private Workflow v2 HTTP-path diagnostics repair evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -2243,6 +2276,15 @@ function verifyV2OwnerAndGovernance() {
       subject: "Guard exact service worker acceptance request",
       hashes: v2ServiceWorkerGuardRepairHashes,
       recorded: governance.ownership.serviceWorkerGuardRepairEvidence
+    },
+    {
+      label: "HTTP-path diagnostics repair",
+      commit: v2HttpPathDiagnosticsRepairCommit,
+      parent: v2HttpPathDiagnosticsRepairParent,
+      tree: v2HttpPathDiagnosticsRepairTree,
+      subject: "Classify private browser acceptance paths",
+      hashes: v2HttpPathDiagnosticsRepairHashes,
+      recorded: governance.ownership.httpPathDiagnosticsRepairEvidence
     }
   ]) {
     const metadata = git([
@@ -2307,7 +2349,8 @@ function verifyV2OwnerAndGovernance() {
     ...v2ProbePropagationRepairHashes,
     ...v2BrowserHealthDiagnosticsRepairHashes,
     ...v2BrowserAcceptanceEvidenceRepairHashes,
-    ...v2ServiceWorkerGuardRepairHashes
+    ...v2ServiceWorkerGuardRepairHashes,
+    ...v2HttpPathDiagnosticsRepairHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -2634,6 +2677,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2BrowserAcceptanceEvidenceRepairCommit,
     immutableWorkflowV2ServiceWorkerGuardRepairCommit:
       v2ServiceWorkerGuardRepairCommit,
+    immutableWorkflowV2HttpPathDiagnosticsRepairCommit:
+      v2HttpPathDiagnosticsRepairCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,
