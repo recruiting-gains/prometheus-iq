@@ -105,6 +105,7 @@ export const AUTONOMOUS_ENGINEERING_V1_POLICY = Object.freeze({
     "workers/infrastructure/github-hosted-autonomous-engineering-v1.json"
   ]),
   overwatchOwnedPaths: Object.freeze([
+    "package.json",
     "overwatch/governance/github-hosted-autonomous-engineering-v1.json",
     "overwatch/governance/github-hosted-autonomous-engineering-v1.md",
     "overwatch/reports/github-hosted-autonomous-engineering-v1.json",

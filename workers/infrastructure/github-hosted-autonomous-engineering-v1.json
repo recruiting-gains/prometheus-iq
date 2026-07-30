@@ -79,6 +79,7 @@
       "workers/infrastructure/github-hosted-autonomous-engineering-v1.json"
     ],
     "overwatchOwnedPaths": [
+      "package.json",
       "overwatch/governance/github-hosted-autonomous-engineering-v1.json",
       "overwatch/governance/github-hosted-autonomous-engineering-v1.md",
       "overwatch/reports/github-hosted-autonomous-engineering-v1.json",

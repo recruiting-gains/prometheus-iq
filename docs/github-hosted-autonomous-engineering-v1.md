@@ -78,6 +78,13 @@ deletions, non-regular Git modes, and mode changes are rejected. Workflow
 recursion is zero. Every source repair requires the complete clean
 qualification and a newly generated immutable artifact.
 
+`package.json` is an Overwatch-owned integration path only for adding the
+independent governance script and wiring it into the complete `npm test` gate.
+It remains subject to the exact Overwatch commit identity, single-owner commit,
+line, byte, mode, and path limits. This allowance does not authorize package
+dependency changes, product source changes, or Infrastructure authorship of
+`package.json`.
+
 One in-run recovery is available without another Founder interaction. It is a
 fresh GitHub-hosted runner executing the entire install, audit, repository
 suite, and qualification sequence. It is eligible only when the first runner

@@ -16,6 +16,7 @@ import {
   AUTONOMOUS_ENGINEERING_V1_POLICY,
   AutonomousEngineeringV1Error,
   autonomousFullSuiteCommands,
+  autonomousPathOwner,
   autonomousQualificationOutputNames,
   autonomousRollbackPhases,
   demonstrateControlledRollbackLifecycle,
@@ -379,6 +380,11 @@ test("repair limits enforce file, line, patch-byte, file-byte, commit, and recur
     recursionDepth: 0
   };
   assert.equal(validateAutonomousRepairScope(valid).changedFileCount, 1);
+  assert.equal(autonomousPathOwner("package.json"), "OVERWATCH");
+  assert.equal(validateAutonomousRepairScope({
+    ...valid,
+    changedPaths: ["package.json"]
+  }).changedFileCount, 1);
   for (const overflow of [
     {
       changedPaths: Array.from(

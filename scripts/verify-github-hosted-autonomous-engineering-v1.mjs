@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import {
   AUTONOMOUS_ENGINEERING_V1_POLICY,
   autonomousFullSuiteCommands,
+  autonomousPathOwner,
   autonomousQualificationOutputNames
 } from "./lib/github-hosted-autonomous-engineering-v1.mjs";
 
@@ -309,6 +310,11 @@ export function verifyGithubHostedAutonomousEngineeringV1() {
   assert.match(workflow, /run-id: \$\{\{ github\.run_id \}\}/u);
 
   assert.equal(contract.boundedRepair.maximumChangedFiles, 16);
+  assert.equal(autonomousPathOwner("package.json"), "OVERWATCH");
+  assert.deepEqual(
+    contract.boundedRepair.overwatchOwnedPaths,
+    AUTONOMOUS_ENGINEERING_V1_POLICY.overwatchOwnedPaths
+  );
   assert.equal(contract.boundedRepair.maximumChangedLines, 5000);
   assert.equal(contract.boundedRepair.maximumChangedPatchBytes, 524288);
   assert.equal(contract.boundedRepair.maximumChangedFileBytes, 524288);
