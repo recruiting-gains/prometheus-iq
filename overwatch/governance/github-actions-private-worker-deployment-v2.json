@@ -216,6 +216,14 @@
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Use dynamic Access headers"
     },
+    "implementationBrowserSmokeMarkerPropagationRepairCommit": {
+      "commit": "0f26a2223c06c4c9a28cf199e5a2f183f0a6126e",
+      "parent": "a2fa1ce774990d2f2a86f0a71bae7f5fab2b331d",
+      "tree": "96878ef5f8e930765aa089876699fb36fcacee62",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Repair private browser smoke marker propagation"
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "implementationPaths": [
@@ -1107,6 +1115,25 @@
         "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
         "sha256": "f4d9a20f952b088fa726f3d0d25e321448ad30dc13bb39b75285500b62237ee0"
       }
+    ],
+    "browserSmokeMarkerPropagationRepairPaths": [
+      "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+      "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+      "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
+    ],
+    "browserSmokeMarkerPropagationRepairEvidence": [
+      {
+        "path": "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+        "sha256": "69825fcdb68536d27396176e04a9f0ea22a125f2ca8b6b3333c9373a3c838c4d"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+        "sha256": "300e1a8569725ab1dc092ff4631e1069b3822f6d513365da78a0c16f42a7335d"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
+        "sha256": "8eb2b3fc853383e0c323721e959eafba0547a296965921093396ebf3f50d9a76"
+      }
     ]
   },
   "rootCause": {
@@ -1198,7 +1225,13 @@
     "browserManagedIconFailureClassification": "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED|CAUSE=QUALIFICATION_FAILED|DIMENSIONS=DESKTOP_CONSOLE_ERROR,DESKTOP_NETWORK_HTTP_FAILURE,MOBILE_CONSOLE_ERROR,MOBILE_NETWORK_HTTP_FAILURE|DETAILS=DESKTOP_LOG_NETWORK,DESKTOP_HTTP_OTHER_4XX_ICON,MOBILE_LOG_NETWORK,MOBILE_HTTP_OTHER_4XX_ICON",
     "browserManagedIconFailureRollbackVerified": true,
     "browserManagedIconCause": "The authenticated fixed smoke plan successfully fetched the exact production icon before Chromium independently requested the same manifest-managed icon as resource type Other. Chromium emitted one same-origin 4xx response and one correlated network log per viewport even though the exact asset and private Worker had already passed authenticated production verification.",
-    "browserManagedIconRepair": "The acceptance runner intercepts at most one exact same-origin, no-query /icons/prometheus.svg resource-type Other request per viewport, performs one authenticated read-only fetch of the real production asset with manual redirects and bounded response validation, and fulfills Chromium only with the verified real response bytes. Any alternate origin, path, query, type, duplicate, fetch failure, redirect, non-2xx response, wrong content type, oversized body, or unrelated browser error remains release-blocking."
+    "browserManagedIconRepair": "The acceptance runner intercepts at most one exact same-origin, no-query /icons/prometheus.svg resource-type Other request per viewport, performs one authenticated read-only fetch of the real production asset with manual redirects and bounded response validation, and fulfills Chromium only with the verified real response bytes. Any alternate origin, path, query, type, duplicate, fetch failure, redirect, non-2xx response, wrong content type, oversized body, or unrelated browser error remains release-blocking.",
+    "browserSmokeMarkerFailureDeploymentRun": "30514529814",
+    "browserSmokeMarkerFailureReachedProductionMutation": true,
+    "browserSmokeMarkerFailureClassification": "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED|CAUSE=QUALIFICATION_FAILED|DIMENSIONS=WORKER_IDENTITY,DESKTOP_CONSOLE_ERROR,DESKTOP_RUNTIME_EXCEPTION,DESKTOP_NETWORK_FAILURE,DESKTOP_NETWORK_HTTP_FAILURE,BROWSER_MANAGED_ICON_BRIDGE,MOBILE_CONSOLE_ERROR,MOBILE_NETWORK_FAILURE|DETAILS=DESKTOP_LOG_NETWORK,DESKTOP_HTTP_SCRIPT_4XX_OTHER,MOBILE_LOG_NETWORK",
+    "browserSmokeMarkerFailureRollbackVerified": true,
+    "browserSmokeMarkerCause": "The browser acceptance runner attached the governed read-only smoke marker only to the root document request. Same-origin module, manifest, and browser-managed icon requests carried the Access service-principal headers but omitted the server-required marker, so the private Worker rejected protected resources before the Dashboard could render.",
+    "browserSmokeMarkerRepair": "Every authenticated same-origin browser read request now receives exactly one governed read-only smoke marker together with the service-principal headers. The runner still blocks writes, external origins, service-worker persistence, malformed responses, and every unrelated browser error; fixed path classifications identify application modules without exposing URLs or credential values."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
