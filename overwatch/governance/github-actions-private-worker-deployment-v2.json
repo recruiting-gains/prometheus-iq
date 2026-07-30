@@ -184,6 +184,14 @@
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Repair private browser acceptance evidence"
     },
+    "implementationServiceWorkerGuardRepairCommit": {
+      "commit": "4d5b201dabf6e458633eec7500363fd28f4ac4e5",
+      "parent": "952e2ee7c016b255451d564af5d12dd2f42f1db5",
+      "tree": "ab7a82bd64232c275860a0d0540b4992538364b9",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Guard exact service worker acceptance request"
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "implementationPaths": [
@@ -1003,6 +1011,20 @@
       {
         "path": "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
         "sha256": "99ff838b3430e1160cf40e06f38cd18c9caf65936e90a8792b4f0fac1356d843"
+      }
+    ],
+    "serviceWorkerGuardRepairPaths": [
+      "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+      "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs"
+    ],
+    "serviceWorkerGuardRepairEvidence": [
+      {
+        "path": "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+        "sha256": "85cdf335cc0618d8bc34758799333817fa884ab0e952e42d8a8732047be963bb"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+        "sha256": "318468b12e0c01106e6726f58db0b4447a3c5ea39e72024fbfdc49cb5ecf3060"
       }
     ]
   },
