@@ -15,6 +15,7 @@ import {
   isGuardedRouteIqServiceWorkerRequest,
   isRouteIqPrivateBrowserManagedIconRequest,
   reconcileRouteIqPrivateBrowserNetworkEvents,
+  routeIqPrivateBrowserAuthenticatedRequestHeaders,
   routeIqPrivateBrowserGuardScript,
   runRouteIqPrivateProductionBrowserAcceptance
 } from "../scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs";
@@ -101,6 +102,12 @@ test("browser contract fixes exact desktop/mobile, no-write, and isolation bound
   assert.deepEqual(contract.network.allowedMethods, ["GET", "HEAD", "OPTIONS"]);
   assert.equal(contract.network.writeAttemptsRequired, 0);
   assert.equal(contract.network.serviceWorkerPersistenceAllowed, false);
+  assert.deepEqual(contract.network.sameOriginAuthenticatedRequests, {
+    servicePrincipalHeadersRequired: true,
+    governedReadOnlyMarkerRequiredOnEveryRequest: true,
+    documentOnlyMarkerAllowed: false,
+    unmarkedPrivilegedRequestAllowed: false
+  });
   assert.deepEqual(contract.network.browserManagedIconAuthenticatedResourceBridge, {
     exactOrigin: "https://prometheus-iq.prometheusrouteiq.workers.dev",
     exactPath: "/icons/prometheus.svg",
@@ -112,6 +119,7 @@ test("browser contract fixes exact desktop/mobile, no-write, and isolation bound
     acceptedContentType: "image/svg+xml",
     maximumResponseBytes: 16384,
     maximumAttemptsPerViewport: 1,
+    governedReadOnlyMarkerRequired: true,
     retryAllowed: false,
     syntheticBodyAllowed: false,
     credentialLoggingAllowed: false,
@@ -293,6 +301,39 @@ test("browser-managed icon bridge matches only the exact same-origin Other reque
   }
 });
 
+test("every authenticated same-origin browser request carries the governed read-only marker", () => {
+  const credentials = {
+    clientId: "client-id-canary",
+    clientSecret: "client-secret-canary"
+  };
+  for (const resourceType of ["Document", "Script", "Manifest", "Other"]) {
+    const sourceHeaders = {
+      "X-Resource-Type": resourceType,
+      "X-Prometheus-Unattended-Smoke": "spoofed-marker"
+    };
+    sourceHeaders[["CF-Access", "Client-Id"].join("-")] = "spoofed-client-id";
+    sourceHeaders[["CF-Access", "Client-Secret"].join("-")] = "spoofed-client-secret";
+    const headers = routeIqPrivateBrowserAuthenticatedRequestHeaders(
+      sourceHeaders,
+      credentials
+    );
+    const byName = new Map(headers.map(header => [
+      header.name.toLowerCase(),
+      header.value
+    ]));
+    assert.equal(byName.get("cf-access-client-id"), credentials.clientId);
+    assert.equal(byName.get("cf-access-client-secret"), credentials.clientSecret);
+    assert.equal(
+      byName.get("x-prometheus-unattended-smoke"),
+      "service-principal-read-only-v1"
+    );
+    assert.equal(byName.get("x-resource-type"), resourceType);
+    assert.equal(headers.filter(header =>
+      header.name.toLowerCase() === "x-prometheus-unattended-smoke"
+    ).length, 1);
+  }
+});
+
 test("browser-managed icon bridge fetches one authenticated real SVG without retry or leakage", async () => {
   const credentialCanaries = {
     clientId: "client-id-canary",
@@ -334,6 +375,10 @@ test("browser-managed icon bridge fetches one authenticated real SVG without ret
   assert.equal(
     calls[0].options.headers.get(["CF-Access", "Client-Secret"].join("-")),
     credentialCanaries.clientSecret
+  );
+  assert.equal(
+    calls[0].options.headers.get("X-Prometheus-Unattended-Smoke"),
+    "service-principal-read-only-v1"
   );
   assert.equal(result.responseCode, 200);
   assert.equal(result.body, Buffer.from(bodyBytes).toString("base64"));
@@ -537,6 +582,9 @@ test("HTTP diagnostics disclose only fixed same-origin path classes", () => {
     ["/manifest.webmanifest", "MANIFEST"],
     ["/icons/prometheus.svg", "ICON"],
     ["/dashboard/runtime.mjs", "APP_ASSET"],
+    ["/administration/contracts/runtime.mjs", "APP_ASSET"],
+    ["/intelligence/route-business-hours-eligibility.mjs", "APP_ASSET"],
+    ["/scripts/lib/business-hours-governance.mjs", "APP_ASSET"],
     ["/assets/runtime.js", "APP_ASSET"],
     ["/static/runtime.css", "APP_ASSET"],
     ["/api/route-iq", "API"],

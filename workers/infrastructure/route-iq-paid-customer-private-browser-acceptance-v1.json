@@ -32,6 +32,12 @@
     "serviceWorkerBypassRequired": true,
     "serviceWorkerPersistenceAllowed": false,
     "sameOriginHttp4xxOr5xxAllowed": false,
+    "sameOriginAuthenticatedRequests": {
+      "servicePrincipalHeadersRequired": true,
+      "governedReadOnlyMarkerRequiredOnEveryRequest": true,
+      "documentOnlyMarkerAllowed": false,
+      "unmarkedPrivilegedRequestAllowed": false
+    },
     "guardedServiceWorkerNetworkLogAcceptance": {
       "source": "network",
       "exactPath": "/sw.js",
@@ -51,6 +57,7 @@
       "acceptedContentType": "image/svg+xml",
       "maximumResponseBytes": 16384,
       "maximumAttemptsPerViewport": 1,
+      "governedReadOnlyMarkerRequired": true,
       "retryAllowed": false,
       "syntheticBodyAllowed": false,
       "credentialLoggingAllowed": false,

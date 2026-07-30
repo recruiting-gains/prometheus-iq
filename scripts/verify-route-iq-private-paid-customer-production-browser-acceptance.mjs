@@ -362,7 +362,7 @@ async function evaluate(client, sessionId, expression) {
   return result.result?.value;
 }
 
-function headersWithCredentials(headers, credentials, { marker = false } = {}) {
+export function routeIqPrivateBrowserAuthenticatedRequestHeaders(headers, credentials) {
   const denied = new Set([
     "cf-access-client-id",
     "cf-access-client-secret",
@@ -376,14 +376,12 @@ function headersWithCredentials(headers, credentials, { marker = false } = {}) {
   );
   sanitized.push(
     { name: "CF-Access-Client-Id", value: credentials.clientId },
-    { name: "CF-Access-Client-Secret", value: credentials.clientSecret }
-  );
-  if (marker) {
-    sanitized.push({
+    { name: "CF-Access-Client-Secret", value: credentials.clientSecret },
+    {
       name: CLOUDFLARE_UNATTENDED_SMOKE_MARKER.requestHeader,
       value: CLOUDFLARE_UNATTENDED_SMOKE_MARKER.requestValue
-    });
-  }
+    }
+  );
   return sanitized;
 }
 
@@ -464,6 +462,9 @@ export function classifyRouteIqPrivateBrowserHttpPath(url) {
   if (path === "/manifest.webmanifest" || path === "/manifest.json") return "MANIFEST";
   if (path.startsWith("/icons/")) return "ICON";
   if (path.startsWith("/dashboard/")
+    || path.startsWith("/administration/")
+    || path.startsWith("/intelligence/")
+    || path.startsWith("/scripts/")
     || path.startsWith("/assets/")
     || path.startsWith("/static/")) return "APP_ASSET";
   if (path === "/api" || path.startsWith("/api/")) return "API";
@@ -547,6 +548,10 @@ export async function fetchRouteIqPrivateBrowserManagedIcon({
     const headers = new Headers();
     headers.set(["CF-Access", "Client-Id"].join("-"), credentials.clientId);
     headers.set(["CF-Access", "Client-Secret"].join("-"), credentials.clientSecret);
+    headers.set(
+      CLOUDFLARE_UNATTENDED_SMOKE_MARKER.requestHeader,
+      CLOUDFLARE_UNATTENDED_SMOKE_MARKER.requestValue
+    );
     response = await fetchImpl(GUARDED_BROWSER_MANAGED_ICON_URL, {
       method: "GET",
       headers,
@@ -931,10 +936,12 @@ async function runViewportScenario({
           return;
         }
         if (url.origin === CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN) {
-          const marker = params.resourceType === "Document" && url.pathname === "/";
           await client.send("Fetch.continueRequest", {
             requestId: params.requestId,
-            headers: headersWithCredentials(params.request.headers, credentials, { marker })
+            headers: routeIqPrivateBrowserAuthenticatedRequestHeaders(
+              params.request.headers,
+              credentials
+            )
           }, eventSessionId);
           return;
         }
