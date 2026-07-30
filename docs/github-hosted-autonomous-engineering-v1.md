@@ -82,8 +82,8 @@ This workflow is not a self-modifying agent. It cannot commit, push, dispatch
 itself, call another workflow, or edit source. More than one in-run transient
 recovery is prohibited; exactly one fresh-runner recovery is available.
 Owner-produced source history may declare Infrastructure repair attempt `0`
-through `5`, and remains limited to
-nine commits, sixteen changed files, 6,000 changed lines, 524,288 patch bytes,
+through `6`, and remains limited to
+eleven commits, sixteen changed files, 6,000 changed lines, 524,288 patch bytes,
 and 524,288 resulting file bytes across the exact Infrastructure and Overwatch
 feature paths recorded in the contract. Binary diffs, symlinks, renames,
 deletions, non-regular Git modes, and mode changes are rejected. Workflow
@@ -95,7 +95,7 @@ There must be at least one Overwatch commit and the final successor commit must
 be Overwatch-owned. The declared repair attempt is exactly the number of
 Infrastructure commits minus one. This allows existing Infrastructure and
 Overwatch commits to remain in their recorded order while bounding the final
-nine-commit chain. Author and committer strings are provenance labels, not
+eleven-commit chain. Author and committer strings are provenance labels, not
 authorization by themselves; authorization is the exact commit, exact tree,
 Founder actor and triggering actor, exact `main` branch, and exact workflow
 context.
@@ -113,6 +113,16 @@ uploaded, and the selector passed, but GitHub skipped the five remaining jobs
 because the optional recovery was skipped. No production job started and no
 production secret or Worker was accessed. That qualification-only artifact is
 audit evidence, not a deployable successor for a later commit.
+
+Hosted run `30579529085` then proved that the downstream rollback-demonstration
+job executes after the optional recovery is skipped and that artifact
+`8774247708` passes independent verification. The demonstration stopped before
+Wrangler started because the autonomous input names were passed directly to the
+accepted private-release helper, whose contract uses different names for the
+same exact commit and tree. No production credential was available and no
+production request or mutation occurred. The repair explicitly projects the
+validated autonomous identity into the private-release input contract, and a
+direct regression test exercises this real boundary without mocking it.
 
 One in-run recovery is available without another Founder interaction. It is a
 fresh GitHub-hosted runner executing the entire install, audit, repository
@@ -176,7 +186,7 @@ The Founder supplies:
 - exact candidate commit and tree from `main`
 - batch ID
 - exact current public and private Worker versions
-- repair attempt number from 0 through 5
+- repair attempt number from 0 through 6
 - `I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT`
 
 No artifact hash is copied by the Founder. The single workflow creates,

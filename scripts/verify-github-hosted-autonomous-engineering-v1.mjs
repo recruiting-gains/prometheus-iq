@@ -361,7 +361,34 @@ export function verifyGithubHostedAutonomousEngineeringV1() {
       "independent-acceptance"
     ],
     productionSecretsAccessed: false,
-    productionMutationPerformed: false
+    productionMutationPerformed: false,
+    rollbackDemonstrationFailure: {
+      runId: 30579529085,
+      artifactId: 8774247708,
+      artifactZipSha256:
+        "fdb9f1f8d4a127b6dd2049d54891bf2a1a6b5fe837061064d1babc2acc5f4cef",
+      artifactContentTreeSha256:
+        "bf9b5672c8e3240b5cd6f847ee748d7fabc3df0a28637c397f3bad5969d77ddb",
+      qualifiedManifestSha256:
+        "aba452673344c19e0389db9b6131d980d7a4acb430e0500857351032c0f81d88",
+      forwardPayloadSha256:
+        "3bb6d677c4ad6b6811ba1efc1c643abd7728c584707a26dcef26c887f2718328",
+      deploymentAssetsSha256:
+        "225a1e09cdf74570211070a704700eb4c720e563164dfb8b0988d11e5bbb5769",
+      workflowContractSha256:
+        "a905d83aec0511ee8b8faa2859e7f8147ee9f13b5cc1214ef233e5179365263d",
+      rollbackContractSha256:
+        "85d7cb58c1502961d691c60fc0e9f35ecd9bc3aa8f6914fd739c2a32e8c36134",
+      rollbackBundleSha256:
+        "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637",
+      autonomousContractSha256:
+        "72956bab27f205f58f93351efcbc6b53a97d6f753429df0fa36a9c392950cb09",
+      artifactVerificationPassed: true,
+      failureClassification: "AUTONOMOUS_TO_PRIVATE_INPUT_SHAPE_MISMATCH",
+      wranglerProcessStarted: false,
+      productionSecretsAccessed: false,
+      productionMutationPerformed: false
+    }
   });
 
   assertSecretSeparation(workflow);
@@ -455,8 +482,8 @@ export function verifyGithubHostedAutonomousEngineeringV1() {
   assert.equal(contract.boundedRepair.maximumChangedPatchBytes, 524288);
   assert.equal(contract.boundedRepair.maximumChangedFileBytes, 524288);
   assert.equal(contract.boundedRepair.maximumInRunTransientRecoveryAttempts, 1);
-  assert.equal(contract.boundedRepair.maximumRepairAttempts, 5);
-  assert.equal(contract.boundedRepair.maximumSuccessorCommits, 9);
+  assert.equal(contract.boundedRepair.maximumRepairAttempts, 6);
+  assert.equal(contract.boundedRepair.maximumSuccessorCommits, 11);
   assert.equal(
     contract.boundedRepair.commitTopology
       .repairAttemptEqualsInfrastructureCommitCountMinusOne,
@@ -469,6 +496,18 @@ export function verifyGithubHostedAutonomousEngineeringV1() {
   assert.equal(contract.boundedRepair.maximumWorkflowRecursionDepth, 0);
   assert.equal(contract.boundedRepair.automaticSourceEditsAllowed, false);
   assert.equal(contract.boundedRepair.isolatedRetryMayEstablishAcceptance, false);
+  assert.match(
+    workflow,
+    /repair attempt \(0, 1, 2, 3, 4, 5, or 6\)/u
+  );
+  assert.match(
+    library,
+    /approvedCommit:\s*inputs\.candidateCommit[\s\S]*approvedTree:\s*inputs\.candidateTree/u
+  );
+  assert.doesNotMatch(
+    library,
+    /buildQualifiedPrivateWranglerInvocation\(\s*"rollback",\s*inputs,/u
+  );
   assert.equal(
     contract.qualification.artifactMetadataGithubTokenScope,
     "metadata_verification_steps_only"

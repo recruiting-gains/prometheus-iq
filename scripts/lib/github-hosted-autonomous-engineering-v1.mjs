@@ -81,12 +81,12 @@ export const AUTONOMOUS_ENGINEERING_V1_POLICY = Object.freeze({
   nodeVersion: "24.4.1",
   protectedEnvironment: "prometheus-private-worker-production",
   artifactRetentionDays: 30,
-  maximumRepairAttempts: 5,
+  maximumRepairAttempts: 6,
   maximumChangedFiles: 16,
   maximumChangedLines: 6000,
   maximumChangedPatchBytes: 524288,
   maximumChangedFileBytes: 524288,
-  maximumSuccessorCommits: 9,
+  maximumSuccessorCommits: 11,
   maximumWorkflowRecursionDepth: 0,
   maximumInRunTransientRecoveryAttempts: 1,
   maximumWallClockMinutes: 210,
@@ -136,7 +136,7 @@ const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 const BATCH_ID = /^BATCH-[0-9]{8}-[0-9]{3}$/u;
 const POSITIVE_INTEGER = /^[1-9][0-9]{0,15}$/u;
-const REPAIR_ATTEMPT = /^[0-5]$/u;
+const REPAIR_ATTEMPT = /^[0-6]$/u;
 const MAX_EVIDENCE_BYTES = 1024 * 1024;
 const AUTONOMOUS_INPUT_NAMES = Object.freeze([
   "candidate_commit",
@@ -1315,8 +1315,19 @@ export function runCredentialFreeRollbackDryRun({
       scratchDirectory,
       wranglerOutdirs
     });
+    const privateWorkflowInputs = Object.freeze({
+      approvedCommit: inputs.candidateCommit,
+      approvedTree: inputs.candidateTree,
+      batchId: inputs.batchId,
+      currentPublicVersion: inputs.currentPublicVersion,
+      currentPrivateVersion: inputs.currentPrivateVersion
+    });
     const invocation = [
-      ...buildQualifiedPrivateWranglerInvocation("rollback", inputs, release)
+      ...buildQualifiedPrivateWranglerInvocation(
+        "rollback",
+        privateWorkflowInputs,
+        release
+      )
     ];
     invocation.splice(2, 0, "--dry-run");
     if (invocation.filter(value => value === "--dry-run").length !== 1

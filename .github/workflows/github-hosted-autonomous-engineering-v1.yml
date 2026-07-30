@@ -24,7 +24,7 @@ on:
         required: true
         type: string
       repair_attempt:
-        description: Bounded Infrastructure repair attempt (0, 1, 2, 3, 4, or 5)
+        description: Bounded Infrastructure repair attempt (0, 1, 2, 3, 4, 5, or 6)
         required: true
         type: string
         default: "0"

@@ -25,6 +25,7 @@ import {
   demonstrateControlledRollbackLifecycle,
   runAutonomousDeployment,
   runAutonomousFullSuite,
+  runCredentialFreeRollbackDryRun,
   selectAutonomousQualification,
   validateAutonomousArtifactRunContext,
   validateAutonomousArtifactEvidence,
@@ -57,7 +58,7 @@ function contextEnvironment(overrides = {}) {
     batch_id: "BATCH-20260730-001",
     current_public_version: publicVersion,
     current_private_version: privateVersion,
-    repair_attempt: "5",
+    repair_attempt: "6",
     founder_authorization:
       AUTONOMOUS_ENGINEERING_V1_POLICY.founderAuthorization
   };
@@ -239,7 +240,7 @@ function productionEvidenceFixture({
     writeAttempts: 0,
     maximumRepairAttempts:
       AUTONOMOUS_ENGINEERING_V1_POLICY.maximumRepairAttempts,
-    actualRepairAttempt: 5,
+    actualRepairAttempt: 6,
     maximumInRunTransientRecoveryAttempts:
       AUTONOMOUS_ENGINEERING_V1_POLICY.maximumInRunTransientRecoveryAttempts,
     actualInRunTransientRecoveryAttempts: 0, selectedQualification: "PRIMARY",
@@ -468,6 +469,64 @@ test("source, test, and unclassified setup failures stop without retry eligibili
   }
 });
 
+test("rollback dry run projects autonomous identity into the private release contract", () => {
+  const directory = mkdtempSync(join(tmpdir(), "autonomous-rollback-inputs-"));
+  const forwardDirectory = join(directory, "forward");
+  const rollbackDirectory = join(directory, "rollback");
+  const invocations = [];
+  mkdirSync(forwardDirectory);
+  mkdirSync(rollbackDirectory);
+  try {
+    assert.deepEqual(
+      runCredentialFreeRollbackDryRun({
+        root,
+        inputs: {
+          candidateCommit: commit,
+          candidateTree: tree,
+          batchId: "BATCH-20260730-001",
+          currentPublicVersion: publicVersion,
+          currentPrivateVersion: privateVersion
+        },
+        verifiedRelease: { forwardDirectory, rollbackDirectory },
+        temporaryRoot: directory,
+        spawnImpl(command, argumentsList, options) {
+          invocations.push({ command, argumentsList, options });
+          return {
+            status: 0,
+            stdout: Buffer.alloc(0),
+            stderr: Buffer.alloc(0)
+          };
+        }
+      }),
+      {
+        status: "CREDENTIAL_FREE_ROLLBACK_DRY_RUN_PASSED",
+        cloudflareRequests: 0,
+        productionMutations: 0
+      }
+    );
+    assert.equal(invocations.length, 1);
+    assert.equal(invocations[0].command, process.execPath);
+    assert.equal(invocations[0].argumentsList.includes("--dry-run"), true);
+    assert.equal(invocations[0].argumentsList.includes("undefined"), false);
+    assert.equal(
+      invocations[0].argumentsList[
+        invocations[0].argumentsList.indexOf("--message") + 1
+      ],
+      `BATCH-20260730-001 verified-forward-rollback ${commit}`
+    );
+    assert.equal(
+      invocations[0].argumentsList[
+        invocations[0].argumentsList.indexOf("--tag") + 1
+      ],
+      `prometheus-batch-20260730-001-rollback-${commit.slice(0, 8)}`
+    );
+    assert.equal("CLOUDFLARE_API_TOKEN" in invocations[0].options.env, false);
+    assert.equal("CLOUDFLARE_ACCOUNT_ID" in invocations[0].options.env, false);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test("selector propagates exactly one primary or one recovery artifact", () => {
   for (const recovery of [false, true]) {
     const output = temporaryOutput(contextEnvironment({
@@ -593,20 +652,22 @@ test("repair attempt is bound to the mixed owner commit topology", () => {
     "INFRASTRUCTURE",
     "OVERWATCH",
     "INFRASTRUCTURE",
+    "OVERWATCH",
+    "INFRASTRUCTURE",
     "OVERWATCH"
   ];
   assert.deepEqual(
-    validateAutonomousCommitTopology(finalOwners, 5),
+    validateAutonomousCommitTopology(finalOwners, 6),
     {
-      infrastructureCommitCount: 6,
-      overwatchCommitCount: 3,
-      successorCommitCount: 9,
-      repairAttempt: 5
+      infrastructureCommitCount: 7,
+      overwatchCommitCount: 4,
+      successorCommitCount: 11,
+      repairAttempt: 6
     }
   );
   for (const [owners, repairAttempt] of [
-    [finalOwners, 4],
-    [[...finalOwners, "OVERWATCH"], 5],
+    [finalOwners, 5],
+    [[...finalOwners, "OVERWATCH"], 6],
     [[
       "INFRASTRUCTURE",
       "INFRASTRUCTURE",
@@ -615,8 +676,9 @@ test("repair attempt is bound to the mixed owner commit topology", () => {
       "INFRASTRUCTURE",
       "INFRASTRUCTURE",
       "INFRASTRUCTURE",
+      "INFRASTRUCTURE",
       "OVERWATCH"
-    ], 6],
+    ], 7],
     [["INFRASTRUCTURE", "INFRASTRUCTURE"], 1],
     [["OVERWATCH", "INFRASTRUCTURE"], 0],
     [["INFRASTRUCTURE", "UNKNOWN", "OVERWATCH"], 0]
