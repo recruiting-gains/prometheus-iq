@@ -17,9 +17,11 @@ import {
   CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS,
   CLOUDFLARE_UNATTENDED_SMOKE_ENV,
   CLOUDFLARE_UNATTENDED_SMOKE_MARKER,
-  CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN
+  CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN,
+  CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION
 } from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 import {
+  CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION,
   fixedCloudflareUnattendedSmokePlan
 } from "./run-cloudflare-unattended-smoke.mjs";
 
@@ -82,6 +84,20 @@ export function verifyCloudflareUnattendedRuntimeGuard() {
   assert.match(guard, /algorithms: \["RS256"\]/u);
   assert.match(guard, /payload\.sub !== ""/u);
   assert.match(guard, /payload\.common_name !== configuration\.serviceTokenClientId/u);
+  assert.match(
+    guard,
+    /CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION\.jwksTimeoutMilliseconds/u
+  );
+  assert.equal(
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds,
+    CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION.jwksTimeoutMilliseconds
+      + CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION.responseSafetyMarginMilliseconds
+  );
+  assert.ok(
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds
+      > CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds
+        * fixedCloudflareUnattendedSmokePlan().length
+  );
 
   assert.equal(contract.defaultDenySmokeClient.productionOrigin, CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN);
   assert.equal(contract.defaultDenySmokeClient.arbitraryUrlAllowed, false);

@@ -3,6 +3,7 @@ import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose";
 import {
   CLOUDFLARE_UNATTENDED_SMOKE_ENV,
   CLOUDFLARE_UNATTENDED_SMOKE_MARKER,
+  CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION,
   CLOUDFLARE_UNATTENDED_SMOKE_VERSION,
   cloudflareUnattendedSmokeContractVersion,
   isCloudflareUnattendedSmokeRequestAllowed
@@ -61,7 +62,8 @@ function remoteJwksFor(issuer) {
   if (cachedJwksUrl !== url || !cachedRemoteJwks) {
     cachedJwksUrl = url;
     cachedRemoteJwks = createRemoteJWKSet(new URL(url), {
-      timeoutDuration: 5000,
+      timeoutDuration:
+        CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION.jwksTimeoutMilliseconds,
       cooldownDuration: 30000
     });
   }

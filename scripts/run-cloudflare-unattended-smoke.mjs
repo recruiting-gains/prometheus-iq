@@ -6,6 +6,7 @@ import {
   CLOUDFLARE_UNATTENDED_SMOKE_FIXED_REQUESTS,
   CLOUDFLARE_UNATTENDED_SMOKE_MARKER,
   CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN,
+  CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION,
   CLOUDFLARE_UNATTENDED_SMOKE_VERSION,
   isCloudflareUnattendedSmokeRequestAllowed
 } from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
@@ -33,8 +34,10 @@ export const CLOUDFLARE_UNATTENDED_SMOKE_MARKER_POLICY = Object.freeze({
 
 export const CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION = Object.freeze({
   delayMilliseconds: 1_500,
-  requestTimeoutMilliseconds: 2_500,
-  maximumWaitMilliseconds: 46_500
+  requestTimeoutMilliseconds:
+    CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION.jwksTimeoutMilliseconds
+    + CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION.responseSafetyMarginMilliseconds,
+  maximumWaitMilliseconds: 135_000
 });
 
 export const CLOUDFLARE_UNATTENDED_SMOKE_PROBE = Object.freeze({

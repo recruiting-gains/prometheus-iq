@@ -30,6 +30,7 @@ import {
   CLOUDFLARE_UNATTENDED_SMOKE_ENV,
   CLOUDFLARE_UNATTENDED_SMOKE_MARKER,
   CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN,
+  CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION,
   CLOUDFLARE_UNATTENDED_SMOKE_VERSION,
   isCloudflareUnattendedSmokeRequestAllowed
 } from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
@@ -71,6 +72,23 @@ const publicJwk = await exportJWK(signingKeys.publicKey);
 publicJwk.kid = "smoke-test-key";
 publicJwk.alg = "RS256";
 const keyResolver = createLocalJWKSet({ keys: [publicJwk] });
+
+test("smoke transport timeout exceeds the bounded server-side JWKS verification lifecycle", () => {
+  assert.equal(
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds,
+    CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION.jwksTimeoutMilliseconds
+      + CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION.responseSafetyMarginMilliseconds
+  );
+  assert.ok(
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds
+      > CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION.jwksTimeoutMilliseconds
+  );
+  assert.ok(
+    CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds
+      > CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds
+        * fixedCloudflareUnattendedSmokePlan().length
+  );
+});
 
 function createMonotonicClock(initial = 0) {
   let current = initial;

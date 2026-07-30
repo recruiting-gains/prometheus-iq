@@ -16,6 +16,11 @@ export const CLOUDFLARE_UNATTENDED_SMOKE_VERSION = Object.freeze({
   responseHeader: "X-Prometheus-Private-Worker-Version"
 });
 
+export const CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION = Object.freeze({
+  jwksTimeoutMilliseconds: 5_000,
+  responseSafetyMarginMilliseconds: 3_000
+});
+
 export const CLOUDFLARE_UNATTENDED_SMOKE_ENV = Object.freeze({
   enabled: "PROMETHEUS_UNATTENDED_SMOKE_GUARD",
   teamDomain: "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",

@@ -22,6 +22,7 @@ import {
   fixedCloudflareUnattendedSmokePlan
 } from "./run-cloudflare-unattended-smoke.mjs";
 import {
+  CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION,
   CLOUDFLARE_UNATTENDED_SMOKE_VERSION
 } from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 import {
@@ -318,10 +319,10 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     true
   );
   assert.equal(contract.smoke.postDeployment.exactGuardResponseMarkerRequired, true);
-  assert.equal(contract.smoke.postDeployment.latestFailedRun, "30487336591");
+  assert.equal(contract.smoke.postDeployment.latestFailedRun, "30519465645");
   assert.equal(
     contract.smoke.postDeployment.latestFailureClassification,
-    "SMOKE_FAILURE|DIMENSION=RELEASE_IDENTITY_MISMATCH|PROBE=ROOT_GET"
+    "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=BUSINESS_HOURS_GET"
   );
   assert.equal(contract.smoke.postDeployment.latestFailureForwardRollbackVerified, true);
   assert.match(
@@ -348,6 +349,10 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     monotonicElapsedDeadline: true,
     attemptLimitControlsAcceptance: false,
     delayMilliseconds: CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.delayMilliseconds,
+    serverJwksTimeoutMilliseconds:
+      CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION.jwksTimeoutMilliseconds,
+    responseSafetyMarginMilliseconds:
+      CLOUDFLARE_UNATTENDED_SMOKE_SERVER_VERIFICATION.responseSafetyMarginMilliseconds,
     requestTimeoutMilliseconds:
       CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds,
     maximumWaitMilliseconds:
@@ -367,6 +372,7 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.ok(
     CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds
       > CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds
+        * fixedCloudflareUnattendedSmokePlan().length
   );
   assert.equal(contract.smoke.crmSubmissionAllowed, false);
   assert.deepEqual(contract.browserAcceptance, {
