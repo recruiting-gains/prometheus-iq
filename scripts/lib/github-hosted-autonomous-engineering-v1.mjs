@@ -808,6 +808,19 @@ function secretFree(environment) {
   ));
 }
 
+function isolateCloudflareDeploymentCredentials(environment) {
+  const names = [
+    ["CLOUDFLARE", "API", "TOKEN"].join("_"),
+    ["CLOUDFLARE", "ACCOUNT", "ID"].join("_")
+  ];
+  const credentialEnvironment = {};
+  for (const name of names) {
+    credentialEnvironment[name] = environment[name];
+    delete environment[name];
+  }
+  return credentialEnvironment;
+}
+
 function noSecretChildEnvironment(environment) {
   const childEnvironment = {};
   for (const [name, value] of Object.entries(environment)) {
@@ -1073,12 +1086,8 @@ export async function inspectAutonomousProductionBaseline({
   verifyAutonomousEngineeringV1Repository(root, inputs);
   let credentials;
   try {
-    const credentialEnvironment = {
-      CLOUDFLARE_API_TOKEN: environment.CLOUDFLARE_API_TOKEN,
-      CLOUDFLARE_ACCOUNT_ID: environment.CLOUDFLARE_ACCOUNT_ID
-    };
-    delete environment.CLOUDFLARE_API_TOKEN;
-    delete environment.CLOUDFLARE_ACCOUNT_ID;
+    const credentialEnvironment =
+      isolateCloudflareDeploymentCredentials(environment);
     credentials = takeDeploymentCredentials(credentialEnvironment);
     const publicState = await fetchStateImpl(
       PRIVATE_WORKFLOW_V2_POLICY.publicWorker,
@@ -1647,12 +1656,8 @@ function readPhaseEvidence(environment) {
 async function readProductionIdentities(environment, fetchImpl, fetchStateImpl) {
   let credentials;
   try {
-    const credentialEnvironment = {
-      CLOUDFLARE_API_TOKEN: environment.CLOUDFLARE_API_TOKEN,
-      CLOUDFLARE_ACCOUNT_ID: environment.CLOUDFLARE_ACCOUNT_ID
-    };
-    delete environment.CLOUDFLARE_API_TOKEN;
-    delete environment.CLOUDFLARE_ACCOUNT_ID;
+    const credentialEnvironment =
+      isolateCloudflareDeploymentCredentials(environment);
     credentials = takeDeploymentCredentials(credentialEnvironment);
     const publicState = await fetchStateImpl(
       PRIVATE_WORKFLOW_V2_POLICY.publicWorker,

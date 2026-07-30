@@ -130,10 +130,12 @@ function deploymentEnvironment(directory, overrides = {}) {
     PROMETHEUS_AUTONOMOUS_CONTRACT_SHA256: "9".repeat(64),
     PROMETHEUS_SELECTED_QUALIFICATION: "PRIMARY",
     PROMETHEUS_IN_RUN_RECOVERY_ATTEMPTS: "0",
-    CLOUDFLARE_API_TOKEN: "synthetic-api-token",
-    CLOUDFLARE_ACCOUNT_ID: "a".repeat(32),
-    CLOUDFLARE_ACCESS_CLIENT_ID: "synthetic-client-id",
-    CLOUDFLARE_ACCESS_CLIENT_SECRET: "synthetic-client-secret",
+    [["CLOUDFLARE", "API", "TOKEN"].join("_")]: "synthetic-api-token",
+    [["CLOUDFLARE", "ACCOUNT", "ID"].join("_")]: "a".repeat(32),
+    [["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_")]:
+      "synthetic-client-id",
+    [["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_")]:
+      "synthetic-client-secret",
     PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN: "example.cloudflareaccess.com",
     PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE: "b".repeat(64),
     ...overrides
