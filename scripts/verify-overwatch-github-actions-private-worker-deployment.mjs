@@ -157,6 +157,12 @@ const v2SmokeReleaseContinuityParent =
   "a7822e6535892ee4b51c483089f9f045c3185724";
 const v2SmokeReleaseContinuityTree =
   "e8ff800cb3b9892c9a20d1aec800260184bf5c81";
+const v2BrowserVersionStabilityRepairCommit =
+  "296d1ff559bfe0f916632ea59d4e702289c87065";
+const v2BrowserVersionStabilityRepairParent =
+  "873aeaa152c19cb5fea98f795f203e3de13c6d49";
+const v2BrowserVersionStabilityRepairTree =
+  "69ce9ad6816f4bee97b8c49cadf17b296a798a03";
 const v2IntelligenceSmokeTimeoutSynchronizationCommit =
   "039116040678a3cbae8016a34f17e30e674715f6";
 const v2IntelligenceSmokeTimeoutSynchronizationParent =
@@ -588,6 +594,19 @@ const v2SmokeReleaseContinuityHashes = Object.freeze({
     "0d9df51b67972a45afc21b29e3eb64426fe7c47d93105295979f5fe68153a197",
   "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json":
     "85d7cb58c1502961d691c60fc0e9f35ecd9bc3aa8f6914fd739c2a32e8c36134"
+});
+
+const v2BrowserVersionStabilityRepairHashes = Object.freeze({
+  "scripts/verify-github-actions-private-worker-workflow-v2.mjs":
+    "9d1ff5d1ed15b4f2d73e229ea8865a4c7ef5ce95ae4dc8d9f2bfad5d2163408c",
+  "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs":
+    "ff6ebab20c16a45b5eb8f31e9aeb5379eaa594dfb3fee1b2c4b358301c711c1d",
+  "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs":
+    "83f9d86679bb8f95de8a2f1ca1993db19a6787b295c2caf9ba974766ba866105",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "c46602f5afbdb334b15f9867d240b4acfb2c2d28829115319f5c585c314cb5b0",
+  "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json":
+    "fb04be3588ac0437ef968f395777e3d8cd15662cd1bd421905b0f0ef561d6095"
 });
 
 const v2IntelligenceSmokeTimeoutSynchronizationHashes = Object.freeze({
@@ -1191,7 +1210,7 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(governance?.governanceId ===
     "github-actions-private-worker-deployment-governance-v2",
   "Private Workflow v2 governance identity drifted.");
-  require(governance?.version === "1.13.0"
+  require(governance?.version === "1.14.0"
     && governance?.status ===
     "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED"
     && governance?.owningSubsystem === "Prometheus Overwatch",
@@ -1447,6 +1466,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       infrastructureIdentity
     && governance?.ownership?.implementationSmokeReleaseContinuityCommit?.committer ===
       infrastructureIdentity
+    && governance?.ownership?.implementationBrowserVersionStabilityRepairCommit?.commit ===
+      v2BrowserVersionStabilityRepairCommit
+    && governance?.ownership?.implementationBrowserVersionStabilityRepairCommit?.parent ===
+      v2BrowserVersionStabilityRepairParent
+    && governance?.ownership?.implementationBrowserVersionStabilityRepairCommit?.tree ===
+      v2BrowserVersionStabilityRepairTree
+    && governance?.ownership?.implementationBrowserVersionStabilityRepairCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationBrowserVersionStabilityRepairCommit?.committer ===
+      infrastructureIdentity
     && governance?.ownership?.intelligenceSynchronizationOwner ===
       "Prometheus Intelligence Engine"
     && governance?.ownership?.intelligenceSmokeTimeoutSynchronizationCommit?.commit ===
@@ -1656,6 +1685,12 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.smokeReleaseContinuityEvidence,
     evidenceMap(v2SmokeReleaseContinuityHashes)),
   "Private Workflow v2 smoke release-continuity evidence drifted.");
+  require(equal(governance?.ownership?.browserVersionStabilityRepairPaths,
+    Object.keys(v2BrowserVersionStabilityRepairHashes)),
+  "Private Workflow v2 browser-version stability repair path set drifted.");
+  require(equal(governance?.ownership?.browserVersionStabilityRepairEvidence,
+    evidenceMap(v2BrowserVersionStabilityRepairHashes)),
+  "Private Workflow v2 browser-version stability repair evidence drifted.");
   require(equal(governance?.ownership?.intelligenceSmokeTimeoutSynchronizationPaths,
     Object.keys(v2IntelligenceSmokeTimeoutSynchronizationHashes)),
   "Private Workflow v2 Intelligence smoke-timeout synchronization path set drifted.");
@@ -1857,6 +1892,25 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     )
     && governance?.rootCause?.smokeTimeoutRepair?.includes(
       "135-second shared plan deadline"
+    )
+    && governance?.rootCause?.browserVersionStabilityFailureDeploymentRun ===
+      "30529066974"
+    && governance?.rootCause
+      ?.browserVersionStabilityFailureReachedProductionMutation === true
+    && governance?.rootCause?.browserVersionStabilityFailureClassification ===
+      "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED|CAUSE=QUALIFICATION_FAILED|DIMENSIONS=WORKER_IDENTITY,DESKTOP_CONSOLE_ERROR,WRITE_ATTEMPT|DETAILS=DESKTOP_LOG_NETWORK"
+    && governance?.rootCause?.browserVersionStabilityFailureRollbackVerified === true
+    && governance?.rootCause?.browserVersionStabilityCause?.includes(
+      "independent desktop browser context"
+    )
+    && governance?.rootCause?.browserVersionStabilityCause?.includes(
+      "qualified forward rollback"
+    )
+    && governance?.rootCause?.browserVersionStabilityRepair?.includes(
+      "three consecutive fresh script-disabled browser contexts"
+    )
+    && governance?.rootCause?.browserVersionStabilityRepair?.includes(
+      "application acceptance is never retried"
     ),
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
@@ -1955,7 +2009,20 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.smokeBoundary?.responseSafetyMarginMilliseconds === 3000
     && governance?.smokeBoundary?.requestTimeoutMilliseconds === 8000
     && governance?.smokeBoundary?.propagationMaximumWaitMilliseconds === 135000
-    && governance?.smokeBoundary?.unsafeResponseRetryAllowed === false,
+    && governance?.smokeBoundary?.unsafeResponseRetryAllowed === false
+    && governance?.smokeBoundary?.credentialsOmittedFromBrowserState === true
+    && governance?.smokeBoundary?.browserVersionStabilityRequired === true
+    && governance?.smokeBoundary?.browserVersionStabilityConsecutiveProbes === 3
+    && governance?.smokeBoundary?.browserVersionStabilityMaximumAttempts === 10
+    && governance?.smokeBoundary?.browserVersionStabilityDelayMilliseconds === 1500
+    && governance?.smokeBoundary?.browserVersionStabilityProbeTimeoutMilliseconds ===
+      15000
+    && governance?.smokeBoundary?.browserVersionStabilityFreshContextPerProbe === true
+    && governance?.smokeBoundary?.browserVersionStabilityJavaScriptDisabled === true
+    && governance?.smokeBoundary?.browserVersionStabilityHttpCacheDisabled === true
+    && governance?.smokeBoundary?.browserVersionStabilityServiceWorkerBypassed === true
+    && governance?.smokeBoundary?.browserVersionStabilityApplicationRetryAllowed ===
+      false,
   "Private Workflow v2 smoke boundary drifted.");
   require(governance?.runtimeBoundary?.prospectiveCollection === "OFF"
     && governance?.runtimeBoundary?.activeCohorts === 0
@@ -2599,6 +2666,15 @@ function verifyV2OwnerAndGovernance() {
       subject: "Regenerate private smoke release continuity",
       hashes: v2SmokeReleaseContinuityHashes,
       recorded: governance.ownership.smokeReleaseContinuityEvidence
+    },
+    {
+      label: "browser-version stability repair",
+      commit: v2BrowserVersionStabilityRepairCommit,
+      parent: v2BrowserVersionStabilityRepairParent,
+      tree: v2BrowserVersionStabilityRepairTree,
+      subject: "Stabilize private browser release acceptance",
+      hashes: v2BrowserVersionStabilityRepairHashes,
+      recorded: governance.ownership.browserVersionStabilityRepairEvidence
     }
   ]) {
     const metadata = git([
@@ -2727,7 +2803,8 @@ function verifyV2OwnerAndGovernance() {
     ...v2BrowserManagedIconSecretScanRepairHashes,
     ...v2BrowserSmokeMarkerPropagationRepairHashes,
     ...v2SmokeTimeoutRepairHashes,
-    ...v2SmokeReleaseContinuityHashes
+    ...v2SmokeReleaseContinuityHashes,
+    ...v2BrowserVersionStabilityRepairHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -3066,6 +3143,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2SmokeTimeoutRepairCommit,
     immutableWorkflowV2SmokeReleaseContinuityCommit:
       v2SmokeReleaseContinuityCommit,
+    immutableWorkflowV2BrowserVersionStabilityRepairCommit:
+      v2BrowserVersionStabilityRepairCommit,
     immutableWorkflowV2IntelligenceSmokeTimeoutSynchronizationCommit:
       v2IntelligenceSmokeTimeoutSynchronizationCommit,
     localRealWranglerDryRunPassed: true,

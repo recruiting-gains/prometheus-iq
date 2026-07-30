@@ -1,6 +1,6 @@
 {
   "governanceId": "github-actions-private-worker-deployment-governance-v2",
-  "version": "1.13.0",
+  "version": "1.14.0",
   "batchId": "BATCH-20260726-006",
   "directive": "Paid-Customer Onboarding Foundation and Multi-Industry Configuration v1",
   "status": "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED",
@@ -239,6 +239,14 @@
       "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Regenerate private smoke release continuity"
+    },
+    "implementationBrowserVersionStabilityRepairCommit": {
+      "commit": "296d1ff559bfe0f916632ea59d4e702289c87065",
+      "parent": "873aeaa152c19cb5fea98f795f203e3de13c6d49",
+      "tree": "69ce9ad6816f4bee97b8c49cadf17b296a798a03",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Stabilize private browser release acceptance"
     },
     "intelligenceSynchronizationOwner": "Prometheus Intelligence Engine",
     "intelligenceSmokeTimeoutSynchronizationCommit": {
@@ -1225,6 +1233,35 @@
         "sha256": "85d7cb58c1502961d691c60fc0e9f35ecd9bc3aa8f6914fd739c2a32e8c36134"
       }
     ],
+    "browserVersionStabilityRepairPaths": [
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+      "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+      "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
+    ],
+    "browserVersionStabilityRepairEvidence": [
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "9d1ff5d1ed15b4f2d73e229ea8865a4c7ef5ce95ae4dc8d9f2bfad5d2163408c"
+      },
+      {
+        "path": "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+        "sha256": "ff6ebab20c16a45b5eb8f31e9aeb5379eaa594dfb3fee1b2c4b358301c711c1d"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+        "sha256": "83f9d86679bb8f95de8a2f1ca1993db19a6787b295c2caf9ba974766ba866105"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "c46602f5afbdb334b15f9867d240b4acfb2c2d28829115319f5c585c314cb5b0"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
+        "sha256": "fb04be3588ac0437ef968f395777e3d8cd15662cd1bd421905b0f0ef561d6095"
+      }
+    ],
     "intelligenceSmokeTimeoutSynchronizationPaths": [
       "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
       "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
@@ -1356,7 +1393,13 @@
     "smokeTimeoutFailureClassification": "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=BUSINESS_HOURS_GET",
     "smokeTimeoutFailureRollbackVerified": true,
     "smokeTimeoutCause": "The smoke client imposed a 2.5-second client request deadline while the private Worker permits a 5-second server-side RS256 JWKS lookup. A valid cold signing-key lookup could therefore be aborted and misclassified as NETWORK_FAILED.",
-    "smokeTimeoutRepair": "The fixed client now uses an 8-second request deadline, preserving a 3-second response margin above the server verifier, and a 135-second shared plan deadline proven to cover the complete fixed GET/HEAD plan. Redirect, status, marker, version, and transport failures remain fail closed with no blanket retry."
+    "smokeTimeoutRepair": "The fixed client now uses an 8-second request deadline, preserving a 3-second response margin above the server verifier, and a 135-second shared plan deadline proven to cover the complete fixed GET/HEAD plan. Redirect, status, marker, version, and transport failures remain fail closed with no blanket retry.",
+    "browserVersionStabilityFailureDeploymentRun": "30529066974",
+    "browserVersionStabilityFailureReachedProductionMutation": true,
+    "browserVersionStabilityFailureClassification": "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED|CAUSE=QUALIFICATION_FAILED|DIMENSIONS=WORKER_IDENTITY,DESKTOP_CONSOLE_ERROR,WRITE_ATTEMPT|DETAILS=DESKTOP_LOG_NETWORK",
+    "browserVersionStabilityFailureRollbackVerified": true,
+    "browserVersionStabilityCause": "The fixed API smoke verified the exact release, but the immediately following independent desktop browser context began the application workflow before that browser transport had proven the exact Worker version. The browser then lacked the expected release identity and attempted a write, so acceptance failed closed and the qualified forward rollback ran.",
+    "browserVersionStabilityRepair": "Before either application viewport runs, three consecutive fresh script-disabled browser contexts must independently verify the exact Worker version and smoke marker using only governed same-origin GET requests. HTTP cache is disabled, service workers are bypassed, external origins and non-read methods fail closed, and application acceptance is never retried after uncertainty."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
@@ -1475,7 +1518,17 @@
     "requestTimeoutMilliseconds": 8000,
     "propagationMaximumWaitMilliseconds": 135000,
     "unsafeResponseRetryAllowed": false,
-    "credentialsOmittedFromBrowserState": true
+    "credentialsOmittedFromBrowserState": true,
+    "browserVersionStabilityRequired": true,
+    "browserVersionStabilityConsecutiveProbes": 3,
+    "browserVersionStabilityMaximumAttempts": 10,
+    "browserVersionStabilityDelayMilliseconds": 1500,
+    "browserVersionStabilityProbeTimeoutMilliseconds": 15000,
+    "browserVersionStabilityFreshContextPerProbe": true,
+    "browserVersionStabilityJavaScriptDisabled": true,
+    "browserVersionStabilityHttpCacheDisabled": true,
+    "browserVersionStabilityServiceWorkerBypassed": true,
+    "browserVersionStabilityApplicationRetryAllowed": false
   },
   "protectedEnvironment": {
     "name": "prometheus-private-worker-production",
