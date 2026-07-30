@@ -82,6 +82,19 @@ const currentPaidCustomerIntelligenceSuccessorPaths = [
   "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
   "tests/read-only-field-session-learning.test.mjs"
 ].sort();
+const currentPrivateSmokeTimeoutIntelligenceSuccessorCommit =
+  "039116040678a3cbae8016a34f17e30e674715f6";
+const currentPrivateSmokeTimeoutIntelligenceSuccessorParent =
+  "5df472ace229d95d4f0a000797ad36b34043b937";
+const currentPrivateSmokeTimeoutIntelligenceSuccessorTree =
+  "4fe6496f1948356385c7a128016f89f6aeadf38e";
+const currentPrivateSmokeTimeoutIntelligenceSuccessorPaths = [
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
+  "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+  "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+  "scripts/verify-shadow-decision-readiness.mjs",
+  "tests/shadow-decision-readiness.test.mjs"
+].sort();
 const currentAugust1IntelligenceSuccessorPaths = [
   "intelligence/contracts/shadow-decision-readiness-contracts.json",
   "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
@@ -390,7 +403,7 @@ function verifyCurrentPaidCustomerIntelligenceSuccessor() {
   ));
 }
 
-function isCurrentPaidCustomerIntelligenceTransition(
+function isPaidCustomerIntelligenceTransition(
   path,
   previousSha256,
   currentSha256
@@ -403,6 +416,71 @@ function isCurrentPaidCustomerIntelligenceTransition(
     && sha256(gitBytes(
       "show",
       `${currentPaidCustomerIntelligenceSuccessorCommit}:${path}`
+    )) === currentSha256;
+}
+
+function isCurrentPaidCustomerIntelligenceTransition(
+  path,
+  previousSha256,
+  currentSha256
+) {
+  return isPaidCustomerIntelligenceTransition(path, previousSha256, currentSha256)
+    && sha256(read(path)) === currentSha256;
+}
+
+function verifyCurrentPrivateSmokeTimeoutIntelligenceSuccessor() {
+  const fields = git(
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    currentPrivateSmokeTimeoutIntelligenceSuccessorCommit
+  ).split("\n");
+  assert.deepEqual(fields, [
+    currentPrivateSmokeTimeoutIntelligenceSuccessorCommit,
+    currentPrivateSmokeTimeoutIntelligenceSuccessorParent,
+    currentPrivateSmokeTimeoutIntelligenceSuccessorTree,
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "Synchronize private smoke timeout provenance"
+  ]);
+  assert.deepEqual(
+    changedPaths(currentPrivateSmokeTimeoutIntelligenceSuccessorCommit),
+    currentPrivateSmokeTimeoutIntelligenceSuccessorPaths
+  );
+  assert.doesNotThrow(() => git(
+    "merge-base",
+    "--is-ancestor",
+    currentPaidCustomerIntelligenceSuccessorCommit,
+    currentPrivateSmokeTimeoutIntelligenceSuccessorCommit
+  ));
+  assert.doesNotThrow(() => git(
+    "merge-base",
+    "--is-ancestor",
+    currentPrivateSmokeTimeoutIntelligenceSuccessorCommit,
+    "HEAD"
+  ));
+}
+
+function isCurrentPrivateSmokeTimeoutIntelligenceTransition(
+  path,
+  previousSha256,
+  currentSha256
+) {
+  if (!currentPrivateSmokeTimeoutIntelligenceSuccessorPaths.includes(path)) return false;
+  const predecessorSha256 = sha256(gitBytes(
+    "show",
+    `${currentPrivateSmokeTimeoutIntelligenceSuccessorParent}:${path}`
+  ));
+  const predecessorIsGoverned = predecessorSha256 === previousSha256
+    || isPaidCustomerIntelligenceTransition(
+      path,
+      previousSha256,
+      predecessorSha256
+    );
+  return predecessorIsGoverned
+    && sha256(gitBytes(
+      "show",
+      `${currentPrivateSmokeTimeoutIntelligenceSuccessorCommit}:${path}`
     )) === currentSha256
     && sha256(read(path)) === currentSha256;
 }
@@ -502,6 +580,11 @@ function verifyCurrentHardenedSmokeGuardIntelligenceSuccessor() {
           path,
           transition.currentSha256,
           currentSha256
+        )
+        || isCurrentPrivateSmokeTimeoutIntelligenceTransition(
+          path,
+          transition.currentSha256,
+          currentSha256
         ),
       true,
       `${path} current hardened smoke-guard successor drifted.`
@@ -528,8 +611,15 @@ function isCurrentHardenedSmokeGuardIntelligenceTransition(
   currentSha256
 ) {
   const transition = transitions.get(path);
-  return transition?.currentSha256 === currentSha256
-    && sha256(read(path)) === currentSha256;
+  if (!transition) return false;
+  return (
+    transition.currentSha256 === currentSha256
+    && sha256(read(path)) === currentSha256
+  ) || isCurrentPrivateSmokeTimeoutIntelligenceTransition(
+    path,
+    transition.currentSha256,
+    currentSha256
+  );
 }
 
 export function verifyReleaseProvenanceRepair() {
@@ -557,6 +647,7 @@ export function verifyReleaseProvenanceRepair() {
   assert.equal(mapping.operatingProfileId, "fitness");
   verifyCurrentAugust1IntelligenceSuccessor();
   verifyCurrentPaidCustomerIntelligenceSuccessor();
+  verifyCurrentPrivateSmokeTimeoutIntelligenceSuccessor();
   const hardenedSmokeGuardIntelligenceTransitions =
     verifyCurrentHardenedSmokeGuardIntelligenceSuccessor();
 
@@ -1240,7 +1331,8 @@ export function verifyReleaseProvenanceRepair() {
     currentDashboardSourceCommit,
     currentDashboardValidationCommit,
     currentAugust1IntelligenceSuccessorCommit,
-    currentPaidCustomerIntelligenceSuccessorCommit
+    currentPaidCustomerIntelligenceSuccessorCommit,
+    currentPrivateSmokeTimeoutIntelligenceSuccessorCommit
   };
 }
 
