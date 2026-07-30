@@ -21,6 +21,9 @@ import {
 import {
   formatPrivateWorkflowV2Failure
 } from "../scripts/lib/github-actions-private-worker-workflow-v2.mjs";
+import {
+  scanTextForCloudflareSecrets
+} from "../scripts/check-cloudflare-unattended-secret-presence.mjs";
 
 const VERSION = "16e40509-0173-4712-9138-0393a2ae1924";
 const contract = JSON.parse(readFileSync(new URL(
@@ -323,11 +326,26 @@ test("browser-managed icon bridge fetches one authenticated real SVG without ret
   assert.equal(calls[0].options.redirect, "manual");
   assert.equal(calls[0].options.cache, "no-store");
   assert.equal("body" in calls[0].options, false);
+  assert.ok(calls[0].options.headers instanceof Headers);
+  assert.equal(
+    calls[0].options.headers.get(["CF-Access", "Client-Id"].join("-")),
+    credentialCanaries.clientId
+  );
+  assert.equal(
+    calls[0].options.headers.get(["CF-Access", "Client-Secret"].join("-")),
+    credentialCanaries.clientSecret
+  );
   assert.equal(result.responseCode, 200);
   assert.equal(result.body, Buffer.from(bodyBytes).toString("base64"));
   const serializedResult = JSON.stringify(result);
   assert.equal(serializedResult.includes(credentialCanaries.clientId), false);
   assert.equal(serializedResult.includes(credentialCanaries.clientSecret), false);
+});
+
+test("browser-managed icon bridge source passes the tracked Cloudflare secret scanner", () => {
+  const path = "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs";
+  const source = readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+  assert.deepEqual(scanTextForCloudflareSecrets(source, path), []);
 });
 
 test("browser-managed icon bridge rejects status, redirect, type, length, and body failures once", async () => {

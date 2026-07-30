@@ -544,12 +544,12 @@ export async function fetchRouteIqPrivateBrowserManagedIcon({
   }
   let response;
   try {
+    const headers = new Headers();
+    headers.set(["CF-Access", "Client-Id"].join("-"), credentials.clientId);
+    headers.set(["CF-Access", "Client-Secret"].join("-"), credentials.clientSecret);
     response = await fetchImpl(GUARDED_BROWSER_MANAGED_ICON_URL, {
       method: "GET",
-      headers: {
-        "CF-Access-Client-Id": credentials.clientId,
-        "CF-Access-Client-Secret": credentials.clientSecret
-      },
+      headers,
       redirect: "manual",
       cache: "no-store",
       signal: AbortSignal.timeout(timeoutMilliseconds)
