@@ -106,8 +106,8 @@ test("secret-bearing steps remain narrow and evidence remains nonsecret", () => 
   );
   assert.equal(governance.securityBoundary.newMachinePrincipalRequired, false);
   assert.equal(governance.securityBoundary.qualificationReceivesProductionSecrets, false);
-  assert.equal(governance.acceptedControls.maximumRepairAttempts, 5);
-  assert.equal(governance.acceptedControls.maximumSuccessorCommits, 9);
+  assert.equal(governance.acceptedControls.maximumRepairAttempts, 6);
+  assert.equal(governance.acceptedControls.maximumSuccessorCommits, 11);
   assert.equal(governance.acceptedControls.runnerContextAllowedAtJobLevel, false);
   assert.equal(
     governance.acceptedControls.runnerTemporaryPathsBoundAtStepScope,
@@ -129,6 +129,29 @@ test("secret-bearing steps remain narrow and evidence remains nonsecret", () => 
   );
   assert.equal(
     governance.hostedQualificationEvidence.artifactAcceptedForSuccessorDeployment,
+    false
+  );
+  assert.equal(
+    governance.hostedRollbackDemonstrationEvidence
+      .artifactVerificationStatus,
+    "PASSED"
+  );
+  assert.equal(
+    governance.hostedRollbackDemonstrationEvidence.wranglerProcessStarted,
+    false
+  );
+  assert.equal(
+    governance.hostedRollbackDemonstrationEvidence.productionJobsStarted,
+    0
+  );
+  assert.equal(
+    governance.hostedRollbackDemonstrationEvidence
+      .productionSecretsAccessed,
+    false
+  );
+  assert.equal(
+    governance.hostedRollbackDemonstrationEvidence
+      .productionMutationPerformed,
     false
   );
 });

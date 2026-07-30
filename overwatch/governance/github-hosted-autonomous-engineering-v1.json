@@ -57,16 +57,23 @@
       "tree": "0f9811b535f1ef10f7894d87e06e10407f90344f",
       "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Repair optional recovery job propagation"
+    },
+    "rollbackInputRepairCommit": {
+      "commit": "11dc35b69dec319cf9e876c16cb403412023113c",
+      "parent": "161b95a5809d043545144f3c564948bbaa429cad",
+      "tree": "312543a426d7c9edb3a8f3a1938a14605209307c",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Repair rollback demonstration input mapping"
     }
   },
   "implementationHashes": {
-    ".github/workflows/github-hosted-autonomous-engineering-v1.yml": "7abf98c8450b5eb66c26fb4605af24ef7a867aa6de3376f8a7c51081202d377f",
-    "docs/github-hosted-autonomous-engineering-v1.md": "b5badc6439d642a27e7475e1917cf929a916918158092428b73bc83cb666938a",
-    "scripts/lib/github-hosted-autonomous-engineering-v1.mjs": "3f87299d8aec1ed4a4f61a8a6f705e26713fe449c2e0a0e44648d91de2505e89",
+    ".github/workflows/github-hosted-autonomous-engineering-v1.yml": "d52f0154cca930a35a9b8423dcd1fa770c07dac2caf3118b527c9274a490f043",
+    "docs/github-hosted-autonomous-engineering-v1.md": "d65cf8db61d84c371c4101508a9dd6d3c3f4d90a0cd1df0927fff8f8740a7bb3",
+    "scripts/lib/github-hosted-autonomous-engineering-v1.mjs": "441e580db62bb9b27972841d77bbbd6eeccfca61dc6b4429d33ad42bf4e4526e",
     "scripts/run-github-hosted-autonomous-engineering-v1.mjs": "8327e576d9d0fad51e2986e1369e1117806f05c3c45e4c4c957b7f9f61d3c9dc",
-    "scripts/verify-github-hosted-autonomous-engineering-v1.mjs": "9d4fa097e597a51f0207bb645ebf5f754808a8258190fef7ed0575d9ae9407ef",
-    "tests/github-hosted-autonomous-engineering-infrastructure-v1.test.mjs": "f35c8caccf75c77f42ce6f9fdb3a1efe03bebc3746f05a40af603b762c2d5bb4",
-    "workers/infrastructure/github-hosted-autonomous-engineering-v1.json": "72956bab27f205f58f93351efcbc6b53a97d6f753429df0fa36a9c392950cb09"
+    "scripts/verify-github-hosted-autonomous-engineering-v1.mjs": "5c12476e62d4aef5c09b0f9e90ec9ab6bcb2816280e4ad9acb265bfcfd76f496",
+    "tests/github-hosted-autonomous-engineering-infrastructure-v1.test.mjs": "84beb949b2ce02815f1b33506ba7132802d49109b352cd6867e92dfeba0c136d",
+    "workers/infrastructure/github-hosted-autonomous-engineering-v1.json": "341496ad47b56a606595a5f49f3c0186881c3aa691acf3a49b91efad571391e6"
   },
   "acceptedControls": {
     "trigger": "workflow_dispatch",
@@ -80,7 +87,7 @@
     "privateDeploymentAttempts": 1,
     "productionRollbackAttempts": 1,
     "inRunTransientRecoveryAttempts": 1,
-    "maximumRepairAttempts": 5,
+    "maximumRepairAttempts": 6,
     "sourceOrTestRetryAllowed": false,
     "desktopAcceptanceRequired": true,
     "mobileAcceptanceViewport": "390x844",
@@ -95,7 +102,7 @@
     "maximumChangedLines": 6000,
     "maximumChangedPatchBytes": 524288,
     "maximumChangedFileBytes": 524288,
-    "maximumSuccessorCommits": 9,
+    "maximumSuccessorCommits": 11,
     "runnerContextAllowedAtJobLevel": false,
     "runnerTemporaryPathsBoundAtStepScope": true,
     "optionalRecoverySkipPropagationGuard": "always_with_explicit_required_result_checks",
@@ -123,6 +130,23 @@
     "productionMutationPerformed": false,
     "artifactAcceptedForSuccessorDeployment": false,
     "repairCommit": "dc77a87e76bcc0642b63cc5405c727612cd959aa"
+  },
+  "hostedRollbackDemonstrationEvidence": {
+    "runId": 30579529085,
+    "runConclusion": "failure_before_production_boundary",
+    "primaryQualificationStatus": "PASSED",
+    "artifactVerificationStatus": "PASSED",
+    "qualificationArtifactId": 8774247708,
+    "qualificationArtifactZipSha256": "fdb9f1f8d4a127b6dd2049d54891bf2a1a6b5fe837061064d1babc2acc5f4cef",
+    "qualifiedContentTreeSha256": "bf9b5672c8e3240b5cd6f847ee748d7fabc3df0a28637c397f3bad5969d77ddb",
+    "qualifiedManifestSha256": "aba452673344c19e0389db9b6131d980d7a4acb430e0500857351032c0f81d88",
+    "failureClassification": "AUTONOMOUS_TO_PRIVATE_INPUT_SHAPE_MISMATCH",
+    "wranglerProcessStarted": false,
+    "productionJobsStarted": 0,
+    "productionSecretsAccessed": false,
+    "productionMutationPerformed": false,
+    "artifactAcceptedForSuccessorDeployment": false,
+    "repairCommit": "11dc35b69dec319cf9e876c16cb403412023113c"
   },
   "securityBoundary": {
     "protectedEnvironment": "prometheus-private-worker-production",

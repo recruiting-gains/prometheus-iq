@@ -30,6 +30,16 @@ not admitted for a successor deployment. Overwatch records every current exact
 hash in the adjacent JSON governance record and owns only this governance, its
 verifier, and tests.
 
+Hosted run `30579529085` proved the propagation repair and independently
+verified artifact `8774247708`, then stopped in the credential-free rollback
+demonstration before Wrangler started. The orchestrator had passed its
+`candidateCommit` and `candidateTree` field names directly to the accepted
+private-release helper, which requires `approvedCommit` and `approvedTree`.
+Infrastructure repaired only that exact contract projection in
+`11dc35b69dec319cf9e876c16cb403412023113c` and added a direct, non-mocked
+regression test. The run exposed no production secret, started no production
+job, and mutated no Worker.
+
 `package.json` is neither modified nor admitted as a repair path. The hosted
 full suite invokes the Infrastructure and Overwatch gates directly, preserving
 all historical release-wiring evidence without a compatibility exception.
@@ -70,8 +80,8 @@ Source and test defects fail closed. They cannot be edited by the workflow
 because it has no repository-write or self-dispatch permission. This is the
 security boundary, not a hidden laptop dependency on the successful path.
 Owner-produced successors are limited to the exact Infrastructure and
-Overwatch paths, nine commits, sixteen files, 6,000 changed lines, 524,288
-patch bytes, 524,288 resulting file bytes, five Infrastructure repair generations,
+Overwatch paths, eleven commits, sixteen files, 6,000 changed lines, 524,288
+patch bytes, 524,288 resulting file bytes, six Infrastructure repair generations,
 210 aggregate job-timeout minutes, and zero workflow recursion. The dispatched
 repair count must equal the verified Infrastructure commit count minus one, and
 the final commit must be Overwatch-owned.
