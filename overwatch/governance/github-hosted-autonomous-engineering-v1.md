@@ -15,8 +15,19 @@ documentation files introduced by commits
 workflow before creating a job because three job-level environments referenced
 the step-only `runner` context. Infrastructure repaired that exact defect in
 `c1c51ff1bc85fa1d2df0ac165772bfbbdc7ce61d`; the release verifier now rejects
-the same context error before push. Overwatch records every current exact hash
-in the adjacent JSON governance record and owns only this governance, its
+the same context error before push.
+
+Hosted run `30576383131` then passed the primary clean qualification, uploaded
+artifact `8773054778`, and selected it successfully, but GitHub skipped all five
+later jobs because the optional recovery job was skipped. GitHub propagates a
+skip through the dependency chain unless each later job uses `always()` before
+checking required results. Infrastructure repaired only that workflow-control
+defect in `dc77a87e76bcc0642b63cc5405c727612cd959aa`. The verifier now removes the
+guard from every affected job in turn and rejects each malformed workflow.
+Run `30576383131` never started a production job, exposed no production secret,
+and mutated no Worker. Its artifact is qualification-only audit evidence and is
+not admitted for a successor deployment. Overwatch records every current exact
+hash in the adjacent JSON governance record and owns only this governance, its
 verifier, and tests.
 
 `package.json` is neither modified nor admitted as a repair path. The hosted
@@ -59,8 +70,8 @@ Source and test defects fail closed. They cannot be edited by the workflow
 because it has no repository-write or self-dispatch permission. This is the
 security boundary, not a hidden laptop dependency on the successful path.
 Owner-produced successors are limited to the exact Infrastructure and
-Overwatch paths, seven commits, sixteen files, 6,000 changed lines, 524,288
-patch bytes, 524,288 resulting file bytes, four Infrastructure repair generations,
+Overwatch paths, nine commits, sixteen files, 6,000 changed lines, 524,288
+patch bytes, 524,288 resulting file bytes, five Infrastructure repair generations,
 210 aggregate job-timeout minutes, and zero workflow recursion. The dispatched
 repair count must equal the verified Infrastructure commit count minus one, and
 the final commit must be Overwatch-owned.

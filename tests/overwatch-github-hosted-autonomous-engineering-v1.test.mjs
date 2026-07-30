@@ -106,14 +106,31 @@ test("secret-bearing steps remain narrow and evidence remains nonsecret", () => 
   );
   assert.equal(governance.securityBoundary.newMachinePrincipalRequired, false);
   assert.equal(governance.securityBoundary.qualificationReceivesProductionSecrets, false);
-  assert.equal(governance.acceptedControls.maximumRepairAttempts, 4);
-  assert.equal(governance.acceptedControls.maximumSuccessorCommits, 7);
+  assert.equal(governance.acceptedControls.maximumRepairAttempts, 5);
+  assert.equal(governance.acceptedControls.maximumSuccessorCommits, 9);
   assert.equal(governance.acceptedControls.runnerContextAllowedAtJobLevel, false);
   assert.equal(
     governance.acceptedControls.runnerTemporaryPathsBoundAtStepScope,
     true
   );
+  assert.equal(
+    governance.acceptedControls.optionalRecoverySkipPropagationGuard,
+    "always_with_explicit_required_result_checks"
+  );
   assert.equal(governance.acceptedControls.maximumWallClockMinutes, 210);
+  assert.equal(governance.hostedQualificationEvidence.productionJobsStarted, 0);
+  assert.equal(
+    governance.hostedQualificationEvidence.productionSecretsAccessed,
+    false
+  );
+  assert.equal(
+    governance.hostedQualificationEvidence.productionMutationPerformed,
+    false
+  );
+  assert.equal(
+    governance.hostedQualificationEvidence.artifactAcceptedForSuccessorDeployment,
+    false
+  );
 });
 
 test("acceptance stays pending until hosted deployment evidence passes", () => {

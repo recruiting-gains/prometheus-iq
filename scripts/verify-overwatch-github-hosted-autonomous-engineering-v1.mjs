@@ -78,6 +78,7 @@ export function verifyOverwatchGithubHostedAutonomousEngineeringV1() {
   verifyCommit(governance.ownership.secretScanRepairCommit, infrastructureIdentity);
   verifyCommit(governance.ownership.securityClosureCommit, infrastructureIdentity);
   verifyCommit(governance.ownership.runnerContextRepairCommit, infrastructureIdentity);
+  verifyCommit(governance.ownership.skippedNeedsRepairCommit, infrastructureIdentity);
 
   assert.deepEqual(
     Object.keys(governance.implementationHashes).sort(),
@@ -118,6 +119,10 @@ export function verifyOverwatchGithubHostedAutonomousEngineeringV1() {
   assert.equal(controls.actionsPermission, "read");
   assert.equal(controls.runnerContextAllowedAtJobLevel, false);
   assert.equal(controls.runnerTemporaryPathsBoundAtStepScope, true);
+  assert.equal(
+    controls.optionalRecoverySkipPropagationGuard,
+    infrastructure.workflow.optionalRecoverySkipPropagationGuard
+  );
   assert.deepEqual(governance.githubValidationEvidence, {
     failedRunId: 30567186237,
     failureClassification: "RUNNER_CONTEXT_OUT_OF_SCOPE_AT_JOB_ENV",
@@ -125,6 +130,24 @@ export function verifyOverwatchGithubHostedAutonomousEngineeringV1() {
     productionSecretsAccessed: false,
     productionMutationPerformed: false,
     repairCommit: "c1c51ff1bc85fa1d2df0ac165772bfbbdc7ce61d"
+  });
+  assert.deepEqual(governance.hostedQualificationEvidence, {
+    runId: 30576383131,
+    runConclusion: "success_with_required_downstream_jobs_skipped",
+    primaryQualificationStatus: "PASSED",
+    qualificationArtifactId: 8773054778,
+    qualificationArtifactZipSha256:
+      "3ab7f7ef4e5d0cee7aafb645e4462c4b9eb40d622f93b06bb60b60158f2fdfcd",
+    qualifiedContentTreeSha256:
+      "c3471f5de22bb547562a4bac021bb70ecd9effd0c98d5eba5eb23d671fe7c5d6",
+    qualifiedManifestSha256:
+      "65406df56e30a8f4146ba7da95f3bfc8e0f91f2d94d9480ca4eaaaf2d32a4b77",
+    failureClassification: "OPTIONAL_RECOVERY_SKIP_PROPAGATED",
+    productionJobsStarted: 0,
+    productionSecretsAccessed: false,
+    productionMutationPerformed: false,
+    artifactAcceptedForSuccessorDeployment: false,
+    repairCommit: "dc77a87e76bcc0642b63cc5405c727612cd959aa"
   });
 
   assert.equal(infrastructure.baseline.privateWorker, "prometheus-iq");
@@ -173,7 +196,7 @@ export function verifyOverwatchGithubHostedAutonomousEngineeringV1() {
   );
   assert.deepEqual(
     AUTONOMOUS_ENGINEERING_V1_POLICY.maximumRepairAttempts,
-    4
+    5
   );
   assert.deepEqual(
     AUTONOMOUS_ENGINEERING_V1_POLICY.maximumChangedLines,
@@ -190,13 +213,13 @@ export function verifyOverwatchGithubHostedAutonomousEngineeringV1() {
       repairAttemptEqualsInfrastructureCommitCountMinusOne: true,
       atLeastOneOverwatchCommitRequired: true,
       finalCommitOwner: "OVERWATCH",
-      maximumInfrastructureRepairAttempt: 4,
-      maximumSuccessorCommits: 7
+      maximumInfrastructureRepairAttempt: 5,
+      maximumSuccessorCommits: 9
     }
   );
   assert.deepEqual(
     AUTONOMOUS_ENGINEERING_V1_POLICY.maximumSuccessorCommits,
-    7
+    9
   );
   assert.deepEqual(
     infrastructure.qualification.actionsPermission,
