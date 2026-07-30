@@ -71,6 +71,11 @@ import {
   CLOUDFLARE_UNATTENDED_SMOKE_VERSION
 } from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 import { verifyGithubActionsPrivateWorkerWorkflowV2 } from "../scripts/verify-github-actions-private-worker-workflow-v2.mjs";
+import {
+  PRIVATE_WORKER_READ_ONLY_IDENTITY_POLICY,
+  PrivateWorkerReadOnlyIdentityError,
+  runPrivateWorkerReadOnlyIdentity
+} from "../scripts/run-github-actions-private-worker-read-only-identity.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const commit = "8976c077eef91147368c9b5566b5310c04fd6630";
@@ -185,6 +190,183 @@ function deploymentEnvironment(overrides = {}) {
     ...overrides
   };
 }
+
+function identityEnvironment(overrides = {}) {
+  return {
+    GITHUB_REPOSITORY: PRIVATE_WORKER_READ_ONLY_IDENTITY_POLICY.repository,
+    GITHUB_REF: PRIVATE_WORKER_READ_ONLY_IDENTITY_POLICY.ref,
+    GITHUB_REF_NAME: PRIVATE_WORKER_READ_ONLY_IDENTITY_POLICY.branch,
+    GITHUB_REF_TYPE: PRIVATE_WORKER_READ_ONLY_IDENTITY_POLICY.refType,
+    GITHUB_EVENT_NAME: PRIVATE_WORKER_READ_ONLY_IDENTITY_POLICY.eventName,
+    GITHUB_SHA: commit,
+    GITHUB_ACTOR: PRIVATE_WORKER_READ_ONLY_IDENTITY_POLICY.founderActor,
+    GITHUB_TRIGGERING_ACTOR:
+      PRIVATE_WORKER_READ_ONLY_IDENTITY_POLICY.founderActor,
+    GITHUB_WORKFLOW: PRIVATE_WORKER_READ_ONLY_IDENTITY_POLICY.workflowName,
+    GITHUB_WORKFLOW_REF: PRIVATE_WORKER_READ_ONLY_IDENTITY_POLICY.workflowRef,
+    GITHUB_RUN_ATTEMPT:
+      PRIVATE_WORKER_READ_ONLY_IDENTITY_POLICY.firstRunAttempt,
+    [["CLOUDFLARE", "API", "TOKEN"].join("_")]: "synthetic-api-token",
+    [["CLOUDFLARE", "ACCOUNT", "ID"].join("_")]: "a".repeat(32),
+    ...overrides
+  };
+}
+
+function cloudflareWorkerEnvelope(versionId, deploymentId) {
+  return JSON.stringify({
+    success: true,
+    errors: [],
+    messages: [],
+    result: {
+      deployments: [{
+        id: deploymentId,
+        strategy: "percentage",
+        versions: [{ percentage: 100, version_id: versionId }]
+      }]
+    }
+  });
+}
+
+function cloudflareSettingsEnvelope() {
+  return JSON.stringify({
+    success: true,
+    errors: [],
+    messages: [],
+    result: { bindings: [] }
+  });
+}
+
+test("read-only production identity workflow returns exact Worker versions using four GETs", async () => {
+  const requests = [];
+  const environment = identityEnvironment();
+  const result = await runPrivateWorkerReadOnlyIdentity({
+    mode: "inspect",
+    environment,
+    async fetchImpl(url, options) {
+      requests.push({ url: String(url), options });
+      const path = new URL(url).pathname;
+      if (path.endsWith("/deployments")) {
+        const privateRequest = path.includes("/prometheus-iq/");
+        return new Response(cloudflareWorkerEnvelope(
+          privateRequest ? privateVersion : publicVersion,
+          privateRequest
+            ? "11111111-1111-4111-8111-111111111111"
+            : "22222222-2222-4222-8222-222222222222"
+        ), { status: 200 });
+      }
+      return new Response(cloudflareSettingsEnvelope(), { status: 200 });
+    }
+  });
+
+  assert.deepEqual(result, {
+    status: "PRIVATE_WORKER_READ_ONLY_IDENTITY_VERIFIED",
+    publicVersion,
+    privateVersion,
+    publicTrafficPercent: 100,
+    privateTrafficPercent: 100
+  });
+  assert.equal(requests.length, 4);
+  assert.ok(requests.every(request => request.options.method === "GET"));
+  assert.ok(requests.every(request => request.options.redirect === "manual"));
+  assert.ok(requests.every(request => request.options.body === undefined));
+  assert.equal(environment.CLOUDFLARE_API_TOKEN, undefined);
+  assert.equal(environment.CLOUDFLARE_ACCOUNT_ID, undefined);
+  assert.equal(Object.hasOwn(result, "accountId"), false);
+  assert.equal(Object.hasOwn(result, "apiToken"), false);
+});
+
+test("read-only production identity rejects context drift before credentials or network", async () => {
+  for (const overrides of [
+    { GITHUB_ACTOR: "someone-else" },
+    { GITHUB_TRIGGERING_ACTOR: "someone-else" },
+    { GITHUB_REF: "refs/heads/feature" },
+    { GITHUB_EVENT_NAME: "push" },
+    { GITHUB_RUN_ATTEMPT: "2" }
+  ]) {
+    const environment = identityEnvironment(overrides);
+    let requests = 0;
+    await assert.rejects(
+      runPrivateWorkerReadOnlyIdentity({
+        mode: "inspect",
+        environment,
+        async fetchImpl() {
+          requests += 1;
+          throw new Error("must not run");
+        }
+      }),
+      PrivateWorkerReadOnlyIdentityError
+    );
+    assert.equal(requests, 0);
+    assert.equal(environment.CLOUDFLARE_API_TOKEN, "synthetic-api-token");
+    assert.equal(environment.CLOUDFLARE_ACCOUNT_ID, "a".repeat(32));
+  }
+});
+
+test("read-only production identity fails closed on malformed or split traffic", async () => {
+  for (const responseBody of [
+    "{}",
+    JSON.stringify({
+      success: true,
+      errors: [],
+      messages: [],
+      result: {
+        deployments: [{
+          id: "11111111-1111-4111-8111-111111111111",
+          strategy: "percentage",
+          versions: [
+            { percentage: 50, version_id: privateVersion },
+            {
+              percentage: 50,
+              version_id: "33333333-3333-4333-8333-333333333333"
+            }
+          ]
+        }]
+      }
+    })
+  ]) {
+    const environment = identityEnvironment();
+    await assert.rejects(
+      runPrivateWorkerReadOnlyIdentity({
+        mode: "inspect",
+        environment,
+        async fetchImpl(url) {
+          return new Response(
+            new URL(url).pathname.endsWith("/deployments")
+              ? responseBody
+              : cloudflareSettingsEnvelope(),
+            { status: 200 }
+          );
+        }
+      }),
+      PrivateWorkerReadOnlyIdentityError
+    );
+    assert.equal(environment.CLOUDFLARE_API_TOKEN, undefined);
+    assert.equal(environment.CLOUDFLARE_ACCOUNT_ID, undefined);
+  }
+});
+
+test("read-only production identity never returns credential or response details", async () => {
+  const environment = identityEnvironment();
+  await assert.rejects(
+    runPrivateWorkerReadOnlyIdentity({
+      mode: "inspect",
+      environment,
+      async fetchImpl() {
+        throw new Error(
+          "synthetic-api-token aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa sensitive-body"
+        );
+      }
+    }),
+    error => (
+      error instanceof PrivateWorkerReadOnlyIdentityError
+      && error.message === "PRIVATE_WORKER_READ_ONLY_IDENTITY_FAILED"
+      && !error.message.includes("synthetic")
+      && !error.message.includes("sensitive")
+    )
+  );
+  assert.equal(environment.CLOUDFLARE_API_TOKEN, undefined);
+  assert.equal(environment.CLOUDFLARE_ACCOUNT_ID, undefined);
+});
 
 function expectedFromBuild(result) {
   return Object.freeze({

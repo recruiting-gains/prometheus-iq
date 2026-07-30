@@ -35,10 +35,12 @@ const root = resolve(import.meta.dirname, "..");
 const REQUIRED_PATHS = Object.freeze([
   PRIVATE_WORKFLOW_V2_POLICY.qualificationWorkflowPath,
   PRIVATE_WORKFLOW_V2_POLICY.deploymentWorkflowPath,
+  PRIVATE_WORKFLOW_V2_POLICY.productionIdentityWorkflowPath,
   PRIVATE_WORKFLOW_V2_POLICY.contractPath,
   PRIVATE_WORKFLOW_V2_POLICY.libraryPath,
   PRIVATE_WORKFLOW_V2_POLICY.qualificationRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.deploymentRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.productionIdentityRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceContractPath,
   PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceTestPath,
@@ -143,10 +145,16 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
 
   const qualification = read(PRIVATE_WORKFLOW_V2_POLICY.qualificationWorkflowPath);
   const deployment = read(PRIVATE_WORKFLOW_V2_POLICY.deploymentWorkflowPath);
+  const productionIdentity = read(
+    PRIVATE_WORKFLOW_V2_POLICY.productionIdentityWorkflowPath
+  );
   const contract = JSON.parse(read(PRIVATE_WORKFLOW_V2_POLICY.contractPath));
   const library = read(PRIVATE_WORKFLOW_V2_POLICY.libraryPath);
   const qualificationRunner = read(PRIVATE_WORKFLOW_V2_POLICY.qualificationRunnerPath);
   const deploymentRunner = read(PRIVATE_WORKFLOW_V2_POLICY.deploymentRunnerPath);
+  const productionIdentityRunner = read(
+    PRIVATE_WORKFLOW_V2_POLICY.productionIdentityRunnerPath
+  );
   const browserAcceptanceRunner = read(
     PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceRunnerPath
   );
@@ -160,8 +168,13 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
 
   assert.match(qualification, /^name: Qualify Prometheus Private Worker v2$/mu);
   assert.match(deployment, /^name: Deploy Prometheus Private Worker v2$/mu);
+  assert.match(
+    productionIdentity,
+    /^name: Inspect Prometheus Worker Production Identity$/mu
+  );
   assert.deepEqual(triggerInputs(qualification), QUALIFICATION_INPUTS);
   assert.deepEqual(triggerInputs(deployment), DEPLOYMENT_INPUTS);
+  assert.deepEqual(triggerInputs(productionIdentity), []);
   assertPinnedWorkflowContext(
     qualification,
     PRIVATE_WORKFLOW_V2_POLICY.qualificationWorkflowName,
@@ -172,24 +185,73 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     PRIVATE_WORKFLOW_V2_POLICY.deploymentWorkflowName,
     PRIVATE_WORKFLOW_V2_POLICY.deploymentWorkflowPath
   );
+  assertPinnedWorkflowContext(
+    productionIdentity,
+    PRIVATE_WORKFLOW_V2_POLICY.productionIdentityWorkflowName,
+    PRIVATE_WORKFLOW_V2_POLICY.productionIdentityWorkflowPath
+  );
   assert.match(
     deployment,
     /inputs\.founder_authorization == 'I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT'/u
   );
   assert.equal(count(qualification, /^    runs-on: ubuntu-24\.04$/gmu), 1);
   assert.equal(count(deployment, /^    runs-on: ubuntu-24\.04$/gmu), 2);
+  assert.equal(count(productionIdentity, /^    runs-on: ubuntu-24\.04$/gmu), 2);
   assert.equal(count(qualification, /^          node-version: "24\.4\.1"$/gmu), 1);
   assert.equal(count(deployment, /^          node-version: "24\.4\.1"$/gmu), 2);
+  assert.equal(
+    count(productionIdentity, /^          node-version: "24\.4\.1"$/gmu),
+    2
+  );
   assert.equal(count(qualification, /^        run: npm ci$/gmu), 1);
   assert.equal(count(deployment, /^        run: npm ci$/gmu), 2);
   assert.match(qualification, /group: qualify-prometheus-private-worker-v2-\$\{\{ inputs\.candidate_commit \}\}/u);
   assert.match(deployment, /group: deploy-prometheus-private-worker-v2/u);
   assert.match(qualification, /cancel-in-progress: false/u);
   assert.match(deployment, /cancel-in-progress: false/u);
+  assert.match(
+    productionIdentity,
+    /group: inspect-prometheus-worker-production-identity/u
+  );
+  assert.match(productionIdentity, /cancel-in-progress: false/u);
   assert.match(deploymentJob, /environment:\n      name: prometheus-private-worker-production/u);
   assert.doesNotMatch(deploymentPreflight, /secrets\.[A-Z0-9_]+/u);
   assert.doesNotMatch(deploymentPreflight, /prometheus-private-worker-production/u);
   assert.doesNotMatch(deployment, /(?:&|\*)private-v2|<<:/u);
+  const productionIdentityPreflight = section(
+    productionIdentity,
+    "  preflight:\n",
+    "  inspect:\n"
+  );
+  const productionIdentityJob = productionIdentity.slice(
+    productionIdentity.indexOf("  inspect:\n")
+  );
+  assert.doesNotMatch(productionIdentityPreflight, /secrets\.[A-Z0-9_]+/u);
+  assert.doesNotMatch(
+    productionIdentityPreflight,
+    /prometheus-private-worker-production/u
+  );
+  assert.match(
+    productionIdentityJob,
+    /environment:\n      name: prometheus-private-worker-production/u
+  );
+  assert.deepEqual(
+    [...productionIdentity.matchAll(
+      /\$\{\{\s*secrets\.([A-Z0-9_]+)\s*\}\}/gu
+    )].map(match => match[1]),
+    ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"]
+  );
+  assert.equal(
+    count(
+      productionIdentity,
+      /^        run: node scripts\/run-github-actions-private-worker-read-only-identity\.mjs inspect$/gmu
+    ),
+    1
+  );
+  assert.doesNotMatch(
+    productionIdentity,
+    /wrangler|deploy|upload-artifact|download-artifact|curl|(?:^|\s)(?:POST|PUT|PATCH|DELETE)(?:\s|$)/imu
+  );
 
   assert.equal(
     count(
@@ -268,6 +330,32 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.equal(contract.deployment.workerNameOverrideAllowed, false);
   assert.equal(contract.deployment.forwardDeploymentAttempts, 1);
   assert.equal(contract.deployment.automaticRetryAllowed, false);
+  assert.deepEqual(contract.productionIdentityInspection, {
+    workflow: PRIVATE_WORKFLOW_V2_POLICY.productionIdentityWorkflowPath,
+    runner: PRIVATE_WORKFLOW_V2_POLICY.productionIdentityRunnerPath,
+    trigger: "workflow_dispatch",
+    protectedEnvironment: "prometheus-private-worker-production",
+    founderActor: "PrometheusRouteIQ",
+    requiredBranch: "main",
+    requiredRunAttempt: 1,
+    workerTargets: [
+      PRIVATE_WORKFLOW_V2_POLICY.publicWorker,
+      PRIVATE_WORKFLOW_V2_POLICY.privateWorker
+    ],
+    methods: ["GET"],
+    cloudflareRequestCount: 4,
+    cloudflareMutationAllowed: false,
+    deploymentAllowed: false,
+    workflowArtifactAllowed: false,
+    outputFields: [
+      "PUBLIC_VERSION",
+      "PRIVATE_VERSION",
+      "PUBLIC_TRAFFIC",
+      "PRIVATE_TRAFFIC"
+    ],
+    credentialValuesInOutputAllowed: false,
+    responseBodiesInOutputAllowed: false
+  });
   assert.equal(contract.authorization.exactConfirmation, PRIVATE_WORKFLOW_V2_POLICY.founderAuthorization);
   assert.deepEqual(contract.authorization.requiredInputs, DEPLOYMENT_INPUTS);
   assert.equal(contract.authorization.consumedAt, "forward_wrangler_process_spawn_confirmed");
@@ -620,6 +708,22 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.match(browserAcceptanceRunner, /horizontalOverflow/u);
   assert.match(browserAcceptanceRunner, /expectedWorkerVersion/u);
   assert.doesNotMatch(browserAcceptanceRunner, /console\.(?:log|error|warn)/u);
+  assert.match(
+    productionIdentityRunner,
+    /fetchPublicWorkerState/u
+  );
+  assert.match(
+    productionIdentityRunner,
+    /takeDeploymentCredentials/u
+  );
+  assert.match(
+    productionIdentityRunner,
+    /scrubDeploymentCredentials/u
+  );
+  assert.doesNotMatch(
+    productionIdentityRunner,
+    /console\.|wrangler|(?:^|\s)(?:POST|PUT|PATCH|DELETE)(?:\s|$)/imu
+  );
 
   const syntheticInputs = Object.freeze({
     approvedCommit: "a".repeat(40),

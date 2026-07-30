@@ -56,6 +56,34 @@
     "forwardDeploymentAttempts": 1,
     "automaticRetryAllowed": false
   },
+  "productionIdentityInspection": {
+    "workflow": ".github/workflows/inspect-prometheus-worker-production-identity.yml",
+    "runner": "scripts/run-github-actions-private-worker-read-only-identity.mjs",
+    "trigger": "workflow_dispatch",
+    "protectedEnvironment": "prometheus-private-worker-production",
+    "founderActor": "PrometheusRouteIQ",
+    "requiredBranch": "main",
+    "requiredRunAttempt": 1,
+    "workerTargets": [
+      "prometheusrouteiq-website",
+      "prometheus-iq"
+    ],
+    "methods": [
+      "GET"
+    ],
+    "cloudflareRequestCount": 4,
+    "cloudflareMutationAllowed": false,
+    "deploymentAllowed": false,
+    "workflowArtifactAllowed": false,
+    "outputFields": [
+      "PUBLIC_VERSION",
+      "PRIVATE_VERSION",
+      "PUBLIC_TRAFFIC",
+      "PRIVATE_TRAFFIC"
+    ],
+    "credentialValuesInOutputAllowed": false,
+    "responseBodiesInOutputAllowed": false
+  },
   "authorization": {
     "exactConfirmation": "I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT",
     "requiredInputs": [

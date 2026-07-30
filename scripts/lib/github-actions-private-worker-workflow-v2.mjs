@@ -69,6 +69,12 @@ export const PRIVATE_WORKFLOW_V2_POLICY = Object.freeze({
   deploymentWorkflowPath: ".github/workflows/deploy-prometheus-private-worker-v2.yml",
   deploymentWorkflowRef:
     "PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-private-worker-v2.yml@refs/heads/main",
+  productionIdentityWorkflowName:
+    "Inspect Prometheus Worker Production Identity",
+  productionIdentityWorkflowPath:
+    ".github/workflows/inspect-prometheus-worker-production-identity.yml",
+  productionIdentityRunnerPath:
+    "scripts/run-github-actions-private-worker-read-only-identity.mjs",
   qualificationRunnerPath: "scripts/run-github-actions-private-worker-qualification-v2.mjs",
   deploymentRunnerPath: "scripts/run-github-actions-private-worker-deployment-v2.mjs",
   browserAcceptanceRunnerPath:
@@ -229,8 +235,10 @@ const GOVERNED_SOURCE_PATHS = Object.freeze([
   PRIVATE_WORKFLOW_V2_POLICY.contractPath,
   PRIVATE_WORKFLOW_V2_POLICY.qualificationWorkflowPath,
   PRIVATE_WORKFLOW_V2_POLICY.deploymentWorkflowPath,
+  PRIVATE_WORKFLOW_V2_POLICY.productionIdentityWorkflowPath,
   PRIVATE_WORKFLOW_V2_POLICY.qualificationRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.deploymentRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.productionIdentityRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceRunnerPath,
   PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceContractPath,
   PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceTestPath,
