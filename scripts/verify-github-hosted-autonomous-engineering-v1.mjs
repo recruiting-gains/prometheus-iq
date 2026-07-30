@@ -172,6 +172,51 @@ function assertArtifactTokenSeparation(workflow) {
   }
 }
 
+export function assertGithubContextScopes(workflow) {
+  const qualifiedReleaseSteps = Object.freeze({
+    "reverify-and-demonstrate": Object.freeze([
+      "Independently verify metadata and every release identity",
+      "Demonstrate one controlled non-product rollback"
+    ]),
+    "verify-recovery": Object.freeze([
+      "Independently verify artifact, rollback evidence, and recovery"
+    ]),
+    deploy: Object.freeze([
+      "Reverify every immutable identity before production access",
+      "Cross the private production boundary exactly once",
+      "Reverify immutable artifact after successful deployment",
+      "Finalize safe production evidence"
+    ])
+  });
+  for (const [index, jobName] of JOBS.entries()) {
+    const job = jobSection(workflow, jobName, JOBS[index + 1]);
+    const stepsIndex = job.indexOf("    steps:\n");
+    assert.ok(stepsIndex >= 0, `${jobName} steps missing`);
+    assert.doesNotMatch(
+      job.slice(0, stepsIndex),
+      /\$\{\{\s*runner\./u,
+      `${jobName} uses runner context before step scope`
+    );
+    for (const name of qualifiedReleaseSteps[jobName] || []) {
+      assert.equal(
+        count(
+          stepSection(job, name),
+          /PROMETHEUS_QUALIFIED_RELEASE_PATH: \$\{\{ runner\.temp \}\}\/prometheus-private-qualified-release/gu
+        ),
+        1,
+        `${jobName}: ${name} must bind the release path at step scope`
+      );
+    }
+  }
+  assert.equal(
+    count(
+      workflow,
+      /PROMETHEUS_QUALIFIED_RELEASE_PATH: \$\{\{ runner\.temp \}\}\/prometheus-private-qualified-release/gu
+    ),
+    7
+  );
+}
+
 function assertLegacyLaneIsolation(workflow, contract) {
   const legacyPath = ".github/workflows/deploy-prometheus-private-worker.yml";
   const legacy = read(legacyPath);
@@ -253,9 +298,12 @@ export function verifyGithubHostedAutonomousEngineeringV1() {
     AUTONOMOUS_ENGINEERING_V1_POLICY.maximumWallClockMinutes
   );
   assert.equal(contract.workflow.maximumWallClockMinutes, 210);
+  assert.equal(contract.workflow.runnerContextAllowedAtJobLevel, false);
+  assert.equal(contract.workflow.runnerTemporaryPathsBoundAtStepScope, true);
 
   assertSecretSeparation(workflow);
   assertArtifactTokenSeparation(workflow);
+  assertGithubContextScopes(workflow);
   assert.ok(
     workflow.indexOf("${{ secrets.")
       > workflow.indexOf("  verify-recovery:\n")
@@ -343,8 +391,8 @@ export function verifyGithubHostedAutonomousEngineeringV1() {
   assert.equal(contract.boundedRepair.maximumChangedPatchBytes, 524288);
   assert.equal(contract.boundedRepair.maximumChangedFileBytes, 524288);
   assert.equal(contract.boundedRepair.maximumInRunTransientRecoveryAttempts, 1);
-  assert.equal(contract.boundedRepair.maximumRepairAttempts, 3);
-  assert.equal(contract.boundedRepair.maximumSuccessorCommits, 6);
+  assert.equal(contract.boundedRepair.maximumRepairAttempts, 4);
+  assert.equal(contract.boundedRepair.maximumSuccessorCommits, 7);
   assert.equal(
     contract.boundedRepair.commitTopology
       .repairAttemptEqualsInfrastructureCommitCountMinusOne,

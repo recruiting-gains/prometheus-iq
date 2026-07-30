@@ -39,6 +39,7 @@ import {
   validateAutonomousRepairScope
 } from "../scripts/lib/github-hosted-autonomous-engineering-v1.mjs";
 import {
+  assertGithubContextScopes,
   verifyGithubHostedAutonomousEngineeringV1
 } from "../scripts/verify-github-hosted-autonomous-engineering-v1.mjs";
 
@@ -55,7 +56,7 @@ function contextEnvironment(overrides = {}) {
     batch_id: "BATCH-20260730-001",
     current_public_version: publicVersion,
     current_private_version: privateVersion,
-    repair_attempt: "3",
+    repair_attempt: "4",
     founder_authorization:
       AUTONOMOUS_ENGINEERING_V1_POLICY.founderAuthorization
   };
@@ -237,7 +238,7 @@ function productionEvidenceFixture({
     writeAttempts: 0,
     maximumRepairAttempts:
       AUTONOMOUS_ENGINEERING_V1_POLICY.maximumRepairAttempts,
-    actualRepairAttempt: 3,
+    actualRepairAttempt: 4,
     maximumInRunTransientRecoveryAttempts:
       AUTONOMOUS_ENGINEERING_V1_POLICY.maximumInRunTransientRecoveryAttempts,
     actualInRunTransientRecoveryAttempts: 0, selectedQualification: "PRIMARY",
@@ -259,6 +260,26 @@ test("static workflow, contract, YAML, timeout, secret, and wiring verification 
   assert.equal(
     verifyGithubHostedAutonomousEngineeringV1().status,
     "GITHUB_HOSTED_AUTONOMOUS_ENGINEERING_V1_VERIFIED"
+  );
+});
+
+test("runner-temporary paths are valid only in step environments", () => {
+  const workflow = readFileSync(
+    join(root, AUTONOMOUS_ENGINEERING_V1_POLICY.workflowPath),
+    "utf8"
+  );
+  assert.doesNotThrow(() => assertGithubContextScopes(workflow));
+  const invalid = workflow.replace(
+    "      PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04\n    outputs:",
+    "      PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04\n"
+      + "      PROMETHEUS_QUALIFIED_RELEASE_PATH: "
+      + "${{ runner.temp }}/prometheus-private-qualified-release\n"
+      + "    outputs:"
+  );
+  assert.notEqual(invalid, workflow);
+  assert.throws(
+    () => assertGithubContextScopes(invalid),
+    /uses runner context before step scope/u
   );
 });
 
@@ -536,28 +557,31 @@ test("repair attempt is bound to the mixed owner commit topology", () => {
     "INFRASTRUCTURE",
     "INFRASTRUCTURE",
     "INFRASTRUCTURE",
+    "INFRASTRUCTURE",
+    "OVERWATCH",
     "OVERWATCH"
   ];
   assert.deepEqual(
-    validateAutonomousCommitTopology(finalOwners, 3),
+    validateAutonomousCommitTopology(finalOwners, 4),
     {
-      infrastructureCommitCount: 4,
-      overwatchCommitCount: 1,
-      successorCommitCount: 5,
-      repairAttempt: 3
+      infrastructureCommitCount: 5,
+      overwatchCommitCount: 2,
+      successorCommitCount: 7,
+      repairAttempt: 4
     }
   );
   for (const [owners, repairAttempt] of [
-    [finalOwners, 2],
-    [[...finalOwners, "OVERWATCH", "OVERWATCH"], 3],
+    [finalOwners, 3],
+    [[...finalOwners, "OVERWATCH"], 4],
     [[
       "INFRASTRUCTURE",
       "INFRASTRUCTURE",
       "INFRASTRUCTURE",
       "INFRASTRUCTURE",
       "INFRASTRUCTURE",
+      "INFRASTRUCTURE",
       "OVERWATCH"
-    ], 3],
+    ], 5],
     [["INFRASTRUCTURE", "INFRASTRUCTURE"], 1],
     [["OVERWATCH", "INFRASTRUCTURE"], 0],
     [["INFRASTRUCTURE", "UNKNOWN", "OVERWATCH"], 0]

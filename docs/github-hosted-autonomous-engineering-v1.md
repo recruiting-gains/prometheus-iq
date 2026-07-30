@@ -63,6 +63,11 @@ repository, `main` branch, Founder actor and triggering actor, this workflow
 file, and run attempt one. An artifact from another run cannot be selected even
 when its content hashes happen to match.
 
+Runner-temporary artifact paths are bound only inside executable step
+environments, where GitHub exposes the `runner` context. A release-blocking
+source verifier rejects any `runner` expression in a job-level environment so
+GitHub cannot reject the workflow before its first fail-closed identity gate.
+
 The GitHub artifact token is step-scoped. It is injected only into the five
 Node steps that call artifact metadata verification: initial independent
 verification, rollback demonstration, recovery verification, and the private
@@ -77,8 +82,8 @@ This workflow is not a self-modifying agent. It cannot commit, push, dispatch
 itself, call another workflow, or edit source. More than one in-run transient
 recovery is prohibited; exactly one fresh-runner recovery is available.
 Owner-produced source history may declare Infrastructure repair attempt `0`
-through `3`, and remains limited to
-six commits, sixteen changed files, 6,000 changed lines, 524,288 patch bytes,
+through `4`, and remains limited to
+seven commits, sixteen changed files, 6,000 changed lines, 524,288 patch bytes,
 and 524,288 resulting file bytes across the exact Infrastructure and Overwatch
 feature paths recorded in the contract. Binary diffs, symlinks, renames,
 deletions, non-regular Git modes, and mode changes are rejected. Workflow
@@ -90,7 +95,7 @@ There must be at least one Overwatch commit and the final successor commit must
 be Overwatch-owned. The declared repair attempt is exactly the number of
 Infrastructure commits minus one. This allows existing Infrastructure and
 Overwatch commits to remain in their recorded order while bounding the final
-six-commit chain. Author and committer strings are provenance labels, not
+seven-commit chain. Author and committer strings are provenance labels, not
 authorization by themselves; authorization is the exact commit, exact tree,
 Founder actor and triggering actor, exact `main` branch, and exact workflow
 context.

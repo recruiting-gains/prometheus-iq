@@ -24,7 +24,7 @@ on:
         required: true
         type: string
       repair_attempt:
-        description: Bounded Infrastructure repair attempt (0, 1, 2, or 3)
+        description: Bounded Infrastructure repair attempt (0, 1, 2, 3, or 4)
         required: true
         type: string
         default: "0"
@@ -403,7 +403,6 @@ jobs:
       PROMETHEUS_AUTONOMOUS_CONTRACT_SHA256: ${{ needs.qualify.outputs.autonomous_contract_sha256 }}
       PROMETHEUS_SELECTED_QUALIFICATION: ${{ needs.qualify.outputs.selected_qualification }}
       PROMETHEUS_IN_RUN_RECOVERY_ATTEMPTS: ${{ needs.qualify.outputs.in_run_recovery_attempts }}
-      PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
       PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
     outputs:
       rollback_evidence_artifact_id: ${{ steps.upload.outputs.artifact-id }}
@@ -449,12 +448,14 @@ jobs:
 
       - name: Independently verify metadata and every release identity
         env:
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
           PROMETHEUS_GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs verify-artifact
 
       - name: Demonstrate one controlled non-product rollback
         id: demonstrate
         env:
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
           PROMETHEUS_AUTONOMOUS_EVIDENCE_OUTPUT: ${{ runner.temp }}/autonomous-rollback-demonstration
           PROMETHEUS_GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs rollback-demo
@@ -500,7 +501,6 @@ jobs:
       PROMETHEUS_AUTONOMOUS_CONTRACT_SHA256: ${{ needs.qualify.outputs.autonomous_contract_sha256 }}
       PROMETHEUS_SELECTED_QUALIFICATION: ${{ needs.qualify.outputs.selected_qualification }}
       PROMETHEUS_IN_RUN_RECOVERY_ATTEMPTS: ${{ needs.qualify.outputs.in_run_recovery_attempts }}
-      PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
       PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
     outputs:
       recovery_evidence_artifact_id: ${{ steps.upload.outputs.artifact-id }}
@@ -557,6 +557,7 @@ jobs:
       - name: Independently verify artifact, rollback evidence, and recovery
         id: recovery
         env:
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
           PROMETHEUS_AUTONOMOUS_ROLLBACK_EVIDENCE_PATH: ${{ runner.temp }}/autonomous-rollback-demonstration
           PROMETHEUS_ROLLBACK_DEMONSTRATION_SHA256: ${{ needs.reverify-and-demonstrate.outputs.rollback_demonstration_sha256 }}
           PROMETHEUS_AUTONOMOUS_EVIDENCE_OUTPUT: ${{ runner.temp }}/autonomous-recovery-verification
@@ -661,7 +662,6 @@ jobs:
       PROMETHEUS_AUTONOMOUS_CONTRACT_SHA256: ${{ needs.qualify.outputs.autonomous_contract_sha256 }}
       PROMETHEUS_SELECTED_QUALIFICATION: ${{ needs.qualify.outputs.selected_qualification }}
       PROMETHEUS_IN_RUN_RECOVERY_ATTEMPTS: ${{ needs.qualify.outputs.in_run_recovery_attempts }}
-      PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
       PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
     outputs:
       deployment_outcome_sha256: ${{ steps.production.outputs.deployment_outcome_sha256 }}
@@ -712,6 +712,7 @@ jobs:
 
       - name: Reverify every immutable identity before production access
         env:
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
           PROMETHEUS_GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs verify-artifact
 
@@ -719,6 +720,7 @@ jobs:
         id: production
         continue-on-error: true
         env:
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
           PROMETHEUS_AUTONOMOUS_DEPLOYMENT_OUTCOME_PATH: ${{ runner.temp }}/autonomous-deployment-evidence/outcome
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -731,6 +733,7 @@ jobs:
       - name: Reverify immutable artifact after successful deployment
         if: ${{ steps.production.outcome == 'success' }}
         env:
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
           PROMETHEUS_GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/run-github-hosted-autonomous-engineering-v1.mjs verify-artifact
 
@@ -739,6 +742,7 @@ jobs:
         if: ${{ always() }}
         continue-on-error: true
         env:
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/prometheus-private-qualified-release
           PROMETHEUS_AUTONOMOUS_DEPLOYMENT_OUTCOME_PATH: ${{ runner.temp }}/autonomous-deployment-evidence/outcome
           PROMETHEUS_AUTONOMOUS_DEPLOYMENT_OUTCOME_SHA256: ${{ steps.production.outputs.deployment_outcome_sha256 }}
           PROMETHEUS_ROLLBACK_DEMONSTRATION_SHA256: ${{ needs.reverify-and-demonstrate.outputs.rollback_demonstration_sha256 }}

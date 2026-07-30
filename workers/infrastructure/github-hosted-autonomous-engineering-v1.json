@@ -28,6 +28,8 @@
     "runner": "ubuntu-24.04",
     "architecture": "X64",
     "nodeVersion": "24.4.1",
+    "runnerContextAllowedAtJobLevel": false,
+    "runnerTemporaryPathsBoundAtStepScope": true,
     "protectedEnvironment": "prometheus-private-worker-production",
     "concurrencyGroup": "prometheus-github-hosted-autonomous-engineering-v1",
     "cancelInProgress": false,
@@ -38,13 +40,13 @@
     "sourceMutationAllowed": false
   },
   "boundedRepair": {
-    "maximumRepairAttempts": 3,
+    "maximumRepairAttempts": 4,
     "maximumInRunTransientRecoveryAttempts": 1,
     "maximumChangedFiles": 16,
     "maximumChangedLines": 6000,
     "maximumChangedPatchBytes": 524288,
     "maximumChangedFileBytes": 524288,
-    "maximumSuccessorCommits": 6,
+    "maximumSuccessorCommits": 7,
     "maximumWorkflowRecursionDepth": 0,
     "automaticSourceEditsAllowed": false,
     "automaticCommitsAllowed": false,
@@ -82,8 +84,8 @@
       "repairAttemptEqualsInfrastructureCommitCountMinusOne": true,
       "atLeastOneOverwatchCommitRequired": true,
       "finalCommitOwner": "OVERWATCH",
-      "maximumInfrastructureRepairAttempt": 3,
-      "maximumSuccessorCommits": 6
+      "maximumInfrastructureRepairAttempt": 4,
+      "maximumSuccessorCommits": 7
     },
     "infrastructureOwnedPaths": [
       ".github/workflows/github-hosted-autonomous-engineering-v1.yml",
