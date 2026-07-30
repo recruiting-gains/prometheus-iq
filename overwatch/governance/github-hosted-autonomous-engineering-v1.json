@@ -1,0 +1,137 @@
+{
+  "governanceId": "github-hosted-autonomous-engineering-governance-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260730-001",
+  "directive": "GITHUB-HOSTED AUTONOMOUS ENGINEERING WORKFLOW v1",
+  "status": "SOURCE_GOVERNED_DEMONSTRATION_PENDING",
+  "owner": "Prometheus Overwatch",
+  "baseline": {
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "branch": "main",
+    "commit": "278deb57eef0558fbf2666ed6962cbbd73dad42d",
+    "tree": "e2464723b8ac82dfebaf4bed6bc41a800e5a7c76",
+    "publicWorkerVersion": "6a8713c0-0712-4cda-8a13-daa893ca45f2",
+    "privateWorkerVersion": "e4ef2246-892a-448a-9e43-90391571f067"
+  },
+  "ownership": {
+    "implementationOwner": "Prometheus Infrastructure",
+    "verificationOwner": "Prometheus Overwatch",
+    "implementationCommit": {
+      "commit": "f3657a5184b73612d65a92bfd9f66468e4e1f568",
+      "parent": "278deb57eef0558fbf2666ed6962cbbd73dad42d",
+      "tree": "093dffd80b4a7105f58f42b54c4ea218b5d07719",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Add GitHub-hosted autonomous engineering workflow"
+    },
+    "releaseWiringDelegationCommit": {
+      "commit": "4b11e8b724b506b5236ad80e72470bb0471a4df7",
+      "parent": "f3657a5184b73612d65a92bfd9f66468e4e1f568",
+      "tree": "df2ea7d7aa24c4a54e29221d796292ca24e63670",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Delegate autonomous workflow release wiring"
+    },
+    "secretScanRepairCommit": {
+      "commit": "7e04cbf028fc69597771320a5797390bdcf255a2",
+      "parent": "4b11e8b724b506b5236ad80e72470bb0471a4df7",
+      "tree": "4a893e7e545065754adfc83ad5ebcf90a87ab554",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Harden autonomous workflow secret scanning"
+    },
+    "securityClosureCommit": {
+      "commit": "df10a226cfa48d983e794b67d21250b185fd65f0",
+      "parent": "7e04cbf028fc69597771320a5797390bdcf255a2",
+      "tree": "0b536d75df9c03a2a94da5378b8dcc507d55871a",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Close autonomous workflow security findings"
+    }
+  },
+  "implementationHashes": {
+    ".github/workflows/github-hosted-autonomous-engineering-v1.yml": "b722878ef04001f573f85c748016b478a5b5383e3d69c174af585aab31893509",
+    "docs/github-hosted-autonomous-engineering-v1.md": "73104145d2da650159536ee81c3d91b489dc88e07169c6e5dfd07a46f5b805ef",
+    "scripts/lib/github-hosted-autonomous-engineering-v1.mjs": "91cf50f1046a531dd612bb9f3c1948107c0f81b25d98931da9e3167ce516b29b",
+    "scripts/run-github-hosted-autonomous-engineering-v1.mjs": "8327e576d9d0fad51e2986e1369e1117806f05c3c45e4c4c957b7f9f61d3c9dc",
+    "scripts/verify-github-hosted-autonomous-engineering-v1.mjs": "a38684a83270d612f027831a5ba3d6014c20efe202f9f0abc9f8b576169824f4",
+    "tests/github-hosted-autonomous-engineering-infrastructure-v1.test.mjs": "1593d1c9cf3a2289743a21ab43b7d4ba041f1c9c52c6e330c29e2870113f1dbb",
+    "workers/infrastructure/github-hosted-autonomous-engineering-v1.json": "f7070b685aab702155196cec68306e6cc1a69e1d1be508856349a6c62e50d979"
+  },
+  "acceptedControls": {
+    "trigger": "workflow_dispatch",
+    "founderActor": "PrometheusRouteIQ",
+    "branch": "main",
+    "target": "prometheus-iq",
+    "publicTargetAllowed": false,
+    "repositoryWriteAllowed": false,
+    "workflowRecursionDepth": 0,
+    "sourceBuilds": 1,
+    "privateDeploymentAttempts": 1,
+    "productionRollbackAttempts": 1,
+    "inRunTransientRecoveryAttempts": 1,
+    "maximumRepairAttempts": 3,
+    "sourceOrTestRetryAllowed": false,
+    "desktopAcceptanceRequired": true,
+    "mobileAcceptanceViewport": "390x844",
+    "identityBeforeScriptExecutionRequired": true,
+    "independentArtifactDownloadRequired": true,
+    "credentialFreeRollbackDemonstrationRequired": true,
+    "independentRecoveryVerificationRequired": true,
+    "independentFinalEvidenceReplayRequired": true,
+    "productionSecretsFirstJob": "production-baseline",
+    "actionsPermission": "read",
+    "maximumChangedFiles": 16,
+    "maximumChangedLines": 6000,
+    "maximumChangedPatchBytes": 524288,
+    "maximumChangedFileBytes": 524288,
+    "maximumSuccessorCommits": 6,
+    "maximumWallClockMinutes": 210
+  },
+  "securityBoundary": {
+    "protectedEnvironment": "prometheus-private-worker-production",
+    "deploymentSecretNames": [
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE"
+    ],
+    "secretValuesAccessedDuringEngineering": false,
+    "secretValuesAllowedInSourceLogsOrArtifacts": false,
+    "artifactTokenAllowedInDeploymentChild": false,
+    "legacyManualLaneChanged": false,
+    "legacyManualLaneInvokableByNewWorkflow": false,
+    "newMachinePrincipalRequired": false,
+    "qualificationReceivesProductionSecrets": false,
+    "ownerIdentityStringsAreAuthentication": false,
+    "packageManifestChangedByProject": false
+  },
+  "payloadContinuity": {
+    "productChangeAllowed": false,
+    "publicWorkerChangeAllowed": false,
+    "privateForwardPayloadSha256": "3bb6d677c4ad6b6811ba1efc1c643abd7728c584707a26dcef26c887f2718328",
+    "payloadContinuityEnforcedByPrivateWorkflowV2": true,
+    "generatedPrivatePayloadMustRemainByteIdentical": true
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohortCount": 0,
+    "recommendationInfluence": "OFF",
+    "providerRefresh": "OFF",
+    "scheduler": "OFF",
+    "customerActivation": "OFF",
+    "anthonyMapped": false,
+    "activeBusinessCount": 0,
+    "reserveBusinessCount": 0,
+    "quarantinedBusinessCount": 398,
+    "crmReceipt": "riq_receipt_e74e57903a211291a9f1f37a",
+    "crmMutationAllowed": false
+  },
+  "releaseBoundary": {
+    "sourceVerificationRequired": true,
+    "normalFastForwardPushAuthorizedAfterPass": true,
+    "workflowDispatchAuthorizedAfterPass": true,
+    "privateDeploymentAuthorizedByDirective": true,
+    "publicDeploymentAuthorized": false,
+    "productionMutationPerformedAtGovernanceCreation": false,
+    "demonstrationMustFinishBeforeAcceptance": true
+  }
+}
