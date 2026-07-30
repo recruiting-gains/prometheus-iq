@@ -1,6 +1,6 @@
 {
   "governanceId": "github-actions-private-worker-deployment-governance-v2",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "batchId": "BATCH-20260726-006",
   "directive": "Paid-Customer Onboarding Foundation and Multi-Industry Configuration v1",
   "status": "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED",
@@ -223,6 +223,22 @@
       "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Repair private browser smoke marker propagation"
+    },
+    "implementationSmokeTimeoutRepairCommit": {
+      "commit": "a7822e6535892ee4b51c483089f9f045c3185724",
+      "parent": "647ed70596e601f738d0f7e678fc194ad885c346",
+      "tree": "f224d29e523d8abd171e17d4f8b846d5ca273ac1",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Align private smoke timeout with JWT verification"
+    },
+    "implementationSmokeReleaseContinuityCommit": {
+      "commit": "43159913a976b48f1279f534f8fcd5b73b48a263",
+      "parent": "a7822e6535892ee4b51c483089f9f045c3185724",
+      "tree": "e8ff800cb3b9892c9a20d1aec800260184bf5c81",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Regenerate private smoke release continuity"
     },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
@@ -1134,6 +1150,64 @@
         "path": "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
         "sha256": "8eb2b3fc853383e0c323721e959eafba0547a296965921093396ebf3f50d9a76"
       }
+    ],
+    "smokeTimeoutRepairPaths": [
+      "scripts/run-cloudflare-unattended-smoke.mjs",
+      "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+      "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+      "tests/cloudflare-unattended-runtime-guard.test.mjs",
+      "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+      "workers/infrastructure/cloudflare-unattended-smoke-guard.js",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ],
+    "smokeTimeoutRepairEvidence": [
+      {
+        "path": "scripts/run-cloudflare-unattended-smoke.mjs",
+        "sha256": "fcc0437832d718575d6fa02e16020450a767f50e781d0e51c94a0e96f538c48d"
+      },
+      {
+        "path": "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+        "sha256": "ba5c6cbafa5b3cc1be4cf9734cb920ab2d60dda46844b89340167d938fadea0a"
+      },
+      {
+        "path": "scripts/verify-github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "631cd73c80dd1a2ede49ecf8d39c07463f1f098fef568d2d11460d8e3c77c122"
+      },
+      {
+        "path": "tests/cloudflare-unattended-runtime-guard.test.mjs",
+        "sha256": "6b9f07cabf71f84ff3d25cdccb582f2de4a78c3c0ec2a47618c4f6baf963018a"
+      },
+      {
+        "path": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+        "sha256": "aeae1e71674179b318dc41669d18f2dedc6ca7762802868820f672d5e0097db3"
+      },
+      {
+        "path": "workers/infrastructure/cloudflare-unattended-smoke-guard.js",
+        "sha256": "e7d86bb0a136122f873a955956f01ade11364a28f29b2449bb44765a1daffa0f"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "99231567100b4ab0366b2538b3c19491a3f3ee2ff3a4ee0d3b32379188b4234b"
+      }
+    ],
+    "smokeReleaseContinuityPaths": [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+      "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json"
+    ],
+    "smokeReleaseContinuityEvidence": [
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "sha256": "993f6cc03c9e316a954c489aa25de3f595772227dd3e519c3f9a134fcc6bd0ec"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "sha256": "0d9df51b67972a45afc21b29e3eb64426fe7c47d93105295979f5fe68153a197"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
+        "sha256": "85d7cb58c1502961d691c60fc0e9f35ecd9bc3aa8f6914fd739c2a32e8c36134"
+      }
     ]
   },
   "rootCause": {
@@ -1231,15 +1305,21 @@
     "browserSmokeMarkerFailureClassification": "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED|CAUSE=QUALIFICATION_FAILED|DIMENSIONS=WORKER_IDENTITY,DESKTOP_CONSOLE_ERROR,DESKTOP_RUNTIME_EXCEPTION,DESKTOP_NETWORK_FAILURE,DESKTOP_NETWORK_HTTP_FAILURE,BROWSER_MANAGED_ICON_BRIDGE,MOBILE_CONSOLE_ERROR,MOBILE_NETWORK_FAILURE|DETAILS=DESKTOP_LOG_NETWORK,DESKTOP_HTTP_SCRIPT_4XX_OTHER,MOBILE_LOG_NETWORK",
     "browserSmokeMarkerFailureRollbackVerified": true,
     "browserSmokeMarkerCause": "The browser acceptance runner attached the governed read-only smoke marker only to the root document request. Same-origin module, manifest, and browser-managed icon requests carried the Access service-principal headers but omitted the server-required marker, so the private Worker rejected protected resources before the Dashboard could render.",
-    "browserSmokeMarkerRepair": "Every authenticated same-origin browser read request now receives exactly one governed read-only smoke marker together with the service-principal headers. The runner still blocks writes, external origins, service-worker persistence, malformed responses, and every unrelated browser error; fixed path classifications identify application modules without exposing URLs or credential values."
+    "browserSmokeMarkerRepair": "Every authenticated same-origin browser read request now receives exactly one governed read-only smoke marker together with the service-principal headers. The runner still blocks writes, external origins, service-worker persistence, malformed responses, and every unrelated browser error; fixed path classifications identify application modules without exposing URLs or credential values.",
+    "smokeTimeoutFailureDeploymentRun": "30519465645",
+    "smokeTimeoutFailureReachedProductionMutation": true,
+    "smokeTimeoutFailureClassification": "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=BUSINESS_HOURS_GET",
+    "smokeTimeoutFailureRollbackVerified": true,
+    "smokeTimeoutCause": "The smoke client imposed a 2.5-second client request deadline while the private Worker permits a 5-second server-side RS256 JWKS lookup. A valid cold signing-key lookup could therefore be aborted and misclassified as NETWORK_FAILED.",
+    "smokeTimeoutRepair": "The fixed client now uses an 8-second request deadline, preserving a 3-second response margin above the server verifier, and a 135-second shared plan deadline proven to cover the complete fixed GET/HEAD plan. Redirect, status, marker, version, and transport failures remain fail closed with no blanket retry."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
     "previousQualifiedTree": "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
     "releaseScopeUnchangedThroughBaselineCommit": "8976c077eef91147368c9b5566b5310c04fd6630",
     "previousQualifiedForwardPayloadSha256": "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c",
-    "qualifiedForwardPayloadSha256": "25d49f283bc07c212bf0c1a5f53fae17602bb149ba8870a9ad3519b6295a9707",
-    "qualifiedRollbackBundleSha256": "0350e6281b228321509c59fadc1fe612f6400b6d025c27dddd01ea980daddb79"
+    "qualifiedForwardPayloadSha256": "3bb6d677c4ad6b6811ba1efc1c643abd7728c584707a26dcef26c887f2718328",
+    "qualifiedRollbackBundleSha256": "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637"
   },
   "workflowBoundary": {
     "qualificationWorkflow": "Qualify Prometheus Private Worker v2",
@@ -1345,7 +1425,10 @@
     "monotonicElapsedDeadline": true,
     "attemptLimitControlsAcceptance": false,
     "requestAndResponseLifecycleDeadlineEnforced": true,
-    "propagationMaximumWaitMilliseconds": 46500,
+    "serverJwksTimeoutMilliseconds": 5000,
+    "responseSafetyMarginMilliseconds": 3000,
+    "requestTimeoutMilliseconds": 8000,
+    "propagationMaximumWaitMilliseconds": 135000,
     "unsafeResponseRetryAllowed": false,
     "credentialsOmittedFromBrowserState": true
   },

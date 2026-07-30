@@ -191,10 +191,13 @@ fence measures a monotonic 46.5-second deadline rather than counting attempts.
 The complete fixed GET/HEAD plan must still converge in one round, and unsafe
 responses still fail immediately. The prior corrected forward payload identity
 was `81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c`.
-The paid-customer acceptance successor advances the exact forward payload to
-`25d49f283bc07c212bf0c1a5f53fae17602bb149ba8870a9ad3519b6295a9707`;
-the paired rollback identity is
-`0350e6281b228321509c59fadc1fe612f6400b6d025c27dddd01ea980daddb79`.
+The paid-customer acceptance successor initially advanced the exact forward
+payload to
+`25d49f283bc07c212bf0c1a5f53fae17602bb149ba8870a9ad3519b6295a9707`.
+The governed smoke-timeout correction advances the forward payload to
+`3bb6d677c4ad6b6811ba1efc1c643abd7728c584707a26dcef26c887f2718328`
+and its paired rollback identity to
+`efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637`.
 Infrastructure successor `ff01434aac512f46b6c582d013056fe5b466ce6e`
 repairs only production-acceptance evidence collection and failure
 classification. It fully awaits the browser Service Worker registration query,
@@ -232,6 +235,17 @@ acceptance boundary while classifying only the failing viewport and fixed cause:
 console error, runtime exception, network failure, or external request. It emits
 no URL, message, count, claim, credential, or secret value, and it adds no retry.
 
+Deployment run `30519465645` installed the exact qualified private release and
+then failed closed at `BUSINESS_HOURS_GET` with `NETWORK_FAILED`. The paired
+forward-compatible rollback was verified. The smoke client allowed 2.5 seconds
+per request while the server-side RS256 verifier allowed 5 seconds for a cold
+JWKS lookup. Infrastructure successor
+`a7822e6535892ee4b51c483089f9f045c3185724` establishes one shared timeout
+contract: 5 seconds for JWKS verification, a 3-second response margin, an
+8-second request lifecycle, and a 135-second full-plan deadline. Infrastructure
+successor `43159913a976b48f1279f534f8fcd5b73b48a263` regenerates only the
+directly dependent forward and rollback identities.
+
 ## Boundary
 
 - Target: `prometheus-iq` only.
@@ -250,8 +264,10 @@ no URL, message, count, claim, credential, or secret value, and it adds no retry
 - Postdeployment readiness first proves canonical `GET /`. The fixed GET/HEAD
   plan then runs sequentially, and each probe must prove the exact guard marker
   and deployed Worker version. Only bounded missing or stale propagation
-  evidence may wait under one shared monotonic deadline; unsafe responses never
-  retry. Forward and rollback use unconditional boolean Worker-first routing.
+  evidence may wait under one shared 135-second monotonic deadline. Each request
+  has an 8-second lifecycle, which exceeds the 5-second server JWKS limit by a
+  fixed 3-second margin. Unsafe responses never retry. Forward and rollback use
+  unconditional boolean Worker-first routing.
 - Collection, cohorts, recommendation influence, availability refresh,
   customer activation, Anthony mapping, the public Worker, and CRM remain
   outside this release.

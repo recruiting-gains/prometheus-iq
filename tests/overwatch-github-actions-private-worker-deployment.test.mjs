@@ -109,6 +109,10 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "f27544bfc21a1ae7ceae05a6421a6b9d02007366");
   assert.equal(result.immutableWorkflowV2ServiceWorkerGuardRepairCommit,
     "4d5b201dabf6e458633eec7500363fd28f4ac4e5");
+  assert.equal(result.immutableWorkflowV2SmokeTimeoutRepairCommit,
+    "a7822e6535892ee4b51c483089f9f045c3185724");
+  assert.equal(result.immutableWorkflowV2SmokeReleaseContinuityCommit,
+    "43159913a976b48f1279f534f8fcd5b73b48a263");
   assert.equal(result.localRealWranglerDryRunPassed, true);
   assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
@@ -208,6 +212,14 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
       value.ownership.implementationBrowserSmokeMarkerPropagationRepairCommit.commit =
         "0".repeat(40);
     },
+    value => {
+      value.ownership.implementationSmokeTimeoutRepairCommit.commit =
+        "0".repeat(40);
+    },
+    value => {
+      value.ownership.implementationSmokeReleaseContinuityCommit.commit =
+        "0".repeat(40);
+    },
     value => { value.ownership.bootstrapRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.runnerWorkspaceRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.trustedTempAliasRepairEvidence[0].sha256 = "0".repeat(64); },
@@ -276,6 +288,14 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
       value.ownership.browserSmokeMarkerPropagationRepairEvidence[0].sha256 =
         "0".repeat(64);
     },
+    value => {
+      value.ownership.smokeTimeoutRepairEvidence[0].sha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.ownership.smokeReleaseContinuityEvidence[0].sha256 =
+        "0".repeat(64);
+    },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },
     value => { value.rootCause.firstDeploymentReachedProductionMutation = true; },
     value => { value.rootCause.secondDeploymentReachedProductionMutation = true; },
@@ -296,6 +316,9 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.rootCause.browserManagedIconRepair = "Broad suppression."; },
     value => { value.rootCause.browserSmokeMarkerFailureRollbackVerified = false; },
     value => { value.rootCause.browserSmokeMarkerRepair = "No repair."; },
+    value => { value.rootCause.smokeTimeoutFailureRollbackVerified = false; },
+    value => { value.rootCause.smokeTimeoutCause = "No cause."; },
+    value => { value.rootCause.smokeTimeoutRepair = "No repair."; },
     value => { value.rootCause.guardConvergenceRepair = "No repair."; },
     value => { value.rootCause.forwardPayloadPinCorrection = "No correction."; },
     value => { value.rootCause.thirdPropagationFailureRollbackVerified = false; },
@@ -348,6 +371,9 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.smokeBoundary.monotonicElapsedDeadline = false; },
     value => { value.smokeBoundary.attemptLimitControlsAcceptance = true; },
     value => { value.smokeBoundary.requestAndResponseLifecycleDeadlineEnforced = false; },
+    value => { value.smokeBoundary.serverJwksTimeoutMilliseconds = 8000; },
+    value => { value.smokeBoundary.responseSafetyMarginMilliseconds = 0; },
+    value => { value.smokeBoundary.requestTimeoutMilliseconds = 2500; },
     value => { value.smokeBoundary.propagationMaximumWaitMilliseconds = 0; },
     value => { value.smokeBoundary.unsafeResponseRetryAllowed = true; },
     value => { value.runtimeBoundary.prospectiveCollection = "ON"; },

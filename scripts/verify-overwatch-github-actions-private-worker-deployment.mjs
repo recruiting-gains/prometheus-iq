@@ -145,6 +145,18 @@ const v2BrowserSmokeMarkerPropagationRepairParent =
   "a2fa1ce774990d2f2a86f0a71bae7f5fab2b331d";
 const v2BrowserSmokeMarkerPropagationRepairTree =
   "96878ef5f8e930765aa089876699fb36fcacee62";
+const v2SmokeTimeoutRepairCommit =
+  "a7822e6535892ee4b51c483089f9f045c3185724";
+const v2SmokeTimeoutRepairParent =
+  "647ed70596e601f738d0f7e678fc194ad885c346";
+const v2SmokeTimeoutRepairTree =
+  "f224d29e523d8abd171e17d4f8b846d5ca273ac1";
+const v2SmokeReleaseContinuityCommit =
+  "43159913a976b48f1279f534f8fcd5b73b48a263";
+const v2SmokeReleaseContinuityParent =
+  "a7822e6535892ee4b51c483089f9f045c3185724";
+const v2SmokeReleaseContinuityTree =
+  "e8ff800cb3b9892c9a20d1aec800260184bf5c81";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -544,6 +556,32 @@ const v2BrowserSmokeMarkerPropagationRepairHashes = Object.freeze({
     "300e1a8569725ab1dc092ff4631e1069b3822f6d513365da78a0c16f42a7335d",
   "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json":
     "8eb2b3fc853383e0c323721e959eafba0547a296965921093396ebf3f50d9a76"
+});
+
+const v2SmokeTimeoutRepairHashes = Object.freeze({
+  "scripts/run-cloudflare-unattended-smoke.mjs":
+    "fcc0437832d718575d6fa02e16020450a767f50e781d0e51c94a0e96f538c48d",
+  "scripts/verify-cloudflare-unattended-runtime-guard.mjs":
+    "ba5c6cbafa5b3cc1be4cf9734cb920ab2d60dda46844b89340167d938fadea0a",
+  "scripts/verify-github-actions-private-worker-workflow-v2.mjs":
+    "631cd73c80dd1a2ede49ecf8d39c07463f1f098fef568d2d11460d8e3c77c122",
+  "tests/cloudflare-unattended-runtime-guard.test.mjs":
+    "6b9f07cabf71f84ff3d25cdccb582f2de4a78c3c0ec2a47618c4f6baf963018a",
+  "workers/infrastructure/cloudflare-unattended-smoke-contract.js":
+    "aeae1e71674179b318dc41669d18f2dedc6ca7762802868820f672d5e0097db3",
+  "workers/infrastructure/cloudflare-unattended-smoke-guard.js":
+    "e7d86bb0a136122f873a955956f01ade11364a28f29b2449bb44765a1daffa0f",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "99231567100b4ab0366b2538b3c19491a3f3ee2ff3a4ee0d3b32379188b4234b"
+});
+
+const v2SmokeReleaseContinuityHashes = Object.freeze({
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+    "993f6cc03c9e316a954c489aa25de3f595772227dd3e519c3f9a134fcc6bd0ec",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "0d9df51b67972a45afc21b29e3eb64426fe7c47d93105295979f5fe68153a197",
+  "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json":
+    "85d7cb58c1502961d691c60fc0e9f35ecd9bc3aa8f6914fd739c2a32e8c36134"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -1132,7 +1170,7 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(governance?.governanceId ===
     "github-actions-private-worker-deployment-governance-v2",
   "Private Workflow v2 governance identity drifted.");
-  require(governance?.version === "1.12.0"
+  require(governance?.version === "1.13.0"
     && governance?.status ===
     "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED"
     && governance?.owningSubsystem === "Prometheus Overwatch",
@@ -1367,6 +1405,26 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership?.implementationBrowserSmokeMarkerPropagationRepairCommit?.author ===
       infrastructureIdentity
     && governance?.ownership?.implementationBrowserSmokeMarkerPropagationRepairCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationSmokeTimeoutRepairCommit?.commit ===
+      v2SmokeTimeoutRepairCommit
+    && governance?.ownership?.implementationSmokeTimeoutRepairCommit?.parent ===
+      v2SmokeTimeoutRepairParent
+    && governance?.ownership?.implementationSmokeTimeoutRepairCommit?.tree ===
+      v2SmokeTimeoutRepairTree
+    && governance?.ownership?.implementationSmokeTimeoutRepairCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationSmokeTimeoutRepairCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationSmokeReleaseContinuityCommit?.commit ===
+      v2SmokeReleaseContinuityCommit
+    && governance?.ownership?.implementationSmokeReleaseContinuityCommit?.parent ===
+      v2SmokeReleaseContinuityParent
+    && governance?.ownership?.implementationSmokeReleaseContinuityCommit?.tree ===
+      v2SmokeReleaseContinuityTree
+    && governance?.ownership?.implementationSmokeReleaseContinuityCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationSmokeReleaseContinuityCommit?.committer ===
       infrastructureIdentity,
   "Private Workflow v2 owner provenance drifted.");
   require(equal(governance?.ownership?.implementationPaths, Object.keys(v2OwnerHashes)),
@@ -1539,6 +1597,18 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.browserSmokeMarkerPropagationRepairEvidence,
     evidenceMap(v2BrowserSmokeMarkerPropagationRepairHashes)),
   "Private Workflow v2 browser smoke-marker repair evidence drifted.");
+  require(equal(governance?.ownership?.smokeTimeoutRepairPaths,
+    Object.keys(v2SmokeTimeoutRepairHashes)),
+  "Private Workflow v2 smoke-timeout repair path set drifted.");
+  require(equal(governance?.ownership?.smokeTimeoutRepairEvidence,
+    evidenceMap(v2SmokeTimeoutRepairHashes)),
+  "Private Workflow v2 smoke-timeout repair evidence drifted.");
+  require(equal(governance?.ownership?.smokeReleaseContinuityPaths,
+    Object.keys(v2SmokeReleaseContinuityHashes)),
+  "Private Workflow v2 smoke release-continuity path set drifted.");
+  require(equal(governance?.ownership?.smokeReleaseContinuityEvidence,
+    evidenceMap(v2SmokeReleaseContinuityHashes)),
+  "Private Workflow v2 smoke release-continuity evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -1717,6 +1787,23 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     )
     && governance?.rootCause?.browserSmokeMarkerRepair?.includes(
       "Every authenticated same-origin browser read request"
+    )
+    && governance?.rootCause?.smokeTimeoutFailureDeploymentRun === "30519465645"
+    && governance?.rootCause?.smokeTimeoutFailureReachedProductionMutation === true
+    && governance?.rootCause?.smokeTimeoutFailureClassification ===
+      "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=BUSINESS_HOURS_GET"
+    && governance?.rootCause?.smokeTimeoutFailureRollbackVerified === true
+    && governance?.rootCause?.smokeTimeoutCause?.includes(
+      "2.5-second client request deadline"
+    )
+    && governance?.rootCause?.smokeTimeoutCause?.includes(
+      "5-second server-side RS256 JWKS"
+    )
+    && governance?.rootCause?.smokeTimeoutRepair?.includes(
+      "8-second request deadline"
+    )
+    && governance?.rootCause?.smokeTimeoutRepair?.includes(
+      "135-second shared plan deadline"
     ),
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
@@ -1735,11 +1822,11 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.workflowBoundary?.nativeRollbackAllowed === false,
   "Private Workflow v2 execution boundary drifted.");
   require(governance?.continuity?.qualifiedForwardPayloadSha256 ===
-    "25d49f283bc07c212bf0c1a5f53fae17602bb149ba8870a9ad3519b6295a9707"
+    "3bb6d677c4ad6b6811ba1efc1c643abd7728c584707a26dcef26c887f2718328"
     && governance?.continuity?.previousQualifiedForwardPayloadSha256 ===
       "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c"
     && governance?.continuity?.qualifiedRollbackBundleSha256 ===
-      "0350e6281b228321509c59fadc1fe612f6400b6d025c27dddd01ea980daddb79",
+      "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637",
   "Private Workflow v2 continuity identities drifted.");
   require(governance?.artifactBoundary?.actualForwardPayloadIncluded === true
     && governance?.artifactBoundary?.forwardCompatibleRollbackIncluded === true
@@ -1811,7 +1898,10 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.smokeBoundary?.monotonicElapsedDeadline === true
     && governance?.smokeBoundary?.attemptLimitControlsAcceptance === false
     && governance?.smokeBoundary?.requestAndResponseLifecycleDeadlineEnforced === true
-    && governance?.smokeBoundary?.propagationMaximumWaitMilliseconds === 46500
+    && governance?.smokeBoundary?.serverJwksTimeoutMilliseconds === 5000
+    && governance?.smokeBoundary?.responseSafetyMarginMilliseconds === 3000
+    && governance?.smokeBoundary?.requestTimeoutMilliseconds === 8000
+    && governance?.smokeBoundary?.propagationMaximumWaitMilliseconds === 135000
     && governance?.smokeBoundary?.unsafeResponseRetryAllowed === false,
   "Private Workflow v2 smoke boundary drifted.");
   require(governance?.runtimeBoundary?.prospectiveCollection === "OFF"
@@ -1905,9 +1995,9 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && contract?.smoke?.bootstrap?.guardResponseMarkerMayBeOmittedOnlyForPinnedCurrentVersion
       === true
     && contract?.smoke?.postDeployment?.exactGuardResponseMarkerRequired === true
-    && contract?.smoke?.postDeployment?.latestFailedRun === "30487336591"
+    && contract?.smoke?.postDeployment?.latestFailedRun === "30519465645"
     && contract?.smoke?.postDeployment?.latestFailureClassification ===
-      "SMOKE_FAILURE|DIMENSION=RELEASE_IDENTITY_MISMATCH|PROBE=ROOT_GET"
+      "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=BUSINESS_HOURS_GET"
     && contract?.smoke?.postDeployment?.latestFailureForwardRollbackVerified === true
     && contract?.smoke?.postDeployment?.propagationFence?.scope ===
       "canonical_root_get_then_each_fixed_probe"
@@ -1930,10 +2020,18 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       ?.monotonicElapsedDeadline === true
     && contract?.smoke?.postDeployment?.propagationFence
       ?.attemptLimitControlsAcceptance === false
+    && contract?.smoke?.postDeployment?.propagationFence
+      ?.serverJwksTimeoutMilliseconds === 5000
+    && contract?.smoke?.postDeployment?.propagationFence
+      ?.responseSafetyMarginMilliseconds === 3000
+    && contract?.smoke?.postDeployment?.propagationFence
+      ?.requestTimeoutMilliseconds === 8000
+    && contract?.smoke?.postDeployment?.propagationFence
+      ?.maximumWaitMilliseconds === 135000
     && contract?.continuity?.qualifiedForwardPayloadSha256 ===
-      "25d49f283bc07c212bf0c1a5f53fae17602bb149ba8870a9ad3519b6295a9707"
+      "3bb6d677c4ad6b6811ba1efc1c643abd7728c584707a26dcef26c887f2718328"
     && contract?.continuity?.qualifiedRollbackBundleSha256 ===
-      "0350e6281b228321509c59fadc1fe612f6400b6d025c27dddd01ea980daddb79"
+      "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637"
     && contract?.browserAcceptance?.contract ===
       "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
     && contract?.browserAcceptance?.runner ===
@@ -2430,6 +2528,24 @@ function verifyV2OwnerAndGovernance() {
       subject: "Repair private browser smoke marker propagation",
       hashes: v2BrowserSmokeMarkerPropagationRepairHashes,
       recorded: governance.ownership.browserSmokeMarkerPropagationRepairEvidence
+    },
+    {
+      label: "smoke timeout repair",
+      commit: v2SmokeTimeoutRepairCommit,
+      parent: v2SmokeTimeoutRepairParent,
+      tree: v2SmokeTimeoutRepairTree,
+      subject: "Align private smoke timeout with JWT verification",
+      hashes: v2SmokeTimeoutRepairHashes,
+      recorded: governance.ownership.smokeTimeoutRepairEvidence
+    },
+    {
+      label: "smoke release continuity",
+      commit: v2SmokeReleaseContinuityCommit,
+      parent: v2SmokeReleaseContinuityParent,
+      tree: v2SmokeReleaseContinuityTree,
+      subject: "Regenerate private smoke release continuity",
+      hashes: v2SmokeReleaseContinuityHashes,
+      recorded: governance.ownership.smokeReleaseContinuityEvidence
     }
   ]) {
     const metadata = git([
@@ -2498,7 +2614,9 @@ function verifyV2OwnerAndGovernance() {
     ...v2HttpPathDiagnosticsRepairHashes,
     ...v2BrowserManagedIconRepairHashes,
     ...v2BrowserManagedIconSecretScanRepairHashes,
-    ...v2BrowserSmokeMarkerPropagationRepairHashes
+    ...v2BrowserSmokeMarkerPropagationRepairHashes,
+    ...v2SmokeTimeoutRepairHashes,
+    ...v2SmokeReleaseContinuityHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -2833,6 +2951,10 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2BrowserManagedIconSecretScanRepairCommit,
     immutableWorkflowV2BrowserSmokeMarkerPropagationRepairCommit:
       v2BrowserSmokeMarkerPropagationRepairCommit,
+    immutableWorkflowV2SmokeTimeoutRepairCommit:
+      v2SmokeTimeoutRepairCommit,
+    immutableWorkflowV2SmokeReleaseContinuityCommit:
+      v2SmokeReleaseContinuityCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,
