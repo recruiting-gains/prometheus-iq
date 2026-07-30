@@ -145,9 +145,15 @@
       ],
       "guardSuccessor": {
         "path": "workers/infrastructure/cloudflare-unattended-smoke-guard.js",
-        "sha256": "a67375594478bc4bed3b3f9341778da1f07252a5cc711a45d81e11cf71ac8f62",
+        "previousSha256": "a67375594478bc4bed3b3f9341778da1f07252a5cc711a45d81e11cf71ac8f62",
+        "sha256": "e7d86bb0a136122f873a955956f01ade11364a28f29b2449bb44765a1daffa0f",
         "contractPath": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
-        "contractSha256": "b2a175fefd963f52c9b9738b8cd00074dc72ba97d11460887cda2a49bda9247e",
+        "previousContractSha256": "b2a175fefd963f52c9b9738b8cd00074dc72ba97d11460887cda2a49bda9247e",
+        "contractSha256": "aeae1e71674179b318dc41669d18f2dedc6ca7762802868820f672d5e0097db3",
+        "sourceCommit": "a7822e6535892ee4b51c483089f9f045c3185724",
+        "sourceTree": "f224d29e523d8abd171e17d4f8b846d5ca273ac1",
+        "clientRequestTimeoutMilliseconds": 8000,
+        "serverJwksTimeoutMilliseconds": 5000,
         "exactWorkerVersionIdentityRequired": true,
         "intelligenceBehaviorChanged": false
       }

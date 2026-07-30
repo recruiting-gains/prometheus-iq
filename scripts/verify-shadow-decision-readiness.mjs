@@ -265,6 +265,10 @@ export function validateShadowDecisionContractCoherence(contract, config) {
       "utf8",
     ),
   );
+  assert.equal(
+    runtimeGuardSuccessor.version,
+    "route-iq-intelligence-unattended-runtime-guard-protected-baseline-successor-v3",
+  );
   assert.equal(runtimeGuardSuccessor.batchId, "BATCH-20260714-006");
   assert.equal(
     runtimeGuardSuccessor.status,
@@ -274,6 +278,17 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     runtimeGuardSuccessor.ownerSubsystem,
     "Prometheus Intelligence Engine",
   );
+  assert.deepEqual(runtimeGuardSuccessor.predecessorCheckpoint, {
+    path:
+      "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
+    commit: "0bda1d1fff7e8bee09c72e0248970b52dd013382",
+    tree: "53925227263d7fa3ebd8182550f6094c3fa84a90",
+    sha256: "411fee907170b091f017e0360cb89850a8db9268c41daf450fe5136a7ecaf465",
+    version:
+      "route-iq-intelligence-unattended-runtime-guard-protected-baseline-successor-v2",
+    remainsHistorical: true,
+    rewritten: false,
+  });
   assert.equal(
     runtimeGuardSuccessor.historicalProtectedSource.sha256,
     "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59",
@@ -318,6 +333,37 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   assert.equal(sha256File(smokeGuard.guardPath), smokeGuard.guardSha256);
   assert.equal(sha256File(smokeGuard.contractPath), smokeGuard.contractSha256);
   assert.equal(smokeGuard.ordinaryAuthenticatedHumanRoutingChanged, false);
+  const smokeTimeoutSuccessor =
+    runtimeGuardSuccessor.infrastructureSmokeTimeoutSuccessor;
+  assert.equal(smokeTimeoutSuccessor.ownerSubsystem, "Prometheus Infrastructure");
+  assert.equal(
+    smokeTimeoutSuccessor.commit,
+    "a7822e6535892ee4b51c483089f9f045c3185724",
+  );
+  assert.equal(
+    smokeTimeoutSuccessor.tree,
+    "f224d29e523d8abd171e17d4f8b846d5ca273ac1",
+  );
+  assert.equal(
+    smokeTimeoutSuccessor.failedDeploymentRun,
+    "30519465645",
+  );
+  assert.equal(
+    smokeTimeoutSuccessor.failureClassification,
+    "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=BUSINESS_HOURS_GET",
+  );
+  assert.equal(smokeTimeoutSuccessor.forwardRollbackVerified, true);
+  assert.equal(smokeTimeoutSuccessor.guard.path, smokeGuard.guardPath);
+  assert.equal(smokeTimeoutSuccessor.guard.sha256, smokeGuard.guardSha256);
+  assert.equal(smokeTimeoutSuccessor.contract.path, smokeGuard.contractPath);
+  assert.equal(smokeTimeoutSuccessor.contract.sha256, smokeGuard.contractSha256);
+  assert.deepEqual(smokeTimeoutSuccessor.timeoutContract, {
+    serverJwksTimeoutMilliseconds: 5000,
+    responseSafetyMarginMilliseconds: 3000,
+    clientRequestTimeoutMilliseconds: 8000,
+    fullPlanDeadlineMilliseconds: 135000,
+  });
+  assert.equal(smokeTimeoutSuccessor.intelligenceBehaviorChanged, false);
   assert.equal(
     runtimeGuardSuccessor.intelligenceOwnerSynchronization.contract.path,
     contract.artifacts.contract,

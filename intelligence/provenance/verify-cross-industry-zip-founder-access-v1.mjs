@@ -112,6 +112,37 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
     transitionByPath.get("deploy/cloudflare-pages/index.html")?.currentSha256,
     "Dashboard source and deploy mirror diverged."
   );
+  const workerGuard = transitionByPath.get("workers/prometheus-iq-worker.js")
+    ?.guardSuccessor;
+  assert.equal(
+    sha256(workerGuard.path),
+    workerGuard.sha256,
+    "Current service-principal guard changed."
+  );
+  assert.equal(
+    sha256(workerGuard.contractPath),
+    workerGuard.contractSha256,
+    "Current service-principal contract changed."
+  );
+  assert.equal(
+    hashBytes(git(["show", `${workerGuard.sourceCommit}:${workerGuard.path}`], null)),
+    workerGuard.sha256,
+    "Service-principal guard owner commit changed."
+  );
+  assert.equal(
+    hashBytes(git([
+      "show",
+      `${workerGuard.sourceCommit}:${workerGuard.contractPath}`
+    ], null)),
+    workerGuard.contractSha256,
+    "Service-principal contract owner commit changed."
+  );
+  assert.equal(workerGuard.clientRequestTimeoutMilliseconds, 8000);
+  assert.equal(workerGuard.serverJwksTimeoutMilliseconds, 5000);
+  assert.equal(workerGuard.clientRequestTimeoutMilliseconds
+    > workerGuard.serverJwksTimeoutMilliseconds, true);
+  assert.equal(workerGuard.exactWorkerVersionIdentityRequired, true);
+  assert.equal(workerGuard.intelligenceBehaviorChanged, false);
   assert.deepEqual(adoption.approvedDashboardOutput, {
     founderWorkspaceSwitching: "exact_mapped_founder_only",
     territoryZipCoverage: "canonical_configuration_only",

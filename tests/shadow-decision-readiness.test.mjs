@@ -1506,7 +1506,7 @@ test("protected hash mismatch and contract/config incoherence fail verifier", ()
   );
 });
 
-test("unattended runtime guard successor remains the historical predecessor to the commercial-readiness Worker baseline", () => {
+test("unattended runtime guard successor preserves history and admits only the bounded timeout repair", () => {
   const contract = JSON.parse(
     readFileSync(
       "intelligence/contracts/shadow-decision-readiness-contracts.json",
@@ -1544,6 +1544,16 @@ test("unattended runtime guard successor remains the historical predecessor to t
   assert.equal(successor.batchId, "BATCH-20260714-006");
   assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
   assert.equal(
+    successor.version,
+    "route-iq-intelligence-unattended-runtime-guard-protected-baseline-successor-v3",
+  );
+  assert.equal(
+    successor.predecessorCheckpoint.commit,
+    "0bda1d1fff7e8bee09c72e0248970b52dd013382",
+  );
+  assert.equal(successor.predecessorCheckpoint.remainsHistorical, true);
+  assert.equal(successor.predecessorCheckpoint.rewritten, false);
+  assert.equal(
     successor.infrastructureOwnerTransition.ownerSubsystem,
     "Prometheus Infrastructure",
   );
@@ -1554,6 +1564,31 @@ test("unattended runtime guard successor remains the historical predecessor to t
   assert.equal(
     successor.infrastructureOwnerTransition.supplyChainHardeningCommit,
     "3c8ca61910358c13cc0c05e1fbda5d3052b31a9b",
+  );
+  assert.equal(
+    successor.infrastructureSmokeTimeoutSuccessor.commit,
+    "a7822e6535892ee4b51c483089f9f045c3185724",
+  );
+  assert.equal(
+    successor.infrastructureSmokeTimeoutSuccessor.failureClassification,
+    "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=BUSINESS_HOURS_GET",
+  );
+  assert.equal(
+    successor.infrastructureSmokeTimeoutSuccessor.forwardRollbackVerified,
+    true,
+  );
+  assert.deepEqual(
+    successor.infrastructureSmokeTimeoutSuccessor.timeoutContract,
+    {
+      serverJwksTimeoutMilliseconds: 5000,
+      responseSafetyMarginMilliseconds: 3000,
+      clientRequestTimeoutMilliseconds: 8000,
+      fullPlanDeadlineMilliseconds: 135000,
+    },
+  );
+  assert.equal(
+    successor.infrastructureSmokeTimeoutSuccessor.intelligenceBehaviorChanged,
+    false,
   );
   assert.equal(
     historicalWorkerTransition.previousSha256,

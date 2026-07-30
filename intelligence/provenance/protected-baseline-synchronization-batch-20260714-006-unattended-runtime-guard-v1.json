@@ -1,15 +1,15 @@
 {
-  "version": "route-iq-intelligence-unattended-runtime-guard-protected-baseline-successor-v2",
+  "version": "route-iq-intelligence-unattended-runtime-guard-protected-baseline-successor-v3",
   "batchId": "BATCH-20260714-006",
   "status": "OWNER_VALIDATED_SUCCESSOR_PENDING_OVERWATCH",
   "ownerSubsystem": "Prometheus Intelligence Engine",
-  "purpose": "Record the Intelligence-owner review of the current Infrastructure-owned Cloudflare unattended service-principal guard while preserving the original July 14 checkpoint and without modifying Infrastructure implementation or changing shadow readiness, route behavior, representative visibility, collection, or recommendation influence.",
+  "purpose": "Record the Intelligence-owner review of the current Infrastructure-owned Cloudflare unattended service-principal guard and bounded timeout contract while preserving every predecessor checkpoint and without modifying Infrastructure implementation or changing shadow readiness, route behavior, representative visibility, collection, or recommendation influence.",
   "predecessorCheckpoint": {
     "path": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
-    "commit": "c05fa818c2ccff98447089287b110c35704ff3a4",
-    "tree": "c210114d73523d96c5be372a179641e2610d7153",
-    "sha256": "29199759ec8782df53d13c770b66271f190766b6bf8291077a02e05fa7bcdd2e",
-    "version": "route-iq-intelligence-unattended-runtime-guard-protected-baseline-successor-v1",
+    "commit": "0bda1d1fff7e8bee09c72e0248970b52dd013382",
+    "tree": "53925227263d7fa3ebd8182550f6094c3fa84a90",
+    "sha256": "411fee907170b091f017e0360cb89850a8db9268c41daf450fe5136a7ecaf465",
+    "version": "route-iq-intelligence-unattended-runtime-guard-protected-baseline-successor-v2",
     "remainsHistorical": true,
     "rewritten": false
   },
@@ -47,11 +47,11 @@
     },
     "servicePrincipalGuard": {
       "guardPath": "workers/infrastructure/cloudflare-unattended-smoke-guard.js",
-      "guardSha256": "a67375594478bc4bed3b3f9341778da1f07252a5cc711a45d81e11cf71ac8f62",
+      "guardSha256": "e7d86bb0a136122f873a955956f01ade11364a28f29b2449bb44765a1daffa0f",
       "contractPath": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
-      "contractSha256": "b2a175fefd963f52c9b9738b8cd00074dc72ba97d11460887cda2a49bda9247e",
-      "sourceCommit": "25ff53a7e61b50962144c5c689cc7a546875f724",
-      "sourceTree": "25f27adbd21a281d1294a68362b994403934095e",
+      "contractSha256": "aeae1e71674179b318dc41669d18f2dedc6ca7762802868820f672d5e0097db3",
+      "sourceCommit": "a7822e6535892ee4b51c483089f9f045c3185724",
+      "sourceTree": "f224d29e523d8abd171e17d4f8b846d5ca273ac1",
       "initialBaseline": {
         "implementationCommit": "e41e025173d9843de51c6c8e789570e27345a13b",
         "guardSha256": "4b516eb857fc710ad5167f52517b567210ec8e32efcdf6d4de5e10d4145d8a60",
@@ -105,6 +105,30 @@
       "boundedRequestAndResponseLifecycleRequired": true
     }
   },
+  "infrastructureSmokeTimeoutSuccessor": {
+    "ownerSubsystem": "Prometheus Infrastructure",
+    "commit": "a7822e6535892ee4b51c483089f9f045c3185724",
+    "tree": "f224d29e523d8abd171e17d4f8b846d5ca273ac1",
+    "subject": "Align private smoke timeout with JWT verification",
+    "failedDeploymentRun": "30519465645",
+    "failureClassification": "SMOKE_FAILURE|DIMENSION=NETWORK_FAILED|PROBE=BUSINESS_HOURS_GET",
+    "forwardRollbackVerified": true,
+    "guard": {
+      "path": "workers/infrastructure/cloudflare-unattended-smoke-guard.js",
+      "sha256": "e7d86bb0a136122f873a955956f01ade11364a28f29b2449bb44765a1daffa0f"
+    },
+    "contract": {
+      "path": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+      "sha256": "aeae1e71674179b318dc41669d18f2dedc6ca7762802868820f672d5e0097db3"
+    },
+    "timeoutContract": {
+      "serverJwksTimeoutMilliseconds": 5000,
+      "responseSafetyMarginMilliseconds": 3000,
+      "clientRequestTimeoutMilliseconds": 8000,
+      "fullPlanDeadlineMilliseconds": 135000
+    },
+    "intelligenceBehaviorChanged": false
+  },
   "intelligenceOwnerSynchronization": {
     "contract": {
       "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
@@ -117,7 +141,8 @@
     ],
     "historicalReferencesPreserved": [
       "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json",
-      "c05fa818c2ccff98447089287b110c35704ff3a4:intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json"
+      "c05fa818c2ccff98447089287b110c35704ff3a4:intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
+      "0bda1d1fff7e8bee09c72e0248970b52dd013382:intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json"
     ],
     "allAffectedCurrentProtectedReferencesAccountedFor": true,
     "historicalCheckpointModified": false,
@@ -139,7 +164,7 @@
   },
   "advisoryArtifacts": {
     "regenerationRequired": false,
-    "reason": "The Infrastructure successor hardens request authorization, exact release identity, bounded response handling, and rollback routing for an unattended read-only smoke principal. Shadow evidence, conclusions, readiness state, route ordering, scoring, collection, and representative output are unchanged."
+    "reason": "The Infrastructure successors harden request authorization, exact release identity, bounded response handling, rollback routing, and the client/server timeout relationship for an unattended read-only smoke principal. Shadow evidence, conclusions, readiness state, route ordering, scoring, collection, and representative output are unchanged."
   },
   "boundaryValidation": {
     "readiness": "INSUFFICIENT_EVIDENCE",
