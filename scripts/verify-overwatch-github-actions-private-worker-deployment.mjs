@@ -127,6 +127,18 @@ const v2HttpPathDiagnosticsRepairParent =
   "b3469efb9cf33cbea2ed13484f4eb89dc8846ae9";
 const v2HttpPathDiagnosticsRepairTree =
   "e3d1bf576a098319293a6d0591cad16f7046f837";
+const v2BrowserManagedIconRepairCommit =
+  "25e9b5ae09fb6029006804da57a7f10ddcd64a1e";
+const v2BrowserManagedIconRepairParent =
+  "9dc7a62de102e5039710e29587c3fbcb24b1562d";
+const v2BrowserManagedIconRepairTree =
+  "bd3e0fd3c11eb0681cd3acbf6a837aae2aa00b00";
+const v2BrowserManagedIconSecretScanRepairCommit =
+  "09354a69109770c49f04aeef319246e636c8a196";
+const v2BrowserManagedIconSecretScanRepairParent =
+  "25e9b5ae09fb6029006804da57a7f10ddcd64a1e";
+const v2BrowserManagedIconSecretScanRepairTree =
+  "2420a0c803c3d0e5e52f54c13a16a5b85a83a973";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -501,6 +513,22 @@ const v2HttpPathDiagnosticsRepairHashes = Object.freeze({
     "4437e9ad5bbee2814fd0b16b426c645e3f4592b89c57d57a552abb5dad60a6e2",
   "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json":
     "b7bcf24619d3c9568a3e12b39cbd7d59bf429a118ceb52891b15aa222563b483"
+});
+
+const v2BrowserManagedIconRepairHashes = Object.freeze({
+  "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs":
+    "adb18bafb36e898a9b8b2d0b8a743152af014918723ef7265ffb52115835cb94",
+  "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs":
+    "e917d2dce5170bef1de0d72469721998080011e65ddbcc93410a4ffbb61833c8",
+  "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json":
+    "4aec5c75a5cd919259fc80ed53d1242490720841b93c0e8da28a278480ff4ed9"
+});
+
+const v2BrowserManagedIconSecretScanRepairHashes = Object.freeze({
+  "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs":
+    "1facbb76ab68103887db17bcc377df4351d643dd0aeced5c72b5b728a012c3aa",
+  "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs":
+    "f4d9a20f952b088fa726f3d0d25e321448ad30dc13bb39b75285500b62237ee0"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -1294,6 +1322,26 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership?.implementationHttpPathDiagnosticsRepairCommit?.author ===
       infrastructureIdentity
     && governance?.ownership?.implementationHttpPathDiagnosticsRepairCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationBrowserManagedIconRepairCommit?.commit ===
+      v2BrowserManagedIconRepairCommit
+    && governance?.ownership?.implementationBrowserManagedIconRepairCommit?.parent ===
+      v2BrowserManagedIconRepairParent
+    && governance?.ownership?.implementationBrowserManagedIconRepairCommit?.tree ===
+      v2BrowserManagedIconRepairTree
+    && governance?.ownership?.implementationBrowserManagedIconRepairCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationBrowserManagedIconRepairCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationBrowserManagedIconSecretScanRepairCommit?.commit ===
+      v2BrowserManagedIconSecretScanRepairCommit
+    && governance?.ownership?.implementationBrowserManagedIconSecretScanRepairCommit?.parent ===
+      v2BrowserManagedIconSecretScanRepairParent
+    && governance?.ownership?.implementationBrowserManagedIconSecretScanRepairCommit?.tree ===
+      v2BrowserManagedIconSecretScanRepairTree
+    && governance?.ownership?.implementationBrowserManagedIconSecretScanRepairCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationBrowserManagedIconSecretScanRepairCommit?.committer ===
       infrastructureIdentity,
   "Private Workflow v2 owner provenance drifted.");
   require(equal(governance?.ownership?.implementationPaths, Object.keys(v2OwnerHashes)),
@@ -1448,6 +1496,18 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.httpPathDiagnosticsRepairEvidence,
     evidenceMap(v2HttpPathDiagnosticsRepairHashes)),
   "Private Workflow v2 HTTP-path diagnostics repair evidence drifted.");
+  require(equal(governance?.ownership?.browserManagedIconRepairPaths,
+    Object.keys(v2BrowserManagedIconRepairHashes)),
+  "Private Workflow v2 browser-managed icon repair path set drifted.");
+  require(equal(governance?.ownership?.browserManagedIconRepairEvidence,
+    evidenceMap(v2BrowserManagedIconRepairHashes)),
+  "Private Workflow v2 browser-managed icon repair evidence drifted.");
+  require(equal(governance?.ownership?.browserManagedIconSecretScanRepairPaths,
+    Object.keys(v2BrowserManagedIconSecretScanRepairHashes)),
+  "Private Workflow v2 browser-managed icon secret-scan repair path set drifted.");
+  require(equal(governance?.ownership?.browserManagedIconSecretScanRepairEvidence,
+    evidenceMap(v2BrowserManagedIconSecretScanRepairHashes)),
+  "Private Workflow v2 browser-managed icon secret-scan repair evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -1599,6 +1659,21 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     )
     && governance?.rootCause?.browserHealthDiagnosticRepair?.includes(
       "fixed viewport-and-cause classification"
+    )
+    && governance?.rootCause?.browserManagedIconFailureDeploymentRun === "30512589660"
+    && governance?.rootCause?.browserManagedIconFailureReachedProductionMutation === true
+    && governance?.rootCause?.browserManagedIconFailureClassification?.includes(
+      "DESKTOP_HTTP_OTHER_4XX_ICON"
+    )
+    && governance?.rootCause?.browserManagedIconFailureClassification?.includes(
+      "MOBILE_HTTP_OTHER_4XX_ICON"
+    )
+    && governance?.rootCause?.browserManagedIconFailureRollbackVerified === true
+    && governance?.rootCause?.browserManagedIconCause?.includes(
+      "authenticated fixed smoke plan successfully fetched the exact production icon"
+    )
+    && governance?.rootCause?.browserManagedIconRepair?.includes(
+      "verified real response bytes"
     ),
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
@@ -2285,6 +2360,24 @@ function verifyV2OwnerAndGovernance() {
       subject: "Classify private browser acceptance paths",
       hashes: v2HttpPathDiagnosticsRepairHashes,
       recorded: governance.ownership.httpPathDiagnosticsRepairEvidence
+    },
+    {
+      label: "browser-managed icon repair",
+      commit: v2BrowserManagedIconRepairCommit,
+      parent: v2BrowserManagedIconRepairParent,
+      tree: v2BrowserManagedIconRepairTree,
+      subject: "Bridge browser-managed icon securely",
+      hashes: v2BrowserManagedIconRepairHashes,
+      recorded: governance.ownership.browserManagedIconRepairEvidence
+    },
+    {
+      label: "browser-managed icon secret-scan repair",
+      commit: v2BrowserManagedIconSecretScanRepairCommit,
+      parent: v2BrowserManagedIconSecretScanRepairParent,
+      tree: v2BrowserManagedIconSecretScanRepairTree,
+      subject: "Use dynamic Access headers",
+      hashes: v2BrowserManagedIconSecretScanRepairHashes,
+      recorded: governance.ownership.browserManagedIconSecretScanRepairEvidence
     }
   ]) {
     const metadata = git([
@@ -2350,7 +2443,9 @@ function verifyV2OwnerAndGovernance() {
     ...v2BrowserHealthDiagnosticsRepairHashes,
     ...v2BrowserAcceptanceEvidenceRepairHashes,
     ...v2ServiceWorkerGuardRepairHashes,
-    ...v2HttpPathDiagnosticsRepairHashes
+    ...v2HttpPathDiagnosticsRepairHashes,
+    ...v2BrowserManagedIconRepairHashes,
+    ...v2BrowserManagedIconSecretScanRepairHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -2679,6 +2774,10 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2ServiceWorkerGuardRepairCommit,
     immutableWorkflowV2HttpPathDiagnosticsRepairCommit:
       v2HttpPathDiagnosticsRepairCommit,
+    immutableWorkflowV2BrowserManagedIconRepairCommit:
+      v2BrowserManagedIconRepairCommit,
+    immutableWorkflowV2BrowserManagedIconSecretScanRepairCommit:
+      v2BrowserManagedIconSecretScanRepairCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,

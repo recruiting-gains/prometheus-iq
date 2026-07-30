@@ -200,6 +200,22 @@
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Classify private browser acceptance paths"
     },
+    "implementationBrowserManagedIconRepairCommit": {
+      "commit": "25e9b5ae09fb6029006804da57a7f10ddcd64a1e",
+      "parent": "9dc7a62de102e5039710e29587c3fbcb24b1562d",
+      "tree": "bd3e0fd3c11eb0681cd3acbf6a837aae2aa00b00",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Bridge browser-managed icon securely"
+    },
+    "implementationBrowserManagedIconSecretScanRepairCommit": {
+      "commit": "09354a69109770c49f04aeef319246e636c8a196",
+      "parent": "25e9b5ae09fb6029006804da57a7f10ddcd64a1e",
+      "tree": "2420a0c803c3d0e5e52f54c13a16a5b85a83a973",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Use dynamic Access headers"
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "implementationPaths": [
@@ -1058,6 +1074,39 @@
         "path": "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
         "sha256": "b7bcf24619d3c9568a3e12b39cbd7d59bf429a118ceb52891b15aa222563b483"
       }
+    ],
+    "browserManagedIconRepairPaths": [
+      "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+      "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+      "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
+    ],
+    "browserManagedIconRepairEvidence": [
+      {
+        "path": "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+        "sha256": "adb18bafb36e898a9b8b2d0b8a743152af014918723ef7265ffb52115835cb94"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+        "sha256": "e917d2dce5170bef1de0d72469721998080011e65ddbcc93410a4ffbb61833c8"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
+        "sha256": "4aec5c75a5cd919259fc80ed53d1242490720841b93c0e8da28a278480ff4ed9"
+      }
+    ],
+    "browserManagedIconSecretScanRepairPaths": [
+      "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+      "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs"
+    ],
+    "browserManagedIconSecretScanRepairEvidence": [
+      {
+        "path": "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+        "sha256": "1facbb76ab68103887db17bcc377df4351d643dd0aeced5c72b5b728a012c3aa"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+        "sha256": "f4d9a20f952b088fa726f3d0d25e321448ad30dc13bb39b75285500b62237ee0"
+      }
     ]
   },
   "rootCause": {
@@ -1143,7 +1192,13 @@
     "browserHealthFailureClassification": "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED|CAUSE=QUALIFICATION_FAILED|DIMENSION=HEALTH",
     "browserHealthFailureRollbackVerified": true,
     "browserHealthDiagnosticGap": "The browser acceptance runner collapsed eight viewport-specific health causes into one HEALTH result, preventing a safe corrective from distinguishing console, runtime, network, and external-request failures.",
-    "browserHealthDiagnosticRepair": "The runner now emits only one fixed viewport-and-cause classification while preserving fail-closed acceptance, zero retries, zero arbitrary diagnostic content, and zero secret or claim-value disclosure."
+    "browserHealthDiagnosticRepair": "The runner now emits only one fixed viewport-and-cause classification while preserving fail-closed acceptance, zero retries, zero arbitrary diagnostic content, and zero secret or claim-value disclosure.",
+    "browserManagedIconFailureDeploymentRun": "30512589660",
+    "browserManagedIconFailureReachedProductionMutation": true,
+    "browserManagedIconFailureClassification": "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED|CAUSE=QUALIFICATION_FAILED|DIMENSIONS=DESKTOP_CONSOLE_ERROR,DESKTOP_NETWORK_HTTP_FAILURE,MOBILE_CONSOLE_ERROR,MOBILE_NETWORK_HTTP_FAILURE|DETAILS=DESKTOP_LOG_NETWORK,DESKTOP_HTTP_OTHER_4XX_ICON,MOBILE_LOG_NETWORK,MOBILE_HTTP_OTHER_4XX_ICON",
+    "browserManagedIconFailureRollbackVerified": true,
+    "browserManagedIconCause": "The authenticated fixed smoke plan successfully fetched the exact production icon before Chromium independently requested the same manifest-managed icon as resource type Other. Chromium emitted one same-origin 4xx response and one correlated network log per viewport even though the exact asset and private Worker had already passed authenticated production verification.",
+    "browserManagedIconRepair": "The acceptance runner intercepts at most one exact same-origin, no-query /icons/prometheus.svg resource-type Other request per viewport, performs one authenticated read-only fetch of the real production asset with manual redirects and bounded response validation, and fulfills Chromium only with the verified real response bytes. Any alternate origin, path, query, type, duplicate, fetch failure, redirect, non-2xx response, wrong content type, oversized body, or unrelated browser error remains release-blocking."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",

@@ -75,6 +75,8 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "1341e8edf6e96603437b7bff95768531e2f5446a");
   assert.equal(result.immutableWorkflowV2CanonicalSmokeRepairCommit,
     "dfa52c70cd48b33771d6c85de6483c499d9b038f");
+  assert.equal(result.immutableWorkflowV2BrowserManagedIconSecretScanRepairCommit,
+    "09354a69109770c49f04aeef319246e636c8a196");
   assert.equal(result.immutableWorkflowV2PublicBundlePreservationCommit,
     "a4572b351473bf5c0183d748434d77de04d882f0");
   assert.equal(result.immutableWorkflowV2CanonicalClientIsolationCommit,
@@ -196,6 +198,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
       value.ownership.implementationHttpPathDiagnosticsRepairCommit.commit =
         "0".repeat(40);
     },
+    value => {
+      value.ownership.implementationBrowserManagedIconRepairCommit.commit =
+        "0".repeat(40);
+    },
     value => { value.ownership.bootstrapRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.runnerWorkspaceRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.trustedTempAliasRepairEvidence[0].sha256 = "0".repeat(64); },
@@ -252,6 +258,14 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
       value.ownership.httpPathDiagnosticsRepairEvidence[0].sha256 =
         "0".repeat(64);
     },
+    value => {
+      value.ownership.browserManagedIconRepairEvidence[0].sha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.ownership.browserManagedIconSecretScanRepairEvidence[0].sha256 =
+        "0".repeat(64);
+    },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },
     value => { value.rootCause.firstDeploymentReachedProductionMutation = true; },
     value => { value.rootCause.secondDeploymentReachedProductionMutation = true; },
@@ -268,6 +282,8 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.rootCause.rollbackRootGuardRepair = "No repair."; },
     value => { value.rootCause.secondPropagationFailureRollbackVerified = false; },
     value => { value.rootCause.guardConvergenceGap = "No gap."; },
+    value => { value.rootCause.browserManagedIconFailureRollbackVerified = false; },
+    value => { value.rootCause.browserManagedIconRepair = "Broad suppression."; },
     value => { value.rootCause.guardConvergenceRepair = "No repair."; },
     value => { value.rootCause.forwardPayloadPinCorrection = "No correction."; },
     value => { value.rootCause.thirdPropagationFailureRollbackVerified = false; },
