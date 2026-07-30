@@ -43,16 +43,23 @@
       "tree": "0b536d75df9c03a2a94da5378b8dcc507d55871a",
       "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Close autonomous workflow security findings"
+    },
+    "runnerContextRepairCommit": {
+      "commit": "c1c51ff1bc85fa1d2df0ac165772bfbbdc7ce61d",
+      "parent": "b644fe34f4f4c94a374ba2e6328f769faa4ab24c",
+      "tree": "adfcdb5a865d99f5096076d2c6d177385d431195",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Repair hosted workflow runner context"
     }
   },
   "implementationHashes": {
-    ".github/workflows/github-hosted-autonomous-engineering-v1.yml": "b722878ef04001f573f85c748016b478a5b5383e3d69c174af585aab31893509",
-    "docs/github-hosted-autonomous-engineering-v1.md": "73104145d2da650159536ee81c3d91b489dc88e07169c6e5dfd07a46f5b805ef",
-    "scripts/lib/github-hosted-autonomous-engineering-v1.mjs": "91cf50f1046a531dd612bb9f3c1948107c0f81b25d98931da9e3167ce516b29b",
+    ".github/workflows/github-hosted-autonomous-engineering-v1.yml": "78faaa9f7536b3ef719b942545228d04bab4f3da9866549deb708a9d8bb1a47d",
+    "docs/github-hosted-autonomous-engineering-v1.md": "637b2004ad7d23ff467b91b461a0ae22b1303f6b5882ca2b38dee4893636f334",
+    "scripts/lib/github-hosted-autonomous-engineering-v1.mjs": "642a3e270fa9a43fd3c9bc14c9a2e1332766732d9fb3e32822de8edf1b5f4343",
     "scripts/run-github-hosted-autonomous-engineering-v1.mjs": "8327e576d9d0fad51e2986e1369e1117806f05c3c45e4c4c957b7f9f61d3c9dc",
-    "scripts/verify-github-hosted-autonomous-engineering-v1.mjs": "a38684a83270d612f027831a5ba3d6014c20efe202f9f0abc9f8b576169824f4",
-    "tests/github-hosted-autonomous-engineering-infrastructure-v1.test.mjs": "1593d1c9cf3a2289743a21ab43b7d4ba041f1c9c52c6e330c29e2870113f1dbb",
-    "workers/infrastructure/github-hosted-autonomous-engineering-v1.json": "f7070b685aab702155196cec68306e6cc1a69e1d1be508856349a6c62e50d979"
+    "scripts/verify-github-hosted-autonomous-engineering-v1.mjs": "f3365446e2d3b8efdc44e11721e065133243d6d394f2363bcb93a380ff4ffebc",
+    "tests/github-hosted-autonomous-engineering-infrastructure-v1.test.mjs": "eefd842a944b9b3908d6a1dd10e71268d97c8cbe4b3ebfaf4474c0fed5a9e826",
+    "workers/infrastructure/github-hosted-autonomous-engineering-v1.json": "592ee1b3bb3b522af06f2e94795fac2a63b376ec32fda6221174459d023df945"
   },
   "acceptedControls": {
     "trigger": "workflow_dispatch",
@@ -66,7 +73,7 @@
     "privateDeploymentAttempts": 1,
     "productionRollbackAttempts": 1,
     "inRunTransientRecoveryAttempts": 1,
-    "maximumRepairAttempts": 3,
+    "maximumRepairAttempts": 4,
     "sourceOrTestRetryAllowed": false,
     "desktopAcceptanceRequired": true,
     "mobileAcceptanceViewport": "390x844",
@@ -81,8 +88,18 @@
     "maximumChangedLines": 6000,
     "maximumChangedPatchBytes": 524288,
     "maximumChangedFileBytes": 524288,
-    "maximumSuccessorCommits": 6,
+    "maximumSuccessorCommits": 7,
+    "runnerContextAllowedAtJobLevel": false,
+    "runnerTemporaryPathsBoundAtStepScope": true,
     "maximumWallClockMinutes": 210
+  },
+  "githubValidationEvidence": {
+    "failedRunId": 30567186237,
+    "failureClassification": "RUNNER_CONTEXT_OUT_OF_SCOPE_AT_JOB_ENV",
+    "workflowJobsCreated": 0,
+    "productionSecretsAccessed": false,
+    "productionMutationPerformed": false,
+    "repairCommit": "c1c51ff1bc85fa1d2df0ac165772bfbbdc7ce61d"
   },
   "securityBoundary": {
     "protectedEnvironment": "prometheus-private-worker-production",

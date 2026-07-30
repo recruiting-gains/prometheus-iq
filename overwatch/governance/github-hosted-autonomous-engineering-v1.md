@@ -11,7 +11,11 @@ documentation files introduced by commits
 `f3657a5184b73612d65a92bfd9f66468e4e1f568` and
 `4b11e8b724b506b5236ad80e72470bb0471a4df7`, with the secret-scan repair in
 `7e04cbf028fc69597771320a5797390bdcf255a2` and the independent-review closure in
-`df10a226cfa48d983e794b67d21250b185fd65f0`. Overwatch records their exact hashes
+`df10a226cfa48d983e794b67d21250b185fd65f0`. GitHub rejected the initial pushed
+workflow before creating a job because three job-level environments referenced
+the step-only `runner` context. Infrastructure repaired that exact defect in
+`c1c51ff1bc85fa1d2df0ac165772bfbbdc7ce61d`; the release verifier now rejects
+the same context error before push. Overwatch records every current exact hash
 in the adjacent JSON governance record and owns only this governance, its
 verifier, and tests.
 
@@ -55,8 +59,8 @@ Source and test defects fail closed. They cannot be edited by the workflow
 because it has no repository-write or self-dispatch permission. This is the
 security boundary, not a hidden laptop dependency on the successful path.
 Owner-produced successors are limited to the exact Infrastructure and
-Overwatch paths, six commits, sixteen files, 6,000 changed lines, 524,288 patch
-bytes, 524,288 resulting file bytes, three Infrastructure repair generations,
+Overwatch paths, seven commits, sixteen files, 6,000 changed lines, 524,288
+patch bytes, 524,288 resulting file bytes, four Infrastructure repair generations,
 210 aggregate job-timeout minutes, and zero workflow recursion. The dispatched
 repair count must equal the verified Infrastructure commit count minus one, and
 the final commit must be Overwatch-owned.

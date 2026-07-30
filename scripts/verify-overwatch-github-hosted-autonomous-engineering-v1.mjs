@@ -77,6 +77,7 @@ export function verifyOverwatchGithubHostedAutonomousEngineeringV1() {
   );
   verifyCommit(governance.ownership.secretScanRepairCommit, infrastructureIdentity);
   verifyCommit(governance.ownership.securityClosureCommit, infrastructureIdentity);
+  verifyCommit(governance.ownership.runnerContextRepairCommit, infrastructureIdentity);
 
   assert.deepEqual(
     Object.keys(governance.implementationHashes).sort(),
@@ -115,6 +116,16 @@ export function verifyOverwatchGithubHostedAutonomousEngineeringV1() {
   assert.equal(controls.independentFinalEvidenceReplayRequired, true);
   assert.equal(controls.productionSecretsFirstJob, "production-baseline");
   assert.equal(controls.actionsPermission, "read");
+  assert.equal(controls.runnerContextAllowedAtJobLevel, false);
+  assert.equal(controls.runnerTemporaryPathsBoundAtStepScope, true);
+  assert.deepEqual(governance.githubValidationEvidence, {
+    failedRunId: 30567186237,
+    failureClassification: "RUNNER_CONTEXT_OUT_OF_SCOPE_AT_JOB_ENV",
+    workflowJobsCreated: 0,
+    productionSecretsAccessed: false,
+    productionMutationPerformed: false,
+    repairCommit: "c1c51ff1bc85fa1d2df0ac165772bfbbdc7ce61d"
+  });
 
   assert.equal(infrastructure.baseline.privateWorker, "prometheus-iq");
   assert.equal(
@@ -162,7 +173,7 @@ export function verifyOverwatchGithubHostedAutonomousEngineeringV1() {
   );
   assert.deepEqual(
     AUTONOMOUS_ENGINEERING_V1_POLICY.maximumRepairAttempts,
-    3
+    4
   );
   assert.deepEqual(
     AUTONOMOUS_ENGINEERING_V1_POLICY.maximumChangedLines,
@@ -179,13 +190,13 @@ export function verifyOverwatchGithubHostedAutonomousEngineeringV1() {
       repairAttemptEqualsInfrastructureCommitCountMinusOne: true,
       atLeastOneOverwatchCommitRequired: true,
       finalCommitOwner: "OVERWATCH",
-      maximumInfrastructureRepairAttempt: 3,
-      maximumSuccessorCommits: 6
+      maximumInfrastructureRepairAttempt: 4,
+      maximumSuccessorCommits: 7
     }
   );
   assert.deepEqual(
     AUTONOMOUS_ENGINEERING_V1_POLICY.maximumSuccessorCommits,
-    6
+    7
   );
   assert.deepEqual(
     infrastructure.qualification.actionsPermission,

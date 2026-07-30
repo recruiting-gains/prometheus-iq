@@ -106,7 +106,13 @@ test("secret-bearing steps remain narrow and evidence remains nonsecret", () => 
   );
   assert.equal(governance.securityBoundary.newMachinePrincipalRequired, false);
   assert.equal(governance.securityBoundary.qualificationReceivesProductionSecrets, false);
-  assert.equal(governance.acceptedControls.maximumRepairAttempts, 3);
+  assert.equal(governance.acceptedControls.maximumRepairAttempts, 4);
+  assert.equal(governance.acceptedControls.maximumSuccessorCommits, 7);
+  assert.equal(governance.acceptedControls.runnerContextAllowedAtJobLevel, false);
+  assert.equal(
+    governance.acceptedControls.runnerTemporaryPathsBoundAtStepScope,
+    true
+  );
   assert.equal(governance.acceptedControls.maximumWallClockMinutes, 210);
 });
 
