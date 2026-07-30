@@ -24,7 +24,7 @@ on:
         required: true
         type: string
       repair_attempt:
-        description: Bounded Infrastructure repair attempt (0, 1, 2, 3, or 4)
+        description: Bounded Infrastructure repair attempt (0, 1, 2, 3, 4, or 5)
         required: true
         type: string
         default: "0"
@@ -383,7 +383,7 @@ jobs:
   reverify-and-demonstrate:
     name: Independently reverify artifact and demonstrate rollback
     needs: qualify
-    if: ${{ needs.qualify.result == 'success' }}
+    if: ${{ always() && needs.qualify.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -479,6 +479,7 @@ jobs:
       - reverify-and-demonstrate
     if: >-
       ${{
+        always() &&
         needs.qualify.result == 'success' &&
         needs.reverify-and-demonstrate.result == 'success'
       }}
@@ -583,6 +584,7 @@ jobs:
       - verify-recovery
     if: >-
       ${{
+        always() &&
         needs.authorize.result == 'success' &&
         needs.verify-recovery.result == 'success'
       }}
@@ -636,6 +638,7 @@ jobs:
       - production-baseline
     if: >-
       ${{
+        always() &&
         needs.qualify.result == 'success' &&
         needs.reverify-and-demonstrate.result == 'success' &&
         needs.verify-recovery.result == 'success' &&
@@ -785,6 +788,7 @@ jobs:
       - deploy
     if: >-
       ${{
+        always() &&
         needs.reverify-and-demonstrate.result == 'success' &&
         needs.verify-recovery.result == 'success' &&
         needs.deploy.result == 'success'

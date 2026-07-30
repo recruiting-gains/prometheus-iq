@@ -82,8 +82,8 @@ This workflow is not a self-modifying agent. It cannot commit, push, dispatch
 itself, call another workflow, or edit source. More than one in-run transient
 recovery is prohibited; exactly one fresh-runner recovery is available.
 Owner-produced source history may declare Infrastructure repair attempt `0`
-through `4`, and remains limited to
-seven commits, sixteen changed files, 6,000 changed lines, 524,288 patch bytes,
+through `5`, and remains limited to
+nine commits, sixteen changed files, 6,000 changed lines, 524,288 patch bytes,
 and 524,288 resulting file bytes across the exact Infrastructure and Overwatch
 feature paths recorded in the contract. Binary diffs, symlinks, renames,
 deletions, non-regular Git modes, and mode changes are rejected. Workflow
@@ -95,10 +95,24 @@ There must be at least one Overwatch commit and the final successor commit must
 be Overwatch-owned. The declared repair attempt is exactly the number of
 Infrastructure commits minus one. This allows existing Infrastructure and
 Overwatch commits to remain in their recorded order while bounding the final
-seven-commit chain. Author and committer strings are provenance labels, not
+nine-commit chain. Author and committer strings are provenance labels, not
 authorization by themselves; authorization is the exact commit, exact tree,
 Founder actor and triggering actor, exact `main` branch, and exact workflow
 context.
+
+GitHub propagates a skipped dependency through every downstream `needs` chain.
+The optional fresh-runner recovery is expected to be skipped after a successful
+primary qualification, so each later job uses `always()` only to evaluate its
+explicit direct-dependency success predicates. A skipped optional recovery can
+therefore continue to the selected artifact, while any required failed,
+cancelled, or skipped job still fails closed.
+
+Hosted run `30576383131` established this behavior without crossing a production
+boundary: the primary clean qualification passed, artifact `8773054778` was
+uploaded, and the selector passed, but GitHub skipped the five remaining jobs
+because the optional recovery was skipped. No production job started and no
+production secret or Worker was accessed. That qualification-only artifact is
+audit evidence, not a deployable successor for a later commit.
 
 One in-run recovery is available without another Founder interaction. It is a
 fresh GitHub-hosted runner executing the entire install, audit, repository
@@ -162,7 +176,7 @@ The Founder supplies:
 - exact candidate commit and tree from `main`
 - batch ID
 - exact current public and private Worker versions
-- repair attempt number from 0 through 3
+- repair attempt number from 0 through 5
 - `I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT`
 
 No artifact hash is copied by the Founder. The single workflow creates,

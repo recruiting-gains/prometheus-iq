@@ -40,6 +40,7 @@ import {
 } from "../scripts/lib/github-hosted-autonomous-engineering-v1.mjs";
 import {
   assertGithubContextScopes,
+  assertSkippedDependencyPropagation,
   verifyGithubHostedAutonomousEngineeringV1
 } from "../scripts/verify-github-hosted-autonomous-engineering-v1.mjs";
 
@@ -56,7 +57,7 @@ function contextEnvironment(overrides = {}) {
     batch_id: "BATCH-20260730-001",
     current_public_version: publicVersion,
     current_private_version: privateVersion,
-    repair_attempt: "4",
+    repair_attempt: "5",
     founder_authorization:
       AUTONOMOUS_ENGINEERING_V1_POLICY.founderAuthorization
   };
@@ -238,7 +239,7 @@ function productionEvidenceFixture({
     writeAttempts: 0,
     maximumRepairAttempts:
       AUTONOMOUS_ENGINEERING_V1_POLICY.maximumRepairAttempts,
-    actualRepairAttempt: 4,
+    actualRepairAttempt: 5,
     maximumInRunTransientRecoveryAttempts:
       AUTONOMOUS_ENGINEERING_V1_POLICY.maximumInRunTransientRecoveryAttempts,
     actualInRunTransientRecoveryAttempts: 0, selectedQualification: "PRIMARY",
@@ -281,6 +282,37 @@ test("runner-temporary paths are valid only in step environments", () => {
     () => assertGithubContextScopes(invalid),
     /uses runner context before step scope/u
   );
+});
+
+test("optional recovery skip cannot suppress required downstream jobs", () => {
+  const workflow = readFileSync(
+    join(root, AUTONOMOUS_ENGINEERING_V1_POLICY.workflowPath),
+    "utf8"
+  );
+  assert.doesNotThrow(() => assertSkippedDependencyPropagation(workflow));
+  const jobs = [
+    "reverify-and-demonstrate",
+    "verify-recovery",
+    "production-baseline",
+    "deploy",
+    "independent-acceptance"
+  ];
+  for (const [index, job] of jobs.entries()) {
+    const start = workflow.indexOf(`  ${job}:\n`);
+    const next = index + 1 < jobs.length
+      ? workflow.indexOf(`  ${jobs[index + 1]}:\n`, start)
+      : workflow.length;
+    const section = workflow.slice(start, next);
+    const invalidSection = section.replace(/always\(\)\s*&&\s*/u, "");
+    assert.notEqual(invalidSection, section, job);
+    const invalid = workflow.slice(0, start)
+      + invalidSection
+      + workflow.slice(next);
+    assert.throws(
+      () => assertSkippedDependencyPropagation(invalid),
+      /must override skipped-dependency propagation/u
+    );
+  }
 });
 
 test("outer workflow context pins workflow, branch, Founder, and first attempt", () => {
@@ -557,22 +589,24 @@ test("repair attempt is bound to the mixed owner commit topology", () => {
     "INFRASTRUCTURE",
     "INFRASTRUCTURE",
     "INFRASTRUCTURE",
+    "OVERWATCH",
     "INFRASTRUCTURE",
     "OVERWATCH",
+    "INFRASTRUCTURE",
     "OVERWATCH"
   ];
   assert.deepEqual(
-    validateAutonomousCommitTopology(finalOwners, 4),
+    validateAutonomousCommitTopology(finalOwners, 5),
     {
-      infrastructureCommitCount: 5,
-      overwatchCommitCount: 2,
-      successorCommitCount: 7,
-      repairAttempt: 4
+      infrastructureCommitCount: 6,
+      overwatchCommitCount: 3,
+      successorCommitCount: 9,
+      repairAttempt: 5
     }
   );
   for (const [owners, repairAttempt] of [
-    [finalOwners, 3],
-    [[...finalOwners, "OVERWATCH"], 4],
+    [finalOwners, 4],
+    [[...finalOwners, "OVERWATCH"], 5],
     [[
       "INFRASTRUCTURE",
       "INFRASTRUCTURE",
@@ -580,8 +614,9 @@ test("repair attempt is bound to the mixed owner commit topology", () => {
       "INFRASTRUCTURE",
       "INFRASTRUCTURE",
       "INFRASTRUCTURE",
+      "INFRASTRUCTURE",
       "OVERWATCH"
-    ], 5],
+    ], 6],
     [["INFRASTRUCTURE", "INFRASTRUCTURE"], 1],
     [["OVERWATCH", "INFRASTRUCTURE"], 0],
     [["INFRASTRUCTURE", "UNKNOWN", "OVERWATCH"], 0]

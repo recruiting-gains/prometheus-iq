@@ -217,6 +217,49 @@ export function assertGithubContextScopes(workflow) {
   );
 }
 
+export function assertSkippedDependencyPropagation(workflow) {
+  const requiredResults = Object.freeze({
+    "reverify-and-demonstrate": Object.freeze(["qualify"]),
+    "verify-recovery": Object.freeze([
+      "qualify",
+      "reverify-and-demonstrate"
+    ]),
+    "production-baseline": Object.freeze([
+      "authorize",
+      "verify-recovery"
+    ]),
+    deploy: Object.freeze([
+      "qualify",
+      "reverify-and-demonstrate",
+      "verify-recovery",
+      "production-baseline"
+    ]),
+    "independent-acceptance": Object.freeze([
+      "reverify-and-demonstrate",
+      "verify-recovery",
+      "deploy"
+    ])
+  });
+  for (const [jobName, dependencies] of Object.entries(requiredResults)) {
+    const index = JOBS.indexOf(jobName);
+    const job = jobSection(workflow, jobName, JOBS[index + 1]);
+    const stepsIndex = job.indexOf("    steps:\n");
+    assert.ok(stepsIndex >= 0, `${jobName} steps missing`);
+    const header = job.slice(0, stepsIndex);
+    assert.match(
+      header,
+      /if:[\s\S]*always\(\)/u,
+      `${jobName} must override skipped-dependency propagation`
+    );
+    for (const dependency of dependencies) {
+      assert.ok(
+        header.includes(`needs.${dependency}.result == 'success'`),
+        `${jobName} must require ${dependency} success`
+      );
+    }
+  }
+}
+
 function assertLegacyLaneIsolation(workflow, contract) {
   const legacyPath = ".github/workflows/deploy-prometheus-private-worker.yml";
   const legacy = read(legacyPath);
@@ -300,10 +343,31 @@ export function verifyGithubHostedAutonomousEngineeringV1() {
   assert.equal(contract.workflow.maximumWallClockMinutes, 210);
   assert.equal(contract.workflow.runnerContextAllowedAtJobLevel, false);
   assert.equal(contract.workflow.runnerTemporaryPathsBoundAtStepScope, true);
+  assert.equal(
+    contract.workflow.optionalRecoverySkipPropagationGuard,
+    "always_with_explicit_required_result_checks"
+  );
+  assert.deepEqual(contract.hostedValidationEvidence, {
+    qualificationOnlyRunId: 30576383131,
+    primaryQualificationArtifactId: 8773054778,
+    primaryQualificationArtifactZipSha256:
+      "3ab7f7ef4e5d0cee7aafb645e4462c4b9eb40d622f93b06bb60b60158f2fdfcd",
+    failureClassification: "OPTIONAL_RECOVERY_SKIP_PROPAGATED",
+    downstreamJobsSkipped: [
+      "reverify-and-demonstrate",
+      "verify-recovery",
+      "production-baseline",
+      "deploy",
+      "independent-acceptance"
+    ],
+    productionSecretsAccessed: false,
+    productionMutationPerformed: false
+  });
 
   assertSecretSeparation(workflow);
   assertArtifactTokenSeparation(workflow);
   assertGithubContextScopes(workflow);
+  assertSkippedDependencyPropagation(workflow);
   assert.ok(
     workflow.indexOf("${{ secrets.")
       > workflow.indexOf("  verify-recovery:\n")
@@ -391,8 +455,8 @@ export function verifyGithubHostedAutonomousEngineeringV1() {
   assert.equal(contract.boundedRepair.maximumChangedPatchBytes, 524288);
   assert.equal(contract.boundedRepair.maximumChangedFileBytes, 524288);
   assert.equal(contract.boundedRepair.maximumInRunTransientRecoveryAttempts, 1);
-  assert.equal(contract.boundedRepair.maximumRepairAttempts, 4);
-  assert.equal(contract.boundedRepair.maximumSuccessorCommits, 7);
+  assert.equal(contract.boundedRepair.maximumRepairAttempts, 5);
+  assert.equal(contract.boundedRepair.maximumSuccessorCommits, 9);
   assert.equal(
     contract.boundedRepair.commitTopology
       .repairAttemptEqualsInfrastructureCommitCountMinusOne,

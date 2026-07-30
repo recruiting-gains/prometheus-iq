@@ -30,6 +30,7 @@
     "nodeVersion": "24.4.1",
     "runnerContextAllowedAtJobLevel": false,
     "runnerTemporaryPathsBoundAtStepScope": true,
+    "optionalRecoverySkipPropagationGuard": "always_with_explicit_required_result_checks",
     "protectedEnvironment": "prometheus-private-worker-production",
     "concurrencyGroup": "prometheus-github-hosted-autonomous-engineering-v1",
     "cancelInProgress": false,
@@ -40,13 +41,13 @@
     "sourceMutationAllowed": false
   },
   "boundedRepair": {
-    "maximumRepairAttempts": 4,
+    "maximumRepairAttempts": 5,
     "maximumInRunTransientRecoveryAttempts": 1,
     "maximumChangedFiles": 16,
     "maximumChangedLines": 6000,
     "maximumChangedPatchBytes": 524288,
     "maximumChangedFileBytes": 524288,
-    "maximumSuccessorCommits": 7,
+    "maximumSuccessorCommits": 9,
     "maximumWorkflowRecursionDepth": 0,
     "automaticSourceEditsAllowed": false,
     "automaticCommitsAllowed": false,
@@ -84,8 +85,8 @@
       "repairAttemptEqualsInfrastructureCommitCountMinusOne": true,
       "atLeastOneOverwatchCommitRequired": true,
       "finalCommitOwner": "OVERWATCH",
-      "maximumInfrastructureRepairAttempt": 4,
-      "maximumSuccessorCommits": 7
+      "maximumInfrastructureRepairAttempt": 5,
+      "maximumSuccessorCommits": 9
     },
     "infrastructureOwnedPaths": [
       ".github/workflows/github-hosted-autonomous-engineering-v1.yml",
@@ -114,6 +115,21 @@
     "newLaneCanInvokeLegacyLane": false,
     "newLaneCanSelfDispatch": false,
     "legacyAuthorizationReusableByNewLane": false
+  },
+  "hostedValidationEvidence": {
+    "qualificationOnlyRunId": 30576383131,
+    "primaryQualificationArtifactId": 8773054778,
+    "primaryQualificationArtifactZipSha256": "3ab7f7ef4e5d0cee7aafb645e4462c4b9eb40d622f93b06bb60b60158f2fdfcd",
+    "failureClassification": "OPTIONAL_RECOVERY_SKIP_PROPAGATED",
+    "downstreamJobsSkipped": [
+      "reverify-and-demonstrate",
+      "verify-recovery",
+      "production-baseline",
+      "deploy",
+      "independent-acceptance"
+    ],
+    "productionSecretsAccessed": false,
+    "productionMutationPerformed": false
   },
   "qualification": {
     "fullNoSecretRepositorySuiteRequired": true,
