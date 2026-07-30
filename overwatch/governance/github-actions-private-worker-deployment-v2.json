@@ -256,6 +256,14 @@
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Add read-only private production identity inspection"
     },
+    "implementationApplicationDocumentIdentityGateRepairCommit": {
+      "commit": "0fc102910c66d4795b27a9f0f07c14e22c36773b",
+      "parent": "6f91988d3128257e9658e65debadbde407adbc17",
+      "tree": "f3018afbe44c270376f479f820e90b0d207bb657",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "Gate private browser execution on exact Worker identity"
+    },
     "intelligenceSynchronizationOwner": "Prometheus Intelligence Engine",
     "intelligenceSmokeTimeoutSynchronizationCommit": {
       "commit": "039116040678a3cbae8016a34f17e30e674715f6",
@@ -1304,6 +1312,25 @@
         "sha256": "a905d83aec0511ee8b8faa2859e7f8147ee9f13b5cc1214ef233e5179365263d"
       }
     ],
+    "applicationDocumentIdentityGateRepairPaths": [
+      "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+      "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+      "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
+    ],
+    "applicationDocumentIdentityGateRepairEvidence": [
+      {
+        "path": "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+        "sha256": "e65bd58739ec689b4fe600e85642552ab8531c6444b51c278f7de6f318a08800"
+      },
+      {
+        "path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+        "sha256": "5d85854bc3f98b7fbda2264a128e16ee76dd16de61203cdd75a5c0391022a135"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
+        "sha256": "057c319bdb0919b90e520bedbd9ed94b212749e05764bd3c23ced5457c6f22bd"
+      }
+    ],
     "intelligenceSmokeTimeoutSynchronizationPaths": [
       "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
       "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
@@ -1443,7 +1470,14 @@
     "browserVersionStabilityCause": "The fixed API smoke verified the exact release, but the immediately following independent desktop browser context began the application workflow before that browser transport had proven the exact Worker version. The browser then lacked the expected release identity and attempted a write, so acceptance failed closed and the qualified forward rollback ran.",
     "browserVersionStabilityRepair": "Before either application viewport runs, three consecutive fresh script-disabled browser contexts must independently verify the exact Worker version and smoke marker using only governed same-origin GET requests. HTTP cache is disabled, service workers are bypassed, external origins and non-read methods fail closed, and application acceptance is never retried after uncertainty.",
     "productionIdentityInspectionNeed": "The current forward-compatible rollback created a new private Worker version whose complete UUID is required for immutable qualification, while the authenticated Cloudflare browser session requires a physical passkey challenge. Short dashboard identifiers and inferred identities are not accepted.",
-    "productionIdentityInspectionRepair": "A Founder-only, main-only, first-attempt GitHub workflow reads exactly the public and private Worker deployment and settings metadata through four Cloudflare GET requests. It accepts only one 100-percent version per Worker, emits only the two safe version UUIDs and fixed traffic percentages, has no mutation or deployment path, and scrubs credential values before returning."
+    "productionIdentityInspectionRepair": "A Founder-only, main-only, first-attempt GitHub workflow reads exactly the public and private Worker deployment and settings metadata through four Cloudflare GET requests. It accepts only one 100-percent version per Worker, emits only the two safe version UUIDs and fixed traffic percentages, has no mutation or deployment path, and scrubs credential values before returning.",
+    "applicationDocumentIdentityGateFailureDeploymentRuns": [
+      "30529066974",
+      "30536030703"
+    ],
+    "applicationDocumentIdentityGateFailureRollbackVerified": true,
+    "applicationDocumentIdentityGateCause": "The script-disabled stability probes established edge convergence, but each separate cache-enabled application viewport checked its Worker identity only after application execution. That time-of-check/time-of-use gap allowed a non-current document to execute and attempt a blocked write before the runner detected the identity mismatch.",
+    "applicationDocumentIdentityGateRepair": "Each real desktop and mobile viewport now disables HTTP cache and pauses the root document response at the browser network boundary. The runner requires a 2xx response, the exact expected Worker version, and the exact governed smoke marker before continuing the response, and blocks mismatched responses before application scripts execute."
   },
   "continuity": {
     "previousQualifiedCommit": "3bd4b1a120672f1ecbaf3b4b245106aee095f023",
@@ -1573,6 +1607,11 @@
     "browserVersionStabilityHttpCacheDisabled": true,
     "browserVersionStabilityServiceWorkerBypassed": true,
     "browserVersionStabilityApplicationRetryAllowed": false,
+    "applicationDocumentResponsePausedBeforeExecution": true,
+    "applicationDocumentHttpCacheDisabled": true,
+    "applicationDocumentExactWorkerVersionRequired": true,
+    "applicationDocumentExactSmokeMarkerRequired": true,
+    "applicationDocumentMismatchExecutionAllowed": false,
     "productionIdentityInspectionRequired": true,
     "productionIdentityInspectionMethods": [
       "GET"

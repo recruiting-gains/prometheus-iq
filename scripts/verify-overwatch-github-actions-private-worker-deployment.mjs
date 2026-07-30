@@ -169,6 +169,12 @@ const v2ProductionIdentityInspectionParent =
   "cf614c3af041db87f8500b9618849ba3dfb76df7";
 const v2ProductionIdentityInspectionTree =
   "7facfb196ea2693034260a965350d30e5f25a7b7";
+const v2ApplicationDocumentIdentityGateRepairCommit =
+  "0fc102910c66d4795b27a9f0f07c14e22c36773b";
+const v2ApplicationDocumentIdentityGateRepairParent =
+  "6f91988d3128257e9658e65debadbde407adbc17";
+const v2ApplicationDocumentIdentityGateRepairTree =
+  "f3018afbe44c270376f479f820e90b0d207bb657";
 const v2IntelligenceSmokeTimeoutSynchronizationCommit =
   "039116040678a3cbae8016a34f17e30e674715f6";
 const v2IntelligenceSmokeTimeoutSynchronizationParent =
@@ -628,6 +634,15 @@ const v2ProductionIdentityInspectionHashes = Object.freeze({
     "ebe86706cbf5e9cdac53a3446306df81aa054e5f63df99c7218237284e459b5d",
   "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
     "a905d83aec0511ee8b8faa2859e7f8147ee9f13b5cc1214ef233e5179365263d"
+});
+
+const v2ApplicationDocumentIdentityGateRepairHashes = Object.freeze({
+  "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs":
+    "e65bd58739ec689b4fe600e85642552ab8531c6444b51c278f7de6f318a08800",
+  "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs":
+    "5d85854bc3f98b7fbda2264a128e16ee76dd16de61203cdd75a5c0391022a135",
+  "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json":
+    "057c319bdb0919b90e520bedbd9ed94b212749e05764bd3c23ced5457c6f22bd"
 });
 
 const v2IntelligenceSmokeTimeoutSynchronizationHashes = Object.freeze({
@@ -1507,6 +1522,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       infrastructureIdentity
     && governance?.ownership?.implementationProductionIdentityInspectionCommit?.committer ===
       infrastructureIdentity
+    && governance?.ownership?.implementationApplicationDocumentIdentityGateRepairCommit
+      ?.commit === v2ApplicationDocumentIdentityGateRepairCommit
+    && governance?.ownership?.implementationApplicationDocumentIdentityGateRepairCommit
+      ?.parent === v2ApplicationDocumentIdentityGateRepairParent
+    && governance?.ownership?.implementationApplicationDocumentIdentityGateRepairCommit
+      ?.tree === v2ApplicationDocumentIdentityGateRepairTree
+    && governance?.ownership?.implementationApplicationDocumentIdentityGateRepairCommit
+      ?.author === infrastructureIdentity
+    && governance?.ownership?.implementationApplicationDocumentIdentityGateRepairCommit
+      ?.committer === infrastructureIdentity
     && governance?.ownership?.intelligenceSynchronizationOwner ===
       "Prometheus Intelligence Engine"
     && governance?.ownership?.intelligenceSmokeTimeoutSynchronizationCommit?.commit ===
@@ -1728,6 +1753,12 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.productionIdentityInspectionEvidence,
     evidenceMap(v2ProductionIdentityInspectionHashes)),
   "Private Workflow v2 production-identity inspection evidence drifted.");
+  require(equal(governance?.ownership?.applicationDocumentIdentityGateRepairPaths,
+    Object.keys(v2ApplicationDocumentIdentityGateRepairHashes)),
+  "Private Workflow v2 application-document identity-gate path set drifted.");
+  require(equal(governance?.ownership?.applicationDocumentIdentityGateRepairEvidence,
+    evidenceMap(v2ApplicationDocumentIdentityGateRepairHashes)),
+  "Private Workflow v2 application-document identity-gate evidence drifted.");
   require(equal(governance?.ownership?.intelligenceSmokeTimeoutSynchronizationPaths,
     Object.keys(v2IntelligenceSmokeTimeoutSynchronizationHashes)),
   "Private Workflow v2 Intelligence smoke-timeout synchronization path set drifted.");
@@ -1960,6 +1991,19 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     )
     && governance?.rootCause?.productionIdentityInspectionRepair?.includes(
       "no mutation or deployment path"
+    )
+    && governance?.rootCause?.applicationDocumentIdentityGateFailureDeploymentRuns
+      ?.join(",") === "30529066974,30536030703"
+    && governance?.rootCause?.applicationDocumentIdentityGateFailureRollbackVerified ===
+      true
+    && governance?.rootCause?.applicationDocumentIdentityGateCause?.includes(
+      "checked its Worker identity only after application execution"
+    )
+    && governance?.rootCause?.applicationDocumentIdentityGateRepair?.includes(
+      "pauses the root document response"
+    )
+    && governance?.rootCause?.applicationDocumentIdentityGateRepair?.includes(
+      "blocks mismatched responses before application scripts execute"
     ),
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
@@ -2072,6 +2116,13 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.smokeBoundary?.browserVersionStabilityServiceWorkerBypassed === true
     && governance?.smokeBoundary?.browserVersionStabilityApplicationRetryAllowed ===
       false
+    && governance?.smokeBoundary?.applicationDocumentResponsePausedBeforeExecution ===
+      true
+    && governance?.smokeBoundary?.applicationDocumentHttpCacheDisabled === true
+    && governance?.smokeBoundary?.applicationDocumentExactWorkerVersionRequired ===
+      true
+    && governance?.smokeBoundary?.applicationDocumentExactSmokeMarkerRequired === true
+    && governance?.smokeBoundary?.applicationDocumentMismatchExecutionAllowed === false
     && governance?.smokeBoundary?.productionIdentityInspectionRequired === true
     && equal(
       governance?.smokeBoundary?.productionIdentityInspectionMethods,
@@ -2744,6 +2795,15 @@ function verifyV2OwnerAndGovernance() {
       subject: "Add read-only private production identity inspection",
       hashes: v2ProductionIdentityInspectionHashes,
       recorded: governance.ownership.productionIdentityInspectionEvidence
+    },
+    {
+      label: "application-document identity-gate repair",
+      commit: v2ApplicationDocumentIdentityGateRepairCommit,
+      parent: v2ApplicationDocumentIdentityGateRepairParent,
+      tree: v2ApplicationDocumentIdentityGateRepairTree,
+      subject: "Gate private browser execution on exact Worker identity",
+      hashes: v2ApplicationDocumentIdentityGateRepairHashes,
+      recorded: governance.ownership.applicationDocumentIdentityGateRepairEvidence
     }
   ]) {
     const metadata = git([
@@ -2874,7 +2934,8 @@ function verifyV2OwnerAndGovernance() {
     ...v2SmokeTimeoutRepairHashes,
     ...v2SmokeReleaseContinuityHashes,
     ...v2BrowserVersionStabilityRepairHashes,
-    ...v2ProductionIdentityInspectionHashes
+    ...v2ProductionIdentityInspectionHashes,
+    ...v2ApplicationDocumentIdentityGateRepairHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -3217,6 +3278,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2BrowserVersionStabilityRepairCommit,
     immutableWorkflowV2ProductionIdentityInspectionCommit:
       v2ProductionIdentityInspectionCommit,
+    immutableWorkflowV2ApplicationDocumentIdentityGateRepairCommit:
+      v2ApplicationDocumentIdentityGateRepairCommit,
     immutableWorkflowV2IntelligenceSmokeTimeoutSynchronizationCommit:
       v2IntelligenceSmokeTimeoutSynchronizationCommit,
     localRealWranglerDryRunPassed: true,
