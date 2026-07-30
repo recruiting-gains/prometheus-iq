@@ -207,6 +207,14 @@
       "OPTIONS"
     ],
     "writeAttemptsRequired": 0,
+    "browserVersionStability": {
+      "scriptExecutionAllowed": false,
+      "cacheAllowed": false,
+      "requiredConsecutiveExactProbes": 3,
+      "maximumAttempts": 10,
+      "applicationExecutionBeforeStabilityAllowed": false,
+      "failureTriggersForwardRollback": true
+    },
     "serviceWorkerPersistenceAllowed": false,
     "configuredOrSafeEmptyStateRequired": true,
     "exactPrivateWorkerVersionRequired": true,

@@ -5,6 +5,7 @@ import vm from "node:vm";
 
 import {
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION,
+  ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_STABILITY,
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS,
   RouteIqPrivateBrowserAcceptanceError,
   classifyRouteIqPrivateBrowserHttpPath,
@@ -17,7 +18,8 @@ import {
   reconcileRouteIqPrivateBrowserNetworkEvents,
   routeIqPrivateBrowserAuthenticatedRequestHeaders,
   routeIqPrivateBrowserGuardScript,
-  runRouteIqPrivateProductionBrowserAcceptance
+  runRouteIqPrivateProductionBrowserAcceptance,
+  waitForRouteIqPrivateBrowserVersionStability
 } from "../scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs";
 import {
   formatPrivateWorkflowV2Failure
@@ -101,6 +103,17 @@ test("browser contract fixes exact desktop/mobile, no-write, and isolation bound
   ]);
   assert.deepEqual(contract.network.allowedMethods, ["GET", "HEAD", "OPTIONS"]);
   assert.equal(contract.network.writeAttemptsRequired, 0);
+  assert.deepEqual(contract.network.browserVersionStability, {
+    scriptExecutionAllowed: false,
+    cacheAllowed: false,
+    requiredConsecutiveExactProbes: 3,
+    maximumAttempts: 10,
+    delayMilliseconds: 1500,
+    probeTimeoutMilliseconds: 15000,
+    nonReadRequestsAllowed: 0,
+    externalRequestsAllowed: 0,
+    applicationExecutionBeforeStabilityAllowed: false
+  });
   assert.equal(contract.network.serviceWorkerPersistenceAllowed, false);
   assert.deepEqual(contract.network.sameOriginAuthenticatedRequests, {
     servicePrincipalHeadersRequired: true,
@@ -131,6 +144,135 @@ test("browser contract fixes exact desktop/mobile, no-write, and isolation bound
   assert.equal(contract.safety.collection, "OFF");
   assert.equal(contract.safety.activeCohorts, 0);
   assert.equal(contract.safety.recommendationInfluence, "OFF");
+});
+
+test("browser release stability requires consecutive exact script-disabled probes", async () => {
+  assert.deepEqual(ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_STABILITY, {
+    requiredConsecutiveExactProbes: 3,
+    maximumAttempts: 10,
+    delayMilliseconds: 1500,
+    probeTimeoutMilliseconds: 15000
+  });
+  const observations = [false, true, false, true, true, true];
+  const delays = [];
+  const result = await waitForRouteIqPrivateBrowserVersionStability({
+    debugPort: 12345,
+    credentials: {
+      clientId: "client-id-canary",
+      clientSecret: "client-secret-canary"
+    },
+    expectedWorkerVersion: VERSION,
+    fetchImpl: async () => {
+      throw new Error("fetch must remain probe-owned");
+    },
+    probeImpl: async () => ({
+      exact: observations.shift(),
+      nonReadRequests: 0,
+      externalRequests: 0
+    }),
+    sleepImpl: async milliseconds => {
+      delays.push(milliseconds);
+    }
+  });
+  assert.deepEqual(result, {
+    status: "ready",
+    attemptCount: 6,
+    consecutiveExactProbes: 3
+  });
+  assert.deepEqual(delays, [1500, 1500, 1500, 1500, 1500]);
+  assert.equal(observations.length, 0);
+});
+
+test("browser release stability source disables scripts and cache before navigation", () => {
+  const source = readFileSync(new URL(
+    "../scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+    import.meta.url
+  ), "utf8");
+  const stabilityStart = source.indexOf(
+    "async function runRouteIqPrivateBrowserVersionProbe"
+  );
+  const stabilityEnd = source.indexOf(
+    "export async function waitForRouteIqPrivateBrowserVersionStability"
+  );
+  assert.ok(stabilityStart >= 0);
+  assert.ok(stabilityEnd > stabilityStart);
+  const stabilitySource = source.slice(stabilityStart, stabilityEnd);
+  const scriptsDisabledAt = stabilitySource.indexOf(
+    '"Emulation.setScriptExecutionDisabled", { value: true }'
+  );
+  const cacheDisabledAt = stabilitySource.indexOf(
+    '"Network.setCacheDisabled", { cacheDisabled: true }'
+  );
+  const navigateAt = stabilitySource.indexOf('"Page.navigate"');
+  assert.ok(scriptsDisabledAt >= 0);
+  assert.ok(cacheDisabledAt >= 0);
+  assert.ok(navigateAt > scriptsDisabledAt);
+  assert.ok(navigateAt > cacheDisabledAt);
+  assert.match(stabilitySource, /if \(!READ_METHODS\.has\(method\)\)/u);
+  assert.match(stabilitySource, /evidence\.externalRequests \+= 1/u);
+  assert.doesNotMatch(stabilitySource, /console\.(?:log|error|warn)|process\.stdout/u);
+});
+
+test("browser release stability fails closed without running the application", async () => {
+  const credentials = {
+    clientId: "stability-client-id-canary",
+    clientSecret: "stability-client-secret-canary"
+  };
+  let probes = 0;
+  let sleeps = 0;
+  await assert.rejects(
+    waitForRouteIqPrivateBrowserVersionStability({
+      debugPort: 12345,
+      credentials,
+      expectedWorkerVersion: VERSION,
+      fetchImpl: async () => {
+        throw new Error("fetch must remain probe-owned");
+      },
+      probeImpl: async () => {
+        probes += 1;
+        return {
+          exact: false,
+          nonReadRequests: 0,
+          externalRequests: 0
+        };
+      },
+      sleepImpl: async () => {
+        sleeps += 1;
+      }
+    }),
+    error => {
+      assert.ok(error instanceof RouteIqPrivateBrowserAcceptanceError);
+      assert.deepEqual(error.failureDimensions, ["BROWSER_VERSION_STABILITY"]);
+      assert.deepEqual(error.failureDiagnostics, ["BROWSER_STABILITY_NOT_REACHED"]);
+      assert.equal(JSON.stringify(error).includes(credentials.clientId), false);
+      assert.equal(JSON.stringify(error).includes(credentials.clientSecret), false);
+      return true;
+    }
+  );
+  assert.equal(probes, 10);
+  assert.equal(sleeps, 9);
+
+  for (const observation of [
+    { exact: true, nonReadRequests: 1, externalRequests: 0 },
+    { exact: true, nonReadRequests: 0, externalRequests: 1 }
+  ]) {
+    await assert.rejects(
+      waitForRouteIqPrivateBrowserVersionStability({
+        debugPort: 12345,
+        credentials,
+        expectedWorkerVersion: VERSION,
+        probeImpl: async () => observation,
+        sleepImpl: async () => {
+          throw new Error("unsafe evidence must fail before sleeping");
+        }
+      }),
+      error => {
+        assert.ok(error instanceof RouteIqPrivateBrowserAcceptanceError);
+        assert.equal(error.failureDiagnostics.length, 1);
+        return true;
+      }
+    );
+  }
 });
 
 test("evaluator accepts only exact healthy configured-or-safe-empty evidence", () => {
@@ -210,6 +352,7 @@ test("health diagnostics remain deterministic and contain no observed browser va
         debugPort: 12345,
         async close() {}
       }),
+      stabilizeBrowser: async () => ({ status: "ready" }),
       runScenario: async ({ viewport }) => ({
         ...passingScenario(viewport),
         consoleErrors: viewport.name === "desktop" ? 1 : 0,
@@ -712,12 +855,75 @@ test("runner never returns or serializes service credential values", async () =>
         closed += 1;
       }
     }),
+    stabilizeBrowser: async () => ({ status: "ready" }),
     runScenario: async ({ viewport }) => passingScenario(viewport)
   });
   assert.equal(result.status, "PASS");
   assert.equal(closed, 1);
   assert.equal(JSON.stringify(result).includes(canaryId), false);
   assert.equal(JSON.stringify(result).includes(canarySecret), false);
+});
+
+test("runner completes browser stability before application execution", async () => {
+  const order = [];
+  let closed = 0;
+  const result = await runRouteIqPrivateProductionBrowserAcceptance({
+    credentials: {
+      clientId: "client-id-canary",
+      clientSecret: "client-secret-canary"
+    },
+    expectedWorkerVersion: VERSION,
+    publicIsolationVerified: true,
+    launchBrowser: async () => ({
+      debugPort: 12345,
+      async close() {
+        closed += 1;
+      }
+    }),
+    stabilizeBrowser: async () => {
+      order.push("stability");
+      return { status: "ready" };
+    },
+    runScenario: async ({ viewport }) => {
+      order.push(viewport.name);
+      return passingScenario(viewport);
+    }
+  });
+  assert.equal(result.status, "PASS");
+  assert.deepEqual(order, ["stability", "desktop", "mobile"]);
+  assert.equal(closed, 1);
+
+  order.length = 0;
+  await assert.rejects(
+    runRouteIqPrivateProductionBrowserAcceptance({
+      credentials: {
+        clientId: "client-id-canary",
+        clientSecret: "client-secret-canary"
+      },
+      expectedWorkerVersion: VERSION,
+      publicIsolationVerified: true,
+      launchBrowser: async () => ({
+        debugPort: 12345,
+        async close() {
+          closed += 1;
+        }
+      }),
+      stabilizeBrowser: async () => {
+        order.push("stability");
+        throw new RouteIqPrivateBrowserAcceptanceError(
+          ["BROWSER_VERSION_STABILITY"],
+          ["BROWSER_STABILITY_NOT_REACHED"]
+        );
+      },
+      runScenario: async () => {
+        order.push("application");
+        throw new Error("application must not run");
+      }
+    }),
+    /acceptance_failed/u
+  );
+  assert.deepEqual(order, ["stability"]);
+  assert.equal(closed, 2);
 });
 
 test("runner exposes only safe dimensions and workflow preserves the fixed dimension", async () => {
@@ -736,6 +942,7 @@ test("runner exposes only safe dimensions and workflow preserves the fixed dimen
         debugPort: 12345,
         async close() {}
       }),
+      stabilizeBrowser: async () => ({ status: "ready" }),
       runScenario: async ({ viewport }) => ({
         ...passingScenario(viewport),
         serviceWorkerRegistrations: {}
@@ -794,6 +1001,7 @@ test("public isolation or a failed viewport closes the browser and fails closed"
           closed += 1;
         }
       }),
+      stabilizeBrowser: async () => ({ status: "ready" }),
       runScenario: async ({ viewport }) => ({
         ...passingScenario(viewport),
         configuredOrSafeEmpty: false

@@ -383,6 +383,14 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     viewports: ["1440x900", "390x844"],
     allowedMethods: ["GET", "HEAD", "OPTIONS"],
     writeAttemptsRequired: 0,
+    browserVersionStability: {
+      scriptExecutionAllowed: false,
+      cacheAllowed: false,
+      requiredConsecutiveExactProbes: 3,
+      maximumAttempts: 10,
+      applicationExecutionBeforeStabilityAllowed: false,
+      failureTriggersForwardRollback: true
+    },
     serviceWorkerPersistenceAllowed: false,
     configuredOrSafeEmptyStateRequired: true,
     exactPrivateWorkerVersionRequired: true,
@@ -424,6 +432,20 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     ["GET", "HEAD", "OPTIONS"]
   );
   assert.equal(browserAcceptanceContract.network.writeAttemptsRequired, 0);
+  assert.deepEqual(
+    browserAcceptanceContract.network.browserVersionStability,
+    {
+      scriptExecutionAllowed: false,
+      cacheAllowed: false,
+      requiredConsecutiveExactProbes: 3,
+      maximumAttempts: 10,
+      delayMilliseconds: 1500,
+      probeTimeoutMilliseconds: 15000,
+      nonReadRequestsAllowed: 0,
+      externalRequestsAllowed: 0,
+      applicationExecutionBeforeStabilityAllowed: false
+    }
+  );
   assert.equal(browserAcceptanceContract.network.serviceWorkerPersistenceAllowed, false);
   assert.equal(browserAcceptanceContract.network.sameOriginHttp4xxOr5xxAllowed, false);
   assert.deepEqual(browserAcceptanceContract.network.guardedServiceWorkerNetworkLogAcceptance, {

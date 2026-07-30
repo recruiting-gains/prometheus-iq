@@ -28,6 +28,17 @@
       "OPTIONS"
     ],
     "writeAttemptsRequired": 0,
+    "browserVersionStability": {
+      "scriptExecutionAllowed": false,
+      "cacheAllowed": false,
+      "requiredConsecutiveExactProbes": 3,
+      "maximumAttempts": 10,
+      "delayMilliseconds": 1500,
+      "probeTimeoutMilliseconds": 15000,
+      "nonReadRequestsAllowed": 0,
+      "externalRequestsAllowed": 0,
+      "applicationExecutionBeforeStabilityAllowed": false
+    },
     "externalOriginsAllowed": false,
     "serviceWorkerBypassRequired": true,
     "serviceWorkerPersistenceAllowed": false,

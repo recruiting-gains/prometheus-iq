@@ -20,8 +20,15 @@ export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS = Object.freeze([
   Object.freeze({ name: "desktop", width: 1440, height: 900, mobile: false }),
   Object.freeze({ name: "mobile", width: 390, height: 844, mobile: true })
 ]);
+export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_STABILITY = Object.freeze({
+  requiredConsecutiveExactProbes: 3,
+  maximumAttempts: 10,
+  delayMilliseconds: 1_500,
+  probeTimeoutMilliseconds: 15_000
+});
 export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION = Object.freeze({
   IDENTITY: "IDENTITY",
+  BROWSER_VERSION_STABILITY: "BROWSER_VERSION_STABILITY",
   VIEWPORT: "VIEWPORT",
   DOCUMENT_STATUS: "DOCUMENT_STATUS",
   WORKER_IDENTITY: "WORKER_IDENTITY",
@@ -157,14 +164,19 @@ const HTTP_PATH_CLASSIFICATIONS = new Set([
   "OTHER"
 ]);
 const FAILURE_DIAGNOSTICS = new Set(
-  ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.flatMap(viewport => [
-    ...[...CONSOLE_ERROR_CLASSIFICATIONS].map(value =>
-      `${viewport.name.toUpperCase()}_${value}`),
-    ...[...HTTP_RESOURCE_CLASSIFICATIONS].flatMap(resource =>
-      [...HTTP_PATH_CLASSIFICATIONS].flatMap(path =>
-        [`${viewport.name.toUpperCase()}_HTTP_${resource}_4XX_${path}`,
-          `${viewport.name.toUpperCase()}_HTTP_${resource}_5XX_${path}`]))
-  ])
+  [
+    "BROWSER_STABILITY_NOT_REACHED",
+    "BROWSER_STABILITY_NON_READ_REQUEST",
+    "BROWSER_STABILITY_EXTERNAL_REQUEST",
+    ...ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.flatMap(viewport => [
+      ...[...CONSOLE_ERROR_CLASSIFICATIONS].map(value =>
+        `${viewport.name.toUpperCase()}_${value}`),
+      ...[...HTTP_RESOURCE_CLASSIFICATIONS].flatMap(resource =>
+        [...HTTP_PATH_CLASSIFICATIONS].flatMap(path =>
+          [`${viewport.name.toUpperCase()}_HTTP_${resource}_4XX_${path}`,
+            `${viewport.name.toUpperCase()}_HTTP_${resource}_5XX_${path}`]))
+    ])
+  ]
 );
 export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIAGNOSTICS =
   Object.freeze([...FAILURE_DIAGNOSTICS]);
@@ -680,6 +692,222 @@ async function waitForReadyPage(client, sessionId) {
   fail("route_iq_private_browser_page_readiness_timeout");
 }
 
+async function runRouteIqPrivateBrowserVersionProbe({
+  debugPort,
+  credentials,
+  expectedWorkerVersion,
+  fetchImpl = globalThis.fetch,
+  timeoutMilliseconds =
+    ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_STABILITY.probeTimeoutMilliseconds
+}) {
+  const webSocketUrl = await browserWebSocketUrl(debugPort, fetchImpl);
+  const client = new CdpClient(webSocketUrl);
+  await client.connect();
+  let browserContextId;
+  const evidence = {
+    documentStatus: null,
+    workerVersionExact: false,
+    markerExact: false,
+    nonReadRequests: 0,
+    externalRequests: 0,
+    interceptionFailures: 0
+  };
+  try {
+    ({ browserContextId } = await client.send("Target.createBrowserContext", {
+      disposeOnDetach: true
+    }));
+    const { targetId } = await client.send("Target.createTarget", {
+      url: "about:blank",
+      browserContextId
+    });
+    const { sessionId } = await client.send("Target.attachToTarget", {
+      targetId,
+      flatten: true
+    });
+    await Promise.all([
+      client.send("Page.enable", {}, sessionId),
+      client.send("Network.enable", {}, sessionId),
+      client.send("Fetch.enable", {
+        patterns: [{ urlPattern: "*", requestStage: "Request" }]
+      }, sessionId),
+      client.send("Network.setBypassServiceWorker", { bypass: true }, sessionId),
+      client.send("Network.setCacheDisabled", { cacheDisabled: true }, sessionId),
+      client.send("Emulation.setScriptExecutionDisabled", { value: true }, sessionId)
+    ]);
+
+    client.on("Network.responseReceived", params => {
+      let responseUrl;
+      try {
+        responseUrl = new URL(params.response?.url);
+      } catch {
+        return;
+      }
+      if (params.type !== "Document"
+        || responseUrl.origin !== CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN
+        || responseUrl.pathname !== "/") return;
+      const headers = lowerHeaders(params.response.headers);
+      evidence.documentStatus = params.response.status;
+      evidence.workerVersionExact =
+        headers[CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader.toLowerCase()]
+          === expectedWorkerVersion;
+      evidence.markerExact =
+        headers[CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader.toLowerCase()]
+          === CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue;
+    }, { sessionId });
+    client.on("Fetch.requestPaused", (params, eventSessionId) => {
+      void (async () => {
+        const method = String(params.request?.method || "").toUpperCase();
+        let url;
+        try {
+          url = new URL(params.request.url);
+        } catch {
+          evidence.interceptionFailures += 1;
+          await client.send("Fetch.failRequest", {
+            requestId: params.requestId,
+            errorReason: "BlockedByClient"
+          }, eventSessionId);
+          return;
+        }
+        if (!READ_METHODS.has(method)) {
+          evidence.nonReadRequests += 1;
+          await client.send("Fetch.failRequest", {
+            requestId: params.requestId,
+            errorReason: "BlockedByClient"
+          }, eventSessionId);
+          return;
+        }
+        if (url.origin === CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN) {
+          await client.send("Fetch.continueRequest", {
+            requestId: params.requestId,
+            headers: routeIqPrivateBrowserAuthenticatedRequestHeaders(
+              params.request.headers,
+              credentials
+            )
+          }, eventSessionId);
+          return;
+        }
+        if (["about:", "blob:", "data:"].includes(url.protocol)) {
+          await client.send("Fetch.continueRequest", {
+            requestId: params.requestId
+          }, eventSessionId);
+          return;
+        }
+        evidence.externalRequests += 1;
+        await client.send("Fetch.failRequest", {
+          requestId: params.requestId,
+          errorReason: "BlockedByClient"
+        }, eventSessionId);
+      })().catch(() => {
+        evidence.interceptionFailures += 1;
+      });
+    }, { sessionId });
+
+    await client.send("Page.navigate", {
+      url: `${CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN}/`
+    }, sessionId);
+    const deadline = Date.now() + timeoutMilliseconds;
+    while (evidence.documentStatus === null && Date.now() < deadline) await wait(25);
+    try {
+      await client.send("Page.stopLoading", {}, sessionId);
+    } catch {}
+    return Object.freeze({
+      exact: evidence.documentStatus >= 200
+        && evidence.documentStatus < 300
+        && evidence.workerVersionExact
+        && evidence.markerExact
+        && evidence.nonReadRequests === 0
+        && evidence.externalRequests === 0
+        && evidence.interceptionFailures === 0,
+      nonReadRequests: evidence.nonReadRequests,
+      externalRequests: evidence.externalRequests
+    });
+  } finally {
+    if (browserContextId) {
+      try {
+        await client.send("Target.disposeBrowserContext", { browserContextId });
+      } catch {}
+    }
+    client.close();
+  }
+}
+
+export async function waitForRouteIqPrivateBrowserVersionStability({
+  debugPort,
+  credentials,
+  expectedWorkerVersion,
+  fetchImpl = globalThis.fetch,
+  probeImpl = runRouteIqPrivateBrowserVersionProbe,
+  sleepImpl = wait
+} = {}) {
+  if (!Number.isInteger(debugPort)
+    || debugPort < 1
+    || debugPort > 65535
+    || typeof credentials?.clientId !== "string"
+    || credentials.clientId.length < 1
+    || credentials.clientId.length > 4096
+    || typeof credentials?.clientSecret !== "string"
+    || credentials.clientSecret.length < 1
+    || credentials.clientSecret.length > 4096
+    || !UUID.test(expectedWorkerVersion || "")
+    || typeof fetchImpl !== "function"
+    || typeof probeImpl !== "function"
+    || typeof sleepImpl !== "function") {
+    fail("route_iq_private_browser_stability_input_invalid");
+  }
+  let consecutiveExactProbes = 0;
+  for (let attempt = 1;
+    attempt <= ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_STABILITY.maximumAttempts;
+    attempt += 1) {
+    const evidence = await probeImpl({
+      debugPort,
+      credentials,
+      expectedWorkerVersion,
+      fetchImpl,
+      timeoutMilliseconds:
+        ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_STABILITY.probeTimeoutMilliseconds
+    });
+    if (!evidence
+      || typeof evidence.exact !== "boolean"
+      || !Number.isInteger(evidence.nonReadRequests)
+      || evidence.nonReadRequests < 0
+      || !Number.isInteger(evidence.externalRequests)
+      || evidence.externalRequests < 0) {
+      throw new RouteIqPrivateBrowserAcceptanceError(
+        [ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.BROWSER_VERSION_STABILITY],
+        ["BROWSER_STABILITY_NOT_REACHED"]
+      );
+    }
+    if (evidence.nonReadRequests > 0) {
+      throw new RouteIqPrivateBrowserAcceptanceError(
+        [ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.WRITE_ATTEMPT],
+        ["BROWSER_STABILITY_NON_READ_REQUEST"]
+      );
+    }
+    if (evidence.externalRequests > 0) {
+      throw new RouteIqPrivateBrowserAcceptanceError(
+        [ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.BROWSER_VERSION_STABILITY],
+        ["BROWSER_STABILITY_EXTERNAL_REQUEST"]
+      );
+    }
+    consecutiveExactProbes = evidence.exact ? consecutiveExactProbes + 1 : 0;
+    if (consecutiveExactProbes
+      >= ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_STABILITY.requiredConsecutiveExactProbes) {
+      return Object.freeze({
+        status: "ready",
+        attemptCount: attempt,
+        consecutiveExactProbes
+      });
+    }
+    if (attempt < ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_STABILITY.maximumAttempts) {
+      await sleepImpl(ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_STABILITY.delayMilliseconds);
+    }
+  }
+  throw new RouteIqPrivateBrowserAcceptanceError(
+    [ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.BROWSER_VERSION_STABILITY],
+    ["BROWSER_STABILITY_NOT_REACHED"]
+  );
+}
+
 export async function collectRouteIqPrivateBrowserPageEvidence(
   browserGlobal = globalThis,
   registrationTimeoutMilliseconds = 5_000
@@ -1168,6 +1396,7 @@ export async function runRouteIqPrivateProductionBrowserAcceptance({
   expectedWorkerVersion,
   publicIsolationVerified,
   launchBrowser = launchIsolatedChrome,
+  stabilizeBrowser = waitForRouteIqPrivateBrowserVersionStability,
   runScenario = runViewportScenario,
   fetchImpl = globalThis.fetch
 }) {
@@ -1178,11 +1407,18 @@ export async function runRouteIqPrivateProductionBrowserAcceptance({
     || credentials.clientSecret.length < 1
     || credentials.clientSecret.length > 4096
     || !UUID.test(expectedWorkerVersion || "")
-    || publicIsolationVerified !== true) {
+    || publicIsolationVerified !== true
+    || typeof stabilizeBrowser !== "function") {
     fail("route_iq_private_browser_input_invalid");
   }
   const browser = await launchBrowser();
   try {
+    await stabilizeBrowser({
+      debugPort: browser.debugPort,
+      credentials,
+      expectedWorkerVersion,
+      fetchImpl
+    });
     const scenarios = [];
     for (const viewport of ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS) {
       scenarios.push(await runScenario({
