@@ -81,15 +81,15 @@ export const AUTONOMOUS_ENGINEERING_V1_POLICY = Object.freeze({
   nodeVersion: "24.4.1",
   protectedEnvironment: "prometheus-private-worker-production",
   artifactRetentionDays: 30,
-  maximumRepairAttempts: 2,
+  maximumRepairAttempts: 3,
   maximumChangedFiles: 16,
-  maximumChangedLines: 5000,
+  maximumChangedLines: 6000,
   maximumChangedPatchBytes: 524288,
   maximumChangedFileBytes: 524288,
   maximumSuccessorCommits: 6,
   maximumWorkflowRecursionDepth: 0,
   maximumInRunTransientRecoveryAttempts: 1,
-  maximumWallClockMinutes: 290,
+  maximumWallClockMinutes: 210,
   evidenceFileMode: 0o400,
   evidenceDirectoryMode: 0o700,
   infrastructureIdentity:
@@ -105,7 +105,6 @@ export const AUTONOMOUS_ENGINEERING_V1_POLICY = Object.freeze({
     "workers/infrastructure/github-hosted-autonomous-engineering-v1.json"
   ]),
   overwatchOwnedPaths: Object.freeze([
-    "package.json",
     "overwatch/governance/github-hosted-autonomous-engineering-v1.json",
     "overwatch/governance/github-hosted-autonomous-engineering-v1.md",
     "overwatch/reports/github-hosted-autonomous-engineering-v1.json",
@@ -137,7 +136,7 @@ const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 const BATCH_ID = /^BATCH-[0-9]{8}-[0-9]{3}$/u;
 const POSITIVE_INTEGER = /^[1-9][0-9]{0,15}$/u;
-const REPAIR_ATTEMPT = /^[0-2]$/u;
+const REPAIR_ATTEMPT = /^[0-3]$/u;
 const MAX_EVIDENCE_BYTES = 1024 * 1024;
 const AUTONOMOUS_INPUT_NAMES = Object.freeze([
   "candidate_commit",
@@ -286,6 +285,25 @@ const FULL_SUITE_COMMANDS = Object.freeze([
     ]),
     transientClassification: null,
     timeoutMs: 20 * 60 * 1000
+  }),
+  Object.freeze({
+    id: "OVERWATCH_AUTONOMOUS_VERIFIER",
+    command: process.execPath,
+    argumentsList: Object.freeze([
+      "scripts/verify-overwatch-github-hosted-autonomous-engineering-v1.mjs"
+    ]),
+    transientClassification: null,
+    timeoutMs: 10 * 60 * 1000
+  }),
+  Object.freeze({
+    id: "OVERWATCH_AUTONOMOUS_TESTS",
+    command: process.execPath,
+    argumentsList: Object.freeze([
+      "--test",
+      "tests/overwatch-github-hosted-autonomous-engineering-v1.test.mjs"
+    ]),
+    transientClassification: null,
+    timeoutMs: 20 * 60 * 1000
   })
 ]);
 const SUCCESS_PHASES = Object.freeze([
@@ -326,6 +344,23 @@ const PROTECTED_STATE = Object.freeze({
   customerDataMutationPerformed: false,
   publicWorkerMutationPerformed: false
 });
+const frozenKeys = value => Object.freeze(value.split(" "));
+const ARTIFACT_EVIDENCE_KEYS = frozenKeys(
+  "qualificationRunId qualificationArtifactId qualificationArtifactZipSha256 contentTreeSha256 manifestSha256 forwardPayloadSha256 deploymentAssetsSha256 rollbackContractSha256 rollbackBundleSha256 workflowContractSha256 autonomousContractSha256 selectedQualification inRunRecoveryAttempts candidateCommit candidateTree"
+);
+const DEPLOYMENT_OUTCOME_KEYS = frozenKeys(
+  "schemaVersion status failureClassification deploymentAttempts rollbackAttempts artifact"
+);
+const ROLLBACK_DEMONSTRATION_KEYS = frozenKeys(
+  "schemaVersion status artifact mechanism forcedFailure forwardAttempts rollbackAttempts phases cloudflareRequests productionMutations publicWorkerMutationPerformed secretValuesReceived protectedState"
+);
+const RECOVERY_VERIFICATION_KEYS = frozenKeys(
+  "schemaVersion status artifact rollbackDemonstrationSha256 freshRunnerArtifactVerification freshRunnerRollbackDryRun cloudflareRequests productionMutations protectedState"
+);
+const PRODUCTION_EVIDENCE_KEYS = frozenKeys(
+  "schemaVersion status candidateCommit candidateTree publicVersion previousPrivateVersion finalPrivateVersion publicWorkerUnchanged privateIdentityAdvanced deploymentOutcomeSha256 rollbackDemonstrationSha256 recoveryVerificationSha256 phases desktopAcceptance mobile390x844Acceptance identityBeforeScriptExecution writeAttempts maximumRepairAttempts actualRepairAttempt maximumInRunTransientRecoveryAttempts actualInRunTransientRecoveryAttempts selectedQualification maximumChangedFiles actualChangedFiles maximumWorkflowRecursionDepth actualWorkflowRecursionDepth maximumWallClockMinutes secretsExposed localComputerRequiredAfterDispatch protectedState"
+);
+const SAFE_FAILURE_CLASSIFICATION = /^[A-Z0-9_|=,.-]{1,512}$/u;
 
 export class AutonomousEngineeringV1Error extends Error {
   constructor(code) {
@@ -349,6 +384,11 @@ function isPlainObject(value) {
 function exactKeys(value, expected) {
   return isPlainObject(value)
     && Object.keys(value).sort().join("\0") === [...expected].sort().join("\0");
+}
+
+function sameCanonicalValue(left, right) {
+  return canonicalPrivateWorkflowJson(left)
+    === canonicalPrivateWorkflowJson(right);
 }
 
 function parseJson(value, failure = AUTONOMOUS_ENGINEERING_V1_FAILURE.INPUT_INVALID) {
@@ -574,10 +614,14 @@ export function validateAutonomousDiffShape({
   gitModes
 }) {
   const changedPaths = parseChangedPaths(nameStatus);
-  if (summary !== ""
-    && summary.split("\n").some(line =>
-      !/^create mode 100644 /u.test(line))) {
-    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.REPAIR_SCOPE_INVALID);
+  if (summary !== "") {
+    for (const line of summary.split("\n")) {
+      const normalized = line.startsWith(" ") ? line.slice(1) : line;
+      if (normalized.startsWith(" ")
+        || !/^create mode 100644 [^\t\r\n]+$/u.test(normalized)) {
+        fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.REPAIR_SCOPE_INVALID);
+      }
+    }
   }
   const lineCount = changedLineCount(numstat);
   assertRegularGitModes(changedPaths, gitModes);
@@ -599,7 +643,40 @@ export function validateAutonomousFilesystemPaths(root, changedPaths) {
   return changedFileBytes;
 }
 
-function verifyCommitOwners(root, commits) {
+export function validateAutonomousCommitTopology(owners, repairAttempt) {
+  if (!Array.isArray(owners)) {
+    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.OWNER_INVALID);
+  }
+  const infrastructureCommitCount = owners.filter(
+    owner => owner === "INFRASTRUCTURE"
+  ).length;
+  const overwatchCommitCount = owners.filter(
+    owner => owner === "OVERWATCH"
+  ).length;
+  if (owners.length < 1
+    || owners.length
+      > AUTONOMOUS_ENGINEERING_V1_POLICY.maximumSuccessorCommits
+    || owners.some(owner =>
+      !["INFRASTRUCTURE", "OVERWATCH"].includes(owner))
+    || !Number.isInteger(repairAttempt)
+    || repairAttempt < 0
+    || repairAttempt > AUTONOMOUS_ENGINEERING_V1_POLICY.maximumRepairAttempts
+    || infrastructureCommitCount < 1
+    || overwatchCommitCount < 1
+    || owners.at(-1) !== "OVERWATCH"
+    || repairAttempt !== infrastructureCommitCount - 1) {
+    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.OWNER_INVALID);
+  }
+  return Object.freeze({
+    infrastructureCommitCount,
+    overwatchCommitCount,
+    successorCommitCount: owners.length,
+    repairAttempt
+  });
+}
+
+function verifyCommitOwners(root, commits, repairAttempt) {
+  const ownersByCommit = [];
   for (const commit of commits) {
     const metadata = runGit(root, [
       "show",
@@ -626,7 +703,9 @@ function verifyCommitOwners(root, commits) {
       || metadata[1] !== expected) {
       fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.OWNER_INVALID);
     }
+    ownersByCommit.push(owners.values().next().value);
   }
+  return validateAutonomousCommitTopology(ownersByCommit, repairAttempt);
 }
 
 export function verifyAutonomousEngineeringV1Repository(root, inputs) {
@@ -707,7 +786,11 @@ export function verifyAutonomousEngineeringV1Repository(root, inputs) {
     successorCommitCount: commits.length,
     recursionDepth: 0
   });
-  verifyCommitOwners(root, commits);
+  const topology = verifyCommitOwners(
+    root,
+    commits,
+    Number(inputs.repairAttempt)
+  );
   runGit(root, [
     "diff",
     "--check",
@@ -718,7 +801,8 @@ export function verifyAutonomousEngineeringV1Repository(root, inputs) {
     tree,
     originMain,
     changedPaths: Object.freeze(changedPaths),
-    ...scope
+    ...scope,
+    ...topology
   });
 }
 
@@ -1393,6 +1477,7 @@ function artifactEvidence(inputs, environment) {
       environment.PROMETHEUS_QUALIFICATION_ARTIFACT_ZIP_SHA256,
     contentTreeSha256: environment.PROMETHEUS_QUALIFIED_CONTENT_TREE_SHA256,
     manifestSha256: environment.PROMETHEUS_QUALIFIED_MANIFEST_SHA256,
+    forwardPayloadSha256: environment.PROMETHEUS_FORWARD_PAYLOAD_SHA256,
     deploymentAssetsSha256: environment.PROMETHEUS_DEPLOYMENT_ASSETS_SHA256,
     rollbackContractSha256: environment.PROMETHEUS_ROLLBACK_CONTRACT_SHA256,
     rollbackBundleSha256: environment.PROMETHEUS_ROLLBACK_BUNDLE_SHA256,
@@ -1406,31 +1491,176 @@ function artifactEvidence(inputs, environment) {
   });
 }
 
-function validArtifactEvidence(value) {
-  return isPlainObject(value)
-    && POSITIVE_INTEGER.test(value.qualificationRunId || "")
-    && POSITIVE_INTEGER.test(value.qualificationArtifactId || "")
-    && SHA40.test(value.candidateCommit || "")
-    && SHA40.test(value.candidateTree || "")
-    && ["PRIMARY", "RECOVERY"].includes(value.selectedQualification)
-    && Number.isInteger(value.inRunRecoveryAttempts)
-    && value.inRunRecoveryAttempts >= 0
-    && value.inRunRecoveryAttempts
-      <= AUTONOMOUS_ENGINEERING_V1_POLICY.maximumInRunTransientRecoveryAttempts
-    && ((value.selectedQualification === "PRIMARY"
-        && value.inRunRecoveryAttempts === 0)
+export function validateAutonomousArtifactEvidence(value, expected) {
+  if (!exactKeys(value, ARTIFACT_EVIDENCE_KEYS)) {
+    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.ARTIFACT_INVALID);
+  }
+  if (!POSITIVE_INTEGER.test(value.qualificationRunId || "")
+    || !POSITIVE_INTEGER.test(value.qualificationArtifactId || "")
+    || !SHA40.test(value.candidateCommit || "")
+    || !SHA40.test(value.candidateTree || "")
+    || !["PRIMARY", "RECOVERY"].includes(value.selectedQualification)
+    || !Number.isInteger(value.inRunRecoveryAttempts)
+    || value.inRunRecoveryAttempts < 0
+    || value.inRunRecoveryAttempts
+      > AUTONOMOUS_ENGINEERING_V1_POLICY.maximumInRunTransientRecoveryAttempts
+    || ((value.selectedQualification === "PRIMARY"
+        && value.inRunRecoveryAttempts !== 0)
       || (value.selectedQualification === "RECOVERY"
-        && value.inRunRecoveryAttempts === 1))
-    && [
+        && value.inRunRecoveryAttempts !== 1))
+    || ![
       value.qualificationArtifactZipSha256,
       value.contentTreeSha256,
       value.manifestSha256,
+      value.forwardPayloadSha256,
       value.deploymentAssetsSha256,
       value.rollbackContractSha256,
       value.rollbackBundleSha256,
       value.workflowContractSha256,
       value.autonomousContractSha256
-    ].every(item => SHA64.test(item || ""));
+    ].every(item => SHA64.test(item || ""))
+    || (expected !== undefined && !sameCanonicalValue(value, expected))) {
+    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.ARTIFACT_INVALID);
+  }
+  return Object.freeze(value);
+}
+
+export function validateAutonomousDeploymentOutcome(
+  value,
+  expectedArtifact,
+  { requireSuccess = false } = {}
+) {
+  if (!exactKeys(value, DEPLOYMENT_OUTCOME_KEYS)
+    || value.schemaVersion
+      !== "github-hosted-autonomous-deployment-outcome-v1"
+    || !SAFE_FAILURE_CLASSIFICATION.test(value.failureClassification || "")) {
+    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.EVIDENCE_INVALID);
+  }
+  validateAutonomousArtifactEvidence(value.artifact, expectedArtifact);
+  const success = value.status === "PRIVATE_WORKER_V2_DEPLOYMENT_VERIFIED"
+    && value.failureClassification === "NONE"
+    && value.deploymentAttempts === 1
+    && value.rollbackAttempts === 0;
+  const rolledBack =
+    value.status === "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED"
+    && value.failureClassification !== "NONE"
+    && value.deploymentAttempts === 1
+    && value.rollbackAttempts === 1;
+  const failed = value.status === "AUTONOMOUS_DEPLOYMENT_FAILED"
+    && value.failureClassification !== "NONE"
+    && value.deploymentAttempts === 0
+    && value.rollbackAttempts === 0;
+  if ((!success && !rolledBack && !failed) || (requireSuccess && !success)) {
+    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.EVIDENCE_INVALID);
+  }
+  return Object.freeze({
+    status: value.status,
+    success,
+    rolledBack,
+    failed
+  });
+}
+
+export function validateAutonomousRollbackEvidence(value, expectedArtifact) {
+  if (!exactKeys(value, ROLLBACK_DEMONSTRATION_KEYS)
+    || value.schemaVersion
+      !== "github-hosted-autonomous-rollback-demonstration-v1"
+    || value.status
+      !== "CONTROLLED_NON_PRODUCT_ROLLBACK_DEMONSTRATION_PASSED"
+    || value.mechanism
+      !== "qualified_rollback_payload_dry_run_and_in_memory_lifecycle"
+    || value.forcedFailure !== "SMOKE_INVALID"
+    || value.forwardAttempts !== 1
+    || value.rollbackAttempts !== 1
+    || !sameCanonicalValue(value.phases, ROLLBACK_PHASES)
+    || value.cloudflareRequests !== 0
+    || value.productionMutations !== 0
+    || value.publicWorkerMutationPerformed !== false
+    || value.secretValuesReceived !== false
+    || !sameCanonicalValue(value.protectedState, PROTECTED_STATE)) {
+    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.RECOVERY_VERIFICATION_FAILED);
+  }
+  validateAutonomousArtifactEvidence(value.artifact, expectedArtifact);
+  return Object.freeze(value);
+}
+
+export function validateAutonomousRecoveryEvidence(
+  value,
+  expectedArtifact,
+  rollbackDemonstrationSha256
+) {
+  if (!exactKeys(value, RECOVERY_VERIFICATION_KEYS)
+    || value.schemaVersion
+      !== "github-hosted-autonomous-recovery-verification-v1"
+    || value.status
+      !== "CONTROLLED_ROLLBACK_RECOVERY_INDEPENDENTLY_VERIFIED"
+    || !SHA64.test(rollbackDemonstrationSha256 || "")
+    || value.rollbackDemonstrationSha256
+      !== rollbackDemonstrationSha256
+    || value.freshRunnerArtifactVerification !== true
+    || value.freshRunnerRollbackDryRun !== true
+    || value.cloudflareRequests !== 0
+    || value.productionMutations !== 0
+    || !sameCanonicalValue(value.protectedState, PROTECTED_STATE)) {
+    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.RECOVERY_VERIFICATION_FAILED);
+  }
+  validateAutonomousArtifactEvidence(value.artifact, expectedArtifact);
+  return Object.freeze(value);
+}
+
+export function validateAutonomousProductionEvidence(value, {
+  inputs,
+  repository,
+  identities,
+  deploymentOutcomeSha256,
+  rollbackDemonstrationSha256,
+  recoveryVerificationSha256,
+  selectedQualification,
+  inRunRecoveryAttempts
+}) {
+  if (!exactKeys(value, PRODUCTION_EVIDENCE_KEYS)
+    || value.schemaVersion
+      !== "github-hosted-autonomous-production-evidence-v1"
+    || value.status !== "AUTONOMOUS_PRIVATE_DEPLOYMENT_ACCEPTED"
+    || value.candidateCommit !== inputs.candidateCommit
+    || value.candidateTree !== inputs.candidateTree
+    || value.publicVersion !== inputs.currentPublicVersion
+    || value.publicVersion !== identities.publicVersion
+    || value.previousPrivateVersion !== inputs.currentPrivateVersion
+    || value.finalPrivateVersion !== identities.privateVersion
+    || value.finalPrivateVersion === inputs.currentPrivateVersion
+    || value.publicWorkerUnchanged !== true
+    || value.privateIdentityAdvanced !== true
+    || value.deploymentOutcomeSha256 !== deploymentOutcomeSha256
+    || value.rollbackDemonstrationSha256
+      !== rollbackDemonstrationSha256
+    || value.recoveryVerificationSha256 !== recoveryVerificationSha256
+    || !sameCanonicalValue(value.phases, SUCCESS_PHASES)
+    || value.desktopAcceptance !== true
+    || value.mobile390x844Acceptance !== true
+    || value.identityBeforeScriptExecution !== true
+    || value.writeAttempts !== 0
+    || value.maximumRepairAttempts
+      !== AUTONOMOUS_ENGINEERING_V1_POLICY.maximumRepairAttempts
+    || value.actualRepairAttempt !== Number(inputs.repairAttempt)
+    || value.maximumInRunTransientRecoveryAttempts
+      !== AUTONOMOUS_ENGINEERING_V1_POLICY.maximumInRunTransientRecoveryAttempts
+    || value.actualInRunTransientRecoveryAttempts !== inRunRecoveryAttempts
+    || value.selectedQualification !== selectedQualification
+    || value.maximumChangedFiles
+      !== AUTONOMOUS_ENGINEERING_V1_POLICY.maximumChangedFiles
+    || value.actualChangedFiles !== repository.changedFileCount
+    || value.maximumWorkflowRecursionDepth
+      !== AUTONOMOUS_ENGINEERING_V1_POLICY.maximumWorkflowRecursionDepth
+    || value.actualWorkflowRecursionDepth !== 0
+    || value.maximumWallClockMinutes
+      !== AUTONOMOUS_ENGINEERING_V1_POLICY.maximumWallClockMinutes
+    || value.secretsExposed !== false
+    || value.localComputerRequiredAfterDispatch !== false
+    || !sameCanonicalValue(value.protectedState, PROTECTED_STATE)) {
+    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.EVIDENCE_INVALID);
+  }
+  return Object.freeze(value);
 }
 
 export async function runAutonomousRollbackDemonstration({
@@ -1453,9 +1683,7 @@ export async function runAutonomousRollbackDemonstration({
     executeDryRun
   );
   const artifact = artifactEvidence(inputs, environment);
-  if (!validArtifactEvidence(artifact)) {
-    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.ARTIFACT_INVALID);
-  }
+  validateAutonomousArtifactEvidence(artifact);
   const evidence = Object.freeze({
     schemaVersion: "github-hosted-autonomous-rollback-demonstration-v1",
     status: "CONTROLLED_NON_PRODUCT_ROLLBACK_DEMONSTRATION_PASSED",
@@ -1471,6 +1699,7 @@ export async function runAutonomousRollbackDemonstration({
     secretValuesReceived: false,
     protectedState: PROTECTED_STATE
   });
+  validateAutonomousRollbackEvidence(evidence, artifact);
   const output = writeEvidence(
     environment.PROMETHEUS_AUTONOMOUS_EVIDENCE_OUTPUT,
     "rollback-demonstration.json",
@@ -1501,22 +1730,10 @@ export async function verifyAutonomousRollbackRecovery({
   const value = demonstration.value;
   if (!SHA64.test(environment.PROMETHEUS_ROLLBACK_DEMONSTRATION_SHA256 || "")
     || demonstration.sha256
-      !== environment.PROMETHEUS_ROLLBACK_DEMONSTRATION_SHA256
-    || value.schemaVersion
-      !== "github-hosted-autonomous-rollback-demonstration-v1"
-    || value.status
-      !== "CONTROLLED_NON_PRODUCT_ROLLBACK_DEMONSTRATION_PASSED"
-    || JSON.stringify(value.artifact) !== JSON.stringify(expectedArtifact)
-    || value.forwardAttempts !== 1
-    || value.rollbackAttempts !== 1
-    || JSON.stringify(value.phases) !== JSON.stringify(ROLLBACK_PHASES)
-    || value.cloudflareRequests !== 0
-    || value.productionMutations !== 0
-    || value.publicWorkerMutationPerformed !== false
-    || value.secretValuesReceived !== false
-    || JSON.stringify(value.protectedState) !== JSON.stringify(PROTECTED_STATE)) {
+      !== environment.PROMETHEUS_ROLLBACK_DEMONSTRATION_SHA256) {
     fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.RECOVERY_VERIFICATION_FAILED);
   }
+  validateAutonomousRollbackEvidence(value, expectedArtifact);
   const verifiedRelease = verifiedReleaseForEnvironment(root, inputs, environment);
   const executeDryRun = dryRunImpl || (() => runCredentialFreeRollbackDryRun({
     root,
@@ -1535,6 +1752,11 @@ export async function verifyAutonomousRollbackRecovery({
     productionMutations: 0,
     protectedState: PROTECTED_STATE
   });
+  validateAutonomousRecoveryEvidence(
+    evidence,
+    expectedArtifact,
+    demonstration.sha256
+  );
   const output = writeEvidence(
     environment.PROMETHEUS_AUTONOMOUS_EVIDENCE_OUTPUT,
     "recovery-verification.json",
@@ -1595,6 +1817,7 @@ export async function runAutonomousDeployment({
       rollbackAttempts: result.rollbackAttempts,
       artifact: artifactEvidence(inputs, projected)
     });
+    validateAutonomousDeploymentOutcome(outcome, outcome.artifact);
     const output = writeDeploymentOutcome(environment, outcome);
     appendOutputs(environment.GITHUB_OUTPUT, {
       deployment_status: result.status,
@@ -1610,14 +1833,16 @@ export async function runAutonomousDeployment({
   } catch (error) {
     if (!result) {
       const classification = formatAutonomousEngineeringV1Failure(error);
-      const output = writeDeploymentOutcome(environment, Object.freeze({
+      const outcome = Object.freeze({
         schemaVersion: "github-hosted-autonomous-deployment-outcome-v1",
         status: "AUTONOMOUS_DEPLOYMENT_FAILED",
         failureClassification: classification,
         deploymentAttempts: 0,
         rollbackAttempts: 0,
         artifact: artifactEvidence(inputs, projected)
-      }));
+      });
+      validateAutonomousDeploymentOutcome(outcome, outcome.artifact);
+      const output = writeDeploymentOutcome(environment, outcome);
       appendOutputs(environment.GITHUB_OUTPUT, {
         deployment_status: "AUTONOMOUS_DEPLOYMENT_FAILED",
         deployment_outcome_sha256: output.sha256
@@ -1696,40 +1921,40 @@ export async function finalizeAutonomousDeploymentEvidence({
     fetchImpl,
     fetchStateImpl
   );
-  const deployed = outcome.value.status === "PRIVATE_WORKER_V2_DEPLOYMENT_VERIFIED";
-  const rolledBack =
-    outcome.value.status === "PRIVATE_WORKER_V2_FORWARD_ROLLBACK_VERIFIED";
-  const phaseExpectation = deployed ? SUCCESS_PHASES : ROLLBACK_PHASES;
-  if ((!deployed && !rolledBack)
-    || identities.publicVersion !== inputs.currentPublicVersion
-    || (deployed && identities.privateVersion === inputs.currentPrivateVersion)
-    || JSON.stringify(phases) !== JSON.stringify(phaseExpectation)
+  const expectedArtifact = artifactEvidence(inputs, environment);
+  validateAutonomousDeploymentOutcome(
+    outcome.value,
+    expectedArtifact,
+    { requireSuccess: true }
+  );
+  if (identities.publicVersion !== inputs.currentPublicVersion
+    || identities.privateVersion === inputs.currentPrivateVersion
+    || !sameCanonicalValue(phases, SUCCESS_PHASES)
     || outcome.sha256
-      !== environment.PROMETHEUS_AUTONOMOUS_DEPLOYMENT_OUTCOME_SHA256) {
+      !== environment.PROMETHEUS_AUTONOMOUS_DEPLOYMENT_OUTCOME_SHA256
+    || !SHA64.test(environment.PROMETHEUS_ROLLBACK_DEMONSTRATION_SHA256 || "")
+    || !SHA64.test(environment.PROMETHEUS_RECOVERY_VERIFICATION_SHA256 || "")) {
     fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.PRODUCTION_IDENTITY_MISMATCH);
   }
   const evidence = Object.freeze({
     schemaVersion: "github-hosted-autonomous-production-evidence-v1",
-    status: deployed
-      ? "AUTONOMOUS_PRIVATE_DEPLOYMENT_ACCEPTED"
-      : "AUTONOMOUS_PRIVATE_DEPLOYMENT_ROLLBACK_VERIFIED",
+    status: "AUTONOMOUS_PRIVATE_DEPLOYMENT_ACCEPTED",
     candidateCommit: inputs.candidateCommit,
     candidateTree: inputs.candidateTree,
     publicVersion: identities.publicVersion,
     previousPrivateVersion: inputs.currentPrivateVersion,
     finalPrivateVersion: identities.privateVersion,
     publicWorkerUnchanged: true,
-    privateIdentityAdvanced: identities.privateVersion
-      !== inputs.currentPrivateVersion,
+    privateIdentityAdvanced: true,
     deploymentOutcomeSha256: outcome.sha256,
     rollbackDemonstrationSha256:
       environment.PROMETHEUS_ROLLBACK_DEMONSTRATION_SHA256,
     recoveryVerificationSha256:
       environment.PROMETHEUS_RECOVERY_VERIFICATION_SHA256,
     phases,
-    desktopAcceptance: deployed,
-    mobile390x844Acceptance: deployed,
-    identityBeforeScriptExecution: deployed,
+    desktopAcceptance: true,
+    mobile390x844Acceptance: true,
+    identityBeforeScriptExecution: true,
     writeAttempts: 0,
     maximumRepairAttempts:
       AUTONOMOUS_ENGINEERING_V1_POLICY.maximumRepairAttempts,
@@ -1753,6 +1978,21 @@ export async function finalizeAutonomousDeploymentEvidence({
     localComputerRequiredAfterDispatch: false,
     protectedState: PROTECTED_STATE
   });
+  validateAutonomousProductionEvidence(evidence, {
+    inputs,
+    repository,
+    identities,
+    deploymentOutcomeSha256: outcome.sha256,
+    rollbackDemonstrationSha256:
+      environment.PROMETHEUS_ROLLBACK_DEMONSTRATION_SHA256,
+    recoveryVerificationSha256:
+      environment.PROMETHEUS_RECOVERY_VERIFICATION_SHA256,
+    selectedQualification:
+      environment.PROMETHEUS_SELECTED_QUALIFICATION,
+    inRunRecoveryAttempts: Number(
+      environment.PROMETHEUS_IN_RUN_RECOVERY_ATTEMPTS
+    )
+  });
   const output = writeEvidence(
     environment.PROMETHEUS_AUTONOMOUS_EVIDENCE_OUTPUT,
     "production-evidence.json",
@@ -1763,7 +2003,6 @@ export async function finalizeAutonomousDeploymentEvidence({
     final_private_version: identities.privateVersion,
     production_evidence_sha256: output.sha256
   });
-  if (!deployed) fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.DEPLOYMENT_FAILED);
   return Object.freeze({
     status: "GITHUB_HOSTED_AUTONOMOUS_PRODUCTION_EVIDENCE_VERIFIED",
     finalPrivateVersion: identities.privateVersion,
@@ -1778,42 +2017,66 @@ export async function independentlyVerifyAutonomousProduction({
   fetchStateImpl = fetchPublicWorkerState
 }) {
   const inputs = validateAutonomousEngineeringV1Context(environment);
-  verifyAutonomousEngineeringV1Repository(root, inputs);
-  const evidence = readEvidence(
+  const repository = verifyAutonomousEngineeringV1Repository(root, inputs);
+  const deploymentOutcome = readEvidence(
+    environment.PROMETHEUS_AUTONOMOUS_DEPLOYMENT_OUTCOME_PATH,
+    "deployment-outcome.json"
+  );
+  const rollbackDemonstration = readEvidence(
+    environment.PROMETHEUS_AUTONOMOUS_ROLLBACK_EVIDENCE_PATH,
+    "rollback-demonstration.json"
+  );
+  const recoveryVerification = readEvidence(
+    environment.PROMETHEUS_AUTONOMOUS_RECOVERY_EVIDENCE_PATH,
+    "recovery-verification.json"
+  );
+  const productionEvidence = readEvidence(
     environment.PROMETHEUS_AUTONOMOUS_PRODUCTION_EVIDENCE_PATH,
     "production-evidence.json"
+  );
+  const expectedArtifact = artifactEvidence(inputs, environment);
+  if (deploymentOutcome.sha256
+      !== environment.PROMETHEUS_AUTONOMOUS_DEPLOYMENT_OUTCOME_SHA256
+    || rollbackDemonstration.sha256
+      !== environment.PROMETHEUS_ROLLBACK_DEMONSTRATION_SHA256
+    || recoveryVerification.sha256
+      !== environment.PROMETHEUS_RECOVERY_VERIFICATION_SHA256
+    || productionEvidence.sha256
+      !== environment.PROMETHEUS_PRODUCTION_EVIDENCE_SHA256) {
+    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.EVIDENCE_INVALID);
+  }
+  validateAutonomousDeploymentOutcome(
+    deploymentOutcome.value,
+    expectedArtifact,
+    { requireSuccess: true }
+  );
+  validateAutonomousRollbackEvidence(
+    rollbackDemonstration.value,
+    expectedArtifact
+  );
+  validateAutonomousRecoveryEvidence(
+    recoveryVerification.value,
+    expectedArtifact,
+    rollbackDemonstration.sha256
   );
   const identities = await readProductionIdentities(
     environment,
     fetchImpl,
     fetchStateImpl
   );
-  const value = evidence.value;
-  if (evidence.sha256 !== environment.PROMETHEUS_PRODUCTION_EVIDENCE_SHA256
-    || value.status !== "AUTONOMOUS_PRIVATE_DEPLOYMENT_ACCEPTED"
-    || value.candidateCommit !== inputs.candidateCommit
-    || value.candidateTree !== inputs.candidateTree
-    || value.publicVersion !== inputs.currentPublicVersion
-    || value.publicVersion !== identities.publicVersion
-    || value.finalPrivateVersion !== identities.privateVersion
-    || value.previousPrivateVersion !== inputs.currentPrivateVersion
-    || value.finalPrivateVersion === inputs.currentPrivateVersion
-    || value.desktopAcceptance !== true
-    || value.mobile390x844Acceptance !== true
-    || value.identityBeforeScriptExecution !== true
-    || value.writeAttempts !== 0
-    || value.maximumInRunTransientRecoveryAttempts
-      !== AUTONOMOUS_ENGINEERING_V1_POLICY.maximumInRunTransientRecoveryAttempts
-    || value.actualInRunTransientRecoveryAttempts !== Number(
+  validateAutonomousProductionEvidence(productionEvidence.value, {
+    inputs,
+    repository,
+    identities,
+    deploymentOutcomeSha256: deploymentOutcome.sha256,
+    rollbackDemonstrationSha256: rollbackDemonstration.sha256,
+    recoveryVerificationSha256: recoveryVerification.sha256,
+    selectedQualification:
+      environment.PROMETHEUS_SELECTED_QUALIFICATION,
+    inRunRecoveryAttempts: Number(
       environment.PROMETHEUS_IN_RUN_RECOVERY_ATTEMPTS
     )
-    || value.selectedQualification
-      !== environment.PROMETHEUS_SELECTED_QUALIFICATION
-    || value.secretsExposed !== false
-    || value.localComputerRequiredAfterDispatch !== false
-    || JSON.stringify(value.protectedState) !== JSON.stringify(PROTECTED_STATE)) {
-    fail(AUTONOMOUS_ENGINEERING_V1_FAILURE.PRODUCTION_IDENTITY_MISMATCH);
-  }
+  });
   const output = writeEvidence(
     environment.PROMETHEUS_AUTONOMOUS_EVIDENCE_OUTPUT,
     "independent-production-acceptance.json",
@@ -1824,7 +2087,11 @@ export async function independentlyVerifyAutonomousProduction({
       candidateTree: inputs.candidateTree,
       publicVersion: identities.publicVersion,
       privateVersion: identities.privateVersion,
-      productionEvidenceSha256: evidence.sha256,
+      artifact: expectedArtifact,
+      deploymentOutcomeSha256: deploymentOutcome.sha256,
+      rollbackDemonstrationSha256: rollbackDemonstration.sha256,
+      recoveryVerificationSha256: recoveryVerification.sha256,
+      productionEvidenceSha256: productionEvidence.sha256,
       publicWorkerUnchanged: true,
       authenticatedDesktopAcceptance: true,
       authenticatedMobile390x844Acceptance: true,

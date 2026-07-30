@@ -16,12 +16,12 @@ import {
 const root = resolve(import.meta.dirname, "..");
 const JOBS = Object.freeze([
   "authorize",
-  "production-baseline",
   "qualify-primary",
   "qualify-recovery",
   "qualify",
   "reverify-and-demonstrate",
   "verify-recovery",
+  "production-baseline",
   "deploy",
   "independent-acceptance"
 ]);
@@ -252,10 +252,34 @@ export function verifyGithubHostedAutonomousEngineeringV1() {
     timeouts.reduce((sum, value) => sum + value, 0),
     AUTONOMOUS_ENGINEERING_V1_POLICY.maximumWallClockMinutes
   );
-  assert.equal(contract.workflow.maximumWallClockMinutes, 290);
+  assert.equal(contract.workflow.maximumWallClockMinutes, 210);
 
   assertSecretSeparation(workflow);
   assertArtifactTokenSeparation(workflow);
+  assert.ok(
+    workflow.indexOf("${{ secrets.")
+      > workflow.indexOf("  verify-recovery:\n")
+  );
+  assert.doesNotMatch(workflow, /actions:\s*write/u);
+  assert.equal(count(workflow, /^\s+actions: read$/gmu), 6);
+  const productionBaseline = jobSection(
+    workflow,
+    "production-baseline",
+    "deploy"
+  );
+  assert.match(productionBaseline, /- verify-recovery/u);
+  const primary = jobSection(workflow, "qualify-primary", "qualify-recovery");
+  assert.match(primary, /^    needs: authorize$/mu);
+  assert.equal(primary.includes("production-baseline"), false);
+  const selector = jobSection(workflow, "qualify", "reverify-and-demonstrate");
+  assert.match(selector, /- authorize/u);
+  assert.equal(selector.includes("production-baseline"), false);
+  const deploy = jobSection(workflow, "deploy", "independent-acceptance");
+  assert.match(deploy, /- production-baseline/u);
+  assert.match(
+    deploy,
+    /deployment_outcome_sha256: \$\{\{ steps\.production\.outputs\.deployment_outcome_sha256 \}\}/u
+  );
   assert.equal(
     count(
       workflow,
@@ -310,15 +334,26 @@ export function verifyGithubHostedAutonomousEngineeringV1() {
   assert.match(workflow, /run-id: \$\{\{ github\.run_id \}\}/u);
 
   assert.equal(contract.boundedRepair.maximumChangedFiles, 16);
-  assert.equal(autonomousPathOwner("package.json"), "OVERWATCH");
+  assert.equal(autonomousPathOwner("package.json"), null);
   assert.deepEqual(
     contract.boundedRepair.overwatchOwnedPaths,
     AUTONOMOUS_ENGINEERING_V1_POLICY.overwatchOwnedPaths
   );
-  assert.equal(contract.boundedRepair.maximumChangedLines, 5000);
+  assert.equal(contract.boundedRepair.maximumChangedLines, 6000);
   assert.equal(contract.boundedRepair.maximumChangedPatchBytes, 524288);
   assert.equal(contract.boundedRepair.maximumChangedFileBytes, 524288);
   assert.equal(contract.boundedRepair.maximumInRunTransientRecoveryAttempts, 1);
+  assert.equal(contract.boundedRepair.maximumRepairAttempts, 3);
+  assert.equal(contract.boundedRepair.maximumSuccessorCommits, 6);
+  assert.equal(
+    contract.boundedRepair.commitTopology
+      .repairAttemptEqualsInfrastructureCommitCountMinusOne,
+    true
+  );
+  assert.equal(
+    contract.boundedRepair.ownerIdentityStringsAreProvenanceLabelsOnly,
+    true
+  );
   assert.equal(contract.boundedRepair.maximumWorkflowRecursionDepth, 0);
   assert.equal(contract.boundedRepair.automaticSourceEditsAllowed, false);
   assert.equal(contract.boundedRepair.isolatedRetryMayEstablishAcceptance, false);
@@ -333,6 +368,16 @@ export function verifyGithubHostedAutonomousEngineeringV1() {
     false
   );
   assert.equal(contract.qualification.finalizationReceivesArtifactToken, false);
+  assert.equal(contract.qualification.actionsPermission, "read");
+  assert.equal(
+    contract.qualification
+      .productionSecretsFirstAvailableAfterQualificationArtifactRollbackAndRecoveryVerification,
+    true
+  );
+  assert.deepEqual(
+    autonomousFullSuiteCommands.slice(-2).map(command => command.id),
+    ["OVERWATCH_AUTONOMOUS_VERIFIER", "OVERWATCH_AUTONOMOUS_TESTS"]
+  );
   assert.deepEqual(
     autonomousFullSuiteCommands.slice(0, 2).map(command =>
       command.transientClassification),
@@ -357,6 +402,28 @@ export function verifyGithubHostedAutonomousEngineeringV1() {
   assert.match(documentation, /authenticated.*390x844|390x844.*acceptance/isu);
   assert.match(workflow, /if: \$\{\{ steps\.production\.outcome == 'success' \}\}/u);
   assert.match(workflow, /if: \$\{\{ always\(\) \}\}/u);
+  const independent = jobSection(
+    workflow,
+    "independent-acceptance",
+    undefined
+  );
+  assert.match(independent, /- reverify-and-demonstrate/u);
+  assert.match(independent, /- verify-recovery/u);
+  for (const artifact of [
+    "production evidence",
+    "rollback demonstration evidence",
+    "recovery verification evidence"
+  ]) {
+    assert.ok(independent.includes(`Download only this run's ${artifact}`));
+  }
+  for (const name of [
+    "PROMETHEUS_AUTONOMOUS_DEPLOYMENT_OUTCOME_PATH",
+    "PROMETHEUS_AUTONOMOUS_ROLLBACK_EVIDENCE_PATH",
+    "PROMETHEUS_AUTONOMOUS_RECOVERY_EVIDENCE_PATH",
+    "PROMETHEUS_AUTONOMOUS_PRODUCTION_EVIDENCE_PATH"
+  ]) {
+    assert.ok(independent.includes(name));
+  }
   assert.match(runner, /"full-suite"/u);
   assert.match(runner, /"select-qualification"/u);
 

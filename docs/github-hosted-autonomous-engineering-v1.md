@@ -23,29 +23,34 @@ other context.
 
 1. A no-secret job validates the Founder, repository, branch, commit, tree,
    baseline ancestry, ownership, repair limits, and exact confirmation.
-2. A protected read-only job verifies the public and private Worker identities.
-3. A clean GitHub-hosted runner runs the complete no-secret repository suite.
+2. A clean GitHub-hosted runner runs the complete no-secret repository suite.
    `npm test` owns the single application build; no second build command is
-   permitted.
-4. The accepted private v2 qualifier freezes the forward payload and paired
+   permitted. The independent Overwatch verifier and tests then run directly
+   as nontransient commands, without relying on package-script wiring.
+3. The accepted private v2 qualifier freezes the forward payload and paired
    forward-compatible rollback into one immutable artifact.
-5. A fresh job downloads the artifact, checks GitHub metadata, and reverifies
+4. A fresh job downloads the artifact, checks GitHub metadata, and reverifies
    every content identity.
-6. The rollback payload receives a credential-free Wrangler dry run. The
+5. The rollback payload receives a credential-free Wrangler dry run. The
    accepted deployment lifecycle is then exercised in memory with one fixed
    nonsecret postdeployment failure, one forward attempt, one rollback, and no
    production request.
-7. Another fresh runner redownloads the release and rollback evidence, repeats
+6. Another fresh runner redownloads the release and rollback evidence, repeats
    artifact verification and the credential-free rollback dry run, and emits
    independent recovery evidence.
-8. Only then may the protected deployment job redownload the exact artifact and
+7. Only after every preceding no-secret gate passes may a protected read-only
+   job receive production credentials and verify the exact public and private
+   Worker identities.
+8. The protected deployment job then redownloads the exact artifact and
    invoke the accepted private v2 deployment component. That component already
    enforces private-only targeting, one forward attempt, authenticated GET/HEAD
    smoke, desktop and exact 390x844 acceptance, identity-before-script
    execution, public Worker isolation, and one forward-compatible rollback on
    critical failure.
-9. A final fresh protected job independently confirms production identities and
-   the safe deployment evidence.
+9. A final fresh protected job independently downloads the deployment outcome,
+   rollback demonstration, recovery verification, and production evidence. It
+   validates every exact schema, artifact identity, upstream hash, phase,
+   attempt count, and safety field before independently confirming production.
 
 Every uploaded evidence record contains only fixed classifications, source and
 artifact hashes, Worker version identifiers, counts, and boolean safety
@@ -69,21 +74,26 @@ also rejects an accidentally inherited artifact token before its child can run.
 ## Bounded repair
 
 This workflow is not a self-modifying agent. It cannot commit, push, dispatch
-itself, call another workflow, or edit source. It admits a maximum of two
-externally owner-produced repair successors. Each successor remains limited to
-six commits, sixteen changed files, 5,000 changed lines, 524,288 patch bytes,
+itself, call another workflow, or edit source. More than one in-run transient
+recovery is prohibited; exactly one fresh-runner recovery is available.
+Owner-produced source history may declare Infrastructure repair attempt `0`
+through `3`, and remains limited to
+six commits, sixteen changed files, 6,000 changed lines, 524,288 patch bytes,
 and 524,288 resulting file bytes across the exact Infrastructure and Overwatch
 feature paths recorded in the contract. Binary diffs, symlinks, renames,
 deletions, non-regular Git modes, and mode changes are rejected. Workflow
 recursion is zero. Every source repair requires the complete clean
 qualification and a newly generated immutable artifact.
 
-`package.json` is an Overwatch-owned integration path only for adding the
-independent governance script and wiring it into the complete `npm test` gate.
-It remains subject to the exact Overwatch commit identity, single-owner commit,
-line, byte, mode, and path limits. This allowance does not authorize package
-dependency changes, product source changes, or Infrastructure authorship of
-`package.json`.
+Every successor commit must contain paths from exactly one approved subsystem.
+There must be at least one Overwatch commit and the final successor commit must
+be Overwatch-owned. The declared repair attempt is exactly the number of
+Infrastructure commits minus one. This allows existing Infrastructure and
+Overwatch commits to remain in their recorded order while bounding the final
+six-commit chain. Author and committer strings are provenance labels, not
+authorization by themselves; authorization is the exact commit, exact tree,
+Founder actor and triggering actor, exact `main` branch, and exact workflow
+context.
 
 One in-run recovery is available without another Founder interaction. It is a
 fresh GitHub-hosted runner executing the entire install, audit, repository
@@ -96,7 +106,7 @@ failure, or unclassified error cannot use this path. A second transient failure
 stops the workflow.
 
 The maximum theoretical job execution time, including the one recovery path, is
-290 minutes. The workflow verifier sums every job timeout and requires that
+210 minutes. The workflow verifier sums every job timeout and requires that
 exact cap.
 
 An out-of-scope path, mixed owner commit, merge commit, isolated retry, stale
@@ -114,10 +124,14 @@ evidence outside this feature without making this lane safer.
 ## Production boundary
 
 The protected environment remains
-`prometheus-private-worker-production`. Secret values are supplied only to the
-read-only identity and private deployment jobs. The qualifier, artifact
-verification, rollback demonstration, and recovery verification jobs receive no
-production credential.
+`prometheus-private-worker-production`. The first production-secret access is
+the read-only identity job after qualification, artifact verification, rollback
+demonstration, and recovery verification have all passed. Secret values are
+then supplied only to that identity job, the exact deployment step,
+finalization, and final production acceptance. Qualification and all
+preproduction proof jobs receive no production credential. Every workflow job
+uses read-only GitHub permissions; artifact transfer relies on the scoped
+runtime artifact token.
 
 The deployment target is fixed to `prometheus-iq`. The public
 `prometheusrouteiq-website` Worker is read only and must retain its exact
@@ -143,7 +157,7 @@ The Founder supplies:
 - exact candidate commit and tree from `main`
 - batch ID
 - exact current public and private Worker versions
-- repair attempt number from 0 through 2
+- repair attempt number from 0 through 3
 - `I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT`
 
 No artifact hash is copied by the Founder. The single workflow creates,

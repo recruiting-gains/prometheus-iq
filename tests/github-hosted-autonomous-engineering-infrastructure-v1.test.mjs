@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import {
   mkdtempSync,
   mkdirSync,
@@ -17,16 +18,24 @@ import {
   AutonomousEngineeringV1Error,
   autonomousFullSuiteCommands,
   autonomousPathOwner,
+  autonomousProtectedState,
   autonomousQualificationOutputNames,
   autonomousRollbackPhases,
+  autonomousSuccessPhases,
   demonstrateControlledRollbackLifecycle,
   runAutonomousDeployment,
   runAutonomousFullSuite,
   selectAutonomousQualification,
   validateAutonomousArtifactRunContext,
+  validateAutonomousArtifactEvidence,
+  validateAutonomousCommitTopology,
+  validateAutonomousDeploymentOutcome,
   validateAutonomousDiffShape,
   validateAutonomousEngineeringV1Context,
   validateAutonomousFilesystemPaths,
+  validateAutonomousProductionEvidence,
+  validateAutonomousRecoveryEvidence,
+  validateAutonomousRollbackEvidence,
   validateAutonomousRepairScope
 } from "../scripts/lib/github-hosted-autonomous-engineering-v1.mjs";
 import {
@@ -46,7 +55,7 @@ function contextEnvironment(overrides = {}) {
     batch_id: "BATCH-20260730-001",
     current_public_version: publicVersion,
     current_private_version: privateVersion,
-    repair_attempt: "1",
+    repair_attempt: "3",
     founder_authorization:
       AUTONOMOUS_ENGINEERING_V1_POLICY.founderAuthorization
   };
@@ -140,6 +149,110 @@ function deploymentEnvironment(directory, overrides = {}) {
     PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE: "b".repeat(64),
     ...overrides
   });
+}
+
+function runTestGit(rootDirectory, argumentsList) {
+  const result = spawnSync("git", argumentsList, {
+    cwd: rootDirectory,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+  assert.equal(result.status, 0, result.stderr);
+  return String(result.stdout || "").trim();
+}
+
+function artifactEvidenceFixture(overrides = {}) {
+  return {
+    qualificationRunId: "40000000001", qualificationArtifactId: "8500000001",
+    qualificationArtifactZipSha256: "1".repeat(64),
+    contentTreeSha256: "2".repeat(64), manifestSha256: "3".repeat(64),
+    forwardPayloadSha256: "4".repeat(64),
+    deploymentAssetsSha256: "5".repeat(64),
+    rollbackContractSha256: "6".repeat(64),
+    rollbackBundleSha256: "7".repeat(64),
+    workflowContractSha256: "8".repeat(64),
+    autonomousContractSha256: "9".repeat(64),
+    selectedQualification: "PRIMARY", inRunRecoveryAttempts: 0,
+    candidateCommit: commit, candidateTree: tree,
+    ...overrides
+  };
+}
+
+function deploymentOutcomeFixture(artifact, overrides = {}) {
+  return {
+    schemaVersion: "github-hosted-autonomous-deployment-outcome-v1",
+    status: "PRIVATE_WORKER_V2_DEPLOYMENT_VERIFIED",
+    failureClassification: "NONE", deploymentAttempts: 1,
+    rollbackAttempts: 0, artifact,
+    ...overrides
+  };
+}
+
+function rollbackEvidenceFixture(artifact, overrides = {}) {
+  return {
+    schemaVersion: "github-hosted-autonomous-rollback-demonstration-v1",
+    status: "CONTROLLED_NON_PRODUCT_ROLLBACK_DEMONSTRATION_PASSED",
+    artifact,
+    mechanism:
+      "qualified_rollback_payload_dry_run_and_in_memory_lifecycle",
+    forcedFailure: "SMOKE_INVALID", forwardAttempts: 1, rollbackAttempts: 1,
+    phases: autonomousRollbackPhases,
+    cloudflareRequests: 0, productionMutations: 0,
+    publicWorkerMutationPerformed: false,
+    secretValuesReceived: false, protectedState: autonomousProtectedState,
+    ...overrides
+  };
+}
+
+function recoveryEvidenceFixture(artifact, rollbackSha256, overrides = {}) {
+  return {
+    schemaVersion: "github-hosted-autonomous-recovery-verification-v1",
+    status: "CONTROLLED_ROLLBACK_RECOVERY_INDEPENDENTLY_VERIFIED",
+    artifact, rollbackDemonstrationSha256: rollbackSha256,
+    freshRunnerArtifactVerification: true,
+    freshRunnerRollbackDryRun: true,
+    cloudflareRequests: 0, productionMutations: 0,
+    protectedState: autonomousProtectedState,
+    ...overrides
+  };
+}
+
+function productionEvidenceFixture({
+  deploymentOutcomeSha256,
+  rollbackDemonstrationSha256,
+  recoveryVerificationSha256
+}, overrides = {}) {
+  return {
+    schemaVersion: "github-hosted-autonomous-production-evidence-v1",
+    status: "AUTONOMOUS_PRIVATE_DEPLOYMENT_ACCEPTED",
+    candidateCommit: commit, candidateTree: tree, publicVersion,
+    previousPrivateVersion: privateVersion,
+    finalPrivateVersion: "33333333-3333-4333-8333-333333333333",
+    publicWorkerUnchanged: true, privateIdentityAdvanced: true,
+    deploymentOutcomeSha256, rollbackDemonstrationSha256,
+    recoveryVerificationSha256,
+    phases: autonomousSuccessPhases,
+    desktopAcceptance: true, mobile390x844Acceptance: true,
+    identityBeforeScriptExecution: true,
+    writeAttempts: 0,
+    maximumRepairAttempts:
+      AUTONOMOUS_ENGINEERING_V1_POLICY.maximumRepairAttempts,
+    actualRepairAttempt: 3,
+    maximumInRunTransientRecoveryAttempts:
+      AUTONOMOUS_ENGINEERING_V1_POLICY.maximumInRunTransientRecoveryAttempts,
+    actualInRunTransientRecoveryAttempts: 0, selectedQualification: "PRIMARY",
+    maximumChangedFiles:
+      AUTONOMOUS_ENGINEERING_V1_POLICY.maximumChangedFiles,
+    actualChangedFiles: 12,
+    maximumWorkflowRecursionDepth:
+      AUTONOMOUS_ENGINEERING_V1_POLICY.maximumWorkflowRecursionDepth,
+    actualWorkflowRecursionDepth: 0,
+    maximumWallClockMinutes:
+      AUTONOMOUS_ENGINEERING_V1_POLICY.maximumWallClockMinutes,
+    secretsExposed: false, localComputerRequiredAfterDispatch: false,
+    protectedState: autonomousProtectedState,
+    ...overrides
+  };
 }
 
 test("static workflow, contract, YAML, timeout, secret, and wiring verification passes", () => {
@@ -382,11 +495,7 @@ test("repair limits enforce file, line, patch-byte, file-byte, commit, and recur
     recursionDepth: 0
   };
   assert.equal(validateAutonomousRepairScope(valid).changedFileCount, 1);
-  assert.equal(autonomousPathOwner("package.json"), "OVERWATCH");
-  assert.equal(validateAutonomousRepairScope({
-    ...valid,
-    changedPaths: ["package.json"]
-  }).changedFileCount, 1);
+  assert.equal(autonomousPathOwner("package.json"), null);
   for (const overflow of [
     {
       changedPaths: Array.from(
@@ -411,11 +520,51 @@ test("repair limits enforce file, line, patch-byte, file-byte, commit, and recur
         AUTONOMOUS_ENGINEERING_V1_POLICY.maximumSuccessorCommits + 1
     },
     { recursionDepth: 1 },
-    { changedPaths: ["src/product-forbidden.ts"] }
+    { changedPaths: ["src/product-forbidden.ts"] },
+    { changedPaths: ["package.json"] }
   ]) {
     expectFailure(
       () => validateAutonomousRepairScope({ ...valid, ...overflow }),
       AUTONOMOUS_ENGINEERING_V1_FAILURE.REPAIR_SCOPE_INVALID
+    );
+  }
+});
+
+test("repair attempt is bound to the mixed owner commit topology", () => {
+  const finalOwners = [
+    "INFRASTRUCTURE",
+    "INFRASTRUCTURE",
+    "INFRASTRUCTURE",
+    "INFRASTRUCTURE",
+    "OVERWATCH"
+  ];
+  assert.deepEqual(
+    validateAutonomousCommitTopology(finalOwners, 3),
+    {
+      infrastructureCommitCount: 4,
+      overwatchCommitCount: 1,
+      successorCommitCount: 5,
+      repairAttempt: 3
+    }
+  );
+  for (const [owners, repairAttempt] of [
+    [finalOwners, 2],
+    [[...finalOwners, "OVERWATCH", "OVERWATCH"], 3],
+    [[
+      "INFRASTRUCTURE",
+      "INFRASTRUCTURE",
+      "INFRASTRUCTURE",
+      "INFRASTRUCTURE",
+      "INFRASTRUCTURE",
+      "OVERWATCH"
+    ], 3],
+    [["INFRASTRUCTURE", "INFRASTRUCTURE"], 1],
+    [["OVERWATCH", "INFRASTRUCTURE"], 0],
+    [["INFRASTRUCTURE", "UNKNOWN", "OVERWATCH"], 0]
+  ]) {
+    expectFailure(
+      () => validateAutonomousCommitTopology(owners, repairAttempt),
+      AUTONOMOUS_ENGINEERING_V1_FAILURE.OWNER_INVALID
     );
   }
 });
@@ -442,6 +591,48 @@ test("diff-shape validation rejects binaries, renames, deletions, and mode chang
       () => validateAutonomousDiffShape({ ...valid, ...invalid }),
       AUTONOMOUS_ENGINEERING_V1_FAILURE.REPAIR_SCOPE_INVALID
     );
+  }
+});
+
+test("real multi-file Git summary indentation is parsed deterministically", () => {
+  const directory = mkdtempSync(join(tmpdir(), "autonomous-git-summary-"));
+  try {
+    runTestGit(directory, ["init", "-b", "main"]);
+    runTestGit(directory, ["config", "user.name", "Synthetic Fixture"]);
+    runTestGit(directory, ["config", "user.email", "fixture@example.invalid"]);
+    writeFileSync(join(directory, "README.md"), "baseline\n");
+    runTestGit(directory, ["add", "README.md"]);
+    runTestGit(directory, ["commit", "-m", "Baseline"]);
+
+    const paths = [
+      AUTONOMOUS_ENGINEERING_V1_POLICY.documentationPath,
+      AUTONOMOUS_ENGINEERING_V1_POLICY.contractPath
+    ];
+    for (const path of paths) {
+      mkdirSync(resolve(directory, path, ".."), { recursive: true });
+      writeFileSync(resolve(directory, path), `${path}\n`);
+    }
+    runTestGit(directory, ["add", "--", ...paths]);
+    const nameStatus = runTestGit(directory, [
+      "diff",
+      "--cached",
+      "--name-status"
+    ]);
+    const changedPaths = nameStatus.split("\n").map(line => line.split("\t")[1]);
+    const summary = runTestGit(directory, ["diff", "--cached", "--summary"]);
+    assert.equal(summary.split("\n").length, 2);
+    assert.equal(summary.split("\n")[1].startsWith(" "), true);
+    const result = validateAutonomousDiffShape({
+      nameStatus,
+      numstat: runTestGit(directory, ["diff", "--cached", "--numstat"]),
+      summary,
+      gitModes: changedPaths.map(path =>
+        runTestGit(directory, ["ls-files", "-s", "--", path]))
+    });
+    assert.deepEqual(result.changedPaths, changedPaths);
+    assert.equal(result.changedLineCount, 2);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
   }
 });
 
@@ -482,6 +673,91 @@ test("controlled rollback evidence proves one forward attempt and one recovery",
   assert.equal(dryRuns, 1);
   assert.deepEqual(result.phases, autonomousRollbackPhases);
   assert.deepEqual(result.calls, { dryRun: 1, deploy: 1, rollback: 1 });
+});
+
+test("exact evidence schemas bind artifact, deployment, rollback, recovery, and production", () => {
+  const artifact = artifactEvidenceFixture();
+  const deploymentOutcomeSha256 = "a".repeat(64);
+  const rollbackDemonstrationSha256 = "b".repeat(64);
+  const recoveryVerificationSha256 = "c".repeat(64);
+  const outcome = deploymentOutcomeFixture(artifact);
+  const rollback = rollbackEvidenceFixture(artifact);
+  const recovery = recoveryEvidenceFixture(
+    artifact,
+    rollbackDemonstrationSha256
+  );
+  const production = productionEvidenceFixture({
+    deploymentOutcomeSha256,
+    rollbackDemonstrationSha256,
+    recoveryVerificationSha256
+  });
+  const inputs = validateAutonomousEngineeringV1Context(contextEnvironment());
+  const repository = { changedFileCount: 12 };
+  const productionValidation = {
+    inputs, repository,
+    identities: { publicVersion, privateVersion: production.finalPrivateVersion },
+    deploymentOutcomeSha256, rollbackDemonstrationSha256,
+    recoveryVerificationSha256,
+    selectedQualification: "PRIMARY", inRunRecoveryAttempts: 0
+  };
+
+  assert.equal(validateAutonomousArtifactEvidence(artifact).candidateCommit, commit);
+  assert.equal(
+    validateAutonomousDeploymentOutcome(outcome, artifact, {
+      requireSuccess: true
+    }).success,
+    true
+  );
+  assert.equal(
+    validateAutonomousRollbackEvidence(rollback, artifact).forwardAttempts,
+    1
+  );
+  assert.equal(
+    validateAutonomousRecoveryEvidence(recovery, artifact,
+      rollbackDemonstrationSha256).freshRunnerArtifactVerification,
+    true
+  );
+  assert.equal(
+    validateAutonomousProductionEvidence(
+      production,
+      productionValidation
+    ).writeAttempts,
+    0
+  );
+
+  for (const [invoke, code] of [
+    [() => validateAutonomousArtifactEvidence({ ...artifact, extra: true }),
+      AUTONOMOUS_ENGINEERING_V1_FAILURE.ARTIFACT_INVALID
+    ],
+    [() => validateAutonomousDeploymentOutcome(
+        { ...outcome, rollbackAttempts: 1 },
+        artifact,
+        { requireSuccess: true }
+      ),
+      AUTONOMOUS_ENGINEERING_V1_FAILURE.EVIDENCE_INVALID
+    ],
+    [() => validateAutonomousRollbackEvidence(
+        { ...rollback, phases: autonomousRollbackPhases.slice(0, -1) },
+        artifact
+      ),
+      AUTONOMOUS_ENGINEERING_V1_FAILURE.RECOVERY_VERIFICATION_FAILED
+    ],
+    [() => validateAutonomousRecoveryEvidence(
+        { ...recovery, rollbackDemonstrationSha256: "d".repeat(64) },
+        artifact,
+        rollbackDemonstrationSha256
+      ),
+      AUTONOMOUS_ENGINEERING_V1_FAILURE.RECOVERY_VERIFICATION_FAILED
+    ],
+    [() => validateAutonomousProductionEvidence(
+        { ...production, writeAttempts: 1 },
+        productionValidation
+      ),
+      AUTONOMOUS_ENGINEERING_V1_FAILURE.EVIDENCE_INVALID
+    ]
+  ]) {
+    expectFailure(invoke, code);
+  }
 });
 
 test("deployment child receives six governed Cloudflare settings and no artifact token", async () => {

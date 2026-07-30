@@ -31,17 +31,17 @@
     "protectedEnvironment": "prometheus-private-worker-production",
     "concurrencyGroup": "prometheus-github-hosted-autonomous-engineering-v1",
     "cancelInProgress": false,
-    "maximumWallClockMinutes": 290,
+    "maximumWallClockMinutes": 210,
     "selfDispatchAllowed": false,
     "workflowCallAllowed": false,
     "repositoryWriteAllowed": false,
     "sourceMutationAllowed": false
   },
   "boundedRepair": {
-    "maximumRepairAttempts": 2,
+    "maximumRepairAttempts": 3,
     "maximumInRunTransientRecoveryAttempts": 1,
     "maximumChangedFiles": 16,
-    "maximumChangedLines": 5000,
+    "maximumChangedLines": 6000,
     "maximumChangedPatchBytes": 524288,
     "maximumChangedFileBytes": 524288,
     "maximumSuccessorCommits": 6,
@@ -69,6 +69,22 @@
       "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "Prometheus Overwatch <overwatch@prometheus.local>"
     ],
+    "ownerIdentityStringsAreProvenanceLabelsOnly": true,
+    "authorizationBasis": [
+      "exact_candidate_commit",
+      "exact_candidate_tree",
+      "founder_actor_and_triggering_actor",
+      "exact_main_branch",
+      "exact_workflow_context"
+    ],
+    "commitTopology": {
+      "everySuccessorCommitHasExactlyOneApprovedOwner": true,
+      "repairAttemptEqualsInfrastructureCommitCountMinusOne": true,
+      "atLeastOneOverwatchCommitRequired": true,
+      "finalCommitOwner": "OVERWATCH",
+      "maximumInfrastructureRepairAttempt": 3,
+      "maximumSuccessorCommits": 6
+    },
     "infrastructureOwnedPaths": [
       ".github/workflows/github-hosted-autonomous-engineering-v1.yml",
       "docs/github-hosted-autonomous-engineering-v1.md",
@@ -79,7 +95,6 @@
       "workers/infrastructure/github-hosted-autonomous-engineering-v1.json"
     ],
     "overwatchOwnedPaths": [
-      "package.json",
       "overwatch/governance/github-hosted-autonomous-engineering-v1.json",
       "overwatch/governance/github-hosted-autonomous-engineering-v1.md",
       "overwatch/reports/github-hosted-autonomous-engineering-v1.json",
@@ -100,6 +115,8 @@
   },
   "qualification": {
     "fullNoSecretRepositorySuiteRequired": true,
+    "independentOverwatchVerifierRunsDirectlyAfterInfrastructureGates": true,
+    "independentOverwatchTestsRunDirectlyAfterInfrastructureGates": true,
     "sourceBuilds": 1,
     "buildCommandSource": "npm test",
     "additionalBuildCommandAllowed": false,
@@ -120,7 +137,9 @@
     "manifestVerificationRequired": true,
     "deploymentAssetVerificationRequired": true,
     "rollbackContractVerificationRequired": true,
-    "rollbackBundleVerificationRequired": true
+    "rollbackBundleVerificationRequired": true,
+    "productionSecretsFirstAvailableAfterQualificationArtifactRollbackAndRecoveryVerification": true,
+    "actionsPermission": "read"
   },
   "rollbackDemonstration": {
     "productionMutationAllowed": false,
@@ -172,7 +191,11 @@
       "independent_recovery_verification",
       "production_deployment_evidence",
       "independent_production_acceptance"
-    ]
+    ],
+    "exactSchemasRequired": true,
+    "independentAcceptanceReverifiesDeploymentRollbackRecoveryAndProductionEvidence": true,
+    "successfulDeploymentAttemptsRequired": 1,
+    "successfulRollbackAttemptsRequired": 0
   },
   "protectedEnvironment": {
     "name": "prometheus-private-worker-production",
