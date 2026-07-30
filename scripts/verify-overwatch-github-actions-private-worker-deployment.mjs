@@ -163,6 +163,12 @@ const v2BrowserVersionStabilityRepairParent =
   "873aeaa152c19cb5fea98f795f203e3de13c6d49";
 const v2BrowserVersionStabilityRepairTree =
   "69ce9ad6816f4bee97b8c49cadf17b296a798a03";
+const v2ProductionIdentityInspectionCommit =
+  "4884f3e8c410ee74620a636bdc8311f3a12186b5";
+const v2ProductionIdentityInspectionParent =
+  "cf614c3af041db87f8500b9618849ba3dfb76df7";
+const v2ProductionIdentityInspectionTree =
+  "7facfb196ea2693034260a965350d30e5f25a7b7";
 const v2IntelligenceSmokeTimeoutSynchronizationCommit =
   "039116040678a3cbae8016a34f17e30e674715f6";
 const v2IntelligenceSmokeTimeoutSynchronizationParent =
@@ -607,6 +613,21 @@ const v2BrowserVersionStabilityRepairHashes = Object.freeze({
     "c46602f5afbdb334b15f9867d240b4acfb2c2d28829115319f5c585c314cb5b0",
   "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json":
     "fb04be3588ac0437ef968f395777e3d8cd15662cd1bd421905b0f0ef561d6095"
+});
+
+const v2ProductionIdentityInspectionHashes = Object.freeze({
+  ".github/workflows/inspect-prometheus-worker-production-identity.yml":
+    "1cc78718ebe83a8707b2b14239d479ae12c6146b5b3deff4c7282b7eec869b37",
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+    "1ece1b19b6d3c12e3ad852d8b738eaf04ac3d16ca59e62ec13558dc6d8eccaa1",
+  "scripts/run-github-actions-private-worker-read-only-identity.mjs":
+    "0d7161b5b72f0c8aa0aae7e3ae077fd3fcde9325eb8f11fed64935a9b10f72ea",
+  "scripts/verify-github-actions-private-worker-workflow-v2.mjs":
+    "2199d3a428f34d690862bf120ad5f4768e40718f5a24e1fdcf6e8eac8aadd4ac",
+  "tests/github-actions-private-worker-workflow-v2.test.mjs":
+    "ebe86706cbf5e9cdac53a3446306df81aa054e5f63df99c7218237284e459b5d",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "a905d83aec0511ee8b8faa2859e7f8147ee9f13b5cc1214ef233e5179365263d"
 });
 
 const v2IntelligenceSmokeTimeoutSynchronizationHashes = Object.freeze({
@@ -1210,7 +1231,7 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(governance?.governanceId ===
     "github-actions-private-worker-deployment-governance-v2",
   "Private Workflow v2 governance identity drifted.");
-  require(governance?.version === "1.14.0"
+  require(governance?.version === "1.15.0"
     && governance?.status ===
     "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED"
     && governance?.owningSubsystem === "Prometheus Overwatch",
@@ -1476,6 +1497,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       infrastructureIdentity
     && governance?.ownership?.implementationBrowserVersionStabilityRepairCommit?.committer ===
       infrastructureIdentity
+    && governance?.ownership?.implementationProductionIdentityInspectionCommit?.commit ===
+      v2ProductionIdentityInspectionCommit
+    && governance?.ownership?.implementationProductionIdentityInspectionCommit?.parent ===
+      v2ProductionIdentityInspectionParent
+    && governance?.ownership?.implementationProductionIdentityInspectionCommit?.tree ===
+      v2ProductionIdentityInspectionTree
+    && governance?.ownership?.implementationProductionIdentityInspectionCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationProductionIdentityInspectionCommit?.committer ===
+      infrastructureIdentity
     && governance?.ownership?.intelligenceSynchronizationOwner ===
       "Prometheus Intelligence Engine"
     && governance?.ownership?.intelligenceSmokeTimeoutSynchronizationCommit?.commit ===
@@ -1691,6 +1722,12 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.browserVersionStabilityRepairEvidence,
     evidenceMap(v2BrowserVersionStabilityRepairHashes)),
   "Private Workflow v2 browser-version stability repair evidence drifted.");
+  require(equal(governance?.ownership?.productionIdentityInspectionPaths,
+    Object.keys(v2ProductionIdentityInspectionHashes)),
+  "Private Workflow v2 production-identity inspection path set drifted.");
+  require(equal(governance?.ownership?.productionIdentityInspectionEvidence,
+    evidenceMap(v2ProductionIdentityInspectionHashes)),
+  "Private Workflow v2 production-identity inspection evidence drifted.");
   require(equal(governance?.ownership?.intelligenceSmokeTimeoutSynchronizationPaths,
     Object.keys(v2IntelligenceSmokeTimeoutSynchronizationHashes)),
   "Private Workflow v2 Intelligence smoke-timeout synchronization path set drifted.");
@@ -1911,6 +1948,18 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     )
     && governance?.rootCause?.browserVersionStabilityRepair?.includes(
       "application acceptance is never retried"
+    )
+    && governance?.rootCause?.productionIdentityInspectionNeed?.includes(
+      "complete UUID"
+    )
+    && governance?.rootCause?.productionIdentityInspectionNeed?.includes(
+      "physical passkey challenge"
+    )
+    && governance?.rootCause?.productionIdentityInspectionRepair?.includes(
+      "four Cloudflare GET requests"
+    )
+    && governance?.rootCause?.productionIdentityInspectionRepair?.includes(
+      "no mutation or deployment path"
     ),
   "Private Workflow v2 root-cause record drifted.");
   require(governance?.workflowBoundary?.onlyTrigger === "workflow_dispatch"
@@ -2022,7 +2071,18 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.smokeBoundary?.browserVersionStabilityHttpCacheDisabled === true
     && governance?.smokeBoundary?.browserVersionStabilityServiceWorkerBypassed === true
     && governance?.smokeBoundary?.browserVersionStabilityApplicationRetryAllowed ===
-      false,
+      false
+    && governance?.smokeBoundary?.productionIdentityInspectionRequired === true
+    && equal(
+      governance?.smokeBoundary?.productionIdentityInspectionMethods,
+      ["GET"]
+    )
+    && governance?.smokeBoundary?.productionIdentityInspectionCloudflareRequestCount ===
+      4
+    && governance?.smokeBoundary?.productionIdentityInspectionMutationAllowed ===
+      false
+    && governance?.smokeBoundary
+      ?.productionIdentityInspectionCredentialValuesInOutputAllowed === false,
   "Private Workflow v2 smoke boundary drifted.");
   require(governance?.runtimeBoundary?.prospectiveCollection === "OFF"
     && governance?.runtimeBoundary?.activeCohorts === 0
@@ -2675,6 +2735,15 @@ function verifyV2OwnerAndGovernance() {
       subject: "Stabilize private browser release acceptance",
       hashes: v2BrowserVersionStabilityRepairHashes,
       recorded: governance.ownership.browserVersionStabilityRepairEvidence
+    },
+    {
+      label: "production-identity inspection",
+      commit: v2ProductionIdentityInspectionCommit,
+      parent: v2ProductionIdentityInspectionParent,
+      tree: v2ProductionIdentityInspectionTree,
+      subject: "Add read-only private production identity inspection",
+      hashes: v2ProductionIdentityInspectionHashes,
+      recorded: governance.ownership.productionIdentityInspectionEvidence
     }
   ]) {
     const metadata = git([
@@ -2804,7 +2873,8 @@ function verifyV2OwnerAndGovernance() {
     ...v2BrowserSmokeMarkerPropagationRepairHashes,
     ...v2SmokeTimeoutRepairHashes,
     ...v2SmokeReleaseContinuityHashes,
-    ...v2BrowserVersionStabilityRepairHashes
+    ...v2BrowserVersionStabilityRepairHashes,
+    ...v2ProductionIdentityInspectionHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -3145,6 +3215,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2SmokeReleaseContinuityCommit,
     immutableWorkflowV2BrowserVersionStabilityRepairCommit:
       v2BrowserVersionStabilityRepairCommit,
+    immutableWorkflowV2ProductionIdentityInspectionCommit:
+      v2ProductionIdentityInspectionCommit,
     immutableWorkflowV2IntelligenceSmokeTimeoutSynchronizationCommit:
       v2IntelligenceSmokeTimeoutSynchronizationCommit,
     localRealWranglerDryRunPassed: true,

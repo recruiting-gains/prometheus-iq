@@ -115,6 +115,8 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "43159913a976b48f1279f534f8fcd5b73b48a263");
   assert.equal(result.immutableWorkflowV2BrowserVersionStabilityRepairCommit,
     "296d1ff559bfe0f916632ea59d4e702289c87065");
+  assert.equal(result.immutableWorkflowV2ProductionIdentityInspectionCommit,
+    "4884f3e8c410ee74620a636bdc8311f3a12186b5");
   assert.equal(
     result.immutableWorkflowV2IntelligenceSmokeTimeoutSynchronizationCommit,
     "039116040678a3cbae8016a34f17e30e674715f6"
@@ -231,6 +233,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
         "0".repeat(40);
     },
     value => {
+      value.ownership.implementationProductionIdentityInspectionCommit.commit =
+        "0".repeat(40);
+    },
+    value => {
       value.ownership.intelligenceSmokeTimeoutSynchronizationCommit.commit =
         "0".repeat(40);
     },
@@ -322,6 +328,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
         "0".repeat(64);
     },
     value => {
+      value.ownership.productionIdentityInspectionEvidence[0].sha256 =
+        "0".repeat(64);
+    },
+    value => {
       value.ownership.intelligenceSmokeTimeoutSynchronizationEvidence[0].sha256 =
         "0".repeat(64);
     },
@@ -351,6 +361,8 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.rootCause.browserVersionStabilityFailureRollbackVerified = false; },
     value => { value.rootCause.browserVersionStabilityCause = "No cause."; },
     value => { value.rootCause.browserVersionStabilityRepair = "Retry the application."; },
+    value => { value.rootCause.productionIdentityInspectionNeed = "Not needed."; },
+    value => { value.rootCause.productionIdentityInspectionRepair = "Print everything."; },
     value => { value.rootCause.guardConvergenceRepair = "No repair."; },
     value => { value.rootCause.forwardPayloadPinCorrection = "No correction."; },
     value => { value.rootCause.thirdPropagationFailureRollbackVerified = false; },
@@ -419,6 +431,16 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => { value.smokeBoundary.browserVersionStabilityHttpCacheDisabled = false; },
     value => { value.smokeBoundary.browserVersionStabilityServiceWorkerBypassed = false; },
     value => { value.smokeBoundary.browserVersionStabilityApplicationRetryAllowed = true; },
+    value => { value.smokeBoundary.productionIdentityInspectionRequired = false; },
+    value => { value.smokeBoundary.productionIdentityInspectionMethods = ["POST"]; },
+    value => {
+      value.smokeBoundary.productionIdentityInspectionCloudflareRequestCount = 5;
+    },
+    value => { value.smokeBoundary.productionIdentityInspectionMutationAllowed = true; },
+    value => {
+      value.smokeBoundary
+        .productionIdentityInspectionCredentialValuesInOutputAllowed = true;
+    },
     value => { value.runtimeBoundary.prospectiveCollection = "ON"; },
     value => { value.runtimeBoundary.activeCohorts = 1; },
     value => { value.runtimeBoundary.recommendationInfluence = "ON"; },
