@@ -436,6 +436,12 @@ function httpStatusClassification(status) {
   return null;
 }
 
+export function isGuardedRouteIqServiceWorkerRequest(url) {
+  return url instanceof URL
+    && url.origin === CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN
+    && url.pathname === "/sw.js";
+}
+
 export function classifyRouteIqPrivateBrowserLogEntry(
   entry,
   { blockedNetworkIds = new Set() } = {}
@@ -706,7 +712,8 @@ async function runViewportScenario({
           }, eventSessionId);
           return;
         }
-        if (params.resourceType === "ServiceWorker") {
+        if (params.resourceType === "ServiceWorker"
+          || isGuardedRouteIqServiceWorkerRequest(url)) {
           evidence.serviceWorkerRequests += 1;
           evidence.blockedServiceWorkerRequests += 1;
           if (params.networkId) blockedNetworkIds.add(params.networkId);

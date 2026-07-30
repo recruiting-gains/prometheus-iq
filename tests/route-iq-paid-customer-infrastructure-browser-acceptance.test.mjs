@@ -10,6 +10,7 @@ import {
   classifyRouteIqPrivateBrowserLogEntry,
   collectRouteIqPrivateBrowserPageEvidence,
   evaluateRouteIqPrivateBrowserAcceptance,
+  isGuardedRouteIqServiceWorkerRequest,
   routeIqPrivateBrowserGuardScript,
   runRouteIqPrivateProductionBrowserAcceptance
 } from "../scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs";
@@ -246,6 +247,21 @@ test("browser log classification suppresses only a correlated exact service-work
       true
     );
   }
+});
+
+test("service-worker request guard covers Chromium Other classification by exact path", () => {
+  assert.equal(isGuardedRouteIqServiceWorkerRequest(
+    new URL("https://prometheus-iq.prometheusrouteiq.workers.dev/sw.js")
+  ), true);
+  assert.equal(isGuardedRouteIqServiceWorkerRequest(
+    new URL("https://prometheus-iq.prometheusrouteiq.workers.dev/sw.js?update=1")
+  ), true);
+  assert.equal(isGuardedRouteIqServiceWorkerRequest(
+    new URL("https://prometheus-iq.prometheusrouteiq.workers.dev/sw.js.map")
+  ), false);
+  assert.equal(isGuardedRouteIqServiceWorkerRequest(
+    new URL("https://external.invalid/sw.js")
+  ), false);
 });
 
 test("service-worker guard returns the complete inert registration interface", async () => {
