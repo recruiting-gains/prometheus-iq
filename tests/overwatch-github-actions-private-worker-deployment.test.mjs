@@ -113,6 +113,10 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "a7822e6535892ee4b51c483089f9f045c3185724");
   assert.equal(result.immutableWorkflowV2SmokeReleaseContinuityCommit,
     "43159913a976b48f1279f534f8fcd5b73b48a263");
+  assert.equal(
+    result.immutableWorkflowV2IntelligenceSmokeTimeoutSynchronizationCommit,
+    "039116040678a3cbae8016a34f17e30e674715f6"
+  );
   assert.equal(result.localRealWranglerDryRunPassed, true);
   assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
@@ -220,6 +224,17 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
       value.ownership.implementationSmokeReleaseContinuityCommit.commit =
         "0".repeat(40);
     },
+    value => {
+      value.ownership.intelligenceSmokeTimeoutSynchronizationCommit.commit =
+        "0".repeat(40);
+    },
+    value => {
+      value.ownership.intelligenceModifiedInfrastructureImplementation = true;
+    },
+    value => {
+      value.ownership.intelligenceSynchronizationChangedRecommendationInfluence =
+        true;
+    },
     value => { value.ownership.bootstrapRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.runnerWorkspaceRepairEvidence[0].sha256 = "0".repeat(64); },
     value => { value.ownership.trustedTempAliasRepairEvidence[0].sha256 = "0".repeat(64); },
@@ -294,6 +309,10 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     },
     value => {
       value.ownership.smokeReleaseContinuityEvidence[0].sha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.ownership.intelligenceSmokeTimeoutSynchronizationEvidence[0].sha256 =
         "0".repeat(64);
     },
     value => { value.rootCause.legacyQualificationArtifactDeployable = true; },

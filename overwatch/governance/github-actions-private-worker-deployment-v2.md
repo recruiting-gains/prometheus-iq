@@ -245,6 +245,11 @@ contract: 5 seconds for JWKS verification, a 3-second response margin, an
 8-second request lifecycle, and a 135-second full-plan deadline. Infrastructure
 successor `43159913a976b48f1279f534f8fcd5b73b48a263` regenerates only the
 directly dependent forward and rollback identities.
+Intelligence successor `039116040678a3cbae8016a34f17e30e674715f6`
+advances only the current protected-baseline references to those exact guard
+and contract bytes. Historical checkpoints remain immutable, and route
+behavior, scoring, representative output, collection, and recommendation
+influence remain unchanged.
 
 ## Boundary
 

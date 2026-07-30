@@ -157,6 +157,12 @@ const v2SmokeReleaseContinuityParent =
   "a7822e6535892ee4b51c483089f9f045c3185724";
 const v2SmokeReleaseContinuityTree =
   "e8ff800cb3b9892c9a20d1aec800260184bf5c81";
+const v2IntelligenceSmokeTimeoutSynchronizationCommit =
+  "039116040678a3cbae8016a34f17e30e674715f6";
+const v2IntelligenceSmokeTimeoutSynchronizationParent =
+  "5df472ace229d95d4f0a000797ad36b34043b937";
+const v2IntelligenceSmokeTimeoutSynchronizationTree =
+  "4fe6496f1948356385c7a128016f89f6aeadf38e";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -584,6 +590,19 @@ const v2SmokeReleaseContinuityHashes = Object.freeze({
     "85d7cb58c1502961d691c60fc0e9f35ecd9bc3aa8f6914fd739c2a32e8c36134"
 });
 
+const v2IntelligenceSmokeTimeoutSynchronizationHashes = Object.freeze({
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json":
+    "479e1426097877676b1abe061a5fedfeb9a06ba6460335ca946b656c26310569",
+  "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json":
+    "2bc63f52f472c503745e08b6652ae8854683589552271e4d94d51c69cc0cee6e",
+  "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs":
+    "180198f08e59f749f0b65ff5d224cb6add24695dd6a21c072bfcde541c4d23c9",
+  "scripts/verify-shadow-decision-readiness.mjs":
+    "c2e87ef8a5e5671db4c43a33d308d54c4e2dfec6c295f28a2953ae08b1068cc3",
+  "tests/shadow-decision-readiness.test.mjs":
+    "9333b0763f0ba187b74b147d6a8e9b6c940ff86f14dfe9ea1da907aa6c32feed"
+});
+
 const historicalOwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker.yml":
     "f2e672729d9bee7a4a173627e51a622b944d3b545e4ed1f4851414b5e31897e9",
@@ -702,6 +721,8 @@ const expectedOverwatchPaths = Object.freeze([
 
 const infrastructureIdentity =
   "Prometheus Infrastructure <infrastructure@prometheus.local>";
+const intelligenceIdentity =
+  "Prometheus Intelligence Engine <intelligence@prometheus.local>";
 const overwatchIdentity = "Prometheus Overwatch <overwatch@prometheus.local>";
 const infrastructureOwnedPaths = new Set([
   ...Object.keys(historicalOwnerHashes),
@@ -1425,7 +1446,33 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership?.implementationSmokeReleaseContinuityCommit?.author ===
       infrastructureIdentity
     && governance?.ownership?.implementationSmokeReleaseContinuityCommit?.committer ===
-      infrastructureIdentity,
+      infrastructureIdentity
+    && governance?.ownership?.intelligenceSynchronizationOwner ===
+      "Prometheus Intelligence Engine"
+    && governance?.ownership?.intelligenceSmokeTimeoutSynchronizationCommit?.commit ===
+      v2IntelligenceSmokeTimeoutSynchronizationCommit
+    && governance?.ownership?.intelligenceSmokeTimeoutSynchronizationCommit?.parent ===
+      v2IntelligenceSmokeTimeoutSynchronizationParent
+    && governance?.ownership?.intelligenceSmokeTimeoutSynchronizationCommit?.tree ===
+      v2IntelligenceSmokeTimeoutSynchronizationTree
+    && governance?.ownership?.intelligenceSmokeTimeoutSynchronizationCommit?.author ===
+      intelligenceIdentity
+    && governance?.ownership?.intelligenceSmokeTimeoutSynchronizationCommit?.committer ===
+      intelligenceIdentity
+    && governance?.ownership?.intelligenceModifiedInfrastructureImplementation ===
+      false
+    && governance?.ownership?.overwatchModifiedIntelligenceImplementation ===
+      false
+    && governance?.ownership?.intelligenceSynchronizationChangedRouteBehavior ===
+      false
+    && governance?.ownership?.intelligenceSynchronizationChangedRecommendationInfluence ===
+      false
+    && governance?.ownership?.intelligenceSynchronizationChangedCollection ===
+      false
+    && governance?.ownership?.intelligenceSynchronizationChangedRepresentativeOutput ===
+      false
+    && governance?.ownership?.intelligenceSynchronizationPreservedHistoricalCheckpoints ===
+      true,
   "Private Workflow v2 owner provenance drifted.");
   require(equal(governance?.ownership?.implementationPaths, Object.keys(v2OwnerHashes)),
     "Private Workflow v2 owner path set drifted.");
@@ -1609,6 +1656,12 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.smokeReleaseContinuityEvidence,
     evidenceMap(v2SmokeReleaseContinuityHashes)),
   "Private Workflow v2 smoke release-continuity evidence drifted.");
+  require(equal(governance?.ownership?.intelligenceSmokeTimeoutSynchronizationPaths,
+    Object.keys(v2IntelligenceSmokeTimeoutSynchronizationHashes)),
+  "Private Workflow v2 Intelligence smoke-timeout synchronization path set drifted.");
+  require(equal(governance?.ownership?.intelligenceSmokeTimeoutSynchronizationEvidence,
+    evidenceMap(v2IntelligenceSmokeTimeoutSynchronizationHashes)),
+  "Private Workflow v2 Intelligence smoke-timeout synchronization evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -2590,6 +2643,64 @@ function verifyV2OwnerAndGovernance() {
     }
   }
 
+  const intelligenceMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    v2IntelligenceSmokeTimeoutSynchronizationCommit
+  ]).split("\n");
+  if (!equal(intelligenceMetadata, [
+    v2IntelligenceSmokeTimeoutSynchronizationCommit,
+    v2IntelligenceSmokeTimeoutSynchronizationParent,
+    v2IntelligenceSmokeTimeoutSynchronizationTree,
+    intelligenceIdentity,
+    intelligenceIdentity,
+    "Synchronize private smoke timeout provenance"
+  ])) {
+    throw new Error(
+      "Private Workflow v2 Intelligence smoke-timeout synchronization provenance drifted."
+    );
+  }
+  const intelligencePaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    v2IntelligenceSmokeTimeoutSynchronizationCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(
+    intelligencePaths,
+    Object.keys(v2IntelligenceSmokeTimeoutSynchronizationHashes)
+  )) {
+    throw new Error(
+      "Private Workflow v2 Intelligence smoke-timeout synchronization path set drifted."
+    );
+  }
+  if (intelligencePaths.some(path => path.startsWith("workers/infrastructure/")
+    || path.startsWith("overwatch/")
+    || path === "package.json")) {
+    throw new Error(
+      "Private Workflow v2 Intelligence synchronization crossed an ownership boundary."
+    );
+  }
+  const recordedIntelligenceEvidence = new Map(
+    governance.ownership.intelligenceSmokeTimeoutSynchronizationEvidence
+      .map(item => [item.path, item.sha256])
+  );
+  for (const [path, expected] of Object.entries(
+    v2IntelligenceSmokeTimeoutSynchronizationHashes
+  )) {
+    const committed = execFileSync("/usr/bin/git", [
+      "show", `${v2IntelligenceSmokeTimeoutSynchronizationCommit}:${path}`
+    ], {
+      cwd: root,
+      encoding: null,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    if (sha256(committed) !== expected
+      || sha256(readFileSync(resolve(root, path))) !== expected
+      || recordedIntelligenceEvidence.get(path) !== expected) {
+      throw new Error(
+        `Private Workflow v2 Intelligence synchronization evidence drifted: ${path}`
+      );
+    }
+  }
+
   const currentInfrastructureHashes = {
     ...v2BootstrapRepairHashes,
     ...v2RunnerWorkspaceRepairHashes,
@@ -2955,6 +3066,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2SmokeTimeoutRepairCommit,
     immutableWorkflowV2SmokeReleaseContinuityCommit:
       v2SmokeReleaseContinuityCommit,
+    immutableWorkflowV2IntelligenceSmokeTimeoutSynchronizationCommit:
+      v2IntelligenceSmokeTimeoutSynchronizationCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,

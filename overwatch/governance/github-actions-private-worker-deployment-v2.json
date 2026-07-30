@@ -240,6 +240,22 @@
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Regenerate private smoke release continuity"
     },
+    "intelligenceSynchronizationOwner": "Prometheus Intelligence Engine",
+    "intelligenceSmokeTimeoutSynchronizationCommit": {
+      "commit": "039116040678a3cbae8016a34f17e30e674715f6",
+      "parent": "5df472ace229d95d4f0a000797ad36b34043b937",
+      "tree": "4fe6496f1948356385c7a128016f89f6aeadf38e",
+      "author": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "committer": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "Synchronize private smoke timeout provenance"
+    },
+    "intelligenceModifiedInfrastructureImplementation": false,
+    "overwatchModifiedIntelligenceImplementation": false,
+    "intelligenceSynchronizationChangedRouteBehavior": false,
+    "intelligenceSynchronizationChangedRecommendationInfluence": false,
+    "intelligenceSynchronizationChangedCollection": false,
+    "intelligenceSynchronizationChangedRepresentativeOutput": false,
+    "intelligenceSynchronizationPreservedHistoricalCheckpoints": true,
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "implementationPaths": [
@@ -1207,6 +1223,35 @@
       {
         "path": "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
         "sha256": "85d7cb58c1502961d691c60fc0e9f35ecd9bc3aa8f6914fd739c2a32e8c36134"
+      }
+    ],
+    "intelligenceSmokeTimeoutSynchronizationPaths": [
+      "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
+      "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "scripts/verify-shadow-decision-readiness.mjs",
+      "tests/shadow-decision-readiness.test.mjs"
+    ],
+    "intelligenceSmokeTimeoutSynchronizationEvidence": [
+      {
+        "path": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
+        "sha256": "479e1426097877676b1abe061a5fedfeb9a06ba6460335ca946b656c26310569"
+      },
+      {
+        "path": "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+        "sha256": "2bc63f52f472c503745e08b6652ae8854683589552271e4d94d51c69cc0cee6e"
+      },
+      {
+        "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+        "sha256": "180198f08e59f749f0b65ff5d224cb6add24695dd6a21c072bfcde541c4d23c9"
+      },
+      {
+        "path": "scripts/verify-shadow-decision-readiness.mjs",
+        "sha256": "c2e87ef8a5e5671db4c43a33d308d54c4e2dfec6c295f28a2953ae08b1068cc3"
+      },
+      {
+        "path": "tests/shadow-decision-readiness.test.mjs",
+        "sha256": "9333b0763f0ba187b74b147d6a8e9b6c940ff86f14dfe9ea1da907aa6c32feed"
       }
     ]
   },
