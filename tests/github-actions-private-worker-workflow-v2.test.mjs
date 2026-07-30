@@ -1100,7 +1100,7 @@ test("workflow reports every fixed browser dimension and safe diagnostic only", 
     "credential-canary-dimension"
   ], [
     "DESKTOP_LOG_NETWORK",
-    "DESKTOP_HTTP_MANIFEST_4XX",
+    "DESKTOP_HTTP_MANIFEST_4XX_MANIFEST",
     "credential-canary-diagnostic"
   ]);
   failure.message = "https://credential-canary.invalid/private";
@@ -1108,7 +1108,7 @@ test("workflow reports every fixed browser dimension and safe diagnostic only", 
   assert.equal(
     classification,
     "QUALIFICATION_FAILED|DIMENSIONS=DESKTOP_CONSOLE_ERROR,DESKTOP_NETWORK_HTTP_FAILURE"
-      + "|DETAILS=DESKTOP_LOG_NETWORK,DESKTOP_HTTP_MANIFEST_4XX"
+      + "|DETAILS=DESKTOP_LOG_NETWORK,DESKTOP_HTTP_MANIFEST_4XX_MANIFEST"
   );
   assert.equal(classification.includes("canary"), false);
   assert.equal(classification.includes("http:"), false);

@@ -7,6 +7,7 @@ import {
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION,
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS,
   RouteIqPrivateBrowserAcceptanceError,
+  classifyRouteIqPrivateBrowserHttpPath,
   classifyRouteIqPrivateBrowserLogEntry,
   collectRouteIqPrivateBrowserPageEvidence,
   evaluateRouteIqPrivateBrowserAcceptance,
@@ -290,7 +291,7 @@ test("fixed diagnostics distinguish browser source and same-origin HTTP class", 
   scenarios[0].consoleErrors = 2;
   scenarios[0].consoleErrorClassifications = ["LOG_NETWORK", "LOG_SECURITY"];
   scenarios[0].networkHttpFailures = 1;
-  scenarios[0].networkHttpFailureClassifications = ["HTTP_MANIFEST_4XX"];
+  scenarios[0].networkHttpFailureClassifications = ["HTTP_MANIFEST_4XX_MANIFEST"];
   const result = evaluateRouteIqPrivateBrowserAcceptance({
     expectedWorkerVersion: VERSION,
     publicIsolationVerified: true,
@@ -303,8 +304,44 @@ test("fixed diagnostics distinguish browser source and same-origin HTTP class", 
   assert.deepEqual(result.failureDiagnostics, [
     "DESKTOP_LOG_NETWORK",
     "DESKTOP_LOG_SECURITY",
-    "DESKTOP_HTTP_MANIFEST_4XX"
+    "DESKTOP_HTTP_MANIFEST_4XX_MANIFEST"
   ]);
+});
+
+test("HTTP diagnostics disclose only fixed same-origin path classes", () => {
+  const cases = [
+    ["/", "ROOT"],
+    ["/favicon.ico?cache=1", "FAVICON"],
+    ["/sw.js", "SERVICE_WORKER"],
+    ["/manifest.webmanifest", "MANIFEST"],
+    ["/icons/prometheus.svg", "ICON"],
+    ["/dashboard/runtime.mjs", "APP_ASSET"],
+    ["/assets/runtime.js", "APP_ASSET"],
+    ["/static/runtime.css", "APP_ASSET"],
+    ["/api/route-iq", "API"],
+    ["/private/credential-canary", "OTHER"]
+  ];
+  for (const [path, expected] of cases) {
+    assert.equal(classifyRouteIqPrivateBrowserHttpPath(
+      new URL(path, "https://prometheus-iq.prometheusrouteiq.workers.dev")
+    ), expected);
+  }
+  assert.equal(classifyRouteIqPrivateBrowserHttpPath(
+    new URL("https://external.invalid/favicon.ico")
+  ), "OTHER");
+
+  const scenarios = ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.map(passingScenario);
+  scenarios[0].networkHttpFailures = 1;
+  scenarios[0].networkHttpFailureClassifications = ["HTTP_OTHER_4XX_OTHER"];
+  const result = evaluateRouteIqPrivateBrowserAcceptance({
+    expectedWorkerVersion: VERSION,
+    publicIsolationVerified: true,
+    scenarios
+  });
+  const serialized = JSON.stringify(result);
+  assert.deepEqual(result.failureDiagnostics, ["DESKTOP_HTTP_OTHER_4XX_OTHER"]);
+  assert.equal(serialized.includes("credential-canary"), false);
+  assert.equal(serialized.includes("/private/"), false);
 });
 
 test("browser page evidence awaits asynchronous service-worker registration counts", async () => {

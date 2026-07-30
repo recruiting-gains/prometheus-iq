@@ -139,13 +139,24 @@ const HTTP_RESOURCE_CLASSIFICATIONS = new Set([
   "MANIFEST",
   "OTHER"
 ]);
+const HTTP_PATH_CLASSIFICATIONS = new Set([
+  "ROOT",
+  "FAVICON",
+  "SERVICE_WORKER",
+  "MANIFEST",
+  "ICON",
+  "APP_ASSET",
+  "API",
+  "OTHER"
+]);
 const FAILURE_DIAGNOSTICS = new Set(
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.flatMap(viewport => [
     ...[...CONSOLE_ERROR_CLASSIFICATIONS].map(value =>
       `${viewport.name.toUpperCase()}_${value}`),
     ...[...HTTP_RESOURCE_CLASSIFICATIONS].flatMap(resource =>
-      [`${viewport.name.toUpperCase()}_HTTP_${resource}_4XX`,
-        `${viewport.name.toUpperCase()}_HTTP_${resource}_5XX`])
+      [...HTTP_PATH_CLASSIFICATIONS].flatMap(path =>
+        [`${viewport.name.toUpperCase()}_HTTP_${resource}_4XX_${path}`,
+          `${viewport.name.toUpperCase()}_HTTP_${resource}_5XX_${path}`]))
   ])
 );
 export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIAGNOSTICS =
@@ -436,6 +447,22 @@ function httpStatusClassification(status) {
   return null;
 }
 
+export function classifyRouteIqPrivateBrowserHttpPath(url) {
+  if (!(url instanceof URL)
+    || url.origin !== CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN) return "OTHER";
+  const path = url.pathname;
+  if (path === "/") return "ROOT";
+  if (path === "/favicon.ico") return "FAVICON";
+  if (path === "/sw.js") return "SERVICE_WORKER";
+  if (path === "/manifest.webmanifest" || path === "/manifest.json") return "MANIFEST";
+  if (path.startsWith("/icons/")) return "ICON";
+  if (path.startsWith("/dashboard/")
+    || path.startsWith("/assets/")
+    || path.startsWith("/static/")) return "APP_ASSET";
+  if (path === "/api" || path.startsWith("/api/")) return "API";
+  return "OTHER";
+}
+
 export function isGuardedRouteIqServiceWorkerRequest(url) {
   return url instanceof URL
     && url.origin === CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN
@@ -673,7 +700,8 @@ async function runViewportScenario({
         if (statusClass) {
           evidence.networkHttpFailures += 1;
           networkHttpFailureClassifications.add(
-            `HTTP_${httpResourceClassification(params.type)}_${statusClass}`
+            `HTTP_${httpResourceClassification(params.type)}_${statusClass}_`
+              + classifyRouteIqPrivateBrowserHttpPath(responseUrl)
           );
         }
       }

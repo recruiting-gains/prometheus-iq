@@ -71,6 +71,17 @@
       "4XX",
       "5XX"
     ],
+    "httpPathClassifications": [
+      "ROOT",
+      "FAVICON",
+      "SERVICE_WORKER",
+      "MANIFEST",
+      "ICON",
+      "APP_ASSET",
+      "API",
+      "OTHER"
+    ],
+    "unknownPathCollapsesToOther": true,
     "rawMessagesUrlsHeadersStacksOrCredentialsAllowed": false
   },
   "safety": {
