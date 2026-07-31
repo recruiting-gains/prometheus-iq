@@ -145,7 +145,6 @@ jobs:
     env:
       PROMETHEUS_LIVE_PUBLIC_VERSION: ${{ needs.inspect.outputs.public_version }}
       PROMETHEUS_LIVE_PRIVATE_VERSION: ${{ needs.inspect.outputs.private_version }}
-      PROMETHEUS_QUALIFIED_RELEASE_OUTPUT: ${{ runner.temp }}/full-system-harmony-private-release
     outputs:
       artifact_id: ${{ steps.upload.outputs.artifact-id }}
       artifact_zip_sha256: ${{ steps.upload.outputs.artifact-digest }}
@@ -168,6 +167,8 @@ jobs:
       - run: npm ci
       - name: Freeze exact private release once
         id: freeze
+        env:
+          PROMETHEUS_QUALIFIED_RELEASE_OUTPUT: ${{ runner.temp }}/full-system-harmony-private-release
         run: node scripts/run-full-system-harmony-audit-v1.mjs qualify
       - name: Upload immutable private release
         id: upload
@@ -200,7 +201,6 @@ jobs:
       PROMETHEUS_WORKFLOW_CONTRACT_SHA256: ${{ needs.qualify.outputs.workflow_contract_sha256 }}
       PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ needs.qualify.outputs.rollback_contract_sha256 }}
       PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ needs.qualify.outputs.rollback_bundle_sha256 }}
-      PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/full-system-harmony-private-release
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -219,7 +219,9 @@ jobs:
           repository: PrometheusRouteIQ/prometheus-iq
           run-id: ${{ github.run_id }}
           path: ${{ runner.temp }}/full-system-harmony-private-release
-      - run: node scripts/run-full-system-harmony-audit-v1.mjs verify-artifact
+      - env:
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/full-system-harmony-private-release
+        run: node scripts/run-full-system-harmony-audit-v1.mjs verify-artifact
 
   deploy:
     name: Deploy exact qualified private runtime once
@@ -246,7 +248,6 @@ jobs:
       PROMETHEUS_WORKFLOW_CONTRACT_SHA256: ${{ needs.qualify.outputs.workflow_contract_sha256 }}
       PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ needs.qualify.outputs.rollback_contract_sha256 }}
       PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ needs.qualify.outputs.rollback_bundle_sha256 }}
-      PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/full-system-harmony-private-release
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}
@@ -273,6 +274,8 @@ jobs:
           run-id: ${{ github.run_id }}
           path: ${{ runner.temp }}/full-system-harmony-private-release
       - name: Reverify and deploy through the governed private v2 lane
+        env:
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/full-system-harmony-private-release
         run: |
           node scripts/run-full-system-harmony-audit-v1.mjs verify-artifact
           node scripts/run-full-system-harmony-audit-v1.mjs deploy

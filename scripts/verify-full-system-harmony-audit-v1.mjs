@@ -61,6 +61,13 @@ export function verifyFullSystemHarmonyAuditV1(repositoryRoot = root) {
     FULL_SYSTEM_HARMONY_AUDIT_POLICY.deploymentConfirmation,
     "prometheus-private-worker-production"
   ]) assert.ok(workflow.includes(required), required);
+  for (const job of ["qualify", "reverify", "deploy"]) {
+    const start = workflow.indexOf(`  ${job}:\n`);
+    const steps = workflow.indexOf("    steps:\n", start);
+    assert.ok(start >= 0 && steps > start, `${job} job structure`);
+    assert.equal(workflow.slice(start, steps).includes("runner.temp"), false,
+      `${job} job-level contexts must not reference runner.temp`);
+  }
   assert.equal(/prometheusrouteiq-website[^\n]*(?:deploy|wrangler)/iu.test(workflow), false);
   assert.equal(/(?:POST|PUT|PATCH|DELETE) \/api\/partner-intake/iu.test(workflow), false);
   assert.match(workflow, /GET\/HEAD acceptance/u);
