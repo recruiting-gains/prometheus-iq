@@ -31,6 +31,11 @@ const LIFECYCLE_TRANSITIONS = Object.freeze({
   OFFBOARDED: new Set()
 });
 
+// Activation decisions must be issued by a separately configured server authority.
+// This contract intentionally exposes no issuer while that authority is unavailable.
+const TRUSTED_ACTIVATION_DECISIONS = new WeakSet();
+const CONSUMED_ACTIVATION_DECISIONS = new WeakSet();
+
 const STRICT_ID = /^[a-z][a-z0-9_]{2,127}$/u;
 const SEMVER = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/u;
 const US_ZIP = /^[0-9]{5}$/u;
@@ -1058,6 +1063,71 @@ function transitionFailure(nextState, options) {
   return clone(options.failure);
 }
 
+function requireTrustedActivationDecision(decision, configuration, transitionedAt) {
+  if (
+    decision === null
+    || typeof decision !== "object"
+    || !TRUSTED_ACTIVATION_DECISIONS.has(decision)
+  ) {
+    fail(
+      "route_iq_paid_customer_activation_decision_untrusted",
+      "Activation requires a trusted server-issued decision."
+    );
+  }
+  if (CONSUMED_ACTIVATION_DECISIONS.has(decision)) {
+    fail(
+      "route_iq_paid_customer_activation_decision_replayed",
+      "Activation decisions are single-use."
+    );
+  }
+  assertExactKeys(decision, [
+    "decisionId",
+    "companyId",
+    "workspaceId",
+    "configurationIdentity",
+    "authorizationReference",
+    "issuedAt",
+    "expiresAt"
+  ], "activationDecision");
+  assertId(decision.decisionId, "activationDecision.decisionId");
+  assertId(decision.companyId, "activationDecision.companyId");
+  assertId(decision.workspaceId, "activationDecision.workspaceId");
+  assertSafeLabel(
+    decision.configurationIdentity,
+    "activationDecision.configurationIdentity",
+    200
+  );
+  assertSafeLabel(
+    decision.authorizationReference,
+    "activationDecision.authorizationReference",
+    240
+  );
+  assertInstant(decision.issuedAt, "activationDecision.issuedAt");
+  assertInstant(decision.expiresAt, "activationDecision.expiresAt");
+  const transitionTime = Date.parse(transitionedAt);
+  if (
+    decision.companyId !== configuration.company.companyId
+    || decision.workspaceId !== configuration.company.workspaceId
+    || decision.configurationIdentity !== configuration.provenance.configurationIdentity
+  ) {
+    fail(
+      "route_iq_paid_customer_activation_decision_scope_mismatch",
+      "Activation decision scope does not match the configuration."
+    );
+  }
+  if (
+    Date.parse(decision.issuedAt) > transitionTime
+    || Date.parse(decision.expiresAt) <= transitionTime
+  ) {
+    fail(
+      "route_iq_paid_customer_activation_decision_time_invalid",
+      "Activation decision is premature or expired."
+    );
+  }
+  CONSUMED_ACTIVATION_DECISIONS.add(decision);
+  return decision.authorizationReference;
+}
+
 export function transitionRouteIqPaidCustomerOnboarding(
   configuration,
   nextState,
@@ -1077,6 +1147,12 @@ export function transitionRouteIqPaidCustomerOnboarding(
     );
   }
   assertInstant(options.transitionedAt, "transition.transitionedAt");
+  if (Date.parse(options.transitionedAt) <= Date.parse(current.lifecycle.lastTransitionAt)) {
+    fail(
+      "route_iq_paid_customer_lifecycle_transition_time_invalid",
+      "Lifecycle transitions must occur strictly after the current transition."
+    );
+  }
   const transitioned = clone(current);
   transitioned.lifecycle = {
     state: nextState,
@@ -1098,14 +1174,13 @@ export function transitionRouteIqPaidCustomerOnboarding(
     );
   }
   if (nextState === "ACTIVE") {
-    if (!options.activationAuthorizationRef) {
-      fail(
-        "route_iq_paid_customer_activation_unauthorized",
-        "Activation requires a separate explicit authorization reference."
-      );
-    }
+    const activationAuthorizationRef = requireTrustedActivationDecision(
+      options.activationDecision,
+      current,
+      options.transitionedAt
+    );
     transitioned.safety.customerActivation = "ON";
-    transitioned.safety.activationAuthorizationRef = options.activationAuthorizationRef;
+    transitioned.safety.activationAuthorizationRef = activationAuthorizationRef;
   } else {
     transitioned.safety.customerActivation = "OFF";
     transitioned.safety.activationAuthorizationRef = null;

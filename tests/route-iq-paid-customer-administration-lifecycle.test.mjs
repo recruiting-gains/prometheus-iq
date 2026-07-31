@@ -263,30 +263,90 @@ test("conflicting receipt or resource ownership fails closed", () => {
   );
 });
 
-test("activation remains separately authorized", () => {
+function forgedActivationDecision(configuration, overrides = {}) {
+  return {
+    decisionId: "activation_decision_forged",
+    companyId: configuration.company.companyId,
+    workspaceId: configuration.company.workspaceId,
+    configurationIdentity: configuration.provenance.configurationIdentity,
+    authorizationReference: "synthetic_activation_authorization",
+    issuedAt: "2026-07-26T16:30:00.000Z",
+    expiresAt: "2026-07-26T17:30:00.000Z",
+    ...overrides
+  };
+}
+
+test("activation remains unreachable without a configured trusted server authority", () => {
   const ready = transitionRouteIqPaidCustomerOnboarding(
     asProvisioning(securityConfiguration),
     "READY_FOR_ACTIVATION",
     { transitionedAt: "2026-07-26T16:00:00.000Z" }
   );
-  expectCode("route_iq_paid_customer_activation_unauthorized", () =>
+  expectCode("route_iq_paid_customer_activation_decision_untrusted", () =>
     transitionRouteIqPaidCustomerOnboarding(ready, "ACTIVE", {
       transitionedAt: "2026-07-26T17:00:00.000Z"
     })
   );
+  for (const options of [
+    { activationAuthorizationRef: "synthetic_activation_authorization" },
+    { activationDecision: forgedActivationDecision(ready) },
+    { activationDecision: forgedActivationDecision(ready, { companyId: "company_wrong_scope" }) },
+    { activationDecision: forgedActivationDecision(ready, { expiresAt: "2026-07-26T17:00:00.000Z" }) },
+    { activationDecision: forgedActivationDecision(ready, { issuedAt: "2026-07-26T17:01:00.000Z" }) }
+  ]) {
+    expectCode("route_iq_paid_customer_activation_decision_untrusted", () =>
+      transitionRouteIqPaidCustomerOnboarding(ready, "ACTIVE", {
+        transitionedAt: "2026-07-26T17:00:00.000Z",
+        ...options
+      })
+    );
+  }
+  const replayedForgery = forgedActivationDecision(ready);
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    expectCode("route_iq_paid_customer_activation_decision_untrusted", () =>
+      transitionRouteIqPaidCustomerOnboarding(ready, "ACTIVE", {
+        transitionedAt: "2026-07-26T17:00:00.000Z",
+        activationDecision: replayedForgery
+      })
+    );
+  }
+  assert.equal(ready.lifecycle.state, "READY_FOR_ACTIVATION");
+  assert.equal(ready.safety.customerActivation, "OFF");
+  assert.equal(ready.safety.activationAuthorizationRef, null);
+});
 
-  const active = transitionRouteIqPaidCustomerOnboarding(ready, "ACTIVE", {
-    transitionedAt: "2026-07-26T17:00:00.000Z",
-    activationAuthorizationRef: "synthetic_activation_authorization"
-  });
-  assert.equal(active.lifecycle.state, "ACTIVE");
-  assert.equal(active.safety.customerActivation, "ON");
-  assert.equal(
-    active.safety.activationAuthorizationRef,
-    "synthetic_activation_authorization"
+test("validation, commercial labels, and billing-shaped input never imply activation", () => {
+  const ready = transitionRouteIqPaidCustomerOnboarding(
+    asProvisioning(securityConfiguration),
+    "READY_FOR_ACTIVATION",
+    { transitionedAt: "2026-07-26T16:00:00.000Z" }
   );
-  assert.equal(active.safety.collection, "OFF");
-  assert.equal(active.safety.recommendationInfluence, "OFF");
+  for (const activationDecision of [
+    { validationState: "VALIDATED" },
+    { commercialState: "APPROVED" },
+    { billingState: "PAID" }
+  ]) {
+    expectCode("route_iq_paid_customer_activation_decision_untrusted", () =>
+      transitionRouteIqPaidCustomerOnboarding(ready, "ACTIVE", {
+        transitionedAt: "2026-07-26T17:00:00.000Z",
+        activationDecision
+      })
+    );
+  }
+});
+
+test("lifecycle transition timestamps are strictly monotonic", () => {
+  const draft = asDraft(securityConfiguration);
+  for (const transitionedAt of [
+    "2026-07-26T10:00:00.000Z",
+    "2026-07-26T09:59:59.999Z"
+  ]) {
+    expectCode("route_iq_paid_customer_lifecycle_transition_time_invalid", () =>
+      transitionRouteIqPaidCustomerOnboarding(draft, "VALIDATED", { transitionedAt })
+    );
+  }
+  assert.equal(draft.lifecycle.state, "DRAFT");
+  assert.equal(draft.lifecycle.revision, 1);
 });
 
 test("suspension denies operations while preserving append-only evidence", () => {
@@ -295,12 +355,8 @@ test("suspension denies operations while preserving append-only evidence", () =>
     "READY_FOR_ACTIVATION",
     { transitionedAt: "2026-07-26T16:00:00.000Z" }
   );
-  const active = transitionRouteIqPaidCustomerOnboarding(ready, "ACTIVE", {
+  const suspended = suspendRouteIqPaidCustomerConfiguration(ready, {
     transitionedAt: "2026-07-26T17:00:00.000Z",
-    activationAuthorizationRef: "synthetic_activation_authorization"
-  });
-  const suspended = suspendRouteIqPaidCustomerConfiguration(active, {
-    transitionedAt: "2026-07-26T18:00:00.000Z",
     reasonCode: "operations_pause"
   });
 
@@ -308,8 +364,8 @@ test("suspension denies operations while preserving append-only evidence", () =>
   assert.equal(suspended.configuration.safety.customerActivation, "OFF");
   assert.equal(suspended.auditEvent.accessBehavior, "DENY_OPERATIONAL_ACCESS");
   assert.equal(suspended.auditEvent.dataBehavior, "PRESERVE_APPEND_ONLY");
-  assert.equal(suspended.auditEvent.companyId, active.company.companyId);
-  assert.equal(suspended.auditEvent.workspaceId, active.company.workspaceId);
+  assert.equal(suspended.auditEvent.companyId, ready.company.companyId);
+  assert.equal(suspended.auditEvent.workspaceId, ready.company.workspaceId);
 });
 
 test("offboarding is terminal and requires separate append-only disposition", () => {
@@ -318,18 +374,14 @@ test("offboarding is terminal and requires separate append-only disposition", ()
     "READY_FOR_ACTIVATION",
     { transitionedAt: "2026-07-26T16:00:00.000Z" }
   );
-  const active = transitionRouteIqPaidCustomerOnboarding(ready, "ACTIVE", {
+  const suspended = suspendRouteIqPaidCustomerConfiguration(ready, {
     transitionedAt: "2026-07-26T17:00:00.000Z",
-    activationAuthorizationRef: "synthetic_activation_authorization"
-  });
-  const suspended = suspendRouteIqPaidCustomerConfiguration(active, {
-    transitionedAt: "2026-07-26T18:00:00.000Z",
     reasonCode: "operations_pause"
   });
   const offboarded = offboardRouteIqPaidCustomerConfiguration(
     suspended.configuration,
     {
-      transitionedAt: "2026-07-26T19:00:00.000Z",
+      transitionedAt: "2026-07-26T18:00:00.000Z",
       reasonCode: "synthetic_contract_closed"
     }
   );
@@ -350,8 +402,8 @@ test("offboarding is terminal and requires separate append-only disposition", ()
       offboarded.configuration,
       "ACTIVE",
       {
-        transitionedAt: "2026-07-26T20:00:00.000Z",
-        activationAuthorizationRef: "synthetic_activation_authorization"
+        transitionedAt: "2026-07-26T19:00:00.000Z",
+        activationDecision: forgedActivationDecision(offboarded.configuration)
       }
     )
   );
