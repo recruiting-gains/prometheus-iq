@@ -175,6 +175,17 @@ const v2ApplicationDocumentIdentityGateRepairParent =
   "6f91988d3128257e9658e65debadbde407adbc17";
 const v2ApplicationDocumentIdentityGateRepairTree =
   "f3018afbe44c270376f479f820e90b0d207bb657";
+const v2ControlledRehearsalRuntimeCommit =
+  "96c8210b94c3b0214dede252aba3d6d46121cd05";
+const v2ControlledRehearsalRuntimeParent =
+  "e66aea108f1487f7fa933707bd0e2ceb75eb93b3";
+const v2ControlledRehearsalRuntimeTree =
+  "8e7decf92b5d55e613d8a5ddc4bb2d1e3bd200af";
+const v2ControlledRehearsalLaneCommit =
+  "2c094403709415004c07269ea9bbd6e8c950bb68";
+const v2ControlledRehearsalLaneParent = v2ControlledRehearsalRuntimeCommit;
+const v2ControlledRehearsalLaneTree =
+  "b8d0a364f10e1288e6886e7951ff5f2c29e59d40";
 const v2IntelligenceSmokeTimeoutSynchronizationCommit =
   "039116040678a3cbae8016a34f17e30e674715f6";
 const v2IntelligenceSmokeTimeoutSynchronizationParent =
@@ -645,6 +656,46 @@ const v2ApplicationDocumentIdentityGateRepairHashes = Object.freeze({
     "057c319bdb0919b90e520bedbd9ed94b212749e05764bd3c23ced5457c6f22bd"
 });
 
+const v2ControlledRehearsalRuntimeHashes = Object.freeze({
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+    "0008a9e236d7b6d668e76488811b5150aab5b884c67536d807fd9f1aa3a5eab0",
+  "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs":
+    "e8e36ba899ae2aec0bb700524a22a645929ec4552652bdf0233e49bcf0a0b6f1",
+  "tests/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.test.mjs":
+    "ab38f0d3e9d57aaa18a70150933ffc88e283e9cecec649fb4dbad14c47814974",
+  "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs":
+    "bdf9e7a84bb145f95dc8016329408abfafd637aeb8955aaeab9023312e2714ef",
+  "workers/infrastructure/cloudflare-unattended-smoke-contract.js":
+    "ea28197db687ded60c2b87da87874e8615ea76a3333d68eea7d1395887215eb4",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    "3066f634439cef9fcd920972b87c652d8a74c5630cb9c8b7ae2d33c429a7eae3",
+  "workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime-v1.json":
+    "ae0089d8041b09d15ddc9059b4cd3ded09ab9b69ff1993f2e5a8aa41927889d5",
+  "workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.js":
+    "19f1177b0641a2633aeee7ab1ce02e1886e12a4195ea6174feeecca8d3313227",
+  "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json":
+    "5045bbfab889227814db74a6b6e95ba22842d03afae40914d15e764ba53d3a76",
+  "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json":
+    "1ef6aedc3a97248377515b73a84e490989873c5339b8b399eaec383711788266",
+  "workers/prometheus-iq-worker.js":
+    "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132"
+});
+
+const v2ControlledRehearsalLaneHashes = Object.freeze({
+  ".github/workflows/controlled-paid-customer-onboarding-rehearsal-v1.yml":
+    "73e5a53181f6da5f3ae274adce6aee286f3f6a07a7cc612830e67d18dbef892d",
+  "scripts/lib/controlled-paid-customer-onboarding-rehearsal-v1.mjs":
+    "aacf7150a8df6c424eec694db403f01ae7fcc0ef97f3e80738b18c03e3ed0cb7",
+  "scripts/run-controlled-paid-customer-onboarding-rehearsal-v1.mjs":
+    "d021ae700a47d997d2ffa21753a8482d2f9c581e0d91e59f093095b35aa2b7ef",
+  "scripts/verify-controlled-paid-customer-onboarding-rehearsal-v1.mjs":
+    "26c000b13b79debd15337debdbf097512d2da7df2370a2e60227d5ecfabe9635",
+  "tests/controlled-paid-customer-onboarding-rehearsal-v1.test.mjs":
+    "96b9a35ca3c58966392a0b8af6e2c598c47ab096d630782298a102cc22d98f1f",
+  "workers/infrastructure/controlled-paid-customer-onboarding-rehearsal-v1.json":
+    "c434ad70386252229bd840b98ce3d47e58facb6973e1cdb8dfbc19cf0426184a"
+});
+
 const v2IntelligenceSmokeTimeoutSynchronizationHashes = Object.freeze({
   "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json":
     "479e1426097877676b1abe061a5fedfeb9a06ba6460335ca946b656c26310569",
@@ -773,6 +824,16 @@ const expectedOverwatchPaths = Object.freeze([
   "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
   "tests/overwatch-github-actions-private-worker-deployment.test.mjs"
 ]);
+const controlledRehearsalOverwatchPaths = Object.freeze([
+  "overwatch/governance/controlled-paid-customer-onboarding-rehearsal-v1.json",
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
+  "overwatch/reports/BATCH-20260730-002-controlled-paid-customer-onboarding-rehearsal-v1.json",
+  "package.json",
+  "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+  "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+  "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
+  "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
+]);
 
 const infrastructureIdentity =
   "Prometheus Infrastructure <infrastructure@prometheus.local>";
@@ -793,10 +854,13 @@ const infrastructureOwnedPaths = new Set([
   ...Object.keys(v2CanonicalClientIsolationHashes),
   ...Object.keys(v2PayloadContinuityHashes),
   ...Object.keys(v2ReleasePropagationRepairHashes),
-  ...Object.keys(v2BrowserHealthDiagnosticsRepairHashes)
+  ...Object.keys(v2BrowserHealthDiagnosticsRepairHashes),
+  ...Object.keys(v2ControlledRehearsalRuntimeHashes),
+  ...Object.keys(v2ControlledRehearsalLaneHashes)
 ]);
 const overwatchOwnedPaths = new Set([
   ...expectedOverwatchPaths,
+  ...controlledRehearsalOverwatchPaths,
   ...protectedOverwatchVerifierSuccessors.map(item => item.path),
   ...protectedVerificationAssetSuccessors.map(item => item.path)
 ]);
@@ -1759,6 +1823,36 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.applicationDocumentIdentityGateRepairEvidence,
     evidenceMap(v2ApplicationDocumentIdentityGateRepairHashes)),
   "Private Workflow v2 application-document identity-gate evidence drifted.");
+  require(governance?.ownership?.implementationControlledRehearsalRuntimeCommit?.commit ===
+      v2ControlledRehearsalRuntimeCommit
+    && governance?.ownership?.implementationControlledRehearsalRuntimeCommit?.parent ===
+      v2ControlledRehearsalRuntimeParent
+    && governance?.ownership?.implementationControlledRehearsalRuntimeCommit?.tree ===
+      v2ControlledRehearsalRuntimeTree
+    && governance?.ownership?.implementationControlledRehearsalRuntimeCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationControlledRehearsalRuntimeCommit?.committer ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationControlledRehearsalLaneCommit?.commit ===
+      v2ControlledRehearsalLaneCommit
+    && governance?.ownership?.implementationControlledRehearsalLaneCommit?.parent ===
+      v2ControlledRehearsalLaneParent
+    && governance?.ownership?.implementationControlledRehearsalLaneCommit?.tree ===
+      v2ControlledRehearsalLaneTree
+    && governance?.ownership?.implementationControlledRehearsalLaneCommit?.author ===
+      infrastructureIdentity
+    && governance?.ownership?.implementationControlledRehearsalLaneCommit?.committer ===
+      infrastructureIdentity,
+  "Private Workflow v2 controlled-rehearsal provenance drifted.");
+  require(equal(governance?.ownership?.controlledRehearsalRuntimePaths,
+    Object.keys(v2ControlledRehearsalRuntimeHashes))
+    && equal(governance?.ownership?.controlledRehearsalRuntimeEvidence,
+      evidenceMap(v2ControlledRehearsalRuntimeHashes))
+    && equal(governance?.ownership?.controlledRehearsalLanePaths,
+      Object.keys(v2ControlledRehearsalLaneHashes))
+    && equal(governance?.ownership?.controlledRehearsalLaneEvidence,
+      evidenceMap(v2ControlledRehearsalLaneHashes)),
+  "Private Workflow v2 controlled-rehearsal owner evidence drifted.");
   require(equal(governance?.ownership?.intelligenceSmokeTimeoutSynchronizationPaths,
     Object.keys(v2IntelligenceSmokeTimeoutSynchronizationHashes)),
   "Private Workflow v2 Intelligence smoke-timeout synchronization path set drifted.");
@@ -2259,10 +2353,21 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       ?.requestTimeoutMilliseconds === 8000
     && contract?.smoke?.postDeployment?.propagationFence
       ?.maximumWaitMilliseconds === 135000
-    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+    && governance?.controlledRehearsalSuccessor?.historicalContinuityRewritten === false
+    && governance?.controlledRehearsalSuccessor
+      ?.previousQualifiedForwardPayloadSha256 ===
       "3bb6d677c4ad6b6811ba1efc1c643abd7728c584707a26dcef26c887f2718328"
-    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+    && governance?.controlledRehearsalSuccessor?.qualifiedForwardPayloadSha256 ===
+      "de308060bc0e9799fdcdbb6cdad238f8b6c4d62a2b9bea4c808c688d9363f0a6"
+    && governance?.controlledRehearsalSuccessor
+      ?.previousQualifiedRollbackBundleSha256 ===
       "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637"
+    && governance?.controlledRehearsalSuccessor?.qualifiedRollbackBundleSha256 ===
+      "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
+    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+      governance?.controlledRehearsalSuccessor?.qualifiedForwardPayloadSha256
+    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+      governance?.controlledRehearsalSuccessor?.qualifiedRollbackBundleSha256
     && contract?.browserAcceptance?.contract ===
       "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
     && contract?.browserAcceptance?.runner ===
@@ -2804,6 +2909,24 @@ function verifyV2OwnerAndGovernance() {
       subject: "Gate private browser execution on exact Worker identity",
       hashes: v2ApplicationDocumentIdentityGateRepairHashes,
       recorded: governance.ownership.applicationDocumentIdentityGateRepairEvidence
+    },
+    {
+      label: "controlled-rehearsal runtime",
+      commit: v2ControlledRehearsalRuntimeCommit,
+      parent: v2ControlledRehearsalRuntimeParent,
+      tree: v2ControlledRehearsalRuntimeTree,
+      subject: "infrastructure: execute controlled onboarding rehearsal",
+      hashes: v2ControlledRehearsalRuntimeHashes,
+      recorded: governance.ownership.controlledRehearsalRuntimeEvidence
+    },
+    {
+      label: "controlled-rehearsal lane",
+      commit: v2ControlledRehearsalLaneCommit,
+      parent: v2ControlledRehearsalLaneParent,
+      tree: v2ControlledRehearsalLaneTree,
+      subject: "infrastructure: govern controlled onboarding rehearsal",
+      hashes: v2ControlledRehearsalLaneHashes,
+      recorded: governance.ownership.controlledRehearsalLaneEvidence
     }
   ]) {
     const metadata = git([
@@ -2935,7 +3058,9 @@ function verifyV2OwnerAndGovernance() {
     ...v2SmokeReleaseContinuityHashes,
     ...v2BrowserVersionStabilityRepairHashes,
     ...v2ProductionIdentityInspectionHashes,
-    ...v2ApplicationDocumentIdentityGateRepairHashes
+    ...v2ApplicationDocumentIdentityGateRepairHashes,
+    ...v2ControlledRehearsalRuntimeHashes,
+    ...v2ControlledRehearsalLaneHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected) {
@@ -2982,9 +3107,13 @@ function statusPaths() {
 }
 
 function verifyOverwatchOwnership() {
+  const currentExpectedOverwatchPaths = [
+    ...expectedOverwatchPaths,
+    ...controlledRehearsalOverwatchPaths
+  ];
   const head = git(["rev-parse", "HEAD"]);
   if (head === compatibilityOwnerCommit) {
-    if (!equal([...statusPaths()].sort(), [...expectedOverwatchPaths].sort())) {
+    if (!equal([...statusPaths()].sort(), [...currentExpectedOverwatchPaths].sort())) {
       throw new Error("Uncommitted Overwatch compatibility set drifted.");
     }
     return;
@@ -3016,8 +3145,8 @@ function verifyOverwatchOwnership() {
       .split("\n").filter(Boolean),
     ...statusPaths()
   ])];
-  const overwatchPaths = paths.filter(path => expectedOverwatchPaths.includes(path));
-  if (!equal([...overwatchPaths].sort(), [...expectedOverwatchPaths].sort())) {
+  const overwatchPaths = paths.filter(path => currentExpectedOverwatchPaths.includes(path));
+  if (!equal([...overwatchPaths].sort(), [...currentExpectedOverwatchPaths].sort())) {
     throw new Error("Overwatch compatibility file set drifted.");
   }
   if (overwatchPaths.some(path => Object.hasOwn(compatibilityOwnerHashes, path)
@@ -3086,10 +3215,16 @@ function verifyRegistryAndReleaseWiring() {
     "node scripts/verify-github-actions-private-worker-deployment.mjs && node --test tests/github-actions-private-worker-deployment.test.mjs"
     || scripts["overwatch:github-private-worker-deployment:check"] !==
       "node scripts/verify-overwatch-github-actions-private-worker-deployment.mjs && node --test tests/overwatch-github-actions-private-worker-deployment.test.mjs"
+    || scripts["overwatch:controlled-paid-customer-rehearsal:check"] !==
+      "node scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs && node --test tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs"
     || !scripts.test.includes("npm run infrastructure:github-private-worker-deployment:check")
     || !scripts.test.includes("npm run overwatch:github-private-worker-deployment:check")
+    || !scripts.test.includes("npm run overwatch:controlled-paid-customer-rehearsal:check")
+    || !scripts.pretest.includes("npm run overwatch:controlled-paid-customer-rehearsal:check")
     || !scripts["test:overwatch"].includes(
-      "tests/overwatch-github-actions-private-worker-deployment.test.mjs")) {
+      "tests/overwatch-github-actions-private-worker-deployment.test.mjs")
+    || !scripts["test:overwatch"].includes(
+      "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs")) {
     throw new Error("Package release wiring drifted.");
   }
 }

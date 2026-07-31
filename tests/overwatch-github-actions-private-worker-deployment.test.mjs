@@ -691,3 +691,42 @@ test("historical deployment gate rejects protected cross-owner successors", () =
     }]);
   assert.equal(overwatchTouchesBrowserAcceptance.ok, false);
 });
+
+test("private Workflow v2 governance rejects controlled-rehearsal successor drift", () => {
+  for (const mutate of [
+    value => {
+      value.ownership.implementationControlledRehearsalRuntimeCommit.commit =
+        "0".repeat(40);
+    },
+    value => {
+      value.ownership.implementationControlledRehearsalLaneCommit.author =
+        "Prometheus Overwatch <overwatch@prometheus.local>";
+    },
+    value => {
+      value.ownership.controlledRehearsalRuntimeEvidence[0].sha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.ownership.controlledRehearsalLanePaths[0] = "package.json";
+    },
+    value => {
+      value.controlledRehearsalSuccessor.historicalContinuityRewritten = true;
+    },
+    value => {
+      value.controlledRehearsalSuccessor.qualifiedForwardPayloadSha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.controlledRehearsalSuccessor.qualifiedRollbackBundleSha256 =
+        "0".repeat(64);
+    }
+  ]) {
+    const candidate = clone(governanceV2);
+    mutate(candidate);
+    const result = evaluateGithubActionsPrivateWorkerV2Governance({
+      governance: candidate,
+      contract: contractV2
+    });
+    assert.equal(result.ok, false);
+  }
+});

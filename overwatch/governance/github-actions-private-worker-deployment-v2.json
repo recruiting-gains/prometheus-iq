@@ -264,6 +264,22 @@
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "subject": "Gate private browser execution on exact Worker identity"
     },
+    "implementationControlledRehearsalRuntimeCommit": {
+      "commit": "96c8210b94c3b0214dede252aba3d6d46121cd05",
+      "parent": "e66aea108f1487f7fa933707bd0e2ceb75eb93b3",
+      "tree": "8e7decf92b5d55e613d8a5ddc4bb2d1e3bd200af",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "infrastructure: execute controlled onboarding rehearsal"
+    },
+    "implementationControlledRehearsalLaneCommit": {
+      "commit": "2c094403709415004c07269ea9bbd6e8c950bb68",
+      "parent": "96c8210b94c3b0214dede252aba3d6d46121cd05",
+      "tree": "b8d0a364f10e1288e6886e7951ff5f2c29e59d40",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "infrastructure: govern controlled onboarding rehearsal"
+    },
     "intelligenceSynchronizationOwner": "Prometheus Intelligence Engine",
     "intelligenceSmokeTimeoutSynchronizationCommit": {
       "commit": "039116040678a3cbae8016a34f17e30e674715f6",
@@ -1331,6 +1347,48 @@
         "sha256": "057c319bdb0919b90e520bedbd9ed94b212749e05764bd3c23ced5457c6f22bd"
       }
     ],
+    "controlledRehearsalRuntimePaths": [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs",
+      "tests/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.test.mjs",
+      "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs",
+      "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+      "workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime-v1.json",
+      "workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.js",
+      "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
+      "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
+      "workers/prometheus-iq-worker.js"
+    ],
+    "controlledRehearsalRuntimeEvidence": [
+      {"path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs", "sha256": "0008a9e236d7b6d668e76488811b5150aab5b884c67536d807fd9f1aa3a5eab0"},
+      {"path": "scripts/verify-route-iq-private-paid-customer-production-browser-acceptance.mjs", "sha256": "e8e36ba899ae2aec0bb700524a22a645929ec4552652bdf0233e49bcf0a0b6f1"},
+      {"path": "tests/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.test.mjs", "sha256": "ab38f0d3e9d57aaa18a70150933ffc88e283e9cecec649fb4dbad14c47814974"},
+      {"path": "tests/route-iq-paid-customer-infrastructure-browser-acceptance.test.mjs", "sha256": "bdf9e7a84bb145f95dc8016329408abfafd637aeb8955aaeab9023312e2714ef"},
+      {"path": "workers/infrastructure/cloudflare-unattended-smoke-contract.js", "sha256": "ea28197db687ded60c2b87da87874e8615ea76a3333d68eea7d1395887215eb4"},
+      {"path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json", "sha256": "3066f634439cef9fcd920972b87c652d8a74c5630cb9c8b7ae2d33c429a7eae3"},
+      {"path": "workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime-v1.json", "sha256": "ae0089d8041b09d15ddc9059b4cd3ded09ab9b69ff1993f2e5a8aa41927889d5"},
+      {"path": "workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.js", "sha256": "19f1177b0641a2633aeee7ab1ce02e1886e12a4195ea6174feeecca8d3313227"},
+      {"path": "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json", "sha256": "5045bbfab889227814db74a6b6e95ba22842d03afae40914d15e764ba53d3a76"},
+      {"path": "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json", "sha256": "1ef6aedc3a97248377515b73a84e490989873c5339b8b399eaec383711788266"},
+      {"path": "workers/prometheus-iq-worker.js", "sha256": "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132"}
+    ],
+    "controlledRehearsalLanePaths": [
+      ".github/workflows/controlled-paid-customer-onboarding-rehearsal-v1.yml",
+      "scripts/lib/controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+      "scripts/run-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+      "scripts/verify-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+      "tests/controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
+      "workers/infrastructure/controlled-paid-customer-onboarding-rehearsal-v1.json"
+    ],
+    "controlledRehearsalLaneEvidence": [
+      {"path": ".github/workflows/controlled-paid-customer-onboarding-rehearsal-v1.yml", "sha256": "73e5a53181f6da5f3ae274adce6aee286f3f6a07a7cc612830e67d18dbef892d"},
+      {"path": "scripts/lib/controlled-paid-customer-onboarding-rehearsal-v1.mjs", "sha256": "aacf7150a8df6c424eec694db403f01ae7fcc0ef97f3e80738b18c03e3ed0cb7"},
+      {"path": "scripts/run-controlled-paid-customer-onboarding-rehearsal-v1.mjs", "sha256": "d021ae700a47d997d2ffa21753a8482d2f9c581e0d91e59f093095b35aa2b7ef"},
+      {"path": "scripts/verify-controlled-paid-customer-onboarding-rehearsal-v1.mjs", "sha256": "26c000b13b79debd15337debdbf097512d2da7df2370a2e60227d5ecfabe9635"},
+      {"path": "tests/controlled-paid-customer-onboarding-rehearsal-v1.test.mjs", "sha256": "96b9a35ca3c58966392a0b8af6e2c598c47ab096d630782298a102cc22d98f1f"},
+      {"path": "workers/infrastructure/controlled-paid-customer-onboarding-rehearsal-v1.json", "sha256": "c434ad70386252229bd840b98ce3d47e58facb6973e1cdb8dfbc19cf0426184a"}
+    ],
     "intelligenceSmokeTimeoutSynchronizationPaths": [
       "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
       "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
@@ -1486,6 +1544,13 @@
     "previousQualifiedForwardPayloadSha256": "81bb2e724ce7433c591f7241c043b69ea329a5ecd15fe0045ed58bb37d77cb7c",
     "qualifiedForwardPayloadSha256": "3bb6d677c4ad6b6811ba1efc1c643abd7728c584707a26dcef26c887f2718328",
     "qualifiedRollbackBundleSha256": "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637"
+  },
+  "controlledRehearsalSuccessor": {
+    "historicalContinuityRewritten": false,
+    "previousQualifiedForwardPayloadSha256": "3bb6d677c4ad6b6811ba1efc1c643abd7728c584707a26dcef26c887f2718328",
+    "qualifiedForwardPayloadSha256": "de308060bc0e9799fdcdbb6cdad238f8b6c4d62a2b9bea4c808c688d9363f0a6",
+    "previousQualifiedRollbackBundleSha256": "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637",
+    "qualifiedRollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
   },
   "workflowBoundary": {
     "qualificationWorkflow": "Qualify Prometheus Private Worker v2",

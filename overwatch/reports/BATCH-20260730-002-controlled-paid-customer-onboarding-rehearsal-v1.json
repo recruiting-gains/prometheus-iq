@@ -1,0 +1,41 @@
+{
+  "batchId": "BATCH-20260730-002",
+  "directive": "Controlled Paid-Customer Onboarding Rehearsal v1",
+  "owner": "Prometheus Overwatch",
+  "status": "SOURCE_ACCEPTED_QUALIFICATION_AND_DEPLOYMENT_PENDING",
+  "acceptedBaseline": {
+    "commit": "50fa933f45e82224959386bd30d0e57becfb7d3c",
+    "tree": "6d30998444d6660de7c42f5988e5f2f56f9966da",
+    "privateWorker": "5a636567-4268-4179-8015-12a12557d286",
+    "publicWorker": "6a8713c0-0712-4cda-8a13-daa893ca45f2"
+  },
+  "acceptedOwnerCommits": [
+    "160c7aff786c7444622cda4587c1c73d306b9a33",
+    "e66aea108f1487f7fa933707bd0e2ceb75eb93b3",
+    "96c8210b94c3b0214dede252aba3d6d46121cd05",
+    "2c094403709415004c07269ea9bbd6e8c950bb68"
+  ],
+  "sourceDetermination": {
+    "fictionalCompanyOnly": true,
+    "draftToValidated": "PASS",
+    "validationFailureEvidence": "PASS",
+    "multiLocationIntegrity": "PASS",
+    "tenantIsolation": "PASS",
+    "authorizationSeparation": "PASS",
+    "representativeRestrictions": "PASS",
+    "operatingHours": "PASS",
+    "safeEmptyState": "PASS",
+    "billingBlocked": "PASS",
+    "activationBlocked": "PASS",
+    "cleanupRemoval": "PASS"
+  },
+  "externalAction": {
+    "workflowDispatched": false,
+    "workerDeployed": false,
+    "productionMutation": false,
+    "crmReadOrWrite": false,
+    "secretValueAccess": false,
+    "cloudflareContact": false
+  },
+  "nextGate": "ONE_EXACT_GITHUB_HOSTED_QUALIFICATION_DEPLOYMENT_AND_AUTOMATED_ACCEPTANCE"
+}

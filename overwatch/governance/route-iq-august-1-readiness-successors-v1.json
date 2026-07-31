@@ -1,0 +1,37 @@
+{
+  "governanceId": "route-iq-august-1-readiness-successors-v1",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "historicalCloseoutEvidenceRewritten": false,
+  "overwatchCurrentEvidence": [
+    {
+      "path": "package.json",
+      "previousSha256": "1478d8113583c10752c8c6eddf8bb301ea666830821fae8bafb1327f00d2ae6f",
+      "successorSha256": "baf7641667d909ce5beedf3a7a657dccc1aaf76fe4cbc11392b7f63e468e6d6b"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "fd909a16a69d5286c1ead7710823bbd5c0bca5dbe62b64f37a11594452ea1759",
+      "successorSha256": "af9e3722220ee72d61b14ada13e69583263c3adf240d042e80599c6c0934e4e6"
+    },
+    {
+      "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+      "previousSha256": "1f44fda6b957e2f86b24eba1aab174c892fde986ecdbc764a2e97d53e6987725",
+      "successorSha256": "ef865e05c2bfad5b71385563339ab8dba99afc5a44bfa83e9982bef0f62e9669"
+    }
+  ],
+  "successors": [
+    {
+      "commit": "96c8210b94c3b0214dede252aba3d6d46121cd05",
+      "tree": "8e7decf92b5d55e613d8a5ddc4bb2d1e3bd200af",
+      "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "reason": "The controlled rehearsal adds an exact service-principal-only in-memory route while preserving the existing August 1 customer PWA runtime wiring and protected operating state.",
+      "evidence": [
+        {
+          "path": "workers/prometheus-iq-worker.js",
+          "previousSha256": "58d52967de329daa034751c1cf95ad1ae3da8a853c5cceeb950f0656ed51e2c8",
+          "successorSha256": "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132"
+        }
+      ]
+    }
+  ]
+}

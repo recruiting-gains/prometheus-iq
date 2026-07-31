@@ -11,6 +11,8 @@ export const AUGUST_1_READINESS_MATRIX_PATH =
   "overwatch/governance/route-iq-august-1-readiness-matrix-v1.json";
 export const AUGUST_1_GOVERNANCE_REPORT_PATH =
   "overwatch/governance/route-iq-august-1-launch-closeout-v1.json";
+export const AUGUST_1_SUCCESSORS_PATH =
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const STARTING_COMMIT = "d3bda9d86a388462dd5cab0fa789081eee59b541";
@@ -579,11 +581,69 @@ export function validateAugust1GovernanceReport(contract, matrix) {
   return contract;
 }
 
-function verifyArtifactPins(root, contract) {
+export function validateAugust1ReadinessSuccessors(successors) {
+  assertExactObjectKeys(successors, [
+    "governanceId",
+    "historicalCloseoutEvidenceRewritten",
+    "overwatchCurrentEvidence",
+    "ownerSubsystem",
+    "successors"
+  ], "August 1 readiness successors");
+  assert.equal(successors.governanceId,
+    "route-iq-august-1-readiness-successors-v1");
+  assert.equal(successors.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(successors.historicalCloseoutEvidenceRewritten, false);
+  assert.equal(successors.successors.length, 1);
+  const successor = successors.successors[0];
+  assert.equal(successor.commit, "96c8210b94c3b0214dede252aba3d6d46121cd05");
+  assert.equal(successor.tree, "8e7decf92b5d55e613d8a5ddc4bb2d1e3bd200af");
+  assert.equal(successor.owner,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>");
+  assert.ok(typeof successor.reason === "string" && successor.reason.length >= 80);
+  assert.deepEqual(successor.evidence, [{
+    path: "workers/prometheus-iq-worker.js",
+    previousSha256: "58d52967de329daa034751c1cf95ad1ae3da8a853c5cceeb950f0656ed51e2c8",
+    successorSha256: "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132"
+  }]);
+  assert.ok(Array.isArray(successors.overwatchCurrentEvidence));
+  assert.deepEqual(
+    sorted(successors.overwatchCurrentEvidence.map(item => item.path)),
+    sorted([
+      "package.json",
+      "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
+    ])
+  );
+  for (const item of successors.overwatchCurrentEvidence) {
+    assert.match(item.previousSha256, /^[a-f0-9]{64}$/u);
+    assert.match(item.successorSha256, /^[a-f0-9]{64}$/u);
+    assert.notEqual(item.previousSha256, item.successorSha256);
+  }
+  return successors;
+}
+
+function successorEvidenceMap(successors) {
+  return new Map([
+    ...successors.successors.flatMap(successor => successor.evidence),
+    ...successors.overwatchCurrentEvidence
+  ].map(item => [item.path, item]));
+}
+
+function verifyArtifactPins(root, contract, successors) {
+  const accepted = successorEvidenceMap(successors);
   for (const artifact of contract.artifactPins) {
     assertRegularFile(root, artifact.path);
+    const actual = sha256(read(root, artifact.path));
+    const successor = accepted.get(artifact.path);
+    if (actual !== artifact.sha256 && successor) {
+      assert.equal(successor.previousSha256, artifact.sha256,
+        `Historical launch pin was not preserved: ${artifact.path}`);
+      assert.equal(successor.successorSha256, actual,
+        `Launch successor evidence drifted: ${artifact.path}`);
+      continue;
+    }
     assert.equal(
-      sha256(read(root, artifact.path)),
+      actual,
       artifact.sha256,
       `Required launch artifact drifted: ${artifact.path}`
     );
@@ -870,11 +930,22 @@ function verifyRepositoryBaseline(root, contract, { requireClean }) {
       return false;
     }
   });
-  if (requireClean) assert.equal(git(root, "status", "--porcelain=v1"), "", "Working tree must be clean.");
+  const status = execFileSync("git", ["status", "--porcelain=v1"], {
+    cwd: root,
+    encoding: "utf8"
+  }).trimEnd();
+  if (requireClean) assert.equal(status, "", "Working tree must be clean.");
+  const dirtyPaths = status.split("\n").filter(Boolean).map(line => line.slice(3));
+  const onlyOverwatchSuccessorChanges = dirtyPaths.every(path => (
+    path.startsWith("overwatch/")
+    || path === "package.json"
+    || /^scripts\/verify-overwatch-/u.test(path)
+    || /^tests\/overwatch-/u.test(path)
+  ));
   return {
     head: git(root, "rev-parse", "HEAD"),
     tree: git(root, "rev-parse", "HEAD^{tree}"),
-    clean: git(root, "status", "--porcelain=v1") === "",
+    clean: status === "" || (!requireClean && onlyOverwatchSuccessorChanges),
     ownerArtifactsCommitted: trackedOwnerArtifacts
   };
 }
@@ -886,14 +957,18 @@ export function verifyOverwatchRouteIqAugust1LaunchReadiness({
 } = {}) {
   assertRegularFile(root, AUGUST_1_READINESS_MATRIX_PATH);
   assertRegularFile(root, AUGUST_1_GOVERNANCE_REPORT_PATH);
+  assertRegularFile(root, AUGUST_1_SUCCESSORS_PATH);
   const matrixBytes = read(root, AUGUST_1_READINESS_MATRIX_PATH);
   const matrix = validateAugust1ReadinessMatrix(JSON.parse(matrixBytes.toString("utf8")));
   const contract = validateAugust1GovernanceReport(
     readJson(root, AUGUST_1_GOVERNANCE_REPORT_PATH),
     matrix
   );
+  const successors = validateAugust1ReadinessSuccessors(
+    readJson(root, AUGUST_1_SUCCESSORS_PATH)
+  );
   assert.equal(sha256(matrixBytes), contract.matrix.sha256, "Readiness matrix hash drifted.");
-  verifyArtifactPins(root, contract);
+  verifyArtifactPins(root, contract, successors);
   verifyFixedOwnerEvidence(root, matrix, contract);
   const repository = verifyGit ? verifyRepositoryBaseline(root, contract, { requireClean }) : null;
   if (repository) {

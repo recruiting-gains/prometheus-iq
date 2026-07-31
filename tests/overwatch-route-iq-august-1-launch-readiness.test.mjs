@@ -17,8 +17,10 @@ import { fileURLToPath } from "node:url";
 import {
   AUGUST_1_GOVERNANCE_REPORT_PATH,
   AUGUST_1_READINESS_MATRIX_PATH,
+  AUGUST_1_SUCCESSORS_PATH,
   validateAugust1GovernanceReport,
   validateAugust1ReadinessMatrix,
+  validateAugust1ReadinessSuccessors,
   verifyOverwatchRouteIqAugust1LaunchReadiness
 } from "../scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs";
 
@@ -48,6 +50,7 @@ function createPackageFixture(t) {
   const paths = new Set([
     AUGUST_1_READINESS_MATRIX_PATH,
     AUGUST_1_GOVERNANCE_REPORT_PATH,
+    AUGUST_1_SUCCESSORS_PATH,
     ...contract.artifactPins.map(artifact => artifact.path)
   ]);
   for (const path of paths) {
@@ -96,6 +99,25 @@ test("authoritative August 1 package passes while launch remains fail-closed", (
     anthonyMapped: false,
     activationDefault: "OFF"
   });
+});
+
+test("August 1 successor evidence preserves historical pins and rejects drift", () => {
+  const successors = readJson(ROOT, AUGUST_1_SUCCESSORS_PATH);
+  assert.equal(validateAugust1ReadinessSuccessors(successors), successors);
+
+  for (const mutate of [
+    value => { value.historicalCloseoutEvidenceRewritten = true; },
+    value => { value.successors[0].commit = "0".repeat(40); },
+    value => { value.successors[0].owner =
+      "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.successors[0].evidence[0].previousSha256 = "0".repeat(64); },
+    value => { value.successors[0].evidence[0].successorSha256 = "0".repeat(64); },
+    value => { value.overwatchCurrentEvidence.pop(); }
+  ]) {
+    const candidate = clone(successors);
+    mutate(candidate);
+    assert.throws(() => validateAugust1ReadinessSuccessors(candidate));
+  }
 });
 
 test("production CRM acceptance records one submission and forbids a second", () => {
