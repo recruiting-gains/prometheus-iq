@@ -1641,21 +1641,24 @@ test("Worker API dispatch verifier rejects unauthorized governed-hook signature 
   const signature = `async function handleApiRequest(request, env, executionContext, {
   dailySnapshotTestHooks,
   paidCustomerOnboardingTestHooks,
-  paidCustomerDashboardPreviewTestHooks
+  paidCustomerDashboardPreviewTestHooks,
+  paidCustomerRevenueReadinessTestHooks
 } = {}) {`;
   const unauthorizedSignatures = [
     "async function handleApiRequest(request, env, executionContext, { dailySnapshotTestHooks } = {}) {",
     signature.replace("  paidCustomerOnboardingTestHooks,\n", ""),
-    signature.replace("  paidCustomerDashboardPreviewTestHooks\n", ""),
+    signature.replace("  paidCustomerDashboardPreviewTestHooks,\n", ""),
+    signature.replace("  paidCustomerRevenueReadinessTestHooks\n", ""),
     signature.replace(
-      "  paidCustomerOnboardingTestHooks,\n  paidCustomerDashboardPreviewTestHooks",
-      "  paidCustomerDashboardPreviewTestHooks,\n  paidCustomerOnboardingTestHooks"
+      "  paidCustomerDashboardPreviewTestHooks,\n  paidCustomerRevenueReadinessTestHooks",
+      "  paidCustomerRevenueReadinessTestHooks,\n  paidCustomerDashboardPreviewTestHooks"
     ),
     signature.replace(
-      "  paidCustomerDashboardPreviewTestHooks\n",
-      "  paidCustomerDashboardPreviewTestHooks,\n  unauthorizedTestHooks\n"
+      "  paidCustomerRevenueReadinessTestHooks\n",
+      "  paidCustomerRevenueReadinessTestHooks,\n  unauthorizedTestHooks\n"
     ),
-    signature.replace("paidCustomerOnboardingTestHooks", "customerOnboardingTestHooks")
+    signature.replace("paidCustomerOnboardingTestHooks", "customerOnboardingTestHooks"),
+    signature.replace("paidCustomerRevenueReadinessTestHooks", "customerRevenueReadinessTestHooks")
   ];
   assert.equal(source.includes(signature), true);
   for (const unauthorizedSignature of unauthorizedSignatures) {
@@ -1670,7 +1673,7 @@ test("Worker API dispatch verifier rejects hook-forwarding and prospective-dispa
   const source = readFileSync(join(root, "workers/prometheus-iq-worker.js"), "utf8");
   const mutations = [
     source.replace(
-      "          paidCustomerOnboardingTestHooks,\n          paidCustomerDashboardPreviewTestHooks",
+      "          paidCustomerDashboardPreviewTestHooks,\n          paidCustomerRevenueReadinessTestHooks",
       "          paidCustomerDashboardPreviewTestHooks"
     ),
     source.replace(

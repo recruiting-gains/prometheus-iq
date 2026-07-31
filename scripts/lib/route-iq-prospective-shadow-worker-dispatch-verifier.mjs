@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 
-const governedHandleApiRequestSignature = /async function handleApiRequest\(request, env, executionContext, \{\s*dailySnapshotTestHooks,\s*paidCustomerOnboardingTestHooks,\s*paidCustomerDashboardPreviewTestHooks\s*\} = \{\}\) \{/u;
+const governedHandleApiRequestSignature = /async function handleApiRequest\(request, env, executionContext, \{\s*dailySnapshotTestHooks,\s*paidCustomerOnboardingTestHooks,\s*paidCustomerDashboardPreviewTestHooks,\s*paidCustomerRevenueReadinessTestHooks\s*\} = \{\}\) \{/u;
 const governedProspectiveDispatch = /if \(isRouteIqProspectiveShadowPath\(url\.pathname\)\) \{\s*return handleRouteIqProspectiveShadowRequest\(request, env, \{ executionContext \}\);\s*\}/u;
-const governedHandleApiRequestCall = /withAegisHeaders\(\s*await handleApiRequest\(request, env, executionContext, \{\s*dailySnapshotTestHooks,\s*paidCustomerOnboardingTestHooks,\s*paidCustomerDashboardPreviewTestHooks\s*\}\),\s*aegis\s*\)/u;
+const governedHandleApiRequestCall = /withAegisHeaders\(\s*await handleApiRequest\(request, env, executionContext, \{\s*dailySnapshotTestHooks,\s*paidCustomerOnboardingTestHooks,\s*paidCustomerDashboardPreviewTestHooks,\s*paidCustomerRevenueReadinessTestHooks\s*\}\),\s*aegis\s*\)/u;
 
 function matchCount(source, pattern) {
   return (source.match(new RegExp(pattern.source, `${pattern.flags}g`)) || []).length;
