@@ -1,0 +1,15 @@
+{
+  "governanceId": "early-github-handoff-v1",
+  "owner": "Prometheus Overwatch",
+  "instructionSource": "AGENTS.md",
+  "inheritedByFutureRepositoryTasks": true,
+  "localPreflight": "MINIMUM_SAFE",
+  "commitAndPushTiming": "PROMPT_AFTER_SAFE_PREFLIGHT",
+  "dispatchTransport": ["GITHUB_CLI", "GITHUB_API"],
+  "exactBinding": ["WORKFLOW", "COMMIT_SHA", "BRANCH", "DISPATCH_TIMESTAMP"],
+  "ambiguousRunPolicy": "REJECT",
+  "closeLaptopRequires": ["GITHUB_ACCEPTED", "NO_LOCAL_WORK_REMAINS"],
+  "acceptedQualificationArchitectureReplaced": false,
+  "securityControlsMayBeWeakened": false,
+  "productionMutationAuthorized": false
+}

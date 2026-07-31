@@ -95,6 +95,21 @@ Overwatch verifies the remote HEAD and tree, zero divergence, clean worktree, ab
 
 Failure returns `POST_PUSH_VERIFICATION_FAILED`, suspends further automatic pushes, preserves history, and requires a governed repair or forward-revert batch.
 
+## Early GitHub Handoff
+
+After the minimum safe local preflight passes, Overwatch commits and normally
+pushes the exact candidate promptly, then uses the governed Early GitHub
+Handoff command to dispatch hosted qualification. The command binds the run to
+the exact commit and branch, verifies GitHub accepted the dispatch, and locates
+one unambiguous run by workflow identity, commit, branch, and dispatch time.
+
+Overwatch reports that the Founder may close the laptop only after machine-
+verified dispatch acceptance and proof that no local work remains. Long local
+suites that duplicate hosted qualification are avoided unless they are needed
+to prevent an unsafe or predictably failing dispatch. This timing policy never
+weakens security, qualification, deployment, rollback, evidence, or protected-
+state controls.
+
 ## Final Statuses
 
 - `AUTO_PUSH_COMPLETE`
