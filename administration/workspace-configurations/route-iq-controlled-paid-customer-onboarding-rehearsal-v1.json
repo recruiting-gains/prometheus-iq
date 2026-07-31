@@ -3,6 +3,20 @@
   "rehearsalId": "controlled_paid_customer_onboarding_rehearsal_orion_v1",
   "classification": "SYNTHETIC_EPHEMERAL_PRODUCTION_REHEARSAL",
   "templateConfigurationId": "config_aster_security_services_v1",
+  "productionMemoryAuthorization": {
+    "authorizationId": "controlled_orion_rehearsal_memory_authorization_v1",
+    "authority": "prometheus_administration",
+    "executionMode": "AUTHENTICATED_EPHEMERAL_IN_MEMORY_ONLY",
+    "canonicalDefinitionRequired": true,
+    "controlledProductionMemoryUseAuthorized": true,
+    "genericFixtureProductionUseAuthorized": false,
+    "durableProductionUseAuthorized": false,
+    "productionCustomerUseAuthorized": false,
+    "sourceReferences": [
+      "route_iq_controlled_paid_customer_onboarding_rehearsal_v1",
+      "config_aster_security_services_v1_template_only"
+    ]
+  },
   "productionExecution": {
     "authenticatedReadOnlyInvocationRequired": true,
     "inMemoryOnly": true,
@@ -29,6 +43,10 @@
     "crmWorkflowId": "orion_rehearsal_security_crm_workflow",
     "createdAt": "2026-07-30T15:00:00.000Z",
     "createdByReference": "synthetic_rehearsal_administration_owner"
+  },
+  "roleBindings": {
+    "ownerManagerRoleId": "security_operations_manager",
+    "representativeRoleId": "security_field_advisor"
   },
   "supportContacts": [
     {
@@ -59,12 +77,119 @@
       },
       "territoryId": "orion_central_rehearsal_territory",
       "categoryId": "commercial_property_management",
-      "operatingHours": {
-        "timeZone": "America/Chicago",
-        "state": "OPEN_VERIFIED",
-        "weeklyScheduleVersion": "orion_rehearsal_hours_v1",
-        "verifiedAt": "2026-07-30T14:00:00.000Z",
-        "expiresAt": "2026-07-31T14:00:00.000Z"
+      "businessEvidence": {
+        "schemaVersion": "route-iq-verified-business-evidence-v1",
+        "configurationVersion": "config_orion_facility_safety_rehearsal_v1@1",
+        "companyId": "company_orion_facility_safety_rehearsal",
+        "workspaceId": "workspace_orion_facility_safety_rehearsal",
+        "scope": {
+          "companyId": "company_orion_facility_safety_rehearsal",
+          "workspaceId": "workspace_orion_facility_safety_rehearsal",
+          "immutable": true
+        },
+        "businessId": "business_orion_cedar_plains_rehearsal",
+        "territoryId": "orion_central_rehearsal_territory",
+        "categoryId": "commercial_property_management",
+        "identity": {
+          "verified": true,
+          "verificationSource": "synthetic_controlled_rehearsal_administration"
+        },
+        "address": {
+          "physicalAddressVerified": true,
+          "city": "Cedar Plains",
+          "zipCode": "75001"
+        },
+        "operatingStatus": "OPEN",
+        "availability": {
+          "state": "ACCESS_WINDOW_VERIFIED",
+          "timeZone": "America/Chicago",
+          "weeklyScheduleVersion": "orion_rehearsal_hours_v1",
+          "weeklySchedule": [
+            {
+              "day": "MONDAY",
+              "windows": [
+                {
+                  "start": "08:00",
+                  "end": "17:00"
+                }
+              ]
+            },
+            {
+              "day": "TUESDAY",
+              "windows": [
+                {
+                  "start": "08:00",
+                  "end": "17:00"
+                }
+              ]
+            },
+            {
+              "day": "WEDNESDAY",
+              "windows": [
+                {
+                  "start": "08:00",
+                  "end": "17:00"
+                }
+              ]
+            },
+            {
+              "day": "THURSDAY",
+              "windows": [
+                {
+                  "start": "08:00",
+                  "end": "17:00"
+                }
+              ]
+            },
+            {
+              "day": "FRIDAY",
+              "windows": [
+                {
+                  "start": "08:00",
+                  "end": "15:00"
+                }
+              ]
+            }
+          ],
+          "accessWindow": {
+            "state": "VERIFIED_OPEN",
+            "startAt": "2026-07-30T14:00:00.000Z",
+            "endAt": "2026-07-30T22:00:00.000Z"
+          }
+        },
+        "provider": {
+          "state": "VERIFIED",
+          "source": "synthetic_controlled_rehearsal_administration",
+          "lastFailedAt": null
+        },
+        "provenance": {
+          "authority": "prometheus_administration",
+          "sourceSystem": "controlled_rehearsal_fixture",
+          "sourceReferences": [
+            "controlled_paid_customer_onboarding_rehearsal_orion_v1",
+            "location_orion_cedar_plains_rehearsal"
+          ]
+        },
+        "duplicateResolution": {
+          "state": "UNIQUE"
+        },
+        "conflictResolution": {
+          "state": "NONE"
+        },
+        "verification": {
+          "freshnessState": "FRESH",
+          "verifiedAt": "2026-07-30T14:00:00.000Z",
+          "evaluatedAt": "2026-07-30T15:00:00.000Z",
+          "expiresAt": "2026-07-31T14:00:00.000Z"
+        },
+        "targetProfile": {
+          "matches": true
+        },
+        "evidenceQuality": {
+          "state": "VERIFIED",
+          "confidence": "HIGH"
+        },
+        "recommendationReason": "Matches the governed synthetic rehearsal profile"
       }
     },
     {
@@ -79,12 +204,119 @@
       },
       "territoryId": "orion_central_rehearsal_territory",
       "categoryId": "light_industrial_facility",
-      "operatingHours": {
-        "timeZone": "America/Chicago",
-        "state": "CLOSED_VERIFIED",
-        "weeklyScheduleVersion": "orion_rehearsal_hours_v1",
-        "verifiedAt": "2026-07-30T14:00:00.000Z",
-        "expiresAt": "2026-07-31T14:00:00.000Z"
+      "businessEvidence": {
+        "schemaVersion": "route-iq-verified-business-evidence-v1",
+        "configurationVersion": "config_orion_facility_safety_rehearsal_v1@1",
+        "companyId": "company_orion_facility_safety_rehearsal",
+        "workspaceId": "workspace_orion_facility_safety_rehearsal",
+        "scope": {
+          "companyId": "company_orion_facility_safety_rehearsal",
+          "workspaceId": "workspace_orion_facility_safety_rehearsal",
+          "immutable": true
+        },
+        "businessId": "business_orion_lake_junction_rehearsal",
+        "territoryId": "orion_central_rehearsal_territory",
+        "categoryId": "light_industrial_facility",
+        "identity": {
+          "verified": true,
+          "verificationSource": "synthetic_controlled_rehearsal_administration"
+        },
+        "address": {
+          "physicalAddressVerified": true,
+          "city": "Lake Junction",
+          "zipCode": "75002"
+        },
+        "operatingStatus": "OPEN",
+        "availability": {
+          "state": "CLOSED_VERIFIED",
+          "timeZone": "America/Chicago",
+          "weeklyScheduleVersion": "orion_rehearsal_hours_v1",
+          "weeklySchedule": [
+            {
+              "day": "MONDAY",
+              "windows": [
+                {
+                  "start": "17:00",
+                  "end": "20:00"
+                }
+              ]
+            },
+            {
+              "day": "TUESDAY",
+              "windows": [
+                {
+                  "start": "17:00",
+                  "end": "20:00"
+                }
+              ]
+            },
+            {
+              "day": "WEDNESDAY",
+              "windows": [
+                {
+                  "start": "17:00",
+                  "end": "20:00"
+                }
+              ]
+            },
+            {
+              "day": "THURSDAY",
+              "windows": [
+                {
+                  "start": "17:00",
+                  "end": "20:00"
+                }
+              ]
+            },
+            {
+              "day": "FRIDAY",
+              "windows": [
+                {
+                  "start": "17:00",
+                  "end": "20:00"
+                }
+              ]
+            }
+          ],
+          "accessWindow": {
+            "state": "VERIFIED_CLOSED",
+            "startAt": "2026-07-30T22:00:00.000Z",
+            "endAt": "2026-07-31T01:00:00.000Z"
+          }
+        },
+        "provider": {
+          "state": "VERIFIED",
+          "source": "synthetic_controlled_rehearsal_administration",
+          "lastFailedAt": null
+        },
+        "provenance": {
+          "authority": "prometheus_administration",
+          "sourceSystem": "controlled_rehearsal_fixture",
+          "sourceReferences": [
+            "controlled_paid_customer_onboarding_rehearsal_orion_v1",
+            "location_orion_lake_junction_rehearsal"
+          ]
+        },
+        "duplicateResolution": {
+          "state": "UNIQUE"
+        },
+        "conflictResolution": {
+          "state": "NONE"
+        },
+        "verification": {
+          "freshnessState": "FRESH",
+          "verifiedAt": "2026-07-30T14:00:00.000Z",
+          "evaluatedAt": "2026-07-30T15:00:00.000Z",
+          "expiresAt": "2026-07-31T14:00:00.000Z"
+        },
+        "targetProfile": {
+          "matches": true
+        },
+        "evidenceQuality": {
+          "state": "VERIFIED",
+          "confidence": "HIGH"
+        },
+        "recommendationReason": "Matches the governed synthetic rehearsal profile"
       }
     }
   ],
