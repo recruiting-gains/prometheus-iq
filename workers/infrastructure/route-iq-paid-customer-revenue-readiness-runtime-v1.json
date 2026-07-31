@@ -1,0 +1,40 @@
+{
+  "contractVersion": "route-iq-paid-customer-revenue-readiness-runtime-v1",
+  "owner": "Prometheus Infrastructure",
+  "target": "prometheus-iq",
+  "route": {
+    "method": "GET",
+    "exactPath": "/api/dashboard/route-iq/internal/paid-customer-revenue-readiness",
+    "readOnly": true,
+    "founderOnly": true,
+    "nonEnumeratingDenialStatus": 404
+  },
+  "response": {
+    "exactKeys": ["session", "snapshot"],
+    "cache": "private, no-store",
+    "browserStorageAllowed": false,
+    "secretFieldsAllowed": false
+  },
+  "rehearsal": {
+    "fictionalCompany": "company_orion_facility_safety_rehearsal",
+    "lifecycleMaximum": "VALIDATED",
+    "scenarios": ["success", "failure", "replay"],
+    "isolatedMemoryOnly": true,
+    "cleanupRequired": true,
+    "stripeConfigured": false,
+    "liveBillingAllowed": false,
+    "activationAllowed": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providerRefresh": "OFF",
+    "scheduler": "OFF",
+    "customerActivation": "OFF",
+    "productionWrites": 0,
+    "crmWrites": 0,
+    "receiptWrites": 0,
+    "invitationWrites": 0
+  }
+}

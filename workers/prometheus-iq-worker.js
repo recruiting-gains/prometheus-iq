@@ -63,6 +63,10 @@ import {
   isControlledPaidCustomerOnboardingRehearsalPath
 } from "./infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.js";
 import {
+  handlePaidCustomerRevenueReadinessRequest,
+  isPaidCustomerRevenueReadinessPath
+} from "./infrastructure/route-iq-paid-customer-revenue-readiness-runtime.js";
+import {
   authorizeCloudflareUnattendedSmokeRequest,
   markCloudflareUnattendedSmokeResponse,
   sanitizeCloudflareUnattendedSmokeAssetRequest
@@ -984,9 +988,29 @@ async function handleRouteIqCustomerAwareFieldSessionRequest(request, env, execu
 async function handleApiRequest(request, env, executionContext, {
   dailySnapshotTestHooks,
   paidCustomerOnboardingTestHooks,
-  paidCustomerDashboardPreviewTestHooks
+  paidCustomerDashboardPreviewTestHooks,
+  paidCustomerRevenueReadinessTestHooks
 } = {}) {
   const url = new URL(request.url);
+  if (isPaidCustomerRevenueReadinessPath(url.pathname)) {
+    try {
+      const founderPrincipal = await authorizeRouteIqFounderDailySnapshot(
+        request,
+        env,
+        paidCustomerRevenueReadinessTestHooks?.founderAuthentication
+      );
+      return handlePaidCustomerRevenueReadinessRequest(
+        request,
+        founderPrincipal,
+        { now: paidCustomerRevenueReadinessTestHooks?.now || new Date() }
+      );
+    } catch {
+      return routeIqFounderSnapshotResponse({
+        ok: false,
+        code: "route_iq_resource_unavailable"
+      }, 404);
+    }
+  }
   if (isRouteIqPaidCustomerDashboardPreviewPath(url.pathname)) {
     return handleRouteIqPaidCustomerDashboardPreviewRequest(
       request,
@@ -1027,6 +1051,7 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
   dailySnapshotTestHooks,
   paidCustomerOnboardingTestHooks,
   paidCustomerDashboardPreviewTestHooks,
+  paidCustomerRevenueReadinessTestHooks,
   controlledPaidCustomerRehearsalTestHooks
 } = {}) {
   const smokeAuthorization = await authorizeCloudflareUnattendedSmokeRequest(request, env, {
@@ -1064,7 +1089,8 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
         response = withAegisHeaders(await handleApiRequest(request, env, executionContext, {
           dailySnapshotTestHooks,
           paidCustomerOnboardingTestHooks,
-          paidCustomerDashboardPreviewTestHooks
+          paidCustomerDashboardPreviewTestHooks,
+          paidCustomerRevenueReadinessTestHooks
         }), aegis);
       }
     } else {
