@@ -1,0 +1,18 @@
+{
+  "contractVersion": "early-github-handoff-v1",
+  "owner": "Prometheus Infrastructure",
+  "repository": "PrometheusRouteIQ/prometheus-iq",
+  "branch": "main",
+  "workflow": ".github/workflows/early-github-handoff-v1.yml",
+  "trigger": "workflow_dispatch",
+  "commitInput": "candidate_commit",
+  "authentication": ["GH_TOKEN", "GITHUB_TOKEN"],
+  "authenticationValuesMayBeReported": false,
+  "exactMatch": ["workflow", "commit", "branch", "dispatchTimestamp"],
+  "ambiguousRunPolicy": "REJECT",
+  "dispatchRejectedPolicy": "LOCAL_CONNECTION_STILL_REQUIRED",
+  "acceptedRegistrationPendingPolicy": "FOUNDER_MAY_CLOSE_LAPTOP",
+  "productionCredentialsAvailable": false,
+  "deploymentAllowed": false,
+  "productionMutationAllowed": false
+}
