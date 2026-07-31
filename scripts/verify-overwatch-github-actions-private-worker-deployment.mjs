@@ -192,6 +192,12 @@ const v2IntelligenceSmokeTimeoutSynchronizationParent =
   "5df472ace229d95d4f0a000797ad36b34043b937";
 const v2IntelligenceSmokeTimeoutSynchronizationTree =
   "4fe6496f1948356385c7a128016f89f6aeadf38e";
+const v2ControlledRehearsalIntelligenceSuccessorCommit =
+  "41679ab6742dc9fd8639bbc7cfe6a1dc2328d540";
+const v2ControlledRehearsalIntelligenceSuccessorParent =
+  "ab544fd393f6dffa86a3fc603e72ef5d1883109c";
+const v2ControlledRehearsalIntelligenceSuccessorTree =
+  "34b0f9922aa1dbcb7d391c0ab829f2efb2febfb1";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -707,6 +713,19 @@ const v2IntelligenceSmokeTimeoutSynchronizationHashes = Object.freeze({
     "c2e87ef8a5e5671db4c43a33d308d54c4e2dfec6c295f28a2953ae08b1068cc3",
   "tests/shadow-decision-readiness.test.mjs":
     "9333b0763f0ba187b74b147d6a8e9b6c940ff86f14dfe9ea1da907aa6c32feed"
+});
+
+const v2ControlledRehearsalIntelligenceSuccessorHashes = Object.freeze({
+  "intelligence/provenance/protected-baseline-synchronization-controlled-onboarding-rehearsal-smoke-contract-v1.json":
+    "1ec4308ce17d8ef1b6d697593ae3ddbf213f9794e9ec9b32ff681786e03037a3",
+  "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs":
+    "1b85032b4889cef4e656e14072bab9d25dbc8157abbdd3730505aab98ef5533d",
+  "scripts/verify-shadow-decision-readiness.mjs":
+    "24dfe030d71d081e625bec37ff4fbc535ce67cb3ef796aebd65c83ea8d817859",
+  "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs":
+    "ebfe8ddb714c4ce56b36c691cd697bc6d8659a4eafa10a49bb143cb5cfbea700",
+  "tests/shadow-decision-readiness.test.mjs":
+    "59cc3737e55222816115ef1608c7a43502894935f256a1bc4812d83dbc2c9cbb"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -2504,6 +2523,9 @@ function verifyOwnerHistory(governance) {
 
 function verifyV2OwnerAndGovernance() {
   const governance = readJson(governanceV2Path);
+  const rehearsalGovernance = readJson(
+    "overwatch/governance/controlled-paid-customer-onboarding-rehearsal-v1.json"
+  );
   const contract = readJson(contractV2Path);
   const evaluation = evaluateGithubActionsPrivateWorkerV2Governance({
     governance,
@@ -3020,11 +3042,88 @@ function verifyV2OwnerAndGovernance() {
       encoding: null,
       stdio: ["ignore", "pipe", "ignore"]
     });
+    const currentSha256 = sha256(readFileSync(resolve(root, path)));
+    const successorSha256 =
+      v2ControlledRehearsalIntelligenceSuccessorHashes[path];
+    const successorPredecessorSha256 = successorSha256
+      ? sha256(execFileSync("/usr/bin/git", [
+        "show", `${v2ControlledRehearsalIntelligenceSuccessorParent}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }))
+      : null;
     if (sha256(committed) !== expected
-      || sha256(readFileSync(resolve(root, path))) !== expected
+      || !(currentSha256 === expected
+        || (successorSha256 === currentSha256
+          && successorPredecessorSha256 === expected))
       || recordedIntelligenceEvidence.get(path) !== expected) {
       throw new Error(
         `Private Workflow v2 Intelligence synchronization evidence drifted: ${path}`
+      );
+    }
+  }
+
+  const successorMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    v2ControlledRehearsalIntelligenceSuccessorCommit
+  ]).split("\n");
+  if (!equal(successorMetadata, [
+    v2ControlledRehearsalIntelligenceSuccessorCommit,
+    v2ControlledRehearsalIntelligenceSuccessorParent,
+    v2ControlledRehearsalIntelligenceSuccessorTree,
+    intelligenceIdentity,
+    intelligenceIdentity,
+    "intelligence: adopt controlled rehearsal smoke contract"
+  ])) {
+    throw new Error(
+      "Private Workflow v2 controlled-rehearsal Intelligence provenance drifted."
+    );
+  }
+  const successorPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    v2ControlledRehearsalIntelligenceSuccessorCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(
+    successorPaths,
+    Object.keys(v2ControlledRehearsalIntelligenceSuccessorHashes)
+  )) {
+    throw new Error(
+      "Private Workflow v2 controlled-rehearsal Intelligence path set drifted."
+    );
+  }
+  const successorRecord = rehearsalGovernance.ownership.ownerCommits.find(
+    record => record.commit === v2ControlledRehearsalIntelligenceSuccessorCommit
+  );
+  if (!successorRecord
+    || successorRecord.parent !== v2ControlledRehearsalIntelligenceSuccessorParent
+    || successorRecord.tree !== v2ControlledRehearsalIntelligenceSuccessorTree
+    || successorRecord.identity !== intelligenceIdentity
+    || successorRecord.subject !==
+      "intelligence: adopt controlled rehearsal smoke contract") {
+    throw new Error(
+      "Private Workflow v2 controlled-rehearsal Intelligence owner evidence drifted."
+    );
+  }
+  const successorEvidence = new Map(
+    successorRecord.evidence.map(item => [item.path, item.sha256])
+  );
+  for (const [path, expected] of Object.entries(
+    v2ControlledRehearsalIntelligenceSuccessorHashes
+  )) {
+    const committed = execFileSync("/usr/bin/git", [
+      "show", `${v2ControlledRehearsalIntelligenceSuccessorCommit}:${path}`
+    ], {
+      cwd: root,
+      encoding: null,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    if (sha256(committed) !== expected
+      || sha256(readFileSync(resolve(root, path))) !== expected
+      || successorEvidence.get(path) !== expected) {
+      throw new Error(
+        `Private Workflow v2 controlled-rehearsal Intelligence evidence drifted: ${path}`
       );
     }
   }
@@ -3417,6 +3516,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2ApplicationDocumentIdentityGateRepairCommit,
     immutableWorkflowV2IntelligenceSmokeTimeoutSynchronizationCommit:
       v2IntelligenceSmokeTimeoutSynchronizationCommit,
+    immutableWorkflowV2ControlledRehearsalIntelligenceSuccessorCommit:
+      v2ControlledRehearsalIntelligenceSuccessorCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,

@@ -60,6 +60,13 @@ const expectedCommits = Object.freeze([
     tree: "b8d0a364f10e1288e6886e7951ff5f2c29e59d40",
     identity: "Prometheus Infrastructure <infrastructure@prometheus.local>",
     subject: "infrastructure: govern controlled onboarding rehearsal"
+  }),
+  Object.freeze({
+    commit: "41679ab6742dc9fd8639bbc7cfe6a1dc2328d540",
+    parent: "ab544fd393f6dffa86a3fc603e72ef5d1883109c",
+    tree: "34b0f9922aa1dbcb7d391c0ab829f2efb2febfb1",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: adopt controlled rehearsal smoke contract"
   })
 ]);
 
@@ -154,7 +161,8 @@ export function validateControlledRehearsalGovernance(governance) {
   });
   assert.deepEqual(governance.ownership.implementationOwners, [
     "Prometheus Administration",
-    "Prometheus Infrastructure"
+    "Prometheus Infrastructure",
+    "Prometheus Intelligence Engine"
   ]);
   assert.equal(governance.ownership.verificationOwner, "Prometheus Overwatch");
   assert.equal(governance.ownership.overwatchModifiedSubsystemImplementation, false);

@@ -22,7 +22,7 @@ test("Overwatch independently accepts the controlled rehearsal owner chain", asy
   const result = await verifyOverwatchControlledPaidCustomerOnboardingRehearsalV1();
   assert.equal(result.status,
     "CONTROLLED_PAID_CUSTOMER_ONBOARDING_REHEARSAL_OVERWATCH_PASS");
-  assert.equal(result.ownerCommitCount, 4);
+  assert.equal(result.ownerCommitCount, 5);
   assert.equal(result.fictionalCompanyCount, 1);
   assert.equal(result.locationCount, 2);
   assert.equal(result.representativeCount, 2);
@@ -40,7 +40,11 @@ test("governance rejects owner, commit, tree, hash, and path substitution", () =
     value => { value.ownership.ownerCommits[3].identity =
       "Prometheus Overwatch <overwatch@prometheus.local>"; },
     value => { value.ownership.ownerCommits[2].evidence[0].sha256 = "0".repeat(64); },
-    value => { value.ownership.ownerCommits[3].evidence[0].path = "package.json"; }
+    value => { value.ownership.ownerCommits[3].evidence[0].path = "package.json"; },
+    value => { value.ownership.ownerCommits[4].identity =
+      "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.ownership.ownerCommits[4].evidence[0].sha256 =
+      "0".repeat(64); }
   ]) {
     const candidate = clone(governance);
     mutate(candidate);

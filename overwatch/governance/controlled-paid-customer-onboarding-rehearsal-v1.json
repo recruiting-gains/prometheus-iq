@@ -12,7 +12,8 @@
   "ownership": {
     "implementationOwners": [
       "Prometheus Administration",
-      "Prometheus Infrastructure"
+      "Prometheus Infrastructure",
+      "Prometheus Intelligence Engine"
     ],
     "verificationOwner": "Prometheus Overwatch",
     "overwatchModifiedSubsystemImplementation": false,
@@ -76,6 +77,20 @@
           {"path": "scripts/verify-controlled-paid-customer-onboarding-rehearsal-v1.mjs", "sha256": "26c000b13b79debd15337debdbf097512d2da7df2370a2e60227d5ecfabe9635"},
           {"path": "tests/controlled-paid-customer-onboarding-rehearsal-v1.test.mjs", "sha256": "96b9a35ca3c58966392a0b8af6e2c598c47ab096d630782298a102cc22d98f1f"},
           {"path": "workers/infrastructure/controlled-paid-customer-onboarding-rehearsal-v1.json", "sha256": "c434ad70386252229bd840b98ce3d47e58facb6973e1cdb8dfbc19cf0426184a"}
+        ]
+      },
+      {
+        "commit": "41679ab6742dc9fd8639bbc7cfe6a1dc2328d540",
+        "parent": "ab544fd393f6dffa86a3fc603e72ef5d1883109c",
+        "tree": "34b0f9922aa1dbcb7d391c0ab829f2efb2febfb1",
+        "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+        "subject": "intelligence: adopt controlled rehearsal smoke contract",
+        "evidence": [
+          {"path": "intelligence/provenance/protected-baseline-synchronization-controlled-onboarding-rehearsal-smoke-contract-v1.json", "sha256": "1ec4308ce17d8ef1b6d697593ae3ddbf213f9794e9ec9b32ff681786e03037a3"},
+          {"path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs", "sha256": "1b85032b4889cef4e656e14072bab9d25dbc8157abbdd3730505aab98ef5533d"},
+          {"path": "scripts/verify-shadow-decision-readiness.mjs", "sha256": "24dfe030d71d081e625bec37ff4fbc535ce67cb3ef796aebd65c83ea8d817859"},
+          {"path": "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs", "sha256": "ebfe8ddb714c4ce56b36c691cd697bc6d8659a4eafa10a49bb143cb5cfbea700"},
+          {"path": "tests/shadow-decision-readiness.test.mjs", "sha256": "59cc3737e55222816115ef1608c7a43502894935f256a1bc4812d83dbc2c9cbb"}
         ]
       }
     ]

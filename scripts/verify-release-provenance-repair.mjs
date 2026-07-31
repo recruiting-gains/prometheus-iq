@@ -95,6 +95,41 @@ const currentPrivateSmokeTimeoutIntelligenceSuccessorPaths = [
   "scripts/verify-shadow-decision-readiness.mjs",
   "tests/shadow-decision-readiness.test.mjs"
 ].sort();
+const currentControlledRehearsalIntelligenceSuccessorCommit =
+  "41679ab6742dc9fd8639bbc7cfe6a1dc2328d540";
+const currentControlledRehearsalIntelligenceSuccessorParent =
+  "ab544fd393f6dffa86a3fc603e72ef5d1883109c";
+const currentControlledRehearsalIntelligenceSuccessorTree =
+  "34b0f9922aa1dbcb7d391c0ab829f2efb2febfb1";
+const currentControlledRehearsalIntelligenceSuccessorPaths = [
+  "intelligence/provenance/protected-baseline-synchronization-controlled-onboarding-rehearsal-smoke-contract-v1.json",
+  "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+  "scripts/verify-shadow-decision-readiness.mjs",
+  "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+  "tests/shadow-decision-readiness.test.mjs"
+].sort();
+const currentControlledRehearsalIntelligenceSuccessorHashes = new Map([
+  [
+    "intelligence/provenance/protected-baseline-synchronization-controlled-onboarding-rehearsal-smoke-contract-v1.json",
+    "1ec4308ce17d8ef1b6d697593ae3ddbf213f9794e9ec9b32ff681786e03037a3"
+  ],
+  [
+    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+    "1b85032b4889cef4e656e14072bab9d25dbc8157abbdd3730505aab98ef5533d"
+  ],
+  [
+    "scripts/verify-shadow-decision-readiness.mjs",
+    "24dfe030d71d081e625bec37ff4fbc535ce67cb3ef796aebd65c83ea8d817859"
+  ],
+  [
+    "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+    "ebfe8ddb714c4ce56b36c691cd697bc6d8659a4eafa10a49bb143cb5cfbea700"
+  ],
+  [
+    "tests/shadow-decision-readiness.test.mjs",
+    "59cc3737e55222816115ef1608c7a43502894935f256a1bc4812d83dbc2c9cbb"
+  ]
+]);
 const currentAugust1IntelligenceSuccessorPaths = [
   "intelligence/contracts/shadow-decision-readiness-contracts.json",
   "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
@@ -109,6 +144,8 @@ const currentIntelligenceSuccessorCommits = [
 const historicalCanonicalCommit = "ed46fb0964187a207468cd89fbdc1fbbb8426748";
 const currentIntelligenceOwnerSuccessorCommit = "21471fb1c5f32c18e4356434af71e0d63925d969";
 const mappingPath = "overwatch/artifact-contracts/provenance/route-iq-release-provenance-repair-v1.json";
+const controlledRehearsalGovernancePath =
+  "overwatch/governance/controlled-paid-customer-onboarding-rehearsal-v1.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const dashboardContractPath = "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json";
 const intelligenceEvidencePath = "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json";
@@ -461,7 +498,7 @@ function verifyCurrentPrivateSmokeTimeoutIntelligenceSuccessor() {
   ));
 }
 
-function isCurrentPrivateSmokeTimeoutIntelligenceTransition(
+function isPrivateSmokeTimeoutIntelligenceTransition(
   path,
   previousSha256,
   currentSha256
@@ -481,6 +518,98 @@ function isCurrentPrivateSmokeTimeoutIntelligenceTransition(
     && sha256(gitBytes(
       "show",
       `${currentPrivateSmokeTimeoutIntelligenceSuccessorCommit}:${path}`
+    )) === currentSha256;
+}
+
+function isCurrentPrivateSmokeTimeoutIntelligenceTransition(
+  path,
+  previousSha256,
+  currentSha256
+) {
+  return isPrivateSmokeTimeoutIntelligenceTransition(
+    path,
+    previousSha256,
+    currentSha256
+  ) && sha256(read(path)) === currentSha256;
+}
+
+function verifyCurrentControlledRehearsalIntelligenceSuccessor() {
+  const fields = git(
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    currentControlledRehearsalIntelligenceSuccessorCommit
+  ).split("\n");
+  assert.deepEqual(fields, [
+    currentControlledRehearsalIntelligenceSuccessorCommit,
+    currentControlledRehearsalIntelligenceSuccessorParent,
+    currentControlledRehearsalIntelligenceSuccessorTree,
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "intelligence: adopt controlled rehearsal smoke contract"
+  ]);
+  assert.deepEqual(
+    changedPaths(currentControlledRehearsalIntelligenceSuccessorCommit),
+    currentControlledRehearsalIntelligenceSuccessorPaths
+  );
+  assert.doesNotThrow(() => git(
+    "merge-base",
+    "--is-ancestor",
+    currentControlledRehearsalIntelligenceSuccessorCommit,
+    "HEAD"
+  ));
+
+  const governance = readJson(controlledRehearsalGovernancePath);
+  const record = governance.ownership.ownerCommits.find(
+    owner => owner.commit === currentControlledRehearsalIntelligenceSuccessorCommit
+  );
+  assert.ok(record, "Controlled-rehearsal Intelligence owner evidence is missing.");
+  assert.equal(record.parent, currentControlledRehearsalIntelligenceSuccessorParent);
+  assert.equal(record.tree, currentControlledRehearsalIntelligenceSuccessorTree);
+  assert.equal(
+    record.identity,
+    "Prometheus Intelligence Engine <intelligence@prometheus.local>"
+  );
+  assert.equal(record.subject, "intelligence: adopt controlled rehearsal smoke contract");
+  const evidence = new Map(record.evidence.map(item => [item.path, item.sha256]));
+  assert.deepEqual([...evidence.keys()].sort(),
+    currentControlledRehearsalIntelligenceSuccessorPaths);
+  for (const [path, expected] of currentControlledRehearsalIntelligenceSuccessorHashes) {
+    assert.equal(
+      sha256(gitBytes(
+        "show",
+        `${currentControlledRehearsalIntelligenceSuccessorCommit}:${path}`
+      )),
+      expected,
+      `${path} controlled-rehearsal Intelligence owner hash drifted.`
+    );
+    assert.equal(evidence.get(path), expected,
+      `${path} controlled-rehearsal Intelligence evidence drifted.`);
+    assert.equal(sha256(read(path)), expected,
+      `${path} current controlled-rehearsal Intelligence successor drifted.`);
+  }
+}
+
+function isCurrentControlledRehearsalIntelligenceTransition(
+  path,
+  previousSha256,
+  currentSha256
+) {
+  const expected = currentControlledRehearsalIntelligenceSuccessorHashes.get(path);
+  if (!expected || expected !== currentSha256) return false;
+  const predecessorSha256 = sha256(gitBytes(
+    "show",
+    `${currentControlledRehearsalIntelligenceSuccessorParent}:${path}`
+  ));
+  const predecessorIsGoverned = predecessorSha256 === previousSha256
+    || isPrivateSmokeTimeoutIntelligenceTransition(
+      path,
+      previousSha256,
+      predecessorSha256
+    );
+  return predecessorIsGoverned && sha256(gitBytes(
+      "show",
+      `${currentControlledRehearsalIntelligenceSuccessorCommit}:${path}`
     )) === currentSha256
     && sha256(read(path)) === currentSha256;
 }
@@ -585,6 +714,11 @@ function verifyCurrentHardenedSmokeGuardIntelligenceSuccessor() {
           path,
           transition.currentSha256,
           currentSha256
+        )
+        || isCurrentControlledRehearsalIntelligenceTransition(
+          path,
+          transition.currentSha256,
+          currentSha256
         ),
       true,
       `${path} current hardened smoke-guard successor drifted.`
@@ -619,6 +753,10 @@ function isCurrentHardenedSmokeGuardIntelligenceTransition(
     path,
     transition.currentSha256,
     currentSha256
+  ) || isCurrentControlledRehearsalIntelligenceTransition(
+    path,
+    transition.currentSha256,
+    currentSha256
   );
 }
 
@@ -648,6 +786,7 @@ export function verifyReleaseProvenanceRepair() {
   verifyCurrentAugust1IntelligenceSuccessor();
   verifyCurrentPaidCustomerIntelligenceSuccessor();
   verifyCurrentPrivateSmokeTimeoutIntelligenceSuccessor();
+  verifyCurrentControlledRehearsalIntelligenceSuccessor();
   const hardenedSmokeGuardIntelligenceTransitions =
     verifyCurrentHardenedSmokeGuardIntelligenceSuccessor();
 
@@ -1332,7 +1471,8 @@ export function verifyReleaseProvenanceRepair() {
     currentDashboardValidationCommit,
     currentAugust1IntelligenceSuccessorCommit,
     currentPaidCustomerIntelligenceSuccessorCommit,
-    currentPrivateSmokeTimeoutIntelligenceSuccessorCommit
+    currentPrivateSmokeTimeoutIntelligenceSuccessorCommit,
+    currentControlledRehearsalIntelligenceSuccessorCommit
   };
 }
 
