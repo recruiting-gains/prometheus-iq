@@ -3355,9 +3355,9 @@ function verifyV2OwnerAndGovernance() {
     "deploy/cloudflare-pages/index.html":
       "336ca7a07fbf7ff9f27e77d674f9191d88253dd7db8ba5016e7f5da91884dad0",
     "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
-      "bd07a1971bab290a62adb8084fdfd86aeff82380a9f1204feefaf6fa80baa75b",
+      "7d141d84196b966b38c1d4f6ab11c364257c554ad260356469030c57209ed2e4",
     "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
-      "574db6b4b5edadd53f06c6788aa942ca0221cd4d56278ad341579eda2f1174f7"
+      "1752af8761c22ec9c8aa74bab10d177fff14ce4fbda1617e6321ab6abd32e997"
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     const currentSha256 = sha256(readFileSync(resolve(root, path)));
