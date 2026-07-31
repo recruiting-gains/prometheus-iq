@@ -2401,9 +2401,9 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.controlledRehearsalSuccessor?.historicalContinuityRewritten === false
     && governance?.controlledRehearsalSuccessor
       ?.previousQualifiedForwardPayloadSha256 ===
-      "3bb6d677c4ad6b6811ba1efc1c643abd7728c584707a26dcef26c887f2718328"
-    && governance?.controlledRehearsalSuccessor?.qualifiedForwardPayloadSha256 ===
       "de308060bc0e9799fdcdbb6cdad238f8b6c4d62a2b9bea4c808c688d9363f0a6"
+    && governance?.controlledRehearsalSuccessor?.qualifiedForwardPayloadSha256 ===
+      "b54d07e0724867388e3a9fdb7f5e4dd26a668ba48ae73998a5c9b2fc2317c44e"
     && governance?.controlledRehearsalSuccessor
       ?.previousQualifiedRollbackBundleSha256 ===
       "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637"
@@ -3185,7 +3185,21 @@ function verifyV2OwnerAndGovernance() {
     ...v2ProductionIdentityInspectionHashes,
     ...v2ApplicationDocumentIdentityGateRepairHashes,
     ...v2ControlledRehearsalRuntimeHashes,
-    ...v2ControlledRehearsalLaneHashes
+    ...v2ControlledRehearsalLaneHashes,
+    "workers/prometheus-iq-worker.js":
+      "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61",
+    "_headers":
+      "d82596c84ec00dd6ea6cb179f196db2a0b71819c16fb96770fb82c320a6e7f69",
+    "deploy/cloudflare-pages/_headers":
+      "d82596c84ec00dd6ea6cb179f196db2a0b71819c16fb96770fb82c320a6e7f69",
+    "index.html":
+      "b627cc624e08eebb5ac280e8fe2e2e98a82d7f06005eee0a7eab13dcb4d357e2",
+    "deploy/cloudflare-pages/index.html":
+      "b627cc624e08eebb5ac280e8fe2e2e98a82d7f06005eee0a7eab13dcb4d357e2",
+    "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+      "bd07a1971bab290a62adb8084fdfd86aeff82380a9f1204feefaf6fa80baa75b",
+    "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+      "574db6b4b5edadd53f06c6788aa942ca0221cd4d56278ad341579eda2f1174f7"
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     const currentSha256 = sha256(readFileSync(resolve(root, path)));

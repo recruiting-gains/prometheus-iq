@@ -11,7 +11,7 @@ const readJson = path =>
 
 test("Overwatch accepts the exact owner chain and conditional-go boundary", () => {
   const result = verifyPaidCustomerRevenueReadinessGovernance();
-  assert.equal(result.ownerCommitCount, 12);
+  assert.equal(result.ownerCommitCount, 15);
   assert.equal(result.verdict, "CONDITIONAL_GO");
   assert.equal(result.protectedState.collection, "OFF");
   assert.equal(result.protectedState.activeCohorts, 0);

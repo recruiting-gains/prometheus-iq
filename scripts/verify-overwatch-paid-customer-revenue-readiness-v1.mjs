@@ -11,7 +11,7 @@ const governancePath =
 const reportPath =
   "overwatch/reports/BATCH-20260731-001-paid-customer-revenue-readiness-v1.json";
 const baseline = "f78d360c588e96fbbd91c0cbbe52a4d4cca4845c";
-const lastOwnerCommit = "de1b6c75648b2df90b71e8fd460f05a61dfda3f9";
+const lastOwnerCommit = "7d4110f2d51e3aaf75bd9ac184e91ed6d9d550c5";
 const expectedPrivate = "2f2b059b-8776-4d70-8848-1a0c5d5b18d4";
 const expectedPublic = "6a8713c0-0712-4cda-8a13-daa893ca45f2";
 

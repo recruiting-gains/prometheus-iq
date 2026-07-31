@@ -6,12 +6,12 @@
     {
       "path": "package.json",
       "previousSha256": "1478d8113583c10752c8c6eddf8bb301ea666830821fae8bafb1327f00d2ae6f",
-      "successorSha256": "baf7641667d909ce5beedf3a7a657dccc1aaf76fe4cbc11392b7f63e468e6d6b"
+      "successorSha256": "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a"
     },
     {
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "previousSha256": "fd909a16a69d5286c1ead7710823bbd5c0bca5dbe62b64f37a11594452ea1759",
-      "successorSha256": "aca89d5e28b227ab464855fb67876e1e60e0a6affa912b73b74ed3e7c777021e"
+      "successorSha256": "5ab18c638e1e28c2693a8d50b92556bb66df2ccbbee22075a3cb1300f79a3490"
     },
     {
       "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
@@ -29,7 +29,7 @@
         {
           "path": "workers/prometheus-iq-worker.js",
           "previousSha256": "58d52967de329daa034751c1cf95ad1ae3da8a853c5cceeb950f0656ed51e2c8",
-          "successorSha256": "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132"
+          "successorSha256": "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61"
         }
       ]
     },
@@ -47,7 +47,7 @@
         {
           "path": "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
           "previousSha256": "eb9aa716d7d9704dd519696599b6987cf80562c09273f9d3a204a0f77d2e9456",
-          "successorSha256": "0de0e4a08ea59cb8de5579b05abce2c9b3e6fedf482f5fc4a3c7012e2afdc4d2"
+          "successorSha256": "e6af1329152fb196d968c1455322ba1e941b8742690e7a6605e81f8ce0f724d0"
         },
         {
           "path": "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",

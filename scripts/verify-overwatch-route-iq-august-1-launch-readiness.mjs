@@ -606,7 +606,7 @@ export function validateAugust1ReadinessSuccessors(successors) {
   assert.deepEqual(infrastructureSuccessor.evidence, [{
     path: "workers/prometheus-iq-worker.js",
     previousSha256: "58d52967de329daa034751c1cf95ad1ae3da8a853c5cceeb950f0656ed51e2c8",
-    successorSha256: "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132"
+    successorSha256: "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61"
   }]);
   const overwatchSuccessor = successors.successors[1];
   assert.equal(overwatchSuccessor.commit,
@@ -626,7 +626,7 @@ export function validateAugust1ReadinessSuccessors(successors) {
     {
       path: "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
       previousSha256: "eb9aa716d7d9704dd519696599b6987cf80562c09273f9d3a204a0f77d2e9456",
-      successorSha256: "0de0e4a08ea59cb8de5579b05abce2c9b3e6fedf482f5fc4a3c7012e2afdc4d2"
+      successorSha256: "e6af1329152fb196d968c1455322ba1e941b8742690e7a6605e81f8ce0f724d0"
     },
     {
       path: "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",
