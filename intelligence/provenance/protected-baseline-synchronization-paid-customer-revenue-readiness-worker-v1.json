@@ -1,0 +1,89 @@
+{
+  "version": "route-iq-intelligence-paid-customer-revenue-readiness-worker-successor-v1",
+  "directive": "Paid-Customer Revenue Readiness v1",
+  "status": "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Adopt the exact owner-produced paid-customer revenue-readiness Dashboard and private Worker successors without rewriting controlled-rehearsal evidence or changing Intelligence behavior.",
+  "predecessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-controlled-onboarding-rehearsal-smoke-contract-v1.json",
+    "sha256": "1ec4308ce17d8ef1b6d697593ae3ddbf213f9794e9ec9b32ff681786e03037a3",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "protectedSourceTransitions": [
+    {
+      "path": "index.html",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "commit": "86055bbf2ec7eda71e1d9957984e0697580e7542",
+      "tree": "7dfa4d9b63606282023cc7f080b71a2c8bbfc6fe",
+      "subject": "Integrate revenue readiness into private Dashboard",
+      "previousSha256": "f15389cba2412dac883eeb19f355939983f15aca1d5ef6e38f333ad85d4f2fe4",
+      "currentSha256": "b382e4fdbcb9e04cbd644ea6110025eae675b9b7765395c86e28bcfa57be6aa7"
+    },
+    {
+      "path": "index.html",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "commit": "f5cbbfe4fe88944533fae68f954aa25b669eed69",
+      "tree": "46a6e28b5287fcda938dacbc88065c8d03a96a84",
+      "subject": "dashboard: refresh private app CSP pin",
+      "previousSha256": "b382e4fdbcb9e04cbd644ea6110025eae675b9b7765395c86e28bcfa57be6aa7",
+      "currentSha256": "b627cc624e08eebb5ac280e8fe2e2e98a82d7f06005eee0a7eab13dcb4d357e2"
+    },
+    {
+      "path": "deploy/cloudflare-pages/index.html",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "54c7e4277e6ed17d3d9cce2921ff7bac77bb94ff",
+      "tree": "2d625c168befd3bd7881a2f811f645d63b3811a3",
+      "subject": "infrastructure: add paid-customer revenue readiness lane",
+      "previousSha256": "f15389cba2412dac883eeb19f355939983f15aca1d5ef6e38f333ad85d4f2fe4",
+      "currentSha256": "b382e4fdbcb9e04cbd644ea6110025eae675b9b7765395c86e28bcfa57be6aa7"
+    },
+    {
+      "path": "deploy/cloudflare-pages/index.html",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "de1b6c75648b2df90b71e8fd460f05a61dfda3f9",
+      "tree": "066384e29fdffc7ee0738c4ccca34855dc7c5d28",
+      "subject": "infrastructure: refresh revenue readiness baseline",
+      "previousSha256": "b382e4fdbcb9e04cbd644ea6110025eae675b9b7765395c86e28bcfa57be6aa7",
+      "currentSha256": "b627cc624e08eebb5ac280e8fe2e2e98a82d7f06005eee0a7eab13dcb4d357e2"
+    },
+    {
+      "path": "workers/prometheus-iq-worker.js",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "54c7e4277e6ed17d3d9cce2921ff7bac77bb94ff",
+      "tree": "2d625c168befd3bd7881a2f811f645d63b3811a3",
+      "subject": "infrastructure: add paid-customer revenue readiness lane",
+      "previousSha256": "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132",
+      "currentSha256": "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61"
+    },
+    {
+      "path": "scripts/lib/route-intelligence-quality-gate.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "bc21696a653661ac0b90cd58e3f1744ade10ba70",
+      "tree": "ef9b67ee28757701ce80928b8aea325180e2cec2",
+      "subject": "intelligence: refresh route quality runtime surface",
+      "previousSha256": "e4e4f77a52cfdd08af81c790e6a6fd6c47ebd6056ca5896f6b38752f7e533ba9",
+      "currentSha256": "7a37c1d2bfc3c07e38a0e706756c64f69718c9a7d36bd0b1eebc5717a7621468"
+    }
+  ],
+  "coherence": {
+    "historicalControlledRehearsalEvidenceRewritten": false,
+    "successorCommitAndTreeVerified": true,
+    "successorOwnerIdentityVerified": true,
+    "revenueReadinessSurfaceOnly": true,
+    "intelligenceRuntimeChanged": false,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "businessHoursEligibilityChanged": false
+  },
+  "boundaries": {
+    "readinessState": "INSUFFICIENT_EVIDENCE",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}

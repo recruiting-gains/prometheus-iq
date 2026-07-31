@@ -5,8 +5,10 @@ import test from "node:test";
 import {
   controlledOnboardingRehearsalSmokeContractProvenancePath,
   crossIndustryZipFounderAccessProvenancePath,
+  paidCustomerRevenueReadinessWorkerProvenancePath,
   verifyControlledOnboardingRehearsalSmokeContractSuccessor,
-  verifyCrossIndustryZipFounderAccessAdoption
+  verifyCrossIndustryZipFounderAccessAdoption,
+  verifyPaidCustomerRevenueReadinessWorkerSuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const readJson = path => JSON.parse(readFileSync(path, "utf8"));
@@ -67,5 +69,51 @@ test("shadow-readiness adoption composes the historical and current contract", (
       .get("workers/infrastructure/cloudflare-unattended-smoke-contract.js")
       .currentSha256,
     "ea28197db687ded60c2b87da87874e8615ea76a3333d68eea7d1395887215eb4"
+  );
+});
+
+test("paid-customer revenue readiness composes an exact Infrastructure Worker successor", () => {
+  const historical = readJson(
+    controlledOnboardingRehearsalSmokeContractProvenancePath
+  );
+  const successor = readJson(paidCustomerRevenueReadinessWorkerProvenancePath);
+  const verified = verifyPaidCustomerRevenueReadinessWorkerSuccessor();
+  const workerTransition = verified.transitionsByPath
+    .get("workers/prometheus-iq-worker.js")[0];
+
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(
+    workerTransition.previousSha256,
+    historical.protectedSourceTransitions
+      .find(entry => entry.path === "workers/prometheus-iq-worker.js")
+      .currentSha256
+  );
+  assert.equal(
+    workerTransition.currentSha256,
+    "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61"
+  );
+  assert.equal(verified.successor.coherence.intelligenceRuntimeChanged, false);
+  assert.equal(verified.successor.coherence.revenueReadinessSurfaceOnly, true);
+  assert.equal(verified.successor.boundaries.prospectiveCollection, "OFF");
+  assert.equal(verified.successor.boundaries.activeCohorts, 0);
+  assert.equal(verified.successor.boundaries.recommendationInfluence, "OFF");
+});
+
+test("composed adoption carries both Worker transitions without rewriting either record", () => {
+  const adoption = verifyCrossIndustryZipFounderAccessAdoption();
+  const worker = adoption.transitionByPath.get("workers/prometheus-iq-worker.js");
+
+  assert.equal(
+    worker.transitions.at(-2).currentSha256,
+    "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132"
+  );
+  assert.equal(
+    worker.transitions.at(-1).previousSha256,
+    worker.transitions.at(-2).currentSha256
+  );
+  assert.equal(
+    worker.currentSha256,
+    "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61"
   );
 });

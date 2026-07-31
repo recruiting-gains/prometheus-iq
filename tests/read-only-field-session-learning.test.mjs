@@ -129,7 +129,7 @@ test("approved ZIP and Founder Dashboard adoption rejects matching arbitrary sou
       (error) => {
         assert.match(
           error.stderr.toString("utf8"),
-          /Current ZIP\/Founder protected source changed: index\.html/u
+          /Current paid-customer revenue-readiness protected source changed: index\.html/u
         );
         return true;
       }
