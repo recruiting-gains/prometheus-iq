@@ -12,7 +12,13 @@
     {"owner": "Prometheus Dashboard", "result": "Founder and customer-owner authority are distinct; customer owners cannot call Founder endpoints; operational status fails closed"},
     {"owner": "Prometheus Infrastructure", "result": "workspace-scoped Founder status, exact artifact qualification, private-only deployment, and forward rollback are governed"},
     {"owner": "Prometheus Overwatch", "result": "20-subsystem map, 19 cross-system contracts, and P0-P3 ledger are independently release-blocking"},
-    {"owner": "Prometheus Infrastructure", "result": "GitHub runner temporary paths are step-scoped and workflow-parser compatible"}
+    {"owner": "Prometheus Infrastructure", "result": "GitHub runner temporary paths are step-scoped and workflow-parser compatible"},
+    {"owner": "Prometheus Overwatch", "result": "the hosted harmony workflow parser repair is independently accepted"},
+    {"owner": "Prometheus Overwatch", "result": "accepted current owner artifacts replace stale August 1 readiness pins without rewriting history"},
+    {"owner": "Prometheus Infrastructure", "result": "the private deployment parity contract matches the accepted dashboard payload"},
+    {"owner": "Prometheus Overwatch", "result": "the private parity contract successor is independently accepted"},
+    {"owner": "Prometheus Infrastructure", "result": "the qualified private forward payload pin matches the exact no-bundle artifact"},
+    {"owner": "Prometheus Overwatch", "result": "the qualified payload successor and current private governance record are independently accepted"}
   ],
   "acceptance": {
     "crossSubsystemContracts": "PASS",
