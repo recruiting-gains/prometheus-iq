@@ -19,6 +19,10 @@ const MODEL_PATH =
   "administration/contracts/route-iq-paid-customer-revenue-readiness-v1.json";
 const modelSource = readFileSync(MODEL_PATH, "utf8");
 const rawModel = JSON.parse(modelSource);
+const pricingInventory = readFileSync(
+  "administration/workflows/route-iq-paid-customer-pricing-source-inventory-v1.md",
+  "utf8"
+);
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -110,6 +114,74 @@ test("pricing and binding commercial terms cannot be invented", () => {
       validateRouteIqRevenueModel(changed)
     );
   }
+});
+
+test("pricing inventory recognizes exactly one authoritative commercial source", () => {
+  const authoritativeRows = pricingInventory
+    .split("\n")
+    .filter(line => line.startsWith("| `") && line.includes("`AUTHORITATIVE`"));
+  assert.deepEqual(authoritativeRows, [
+    "| `administration/contracts/route-iq-paid-customer-revenue-readiness-v1.json` | Commercial model | `AUTHORITATIVE` | Sole authority; all binding values remain `FOUNDER DECISION REQUIRED`. |"
+  ]);
+  assert.match(pricingInventory, /Every binding value is `FOUNDER DECISION REQUIRED`/);
+  assert.match(pricingInventory, /`LIVE_REVENUE_BLOCKED`/);
+});
+
+test("conflicting historical and proposed pricing paths are explicitly non-authoritative", () => {
+  const expectedClassifications = new Map([
+    ["docs/prometheus-pricing-strategy-playbook.md", "HISTORICAL"],
+    ["docs/cloud-beta-cost-and-response-plan.md", "HYPOTHESIS"],
+    ["docs/competitor-pricing-revenue.md", "HYPOTHESIS"],
+    ["sales/enterprise-pilot-sales-package.md", "HYPOTHESIS"],
+    ["docs/fitness-connection-pitch-plan.md", "HISTORICAL"],
+    ["legal/build_prometheus_pilot_agreement.py", "HISTORICAL"],
+    [
+      "administration/workspace-configurations/route-iq-controlled-paid-customer-onboarding-rehearsal-v1.json",
+      "TEST_ONLY"
+    ],
+    ["crm/paid-customer-revenue-readiness-v1.mjs", "TEST_ONLY"],
+    [
+      "docs/route-iq-business-availability-infrastructure-v1.md",
+      "TECHNICAL_COST_ONLY"
+    ]
+  ]);
+  for (const [path, classification] of expectedClassifications) {
+    assert.match(
+      pricingInventory,
+      new RegExp(
+        `\\| \\\`${path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\\` .* \\\`${classification}\\\``
+      )
+    );
+  }
+  for (const amount of [
+    "$49/user/month",
+    "$2,500",
+    "$39-$79/user/month",
+    "$1,500-$5,000",
+    "$250"
+  ]) {
+    assert.ok(pricingInventory.includes(amount), `missing conflicting amount ${amount}`);
+  }
+});
+
+test("public website and generated deployment copy have no accidental pricing authority", () => {
+  for (const path of [
+    "public-site-static/index.html",
+    "public-site-static/terms/index.html",
+    "deploy/prometheusrouteiq-website/index.html",
+    "deploy/prometheusrouteiq-website/terms/index.html"
+  ]) {
+    assert.match(
+      pricingInventory,
+      new RegExp(
+        `\\| \\\`${path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\\` .* \\\`NOT_COMMERCIAL_AUTHORITY\\\``
+      )
+    );
+  }
+  assert.doesNotMatch(
+    pricingInventory,
+    /\| `(?:public-site-static|deploy\/prometheusrouteiq-website)\/[^`]+` [^|]*\| `AUTHORITATIVE`/
+  );
 });
 
 test("intake is Draft-only and causes zero production actions", () => {
@@ -328,12 +400,20 @@ test("new revenue-readiness assets contain no real customer or personal identity
     "administration/registers/route-iq-paid-customer-revenue-founder-decisions-v1.json",
     "administration/workflows/route-iq-paid-customer-revenue-lifecycle-v1.md",
     "administration/workflows/route-iq-paid-customer-draft-intake-v1.md",
-    "administration/workflows/route-iq-paid-customer-pricing-source-inventory-v1.md",
     "administration/workflows/route-iq-paid-customer-legal-review-gaps-v1.md",
     "administration/templates/route-iq-customer-communications-v1.md"
   ];
   const combined = paths.map(path => readFileSync(path, "utf8")).join("\n");
   assert.doesNotMatch(combined, /Fitness Connection|Anthony|Cruz Garza|Smoothie Depot/iu);
+  assert.match(
+    pricingInventory,
+    /\| `docs\/prometheus-pricing-strategy-playbook\.md` .* `HISTORICAL`/
+  );
+  assert.match(
+    pricingInventory,
+    /\| `docs\/fitness-connection-pitch-plan\.md` .* `HISTORICAL`/
+  );
+  assert.doesNotMatch(pricingInventory, /Anthony|Cruz Garza|Smoothie Depot/iu);
 });
 
 test("Founder runbooks separate operations, support, failure, and data responsibility", () => {
