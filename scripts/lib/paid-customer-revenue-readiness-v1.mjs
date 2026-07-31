@@ -142,6 +142,7 @@ export const REVENUE_READINESS_V1_POLICY = Object.freeze({
     "overwatch/governance/route-iq-august-1-launch-closeout-v1.json",
     "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
     "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+    "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
     "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
     "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
     "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
