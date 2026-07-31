@@ -289,6 +289,60 @@
       "committer": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
       "subject": "Synchronize private smoke timeout provenance"
     },
+    "intelligenceRevenueReadinessSuccessorCommit": {
+      "commit": "c025fd95a8f5141dc4c32af3ca83292711fb1df7",
+      "parent": "bc21696a653661ac0b90cd58e3f1744ade10ba70",
+      "tree": "06e35bc660be3b07da373c4242e1f1724002ec24",
+      "author": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "committer": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: accept revenue readiness provenance successor"
+    },
+    "intelligenceRevenueReadinessSuccessorPaths": [
+      "intelligence/provenance/protected-baseline-synchronization-paid-customer-revenue-readiness-worker-v1.json",
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "tests/read-only-field-session-learning.test.mjs",
+      "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+    ],
+    "intelligenceRevenueReadinessSuccessorEvidence": [
+      {
+        "path": "intelligence/provenance/protected-baseline-synchronization-paid-customer-revenue-readiness-worker-v1.json",
+        "sha256": "3f21d2b71b85510671a7d76c9043d4ff31421c0cfcc9ff937a16915a5c38b07a"
+      },
+      {
+        "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+        "sha256": "705925ee8a523725a195a116b62febc49bc97184b0ad6eeace34df901fca0da0"
+      },
+      {
+        "path": "tests/read-only-field-session-learning.test.mjs",
+        "sha256": "9e3d7e6a9ac089d56b7b761758547dca82fac166412bbb74e9f75ba2e257c72f"
+      },
+      {
+        "path": "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+        "sha256": "6f69166053117abe4c26a02c26f6492b6bea2649f07565083eb474f094153f53"
+      }
+    ],
+    "overwatchRevenueReadinessAcceptanceCommit": {
+      "commit": "fe3ade871ef7308b05501dce23fecbd9a2b9e363",
+      "parent": "c025fd95a8f5141dc4c32af3ca83292711fb1df7",
+      "tree": "18e34131d5759dd16860814cbe6b3eb211390e60",
+      "author": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "subject": "overwatch: accept intelligence rehearsal successor"
+    },
+    "overwatchRevenueReadinessAcceptancePaths": [
+      "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+      "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs"
+    ],
+    "overwatchRevenueReadinessAcceptanceEvidence": [
+      {
+        "path": "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+        "sha256": "b761f4b019061a59faec7ca22c6aa795fe6bd59b4085528ef059f8d730432b52"
+      },
+      {
+        "path": "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
+        "sha256": "dbc9fb7bdccb946cb95512e89a4448054871c4f71934ed3ac366cdb51e3a4f44"
+      }
+    ],
     "intelligenceModifiedInfrastructureImplementation": false,
     "overwatchModifiedIntelligenceImplementation": false,
     "intelligenceSynchronizationChangedRouteBehavior": false,

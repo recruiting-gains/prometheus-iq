@@ -253,6 +253,36 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
         "0".repeat(40);
     },
     value => {
+      value.ownership.intelligenceRevenueReadinessSuccessorCommit.commit =
+        "0".repeat(40);
+    },
+    value => {
+      value.ownership.intelligenceRevenueReadinessSuccessorCommit.author =
+        "Prometheus Overwatch <overwatch@prometheus.local>";
+    },
+    value => {
+      value.ownership.intelligenceRevenueReadinessSuccessorPaths[0] = "package.json";
+    },
+    value => {
+      value.ownership.intelligenceRevenueReadinessSuccessorEvidence[1].sha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.ownership.overwatchRevenueReadinessAcceptanceCommit.commit =
+        "0".repeat(40);
+    },
+    value => {
+      value.ownership.overwatchRevenueReadinessAcceptanceCommit.parent =
+        "0".repeat(40);
+    },
+    value => {
+      value.ownership.overwatchRevenueReadinessAcceptancePaths.pop();
+    },
+    value => {
+      value.ownership.overwatchRevenueReadinessAcceptanceEvidence[0].sha256 =
+        "0".repeat(64);
+    },
+    value => {
       value.ownership.intelligenceModifiedInfrastructureImplementation = true;
     },
     value => {
