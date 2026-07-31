@@ -9,6 +9,9 @@ import {
   legacyProvenanceGapCommit,
   provenanceStatus
 } from "../intelligence/provenance/reconstruct-legacy-protected-contracts-v1.mjs";
+import {
+  verifyPaidCustomerRevenueReadinessProtectedConsumers
+} from "../intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -417,6 +420,8 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   const zipFounderAccessSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
   );
+  const revenueReadinessConsumers =
+    verifyPaidCustomerRevenueReadinessProtectedConsumers();
   const coordinatorSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
   );
@@ -737,7 +742,22 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
       .find((candidate) => candidate.path === transition.path);
     if (latestTransition) {
       assert.equal(latestTransition.previousSha256, transition.currentSha256, transition.path);
-      assert.equal(sha256(transition.path), latestTransition.currentSha256, transition.path);
+      const revenueReadinessConsumer =
+        revenueReadinessConsumers.consumerByPath.get(transition.path);
+      if (revenueReadinessConsumer) {
+        assert.equal(
+          revenueReadinessConsumer.previousSha256,
+          latestTransition.currentSha256,
+          transition.path,
+        );
+        assert.equal(
+          sha256(transition.path),
+          revenueReadinessConsumer.currentSha256,
+          transition.path,
+        );
+      } else {
+        assert.equal(sha256(transition.path), latestTransition.currentSha256, transition.path);
+      }
     } else {
       assert.equal(sha256(transition.path), transition.currentSha256, transition.path);
     }
@@ -916,6 +936,24 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   assert.equal(evidence.safety.representativeExposureChanged, false);
   assert.equal(evidence.safety.prospectiveShadowCollectionStarted, false);
   assert.equal(evidence.safety.productionConsumerIntroduced, false);
+});
+
+test("paid-customer revenue-readiness protected consumers reject substitution and drift", () => {
+  const evidence = readJson(
+    "intelligence/provenance/protected-consumer-synchronization-paid-customer-revenue-readiness-v1.json",
+  );
+  const substituted = structuredClone(evidence);
+  substituted.protectedConsumers[0].currentSha256 = "0".repeat(64);
+  assert.throws(
+    () => verifyPaidCustomerRevenueReadinessProtectedConsumers({ evidence: substituted }),
+    /Expected values to be strictly equal/u,
+  );
+  assert.throws(
+    () => verifyPaidCustomerRevenueReadinessProtectedConsumers({
+      currentSha256ByPath: { "index.html": "f".repeat(64) },
+    }),
+    /Protected consumer drifted: index\.html/u,
+  );
 });
 
 test("administrative disposition semantics are owner-derived and zero influence", () => {
