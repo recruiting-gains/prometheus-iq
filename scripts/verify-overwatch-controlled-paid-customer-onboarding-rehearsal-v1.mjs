@@ -340,16 +340,20 @@ function verifyCurrentOwnerFiles(governance) {
   );
   const governedSuccessors = new Map([
     ["workers/prometheus-iq-worker.js", {
-      commit: "54c7e4277e6ed17d3d9cce2921ff7bac77bb94ff",
-      sha256: "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61"
+      commit: "4b81819c861ca7326b4749c06e69654eab8f3166",
+      sha256: "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051"
     }],
     ["scripts/lib/github-actions-private-worker-workflow-v2.mjs", {
-      commit: "7d4110f2d51e3aaf75bd9ac184e91ed6d9d550c5",
-      sha256: "bd07a1971bab290a62adb8084fdfd86aeff82380a9f1204feefaf6fa80baa75b"
+      commit: "fd52da7db16993f79c2286f35089d0b06e114070",
+      sha256: "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0"
     }],
     ["workers/infrastructure/github-actions-private-worker-deployment-v2.json", {
-      commit: "7d4110f2d51e3aaf75bd9ac184e91ed6d9d550c5",
-      sha256: "574db6b4b5edadd53f06c6788aa942ca0221cd4d56278ad341579eda2f1174f7"
+      commit: "fd52da7db16993f79c2286f35089d0b06e114070",
+      sha256: "30810573fc0926c03a6bbc5337db4ce7030c419a4b08c64b219db7c3abeb371b"
+    }],
+    ["workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json", {
+      commit: "4b81819c861ca7326b4749c06e69654eab8f3166",
+      sha256: "0c38be17c0823b1e247f1781353bbce543d66deb46f775c7a905b4164cb6d951"
     }],
     ["intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs", {
       commit: intelligenceSuccessor.commit,
