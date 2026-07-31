@@ -21,15 +21,23 @@ permission to collect revenue.
 ## Evidence Gates
 
 `READY_FOR_ACTIVATION` requires verified Founder commercial approval, customer order-form
-acceptance, legal review, data-handling approval, support ownership, and workspace validation.
+acceptance, legal review, data-handling approval, support ownership, workspace validation, and a
+server-authoritative customer-activation authorization receipt.
 
 `ACTIVE` additionally requires a registered entity, confirmed tax identity and bank account,
 approved pricing, an approved production billing provider, customer payment authorization,
-an executed agreement, and an approved refund/cancellation policy.
+an executed agreement, an approved refund/cancellation policy, and a separately issued
+server-authoritative live-revenue authorization receipt.
 
 Unknown, missing, stale, contradictory, unpinned, or unauthorized evidence fails closed.
 Evidence is referenced by safe identifiers; contracts and payment credentials are not copied
 into lifecycle events.
+
+The Administration contract validates receipt shape, company/workspace scope, actor role,
+configuration revision, model pin, time boundary, authority, and signature. It never mints a
+receipt from caller input. Both trusted receipt authorities are project-external and intentionally
+unavailable in Paid-Customer Revenue Readiness v1. Therefore `READY_FOR_ACTIVATION` and `ACTIVE`
+are structurally defined for forward compatibility but are unreachable in this project.
 
 ## Recovery
 

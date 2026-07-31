@@ -48,6 +48,20 @@ export const ROUTE_IQ_LIVE_REVENUE_EVIDENCE = Object.freeze([
 
 const ID = /^[a-z][a-z0-9_]{2,127}$/u;
 const SEMVER = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/u;
+const ISO_INSTANT =
+  /^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\.[0-9]{3})?Z$/u;
+const OPAQUE_SIGNATURE = /^[A-Za-z0-9_-]{43,512}$/u;
+const RECEIPT_TYPES = Object.freeze({
+  customerActivation: Object.freeze({
+    receiptType: "CUSTOMER_ACTIVATION_AUTHORIZATION",
+    authorityId: "project_external_customer_activation_authority"
+  }),
+  liveRevenue: Object.freeze({
+    receiptType: "LIVE_REVENUE_AUTHORIZATION",
+    authorityId: "project_external_live_revenue_authority"
+  })
+});
+const EXTERNAL_AUTHORITY_REGISTRY = Object.freeze({});
 const UNSAFE = /[<>{}`\\]|(?:\$\{)|(?:\{\{)|(?:javascript\s*:)|[\u0000-\u001f\u007f]/iu;
 const REQUIRED_MODEL_KEYS = Object.freeze([
   "schemaVersion",
@@ -106,6 +120,12 @@ function assertId(value, scope) {
 function assertVersion(value, scope) {
   if (typeof value !== "string" || !SEMVER.test(value)) {
     fail("route_iq_revenue_version_invalid", `${scope} must be a semantic version.`);
+  }
+}
+
+function assertInstant(value, scope) {
+  if (typeof value !== "string" || !ISO_INSTANT.test(value) || Number.isNaN(Date.parse(value))) {
+    fail("route_iq_revenue_timestamp_invalid", `${scope} must be a canonical UTC timestamp.`);
   }
 }
 
@@ -246,7 +266,7 @@ export function validateRouteIqRevenueModel(input) {
   return deepFreeze(model);
 }
 
-export function transitionRouteIqRevenueLifecycle(current, nextState, evidence = {}) {
+export function transitionRouteIqRevenueLifecycle(current, nextState, authorization = {}) {
   if (!ROUTE_IQ_REVENUE_STATES.includes(current)) {
     fail("route_iq_revenue_state_invalid", "Current revenue lifecycle state is invalid.");
   }
@@ -254,13 +274,124 @@ export function transitionRouteIqRevenueLifecycle(current, nextState, evidence =
     fail("route_iq_revenue_transition_forbidden", "Revenue lifecycle transition is forbidden.");
   }
   if (nextState === "READY_FOR_ACTIVATION") {
-    evaluateRouteIqActivationGate(evidence);
+    validateRouteIqExternalAuthorizationReceipt(
+      authorization.customerActivationReceipt,
+      RECEIPT_TYPES.customerActivation,
+      authorization.scope
+    );
   }
   if (nextState === "ACTIVE") {
-    evaluateRouteIqActivationGate(evidence);
-    evaluateRouteIqLiveRevenueGate(evidence);
+    validateRouteIqExternalAuthorizationReceipt(
+      authorization.customerActivationReceipt,
+      RECEIPT_TYPES.customerActivation,
+      authorization.scope
+    );
+    validateRouteIqExternalAuthorizationReceipt(
+      authorization.liveRevenueReceipt,
+      RECEIPT_TYPES.liveRevenue,
+      authorization.scope
+    );
   }
   return nextState;
+}
+
+function assertExternalScope(scope) {
+  assertKeys(scope, [
+    "companyId",
+    "workspaceId",
+    "authorizedActorId",
+    "configurationRevision",
+    "modelPin",
+    "evaluatedAt"
+  ], "authorization.scope");
+  assertId(scope.companyId, "authorization.scope.companyId");
+  assertId(scope.workspaceId, "authorization.scope.workspaceId");
+  assertId(scope.authorizedActorId, "authorization.scope.authorizedActorId");
+  if (scope.companyId === scope.workspaceId) {
+    fail("route_iq_revenue_receipt_scope_invalid", "Company and workspace must be distinct.");
+  }
+  if (!Number.isInteger(scope.configurationRevision) || scope.configurationRevision < 1) {
+    fail("route_iq_revenue_receipt_revision_invalid", "Configuration revision is invalid.");
+  }
+  assertSafeText(scope.modelPin, "authorization.scope.modelPin", 180);
+  assertInstant(scope.evaluatedAt, "authorization.scope.evaluatedAt");
+}
+
+function validateRouteIqExternalAuthorizationReceipt(receipt, expectedType, scope) {
+  if (receipt === undefined || receipt === null) {
+    fail("route_iq_revenue_authorization_receipt_missing", "External authorization receipt is required.");
+  }
+  assertExternalScope(scope);
+  assertKeys(receipt, [
+    "receiptType",
+    "receiptVersion",
+    "authorityId",
+    "authorizationId",
+    "companyId",
+    "workspaceId",
+    "actorId",
+    "actorRole",
+    "configurationRevision",
+    "modelPin",
+    "decision",
+    "issuedAt",
+    "expiresAt",
+    "signature"
+  ], "authorization.receipt");
+  if (
+    receipt.receiptType !== expectedType.receiptType
+    || receipt.receiptVersion !== "1.0.0"
+    || receipt.authorityId !== expectedType.authorityId
+    || receipt.decision !== "AUTHORIZED"
+  ) {
+    fail("route_iq_revenue_receipt_type_invalid", "Receipt authority or decision is invalid.");
+  }
+  assertId(receipt.authorizationId, "authorization.receipt.authorizationId");
+  assertId(receipt.companyId, "authorization.receipt.companyId");
+  assertId(receipt.workspaceId, "authorization.receipt.workspaceId");
+  assertId(receipt.actorId, "authorization.receipt.actorId");
+  if (receipt.actorRole !== "FOUNDER") {
+    fail("route_iq_revenue_receipt_actor_invalid", "Receipt actor role is not authorized.");
+  }
+  if (receipt.actorId !== scope.authorizedActorId) {
+    fail("route_iq_revenue_receipt_actor_invalid", "Receipt actor identity is not authorized.");
+  }
+  if (
+    receipt.companyId !== scope.companyId
+    || receipt.workspaceId !== scope.workspaceId
+  ) {
+    fail("route_iq_revenue_receipt_scope_mismatch", "Receipt tenant or workspace does not match.");
+  }
+  if (receipt.configurationRevision !== scope.configurationRevision) {
+    fail("route_iq_revenue_receipt_revision_stale", "Receipt revision does not match.");
+  }
+  if (receipt.modelPin !== scope.modelPin) {
+    fail("route_iq_revenue_receipt_model_mismatch", "Receipt model pin does not match.");
+  }
+  assertInstant(receipt.issuedAt, "authorization.receipt.issuedAt");
+  assertInstant(receipt.expiresAt, "authorization.receipt.expiresAt");
+  const evaluatedAt = Date.parse(scope.evaluatedAt);
+  if (
+    Date.parse(receipt.issuedAt) > evaluatedAt
+    || Date.parse(receipt.expiresAt) <= evaluatedAt
+  ) {
+    fail("route_iq_revenue_receipt_time_invalid", "Receipt is premature or expired.");
+  }
+  if (typeof receipt.signature !== "string" || !OPAQUE_SIGNATURE.test(receipt.signature)) {
+    fail("route_iq_revenue_receipt_signature_invalid", "Receipt signature encoding is invalid.");
+  }
+
+  const trustedAuthority = EXTERNAL_AUTHORITY_REGISTRY[receipt.authorityId];
+  if (!trustedAuthority) {
+    fail(
+      "route_iq_revenue_external_authority_unavailable",
+      "Project-external authorization authority is intentionally unavailable."
+    );
+  }
+  if (trustedAuthority.verify(receipt) !== true) {
+    fail("route_iq_revenue_receipt_signature_invalid", "Receipt signature is invalid.");
+  }
+  return deepFreeze({ valid: true, authorizationId: receipt.authorizationId });
 }
 
 function evaluateGate(requiredIds, evidence, code) {

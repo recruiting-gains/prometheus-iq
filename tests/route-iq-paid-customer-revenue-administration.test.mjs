@@ -36,6 +36,39 @@ function verified(ids) {
   return Object.fromEntries(ids.map(id => [id, "VERIFIED"]));
 }
 
+const authorizationScope = Object.freeze({
+  companyId: "synthetic_harbor_company",
+  workspaceId: "synthetic_harbor_workspace",
+  authorizedActorId: "authorized_founder_actor",
+  configurationRevision: 7,
+  modelPin: "route_iq_authoritative_commercial_model@1.0.0",
+  evaluatedAt: "2026-07-31T18:00:00.000Z"
+});
+
+function forgedReceipt(receiptType = "CUSTOMER_ACTIVATION_AUTHORIZATION") {
+  const activation = receiptType === "CUSTOMER_ACTIVATION_AUTHORIZATION";
+  return {
+    receiptType,
+    receiptVersion: "1.0.0",
+    authorityId: activation
+      ? "project_external_customer_activation_authority"
+      : "project_external_live_revenue_authority",
+    authorizationId: activation
+      ? "forged_customer_activation_authorization"
+      : "forged_live_revenue_authorization",
+    companyId: authorizationScope.companyId,
+    workspaceId: authorizationScope.workspaceId,
+    actorId: authorizationScope.authorizedActorId,
+    actorRole: "FOUNDER",
+    configurationRevision: authorizationScope.configurationRevision,
+    modelPin: authorizationScope.modelPin,
+    decision: "AUTHORIZED",
+    issuedAt: "2026-07-31T17:00:00.000Z",
+    expiresAt: "2026-07-31T19:00:00.000Z",
+    signature: "a".repeat(43)
+  };
+}
+
 test("authoritative commercial model is exact-version pinned and immutable", () => {
   const model = validateRouteIqRevenueModel(rawModel);
   assert.equal(model.provenance.versionPinned, `${model.modelId}@${model.modelVersion}`);
@@ -140,7 +173,7 @@ test("activation requires every role and approval evidence item", () => {
   expectCode("route_iq_revenue_activation_blocked", () =>
     evaluateRouteIqActivationGate(complete)
   );
-  expectCode("route_iq_revenue_activation_blocked", () =>
+  expectCode("route_iq_revenue_authorization_receipt_missing", () =>
     transitionRouteIqRevenueLifecycle(
       "AWAITING_COMMERCIAL_APPROVAL",
       "READY_FOR_ACTIVATION",
@@ -157,11 +190,85 @@ test("live revenue remains blocked without every commercial prerequisite", () =>
   expectCode("route_iq_revenue_live_billing_blocked", () =>
     evaluateRouteIqLiveRevenueGate(revenue)
   );
-  expectCode("route_iq_revenue_live_billing_blocked", () =>
+  expectCode("route_iq_revenue_authorization_receipt_missing", () =>
     transitionRouteIqRevenueLifecycle("READY_FOR_ACTIVATION", "ACTIVE", {
       ...activation,
       ...revenue
     })
+  );
+});
+
+test("plain VERIFIED maps can describe evidence but can never authorize a transition", () => {
+  const forgedEvidence = {
+    ...verified(ROUTE_IQ_ACTIVATION_EVIDENCE),
+    ...verified(ROUTE_IQ_LIVE_REVENUE_EVIDENCE)
+  };
+  expectCode("route_iq_revenue_authorization_receipt_missing", () =>
+    transitionRouteIqRevenueLifecycle(
+      "AWAITING_COMMERCIAL_APPROVAL",
+      "READY_FOR_ACTIVATION",
+      forgedEvidence
+    )
+  );
+  expectCode("route_iq_revenue_authorization_receipt_missing", () =>
+    transitionRouteIqRevenueLifecycle("READY_FOR_ACTIVATION", "ACTIVE", forgedEvidence)
+  );
+});
+
+test("client state edits cannot manufacture a lifecycle transition", () => {
+  expectCode("route_iq_revenue_state_invalid", () =>
+    transitionRouteIqRevenueLifecycle(
+      { state: "READY_FOR_ACTIVATION", editedByClient: true },
+      "ACTIVE",
+      {}
+    )
+  );
+});
+
+test("forged external receipts are rejected because trusted authorities are unavailable", () => {
+  expectCode("route_iq_revenue_external_authority_unavailable", () =>
+    transitionRouteIqRevenueLifecycle(
+      "AWAITING_COMMERCIAL_APPROVAL",
+      "READY_FOR_ACTIVATION",
+      {
+        scope: authorizationScope,
+        customerActivationReceipt: forgedReceipt()
+      }
+    )
+  );
+});
+
+test("receipt tenant workspace actor role and revision substitutions fail closed", () => {
+  const cases = [
+    ["companyId", "foreign_company", "route_iq_revenue_receipt_scope_mismatch"],
+    ["workspaceId", "foreign_workspace", "route_iq_revenue_receipt_scope_mismatch"],
+    ["actorId", "foreign_founder_actor", "route_iq_revenue_receipt_actor_invalid"],
+    ["actorRole", "REPRESENTATIVE", "route_iq_revenue_receipt_actor_invalid"],
+    ["configurationRevision", 6, "route_iq_revenue_receipt_revision_stale"]
+  ];
+  for (const [field, value, code] of cases) {
+    const receipt = forgedReceipt();
+    receipt[field] = value;
+    expectCode(code, () =>
+      transitionRouteIqRevenueLifecycle(
+        "AWAITING_COMMERCIAL_APPROVAL",
+        "READY_FOR_ACTIVATION",
+        { scope: authorizationScope, customerActivationReceipt: receipt }
+      )
+    );
+  }
+});
+
+test("ACTIVE remains unreachable even with complete evidence and two well-shaped forged receipts", () => {
+  const authorization = {
+    scope: authorizationScope,
+    customerActivationReceipt: forgedReceipt(),
+    liveRevenueReceipt: forgedReceipt("LIVE_REVENUE_AUTHORIZATION"),
+    ...verified(ROUTE_IQ_ACTIVATION_EVIDENCE),
+    ...verified(ROUTE_IQ_LIVE_REVENUE_EVIDENCE)
+  };
+  expectCode("route_iq_revenue_external_authority_unavailable", () =>
+    transitionRouteIqRevenueLifecycle("READY_FOR_ACTIVATION", "ACTIVE", authorization)
   );
 });
 
