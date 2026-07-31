@@ -1,7 +1,33 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { verifyReleaseProvenanceRepair } from "../scripts/verify-release-provenance-repair.mjs";
+import {
+  currentRevenueReadinessIntelligenceSuccessor,
+  validateRevenueReadinessIntelligenceSuccessor,
+  verifyReleaseProvenanceRepair
+} from "../scripts/verify-release-provenance-repair.mjs";
+
+const clone = value => structuredClone(value);
+
+test("release provenance rejects revenue-readiness successor substitution", () => {
+  assert.equal(validateRevenueReadinessIntelligenceSuccessor(
+    currentRevenueReadinessIntelligenceSuccessor
+  ).commit, "c025fd95a8f5141dc4c32af3ca83292711fb1df7");
+  for (const mutate of [
+    value => { value.commit = "0".repeat(40); },
+    value => { value.parent = "0".repeat(40); },
+    value => { value.tree = "0".repeat(40); },
+    value => { value.identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.subject = "intelligence: substituted provenance"; },
+    value => { value.evidence[0].path = "package.json"; },
+    value => { value.evidence[1].sha256 = "0".repeat(64); },
+    value => { value.evidence.pop(); }
+  ]) {
+    const candidate = clone(currentRevenueReadinessIntelligenceSuccessor);
+    mutate(candidate);
+    assert.throws(() => validateRevenueReadinessIntelligenceSuccessor(candidate));
+  }
+});
 
 test("Overwatch verifies Route IQ release provenance repair", () => {
   assert.deepEqual(verifyReleaseProvenanceRepair(), {
@@ -26,6 +52,8 @@ test("Overwatch verifies Route IQ release provenance repair", () => {
     currentPrivateSmokeTimeoutIntelligenceSuccessorCommit:
       "039116040678a3cbae8016a34f17e30e674715f6",
     currentControlledRehearsalIntelligenceSuccessorCommit:
-      "41679ab6742dc9fd8639bbc7cfe6a1dc2328d540"
+      "41679ab6742dc9fd8639bbc7cfe6a1dc2328d540",
+    currentRevenueReadinessIntelligenceSuccessorCommit:
+      "c025fd95a8f5141dc4c32af3ca83292711fb1df7"
   });
 });

@@ -130,6 +130,37 @@ const currentControlledRehearsalIntelligenceSuccessorHashes = new Map([
     "59cc3737e55222816115ef1608c7a43502894935f256a1bc4812d83dbc2c9cbb"
   ]
 ]);
+export const currentRevenueReadinessIntelligenceSuccessor = Object.freeze({
+  commit: "c025fd95a8f5141dc4c32af3ca83292711fb1df7",
+  parent: "bc21696a653661ac0b90cd58e3f1744ade10ba70",
+  tree: "06e35bc660be3b07da373c4242e1f1724002ec24",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: accept revenue readiness provenance successor",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "intelligence/provenance/protected-baseline-synchronization-paid-customer-revenue-readiness-worker-v1.json",
+      sha256: "3f21d2b71b85510671a7d76c9043d4ff31421c0cfcc9ff937a16915a5c38b07a"
+    }),
+    Object.freeze({
+      path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      sha256: "705925ee8a523725a195a116b62febc49bc97184b0ad6eeace34df901fca0da0"
+    }),
+    Object.freeze({
+      path: "tests/read-only-field-session-learning.test.mjs",
+      sha256: "9e3d7e6a9ac089d56b7b761758547dca82fac166412bbb74e9f75ba2e257c72f"
+    }),
+    Object.freeze({
+      path: "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+      sha256: "6f69166053117abe4c26a02c26f6492b6bea2649f07565083eb474f094153f53"
+    })
+  ])
+});
+const currentRevenueReadinessIntelligenceSuccessorHashes = new Map(
+  currentRevenueReadinessIntelligenceSuccessor.evidence.map(item => [
+    item.path,
+    item.sha256
+  ])
+);
 const currentAugust1IntelligenceSuccessorPaths = [
   "intelligence/contracts/shadow-decision-readiness-contracts.json",
   "intelligence/provenance/protected-baseline-synchronization-route-iq-august-1-launch-closeout-v1.json",
@@ -533,6 +564,39 @@ function isCurrentPrivateSmokeTimeoutIntelligenceTransition(
   ) && sha256(read(path)) === currentSha256;
 }
 
+export function validateRevenueReadinessIntelligenceSuccessor(record) {
+  assert.deepEqual(record, currentRevenueReadinessIntelligenceSuccessor,
+    "Revenue-readiness Intelligence successor mapping drifted.");
+  assert.deepEqual(git(
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ).split("\n"), [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ]);
+  assert.deepEqual(changedPaths(record.commit),
+    record.evidence.map(item => item.path).sort());
+  assert.doesNotThrow(() => git(
+    "merge-base",
+    "--is-ancestor",
+    record.commit,
+    "HEAD"
+  ));
+  for (const item of record.evidence) {
+    assert.equal(sha256(gitBytes("show", `${record.commit}:${item.path}`)),
+      item.sha256, `${item.path} revenue-readiness owner hash drifted.`);
+    assert.equal(sha256(read(item.path)), item.sha256,
+      `${item.path} current revenue-readiness successor drifted.`);
+  }
+  return record;
+}
+
 function verifyCurrentControlledRehearsalIntelligenceSuccessor() {
   const fields = git(
     "show",
@@ -585,7 +649,14 @@ function verifyCurrentControlledRehearsalIntelligenceSuccessor() {
     );
     assert.equal(evidence.get(path), expected,
       `${path} controlled-rehearsal Intelligence evidence drifted.`);
-    assert.equal(sha256(read(path)), expected,
+    const revenueSuccessor = currentRevenueReadinessIntelligenceSuccessorHashes.get(path);
+    if (revenueSuccessor) {
+      assert.equal(sha256(gitBytes(
+        "show",
+        `${currentRevenueReadinessIntelligenceSuccessor.parent}:${path}`
+      )), expected, `${path} revenue-readiness predecessor drifted.`);
+    }
+    assert.equal(sha256(read(path)), revenueSuccessor || expected,
       `${path} current controlled-rehearsal Intelligence successor drifted.`);
   }
 }
@@ -596,7 +667,9 @@ function isCurrentControlledRehearsalIntelligenceTransition(
   currentSha256
 ) {
   const expected = currentControlledRehearsalIntelligenceSuccessorHashes.get(path);
-  if (!expected || expected !== currentSha256) return false;
+  const revenueSuccessor = currentRevenueReadinessIntelligenceSuccessorHashes.get(path);
+  const acceptedCurrent = revenueSuccessor || expected;
+  if (!expected || acceptedCurrent !== currentSha256) return false;
   const predecessorSha256 = sha256(gitBytes(
     "show",
     `${currentControlledRehearsalIntelligenceSuccessorParent}:${path}`
@@ -607,11 +680,23 @@ function isCurrentControlledRehearsalIntelligenceTransition(
       previousSha256,
       predecessorSha256
     );
-  return predecessorIsGoverned && sha256(gitBytes(
+  const controlledCommitIsGoverned = predecessorIsGoverned && sha256(gitBytes(
       "show",
       `${currentControlledRehearsalIntelligenceSuccessorCommit}:${path}`
-    )) === currentSha256
-    && sha256(read(path)) === currentSha256;
+    )) === expected;
+  if (!controlledCommitIsGoverned) return false;
+  if (revenueSuccessor) {
+    return sha256(gitBytes(
+      "show",
+      `${currentRevenueReadinessIntelligenceSuccessor.parent}:${path}`
+    )) === expected
+      && sha256(gitBytes(
+        "show",
+        `${currentRevenueReadinessIntelligenceSuccessor.commit}:${path}`
+      )) === revenueSuccessor
+      && sha256(read(path)) === revenueSuccessor;
+  }
+  return sha256(read(path)) === expected;
 }
 
 function verifyCurrentHardenedSmokeGuardIntelligenceSuccessor() {
@@ -787,6 +872,9 @@ export function verifyReleaseProvenanceRepair() {
   verifyCurrentPaidCustomerIntelligenceSuccessor();
   verifyCurrentPrivateSmokeTimeoutIntelligenceSuccessor();
   verifyCurrentControlledRehearsalIntelligenceSuccessor();
+  validateRevenueReadinessIntelligenceSuccessor(
+    currentRevenueReadinessIntelligenceSuccessor
+  );
   const hardenedSmokeGuardIntelligenceTransitions =
     verifyCurrentHardenedSmokeGuardIntelligenceSuccessor();
 
@@ -1472,7 +1560,9 @@ export function verifyReleaseProvenanceRepair() {
     currentAugust1IntelligenceSuccessorCommit,
     currentPaidCustomerIntelligenceSuccessorCommit,
     currentPrivateSmokeTimeoutIntelligenceSuccessorCommit,
-    currentControlledRehearsalIntelligenceSuccessorCommit
+    currentControlledRehearsalIntelligenceSuccessorCommit,
+    currentRevenueReadinessIntelligenceSuccessorCommit:
+      currentRevenueReadinessIntelligenceSuccessor.commit
   };
 }
 
