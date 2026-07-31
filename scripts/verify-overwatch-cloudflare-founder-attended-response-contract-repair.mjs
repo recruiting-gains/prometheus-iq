@@ -21,6 +21,9 @@ import {
   hasGovernedPublicDeploymentWorkflowV2PackageSuccessor,
   hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor
 } from "./verify-overwatch-public-deployment-workflow-v2.mjs";
+import {
+  hasFullSystemHarmonyPackageWiringSuccessor
+} from "./verify-overwatch-cloudflare-founder-attended-service-token.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -42,6 +45,10 @@ const routeIq3dGovernancePath =
   "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 const commercialReadinessGovernancePath =
   "overwatch/governance/route-iq-commercial-readiness-v1.json";
+const fullSystemHarmonyGovernancePath =
+  "overwatch/governance/full-system-harmony-audit-v1.json";
+const controlledRehearsalPackageSha256 =
+  "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a";
 const primaryCommit = "04a38d6424099824fa3760314c7b660ce30b6930";
 const primaryParent = "d32ffd8f6ea255fa029976b1bf0006663d567153";
 const primaryTree = "9eccf0475775253653e6e5633824d0562e8ee047";
@@ -101,9 +108,53 @@ const currentOverwatchSuccessor = Object.freeze({
     })
   ])
 });
+const fullSystemHarmonyVerifierSuccessors = Object.freeze([
+  Object.freeze({
+    commit: "03117292d4253b5ed31c8f47d38d149a59fa1cec",
+    tree: "78579a1cd65666efd71d70bc87795c54a7359acc",
+    parent: "b0ed9b5c5693577f4eea74cec757ffa4f2ab3708",
+    identity: "Prometheus Overwatch <overwatch@prometheus.local>",
+    subject: "overwatch: accept harmony package wiring successor",
+    paths: Object.freeze([
+      "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+      "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs"
+    ]),
+    transitions: Object.freeze([
+      Object.freeze({
+        path: "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+        previousSha256: "4047aa80820da7992d00435fc5f4dc291a1cecabbb3997833e478be2d30ff1f7",
+        successorSha256: "bcda2f36357cf27b892421f4257b10d18cf74063de5a6f6defe03be2317399e8"
+      })
+    ])
+  }),
+  Object.freeze({
+    commit: "0e92d266392bc82c553d546d55ef33641c894f8d",
+    tree: "76e3d754f32db5688edaa2f82c33bc96f6ffef70",
+    parent: "eca6e63b84ce1df3ed18278dcfbbf9a241f8abcc",
+    identity: "Prometheus Overwatch <overwatch@prometheus.local>",
+    subject: "overwatch: reconcile attended package consumers",
+    paths: Object.freeze([
+      "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
+      "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs"
+    ]),
+    transitions: Object.freeze([
+      Object.freeze({
+        path: "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
+        previousSha256: "da87d718547e8df775ef58af73a78e3d40262182d6800d02ebcfbb63e8d35311",
+        successorSha256: "05c09251247f63a566d1a4bd633f00f62f76fa3e8dcc72b8a7fd1bf95158c706"
+      }),
+      Object.freeze({
+        path: "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
+        previousSha256: "b6c04c6a67948bccb1e3f0078c6225fdd86be0d7192c01779bea623646c62799",
+        successorSha256: "aed0a31fd6704626424e2d6f14f41200e62d47c671411d028d571d65e63218b0"
+      })
+    ])
+  })
+]);
 const acceptedOverwatchSuccessors = Object.freeze([
   workflowV2ReconciliationSuccessor,
-  currentOverwatchSuccessor
+  currentOverwatchSuccessor,
+  ...fullSystemHarmonyVerifierSuccessors
 ]);
 const rotationOwnerSuccessorPaths = new Set([
   "scripts/lib/cloudflare-founder-attended-response-contract-artifacts.mjs",
@@ -572,6 +623,11 @@ function verifyReleaseWiring(governance) {
     || !hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
       predecessorGovernanceId: "route-iq-3d-visual-continuity-v1",
       historicalSha256: routeIq3dTransition.successorSha256,
+      successorSha256: controlledRehearsalPackageSha256
+    })
+    || !hasFullSystemHarmonyPackageWiringSuccessor({
+      governance: readJson(fullSystemHarmonyGovernancePath),
+      predecessorSha256: controlledRehearsalPackageSha256,
       successorSha256: sha256(read("package.json"))
     })
     || currentTransition.owner !== "Prometheus Overwatch"
