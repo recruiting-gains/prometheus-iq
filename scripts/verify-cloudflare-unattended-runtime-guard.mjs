@@ -31,6 +31,9 @@ const readJson = path => JSON.parse(read(path));
 
 export function verifyCloudflareUnattendedRuntimeGuard() {
   const contract = readJson("workers/infrastructure/cloudflare-unattended-deployment-access-v1.json");
+  const controlledRehearsalContract = readJson(
+    "workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime-v1.json"
+  );
   const worker = read("workers/prometheus-iq-worker.js");
   const guard = read("workers/infrastructure/cloudflare-unattended-smoke-guard.js");
   const smokeClient = read("scripts/run-cloudflare-unattended-smoke.mjs");
@@ -64,7 +67,32 @@ export function verifyCloudflareUnattendedRuntimeGuard() {
   assert.match(wrangler, /"run_worker_first": true/u);
   assert.match(publicWrangler, /"run_worker_first": \[\s*"\/api\/\*"\s*\]/u);
   assert.deepEqual(guardContract.allowedMethods, CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_METHODS);
-  assert.deepEqual(guardContract.allowedPaths, CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS);
+  const controlledRehearsalPath = controlledRehearsalContract.route.exactPath;
+  assert.equal(
+    controlledRehearsalPath,
+    "/api/dashboard/route-iq/paid-customer-onboarding/internal/controlled-rehearsal"
+  );
+  assert.equal(controlledRehearsalContract.ownerSubsystem, "Prometheus Infrastructure");
+  assert.equal(controlledRehearsalContract.targetWorker, "prometheus-iq");
+  assert.equal(controlledRehearsalContract.route.allowedMethod, "GET");
+  assert.equal(controlledRehearsalContract.route.queryAllowed, false);
+  assert.equal(controlledRehearsalContract.route.bodyAllowed, false);
+  assert.equal(controlledRehearsalContract.route.alternatePathsAllowed, false);
+  assert.equal(controlledRehearsalContract.route.ordinaryPrincipalAllowed, false);
+  assert.equal(
+    controlledRehearsalContract.route.servicePrincipalContract,
+    "cloudflare-unattended-smoke-runtime-guard-v1"
+  );
+  assert.deepEqual(
+    guardContract.allowedPaths,
+    CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.filter(
+      path => path !== controlledRehearsalPath
+    )
+  );
+  assert.deepEqual(
+    CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS,
+    [...guardContract.allowedPaths, controlledRehearsalPath]
+  );
   assert.deepEqual(guardContract.runtimeConfigurationNames, Object.values(CLOUDFLARE_UNATTENDED_SMOKE_ENV));
   assert.equal(guardContract.requestMarker.header, CLOUDFLARE_UNATTENDED_SMOKE_MARKER.requestHeader);
   assert.equal(guardContract.requestMarker.value, CLOUDFLARE_UNATTENDED_SMOKE_MARKER.requestValue);
@@ -114,8 +142,11 @@ export function verifyCloudflareUnattendedRuntimeGuard() {
   assert.equal(fixedCloudflareUnattendedSmokePlan().some(request => (
     new URL(request.url).pathname === "/index.html"
   )), false);
+  assert.equal(fixedCloudflareUnattendedSmokePlan().some(request => (
+    new URL(request.url).pathname === controlledRehearsalPath
+  )), false);
   assert.equal(fixedCloudflareUnattendedSmokePlan().length,
-    CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.length);
+    guardContract.allowedPaths.length);
   assert.match(smokeClient, /redirect: "manual"/u);
   assert.match(smokeClient, /credentials: "omit"/u);
   assert.doesNotMatch(smokeClient, /WebSocket|serviceWorker|document\.cookie/u);

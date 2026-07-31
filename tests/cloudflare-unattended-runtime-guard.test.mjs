@@ -60,6 +60,17 @@ import {
 } from "../scripts/run-cloudflare-unattended-smoke.mjs";
 
 const root = resolve(import.meta.dirname, "..");
+const unattendedAccessContract = JSON.parse(readFileSync(
+  resolve(root, "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json"),
+  "utf8"
+));
+const controlledRehearsalContract = JSON.parse(readFileSync(
+  resolve(
+    root,
+    "workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime-v1.json"
+  ),
+  "utf8"
+));
 const testNow = new Date("2026-07-14T18:05:00.000Z");
 const testIssuer = new URL(`https://${["noncanonical-smoke-test", "cloudflareaccess", "com"].join(".")}`).origin;
 const testAudience = ["noncanonical", "smoke", "audience"].join("-");
@@ -87,6 +98,61 @@ test("smoke transport timeout exceeds the bounded server-side JWKS verification 
     CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.maximumWaitMilliseconds
       > CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION.requestTimeoutMilliseconds
         * fixedCloudflareUnattendedSmokePlan().length
+  );
+});
+
+test("controlled rehearsal is one exact additive service-principal path", () => {
+  const path = controlledRehearsalContract.route.exactPath;
+  assert.equal(
+    path,
+    "/api/dashboard/route-iq/paid-customer-onboarding/internal/controlled-rehearsal"
+  );
+  assert.deepEqual(
+    CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS,
+    [
+      ...unattendedAccessContract.servicePrincipalReadOnlyGuard.allowedPaths,
+      path
+    ]
+  );
+  assert.deepEqual(controlledRehearsalContract.route, {
+    exactPath: path,
+    allowedMethod: "GET",
+    queryAllowed: false,
+    bodyAllowed: false,
+    alternatePathsAllowed: false,
+    ordinaryPrincipalAllowed: false,
+    servicePrincipalContract: "cloudflare-unattended-smoke-runtime-guard-v1"
+  });
+  assert.equal(
+    isCloudflareUnattendedSmokeRequestAllowed(
+      "GET",
+      new URL(`${CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN}${path}`)
+    ),
+    true
+  );
+  assert.equal(
+    isCloudflareUnattendedSmokeRequestAllowed(
+      "POST",
+      new URL(`${CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN}${path}`)
+    ),
+    false
+  );
+  assert.equal(
+    isCloudflareUnattendedSmokeRequestAllowed(
+      "GET",
+      new URL(`${CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN}${path}?alternate=true`)
+    ),
+    false
+  );
+  assert.equal(
+    fixedCloudflareUnattendedSmokePlan().some(
+      request => new URL(request.url).pathname === path
+    ),
+    false
+  );
+  assert.equal(
+    fixedCloudflareUnattendedSmokePlan().length,
+    unattendedAccessContract.servicePrincipalReadOnlyGuard.allowedPaths.length
   );
 });
 
