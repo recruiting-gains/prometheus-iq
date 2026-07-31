@@ -84,6 +84,32 @@ const expectedCommits = Object.freeze([
   })
 ]);
 
+export const controlledRehearsalIntelligenceSuccessor = Object.freeze({
+  commit: "c025fd95a8f5141dc4c32af3ca83292711fb1df7",
+  parent: "bc21696a653661ac0b90cd58e3f1744ade10ba70",
+  tree: "06e35bc660be3b07da373c4242e1f1724002ec24",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: accept revenue readiness provenance successor",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "intelligence/provenance/protected-baseline-synchronization-paid-customer-revenue-readiness-worker-v1.json",
+      sha256: "3f21d2b71b85510671a7d76c9043d4ff31421c0cfcc9ff937a16915a5c38b07a"
+    }),
+    Object.freeze({
+      path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      sha256: "705925ee8a523725a195a116b62febc49bc97184b0ad6eeace34df901fca0da0"
+    }),
+    Object.freeze({
+      path: "tests/read-only-field-session-learning.test.mjs",
+      sha256: "9e3d7e6a9ac089d56b7b761758547dca82fac166412bbb74e9f75ba2e257c72f"
+    }),
+    Object.freeze({
+      path: "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+      sha256: "6f69166053117abe4c26a02c26f6492b6bea2649f07565083eb474f094153f53"
+    })
+  ])
+});
+
 const protectedState = Object.freeze({
   collection: "OFF",
   activeCohorts: 0,
@@ -146,6 +172,38 @@ function verifyOwnerCommit(record, expected) {
     ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
     assert.equal(sha256(bytes), item.sha256, `owner evidence drifted: ${item.path}`);
   }
+}
+
+export function validateControlledRehearsalIntelligenceSuccessor(record) {
+  assert.deepEqual(record, controlledRehearsalIntelligenceSuccessor,
+    "controlled rehearsal Intelligence successor drifted");
+  const metadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n");
+  assert.deepEqual(metadata, [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "controlled rehearsal Intelligence successor provenance drifted");
+  const changedPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", record.commit
+  ]).split("\n").filter(Boolean);
+  assert.deepEqual(changedPaths, record.evidence.map(item => item.path));
+  for (const item of record.evidence) {
+    const bytes = execFileSync("/usr/bin/git", [
+      "show", `${record.commit}:${item.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+    assert.equal(sha256(bytes), item.sha256,
+      `controlled rehearsal Intelligence successor evidence drifted: ${item.path}`);
+  }
+  assert.equal(git([
+    "merge-base", "--is-ancestor", record.commit, "HEAD"
+  ]), "");
+  return record;
 }
 
 export function validateControlledRehearsalGovernance(governance) {
@@ -274,6 +332,12 @@ export function validateControlledRehearsalReport(report) {
 }
 
 function verifyCurrentOwnerFiles(governance) {
+  const intelligenceSuccessor = validateControlledRehearsalIntelligenceSuccessor(
+    controlledRehearsalIntelligenceSuccessor
+  );
+  const intelligenceEvidence = new Map(
+    intelligenceSuccessor.evidence.map(item => [item.path, item])
+  );
   const governedSuccessors = new Map([
     ["workers/prometheus-iq-worker.js", {
       commit: "54c7e4277e6ed17d3d9cce2921ff7bac77bb94ff",
@@ -286,6 +350,18 @@ function verifyCurrentOwnerFiles(governance) {
     ["workers/infrastructure/github-actions-private-worker-deployment-v2.json", {
       commit: "7d4110f2d51e3aaf75bd9ac184e91ed6d9d550c5",
       sha256: "574db6b4b5edadd53f06c6788aa942ca0221cd4d56278ad341579eda2f1174f7"
+    }],
+    ["intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs", {
+      commit: intelligenceSuccessor.commit,
+      sha256: intelligenceEvidence.get(
+        "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
+      ).sha256
+    }],
+    ["tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs", {
+      commit: intelligenceSuccessor.commit,
+      sha256: intelligenceEvidence.get(
+        "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+      ).sha256
     }]
   ]);
   for (const record of governance.ownership.ownerCommits.slice(1)) {

@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  controlledRehearsalIntelligenceSuccessor,
+  validateControlledRehearsalIntelligenceSuccessor,
   validateControlledRehearsalGovernance,
   validateControlledRehearsalReport,
   verifyOverwatchControlledPaidCustomerOnboardingRehearsalV1
@@ -17,6 +19,29 @@ const report = readJson(
   "overwatch/reports/BATCH-20260730-002-controlled-paid-customer-onboarding-rehearsal-v1.json"
 );
 const clone = value => structuredClone(value);
+
+test("Overwatch accepts only the exact Intelligence revenue-readiness successor", () => {
+  assert.equal(
+    validateControlledRehearsalIntelligenceSuccessor(
+      controlledRehearsalIntelligenceSuccessor
+    ).commit,
+    "c025fd95a8f5141dc4c32af3ca83292711fb1df7"
+  );
+  for (const mutate of [
+    value => { value.commit = "0".repeat(40); },
+    value => { value.parent = "0".repeat(40); },
+    value => { value.tree = "0".repeat(40); },
+    value => { value.identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.subject = "intelligence: substitute successor"; },
+    value => { value.evidence[0].path = "package.json"; },
+    value => { value.evidence[1].sha256 = "0".repeat(64); },
+    value => { value.evidence.pop(); }
+  ]) {
+    const candidate = clone(controlledRehearsalIntelligenceSuccessor);
+    mutate(candidate);
+    assert.throws(() => validateControlledRehearsalIntelligenceSuccessor(candidate));
+  }
+});
 
 test("Overwatch independently accepts the controlled rehearsal owner chain", async () => {
   const result = await verifyOverwatchControlledPaidCustomerOnboardingRehearsalV1();
