@@ -626,7 +626,7 @@ export function validateAugust1ReadinessSuccessors(successors) {
     {
       path: "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
       previousSha256: "eb9aa716d7d9704dd519696599b6987cf80562c09273f9d3a204a0f77d2e9456",
-      successorSha256: "e6af1329152fb196d968c1455322ba1e941b8742690e7a6605e81f8ce0f724d0"
+      successorSha256: "37464cccb6b300605f3bccfaf7ffdf4fbd8aa74acd2b3111af7e151e97972790"
     },
     {
       path: "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",

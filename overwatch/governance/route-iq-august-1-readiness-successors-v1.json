@@ -11,7 +11,7 @@
     {
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "previousSha256": "fd909a16a69d5286c1ead7710823bbd5c0bca5dbe62b64f37a11594452ea1759",
-      "successorSha256": "5ab18c638e1e28c2693a8d50b92556bb66df2ccbbee22075a3cb1300f79a3490"
+      "successorSha256": "8f7a94f86ae419d735f31a6cce3509e459ed4b6df673d32cb8b63ad1586efdff"
     },
     {
       "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
@@ -47,7 +47,7 @@
         {
           "path": "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
           "previousSha256": "eb9aa716d7d9704dd519696599b6987cf80562c09273f9d3a204a0f77d2e9456",
-          "successorSha256": "e6af1329152fb196d968c1455322ba1e941b8742690e7a6605e81f8ce0f724d0"
+          "successorSha256": "37464cccb6b300605f3bccfaf7ffdf4fbd8aa74acd2b3111af7e151e97972790"
         },
         {
           "path": "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",

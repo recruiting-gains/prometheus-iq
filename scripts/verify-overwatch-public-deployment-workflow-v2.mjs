@@ -109,8 +109,16 @@ const CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_PARENT =
 const CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_SHA256 =
   "baf7641667d909ce5beedf3a7a657dccc1aaf76fe4cbc11392b7f63e468e6d6b";
 const HISTORICAL_3D_PACKAGE_SHA256 = "f34246136a294d5a7180d76a452ff8c9c69bb7d1d35419c1115426b8ea4e0247";
+const REGISTERED_PACKAGE_SHA256 =
+  "8ddf429fc08acd45eca4f59638324f06a80acab9c949168325299e5b73199e2f";
 const CURRENT_PACKAGE_SHA256 = "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a";
 const ACTIVE_PACKAGE_SHA256 = CURRENT_PACKAGE_SHA256;
+const REVENUE_READINESS_PACKAGE_SUCCESSOR_COMMIT =
+  "6b9820a5acf67e7d403d112a71fea4dd37abcf5d";
+const REVENUE_READINESS_PACKAGE_SUCCESSOR_PARENT =
+  "de1b6c75648b2df90b71e8fd460f05a61dfda3f9";
+const REVENUE_READINESS_PACKAGE_SUCCESSOR_TREE =
+  "6c4d80a3de26551afde29077dc5612897a417cae";
 const WORKFLOW_V2_TAIL_ANCHOR = "5b5b59509206578336b9671582669b600d0c74d4";
 const WORKFLOW_V2_TAIL_PARENT = "0d828948968b8cedf3b1961c5320c74c03a8e18c";
 const WORKFLOW_V2_TAIL_PATHS = Object.freeze([
@@ -750,7 +758,7 @@ export function evaluatePublicDeploymentWorkflowV2Governance({
       predecessorGovernanceId: UNATTENDED_GOVERNANCE_ID,
       path: PACKAGE_PATH,
       historicalSha256: HISTORICAL_PACKAGE_SHA256,
-      successorSha256: CURRENT_PACKAGE_SHA256,
+      successorSha256: REGISTERED_PACKAGE_SHA256,
       owner: "Prometheus Overwatch",
       ownerCommit: "610383c4e845789859946122283e8014dae35600",
       classification: "OVERWATCH_AUGUST_1_RELEASE_GATE_REGISTRATION_ONLY"
@@ -759,7 +767,7 @@ export function evaluatePublicDeploymentWorkflowV2Governance({
       predecessorGovernanceId: ROUTE_IQ_3D_GOVERNANCE_ID,
       path: PACKAGE_PATH,
       historicalSha256: HISTORICAL_3D_PACKAGE_SHA256,
-      successorSha256: CURRENT_PACKAGE_SHA256,
+      successorSha256: REGISTERED_PACKAGE_SHA256,
       owner: "Prometheus Overwatch",
       ownerCommit: "610383c4e845789859946122283e8014dae35600",
       classification: "OVERWATCH_AUGUST_1_RELEASE_GATE_REGISTRATION_ONLY"
@@ -810,6 +818,33 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
   )) ?? [];
   if (matches.length !== 1) return false;
   if (matches[0].successorSha256 === successorSha256) return true;
+  if (successorSha256 === ACTIVE_PACKAGE_SHA256) {
+    const fields = git([
+      "show",
+      "-s",
+      "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+      REVENUE_READINESS_PACKAGE_SUCCESSOR_COMMIT
+    ]).split("\n");
+    const predecessorPackage = execFileSync("/usr/bin/git", [
+      "show",
+      `${REVENUE_READINESS_PACKAGE_SUCCESSOR_PARENT}:${PACKAGE_PATH}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const successorPackage = execFileSync("/usr/bin/git", [
+      "show",
+      `${REVENUE_READINESS_PACKAGE_SUCCESSOR_COMMIT}:${PACKAGE_PATH}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    return isDeepStrictEqual(fields, [
+      REVENUE_READINESS_PACKAGE_SUCCESSOR_COMMIT,
+      REVENUE_READINESS_PACKAGE_SUCCESSOR_TREE,
+      REVENUE_READINESS_PACKAGE_SUCCESSOR_PARENT,
+      OVERWATCH_IDENTITY,
+      OVERWATCH_IDENTITY,
+      "overwatch: govern paid-customer revenue readiness"
+    ])
+      && sha256(predecessorPackage) ===
+        CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_SHA256
+      && sha256(successorPackage) === ACTIVE_PACKAGE_SHA256;
+  }
   if (![CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256,
     PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_SHA256,
     PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_SHA256,
