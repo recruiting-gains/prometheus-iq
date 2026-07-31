@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   evaluateFounderAttendedProvisioningGovernance,
   hasControlledRehearsalPackageWiringSuccessor,
+  hasFullSystemHarmonyPackageWiringSuccessor,
   verifyOverwatchFounderAttendedProvisioning
 } from "../scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs";
 
@@ -16,6 +17,9 @@ const governance = readJson("overwatch/governance/cloudflare-founder-attended-se
 const report = readJson("overwatch/reports/BATCH-20260714-007-cloudflare-founder-attended-service-token-provisioning.json");
 const controlledRehearsalSuccessors = readJson(
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
+);
+const fullSystemHarmonyGovernance = readJson(
+  "overwatch/governance/full-system-harmony-audit-v1.json"
 );
 const clone = value => structuredClone(value);
 const evaluate = (nextContract = contract, nextGovernance = governance, nextReport = report) =>
@@ -63,6 +67,45 @@ test("Founder-attended governance accepts only the exact rehearsal package succe
       successorSha256: transition.successorSha256
     }), false);
   }
+});
+
+test("Founder-attended governance accepts only the exact harmony package successor", () => {
+  const predecessorSha256 =
+    "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a";
+  const successorSha256 =
+    "6a7434c52a2491f4820d18657aa2a2dcf92d02c3fdf910a365555aa096dd8e5d";
+  assert.equal(hasFullSystemHarmonyPackageWiringSuccessor({
+    governance: fullSystemHarmonyGovernance,
+    predecessorSha256,
+    successorSha256
+  }), true);
+
+  for (const mutate of [
+    value => { value.ownerSubsystem = "Prometheus Infrastructure"; },
+    value => { value.acceptedBaseline.commit = "0".repeat(40); },
+    value => {
+      value.ownerCommits.find(item => item.commit.startsWith("ecde11c")).owner =
+        "Prometheus Infrastructure <infrastructure@prometheus.local>";
+    }
+  ]) {
+    const changed = clone(fullSystemHarmonyGovernance);
+    mutate(changed);
+    assert.equal(hasFullSystemHarmonyPackageWiringSuccessor({
+      governance: changed,
+      predecessorSha256,
+      successorSha256
+    }), false);
+  }
+  assert.equal(hasFullSystemHarmonyPackageWiringSuccessor({
+    governance: fullSystemHarmonyGovernance,
+    predecessorSha256: "0".repeat(64),
+    successorSha256
+  }), false);
+  assert.equal(hasFullSystemHarmonyPackageWiringSuccessor({
+    governance: fullSystemHarmonyGovernance,
+    predecessorSha256,
+    successorSha256: "0".repeat(64)
+  }), false);
 });
 
 test("Overwatch rejects endpoint, account, name, duration, body, or create-count drift", () => {

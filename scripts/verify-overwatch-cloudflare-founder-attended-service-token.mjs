@@ -33,6 +33,8 @@ const publicDeploymentWorkflowV2GovernancePath =
   "overwatch/governance/public-deployment-workflow-v2.json";
 const controlledRehearsalReadinessSuccessorsPath =
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
+const fullSystemHarmonyGovernancePath =
+  "overwatch/governance/full-system-harmony-audit-v1.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const ownerCommit = "a0a1eb8e434015ea7a0f403e4be0a8979724d9a8";
 const ownerParent = "09418ac6eb4a67b7cc302ba7a30705e9c1012fd5";
@@ -50,6 +52,20 @@ const packageReleaseWiringPaths = Object.freeze([
   "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
   "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
 ]);
+const fullSystemHarmonyPackageReleaseWiringCommit =
+  "ecde11c54e2af76fb2f754dfdadabe516109532a";
+const fullSystemHarmonyPackageReleaseWiringParent =
+  "4b81819c861ca7326b4749c06e69654eab8f3166";
+const fullSystemHarmonyPackageReleaseWiringTree =
+  "7136078840cf498156e588fd4c14ee10b2e335e6";
+const fullSystemHarmonyPackageReleaseWiringPaths = Object.freeze([
+  "overwatch/governance/full-system-harmony-audit-v1.json",
+  "overwatch/reports/BATCH-20260731-002-full-system-harmony-audit-v1.json",
+  "package.json",
+  "scripts/verify-overwatch-full-system-harmony-audit-v1.mjs",
+  "tests/full-system-harmony-cross-subsystem.test.mjs",
+  "tests/overwatch-full-system-harmony-audit-v1.test.mjs"
+]);
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -60,6 +76,11 @@ const git = args => execFileSync("/usr/bin/git", args, {
   encoding: "utf8",
   stdio: ["ignore", "pipe", "ignore"]
 }).trim();
+const gitFile = (commit, path) => execFileSync(
+  "/usr/bin/git",
+  ["show", `${commit}:${path}`],
+  { cwd: root, stdio: ["ignore", "pipe", "ignore"] }
+);
 
 const expectedCommands = Object.freeze([
   "presence",
@@ -82,6 +103,26 @@ export function hasControlledRehearsalPackageWiringSuccessor({
     && governance?.ownerSubsystem === "Prometheus Overwatch"
     && governance?.historicalCloseoutEvidenceRewritten === false
     && matches.length === 1;
+}
+
+export function hasFullSystemHarmonyPackageWiringSuccessor({
+  governance,
+  predecessorSha256,
+  successorSha256
+}) {
+  const ownerMatches = governance?.ownerCommits?.filter(item => (
+    item.commit === fullSystemHarmonyPackageReleaseWiringCommit
+    && item.owner === "Prometheus Overwatch <overwatch@prometheus.local>"
+  )) ?? [];
+  return governance?.governanceId === "full-system-harmony-audit-v1"
+    && governance?.ownerSubsystem === "Prometheus Overwatch"
+    && governance?.acceptedBaseline?.commit ===
+      "1aa1372aeb9558e117cc2d83c6553b952d268730"
+    && predecessorSha256 ===
+      "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a"
+    && successorSha256 ===
+      "6a7434c52a2491f4820d18657aa2a2dcf92d02c3fdf910a365555aa096dd8e5d"
+    && ownerMatches.length === 1;
 }
 const expectedEvidencePaths = Object.freeze([
   ".gitignore",
@@ -473,6 +514,7 @@ function verifyPackageReleaseWiring() {
     controlledRehearsalReadinessSuccessors.overwatchCurrentEvidence?.find(
       item => item.path === "package.json"
     );
+  const fullSystemHarmonyGovernance = readJson(fullSystemHarmonyGovernancePath);
   const packageOwnerFields = git([
     "show",
     "-s",
@@ -486,6 +528,27 @@ function verifyPackageReleaseWiring() {
     "-r",
     packageReleaseWiringCommit
   ]).split("\n").filter(Boolean).sort();
+  const fullSystemHarmonyPackageOwnerFields = git([
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    fullSystemHarmonyPackageReleaseWiringCommit
+  ]).split("\n");
+  const fullSystemHarmonyPackageOwnerPaths = git([
+    "diff-tree",
+    "--no-commit-id",
+    "--name-only",
+    "-r",
+    fullSystemHarmonyPackageReleaseWiringCommit
+  ]).split("\n").filter(Boolean).sort();
+  const fullSystemHarmonyPackagePredecessorSha256 = sha256(gitFile(
+    fullSystemHarmonyPackageReleaseWiringParent,
+    "package.json"
+  ));
+  const fullSystemHarmonyPackageSuccessorSha256 = sha256(gitFile(
+    fullSystemHarmonyPackageReleaseWiringCommit,
+    "package.json"
+  ));
   if (responseContractTransition?.successorSha256 !== packageTransition?.previousSha256
     || packageTransition?.successorSha256 !== keychainTransition?.previousSha256
     || keychainTransition?.successorSha256 !== githubDeploymentTransition?.previousSha256
@@ -500,8 +563,14 @@ function verifyPackageReleaseWiring() {
     || !hasControlledRehearsalPackageWiringSuccessor({
       governance: controlledRehearsalReadinessSuccessors,
       predecessorSha256: controlledRehearsalPackageTransition?.previousSha256,
-      successorSha256: sha256(read("package.json"))
+      successorSha256: fullSystemHarmonyPackagePredecessorSha256
     })
+    || !hasFullSystemHarmonyPackageWiringSuccessor({
+      governance: fullSystemHarmonyGovernance,
+      predecessorSha256: fullSystemHarmonyPackagePredecessorSha256,
+      successorSha256: fullSystemHarmonyPackageSuccessorSha256
+    })
+    || fullSystemHarmonyPackageSuccessorSha256 !== sha256(read("package.json"))
     || packageTransition?.owner !== "Prometheus Overwatch"
     || keychainTransition?.owner !== "Prometheus Overwatch"
     || githubDeploymentTransition?.owner !== "Prometheus Overwatch"
@@ -516,7 +585,19 @@ function verifyPackageReleaseWiring() {
       "Prometheus Overwatch <overwatch@prometheus.local>",
       "Govern August 1 Route IQ launch readiness"
     ])
-    || !equalJson(packageOwnerPaths, [...packageReleaseWiringPaths].sort())) {
+    || !equalJson(packageOwnerPaths, [...packageReleaseWiringPaths].sort())
+    || !equalJson(fullSystemHarmonyPackageOwnerFields, [
+      fullSystemHarmonyPackageReleaseWiringCommit,
+      fullSystemHarmonyPackageReleaseWiringParent,
+      fullSystemHarmonyPackageReleaseWiringTree,
+      "Prometheus Overwatch <overwatch@prometheus.local>",
+      "Prometheus Overwatch <overwatch@prometheus.local>",
+      "overwatch: qualify full-system harmony audit"
+    ])
+    || !equalJson(
+      fullSystemHarmonyPackageOwnerPaths,
+      [...fullSystemHarmonyPackageReleaseWiringPaths].sort()
+    )) {
     throw new Error("Current package release-wiring successor hash drifted.");
   }
   if (!currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-service-token.test.mjs")
