@@ -261,6 +261,10 @@ export function verifyRevenueReadinessWorkflowSource({
   assert.equal(contract.qualification.privateWorkerV2PolicyIdentityDerivedAtRuntime, true);
   assert.equal(contract.qualification.privateWorkerV2ManifestIdentityDerivedAtRuntime, true);
   assert.equal(contract.qualification.acceptedBaselinePayloadHashHardcoded, false);
+  assert.equal(
+    contract.qualification.focusedInfrastructureLaneTest,
+    REVENUE_READINESS_V1_POLICY.testPath
+  );
   assert.deepEqual(contract.acceptance.methods, ["GET", "HEAD"]);
   assert.equal(contract.acceptance.writeMethodsAllowed, false);
   assert.equal(
@@ -351,6 +355,22 @@ export function verifyRevenueReadinessWorkflowSource({
   ]) {
     assert.ok(qualify.includes(command), `qualification missing ${command}`);
   }
+  const canonicalFocusedCommand =
+    `node --test ${REVENUE_READINESS_V1_POLICY.testPath}`;
+  assert.equal(
+    existsSync(resolve(root, REVENUE_READINESS_V1_POLICY.testPath)),
+    true,
+    "canonical focused Infrastructure lane test must exist"
+  );
+  assert.ok(
+    qualify.includes(canonicalFocusedCommand),
+    `qualification missing ${canonicalFocusedCommand}`
+  );
+  assert.doesNotMatch(
+    qualify,
+    /tests\/paid-customer-revenue-readiness-v1\.test\.mjs/u,
+    "qualification must reject the stale nonexistent focused test"
+  );
   assert.equal(
     [...qualify.matchAll(/\bnpm test\b/gu)].length,
     1,

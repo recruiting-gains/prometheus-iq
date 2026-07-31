@@ -859,6 +859,19 @@ test("synthetic workflow rejects wrong actor and branch gates", () => {
   }
 });
 
+test("qualification requires the existing canonical focused Infrastructure lane test", () => {
+  const fixture = sourceFixture();
+  assert.ok(fixture.workflow.includes(
+    `node --test ${REVENUE_READINESS_V1_POLICY.testPath}`
+  ));
+  const staleFixture = sourceFixture();
+  staleFixture.workflow = staleFixture.workflow.replace(
+    `node --test ${REVENUE_READINESS_V1_POLICY.testPath}`,
+    "node --test tests/paid-customer-revenue-readiness-v1.test.mjs"
+  );
+  assert.throws(() => verifyRevenueReadinessWorkflowSource(staleFixture));
+});
+
 test("synthetic workflow rejects skip-only authorization and direct input scripts", () => {
   const skippedFixture = sourceFixture();
   skippedFixture.workflow = skippedFixture.workflow.replace(

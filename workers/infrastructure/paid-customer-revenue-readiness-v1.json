@@ -62,6 +62,7 @@
     "productionBuildRequired": true,
     "crossSubsystemArtifactContractsRequired": true,
     "focusedProjectTestsRequired": true,
+    "focusedInfrastructureLaneTest": "tests/paid-customer-revenue-readiness-infrastructure-lane.test.mjs",
     "privateWorkerV2QualificationReused": true,
     "sourceBuilds": 1,
     "privateWorkerV2PolicyIdentityDerivedAtRuntime": true,

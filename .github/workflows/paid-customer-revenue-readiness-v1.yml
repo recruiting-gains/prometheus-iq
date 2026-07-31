@@ -204,7 +204,7 @@ jobs:
           node scripts/verify-github-actions-private-worker-workflow-v2.mjs
           node scripts/verify-paid-customer-revenue-readiness-v1.mjs
           node --test tests/github-actions-private-worker-workflow-v2.test.mjs
-          node --test tests/paid-customer-revenue-readiness-v1.test.mjs
+          node --test tests/paid-customer-revenue-readiness-infrastructure-lane.test.mjs
 
       - name: Build and freeze the exact private-v2 deployment and rollback artifact once
         id: freeze
