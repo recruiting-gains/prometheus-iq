@@ -3340,16 +3340,20 @@ function verifyV2OwnerAndGovernance() {
     ...v2ApplicationDocumentIdentityGateRepairHashes,
     ...v2ControlledRehearsalRuntimeHashes,
     ...v2ControlledRehearsalLaneHashes,
+    "tests/route-iq-paid-customer-infrastructure.test.mjs":
+      "321ec86516f34d7d5ac38e17ab8a1af85c4cb1f2283e6df61ac74ad17858bbcc",
+    "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json":
+      "0c38be17c0823b1e247f1781353bbce543d66deb46f775c7a905b4164cb6d951",
     "workers/prometheus-iq-worker.js":
-      "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61",
+      "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051",
     "_headers":
-      "d82596c84ec00dd6ea6cb179f196db2a0b71819c16fb96770fb82c320a6e7f69",
+      "96a4816d019802805b61d88699ba952a7180428f9d9d006bb8e319ea3a536275",
     "deploy/cloudflare-pages/_headers":
-      "d82596c84ec00dd6ea6cb179f196db2a0b71819c16fb96770fb82c320a6e7f69",
+      "96a4816d019802805b61d88699ba952a7180428f9d9d006bb8e319ea3a536275",
     "index.html":
-      "b627cc624e08eebb5ac280e8fe2e2e98a82d7f06005eee0a7eab13dcb4d357e2",
+      "336ca7a07fbf7ff9f27e77d674f9191d88253dd7db8ba5016e7f5da91884dad0",
     "deploy/cloudflare-pages/index.html":
-      "b627cc624e08eebb5ac280e8fe2e2e98a82d7f06005eee0a7eab13dcb4d357e2",
+      "336ca7a07fbf7ff9f27e77d674f9191d88253dd7db8ba5016e7f5da91884dad0",
     "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
       "bd07a1971bab290a62adb8084fdfd86aeff82380a9f1204feefaf6fa80baa75b",
     "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
