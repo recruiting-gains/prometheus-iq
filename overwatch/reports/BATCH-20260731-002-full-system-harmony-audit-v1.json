@@ -1,0 +1,56 @@
+{
+  "batchId": "BATCH-20260731-002",
+  "directive": "Full-System Harmony Audit v1",
+  "owner": "Prometheus Overwatch",
+  "status": "SOURCE_VERIFIED_HOSTED_QUALIFICATION_AND_PRIVATE_RUNTIME_REPAIR_PENDING",
+  "executiveVerdict": "CONDITIONAL_GO",
+  "repairs": [
+    {"owner": "Prometheus Administration", "result": "ACTIVE now requires a trusted single-use server decision"},
+    {"owner": "Prometheus Data", "result": "location schedules, evidence references, event chronology, and cleanup evidence fail closed"},
+    {"owner": "Prometheus Intelligence Engine", "result": "recommendation influence remains exactly zero outside an explicit test-only authorization; Companion is proven dormant"},
+    {"owner": "Prometheus CRM", "result": "Founder field-research intake cannot persist into the production CRM runtime"},
+    {"owner": "Prometheus Dashboard", "result": "Founder and customer-owner authority are distinct; customer owners cannot call Founder endpoints; operational status fails closed"},
+    {"owner": "Prometheus Infrastructure", "result": "workspace-scoped Founder status, exact artifact qualification, private-only deployment, and forward rollback are governed"}
+  ],
+  "acceptance": {
+    "crossSubsystemContracts": "PASS",
+    "stateHarmony": "PASS",
+    "tenantIsolation": "PASS",
+    "roleAuthorization": "PASS",
+    "founderOperability": "PASS_WITH_P2_EXTERNAL_PREREQUISITES",
+    "companion": "PASS_DORMANT_DISCONNECTED",
+    "routeIntelligence": "PASS_ADVISORY_ONLY",
+    "crmFollowUp": "PASS_FAIL_CLOSED",
+    "billingActivationSeparation": "PASS",
+    "providerBoundary": "PASS_OFF",
+    "failureRecovery": "PASS",
+    "desktop": "PASS_SOURCE_171_OF_171_HOSTED_ACCEPTANCE_PENDING",
+    "mobile390x844": "PASS_SOURCE_HOSTED_ACCEPTANCE_PENDING",
+    "console": "PASS_SOURCE_HOSTED_ACCEPTANCE_PENDING",
+    "network": "PASS_SOURCE_HOSTED_ACCEPTANCE_PENDING",
+    "rollback": "PASS_SOURCE_HOSTED_REHEARSAL_PENDING"
+  },
+  "externalPrerequisites": [
+    "Founder legal entity decision",
+    "EIN",
+    "Business bank account",
+    "Stripe account and Live Mode authorization",
+    "Binding pricing and billing cadence",
+    "Tax, discount, refund, support, and legal terms"
+  ],
+  "releaseBoundary": {
+    "target": "prometheus-iq",
+    "runtimeRepairRequired": true,
+    "publicWorkerMutationAllowed": false,
+    "productionCustomerMutationAllowed": false,
+    "productionCrmMutationAllowed": false,
+    "liveBillingAllowed": false,
+    "providerActivationAllowed": false,
+    "collectionActivationAllowed": false,
+    "recommendationInfluenceAllowed": false,
+    "workflowDispatched": false,
+    "deploymentPerformed": false,
+    "rollbackPerformed": false
+  },
+  "nextGate": "EXACT_GITHUB_HOSTED_QUALIFICATION_PRIVATE_DEPLOYMENT_AND_AUTOMATED_ACCEPTANCE"
+}
