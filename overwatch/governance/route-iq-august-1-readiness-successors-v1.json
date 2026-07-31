@@ -6,7 +6,7 @@
     {
       "path": "package.json",
       "previousSha256": "1478d8113583c10752c8c6eddf8bb301ea666830821fae8bafb1327f00d2ae6f",
-      "successorSha256": "bc8a01c1a6d4e4f995dc7955eb6f270055f7b60b5580abd71956db5c0d8e5ed5"
+      "successorSha256": "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a"
     },
     {
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",

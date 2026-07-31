@@ -32,8 +32,6 @@
     "overwatch:cloudflare-unattended-keychain-interoperability:check": "node scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs && node --test tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs",
     "overwatch:github-private-worker-deployment:check": "node scripts/verify-overwatch-github-actions-private-worker-deployment.mjs && node --test tests/overwatch-github-actions-private-worker-deployment.test.mjs",
     "overwatch:github-public-worker-workflow-v2:check": "node scripts/verify-overwatch-public-deployment-workflow-v2.mjs && node --test tests/overwatch-public-deployment-workflow-v2.test.mjs",
-    "overwatch:early-github-handoff:check": "node scripts/verify-early-github-handoff-v1.mjs && node scripts/verify-overwatch-early-github-handoff-v1.mjs && node --test tests/early-github-handoff-v1.test.mjs",
-    "overwatch:early-github-handoff:dispatch": "node scripts/run-early-github-handoff-v1.mjs",
     "overwatch:auto-push-governance:check": "node scripts/verify-overwatch-auto-push-governance.mjs",
     "overwatch:production-read-only-mobile:check": "node --test tests/production-read-only-mobile-verification.test.mjs",
     "infrastructure:intake-contract:check": "node --test tests/shared-workspace-lead-intake-contract.test.mjs",
