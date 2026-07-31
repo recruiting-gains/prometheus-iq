@@ -128,6 +128,7 @@ test("Dashboard validation does not relabel one workspace as another", () => {
     authorizationState: "server_verified",
     workspaceId: workspace.workspaceId,
     operatingProfileId: workspace.operatingProfile.profileId,
+    principalRole: "representative",
     userId: user.userId,
     representativeId: user.representativeId,
     roleId: user.roleId,
@@ -156,6 +157,9 @@ test("Dashboard validation does not relabel one workspace as another", () => {
   const substituted = clone(session);
   substituted.workspaceId = registry.workspaces[1].workspaceId;
   assert.throws(() => validateDashboardWorkspaceRegistry(registry, substituted));
+  const elevated = clone(session);
+  elevated.principalRole = "founder";
+  assert.throws(() => validateDashboardWorkspaceRegistry(registry, elevated));
 });
 
 test("one nondeployable negative rule prevents Smoothie Depot from returning", () => {
