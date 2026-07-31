@@ -11,12 +11,12 @@
     {
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "previousSha256": "fd909a16a69d5286c1ead7710823bbd5c0bca5dbe62b64f37a11594452ea1759",
-      "successorSha256": "af9e3722220ee72d61b14ada13e69583263c3adf240d042e80599c6c0934e4e6"
+      "successorSha256": "aca89d5e28b227ab464855fb67876e1e60e0a6affa912b73b74ed3e7c777021e"
     },
     {
       "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
       "previousSha256": "1f44fda6b957e2f86b24eba1aab174c892fde986ecdbc764a2e97d53e6987725",
-      "successorSha256": "ef865e05c2bfad5b71385563339ab8dba99afc5a44bfa83e9982bef0f62e9669"
+      "successorSha256": "49d16901c39b8746e1d7ed354315557bf0e7d99adf519101b86c07b1d541524d"
     }
   ],
   "successors": [
@@ -30,6 +30,29 @@
           "path": "workers/prometheus-iq-worker.js",
           "previousSha256": "58d52967de329daa034751c1cf95ad1ae3da8a853c5cceeb950f0656ed51e2c8",
           "successorSha256": "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132"
+        }
+      ]
+    },
+    {
+      "commit": "75d03ba3440a1b97b128b0a147eff07edf59dde3",
+      "tree": "a3fc65367b789d2bdbe4f35409cf375e6f7240b4",
+      "owner": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "reason": "The controlled rehearsal release-wiring successor teaches historical verifiers the exact current package chain without changing any provisioning, deployment, credential, or production boundary.",
+      "evidence": [
+        {
+          "path": "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+          "previousSha256": "c071d50e52a889519421cedbbd59e139b4bc5598f70b32d02096c929d3332d66",
+          "successorSha256": "4047aa80820da7992d00435fc5f4dc291a1cecabbb3997833e478be2d30ff1f7"
+        },
+        {
+          "path": "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "previousSha256": "eb9aa716d7d9704dd519696599b6987cf80562c09273f9d3a204a0f77d2e9456",
+          "successorSha256": "0de0e4a08ea59cb8de5579b05abce2c9b3e6fedf482f5fc4a3c7012e2afdc4d2"
+        },
+        {
+          "path": "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",
+          "previousSha256": "d4977bcfffd4c3c10170d32456ddadcac38c88043e4ce3ac44cac0d9dd097e83",
+          "successorSha256": "26516d3cfa664bf0258ba60e8a010e726bb2f0d2881e1df29ac6762bcbbbb075"
         }
       ]
     }
