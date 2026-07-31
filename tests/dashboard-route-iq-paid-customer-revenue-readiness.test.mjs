@@ -12,6 +12,7 @@ import {
 
 const NOW = new Date("2026-07-31T18:00:00.000Z");
 const digest = character => character.repeat(64);
+const dashboardShell = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
 function founderSession(overrides = {}) {
   return {
@@ -269,4 +270,78 @@ test("module has no browser storage, network, secret, or mutation path", () => {
     source,
     /\b(?:activateCustomer|createInvitation|enableProvider|enableRecommendations|writeBillingState)\s*\(/u
   );
+});
+
+test("private Dashboard shell mounts the semantic Founder-only renderer", () => {
+  const shell = dashboardShell.match(
+    /<section class="owner-only paid-customer-revenue-readiness-shell"[\s\S]*?<\/section>\s*<section class="paid-customer-preview"/u
+  )?.[0] || "";
+  assert.match(shell, /id="paidCustomerRevenueReadiness"/u);
+  assert.match(shell, /aria-labelledby="paidCustomerRevenueReadinessShellTitle"/u);
+  assert.match(shell, /role="status" aria-live="polite"/u);
+  assert.match(shell, /Founder-only commercial status/u);
+  assert.doesNotMatch(shell, /<(?:button|form|input|select|textarea|a)\b/iu);
+  assert.match(dashboardShell, /revenueReadinessApi\.renderPaidCustomerRevenueReadiness\(view\)/u);
+});
+
+test("shell uses one governed no-store GET and has no mutation route or dead control", () => {
+  const loader = dashboardShell.match(
+    /async function loadPaidCustomerRevenueReadiness\(\)[\s\S]*?\n    \}\n\n    function founderDailyIntelligenceHasForbiddenKeys/u
+  )?.[0] || "";
+  assert.match(
+    dashboardShell,
+    /paidCustomerRevenueReadinessPath = "\.\/api\/dashboard\/route-iq\/internal\/paid-customer-revenue-readiness"/u
+  );
+  assert.match(loader, /if \(sessionRole !== "founder"\)[\s\S]*?return false;/u);
+  assert.match(loader, /await fetch\(paidCustomerRevenueReadinessPath, \{\s*method: "GET"/u);
+  assert.match(loader, /credentials: "same-origin"/u);
+  assert.match(loader, /cache: "no-store"/u);
+  assert.match(loader, /redirect: "error"/u);
+  assert.match(loader, /cache-control/u);
+  assert.match(loader, /content-type/u);
+  assert.doesNotMatch(loader, /method:\s*"(?:POST|PUT|PATCH|DELETE)"/u);
+  assert.doesNotMatch(loader, /localStorage|sessionStorage|indexedDB|document\.cookie|caches\./u);
+  assert.doesNotMatch(loader, /activateCustomer|createInvitation|enableProvider|enableRecommendations/u);
+});
+
+test("shell fails closed through safe loading, empty, and error states", () => {
+  const loader = dashboardShell.match(
+    /async function loadPaidCustomerRevenueReadiness\(\)[\s\S]*?\n    \}\n\n    function founderDailyIntelligenceHasForbiddenKeys/u
+  )?.[0] || "";
+  assert.match(loader, /paidCustomerRevenueReadinessState\("LOADING"\)/u);
+  assert.match(loader, /response\.status === 404 \|\| response\.status === 204/u);
+  assert.match(loader, /paidCustomerRevenueReadinessState\("EMPTY"\)/u);
+  assert.match(loader, /paidCustomerRevenueReadinessState\("ERROR"\)/u);
+  assert.match(loader, /JSON\.stringify\(Object\.keys\(body\)\.sort\(\)\) !== JSON\.stringify\(\["session", "snapshot"\]\)/u);
+  assert.match(loader, /session: body\.session/u);
+});
+
+test("source shell preserves desktop and exact 390x844 overflow-safe semantics", () => {
+  assert.match(
+    dashboardShell,
+    /@media \(max-width: 520px\)[\s\S]*?\.paid-customer-revenue-readiness-shell\s*\{\s*min-width: 0;\s*overflow-x: hidden;/u
+  );
+  const view = createPaidCustomerRevenueReadinessViewModel(readiness(), {
+    session: founderSession(),
+    now: NOW
+  });
+  assert.equal(view.layout.desktop.columns, 2);
+  assert.equal(view.layout.mobile.viewport, "390x844");
+  assert.equal(view.layout.mobile.columns, 1);
+  assert.match(renderPaidCustomerRevenueReadiness(view), /@media \(max-width:767px\)/u);
+});
+
+test("representative path returns before module import, fetch, or rendering", () => {
+  const loader = dashboardShell.match(
+    /async function loadPaidCustomerRevenueReadiness\(\)[\s\S]*?\n    \}\n\n    function founderDailyIntelligenceHasForbiddenKeys/u
+  )?.[0] || "";
+  const roleGate = loader.indexOf('if (sessionRole !== "founder")');
+  const moduleImport = loader.indexOf("await import(paidCustomerRevenueReadinessModulePath)");
+  const request = loader.indexOf("await fetch(paidCustomerRevenueReadinessPath");
+  const render = loader.indexOf("renderPaidCustomerRevenueReadiness(view)");
+  assert.ok(roleGate > -1);
+  assert.ok(moduleImport > roleGate);
+  assert.ok(request > moduleImport);
+  assert.ok(render > request);
+  assert.match(loader.slice(roleGate, moduleImport), /return false;/u);
 });

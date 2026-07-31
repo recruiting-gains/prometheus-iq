@@ -1574,6 +1574,11 @@
         grid-template-columns: 1fr;
       }
 
+      .paid-customer-revenue-readiness-shell {
+        min-width: 0;
+        overflow-x: hidden;
+      }
+
       .item-head {
         flex-wrap: wrap;
       }
@@ -1823,6 +1828,16 @@
             <b id="bestCategory">-</b>
           </article>
         </div>
+        <section class="owner-only paid-customer-revenue-readiness-shell" id="paidCustomerRevenueReadiness" aria-labelledby="paidCustomerRevenueReadinessShellTitle" hidden>
+          <div class="section-title">
+            <h2 id="paidCustomerRevenueReadinessShellTitle">Paid-customer revenue readiness</h2>
+            <small>Founder-only commercial status</small>
+          </div>
+          <article class="panel pad" id="paidCustomerRevenueReadinessContent" role="status" aria-live="polite">
+            <h3>Loading revenue readiness</h3>
+            <p>Checking governed commercial evidence.</p>
+          </article>
+        </section>
         <section class="paid-customer-preview" id="paidCustomerConfigurationPreview" aria-labelledby="paidCustomerConfigurationPreviewTitle" hidden>
           <div class="section-title">
             <h2 id="paidCustomerConfigurationPreviewTitle">Paid-customer configuration preview</h2>
@@ -2207,6 +2222,9 @@
     const routeBusinessHoursModulePath = "./intelligence/route-business-hours-eligibility.mjs";
     const routeGovernedRuntimeScopeModulePath = "./intelligence/route-iq-governed-runtime-scope.mjs";
     const routeReplenishmentModulePath = "./intelligence/continuous-adaptive-route-replenishment.mjs";
+    const paidCustomerRevenueReadinessModulePath = "./dashboard/route-iq-paid-customer-revenue-readiness.mjs?revenue-readiness-v1";
+    const paidCustomerRevenueReadinessPath = "./api/dashboard/route-iq/internal/paid-customer-revenue-readiness";
+    const paidCustomerRevenueReadinessTimeoutMs = 2500;
     const founderDailyIntelligencePath = "./api/dashboard/route-iq/intelligence/daily-snapshot";
     const founderDailyIntelligenceContractVersion = "route-iq-commercial-readiness-intelligence-v1";
     const founderDailySnapshotSchemaVersion = "route-iq-daily-intelligence-snapshot-v1";
@@ -2451,6 +2469,12 @@
         status: "not_requested",
         rendered: false,
         activationEffect: "NONE"
+      },
+      paidCustomerRevenueReadiness: {
+        status: "not_requested",
+        authorized: false,
+        rendered: false,
+        mutationEffects: "NONE"
       },
       lastError: "",
       lastUnhandledRejection: "",
@@ -3144,6 +3168,91 @@
 
     function setFounderDailyIntelligenceStatus(status, authorized = false, rendered = false) {
       window.prometheusDebugState.founderDailyIntelligence = { status, authorized, rendered };
+    }
+
+    function setPaidCustomerRevenueReadinessStatus(status, authorized = false, rendered = false) {
+      window.prometheusDebugState.paidCustomerRevenueReadiness = {
+        status,
+        authorized,
+        rendered,
+        mutationEffects: "NONE"
+      };
+    }
+
+    function renderPaidCustomerRevenueReadinessState(state) {
+      const container = document.getElementById("paidCustomerRevenueReadiness");
+      const content = document.getElementById("paidCustomerRevenueReadinessContent");
+      if (!container || !content) return;
+      const title = document.createElement("h3");
+      title.textContent = state.title;
+      const message = document.createElement("p");
+      message.textContent = state.message;
+      content.replaceChildren(title, message);
+      container.hidden = false;
+    }
+
+    async function loadPaidCustomerRevenueReadiness() {
+      const container = document.getElementById("paidCustomerRevenueReadiness");
+      const content = document.getElementById("paidCustomerRevenueReadinessContent");
+      if (container) container.hidden = true;
+      if (sessionRole !== "founder") {
+        setPaidCustomerRevenueReadinessStatus("role_ineligible");
+        return false;
+      }
+      setPaidCustomerRevenueReadinessStatus("requesting");
+      let revenueReadinessApi;
+      try {
+        revenueReadinessApi = await import(paidCustomerRevenueReadinessModulePath);
+        renderPaidCustomerRevenueReadinessState(
+          revenueReadinessApi.paidCustomerRevenueReadinessState("LOADING")
+        );
+        const response = await fetch(paidCustomerRevenueReadinessPath, {
+          method: "GET",
+          mode: "same-origin",
+          credentials: "same-origin",
+          cache: "no-store",
+          redirect: "error",
+          headers: { "Accept": "application/json" },
+          signal: AbortSignal.timeout(paidCustomerRevenueReadinessTimeoutMs)
+        });
+        if (response.status === 404 || response.status === 204) {
+          renderPaidCustomerRevenueReadinessState(
+            revenueReadinessApi.paidCustomerRevenueReadinessState("EMPTY")
+          );
+          setPaidCustomerRevenueReadinessStatus("empty", true, true);
+          return true;
+        }
+        if (!response.ok
+          || !String(response.headers.get("cache-control") || "").toLowerCase().includes("no-store")
+          || !String(response.headers.get("content-type") || "").toLowerCase().includes("application/json")) {
+          throw new Error("route_iq_revenue_readiness_response_invalid");
+        }
+        const body = await response.json();
+        if (!body
+          || typeof body !== "object"
+          || Array.isArray(body)
+          || JSON.stringify(Object.keys(body).sort()) !== JSON.stringify(["session", "snapshot"])) {
+          throw new Error("route_iq_revenue_readiness_envelope_invalid");
+        }
+        const view = revenueReadinessApi.createPaidCustomerRevenueReadinessViewModel(body.snapshot, {
+          session: body.session,
+          now: new Date()
+        });
+        content.innerHTML = revenueReadinessApi.renderPaidCustomerRevenueReadiness(view);
+        container.hidden = false;
+        setPaidCustomerRevenueReadinessStatus("rendered", true, true);
+        return true;
+      } catch (error) {
+        if (revenueReadinessApi) {
+          renderPaidCustomerRevenueReadinessState(
+            revenueReadinessApi.paidCustomerRevenueReadinessState("ERROR")
+          );
+        }
+        setPaidCustomerRevenueReadinessStatus(
+          error?.name === "TimeoutError" ? "request_timeout" : "unavailable"
+        );
+        return false;
+      }
     }
 
     function founderDailyIntelligenceHasForbiddenKeys(value) {
@@ -8532,6 +8641,7 @@
         await requestAdaptiveRouteReplenishment({ force: true, trigger: "startup" });
         void prospectiveBootstrapPromise;
         render();
+        void loadPaidCustomerRevenueReadiness();
         void loadFounderDailyIntelligence();
         window.prometheusDebugState.startupCompleted = true;
         window.prometheusDebugState.lastStage = "startup-complete";
