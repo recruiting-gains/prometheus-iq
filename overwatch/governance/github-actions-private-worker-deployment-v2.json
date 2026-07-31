@@ -1602,7 +1602,7 @@
   "controlledRehearsalSuccessor": {
     "historicalContinuityRewritten": false,
     "previousQualifiedForwardPayloadSha256": "de308060bc0e9799fdcdbb6cdad238f8b6c4d62a2b9bea4c808c688d9363f0a6",
-    "qualifiedForwardPayloadSha256": "b54d07e0724867388e3a9fdb7f5e4dd26a668ba48ae73998a5c9b2fc2317c44e",
+    "qualifiedForwardPayloadSha256": "800e3ebe685d8b801d1b07a34c228ffe1ddea536623c67354d51fd9f601df7f6",
     "previousQualifiedRollbackBundleSha256": "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637",
     "qualifiedRollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
   },

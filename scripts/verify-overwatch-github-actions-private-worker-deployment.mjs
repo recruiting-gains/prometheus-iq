@@ -2465,7 +2465,7 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       ?.previousQualifiedForwardPayloadSha256 ===
       "de308060bc0e9799fdcdbb6cdad238f8b6c4d62a2b9bea4c808c688d9363f0a6"
     && governance?.controlledRehearsalSuccessor?.qualifiedForwardPayloadSha256 ===
-      "b54d07e0724867388e3a9fdb7f5e4dd26a668ba48ae73998a5c9b2fc2317c44e"
+      "800e3ebe685d8b801d1b07a34c228ffe1ddea536623c67354d51fd9f601df7f6"
     && governance?.controlledRehearsalSuccessor
       ?.previousQualifiedRollbackBundleSha256 ===
       "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637"
@@ -3355,9 +3355,9 @@ function verifyV2OwnerAndGovernance() {
     "deploy/cloudflare-pages/index.html":
       "336ca7a07fbf7ff9f27e77d674f9191d88253dd7db8ba5016e7f5da91884dad0",
     "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
-      "7d141d84196b966b38c1d4f6ab11c364257c554ad260356469030c57209ed2e4",
+      "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
     "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
-      "1752af8761c22ec9c8aa74bab10d177fff14ce4fbda1617e6321ab6abd32e997"
+      "30810573fc0926c03a6bbc5337db4ce7030c419a4b08c64b219db7c3abeb371b"
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     const currentSha256 = sha256(readFileSync(resolve(root, path)));
