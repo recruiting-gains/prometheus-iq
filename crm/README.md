@@ -15,6 +15,7 @@ CRM also owns the operating architecture for company accounts, retained pre-comm
 - `enterprise-lifecycle-model.json`: machine-readable CRM operating model for validation and future implementation.
 - `paid-customer-workflow-configuration-v1.mjs`: production-readiness foundation for versioned, company-and-workspace-scoped CRM roles, stages, workflows, metrics, preview, idempotent provisioning projections, lifecycle controls, and append-only audit.
 - `paid-customer-workflow-contract-v1.json`: machine-readable execution boundary for the paid-customer CRM foundation. Preview and provisioning remain non-activating, perform no production CRM mutation, and send no notification.
+- `paid-customer-revenue-readiness-v1.mjs`: fictional/test-disabled billing-state and signed-webhook boundary for revenue rehearsal. Billing records are server-authoritative and tenant scoped; billing never activates a customer, and live billing states are unreachable.
 - `projectRouteIqPaidCustomerOnboardingToCrmWorkflow`: deterministic fail-closed adapter from the validated Administration onboarding contract into the existing CRM workflow configuration. It preserves immutable scope and metric history, maps only governed role capabilities, and rejects unsafe lifecycle, reference, unit, or cross-workspace states.
 
 Earlier pre-commercial modules remain historical compatibility surfaces. New paid-customer workflow configuration must use the versioned paid-customer contract and stable internal identifiers rather than customer-specific branches or display labels as keys.
