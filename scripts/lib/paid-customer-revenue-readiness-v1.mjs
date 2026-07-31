@@ -133,10 +133,31 @@ export const REVENUE_READINESS_V1_POLICY = Object.freeze({
     "tests/cloudflare-unattended-runtime-guard.test.mjs",
     "tests/route-iq-prospective-shadow-infrastructure.test.mjs"
   ]),
-  infrastructureTerminalPolicyPaths: Object.freeze([
-    "scripts/lib/paid-customer-revenue-readiness-v1.mjs",
-    "tests/paid-customer-revenue-readiness-infrastructure-lane.test.mjs",
-    "workers/infrastructure/paid-customer-revenue-readiness-v1.json"
+  infrastructureTerminalPolicyRepairs: Object.freeze([
+    Object.freeze({
+      subject: "infrastructure: admit revenue provenance successors",
+      paths: Object.freeze([
+        "scripts/lib/paid-customer-revenue-readiness-v1.mjs",
+        "tests/paid-customer-revenue-readiness-infrastructure-lane.test.mjs",
+        "workers/infrastructure/paid-customer-revenue-readiness-v1.json"
+      ])
+    }),
+    Object.freeze({
+      subject: "infrastructure: repair revenue clean-runner test path",
+      paths: Object.freeze([
+        ".github/workflows/paid-customer-revenue-readiness-v1.yml",
+        "scripts/verify-paid-customer-revenue-readiness-v1.mjs",
+        "tests/paid-customer-revenue-readiness-infrastructure-lane.test.mjs",
+        "workers/infrastructure/paid-customer-revenue-readiness-v1.json"
+      ])
+    }),
+    Object.freeze({
+      subject: "infrastructure: close revenue terminal owner chain",
+      paths: Object.freeze([
+        "scripts/lib/paid-customer-revenue-readiness-v1.mjs",
+        "tests/paid-customer-revenue-readiness-infrastructure-lane.test.mjs"
+      ])
+    })
   ]),
   intelligenceSuccessorPaths: Object.freeze([
     "intelligence/provenance/route-iq-paid-customer-revenue-readiness-v1.json",
@@ -484,6 +505,10 @@ export function validateRevenueReadinessCommitTopology(records) {
       || new Set(record.paths).size !== record.paths.length
       || !Array.isArray(record.pathOwners)
       || record.pathOwners.length !== record.paths.length
+      || typeof record.subject !== "string"
+      || record.subject.length < 1
+      || record.subject.length > 120
+      || /[\r\n\0]/u.test(record.subject)
       || !VALID_OWNERS.includes(record.owner)
       || record.pathOwners.some(owner => owner !== record.owner)
       || record.author !== IDENTITIES[record.owner]
@@ -496,11 +521,24 @@ export function validateRevenueReadinessCommitTopology(records) {
   for (const owner of owners) {
     counts[owner] += 1;
   }
-  const finalRecord = records.at(-1);
-  const terminalInfrastructurePolicyRepair = finalRecord.owner === "INFRASTRUCTURE"
-    && owners.at(-2) === "OVERWATCH"
-    && finalRecord.paths.every(path =>
-      REVENUE_READINESS_V1_POLICY.infrastructureTerminalPolicyPaths.includes(path));
+  const expectedTerminalRepairs =
+    REVENUE_READINESS_V1_POLICY.infrastructureTerminalPolicyRepairs;
+  const terminalRecords = records.slice(-expectedTerminalRepairs.length);
+  const terminalParentIndex = records.length - expectedTerminalRepairs.length - 1;
+  const terminalInfrastructurePolicyRepair = terminalParentIndex >= 0
+    && records[terminalParentIndex].owner === "OVERWATCH"
+    && terminalRecords.length === expectedTerminalRepairs.length
+    && terminalRecords.every((record, index) => {
+      const expected = expectedTerminalRepairs[index];
+      const expectedParent = index === 0
+        ? records[terminalParentIndex].commit
+        : terminalRecords[index - 1].commit;
+      return record.owner === "INFRASTRUCTURE"
+        && record.parents[0] === expectedParent
+        && record.subject === expected.subject
+        && record.paths.length === expected.paths.length
+        && record.paths.every(path => expected.paths.includes(path));
+    });
   if (counts.ADMINISTRATION < 1
     || counts.CRM < 1
     || counts.DATA < 1
@@ -578,10 +616,10 @@ function commitRecord(root, commit) {
   const metadata = runGit(root, [
     "show",
     "-s",
-    "--format=%H%x00%P%x00%an <%ae>%x00%cn <%ce>",
+    "--format=%H%x00%P%x00%an <%ae>%x00%cn <%ce>%x00%s",
     commit
   ], { allowEmpty: false }).split("\0");
-  if (metadata.length !== 4 || metadata[0] !== commit) {
+  if (metadata.length !== 5 || metadata[0] !== commit) {
     fail(REVENUE_READINESS_V1_FAILURE.REPOSITORY_INVALID);
   }
   const paths = runGit(root, [
@@ -604,6 +642,7 @@ function commitRecord(root, commit) {
     parents: metadata[1].split(" ").filter(Boolean),
     author: metadata[2],
     committer: metadata[3],
+    subject: metadata[4],
     owner: owners.values().next().value,
     paths: Object.freeze(paths),
     pathOwners: Object.freeze(pathOwners)

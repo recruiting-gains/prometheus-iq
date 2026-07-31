@@ -142,7 +142,7 @@ function runPreCheckoutGate(script, overrides = {}) {
   });
 }
 
-function record(owner, index, paths) {
+function record(owner, index, paths, subject = `${owner.toLowerCase()}: synthetic owner record`) {
   const identity = {
     ADMINISTRATION:
       "Prometheus Administration <administration@prometheus.local>",
@@ -161,6 +161,7 @@ function record(owner, index, paths) {
     parents: [String(index - 1).repeat(40)],
     author: identity,
     committer: identity,
+    subject,
     owner,
     paths,
     pathOwners: paths.map(path => revenueReadinessPathOwner(path))
@@ -472,7 +473,7 @@ test("exact Intelligence and Overwatch revenue successors pass without admitting
   assert.equal(topology.finalOwner, "OVERWATCH");
 });
 
-test("exact terminal Infrastructure policy repair passes only after Overwatch", () => {
+test("exact terminal Infrastructure policy sequence passes without self-hashes", () => {
   const base = [
     record("ADMINISTRATION", 2, [
       REVENUE_READINESS_V1_POLICY.administrationPaths[0]
@@ -488,19 +489,43 @@ test("exact terminal Infrastructure policy repair passes only after Overwatch", 
       REVENUE_READINESS_V1_POLICY.overwatchNewPaths[0]
     ])
   ];
-  const topology = validateRevenueReadinessCommitTopology(base.concat(record(
-    "INFRASTRUCTURE",
-    9,
-    REVENUE_READINESS_V1_POLICY.infrastructureTerminalPolicyPaths
-  )));
+  const terminal = REVENUE_READINESS_V1_POLICY.infrastructureTerminalPolicyRepairs
+    .map((repair, index) => record(
+      "INFRASTRUCTURE",
+      index + 1,
+      repair.paths,
+      repair.subject
+    ));
+  terminal.forEach((record, index) => {
+    record.parents = [index === 0
+      ? base.at(-1).commit
+      : terminal[index - 1].commit];
+  });
+  const topology = validateRevenueReadinessCommitTopology(base.concat(terminal));
   assert.equal(topology.finalOwner, "INFRASTRUCTURE");
 
   expectFailure(
-    () => validateRevenueReadinessCommitTopology(base.concat(record(
-      "INFRASTRUCTURE",
-      9,
-      [REVENUE_READINESS_V1_POLICY.infrastructureSuccessorPaths[0]]
-    ))),
+    () => validateRevenueReadinessCommitTopology(base.concat(
+      terminal.slice(0, -1),
+      record(
+        "INFRASTRUCTURE",
+        3,
+        [REVENUE_READINESS_V1_POLICY.infrastructureSuccessorPaths[0]],
+        terminal.at(-1).subject
+      )
+    )),
+    REVENUE_READINESS_V1_FAILURE.OWNER_INVALID
+  );
+  expectFailure(
+    () => validateRevenueReadinessCommitTopology(base.concat(
+      terminal,
+      record(
+        "INFRASTRUCTURE",
+        4,
+        terminal.at(-1).paths,
+        terminal.at(-1).subject
+      )
+    )),
     REVENUE_READINESS_V1_FAILURE.OWNER_INVALID
   );
 });
