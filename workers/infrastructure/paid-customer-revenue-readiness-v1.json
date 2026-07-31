@@ -4,8 +4,8 @@
   "owner": "Prometheus Infrastructure",
   "status": "IMPLEMENTED_NOT_DISPATCHED_NOT_DEPLOYED",
   "baseline": {
-    "commit": "50fa933f45e82224959386bd30d0e57becfb7d3c",
-    "tree": "6d30998444d6660de7c42f5988e5f2f56f9966da",
+    "commit": "f78d360c588e96fbbd91c0cbbe52a4d4cca4845c",
+    "tree": "fd9cf889e5bce8bd7e445a6e6ca9fde5b38a1522",
     "privateWorkerVersion": "2f2b059b-8776-4d70-8848-1a0c5d5b18d4",
     "publicWorkerVersion": "6a8713c0-0712-4cda-8a13-daa893ca45f2"
   },

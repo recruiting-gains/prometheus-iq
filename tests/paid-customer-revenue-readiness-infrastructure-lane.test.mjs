@@ -415,6 +415,96 @@ test("owner successor followed by Overwatch acceptance passes", () => {
   assert.equal(topology.infrastructureCommitCount, 2);
 });
 
+test("exact Intelligence and Overwatch revenue successors pass without admitting substitutions", () => {
+  const intelligencePaths =
+    REVENUE_READINESS_V1_POLICY.intelligenceSuccessorPaths;
+  const overwatchPaths = [
+    "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+    "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
+    "overwatch/governance/github-actions-private-worker-deployment-v2.json",
+    "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
+    "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
+    "scripts/verify-release-provenance-repair.mjs",
+    "tests/release-provenance-repair.test.mjs"
+  ];
+  const exactAcceptedPredecessors = [
+    ["_headers", "DASHBOARD"],
+    ["overwatch/governance/public-deployment-workflow-v2.json", "OVERWATCH"]
+  ];
+  for (const path of intelligencePaths) {
+    assert.equal(revenueReadinessPathOwner(path), "INTELLIGENCE");
+    assert.equal(revenueReadinessPathOwner(`${path}.substituted`), null);
+  }
+  for (const path of overwatchPaths) {
+    assert.equal(revenueReadinessPathOwner(path), "OVERWATCH");
+    assert.equal(revenueReadinessPathOwner(`${path}.substituted`), null);
+  }
+  for (const [path, owner] of exactAcceptedPredecessors) {
+    assert.equal(revenueReadinessPathOwner(path), owner);
+    assert.equal(revenueReadinessPathOwner(`${path}.substituted`), null);
+  }
+
+  const topology = validateRevenueReadinessCommitTopology([
+    record("ADMINISTRATION", 2, [
+      REVENUE_READINESS_V1_POLICY.administrationPaths[0]
+    ]),
+    record("CRM", 3, [REVENUE_READINESS_V1_POLICY.crmPaths[0]]),
+    record("DATA", 4, [REVENUE_READINESS_V1_POLICY.dataPaths[0]]),
+    record("DASHBOARD", 5, [REVENUE_READINESS_V1_POLICY.dashboardPaths[0]]),
+    record("SECURITY", 6, [REVENUE_READINESS_V1_POLICY.securityPaths[0]]),
+    record("INFRASTRUCTURE", 7, [
+      REVENUE_READINESS_V1_POLICY.infrastructureNewPaths[0]
+    ]),
+    record("OVERWATCH", 8, [
+      REVENUE_READINESS_V1_POLICY.overwatchNewPaths[0]
+    ]),
+    record("INTELLIGENCE", 9, intelligencePaths.slice(4, 6)),
+    record("INTELLIGENCE", 1, intelligencePaths.slice(0, 3)),
+    record("OVERWATCH", 2, overwatchPaths.slice(0, 2)),
+    record("OVERWATCH", 3, overwatchPaths.slice(2, 5)),
+    record("INTELLIGENCE", 4, intelligencePaths.slice(3, 4).concat(
+      intelligencePaths.slice(6)
+    )),
+    record("OVERWATCH", 5, overwatchPaths.slice(5))
+  ]);
+  assert.equal(topology.intelligenceCommitCount, 3);
+  assert.equal(topology.overwatchCommitCount, 4);
+  assert.equal(topology.finalOwner, "OVERWATCH");
+});
+
+test("exact terminal Infrastructure policy repair passes only after Overwatch", () => {
+  const base = [
+    record("ADMINISTRATION", 2, [
+      REVENUE_READINESS_V1_POLICY.administrationPaths[0]
+    ]),
+    record("CRM", 3, [REVENUE_READINESS_V1_POLICY.crmPaths[0]]),
+    record("DATA", 4, [REVENUE_READINESS_V1_POLICY.dataPaths[0]]),
+    record("DASHBOARD", 5, [REVENUE_READINESS_V1_POLICY.dashboardPaths[0]]),
+    record("SECURITY", 6, [REVENUE_READINESS_V1_POLICY.securityPaths[0]]),
+    record("INFRASTRUCTURE", 7, [
+      REVENUE_READINESS_V1_POLICY.infrastructureNewPaths[0]
+    ]),
+    record("OVERWATCH", 8, [
+      REVENUE_READINESS_V1_POLICY.overwatchNewPaths[0]
+    ])
+  ];
+  const topology = validateRevenueReadinessCommitTopology(base.concat(record(
+    "INFRASTRUCTURE",
+    9,
+    REVENUE_READINESS_V1_POLICY.infrastructureTerminalPolicyPaths
+  )));
+  assert.equal(topology.finalOwner, "INFRASTRUCTURE");
+
+  expectFailure(
+    () => validateRevenueReadinessCommitTopology(base.concat(record(
+      "INFRASTRUCTURE",
+      9,
+      [REVENUE_READINESS_V1_POLICY.infrastructureSuccessorPaths[0]]
+    ))),
+    REVENUE_READINESS_V1_FAILURE.OWNER_INVALID
+  );
+});
+
 test("an owner successor without subsequent Overwatch acceptance fails closed", () => {
   expectFailure(
     () => validateRevenueReadinessCommitTopology([

@@ -64,8 +64,8 @@ export const REVENUE_READINESS_V1_POLICY = Object.freeze({
   founderAuthorization:
     "I AUTHORIZE THIS EXACT PAID-CUSTOMER REVENUE READINESS QUALIFICATION",
   firstRunAttempt: "1",
-  baselineCommit: "50fa933f45e82224959386bd30d0e57becfb7d3c",
-  baselineTree: "6d30998444d6660de7c42f5988e5f2f56f9966da",
+  baselineCommit: "f78d360c588e96fbbd91c0cbbe52a4d4cca4845c",
+  baselineTree: "fd9cf889e5bce8bd7e445a6e6ca9fde5b38a1522",
   currentPrivateVersion: "2f2b059b-8776-4d70-8848-1a0c5d5b18d4",
   currentPublicVersion: "6a8713c0-0712-4cda-8a13-daa893ca45f2",
   privateWorker: PRIVATE_WORKFLOW_V2_POLICY.privateWorker,
@@ -90,6 +90,7 @@ export const REVENUE_READINESS_V1_POLICY = Object.freeze({
     "data/route-iq-paid-customer-revenue-readiness-v1/"
   ]),
   dashboardPaths: Object.freeze([
+    "_headers",
     "dashboard/route-iq-paid-customer-revenue-readiness.mjs",
     "index.html",
     "tests/dashboard-route-iq-paid-customer-revenue-readiness.test.mjs"
@@ -132,7 +133,25 @@ export const REVENUE_READINESS_V1_POLICY = Object.freeze({
     "tests/cloudflare-unattended-runtime-guard.test.mjs",
     "tests/route-iq-prospective-shadow-infrastructure.test.mjs"
   ]),
-  intelligenceSuccessorPaths: Object.freeze([]),
+  infrastructureTerminalPolicyPaths: Object.freeze([
+    "scripts/lib/paid-customer-revenue-readiness-v1.mjs",
+    "tests/paid-customer-revenue-readiness-infrastructure-lane.test.mjs",
+    "workers/infrastructure/paid-customer-revenue-readiness-v1.json"
+  ]),
+  intelligenceSuccessorPaths: Object.freeze([
+    "intelligence/provenance/route-iq-paid-customer-revenue-readiness-v1.json",
+    "intelligence/provenance/route-iq-paid-customer-revenue-readiness-v1.mjs",
+    "intelligence/provenance/protected-baseline-synchronization-paid-customer-revenue-readiness-worker-v1.json",
+    "intelligence/provenance/protected-consumer-synchronization-paid-customer-revenue-readiness-v1.json",
+    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+    "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs",
+    "scripts/lib/route-intelligence-quality-gate.mjs",
+    "tests/intelligence-architecture.test.mjs",
+    "tests/read-only-field-session-learning.test.mjs",
+    "tests/route-iq-intelligence-paid-customer-revenue-readiness.test.mjs",
+    "tests/route-intelligence-quality-gate.test.mjs",
+    "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+  ]),
   overwatchNewPaths: Object.freeze([
     "overwatch/governance/paid-customer-revenue-readiness-v1.json",
     "overwatch/reports/BATCH-20260731-001-paid-customer-revenue-readiness-v1.json",
@@ -141,6 +160,7 @@ export const REVENUE_READINESS_V1_POLICY = Object.freeze({
   ]),
   overwatchSuccessorPaths: Object.freeze([
     "overwatch/governance/github-actions-private-worker-deployment-v2.json",
+    "overwatch/governance/public-deployment-workflow-v2.json",
     "overwatch/governance/route-iq-august-1-launch-closeout-v1.json",
     "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
     "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
@@ -150,6 +170,7 @@ export const REVENUE_READINESS_V1_POLICY = Object.freeze({
     "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
     "scripts/verify-release-provenance-repair.mjs",
     "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",
+    "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
     "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
     "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
     "tests/release-provenance-repair.test.mjs"
@@ -475,6 +496,11 @@ export function validateRevenueReadinessCommitTopology(records) {
   for (const owner of owners) {
     counts[owner] += 1;
   }
+  const finalRecord = records.at(-1);
+  const terminalInfrastructurePolicyRepair = finalRecord.owner === "INFRASTRUCTURE"
+    && owners.at(-2) === "OVERWATCH"
+    && finalRecord.paths.every(path =>
+      REVENUE_READINESS_V1_POLICY.infrastructureTerminalPolicyPaths.includes(path));
   if (counts.ADMINISTRATION < 1
     || counts.CRM < 1
     || counts.DATA < 1
@@ -482,7 +508,7 @@ export function validateRevenueReadinessCommitTopology(records) {
     || counts.SECURITY < 1
     || counts.INFRASTRUCTURE < 1
     || counts.OVERWATCH < 1
-    || owners.at(-1) !== "OVERWATCH") {
+    || (owners.at(-1) !== "OVERWATCH" && !terminalInfrastructurePolicyRepair)) {
     fail(REVENUE_READINESS_V1_FAILURE.OWNER_INVALID);
   }
   return Object.freeze({
