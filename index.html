@@ -6,7 +6,7 @@
   <title>Route IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-uXzgqWQ8z1S1+OnLj0PA2CfYLDyKl/bCf8vh+p7F+Us='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-pdbxLJdpvby5FXDO6TsMYqHRBCgMgJAhJsgSSGDK2RQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Route IQ">
@@ -2053,6 +2053,7 @@
         "workspaceId",
         "workspaceLabel",
         "operatingProfileId",
+        "principalRole",
         "userId",
         "representativeId",
         "displayName",
@@ -2073,6 +2074,7 @@
         || JSON.stringify(Object.keys(value).sort()) !== JSON.stringify(exactKeys)
         || value.contractVersion !== "route-iq-customer-pwa-session-v2"
         || value.authorizationState !== "server_verified"
+        || !["founder", "customer_owner", "manager", "representative"].includes(value.principalRole)
         || !/^[a-z][a-z0-9_]{2,127}$/u.test(value.workspaceId || "")
         || !/^[a-z][a-z0-9_]{2,127}$/u.test(value.operatingProfileId || "")
         || !/^[a-z][a-z0-9_]{2,127}$/u.test(value.userId || "")
@@ -2083,8 +2085,16 @@
         || !value.capabilities
         || JSON.stringify(Object.keys(value.capabilities).sort()) !== JSON.stringify(capabilityKeys)
         || Object.values(value.capabilities).some(capability => typeof capability !== "boolean")
-        || value.capabilities.founderIntelligence !== false
+        || value.capabilities.founderIntelligence !== (value.principalRole === "founder")
         || value.capabilities.founderCrm !== false
+        || (value.principalRole === "founder" && (value.capabilities.readWorkspaceOperations !== true
+          || value.capabilities.administerWorkspaceRoster !== false))
+        || (value.principalRole === "customer_owner" && value.capabilities.administerWorkspaceRoster !== true)
+        || (value.principalRole === "manager" && (value.capabilities.readWorkspaceOperations !== true
+          || value.capabilities.administerWorkspaceRoster !== false))
+        || (value.principalRole === "representative" && (value.capabilities.operateOwnRoute !== true
+          || value.capabilities.readWorkspaceOperations !== false
+          || value.capabilities.administerWorkspaceRoster !== false))
         || !value.runtimeAssets
         || JSON.stringify(Object.keys(value.runtimeAssets).sort()) !== JSON.stringify([
           "businessHours",
@@ -2655,13 +2665,11 @@
 
     const isLocalPreview = location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
     const safeParam = value => String(value || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 60);
-    const routeIqCustomerSessionRole = routeIqCustomerPwaSession?.capabilities?.administerWorkspaceRoster
+    const routeIqCustomerSessionRole = routeIqCustomerPwaSession?.principalRole === "customer_owner"
       ? "owner"
-      : routeIqCustomerPwaSession?.capabilities?.readWorkspaceOperations
-        ? "manager"
-        : routeIqCustomerPwaSession?.capabilities?.operateOwnRoute
-          ? "rep"
-          : "";
+      : routeIqCustomerPwaSession?.principalRole === "representative"
+        ? "rep"
+        : routeIqCustomerPwaSession?.principalRole || "";
     const requestedOperatingProfileId = routeIqCustomerPwaSession?.operatingProfileId
       || "";
     const requestedRole = routeIqCustomerPwaSession
@@ -2920,7 +2928,14 @@
       const container = document.getElementById("founderWorkspaceSwitch");
       const select = document.getElementById("founderWorkspaceSelect");
       const status = document.getElementById("founderWorkspaceStatus");
-      if (!container || !select || !status || !routeIqCustomerPwaSession || !routeIqDashboardPlatformApi) return;
+      if (!container
+        || !select
+        || !status
+        || !routeIqCustomerPwaSession
+        || routeIqCustomerPwaSession.principalRole !== "founder"
+        || routeIqCustomerPwaSession.capabilities.readWorkspaceOperations !== true
+        || routeIqCustomerPwaSession.capabilities.founderIntelligence !== true
+        || !routeIqDashboardPlatformApi) return;
       container.hidden = true;
       founderWorkspaceAccess = null;
       window.prometheusDebugState.founderWorkspaceSwitch = {
@@ -3153,7 +3168,6 @@
         : shouldUseStoredLaunchContext
         ? storedLaunchContext.role
         : localStorage.getItem(sessionRoleStoreKey) || (isLocalPreview ? "founder" : "rep");
-    if (sessionRole === "owner") sessionRole = "manager";
     if (!validSessionRoles.has(sessionRole)) sessionRole = "rep";
     if (!routeIqCustomerPwaSession) localStorage.setItem(sessionRoleStoreKey, sessionRole);
     localStorage.setItem(appBuildStoreKey, appBuildVersion);
@@ -3163,7 +3177,7 @@
     }
 
     function canUseOwnerMode() {
-      return sessionRole === "founder" || sessionRole === "admin" || sessionRole === "manager";
+      return sessionRole === "founder" || sessionRole === "admin" || sessionRole === "owner" || sessionRole === "manager";
     }
 
     function setFounderDailyIntelligenceStatus(status, authorized = false, rendered = false) {
@@ -3406,7 +3420,7 @@
       || localStorage.getItem(modeStoreKey) === "owner"
     ) ? "owner" : "rep";
     if (requestedRole === "rep" || sessionRole === "rep") appMode = "rep";
-    if (canUseOwnerMode() && ["founder", "admin", "manager"].includes(requestedRole)) appMode = "owner";
+    if (canUseOwnerMode() && ["founder", "admin", "owner", "manager"].includes(requestedRole)) appMode = "owner";
     let currentWindow = "all";
     let currentFilter = "all";
     let placesRenderToken = 0;

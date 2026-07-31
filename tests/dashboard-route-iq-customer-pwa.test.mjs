@@ -18,6 +18,7 @@ test("the customer PWA is one generic Route IQ app with a server-verified entry 
   assert.match(dashboard, /<template id="routeIqCustomerPwaSession">__ROUTE_IQ_CUSTOMER_PWA_SESSION__<\/template>/u);
   assert.match(dashboard, /location\.pathname === "\/app" \|\| location\.pathname === "\/app\/"/u);
   assert.match(dashboard, /value\.authorizationState !== "server_verified"/u);
+  assert.match(dashboard, /\["founder", "customer_owner", "manager", "representative"\]\.includes\(value\.principalRole\)/u);
   assert.match(dashboard, /route_iq_customer_pwa_session_invalid/u);
 });
 
@@ -43,15 +44,28 @@ test("customer territory presentation is applied only after authenticated config
   assert.match(dashboard, /activeTerritoryProfile\.label = activeTerritory\.displayName/u);
 });
 
-test("customer sessions cannot expose Founder intelligence, Founder CRM, collection, cohorts, or recommendations", () => {
+test("only the server-verified Founder semantic role can expose Founder intelligence", () => {
   assert.match(dashboard, /!\/\^\[a-z\]\[a-z0-9_\]\{2,127\}\$\/u\.test\(value\.roleId \|\| ""\)/u);
   assert.match(dashboard, /Object\.keys\(value\.capabilities\)\.sort\(\)/u);
-  assert.match(dashboard, /value\.capabilities\.founderIntelligence !== false/u);
+  assert.match(dashboard, /value\.capabilities\.founderIntelligence !== \(value\.principalRole === "founder"\)/u);
   assert.match(dashboard, /value\.capabilities\.founderCrm !== false/u);
   assert.match(dashboard, /value\.safety\?\.prospectiveCollection !== "OFF"/u);
   assert.match(dashboard, /value\.safety\?\.activeCohorts !== 0/u);
   assert.match(dashboard, /value\.safety\?\.recommendationInfluence !== "OFF"/u);
   assert.match(dashboard, /if \(sessionRole !== "founder"\)/u);
+});
+
+test("server semantic roles preserve Founder and customer owner without production escalation", () => {
+  assert.match(dashboard, /routeIqCustomerPwaSession\?\.principalRole === "customer_owner"/u);
+  assert.match(dashboard, /routeIqCustomerPwaSession\?\.principalRole === "representative"/u);
+  assert.doesNotMatch(dashboard, /if \(sessionRole === "owner"\) sessionRole = "manager"/u);
+  assert.match(dashboard, /!routeIqCustomerPwaSession && \(sessionRole === "founder" \|\| sessionRole === "admin"\)/u);
+  assert.match(dashboard, /routeIqCustomerPwaSession\s*\?\s*routeIqCustomerSessionRole\s*:\s*isLocalPreview/u);
+  assert.match(runtimeWorkflowHarness, /Server-verified Founder Mode/u);
+  assert.match(runtimeWorkflowHarness, /Server-verified customer owner Mode/u);
+  assert.match(runtimeWorkflowHarness, /Founder URL and display-name escalation denial/u);
+  assert.match(runtimeWorkflowHarness, /Customer owner direct-route and storage substitution denial/u);
+  assert.match(runtimeWorkflowHarness, /width: 390, height: 844/gu);
 });
 
 test("a missing customer operating profile blocks startup without falling back to Fitness", () => {

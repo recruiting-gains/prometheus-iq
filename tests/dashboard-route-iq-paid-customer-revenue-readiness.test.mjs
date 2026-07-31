@@ -44,6 +44,24 @@ function readiness(overrides = {}) {
     onboardingState: "VALIDATED",
     billing: { mode: "TEST", state: "TEST_VERIFIED" },
     activation: { state: "BLOCKED" },
+    operationalStatus: {
+      selectedWorkspace: "Orion Facility Safety Workspace",
+      customerState: "Validated, not activated",
+      routeReadiness: "BLOCKED",
+      workflow: { crm: "READY", followUp: "READY" },
+      protectedState: {
+        providerRefresh: "OFF",
+        scheduler: "OFF",
+        collection: "OFF",
+        activeCohorts: 0,
+        recommendationInfluence: "OFF"
+      },
+      deployment: {
+        workerVersion: "private-worker-version-verified",
+        releaseCommit: "revenue-readiness-release-verified"
+      },
+      auditHistoryAvailable: true
+    },
     nextAction: "Record the Founder legal-formation decision.",
     responsibleActor: "FOUNDER",
     counts: { users: 3, managers: 1, representatives: 2, locations: 2 },
@@ -114,6 +132,21 @@ test("Founder view model explains commercial readiness without exposing identifi
   assert.equal(view.requiredNextStep.responsibleActor, "Founder");
   assert.equal(view.commercialTerms.agreement.version, "agreement-v1.0");
   assert.equal(view.operations.payment, "Test only");
+  assert.deepEqual(view.operationalStatus, {
+    selectedWorkspace: "Orion Facility Safety Workspace",
+    customerState: "Validated, not activated",
+    routeReadiness: "Blocked",
+    crm: "Ready",
+    followUp: "Ready",
+    providerRefresh: "Off",
+    scheduler: "Off",
+    collection: "Off",
+    activeCohorts: "0",
+    recommendationInfluence: "Off",
+    workerVersion: "private-worker-version-verified",
+    releaseCommit: "revenue-readiness-release-verified",
+    auditHistory: "Available"
+  });
   assert.equal(view.auditHistory[0].transition, "ONBOARDING_IN_PROGRESS → ONBOARDING_VALIDATED");
   assert.equal(Object.isFrozen(view), true);
   assert.equal(Object.isFrozen(view.auditHistory), true);
@@ -134,6 +167,7 @@ test("rendering contract is semantic, responsive, action-free, and explicit abou
   assert.match(html, /Founder only · Read-only advisory/u);
   assert.match(html, /Test Mode · Test verified/u);
   assert.match(html, /Required next action/u);
+  assert.match(html, /Operational status/u);
   assert.match(html, /Commercial terms/u);
   assert.match(html, /Audit history/u);
   assert.match(html, /grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/u);
@@ -142,6 +176,47 @@ test("rendering contract is semantic, responsive, action-free, and explicit abou
   assert.doesNotMatch(html, /<(?:button|form|input|select|textarea|a)\b/iu);
   assert.doesNotMatch(html, /\bonclick=|\baction=|method=["'](?:post|put|patch|delete)/iu);
   assert.doesNotMatch(html, /Live Mode/u);
+});
+
+test("missing optional operational evidence renders UNKNOWN without client inference", () => {
+  const snapshot = readiness({
+    operationalStatus: {
+      selectedWorkspace: null,
+      customerState: null,
+      routeReadiness: null,
+      workflow: { crm: null, followUp: null },
+      protectedState: {
+        providerRefresh: null,
+        scheduler: null,
+        collection: null,
+        activeCohorts: null,
+        recommendationInfluence: null
+      },
+      deployment: { workerVersion: null, releaseCommit: null },
+      auditHistoryAvailable: null
+    }
+  });
+  const view = createPaidCustomerRevenueReadinessViewModel(snapshot, {
+    session: founderSession(),
+    now: NOW
+  });
+  assert.deepEqual(new Set(Object.values(view.operationalStatus)), new Set(["UNKNOWN"]));
+  assert.match(renderPaidCustomerRevenueReadiness(view), /UNKNOWN/u);
+});
+
+test("unsafe protected-state claims and incomplete operational status fail closed", () => {
+  const unsafe = readiness();
+  unsafe.operationalStatus.protectedState.collection = "ON";
+  expectCode(
+    () => createPaidCustomerRevenueReadinessViewModel(unsafe, { session: founderSession(), now: NOW }),
+    "route_iq_revenue_readiness_operational_status_invalid"
+  );
+  const incomplete = readiness();
+  delete incomplete.operationalStatus.deployment;
+  expectCode(
+    () => createPaidCustomerRevenueReadinessViewModel(incomplete, { session: founderSession(), now: NOW }),
+    "route_iq_revenue_readiness_operational_status_invalid"
+  );
 });
 
 test("Live Mode approval state is visibly distinct but cannot imply enabled billing", () => {

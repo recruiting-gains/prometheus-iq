@@ -19,6 +19,7 @@ function ownerSession(overrides = {}) {
     workspaceId: "workspace_aster",
     workspaceLabel: "Aster Field Operations",
     operatingProfileId: "profile_aster",
+    principalRole: "customer_owner",
     userId: "user_workspace_owner",
     representativeId: "representative_workspace_owner",
     displayName: "Workspace owner",
@@ -280,6 +281,7 @@ test("expired and representative sessions fail before preview network access", a
   for (const session of [
     ownerSession({ expiresAt: "2026-07-26T11:59:59.000Z" }),
     ownerSession({
+      principalRole: "representative",
       capabilities: {
         operateOwnRoute: true,
         readWorkspaceOperations: false,

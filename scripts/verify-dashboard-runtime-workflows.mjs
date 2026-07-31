@@ -6,6 +6,8 @@ import { delimiter, extname, join, normalize, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
+import { createPaidCustomerRevenueReadinessViewModel } from "../dashboard/route-iq-paid-customer-revenue-readiness.mjs";
+
 const root = resolve(import.meta.dirname, "..");
 const dashboardRoot = resolve(root, "deploy/cloudflare-pages");
 const activePoolPath = "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -13,6 +15,7 @@ const fullPoolPath = "data/qualified-prospects/google-qualified-businesses-v2/ru
 const fieldSessionHandoffPath = "api/dashboard/route-iq/field-session";
 const prospectiveEventPath = "api/dashboard/route-iq/prospective/event";
 const founderDailyIntelligencePath = "api/dashboard/route-iq/intelligence/daily-snapshot";
+const founderRevenueReadinessPath = "api/dashboard/route-iq/internal/paid-customer-revenue-readiness";
 const founderDailyIntelligenceArtifactPath = resolve(root, "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json");
 const canonicalFounderDailyIntelligenceSnapshot = JSON.parse(readFileSync(founderDailyIntelligenceArtifactPath, "utf8"));
 const prospectiveBootstrapContractVersion = "route-iq-prospective-browser-bootstrap-v1";
@@ -104,6 +107,38 @@ const customerPwaManagerUser = Object.freeze({
 });
 customerPwaWorkspaceConfiguration.roles.push(customerPwaManagerRole);
 customerPwaWorkspaceConfiguration.users.push(customerPwaManagerUser);
+const customerPwaOwnerRole = Object.freeze({
+  roleId: "northstar_synthetic_owner",
+  displayName: "Customer Owner (Synthetic)",
+  capabilities: Object.freeze([...customerPwaWorkspaceConfiguration.dashboard.capabilities])
+});
+const customerPwaOwnerUser = Object.freeze({
+  userId: "northstar_synthetic_owner_01",
+  representativeId: "northstar_synthetic_owner_rep_01",
+  displayName: "Synthetic Customer Owner 01",
+  identityClass: "SYNTHETIC_NONCANONICAL",
+  principalMappingStatus: "SYNTHETIC_ONLY",
+  roleId: customerPwaOwnerRole.roleId,
+  territoryIds: Object.freeze(["synthetic_north_territory"]),
+  active: false
+});
+const customerPwaFounderRole = Object.freeze({
+  roleId: "northstar_synthetic_founder",
+  displayName: "Founder Operator (Synthetic)",
+  capabilities: Object.freeze([...customerPwaWorkspaceConfiguration.dashboard.capabilities])
+});
+const customerPwaFounderUser = Object.freeze({
+  userId: "northstar_synthetic_founder_01",
+  representativeId: "northstar_synthetic_founder_rep_01",
+  displayName: "Synthetic Founder Operator 01",
+  identityClass: "SYNTHETIC_NONCANONICAL",
+  principalMappingStatus: "SYNTHETIC_ONLY",
+  roleId: customerPwaFounderRole.roleId,
+  territoryIds: Object.freeze(["synthetic_north_territory"]),
+  active: false
+});
+customerPwaWorkspaceConfiguration.roles.push(customerPwaOwnerRole, customerPwaFounderRole);
+customerPwaWorkspaceConfiguration.users.push(customerPwaOwnerUser, customerPwaFounderUser);
 const customerPwaOpportunitySource = customerPwaWorkspaceConfiguration.opportunitySources.find(
   source => source.workspaceId === "northstar_outside_sales_synthetic"
 );
@@ -226,6 +261,7 @@ const customerPwaSessionFixture = Object.freeze({
   workspaceId: "northstar_outside_sales_synthetic",
   workspaceLabel: "Northstar Field Supply (Synthetic)",
   operatingProfileId: "general_outside_sales",
+  principalRole: "representative",
   userId: "northstar_synthetic_user_01",
   representativeId: "northstar_synthetic_rep_01",
   displayName: "Synthetic Representative 01",
@@ -256,11 +292,42 @@ const customerPwaManagerSessionFixture = Object.freeze({
   representativeId: customerPwaManagerUser.representativeId,
   displayName: customerPwaManagerUser.displayName,
   roleId: customerPwaManagerUser.roleId,
+  principalRole: "manager",
   capabilities: Object.freeze({
     operateOwnRoute: false,
     readWorkspaceOperations: true,
     administerWorkspaceRoster: false,
     founderIntelligence: false,
+    founderCrm: false
+  })
+});
+const customerPwaOwnerSessionFixture = Object.freeze({
+  ...customerPwaSessionFixture,
+  userId: customerPwaOwnerUser.userId,
+  representativeId: customerPwaOwnerUser.representativeId,
+  displayName: customerPwaOwnerUser.displayName,
+  roleId: customerPwaOwnerUser.roleId,
+  principalRole: "customer_owner",
+  capabilities: Object.freeze({
+    operateOwnRoute: false,
+    readWorkspaceOperations: true,
+    administerWorkspaceRoster: true,
+    founderIntelligence: false,
+    founderCrm: false
+  })
+});
+const customerPwaFounderSessionFixture = Object.freeze({
+  ...customerPwaSessionFixture,
+  userId: customerPwaFounderUser.userId,
+  representativeId: customerPwaFounderUser.representativeId,
+  displayName: customerPwaFounderUser.displayName,
+  roleId: customerPwaFounderUser.roleId,
+  principalRole: "founder",
+  capabilities: Object.freeze({
+    operateOwnRoute: false,
+    readWorkspaceOperations: true,
+    administerWorkspaceRoster: false,
+    founderIntelligence: true,
     founderCrm: false
   })
 });
@@ -408,6 +475,7 @@ function summitRehearsalBrowserDocument() {
         workspaceId: workspace.workspaceId,
         workspaceLabel: workspace.company.displayName,
         operatingProfileId: workspace.operatingProfile.profileId,
+        principalRole: "representative",
         userId: "summit_rehearsal_rep_01",
         representativeId: "summit_rehearsal_rep_identity_01",
         displayName: "Synthetic Representative 01",
@@ -680,6 +748,81 @@ function founderDailyIntelligenceResponse({ principal = {}, snapshot = {} } = {}
   };
 }
 
+function founderRevenueReadinessResponse(now = Date.parse(dashboardRuntimeWorkflowTestClock.now)) {
+  return {
+    status: 200,
+    body: {
+      session: {
+        authenticationAuthority: "cloudflare_access",
+        authorizationState: "server_verified",
+        callerSupplied: false,
+        expiresAt: new Date(now + 60 * 60_000).toISOString(),
+        founderMappingState: "IMMUTABLE_FOUNDER_MAPPING_VERIFIED",
+        role: "FOUNDER",
+        safety: {
+          activeCohorts: 0,
+          billingActivation: "OFF",
+          customerActivation: "OFF",
+          prospectiveCollection: "OFF",
+          providerRefresh: "OFF",
+          recommendationInfluence: "OFF",
+          scheduler: "OFF"
+        }
+      },
+      snapshot: {
+        contractVersion: "route-iq-paid-customer-revenue-readiness-v2",
+        companyDisplayName: "Northstar Field Supply (Synthetic)",
+        generatedAt: new Date(now - 5 * 60_000).toISOString(),
+        commercialState: "ONBOARDING_VALIDATED",
+        onboardingState: "VALIDATED",
+        billing: { mode: "TEST", state: "TEST_VERIFIED" },
+        activation: { state: "BLOCKED" },
+        operationalStatus: {
+          selectedWorkspace: "Northstar Outside Sales Workspace",
+          customerState: "Validated, not activated",
+          routeReadiness: "READY",
+          workflow: { crm: "READY", followUp: "READY" },
+          protectedState: {
+            providerRefresh: "OFF",
+            scheduler: "OFF",
+            collection: "OFF",
+            activeCohorts: 0,
+            recommendationInfluence: "OFF"
+          },
+          deployment: {
+            workerVersion: "local-dashboard-harness",
+            releaseCommit: "local-dashboard-harness"
+          },
+          auditHistoryAvailable: true
+        },
+        nextAction: "Complete governed Founder review.",
+        responsibleActor: "FOUNDER",
+        counts: { users: 3, managers: 1, representatives: 2, locations: 2 },
+        agreement: { state: "DRAFT", version: "agreement-v1.0" },
+        orderForm: { state: "DRAFT", version: "order-form-v1.0" },
+        pricing: { state: "PENDING", version: "pricing-v1.0" },
+        payment: { state: "TEST_ONLY" },
+        cancellation: { state: "NOT_REQUESTED" },
+        support: { state: "DRAFT" },
+        blockers: [{
+          code: "CUSTOMER_ACTIVATION_OFF",
+          severity: "BLOCKING",
+          message: "Customer activation remains off.",
+          owner: "FOUNDER"
+        }],
+        auditHistory: [{
+          at: new Date(now - 10 * 60_000).toISOString(),
+          actorRole: "PROMETHEUS_AI_OVERWATCH",
+          fromState: "ONBOARDING_IN_PROGRESS",
+          toState: "ONBOARDING_VALIDATED",
+          summary: "Synthetic configuration passed governed validation.",
+          evidenceDigest: "a".repeat(64)
+        }]
+      }
+    }
+  };
+}
+
 function pass(name, detail) {
   results.push({ status: "PASS", name, detail });
   console.log(`PASS ${name}: ${detail}`);
@@ -907,6 +1050,7 @@ function startStaticServer({
   const prospectiveBootstrapRequests = [];
   const prospectiveNetworkLedger = [];
   const founderDailyIntelligenceRequests = [];
+  const founderRevenueReadinessRequests = [];
   let fieldSessionAttempt = 0;
   const certificate = localHttpsCertificate();
   const server = createSecureServer({ key: certificate.key, cert: certificate.cert }, (request, response) => {
@@ -922,7 +1066,14 @@ function startStaticServer({
     requests.push({ path: relativePath, method: request.method });
 
     if (relativePath === founderDailyIntelligencePath) {
-      founderDailyIntelligenceRequests.push({ method: request.method, headers: request.headers });
+      founderDailyIntelligenceRequests.push({
+        method: request.method,
+        headers: request.headers,
+        serverPrincipalRole: customerPwaSession?.principalRole || null,
+        serverAuthorizationState: customerPwaSession?.authorizationState || null,
+        founderIntelligence: customerPwaSession?.capabilities?.founderIntelligence === true,
+        pageContext: String(request.headers.referer || "")
+      });
       const configured = typeof configuredFounderDailyIntelligenceResponse === "function"
         ? configuredFounderDailyIntelligenceResponse({ request, url })
         : configuredFounderDailyIntelligenceResponse;
@@ -934,6 +1085,29 @@ function startStaticServer({
         ...(configured?.headers || {})
       });
       response.end(body);
+      return;
+    }
+
+    if (relativePath === founderRevenueReadinessPath) {
+      const admitted = customerPwaSession?.principalRole === "founder"
+        && customerPwaSession?.authorizationState === "server_verified"
+        && customerPwaSession?.capabilities?.readWorkspaceOperations === true
+        && customerPwaSession?.capabilities?.founderIntelligence === true;
+      founderRevenueReadinessRequests.push({
+        method: request.method,
+        serverPrincipalRole: customerPwaSession?.principalRole || null,
+        serverAuthorizationState: customerPwaSession?.authorizationState || null,
+        admitted,
+        pageContext: String(request.headers.referer || "")
+      });
+      const configured = admitted
+        ? founderRevenueReadinessResponse()
+        : { status: 403, body: { ok: false, code: "founder_session_required" } };
+      response.writeHead(configured.status, {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "private, no-store"
+      });
+      response.end(JSON.stringify(configured.body));
       return;
     }
 
@@ -1128,6 +1302,7 @@ function startStaticServer({
         prospectiveBootstrapRequests,
         prospectiveNetworkLedger,
         founderDailyIntelligenceRequests,
+        founderRevenueReadinessRequests,
         close: () => new Promise(resolveClose => server.close(resolveClose))
       });
     });
@@ -1632,7 +1807,10 @@ async function attachPage(chrome, eventLog) {
     }
   });
   cdp.on("Log.entryAdded", params => {
-    if (params.entry?.level === "error") eventLog.logErrors.push(params.entry.text || "Chrome log error");
+    if (params.entry?.level === "error") {
+      const source = params.entry.url ? ` (${params.entry.url})` : "";
+      eventLog.logErrors.push(`${params.entry.text || "Chrome log error"}${source}`);
+    }
   });
   cdp.on("Network.requestWillBeSent", params => {
     if (params.request?.url?.includes("runtime") || params.request?.url?.includes("active-pool")) {
@@ -1866,7 +2044,8 @@ async function snapshot(cdp) {
         runtimeFallback: debug.runtimeFallback || {},
         operatingProfile: debug.operatingProfile || {},
         workspace: debug.workspace || {},
-        founderDailyIntelligence: debug.founderDailyIntelligence || {}
+        founderDailyIntelligence: debug.founderDailyIntelligence || {},
+        paidCustomerRevenueReadiness: debug.paidCustomerRevenueReadiness || {}
       },
       performance: {
         navigationDuration: Math.round(performance.getEntriesByType("navigation")[0]?.duration || 0),
@@ -2030,12 +2209,23 @@ async function clickTab(cdp, tab) {
 async function waitForFounderDailyIntelligence(cdp, expectedStatus, timeoutMs = 8000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
-    const status = await cdp.evaluate("window.prometheusDebugState?.founderDailyIntelligence?.status || ''");
-    if (status === expectedStatus) return status;
+    const state = await cdp.evaluate("window.prometheusDebugState?.founderDailyIntelligence || null");
+    if (state?.status === expectedStatus) return state;
     await wait(100);
   }
   const state = await cdp.evaluate("window.prometheusDebugState?.founderDailyIntelligence || null");
   throw new Error(`Founder daily intelligence did not reach ${expectedStatus}: ${JSON.stringify(state)}`);
+}
+
+async function waitForFounderRevenueReadiness(cdp, expectedStatus, timeoutMs = 8000) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const state = await cdp.evaluate("window.prometheusDebugState?.paidCustomerRevenueReadiness || null");
+    if (state?.status === expectedStatus) return state;
+    await wait(100);
+  }
+  const state = await cdp.evaluate("window.prometheusDebugState?.paidCustomerRevenueReadiness || null");
+  throw new Error(`Founder revenue readiness did not reach ${expectedStatus}: ${JSON.stringify(state)}`);
 }
 
 async function waitForPlacesRenderComplete(cdp, timeoutMs = 8000) {
@@ -3673,6 +3863,11 @@ export function installHarnessSignalCleanup(cleanup, {
 }
 
 async function runHarness() {
+  const readinessFixture = founderRevenueReadinessResponse();
+  createPaidCustomerRevenueReadinessViewModel(readinessFixture.body.snapshot, {
+    session: readinessFixture.body.session,
+    now: new Date(dashboardRuntimeWorkflowTestClock.now)
+  });
   verifyRouteUpdateStatusContract();
   const customerPwaTerritory = customerPwaWorkspaceConfiguration.territories.find(
     territory => territory.territoryId === "synthetic_north_territory"
@@ -3709,6 +3904,18 @@ async function runHarness() {
   let harnessError;
   try {
     const server = await startServer("primary HTTPS server", {
+      customerPwaSession: customerPwaFounderSessionFixture,
+      founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
+        snapshot: {
+          workspaceId: customerPwaFounderSessionFixture.workspaceId,
+          operatingProfileId: customerPwaFounderSessionFixture.operatingProfileId
+        }
+      })
+    });
+    const customerOwnerServer = await startServer("customer owner HTTPS server", {
+      customerPwaSession: customerPwaOwnerSessionFixture
+    });
+    const managerServer = await startServer("manager HTTPS server", {
       customerPwaSession: customerPwaManagerSessionFixture
     });
     const representativeServer = await startServer("representative HTTPS server", {
@@ -3750,11 +3957,11 @@ async function runHarness() {
       customerPwaSession: customerPwaSessionFixture
     });
     const founderDailyIntelligenceServer = await startServer("Founder intelligence HTTPS server", {
-      customerPwaSession: customerPwaManagerSessionFixture,
+      customerPwaSession: customerPwaFounderSessionFixture,
       founderDailyIntelligenceResponse: founderDailyIntelligenceResponse()
     });
     const founderDailyIntelligenceAnthonyServer = await startServer("Pending Founder intelligence HTTPS server", {
-      customerPwaSession: customerPwaManagerSessionFixture,
+      customerPwaSession: customerPwaFounderSessionFixture,
       founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
         principal: {
           mappingId: "route-iq-founder-access-anthony-pending",
@@ -3764,7 +3971,7 @@ async function runHarness() {
       })
     });
     const founderDailyIntelligenceUnsafeServer = await startServer("unsafe intelligence HTTPS server", {
-      customerPwaSession: customerPwaManagerSessionFixture,
+      customerPwaSession: customerPwaFounderSessionFixture,
       founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
         snapshot: {
           safety: {
@@ -3783,7 +3990,7 @@ async function runHarness() {
       })
     });
     const founderDailyIntelligenceInvalidConfigurationHashServer = await startServer("invalid intelligence configuration HTTPS server", {
-      customerPwaSession: customerPwaManagerSessionFixture,
+      customerPwaSession: customerPwaFounderSessionFixture,
       founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
         snapshot: { businessConfigurationSha256: "A".repeat(64) }
       })
@@ -3942,12 +4149,50 @@ async function runHarness() {
     }))()`);
     assertWorkflow("Route IQ authenticated workspace", switcherSnap.workspaceId === "northstar_outside_sales_synthetic" && switcherSnap.workspaceOperatingProfileId === "general_outside_sales", `workspace ${switcherSnap.workspaceId}, profile ${switcherSnap.workspaceOperatingProfileId}`, JSON.stringify({ workspaceId: switcherSnap.workspaceId, workspaceName: switcherSnap.workspaceName, debug: switcherSnap.debug.workspace }));
     assertWorkflow("Route IQ only active Dashboard product", productFocus.title === "Route IQ" && productFocus.workspaceControls === 0 && productFocus.retiredProductLinks === 0 && !/\bGaia\b|\bAthena\b/.test(productFocus.bodyText), "Route IQ renders without inactive-product navigation or current-product labels", JSON.stringify(productFocus));
-    assertWorkflow("Founder snapshot fails closed without server principal", !switcherSnap.founderDailyIntelligenceVisible && switcherSnap.debug.founderDailyIntelligence.authorized === false, switcherSnap.debug.founderDailyIntelligence.status, JSON.stringify(switcherSnap.debug.founderDailyIntelligence));
+    const switcherFounderRequests = server.founderDailyIntelligenceRequests.slice();
+    const switcherFounderRequest = switcherFounderRequests[0];
+    assertWorkflow(
+      "Founder snapshot requires server principal",
+      switcherSnap.debug.founderDailyIntelligence.authorized === true
+        && switcherSnap.debug.founderDailyIntelligence.rendered === true
+        && switcherFounderRequests.length >= 1
+        && switcherFounderRequest?.method === "GET"
+        && switcherFounderRequest?.serverPrincipalRole === "founder"
+        && switcherFounderRequest?.serverAuthorizationState === "server_verified"
+        && switcherFounderRequest?.founderIntelligence === true,
+      "server admitted one read-only snapshot request from the verified Founder session",
+      JSON.stringify({ state: switcherSnap.debug.founderDailyIntelligence, request: switcherFounderRequest })
+    );
     await switcher.cdp.close();
 
-    const founder = await runPageScenario(chrome, server, "/app?role=founder&debug=1&harness=runtime-workflows-founder", "founder");
+    const founder = await runPageScenario(chrome, server, "/app?role=representative&rep=forged&debug=1&harness=runtime-workflows-founder", "founder");
     const founderSnap = founder.initial;
-    assertWorkflow("Authenticated manager Mode", founderSnap.sessionRole === "manager" && founderSnap.mode === "owner" && founderSnap.visibleTabs.includes("places") && founderSnap.visibleTabs.includes("stats") && founderSnap.visibleTabs.includes("find"), `manager tabs visible: ${founderSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: founderSnap.sessionRole, mode: founderSnap.mode, visibleTabs: founderSnap.visibleTabs }));
+    assertWorkflow("Server-verified Founder Mode", founderSnap.sessionRole === "founder" && founderSnap.mode === "owner" && founderSnap.activeRepId === customerPwaFounderSessionFixture.representativeId && founderSnap.visibleTabs.includes("places") && founderSnap.visibleTabs.includes("stats") && founderSnap.visibleTabs.includes("find"), `Founder tabs visible: ${founderSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: founderSnap.sessionRole, mode: founderSnap.mode, visibleTabs: founderSnap.visibleTabs }));
+    const founderIntelligenceState = await waitForFounderDailyIntelligence(founder.cdp, "rendered");
+    const founderRevenueState = await waitForFounderRevenueReadiness(founder.cdp, "rendered");
+    const founderDailyRequests = server.founderDailyIntelligenceRequests.slice(switcherFounderRequests.length);
+    const founderRevenueRequests = server.founderRevenueReadinessRequests.slice();
+    const founderDailyRequest = founderDailyRequests[0];
+    const founderRevenueRequest = founderRevenueRequests[0];
+    assertWorkflow(
+      "Founder operational panel reachability",
+      founderIntelligenceState.authorized === true
+        && founderIntelligenceState.rendered === true
+        && founderRevenueState.authorized === true
+        && founderRevenueState.rendered === true
+        && founderDailyRequests.length >= 1
+        && founderRevenueRequests.length >= 1
+        && founderDailyRequests.every(request => request.serverPrincipalRole === "founder"
+          && request.serverAuthorizationState === "server_verified"
+          && request.founderIntelligence === true)
+        && founderRevenueRequests.every(request => request.admitted === true)
+        && founderDailyRequest?.serverPrincipalRole === "founder"
+        && founderDailyRequest?.serverAuthorizationState === "server_verified"
+        && founderRevenueRequest?.admitted === true,
+      "server-verified Founder loaded one daily snapshot and one operational-status response",
+      JSON.stringify({ dailyState: founderIntelligenceState, revenueState: founderRevenueState, dailyRequest: founderDailyRequest, revenueRequest: founderRevenueRequest })
+    );
+    assertWorkflow("Founder URL and display-name escalation denial", founderSnap.sessionRole === "founder" && founderSnap.activeRepId !== "forged", "server session overrode hostile role and representative parameters", JSON.stringify({ sessionRole: founderSnap.sessionRole, activeRepId: founderSnap.activeRepId }));
     verifyOperatingProfileVocabulary("Operating Profile general outside sales preserved", founderSnap, { profileId: "general_outside_sales", terms: ["Qualified Opportunities Today", "Northstar Field Supply (Synthetic) Route", "Verified Qualified Opportunities"] });
     assertWorkflow("Governed approved roster consumption", founderSnap.debug.runtimeDataPool === "governed" && founderSnap.debug.runtimeDataStatus === "READY" && founderSnap.debug.runtimeDataSource.includes("20 approved records"), founderSnap.debug.runtimeDataSource, JSON.stringify(founderSnap.debug));
     assertWorkflow("Route Intelligence rendering", founderSnap.debug.rendererReceived && founderSnap.bestNextMove && founderSnap.bestNextMove !== "Loading route signal" && founderSnap.dailyRouteCards > 0, `${founderSnap.bestNextMove} with ${founderSnap.dailyRouteCards} daily route cards`, JSON.stringify({ bestNextMove: founderSnap.bestNextMove, dailyRouteCards: founderSnap.dailyRouteCards, debug: founderSnap.debug }));
@@ -3956,15 +4201,40 @@ async function runHarness() {
     assertWorkflow("Prospective Founder/owner isolation", server.prospectiveRequests.length === 0, "Founder and owner route rendering produced no prospective signal", JSON.stringify(server.prospectiveRequests));
     verifyNoErrors("Founder", founder.eventLog, founderSnap);
 
-    const managerIntelligence = await runPageScenario(chrome, founderDailyIntelligenceServer, "/app?harness=manager-founder-intelligence-denied", "manager-founder-intelligence-denied");
+    const customerOwner = await runPageScenario(chrome, customerOwnerServer, "/app?role=representative&rep=forged&harness=customer-owner", "customer-owner");
+    await waitForFounderRevenueReadiness(customerOwner.cdp, "role_ineligible");
+    const customerOwnerSnap = await snapshot(customerOwner.cdp);
+    assertWorkflow("Server-verified customer owner Mode", customerOwnerSnap.sessionRole === "owner" && customerOwnerSnap.mode === "owner" && customerOwnerSnap.activeRepId === customerPwaOwnerSessionFixture.representativeId && customerOwnerSnap.visibleTabs.includes("stats") && customerOwnerSnap.visibleTabs.includes("find") && !customerOwnerSnap.founderDailyIntelligenceVisible, "customer owner remained distinct from manager and Founder", JSON.stringify({ sessionRole: customerOwnerSnap.sessionRole, mode: customerOwnerSnap.mode, tabs: customerOwnerSnap.visibleTabs }));
+    assertWorkflow(
+      "Customer owner direct-route and storage substitution denial",
+      customerOwnerSnap.sessionRole === "owner"
+        && customerOwnerSnap.activeRepId !== "forged"
+        && customerOwnerSnap.debug.founderDailyIntelligence.status === "role_ineligible"
+        && customerOwnerSnap.debug.paidCustomerRevenueReadiness.status === "role_ineligible"
+        && customerOwnerServer.founderDailyIntelligenceRequests.length === 0
+        && customerOwnerServer.founderRevenueReadinessRequests.length === 0,
+      "server session defeated role substitution and issued no Founder-only status request",
+      JSON.stringify({
+        sessionRole: customerOwnerSnap.sessionRole,
+        activeRepId: customerOwnerSnap.activeRepId,
+        dailyState: customerOwnerSnap.debug.founderDailyIntelligence,
+        revenueState: customerOwnerSnap.debug.paidCustomerRevenueReadiness,
+        dailyRequests: customerOwnerServer.founderDailyIntelligenceRequests,
+        revenueRequests: customerOwnerServer.founderRevenueReadinessRequests
+      })
+    );
+    verifyNoErrors("Customer owner", customerOwner.eventLog, customerOwnerSnap);
+    await customerOwner.cdp.close();
+
+    const managerIntelligence = await runPageScenario(chrome, managerServer, "/app?role=founder&rep=cruz&harness=manager-founder-intelligence-denied", "manager-founder-intelligence-denied");
     const managerIntelligenceSnap = managerIntelligence.initial;
     assertWorkflow(
       "Founder daily intelligence customer-session isolation",
       !managerIntelligenceSnap.founderDailyIntelligenceVisible
         && managerIntelligenceSnap.debug.founderDailyIntelligence.status === "role_ineligible"
-        && founderDailyIntelligenceServer.founderDailyIntelligenceRequests.length === 0,
+        && managerServer.founderDailyIntelligenceRequests.length === 0,
       "authenticated operational manager issued no Founder-intelligence request and rendered no snapshot",
-      JSON.stringify({ debug: managerIntelligenceSnap.debug.founderDailyIntelligence, requests: founderDailyIntelligenceServer.founderDailyIntelligenceRequests })
+      JSON.stringify({ debug: managerIntelligenceSnap.debug.founderDailyIntelligence, requests: managerServer.founderDailyIntelligenceRequests })
     );
     await managerIntelligence.cdp.close();
 
@@ -4049,7 +4319,7 @@ async function runHarness() {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
     const mobileFounderSnap = mobileFounder.initial;
-    assertWorkflow("Mobile authenticated manager controls", mobileFounderSnap.sessionRole === "manager" && mobileFounderSnap.mode === "owner" && mobileFounderSnap.activeRepId === customerPwaManagerSessionFixture.representativeId && mobileFounderSnap.visibleTabs.length === 5, `role ${mobileFounderSnap.sessionRole}, mode ${mobileFounderSnap.mode}, rep ${mobileFounderSnap.activeRepId}, tabs ${mobileFounderSnap.visibleTabs.join(", ")}`, JSON.stringify(mobileFounderSnap));
+    assertWorkflow("Mobile authenticated Founder controls", mobileFounderSnap.sessionRole === "founder" && mobileFounderSnap.mode === "owner" && mobileFounderSnap.activeRepId === customerPwaFounderSessionFixture.representativeId && mobileFounderSnap.visibleTabs.length === 5, `role ${mobileFounderSnap.sessionRole}, mode ${mobileFounderSnap.mode}, rep ${mobileFounderSnap.activeRepId}, tabs ${mobileFounderSnap.visibleTabs.join(", ")}`, JSON.stringify(mobileFounderSnap));
     verifyMobileFit("Mobile PWA Today no-horizontal-scroll", await mobileFitSnapshot(mobileFounder.cdp));
     await clickTab(mobileFounder.cdp, "route");
     verifyMobileFit("Mobile PWA Route no-horizontal-scroll", await mobileFitSnapshot(mobileFounder.cdp));
@@ -4060,6 +4330,17 @@ async function runHarness() {
     await clickTab(mobileFounder.cdp, "find");
     verifyMobileFit("Mobile PWA Find no-horizontal-scroll", await mobileFitSnapshot(mobileFounder.cdp));
     verifyNoErrors("Mobile Founder", mobileFounder.eventLog, await snapshot(mobileFounder.cdp));
+
+    const mobileOwner = await runPageScenario(chrome, customerOwnerServer, "/app?role=founder&rep=cruz&harness=mobile-owner-fit", "mobile-owner", {
+      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
+    });
+    const mobileOwnerSnap = mobileOwner.initial;
+    assertWorkflow("Mobile authenticated customer-owner controls", mobileOwnerSnap.sessionRole === "owner" && mobileOwnerSnap.mode === "owner" && mobileOwnerSnap.activeRepId === customerPwaOwnerSessionFixture.representativeId && mobileOwnerSnap.visibleTabs.length === 5 && !mobileOwnerSnap.founderDailyIntelligenceVisible, `role ${mobileOwnerSnap.sessionRole}, mode ${mobileOwnerSnap.mode}, rep ${mobileOwnerSnap.activeRepId}`, JSON.stringify(mobileOwnerSnap));
+    verifyMobileFit("Mobile customer owner Today no-horizontal-scroll", await mobileFitSnapshot(mobileOwner.cdp));
+    await clickTab(mobileOwner.cdp, "stats");
+    verifyMobileFit("Mobile customer owner Insights no-horizontal-scroll", await mobileFitSnapshot(mobileOwner.cdp));
+    verifyNoErrors("Mobile customer owner", mobileOwner.eventLog, await snapshot(mobileOwner.cdp));
+    await mobileOwner.cdp.close();
 
     const customerPwa = await runPageScenario(chrome, customerPwaServer, "/app", "customer-pwa", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true },

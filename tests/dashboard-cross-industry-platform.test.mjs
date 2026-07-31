@@ -135,6 +135,7 @@ function harness({
     workspaceId,
     workspaceLabel: `${profileId} validation`,
     operatingProfileId: profileId,
+    principalRole: "representative",
     userId: user.userId,
     representativeId: user.representativeId,
     displayName: user.displayName,
