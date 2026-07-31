@@ -24,7 +24,9 @@
     {"commit": "f25ea46c5365a22ef87643f15355851dcdf0c323", "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>"},
     {"commit": "e98e7749a508c0ea8017629f2e02017adf1ab8f0", "owner": "Prometheus CRM <crm@prometheus.local>"},
     {"commit": "9941fb1dacadeb93904c6518e2ec8ae6a73e028e", "owner": "Prometheus Dashboard <dashboard@prometheus.local>"},
-    {"commit": "4b81819c861ca7326b4749c06e69654eab8f3166", "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>"}
+    {"commit": "4b81819c861ca7326b4749c06e69654eab8f3166", "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>"},
+    {"commit": "ecde11c54e2af76fb2f754dfdadabe516109532a", "owner": "Prometheus Overwatch <overwatch@prometheus.local>"},
+    {"commit": "595c48f12cb35dab4ee34bd21d3dec75423449fb", "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>"}
   ],
   "subsystems": [
     {"id": "public_website", "owner": "Prometheus Website", "authority": "public Worker release", "entry": "prometheusrouteiq.com", "authentication": "PUBLIC_OR_ACCESS_EDGE", "tenantBoundary": "NO_PRIVATE_DATA", "failure": "FAIL_CLOSED", "audit": "DEPLOYMENT_EVIDENCE", "recovery": "QUALIFIED_FORWARD_ROLLBACK", "activation": "ACTIVE_UNCHANGED"},

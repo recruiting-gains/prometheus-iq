@@ -10,7 +10,9 @@
     {"owner": "Prometheus Intelligence Engine", "result": "recommendation influence remains exactly zero outside an explicit test-only authorization; Companion is proven dormant"},
     {"owner": "Prometheus CRM", "result": "Founder field-research intake cannot persist into the production CRM runtime"},
     {"owner": "Prometheus Dashboard", "result": "Founder and customer-owner authority are distinct; customer owners cannot call Founder endpoints; operational status fails closed"},
-    {"owner": "Prometheus Infrastructure", "result": "workspace-scoped Founder status, exact artifact qualification, private-only deployment, and forward rollback are governed"}
+    {"owner": "Prometheus Infrastructure", "result": "workspace-scoped Founder status, exact artifact qualification, private-only deployment, and forward rollback are governed"},
+    {"owner": "Prometheus Overwatch", "result": "20-subsystem map, 19 cross-system contracts, and P0-P3 ledger are independently release-blocking"},
+    {"owner": "Prometheus Infrastructure", "result": "GitHub runner temporary paths are step-scoped and workflow-parser compatible"}
   ],
   "acceptance": {
     "crossSubsystemContracts": "PASS",
