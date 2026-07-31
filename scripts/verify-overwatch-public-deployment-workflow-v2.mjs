@@ -100,9 +100,17 @@ const PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_PARENT =
   "02a155ada86f76350e9d1ecc17060c5e6f7d8318";
 const PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_SHA256 =
   "1478d8113583c10752c8c6eddf8bb301ea666830821fae8bafb1327f00d2ae6f";
+const CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_COMMIT =
+  "57966944fa97527417b9d277db201d874745e18b";
+const CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_TREE =
+  "8bbb7e86fd30a3015fcbe4da9dc21f13889419ff";
+const CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_PARENT =
+  "2c094403709415004c07269ea9bbd6e8c950bb68";
+const CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_SHA256 =
+  "baf7641667d909ce5beedf3a7a657dccc1aaf76fe4cbc11392b7f63e468e6d6b";
 const HISTORICAL_3D_PACKAGE_SHA256 = "f34246136a294d5a7180d76a452ff8c9c69bb7d1d35419c1115426b8ea4e0247";
 const CURRENT_PACKAGE_SHA256 = "8ddf429fc08acd45eca4f59638324f06a80acab9c949168325299e5b73199e2f";
-const ACTIVE_PACKAGE_SHA256 = PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_SHA256;
+const ACTIVE_PACKAGE_SHA256 = CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_SHA256;
 const WORKFLOW_V2_TAIL_ANCHOR = "5b5b59509206578336b9671582669b600d0c74d4";
 const WORKFLOW_V2_TAIL_PARENT = "0d828948968b8cedf3b1961c5320c74c03a8e18c";
 const WORKFLOW_V2_TAIL_PATHS = Object.freeze([
@@ -804,7 +812,8 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
   if (matches[0].successorSha256 === successorSha256) return true;
   if (![CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256,
     PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_SHA256,
-    PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_SHA256].includes(successorSha256)) return false;
+    PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_SHA256,
+    CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_SHA256].includes(successorSha256)) return false;
 
   const fields = git([
     "show",
@@ -882,7 +891,7 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
     `${PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_COMMIT}:${PACKAGE_PATH}`
   ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
 
-  return isDeepStrictEqual(paidCustomerFields, [
+  const paidCustomerSuccessorValid = isDeepStrictEqual(paidCustomerFields, [
     PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_COMMIT,
     PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_TREE,
     PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_PARENT,
@@ -893,9 +902,41 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
     && sha256(paidCustomerPredecessorPackage)
       === PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_SHA256
     && sha256(paidCustomerSuccessorPackage)
+      === PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_SHA256;
+  if (!paidCustomerSuccessorValid
+    || successorSha256 === PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_SHA256) {
+    return paidCustomerSuccessorValid;
+  }
+
+  const controlledRehearsalFields = git([
+    "show",
+    "-s",
+    "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+    CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_COMMIT
+  ]).split("\n");
+  const controlledRehearsalPredecessorPackage = execFileSync("/usr/bin/git", [
+    "show",
+    `${CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_PARENT}:${PACKAGE_PATH}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+  const controlledRehearsalSuccessorPackage = execFileSync("/usr/bin/git", [
+    "show",
+    `${CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_COMMIT}:${PACKAGE_PATH}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+
+  return isDeepStrictEqual(controlledRehearsalFields, [
+    CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_COMMIT,
+    CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_TREE,
+    CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_PARENT,
+    OVERWATCH_IDENTITY,
+    OVERWATCH_IDENTITY,
+    "overwatch: govern controlled onboarding rehearsal"
+  ])
+    && sha256(controlledRehearsalPredecessorPackage)
       === PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_SHA256
+    && sha256(controlledRehearsalSuccessorPackage)
+      === CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_SHA256
     && git(["log", "-1", "--format=%H", "--", PACKAGE_PATH])
-      === PAID_CUSTOMER_ONBOARDING_PACKAGE_SUCCESSOR_COMMIT;
+      === CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_COMMIT;
 }
 
 export function isGovernedPublicDeploymentWorkflowV2VerifierCommit({

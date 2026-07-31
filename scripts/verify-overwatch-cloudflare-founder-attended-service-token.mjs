@@ -31,6 +31,8 @@ const routeIq3dGovernancePath =
   "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 const publicDeploymentWorkflowV2GovernancePath =
   "overwatch/governance/public-deployment-workflow-v2.json";
+const controlledRehearsalReadinessSuccessorsPath =
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const ownerCommit = "a0a1eb8e434015ea7a0f403e4be0a8979724d9a8";
 const ownerParent = "09418ac6eb4a67b7cc302ba7a30705e9c1012fd5";
@@ -64,6 +66,23 @@ const expectedCommands = Object.freeze([
   "provision-attended",
   "cleanup-temp"
 ]);
+
+export function hasControlledRehearsalPackageWiringSuccessor({
+  governance,
+  predecessorSha256,
+  successorSha256
+}) {
+  const matches = governance?.overwatchCurrentEvidence?.filter(item => (
+    item.path === "package.json"
+    && item.previousSha256 === predecessorSha256
+    && item.successorSha256 === successorSha256
+  )) ?? [];
+  return governance?.governanceId ===
+      "route-iq-august-1-readiness-successors-v1"
+    && governance?.ownerSubsystem === "Prometheus Overwatch"
+    && governance?.historicalCloseoutEvidenceRewritten === false
+    && matches.length === 1;
+}
 const expectedEvidencePaths = Object.freeze([
   ".gitignore",
   "docs/cloudflare-founder-attended-service-token-provisioning-v1.md",
@@ -448,6 +467,12 @@ function verifyPackageReleaseWiring() {
       item.predecessorGovernanceId === "route-iq-3d-visual-continuity-v1"
       && item.path === "package.json"
     ));
+  const controlledRehearsalReadinessSuccessors =
+    readJson(controlledRehearsalReadinessSuccessorsPath);
+  const controlledRehearsalPackageTransition =
+    controlledRehearsalReadinessSuccessors.overwatchCurrentEvidence?.find(
+      item => item.path === "package.json"
+    );
   const packageOwnerFields = git([
     "show",
     "-s",
@@ -470,6 +495,11 @@ function verifyPackageReleaseWiring() {
       governance: publicDeploymentWorkflowV2Governance,
       predecessorGovernanceId: "route-iq-3d-visual-continuity-v1",
       historicalSha256: routeIq3dTransition?.successorSha256,
+      successorSha256: controlledRehearsalPackageTransition?.previousSha256
+    })
+    || !hasControlledRehearsalPackageWiringSuccessor({
+      governance: controlledRehearsalReadinessSuccessors,
+      predecessorSha256: controlledRehearsalPackageTransition?.previousSha256,
       successorSha256: sha256(read("package.json"))
     })
     || packageTransition?.owner !== "Prometheus Overwatch"

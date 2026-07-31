@@ -5,6 +5,7 @@ import test from "node:test";
 
 import {
   evaluateFounderAttendedProvisioningGovernance,
+  hasControlledRehearsalPackageWiringSuccessor,
   verifyOverwatchFounderAttendedProvisioning
 } from "../scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs";
 
@@ -13,6 +14,9 @@ const readJson = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
 const contract = readJson("workers/infrastructure/cloudflare-founder-attended-service-token-v1.json");
 const governance = readJson("overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.json");
 const report = readJson("overwatch/reports/BATCH-20260714-007-cloudflare-founder-attended-service-token-provisioning.json");
+const controlledRehearsalSuccessors = readJson(
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
+);
 const clone = value => structuredClone(value);
 const evaluate = (nextContract = contract, nextGovernance = governance, nextReport = report) =>
   evaluateFounderAttendedProvisioningGovernance({
@@ -33,6 +37,32 @@ test("Overwatch independently verifies the attended provisioning batch", () => {
   assert.equal(result.trackedSecretFindings, 0);
   assert.equal(result.cloudflareAccessPerformed, false);
   assert.equal(result.credentialCreated, false);
+});
+
+test("Founder-attended governance accepts only the exact rehearsal package successor", () => {
+  const transition = controlledRehearsalSuccessors.overwatchCurrentEvidence.find(
+    item => item.path === "package.json"
+  );
+  assert.equal(hasControlledRehearsalPackageWiringSuccessor({
+    governance: controlledRehearsalSuccessors,
+    predecessorSha256: transition.previousSha256,
+    successorSha256: transition.successorSha256
+  }), true);
+
+  for (const mutate of [
+    value => { value.ownerSubsystem = "Prometheus Infrastructure"; },
+    value => { value.historicalCloseoutEvidenceRewritten = true; },
+    value => { value.overwatchCurrentEvidence[0].previousSha256 = "0".repeat(64); },
+    value => { value.overwatchCurrentEvidence[0].successorSha256 = "0".repeat(64); }
+  ]) {
+    const changed = clone(controlledRehearsalSuccessors);
+    mutate(changed);
+    assert.equal(hasControlledRehearsalPackageWiringSuccessor({
+      governance: changed,
+      predecessorSha256: transition.previousSha256,
+      successorSha256: transition.successorSha256
+    }), false);
+  }
 });
 
 test("Overwatch rejects endpoint, account, name, duration, body, or create-count drift", () => {
