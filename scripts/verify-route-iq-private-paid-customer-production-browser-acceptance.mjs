@@ -13,6 +13,10 @@ import {
   CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN,
   CLOUDFLARE_UNATTENDED_SMOKE_VERSION
 } from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
+import {
+  ROUTE_IQ_CONTROLLED_PAID_CUSTOMER_REHEARSAL_PATH,
+  ROUTE_IQ_CONTROLLED_PAID_CUSTOMER_REHEARSAL_RUNTIME_VERSION
+} from "../workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.js";
 
 export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VERSION =
   "route-iq-private-paid-customer-browser-acceptance-v1";
@@ -33,6 +37,7 @@ export const ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION = Object.free
   DOCUMENT_STATUS: "DOCUMENT_STATUS",
   WORKER_IDENTITY: "WORKER_IDENTITY",
   RENDER: "RENDER",
+  CONTROLLED_REHEARSAL: "CONTROLLED_REHEARSAL",
   DESKTOP_CONSOLE_ERROR: "DESKTOP_CONSOLE_ERROR",
   DESKTOP_RUNTIME_EXCEPTION: "DESKTOP_RUNTIME_EXCEPTION",
   DESKTOP_NETWORK_FAILURE: "DESKTOP_NETWORK_FAILURE",
@@ -124,6 +129,7 @@ const GUARDED_BROWSER_MANAGED_ICON_URL =
 const MAX_BROWSER_MANAGED_ICON_BRIDGE_ATTEMPTS_PER_VIEWPORT = 1;
 const MAX_BROWSER_MANAGED_ICON_BYTES = 16 * 1024;
 const BROWSER_MANAGED_ICON_TIMEOUT_MILLISECONDS = 10_000;
+const MAX_CONTROLLED_REHEARSAL_RESPONSE_BYTES = 16 * 1024;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 const FAILURE_DIMENSIONS = new Set(
   Object.values(ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION)
@@ -1031,6 +1037,234 @@ export async function collectRouteIqPrivateBrowserPageEvidence(
   };
 }
 
+export function routeIqControlledRehearsalBrowserRequestContract(
+  expectedWorkerVersion
+) {
+  if (!UUID.test(expectedWorkerVersion || "")) {
+    fail("route_iq_private_browser_rehearsal_identity_invalid");
+  }
+  return Object.freeze({
+    exactUrl:
+      `${CLOUDFLARE_UNATTENDED_SMOKE_ORIGIN}`
+        + ROUTE_IQ_CONTROLLED_PAID_CUSTOMER_REHEARSAL_PATH,
+    expectedWorkerVersion,
+    expectedContractVersion:
+      ROUTE_IQ_CONTROLLED_PAID_CUSTOMER_REHEARSAL_RUNTIME_VERSION,
+    markerHeader:
+      CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader.toLowerCase(),
+    markerValue: CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
+    versionHeader:
+      CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader.toLowerCase(),
+    maximumBytes: MAX_CONTROLLED_REHEARSAL_RESPONSE_BYTES
+  });
+}
+
+export async function collectRouteIqControlledRehearsalBrowserEvidence(
+  browserGlobal,
+  contract
+) {
+  const failed = () => ({
+    status: "FAIL",
+    responseStatus: null,
+    markerVerified: false,
+    workerVersionExact: false,
+    lifecycleVerified: false,
+    topologyVerified: false,
+    authorizationVerified: false,
+    operatingHoursVerified: false,
+    safetyVerified: false,
+    cleanupVerified: false
+  });
+  const exactKeys = (value, expected) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    const actual = Object.keys(value).sort();
+    const required = [...expected].sort();
+    return actual.length === required.length
+      && actual.every((key, index) => key === required[index]);
+  };
+  try {
+    if (typeof browserGlobal?.fetch !== "function"
+      || typeof contract?.exactUrl !== "string"
+      || typeof contract?.expectedWorkerVersion !== "string"
+      || typeof contract?.expectedContractVersion !== "string"
+      || typeof contract?.markerHeader !== "string"
+      || typeof contract?.markerValue !== "string"
+      || typeof contract?.versionHeader !== "string"
+      || !Number.isInteger(contract?.maximumBytes)
+      || contract.maximumBytes < 1) return failed();
+    const response = await browserGlobal.fetch(contract.exactUrl, {
+      method: "GET",
+      cache: "no-store",
+      credentials: "omit",
+      redirect: "error",
+      referrerPolicy: "no-referrer"
+    });
+    const responseStatus = Number.isInteger(response?.status)
+      ? response.status
+      : null;
+    const markerVerified =
+      response?.headers?.get?.(contract.markerHeader) === contract.markerValue;
+    const workerVersionExact =
+      response?.headers?.get?.(contract.versionHeader)
+        === contract.expectedWorkerVersion;
+    const contentType = String(response?.headers?.get?.("content-type") || "")
+      .split(";", 1)[0]
+      .trim()
+      .toLowerCase();
+    if (responseStatus !== 200
+      || response?.redirected === true
+      || response?.url !== contract.exactUrl
+      || markerVerified !== true
+      || workerVersionExact !== true
+      || contentType !== "application/json") return failed();
+    const declaredLength = response.headers.get("content-length");
+    if (declaredLength !== null
+      && (!/^[0-9]+$/u.test(declaredLength)
+        || Number(declaredLength) < 1
+        || Number(declaredLength) > contract.maximumBytes)) return failed();
+    const text = await response.text();
+    if (text.length < 1 || text.length > contract.maximumBytes) return failed();
+    const body = JSON.parse(text);
+    if (!exactKeys(body, ["contractVersion", "evidence", "ok", "status"])
+      || body.ok !== true
+      || body.status !== "PASS"
+      || body.contractVersion !== contract.expectedContractVersion
+      || !exactKeys(body.evidence, [
+        "authorization",
+        "cleanup",
+        "lifecycle",
+        "operatingHours",
+        "safeEmptyState",
+        "safety",
+        "topology"
+      ])) return failed();
+    const {
+      lifecycle,
+      topology,
+      authorization,
+      operatingHours,
+      safety,
+      cleanup
+    } = body.evidence;
+    const lifecycleVerified = exactKeys(lifecycle, [
+      "activated",
+      "controlledValidation",
+      "draft",
+      "failureEvidence",
+      "finalState",
+      "recovery",
+      "validationFailure"
+    ])
+      && lifecycle.draft === "CREATED"
+      && lifecycle.controlledValidation === "FAILED_AS_EXPECTED"
+      && lifecycle.validationFailure === "CONTROLLED_LOCATION_SCOPE_INVALID"
+      && lifecycle.failureEvidence === "PRESERVED"
+      && lifecycle.recovery === "DRAFT_RESTORED"
+      && lifecycle.finalState === "VALIDATED"
+      && lifecycle.activated === false;
+    const topologyVerified = exactKeys(topology, [
+      "companyWorkspaceBinding",
+      "locationCount",
+      "managerCount",
+      "representativeCount"
+    ])
+      && topology.companyWorkspaceBinding === "EXACT"
+      && topology.locationCount === 2
+      && topology.managerCount === 1
+      && topology.representativeCount === 2;
+    const authorizationVerified = exactKeys(authorization, [
+      "crossCompanyAccess",
+      "crossUserAccess",
+      "crossWorkspaceAccess",
+      "managerWorkspaceRead",
+      "representativeOwnRecordRead",
+      "representativePrivilegedAccess",
+      "representativeWorkspaceRead"
+    ])
+      && authorization.managerWorkspaceRead === "AUTHORIZED"
+      && authorization.representativeOwnRecordRead === "AUTHORIZED"
+      && authorization.representativeWorkspaceRead === "DENIED"
+      && authorization.representativePrivilegedAccess === "DENIED"
+      && authorization.crossUserAccess === "DENIED"
+      && authorization.crossCompanyAccess === "DENIED"
+      && authorization.crossWorkspaceAccess === "DENIED";
+    const operatingHoursVerified = exactKeys(operatingHours, [
+      "closedLocation",
+      "openLocation",
+      "recommendationInfluence",
+      "representativeRouting"
+    ])
+      && operatingHours.openLocation === "ADMISSION_ELIGIBLE_VALIDATION_ONLY"
+      && operatingHours.closedLocation === "BUSINESS_NOT_OPEN_NOW"
+      && operatingHours.representativeRouting === "BLOCKED"
+      && operatingHours.recommendationInfluence === "OFF";
+    const safetyVerified = exactKeys(safety, [
+      "activeCohorts",
+      "billing",
+      "collection",
+      "customerActivation",
+      "invitations",
+      "liveStripe",
+      "persistence",
+      "productionBindingAccess",
+      "providerRefresh",
+      "recommendationInfluence",
+      "scheduler"
+    ])
+      && body.evidence.safeEmptyState === "PRESERVED"
+      && safety.billing === "BLOCKED"
+      && safety.liveStripe === "DISABLED"
+      && safety.customerActivation === "OFF"
+      && safety.invitations === "NOT_SENT"
+      && safety.providerRefresh === "OFF"
+      && safety.scheduler === "OFF"
+      && safety.collection === "OFF"
+      && safety.activeCohorts === 0
+      && safety.recommendationInfluence === "OFF"
+      && safety.persistence === "NONE"
+      && safety.productionBindingAccess === "NONE";
+    const cleanupVerified = exactKeys(cleanup, ["remainingRecords", "status"])
+      && cleanup.status === "REMOVED"
+      && cleanup.remainingRecords === 0;
+    const status = lifecycleVerified
+      && topologyVerified
+      && authorizationVerified
+      && operatingHoursVerified
+      && safetyVerified
+      && cleanupVerified
+      ? "PASS"
+      : "FAIL";
+    return {
+      status,
+      responseStatus,
+      markerVerified,
+      workerVersionExact,
+      lifecycleVerified,
+      topologyVerified,
+      authorizationVerified,
+      operatingHoursVerified,
+      safetyVerified,
+      cleanupVerified
+    };
+  } catch {
+    return failed();
+  }
+}
+
+export function isRouteIqControlledRehearsalBrowserEvidencePassing(value) {
+  return value?.status === "PASS"
+    && value.responseStatus === 200
+    && value.markerVerified === true
+    && value.workerVersionExact === true
+    && value.lifecycleVerified === true
+    && value.topologyVerified === true
+    && value.authorizationVerified === true
+    && value.operatingHoursVerified === true
+    && value.safetyVerified === true
+    && value.cleanupVerified === true
+    && Object.keys(value).length === 10;
+}
+
 async function runViewportScenario({
   debugPort,
   credentials,
@@ -1077,6 +1311,7 @@ async function runViewportScenario({
     serviceWorkerRegistrations: null,
     externalRequests: 0,
     publicIsolationVerified: true,
+    controlledRehearsal: null,
     documentIdentityGateChecked: false,
     documentIdentityGateExact: false,
     documentIdentityGateReason: null
@@ -1318,6 +1553,15 @@ async function runViewportScenario({
     }, sessionId);
     await waitForDocumentIdentityGate(evidence, viewport);
     await waitForReadyPage(client, sessionId);
+    evidence.controlledRehearsal = await evaluate(
+      client,
+      sessionId,
+      `(${collectRouteIqControlledRehearsalBrowserEvidence.toString()})(`
+        + "globalThis,"
+        + `${JSON.stringify(
+          routeIqControlledRehearsalBrowserRequestContract(expectedWorkerVersion)
+        )})`
+    );
     await waitForBrowserQuiescence({
       pendingInterceptions,
       lastObservedEventAt: () => lastObservedEvent
@@ -1422,6 +1666,14 @@ export function evaluateRouteIqPrivateBrowserAcceptance({
         recordFailure(
           `${expected.name}_render`,
           ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.RENDER
+        );
+      }
+      if (!isRouteIqControlledRehearsalBrowserEvidencePassing(
+        scenario?.controlledRehearsal
+      )) {
+        recordFailure(
+          `${expected.name}_controlled_rehearsal`,
+          ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.CONTROLLED_REHEARSAL
         );
       }
       for (const healthFailure of HEALTH_FAILURES_BY_VIEWPORT[expected.name]) {
@@ -1565,6 +1817,10 @@ export async function runRouteIqPrivateProductionBrowserAcceptance({
       contractVersion: ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VERSION,
       status: "PASS",
       viewportCount: scenarios.length,
+      controlledRehearsalViewportCount: scenarios.filter(scenario =>
+        isRouteIqControlledRehearsalBrowserEvidencePassing(
+          scenario.controlledRehearsal
+        )).length,
       publicIsolationVerified: true
     });
   } finally {

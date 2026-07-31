@@ -92,7 +92,7 @@
     "configSha256": "23b6c5c5d506ea88565c428b1adbe0e068de14250126b4e1f53d4d10fd0b827e",
     "inertClassSha256": "c668e6d69c734c637ccb942767b7107c5725e62cc2deec18f6552b1726c7e47d",
     "generatedEntrypointSha256": "164b9e1843c2aecc074a4bda0eb2efc15c83bf890ba595959ae920690f028116",
-    "contentTreeSha256": "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637"
+    "contentTreeSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
   },
   "monitoringAndCost": {
     "observabilityPreserved": true,

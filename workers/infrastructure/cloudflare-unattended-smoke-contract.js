@@ -48,14 +48,20 @@ export const CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS = Object.freeze([
   "/intelligence/profiles/operating-profiles.json",
   "/intelligence/contracts/operating-profile-contracts.json",
   "/intelligence/route-business-hours-eligibility.mjs",
-  "/scripts/lib/business-hours-governance.mjs"
+  "/scripts/lib/business-hours-governance.mjs",
+  "/api/dashboard/route-iq/paid-customer-onboarding/internal/controlled-rehearsal"
 ]);
 
 export const CLOUDFLARE_UNATTENDED_SMOKE_FIXED_REQUESTS = Object.freeze([
-  ...CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS.map(path => Object.freeze({
-    method: "GET",
-    path
-  })),
+  ...CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_PATHS
+    .filter(path => (
+      path
+        !== "/api/dashboard/route-iq/paid-customer-onboarding/internal/controlled-rehearsal"
+    ))
+    .map(path => Object.freeze({
+      method: "GET",
+      path
+    })),
   Object.freeze({ method: "HEAD", path: "/" })
 ]);
 

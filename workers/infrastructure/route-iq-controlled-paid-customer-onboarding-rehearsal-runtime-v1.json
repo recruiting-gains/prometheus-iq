@@ -1,0 +1,71 @@
+{
+  "contractVersion": "route-iq-controlled-paid-customer-onboarding-rehearsal-runtime-v1",
+  "ownerSubsystem": "Prometheus Infrastructure",
+  "targetWorker": "prometheus-iq",
+  "deliveryState": "AUTHENTICATED_EPHEMERAL_VALIDATION_ONLY",
+  "route": {
+    "exactPath": "/api/dashboard/route-iq/paid-customer-onboarding/internal/controlled-rehearsal",
+    "allowedMethod": "GET",
+    "queryAllowed": false,
+    "bodyAllowed": false,
+    "alternatePathsAllowed": false,
+    "ordinaryPrincipalAllowed": false,
+    "servicePrincipalContract": "cloudflare-unattended-smoke-runtime-guard-v1"
+  },
+  "execution": {
+    "store": "FRESH_BRANDED_IN_MEMORY_STORE_PER_REQUEST",
+    "initialRecordCount": 0,
+    "finalRecordCount": 0,
+    "cleanup": "UNCONDITIONAL_FINALLY",
+    "productionBindingsAccessed": [],
+    "durableObjectsAccessed": [],
+    "crmAccessed": false,
+    "customerStorageAccessed": false,
+    "providerAccessed": false,
+    "schedulerAccessed": false
+  },
+  "ownerComposition": {
+    "fixtureAndDraft": "Prometheus Administration controlled rehearsal v1",
+    "lifecycle": "Prometheus Administration paid-customer onboarding v1",
+    "tenantAndRoleAuthorization": "Prometheus Security paid-customer isolation v1",
+    "operatingHoursAdmission": "Prometheus Intelligence paid-customer intelligence v1",
+    "runtimeAndProductionAcceptance": "Prometheus Infrastructure"
+  },
+  "proof": {
+    "draftCreated": true,
+    "controlledValidationFailurePreserved": true,
+    "validationRecovery": "VALIDATION_FAILED_TO_DRAFT",
+    "finalLifecycle": "VALIDATED",
+    "locationCount": 2,
+    "managerCount": 1,
+    "representativeCount": 2,
+    "crossCompanyDenied": true,
+    "crossWorkspaceDenied": true,
+    "crossUserDenied": true,
+    "representativePrivilegedAccessDenied": true,
+    "verifiedOpenAdmission": "VALIDATION_ONLY",
+    "verifiedClosedAdmission": "DENIED",
+    "representativeRouting": "BLOCKED"
+  },
+  "safety": {
+    "billing": "BLOCKED",
+    "liveStripe": "DISABLED",
+    "customerActivation": "OFF",
+    "invitations": "NOT_SENT",
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providerRefresh": "OFF",
+    "scheduler": "OFF",
+    "productionMutation": false
+  },
+  "response": {
+    "classification": "BOUNDED_NONSECRET_SYNTHETIC_EVIDENCE_ONLY",
+    "customerSensitiveDataAllowed": false,
+    "claimsAllowed": false,
+    "headersAllowed": false,
+    "credentialsAllowed": false,
+    "secretsAllowed": false,
+    "cache": "NO_STORE"
+  }
+}

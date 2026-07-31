@@ -84,6 +84,23 @@
       "responseBodyLoggingAllowed": false,
       "failedBridgeIsFatal": true,
       "allOtherHttpOrBrowserErrorsAllowed": false
+    },
+    "controlledPaidCustomerOnboardingRehearsal": {
+      "exactPath": "/api/dashboard/route-iq/paid-customer-onboarding/internal/controlled-rehearsal",
+      "method": "GET",
+      "queryAllowed": false,
+      "bodyAllowed": false,
+      "sameOrigin": true,
+      "servicePrincipalRequired": true,
+      "viewports": [
+        "desktop",
+        "mobile"
+      ],
+      "maximumResponseBytes": 16384,
+      "boundedStatusEvidenceOnly": true,
+      "writeAttemptsAllowed": 0,
+      "finalRecordCountRequired": 0,
+      "failureIsFatal": true
     }
   },
   "acceptance": {
@@ -95,6 +112,7 @@
     "runtimeExceptionsAllowed": 0,
     "networkFailuresAllowed": 0,
     "networkHttpFailuresAllowed": 0,
+    "controlledPaidCustomerOnboardingRehearsalRequired": true,
     "publicWorkerIdentityMustRemainExact": true
   },
   "diagnostics": {

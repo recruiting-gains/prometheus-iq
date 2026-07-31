@@ -11,12 +11,15 @@ import {
   classifyRouteIqPrivateBrowserDocumentResponse,
   classifyRouteIqPrivateBrowserHttpPath,
   classifyRouteIqPrivateBrowserLogEntry,
+  collectRouteIqControlledRehearsalBrowserEvidence,
   collectRouteIqPrivateBrowserPageEvidence,
   evaluateRouteIqPrivateBrowserAcceptance,
   fetchRouteIqPrivateBrowserManagedIcon,
   isGuardedRouteIqServiceWorkerRequest,
+  isRouteIqControlledRehearsalBrowserEvidencePassing,
   isRouteIqPrivateBrowserManagedIconRequest,
   reconcileRouteIqPrivateBrowserNetworkEvents,
+  routeIqControlledRehearsalBrowserRequestContract,
   routeIqPrivateBrowserAuthenticatedRequestHeaders,
   routeIqPrivateBrowserGuardScript,
   runRouteIqPrivateProductionBrowserAcceptance,
@@ -28,12 +31,35 @@ import {
 import {
   scanTextForCloudflareSecrets
 } from "../scripts/check-cloudflare-unattended-secret-presence.mjs";
+import {
+  ROUTE_IQ_CONTROLLED_PAID_CUSTOMER_REHEARSAL_RUNTIME_VERSION,
+  executeControlledPaidCustomerOnboardingRehearsal
+} from "../workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.js";
+import {
+  CLOUDFLARE_UNATTENDED_SMOKE_MARKER,
+  CLOUDFLARE_UNATTENDED_SMOKE_VERSION
+} from "../workers/infrastructure/cloudflare-unattended-smoke-contract.js";
 
 const VERSION = "16e40509-0173-4712-9138-0393a2ae1924";
 const contract = JSON.parse(readFileSync(new URL(
   "../workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json",
   import.meta.url
 ), "utf8"));
+
+function passingControlledRehearsalEvidence() {
+  return {
+    status: "PASS",
+    responseStatus: 200,
+    markerVerified: true,
+    workerVersionExact: true,
+    lifecycleVerified: true,
+    topologyVerified: true,
+    authorizationVerified: true,
+    operatingHoursVerified: true,
+    safetyVerified: true,
+    cleanupVerified: true
+  };
+}
 
 function passingScenario(viewport) {
   return {
@@ -64,7 +90,8 @@ function passingScenario(viewport) {
     browserManagedIconBridgeAttempts: 0,
     browserManagedIconBridgeSuccesses: 0,
     serviceWorkerRegistrations: 0,
-    externalRequests: 0
+    externalRequests: 0,
+    controlledRehearsal: passingControlledRehearsalEvidence()
   };
 }
 
@@ -150,10 +177,159 @@ test("browser contract fixes exact desktop/mobile, no-write, and isolation bound
     failedBridgeIsFatal: true,
     allOtherHttpOrBrowserErrorsAllowed: false
   });
+  assert.deepEqual(contract.network.controlledPaidCustomerOnboardingRehearsal, {
+    exactPath:
+      "/api/dashboard/route-iq/paid-customer-onboarding/internal/controlled-rehearsal",
+    method: "GET",
+    queryAllowed: false,
+    bodyAllowed: false,
+    sameOrigin: true,
+    servicePrincipalRequired: true,
+    viewports: ["desktop", "mobile"],
+    maximumResponseBytes: 16384,
+    boundedStatusEvidenceOnly: true,
+    writeAttemptsAllowed: 0,
+    finalRecordCountRequired: 0,
+    failureIsFatal: true
+  });
+  assert.equal(
+    contract.acceptance.controlledPaidCustomerOnboardingRehearsalRequired,
+    true
+  );
   assert.equal(contract.acceptance.publicWorkerIdentityMustRemainExact, true);
   assert.equal(contract.safety.collection, "OFF");
   assert.equal(contract.safety.activeCohorts, 0);
   assert.equal(contract.safety.recommendationInfluence, "OFF");
+});
+
+test("authenticated browser rehearsal collapses the response to fixed safe evidence", async () => {
+  const requestContract = routeIqControlledRehearsalBrowserRequestContract(VERSION);
+  const runtimeEvidence = await executeControlledPaidCustomerOnboardingRehearsal();
+  const body = JSON.stringify({
+    ok: true,
+    contractVersion:
+      ROUTE_IQ_CONTROLLED_PAID_CUSTOMER_REHEARSAL_RUNTIME_VERSION,
+    status: "PASS",
+    evidence: runtimeEvidence
+  });
+  let captured;
+  const result = await collectRouteIqControlledRehearsalBrowserEvidence({
+    async fetch(url, init) {
+      captured = { url, init };
+      return {
+        status: 200,
+        redirected: false,
+        url,
+        headers: new Headers({
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": String(body.length),
+          [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
+            CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
+          [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]: VERSION
+        }),
+        async text() {
+          return body;
+        }
+      };
+    }
+  }, requestContract);
+  assert.deepEqual(result, passingControlledRehearsalEvidence());
+  assert.equal(isRouteIqControlledRehearsalBrowserEvidencePassing(result), true);
+  assert.equal(captured.url, requestContract.exactUrl);
+  assert.equal(captured.init.method, "GET");
+  assert.equal(captured.init.cache, "no-store");
+  assert.equal(captured.init.credentials, "omit");
+  assert.equal(captured.init.redirect, "error");
+  assert.equal(Object.hasOwn(captured.init, "body"), false);
+  const serialized = JSON.stringify(result);
+  assert.equal(serialized.includes("Orion"), false);
+  assert.equal(serialized.includes("company_"), false);
+  assert.equal(serialized.includes("principal_"), false);
+});
+
+test("browser rehearsal fails closed on status identity shape or evidence tampering", async () => {
+  const requestContract = routeIqControlledRehearsalBrowserRequestContract(VERSION);
+  const runtimeEvidence = await executeControlledPaidCustomerOnboardingRehearsal();
+  const canonical = {
+    ok: true,
+    contractVersion:
+      ROUTE_IQ_CONTROLLED_PAID_CUSTOMER_REHEARSAL_RUNTIME_VERSION,
+    status: "PASS",
+    evidence: runtimeEvidence
+  };
+  const cases = [
+    { status: 503 },
+    { workerVersion: "22222222-2222-4222-8222-222222222222" },
+    { marker: "not-verified" },
+    {
+      body: {
+        ...canonical,
+        evidence: {
+          ...canonical.evidence,
+          cleanup: { status: "REMOVED", remainingRecords: 1 }
+        }
+      }
+    },
+    {
+      body: {
+        ...canonical,
+        evidence: {
+          ...canonical.evidence,
+          authorization: {
+            ...canonical.evidence.authorization,
+            crossCompanyAccess: "AUTHORIZED"
+          }
+        }
+      }
+    },
+    { body: { ...canonical, unexpected: true } }
+  ];
+  for (const item of cases) {
+    const serializedBody = JSON.stringify(item.body || canonical);
+    const result = await collectRouteIqControlledRehearsalBrowserEvidence({
+      async fetch(url) {
+        return {
+          status: item.status || 200,
+          redirected: false,
+          url,
+          headers: new Headers({
+            "Content-Type": "application/json",
+            [CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseHeader]:
+              item.marker || CLOUDFLARE_UNATTENDED_SMOKE_MARKER.responseValue,
+            [CLOUDFLARE_UNATTENDED_SMOKE_VERSION.responseHeader]:
+              item.workerVersion || VERSION
+          }),
+          async text() {
+            return serializedBody;
+          }
+        };
+      }
+    }, requestContract);
+    assert.equal(result.status, "FAIL");
+    assert.equal(isRouteIqControlledRehearsalBrowserEvidencePassing(result), false);
+  }
+});
+
+test("desktop or mobile rehearsal mismatch is a release-blocking acceptance dimension", () => {
+  for (const viewport of ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS) {
+    const scenarios =
+      ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_VIEWPORTS.map(passingScenario);
+    scenarios.find(item => item.viewport === viewport.name).controlledRehearsal = {
+      ...passingControlledRehearsalEvidence(),
+      cleanupVerified: false,
+      status: "FAIL"
+    };
+    const result = evaluateRouteIqPrivateBrowserAcceptance({
+      expectedWorkerVersion: VERSION,
+      publicIsolationVerified: true,
+      scenarios
+    });
+    assert.equal(result.status, "FAIL");
+    assert.ok(result.failures.includes(`${viewport.name}_controlled_rehearsal`));
+    assert.deepEqual(result.failureDimensions, [
+      ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSION.CONTROLLED_REHEARSAL
+    ]);
+  }
 });
 
 test("browser release stability requires consecutive exact script-disabled probes", async () => {

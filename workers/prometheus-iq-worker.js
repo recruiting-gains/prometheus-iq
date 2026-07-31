@@ -59,6 +59,10 @@ import {
   isRouteIqPaidCustomerDashboardPreviewPath
 } from "./infrastructure/route-iq-paid-customer-dashboard-preview-runtime.js";
 import {
+  handleControlledPaidCustomerOnboardingRehearsalRequest,
+  isControlledPaidCustomerOnboardingRehearsalPath
+} from "./infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.js";
+import {
   authorizeCloudflareUnattendedSmokeRequest,
   markCloudflareUnattendedSmokeResponse,
   sanitizeCloudflareUnattendedSmokeAssetRequest
@@ -1022,7 +1026,8 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
   unattendedSmokeTestHooks,
   dailySnapshotTestHooks,
   paidCustomerOnboardingTestHooks,
-  paidCustomerDashboardPreviewTestHooks
+  paidCustomerDashboardPreviewTestHooks,
+  controlledPaidCustomerRehearsalTestHooks
 } = {}) {
   const smokeAuthorization = await authorizeCloudflareUnattendedSmokeRequest(request, env, {
     noncanonicalTestHooks: unattendedSmokeTestHooks
@@ -1032,7 +1037,13 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
   let response;
   try {
     const url = new URL(request.url);
-    if (isRouteIqCustomerPwaAppNamespace(url.pathname)
+    if (isControlledPaidCustomerOnboardingRehearsalPath(url.pathname)) {
+      response = await handleControlledPaidCustomerOnboardingRehearsalRequest(
+        request,
+        smokeAuthorization,
+        { testHooks: controlledPaidCustomerRehearsalTestHooks }
+      );
+    } else if (isRouteIqCustomerPwaAppNamespace(url.pathname)
       || isRouteIqCustomerPwaSessionPath(url.pathname)) {
       response = await handleRouteIqCustomerPwaRequest(request, env, { testHooks: customerPwaTestHooks });
     } else if (isRouteIqProspectiveShadowPath(url.pathname)
