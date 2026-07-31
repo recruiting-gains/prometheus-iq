@@ -22,7 +22,7 @@ test("Overwatch accepts only the exact owner chain and harmony boundary", () => 
   const result = verifyOverwatchFullSystemHarmonyAudit({ governance, report });
   assert.deepEqual(result, {
     status: "OVERWATCH_FULL_SYSTEM_HARMONY_AUDIT_V1_VERIFIED",
-    ownerCommitCount: 14,
+    ownerCommitCount: 16,
     subsystemCount: 20,
     contractCount: 19,
     decision: "CONDITIONAL_GO"

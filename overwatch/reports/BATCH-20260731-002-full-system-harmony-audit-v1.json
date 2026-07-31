@@ -18,7 +18,9 @@
     {"owner": "Prometheus Infrastructure", "result": "the private deployment parity contract matches the accepted dashboard payload"},
     {"owner": "Prometheus Overwatch", "result": "the private parity contract successor is independently accepted"},
     {"owner": "Prometheus Infrastructure", "result": "the qualified private forward payload pin matches the exact no-bundle artifact"},
-    {"owner": "Prometheus Overwatch", "result": "the qualified payload successor and current private governance record are independently accepted"}
+    {"owner": "Prometheus Overwatch", "result": "the qualified payload successor and current private governance record are independently accepted"},
+    {"owner": "Prometheus Overwatch", "result": "the complete repair chain is bound into one final harmony qualification candidate"},
+    {"owner": "Prometheus Overwatch", "result": "the cross-subsystem fixture supplies the required semantic role and rejects attempted Founder relabeling"}
   ],
   "acceptance": {
     "crossSubsystemContracts": "PASS",
