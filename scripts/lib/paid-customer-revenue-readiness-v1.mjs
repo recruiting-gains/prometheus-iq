@@ -66,7 +66,7 @@ export const REVENUE_READINESS_V1_POLICY = Object.freeze({
   firstRunAttempt: "1",
   baselineCommit: "50fa933f45e82224959386bd30d0e57becfb7d3c",
   baselineTree: "6d30998444d6660de7c42f5988e5f2f56f9966da",
-  currentPrivateVersion: "5a636567-4268-4179-8015-12a12557d286",
+  currentPrivateVersion: "2f2b059b-8776-4d70-8848-1a0c5d5b18d4",
   currentPublicVersion: "6a8713c0-0712-4cda-8a13-daa893ca45f2",
   privateWorker: PRIVATE_WORKFLOW_V2_POLICY.privateWorker,
   publicWorker: PRIVATE_WORKFLOW_V2_POLICY.publicWorker,
@@ -100,6 +100,7 @@ export const REVENUE_READINESS_V1_POLICY = Object.freeze({
   ]),
   infrastructureNewPaths: Object.freeze([
     ".github/workflows/paid-customer-revenue-readiness-v1.yml",
+    "deploy/cloudflare-pages/_headers",
     "deploy/cloudflare-pages/dashboard/route-iq-paid-customer-revenue-readiness.mjs",
     "deploy/cloudflare-pages/index.html",
     "docs/infrastructure/paid-customer-revenue-readiness-v1.md",
