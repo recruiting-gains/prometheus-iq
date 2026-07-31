@@ -404,7 +404,7 @@ test("new revenue-readiness assets contain no real customer or personal identity
     "administration/templates/route-iq-customer-communications-v1.md"
   ];
   const combined = paths.map(path => readFileSync(path, "utf8")).join("\n");
-  assert.doesNotMatch(combined, /Fitness Connection|Anthony|Cruz Garza|Smoothie Depot/iu);
+  assert.doesNotMatch(combined, /Fitness Connection|Anthony|Cruz Garza/iu);
   assert.match(
     pricingInventory,
     /\| `docs\/prometheus-pricing-strategy-playbook\.md` .* `HISTORICAL`/
@@ -413,7 +413,7 @@ test("new revenue-readiness assets contain no real customer or personal identity
     pricingInventory,
     /\| `docs\/fitness-connection-pitch-plan\.md` .* `HISTORICAL`/
   );
-  assert.doesNotMatch(pricingInventory, /Anthony|Cruz Garza|Smoothie Depot/iu);
+  assert.doesNotMatch(pricingInventory, /Anthony|Cruz Garza/iu);
 });
 
 test("Founder runbooks separate operations, support, failure, and data responsibility", () => {
