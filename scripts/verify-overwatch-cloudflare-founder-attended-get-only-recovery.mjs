@@ -11,6 +11,9 @@ import {
 import {
   hasGovernedPublicDeploymentWorkflowV2PackageSuccessor
 } from "./verify-overwatch-public-deployment-workflow-v2.mjs";
+import {
+  hasFullSystemHarmonyPackageWiringSuccessor
+} from "./verify-overwatch-cloudflare-founder-attended-service-token.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -30,6 +33,10 @@ const githubDeploymentGovernancePath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
 const routeIq3dGovernancePath =
   "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
+const fullSystemHarmonyGovernancePath =
+  "overwatch/governance/full-system-harmony-audit-v1.json";
+const controlledRehearsalPackageSha256 =
+  "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a";
 const ownerCommit = "43eee7a13bb2f826c4ac750298d9e87dd28f4976";
 const ownerParent = "89267707a3a62b2e3d61897476e4dda7adf95987";
 const ownerTree = "79b2ce3883160e95fdeb4f0985689fa77f50cf6b";
@@ -392,6 +399,11 @@ function verifyReleaseWiring() {
     || !hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
       predecessorGovernanceId: "route-iq-3d-visual-continuity-v1",
       historicalSha256: routeIq3dTransition?.successorSha256,
+      successorSha256: controlledRehearsalPackageSha256
+    })
+    || !hasFullSystemHarmonyPackageWiringSuccessor({
+      governance: readJson(fullSystemHarmonyGovernancePath),
+      predecessorSha256: controlledRehearsalPackageSha256,
       successorSha256: sha256(read("package.json"))
     })
     || packageTransition?.owner !== "Prometheus Overwatch"

@@ -11,6 +11,9 @@ import {
 import {
   hasGovernedPublicDeploymentWorkflowV2PackageSuccessor
 } from "./verify-overwatch-public-deployment-workflow-v2.mjs";
+import {
+  hasFullSystemHarmonyPackageWiringSuccessor
+} from "./verify-overwatch-cloudflare-founder-attended-service-token.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath = "overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.json";
@@ -27,6 +30,10 @@ const githubDeploymentGovernancePath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
 const routeIq3dGovernancePath =
   "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
+const fullSystemHarmonyGovernancePath =
+  "overwatch/governance/full-system-harmony-audit-v1.json";
+const controlledRehearsalPackageSha256 =
+  "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a";
 const ownerCommit = "1853c6343090ed3430f7ba03a089f1008a12436c";
 const ownerParent = "1a1a6143366175accb12752a095d11a39566bb90";
 const ownerTree = "3936f8950d7884ad3358e5ba5b67a472e6afef97";
@@ -277,6 +284,11 @@ function verifyOwnerCommit(governance) {
     || !hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
       predecessorGovernanceId: "route-iq-3d-visual-continuity-v1",
       historicalSha256: routeIq3dPackage?.successorSha256,
+      successorSha256: controlledRehearsalPackageSha256
+    })
+    || !hasFullSystemHarmonyPackageWiringSuccessor({
+      governance: readJson(fullSystemHarmonyGovernancePath),
+      predecessorSha256: controlledRehearsalPackageSha256,
       successorSha256: currentPackageHash
     })
     || createReceiptV2Package?.owner !== "Prometheus Overwatch"
