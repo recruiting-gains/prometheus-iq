@@ -1,0 +1,21 @@
+{
+  "registerId": "route-iq-paid-customer-revenue-founder-decisions-v1",
+  "version": "1.0.0",
+  "owner": "prometheus_administration",
+  "bindingDecisionsRecorded": false,
+  "decisions": [
+    { "decisionId": "legal_entity_registration", "status": "FOUNDER DECISION REQUIRED", "value": null },
+    { "decisionId": "tax_identity", "status": "FOUNDER DECISION REQUIRED", "value": null },
+    { "decisionId": "business_bank_account", "status": "FOUNDER DECISION REQUIRED", "value": null },
+    { "decisionId": "price_and_currency", "status": "FOUNDER DECISION REQUIRED", "value": null },
+    { "decisionId": "billing_cadence", "status": "FOUNDER DECISION REQUIRED", "value": null },
+    { "decisionId": "discount_authority", "status": "FOUNDER DECISION REQUIRED", "value": null },
+    { "decisionId": "tax_collection", "status": "FOUNDER DECISION REQUIRED", "value": null },
+    { "decisionId": "payment_terms", "status": "FOUNDER DECISION REQUIRED", "value": null },
+    { "decisionId": "refund_and_cancellation", "status": "FOUNDER DECISION REQUIRED", "value": null },
+    { "decisionId": "agreement_terms", "status": "FOUNDER DECISION REQUIRED", "value": null },
+    { "decisionId": "support_commitment", "status": "FOUNDER DECISION REQUIRED", "value": null },
+    { "decisionId": "data_handling_terms", "status": "FOUNDER DECISION REQUIRED", "value": null },
+    { "decisionId": "production_billing_provider", "status": "FOUNDER DECISION REQUIRED", "value": null }
+  ]
+}

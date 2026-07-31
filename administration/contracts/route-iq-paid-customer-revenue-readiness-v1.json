@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "route-iq-paid-customer-revenue-readiness-v1",
+  "contractVersion": "1.0.0",
+  "authority": "prometheus_administration",
+  "modelId": "route_iq_authoritative_commercial_model",
+  "modelVersion": "1.0.0",
+  "company": {
+    "proposedName": "Prometheus Route Intelligence LLC",
+    "registrationStatus": "PROPOSED_UNREGISTERED"
+  },
+  "product": {
+    "name": "Prometheus Route IQ",
+    "activeProduct": true
+  },
+  "plans": [
+    {
+      "planId": "route_iq_governed_customer_plan",
+      "version": "1.0.0",
+      "displayName": "Route IQ governed customer plan",
+      "currency": null,
+      "price": null,
+      "billingCadence": null,
+      "status": "FOUNDER DECISION REQUIRED"
+    }
+  ],
+  "intake": {
+    "maximumState": "DRAFT",
+    "productionMutationAllowed": false
+  },
+  "activation": {
+    "enabled": false,
+    "requiredEvidence": [
+      { "evidenceId": "founder_commercial_approval", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "customer_order_form_acceptance", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "legal_review_approval", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "data_handling_approval", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "support_owner_assignment", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "customer_workspace_validation", "required": true, "status": "FOUNDER DECISION REQUIRED" }
+    ]
+  },
+  "liveRevenue": {
+    "enabled": false,
+    "requiredEvidence": [
+      { "evidenceId": "registered_legal_entity", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "tax_identity_confirmed", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "business_bank_account_confirmed", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "founder_price_approval", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "billing_provider_production_approval", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "customer_payment_authorization", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "executed_customer_agreement", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "refund_cancellation_policy_approval", "required": true, "status": "FOUNDER DECISION REQUIRED" }
+    ]
+  },
+  "provenance": {
+    "source": "Prometheus Administration paid-customer revenue readiness",
+    "versionPinned": "route_iq_authoritative_commercial_model@1.0.0",
+    "founderDecisionRegister": "route-iq-paid-customer-revenue-founder-decisions-v1"
+  }
+}
