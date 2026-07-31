@@ -148,6 +148,8 @@ function record(owner, index, paths) {
       "Prometheus Administration <administration@prometheus.local>",
     INFRASTRUCTURE:
       "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    INTELLIGENCE:
+      "Prometheus Intelligence Engine <intelligence@prometheus.local>",
     OVERWATCH: "Prometheus Overwatch <overwatch@prometheus.local>"
   }[owner];
   return {
@@ -377,6 +379,55 @@ test("owner-correct Administration Infrastructure Overwatch chain passes", () =>
   ]);
   assert.equal(topology.finalOwner, "OVERWATCH");
   assert.equal(topology.commitCount, 3);
+});
+
+test("owner-correct reviewed Intelligence and Infrastructure successors pass", () => {
+  const topology = validateControlledRehearsalCommitTopology([
+    record("ADMINISTRATION", 2, [
+      CONTROLLED_REHEARSAL_V1_POLICY.administrationPaths[0]
+    ]),
+    record("INFRASTRUCTURE", 3, [
+      CONTROLLED_REHEARSAL_V1_POLICY.infrastructureNewPaths[0]
+    ]),
+    record("OVERWATCH", 4, [
+      CONTROLLED_REHEARSAL_V1_POLICY.overwatchNewPaths[0]
+    ]),
+    record("INTELLIGENCE", 5, [
+      CONTROLLED_REHEARSAL_V1_POLICY.intelligenceSuccessorPaths[0]
+    ]),
+    record("OVERWATCH", 6, [
+      CONTROLLED_REHEARSAL_V1_POLICY.overwatchSuccessorPaths[0]
+    ]),
+    record("INFRASTRUCTURE", 7, [
+      CONTROLLED_REHEARSAL_V1_POLICY.infrastructureSuccessorPaths[0]
+    ]),
+    record("OVERWATCH", 8, [
+      CONTROLLED_REHEARSAL_V1_POLICY.overwatchNewPaths[0]
+    ])
+  ]);
+  assert.equal(topology.finalOwner, "OVERWATCH");
+  assert.equal(topology.intelligenceCommitCount, 1);
+  assert.equal(topology.infrastructureCommitCount, 2);
+});
+
+test("an owner successor without subsequent Overwatch acceptance fails closed", () => {
+  expectFailure(
+    () => validateControlledRehearsalCommitTopology([
+      record("ADMINISTRATION", 2, [
+        CONTROLLED_REHEARSAL_V1_POLICY.administrationPaths[0]
+      ]),
+      record("INFRASTRUCTURE", 3, [
+        CONTROLLED_REHEARSAL_V1_POLICY.infrastructureNewPaths[0]
+      ]),
+      record("OVERWATCH", 4, [
+        CONTROLLED_REHEARSAL_V1_POLICY.overwatchNewPaths[0]
+      ]),
+      record("INTELLIGENCE", 5, [
+        CONTROLLED_REHEARSAL_V1_POLICY.intelligenceSuccessorPaths[0]
+      ])
+    ]),
+    CONTROLLED_REHEARSAL_V1_FAILURE.OWNER_INVALID
+  );
 });
 
 test("cross-owner edits fail closed", () => {

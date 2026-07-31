@@ -29,6 +29,8 @@ const ADMINISTRATION_IDENTITY =
   "Prometheus Administration <administration@prometheus.local>";
 const INFRASTRUCTURE_IDENTITY =
   "Prometheus Infrastructure <infrastructure@prometheus.local>";
+const INTELLIGENCE_IDENTITY =
+  "Prometheus Intelligence Engine <intelligence@prometheus.local>";
 const OVERWATCH_IDENTITY =
   "Prometheus Overwatch <overwatch@prometheus.local>";
 
@@ -72,6 +74,7 @@ export const CONTROLLED_REHEARSAL_V1_POLICY = Object.freeze({
   concurrencyGroup: "controlled-paid-customer-onboarding-rehearsal-v1",
   administrationIdentity: ADMINISTRATION_IDENTITY,
   infrastructureIdentity: INFRASTRUCTURE_IDENTITY,
+  intelligenceIdentity: INTELLIGENCE_IDENTITY,
   overwatchIdentity: OVERWATCH_IDENTITY,
   administrationPaths: Object.freeze([
     "administration/contracts/route-iq-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
@@ -104,11 +107,35 @@ export const CONTROLLED_REHEARSAL_V1_POLICY = Object.freeze({
     "workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json",
     "workers/prometheus-iq-worker.js"
   ]),
+  infrastructureSuccessorPaths: Object.freeze([
+    "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+    "tests/cloudflare-unattended-runtime-guard.test.mjs"
+  ]),
+  intelligenceSuccessorPaths: Object.freeze([
+    "intelligence/provenance/protected-baseline-synchronization-controlled-onboarding-rehearsal-smoke-contract-v1.json",
+    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+    "scripts/verify-shadow-decision-readiness.mjs",
+    "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+    "tests/shadow-decision-readiness.test.mjs"
+  ]),
   overwatchNewPaths: Object.freeze([
     "overwatch/governance/controlled-paid-customer-onboarding-rehearsal-v1.json",
-    "overwatch/reports/controlled-paid-customer-onboarding-rehearsal-v1.json",
+    "overwatch/reports/BATCH-20260730-002-controlled-paid-customer-onboarding-rehearsal-v1.json",
     "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
     "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs"
+  ]),
+  overwatchSuccessorPaths: Object.freeze([
+    "overwatch/governance/github-actions-private-worker-deployment-v2.json",
+    "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
+    "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+    "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
+    "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+    "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+    "scripts/verify-release-provenance-repair.mjs",
+    "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",
+    "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
+    "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+    "tests/release-provenance-repair.test.mjs"
   ]),
   overwatchExistingPaths: Object.freeze([
     "package.json"
@@ -151,9 +178,19 @@ const ARTIFACT_ENVIRONMENT_NAMES = Object.freeze([
   "PROMETHEUS_ROLLBACK_CONTRACT_SHA256",
   "PROMETHEUS_ROLLBACK_BUNDLE_SHA256"
 ]);
-const OWNER_SEQUENCE = Object.freeze([
+const FOUNDATION_OWNER_SEQUENCE = Object.freeze([
   "ADMINISTRATION",
   "INFRASTRUCTURE",
+  "OVERWATCH"
+]);
+const IMPLEMENTATION_SUCCESSOR_OWNERS = Object.freeze([
+  "INFRASTRUCTURE",
+  "INTELLIGENCE"
+]);
+const VALID_OWNERS = Object.freeze([
+  "ADMINISTRATION",
+  "INFRASTRUCTURE",
+  "INTELLIGENCE",
   "OVERWATCH"
 ]);
 const SUCCESSFUL_BROWSER_ACCEPTANCE =
@@ -163,6 +200,7 @@ const ROLLBACK_BROWSER_ACCEPTANCE =
 const IDENTITIES = Object.freeze({
   ADMINISTRATION: ADMINISTRATION_IDENTITY,
   INFRASTRUCTURE: INFRASTRUCTURE_IDENTITY,
+  INTELLIGENCE: INTELLIGENCE_IDENTITY,
   OVERWATCH: OVERWATCH_IDENTITY
 });
 const EVIDENCE_KEYS = Object.freeze([
@@ -361,7 +399,16 @@ export function controlledRehearsalPathOwner(path, baselineIdentity = null) {
   if (CONTROLLED_REHEARSAL_V1_POLICY.infrastructureNewPaths.includes(path)) {
     return "INFRASTRUCTURE";
   }
+  if (CONTROLLED_REHEARSAL_V1_POLICY.infrastructureSuccessorPaths.includes(path)) {
+    return "INFRASTRUCTURE";
+  }
+  if (CONTROLLED_REHEARSAL_V1_POLICY.intelligenceSuccessorPaths.includes(path)) {
+    return "INTELLIGENCE";
+  }
   if (CONTROLLED_REHEARSAL_V1_POLICY.overwatchNewPaths.includes(path)) {
+    return "OVERWATCH";
+  }
+  if (CONTROLLED_REHEARSAL_V1_POLICY.overwatchSuccessorPaths.includes(path)) {
     return "OVERWATCH";
   }
   if (CONTROLLED_REHEARSAL_V1_POLICY.infrastructureExistingPaths.includes(path)) {
@@ -391,7 +438,7 @@ export function validateControlledRehearsalCommitTopology(records) {
       || new Set(record.paths).size !== record.paths.length
       || !Array.isArray(record.pathOwners)
       || record.pathOwners.length !== record.paths.length
-      || !OWNER_SEQUENCE.includes(record.owner)
+      || !VALID_OWNERS.includes(record.owner)
       || record.pathOwners.some(owner => owner !== record.owner)
       || record.author !== IDENTITIES[record.owner]
       || record.committer !== IDENTITIES[record.owner]) {
@@ -399,19 +446,36 @@ export function validateControlledRehearsalCommitTopology(records) {
     }
     owners.push(record.owner);
   }
-  let phase = 0;
-  const counts = Object.fromEntries(OWNER_SEQUENCE.map(owner => [owner, 0]));
+  const counts = Object.fromEntries(VALID_OWNERS.map(owner => [owner, 0]));
+  let foundationPhase = 0;
+  let foundationReviewed = false;
+  let pendingSuccessorOwner = null;
   for (const owner of owners) {
-    const ownerPhase = OWNER_SEQUENCE.indexOf(owner);
-    if (ownerPhase < phase || ownerPhase > phase + 1) {
+    counts[owner] += 1;
+    if (!foundationReviewed) {
+      const ownerPhase = FOUNDATION_OWNER_SEQUENCE.indexOf(owner);
+      if (ownerPhase < foundationPhase || ownerPhase > foundationPhase + 1) {
+        fail(CONTROLLED_REHEARSAL_V1_FAILURE.OWNER_INVALID);
+      }
+      foundationPhase = ownerPhase;
+      foundationReviewed = owner === "OVERWATCH";
+      continue;
+    }
+    if (owner === "OVERWATCH") {
+      pendingSuccessorOwner = null;
+      continue;
+    }
+    if (!IMPLEMENTATION_SUCCESSOR_OWNERS.includes(owner)
+      || (pendingSuccessorOwner !== null && pendingSuccessorOwner !== owner)) {
       fail(CONTROLLED_REHEARSAL_V1_FAILURE.OWNER_INVALID);
     }
-    phase = ownerPhase;
-    counts[owner] += 1;
+    pendingSuccessorOwner = owner;
   }
   if (counts.ADMINISTRATION < 1
     || counts.INFRASTRUCTURE < 1
     || counts.OVERWATCH < 1
+    || !foundationReviewed
+    || pendingSuccessorOwner !== null
     || owners.at(-1) !== "OVERWATCH") {
     fail(CONTROLLED_REHEARSAL_V1_FAILURE.OWNER_INVALID);
   }
@@ -419,6 +483,7 @@ export function validateControlledRehearsalCommitTopology(records) {
     commitCount: records.length,
     administrationCommitCount: counts.ADMINISTRATION,
     infrastructureCommitCount: counts.INFRASTRUCTURE,
+    intelligenceCommitCount: counts.INTELLIGENCE,
     overwatchCommitCount: counts.OVERWATCH,
     finalOwner: owners.at(-1)
   });
