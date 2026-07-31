@@ -198,6 +198,12 @@ const v2ControlledRehearsalIntelligenceSuccessorParent =
   "ab544fd393f6dffa86a3fc603e72ef5d1883109c";
 const v2ControlledRehearsalIntelligenceSuccessorTree =
   "34b0f9922aa1dbcb7d391c0ab829f2efb2febfb1";
+const v2ControlledRehearsalGuardVerifierSuccessorCommit =
+  "68b396623f6ef0190d4cd938aa6812326b5067f1";
+const v2ControlledRehearsalGuardVerifierSuccessorParent =
+  "29173688b48f20d5ade5a105345b5de974a01c95";
+const v2ControlledRehearsalGuardVerifierSuccessorTree =
+  "479f3097ad3b40038163b2b9fe6a67922511b45b";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -726,6 +732,13 @@ const v2ControlledRehearsalIntelligenceSuccessorHashes = Object.freeze({
     "ebfe8ddb714c4ce56b36c691cd697bc6d8659a4eafa10a49bb143cb5cfbea700",
   "tests/shadow-decision-readiness.test.mjs":
     "59cc3737e55222816115ef1608c7a43502894935f256a1bc4812d83dbc2c9cbb"
+});
+
+const v2ControlledRehearsalGuardVerifierSuccessorHashes = Object.freeze({
+  "scripts/verify-cloudflare-unattended-runtime-guard.mjs":
+    "40abe1f2947706ad510a7468018b950fd32ee874a9bad58a3acc8bd70543ddc7",
+  "tests/cloudflare-unattended-runtime-guard.test.mjs":
+    "20c926030decb7c6a4bf290f845703c58c33005ec499fc12bf266f7a00e5eef7"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -3162,8 +3175,86 @@ function verifyV2OwnerAndGovernance() {
     ...v2ControlledRehearsalLaneHashes
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
-    if (sha256(readFileSync(resolve(root, path))) !== expected) {
+    const currentSha256 = sha256(readFileSync(resolve(root, path)));
+    const successorSha256 =
+      v2ControlledRehearsalGuardVerifierSuccessorHashes[path];
+    const successorPredecessorSha256 = successorSha256
+      ? sha256(execFileSync("/usr/bin/git", [
+        "show", `${v2ControlledRehearsalGuardVerifierSuccessorParent}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }))
+      : null;
+    if (!(currentSha256 === expected
+      || (successorSha256 === currentSha256
+        && successorPredecessorSha256 === expected))) {
       throw new Error(`Private Workflow v2 current owner evidence drifted: ${path}`);
+    }
+  }
+
+  const guardVerifierMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    v2ControlledRehearsalGuardVerifierSuccessorCommit
+  ]).split("\n");
+  if (!equal(guardVerifierMetadata, [
+    v2ControlledRehearsalGuardVerifierSuccessorCommit,
+    v2ControlledRehearsalGuardVerifierSuccessorParent,
+    v2ControlledRehearsalGuardVerifierSuccessorTree,
+    infrastructureIdentity,
+    infrastructureIdentity,
+    "infrastructure: verify rehearsal guard successor"
+  ])) {
+    throw new Error(
+      "Private Workflow v2 controlled-rehearsal guard-verifier provenance drifted."
+    );
+  }
+  const guardVerifierPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    v2ControlledRehearsalGuardVerifierSuccessorCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(
+    guardVerifierPaths,
+    Object.keys(v2ControlledRehearsalGuardVerifierSuccessorHashes)
+  )) {
+    throw new Error(
+      "Private Workflow v2 controlled-rehearsal guard-verifier path set drifted."
+    );
+  }
+  const guardVerifierRecord = rehearsalGovernance.ownership.ownerCommits.find(
+    record => record.commit === v2ControlledRehearsalGuardVerifierSuccessorCommit
+  );
+  if (!guardVerifierRecord
+    || guardVerifierRecord.parent !==
+      v2ControlledRehearsalGuardVerifierSuccessorParent
+    || guardVerifierRecord.tree !== v2ControlledRehearsalGuardVerifierSuccessorTree
+    || guardVerifierRecord.identity !== infrastructureIdentity
+    || guardVerifierRecord.subject !==
+      "infrastructure: verify rehearsal guard successor") {
+    throw new Error(
+      "Private Workflow v2 controlled-rehearsal guard-verifier owner evidence drifted."
+    );
+  }
+  const guardVerifierEvidence = new Map(
+    guardVerifierRecord.evidence.map(item => [item.path, item.sha256])
+  );
+  for (const [path, expected] of Object.entries(
+    v2ControlledRehearsalGuardVerifierSuccessorHashes
+  )) {
+    const committed = execFileSync("/usr/bin/git", [
+      "show", `${v2ControlledRehearsalGuardVerifierSuccessorCommit}:${path}`
+    ], {
+      cwd: root,
+      encoding: null,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    if (sha256(committed) !== expected
+      || sha256(readFileSync(resolve(root, path))) !== expected
+      || guardVerifierEvidence.get(path) !== expected) {
+      throw new Error(
+        `Private Workflow v2 controlled-rehearsal guard-verifier evidence drifted: ${path}`
+      );
     }
   }
 
@@ -3518,6 +3609,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2IntelligenceSmokeTimeoutSynchronizationCommit,
     immutableWorkflowV2ControlledRehearsalIntelligenceSuccessorCommit:
       v2ControlledRehearsalIntelligenceSuccessorCommit,
+    immutableWorkflowV2ControlledRehearsalGuardVerifierSuccessorCommit:
+      v2ControlledRehearsalGuardVerifierSuccessorCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,

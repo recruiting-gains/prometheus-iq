@@ -92,6 +92,17 @@
           {"path": "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs", "sha256": "ebfe8ddb714c4ce56b36c691cd697bc6d8659a4eafa10a49bb143cb5cfbea700"},
           {"path": "tests/shadow-decision-readiness.test.mjs", "sha256": "59cc3737e55222816115ef1608c7a43502894935f256a1bc4812d83dbc2c9cbb"}
         ]
+      },
+      {
+        "commit": "68b396623f6ef0190d4cd938aa6812326b5067f1",
+        "parent": "29173688b48f20d5ade5a105345b5de974a01c95",
+        "tree": "479f3097ad3b40038163b2b9fe6a67922511b45b",
+        "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+        "subject": "infrastructure: verify rehearsal guard successor",
+        "evidence": [
+          {"path": "scripts/verify-cloudflare-unattended-runtime-guard.mjs", "sha256": "40abe1f2947706ad510a7468018b950fd32ee874a9bad58a3acc8bd70543ddc7"},
+          {"path": "tests/cloudflare-unattended-runtime-guard.test.mjs", "sha256": "20c926030decb7c6a4bf290f845703c58c33005ec499fc12bf266f7a00e5eef7"}
+        ]
       }
     ]
   },
