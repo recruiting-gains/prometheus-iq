@@ -12,8 +12,12 @@ import {
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_CONTRACT_VERSION,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PRINCIPAL_ID,
+  ROUTE_IQ_FOUNDER_OPERATIONAL_SESSION_PATH,
+  ROUTE_IQ_FOUNDER_SYSTEM_STATUS_PATH,
   handlePrometheusIqWorkerRequest,
   handleRouteIqFounderDailySnapshot,
+  handleRouteIqFounderOperationalSession,
+  handleRouteIqFounderSystemStatus,
   validateRouteIqFounderDailySnapshot
 } from "../workers/prometheus-iq-worker.js";
 
@@ -54,8 +58,15 @@ async function token(subject = founderSubject, claims = {}) {
     .sign(privateKey);
 }
 
-function request(accessToken, { method = "GET", headers = {} } = {}) {
-  return new Request(`https://prometheus-iq.example${ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH}`, {
+function request(accessToken, {
+  method = "GET",
+  headers = {},
+  path = ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH,
+  workspaceId = "fitness_connection"
+} = {}) {
+  const url = new URL(`https://prometheus-iq.example${path}`);
+  if (workspaceId !== null) url.searchParams.set("workspace_id", workspaceId);
+  return new Request(url, {
     method,
     headers: {
       ...(accessToken ? { "Cf-Access-Jwt-Assertion": accessToken } : {}),
@@ -118,6 +129,101 @@ test("authenticated exact Founder GET returns only the validated canonical snaps
     snapshot: canonicalSnapshot
   });
   assert.equal(/shadow|ranked.?candidate|probabilit/iu.test(JSON.stringify(body)), false);
+});
+
+test("Founder operational session is workspace-scoped and read-only without administrator projection", async () => {
+  const response = await handleRouteIqFounderOperationalSession(request(await token(), {
+    path: ROUTE_IQ_FOUNDER_OPERATIONAL_SESSION_PATH
+  }), enabledEnv(), { testHooks: testHooks() });
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.session.authorization, "SERVER_VERIFIED_CLOUDFLARE_ACCESS");
+  assert.equal(Object.hasOwn(body.session, "principal"), false);
+  assert.equal(body.session.workspace.workspaceId, "fitness_connection");
+  assert.equal(body.session.roleProjection, "founder_operator");
+  assert.equal(body.session.administratorRoleProjected, false);
+  assert.equal(body.session.customerActivationRequired, false);
+  assert.equal(body.session.customerPwaLaunch, "OFF");
+  assert.deepEqual(body.session.mutationCapabilities, []);
+  assert.deepEqual(body.session.capabilities, [
+    "dashboard_read",
+    "daily_snapshot_read",
+    "workspace_switch_read"
+  ]);
+});
+
+test("workspace switching cannot disclose the static Fitness snapshot", async () => {
+  const accessToken = await token();
+  for (const workspaceId of [null, "other_workspace", "fitness-connection", "../fitness_connection"]) {
+    const response = await handleRouteIqFounderDailySnapshot(
+      request(accessToken, { workspaceId }),
+      enabledEnv(),
+      { testHooks: testHooks() }
+    );
+    assert.equal(response.status, 404);
+    assert.equal((await response.json()).code, "route_iq_founder_workspace_not_found");
+  }
+});
+
+test("Founder system status is an explicit workspace-scoped read-only Dashboard contract", async () => {
+  const response = await handleRouteIqFounderSystemStatus(request(await token(), {
+    path: ROUTE_IQ_FOUNDER_SYSTEM_STATUS_PATH
+  }), {
+    ...enabledEnv(),
+    CF_VERSION_METADATA: { id: "b121a01a-1111-4111-8111-111111111111" }
+  }, { testHooks: testHooks() });
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.deepEqual(Object.keys(body.status), [
+    "contractVersion",
+    "workspace",
+    "customer",
+    "commercial",
+    "billing",
+    "activation",
+    "roster",
+    "routeReadiness",
+    "crm",
+    "providers",
+    "protectedState",
+    "privateDeployment",
+    "next",
+    "audit"
+  ]);
+  assert.equal(body.status.workspace.workspaceId, "fitness_connection");
+  assert.equal(body.status.workspace.classification, "FOUNDER_FIELD_RESEARCH");
+  assert.equal(body.status.customer.state, "NOT_A_CUSTOMER");
+  assert.equal(body.status.customer.onboarding, "NO_PAID_CUSTOMER_CONFIGURATION");
+  assert.equal(JSON.stringify(body.status).toLowerCase().includes("pilot"), false);
+  assert.equal(body.status.customer.state === "ACTIVE", false);
+  assert.equal(body.status.commercial.readiness, "NOT_APPLICABLE");
+  assert.equal(body.status.roster.users, "UNKNOWN");
+  assert.equal(body.status.crm.followUpState, "UNKNOWN");
+  assert.equal(body.status.billing.liveActivityAllowed, false);
+  assert.equal(body.status.activation.state, "OFF");
+  assert.equal(body.status.protectedState.collection, "OFF");
+  assert.equal(body.status.protectedState.activeCohorts, 0);
+  assert.equal(body.status.protectedState.recommendationInfluence, "OFF");
+  assert.equal(body.status.privateDeployment.versionId, "b121a01a-1111-4111-8111-111111111111");
+  assert.equal(body.status.next.action, "CONTINUE_FOUNDER_FIELD_RESEARCH");
+  assert.equal(body.status.next.actor, "FOUNDER");
+  assert.equal(body.status.audit.mutationPerformed, false);
+  assert.equal(/principal|subject|audience|issuer|secret/iu.test(JSON.stringify(body.status)), false);
+  assert.equal(/customer|pilot|partner|sponsor|endorser/iu.test(body.status.workspace.classification), false);
+});
+
+test("Founder system status marks unavailable deployment identity UNKNOWN and rejects writes", async () => {
+  const accessToken = await token();
+  const unknown = await handleRouteIqFounderSystemStatus(request(accessToken, {
+    path: ROUTE_IQ_FOUNDER_SYSTEM_STATUS_PATH
+  }), enabledEnv(), { testHooks: testHooks() });
+  assert.equal((await unknown.json()).status.privateDeployment.versionId, "UNKNOWN");
+
+  const write = await handleRouteIqFounderSystemStatus(request(accessToken, {
+    path: ROUTE_IQ_FOUNDER_SYSTEM_STATUS_PATH,
+    method: "POST"
+  }), enabledEnv(), { testHooks: testHooks() });
+  assert.equal(write.status, 405);
 });
 
 test("display names, broad roles, representatives, and pending Anthony cannot authorize", async () => {

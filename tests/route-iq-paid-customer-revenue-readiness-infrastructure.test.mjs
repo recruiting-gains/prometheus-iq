@@ -102,6 +102,27 @@ test("exact Founder-only GET returns the Dashboard session and snapshot contract
   assert.equal(body.snapshot.billing.mode, "TEST");
   assert.equal(body.snapshot.billing.state, "TEST_VERIFIED");
   assert.equal(body.snapshot.activation.state, "BLOCKED");
+  assert.deepEqual(body.snapshot.operationalStatus, {
+    selectedWorkspace: null,
+    customerState: "NO_PAID_CUSTOMER_CONFIGURATION",
+    routeReadiness: "UNKNOWN",
+    deployment: {
+      releaseCommit: null,
+      workerVersion: null
+    },
+    protectedState: {
+      activeCohorts: 0,
+      collection: "OFF",
+      providerRefresh: "OFF",
+      recommendationInfluence: "OFF",
+      scheduler: "OFF"
+    },
+    workflow: {
+      crm: "UNKNOWN",
+      followUp: "UNKNOWN"
+    },
+    auditHistoryAvailable: null
+  });
   assert.equal(JSON.stringify(body).includes("billing_orion"), false);
   assert.equal(JSON.stringify(body).includes("principal_"), false);
 });

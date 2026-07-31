@@ -86,6 +86,8 @@ const INSTAGRAM_SNAPSHOT_PATH = "/api/social/instagram/snapshot";
 const INSTAGRAM_REPORT_PATH = "/api/social/instagram/report";
 const ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH = "/api/dashboard/route-iq/field-session";
 const ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH = "/api/dashboard/route-iq/intelligence/daily-snapshot";
+const ROUTE_IQ_FOUNDER_OPERATIONAL_SESSION_PATH = "/api/dashboard/route-iq/founder/session";
+const ROUTE_IQ_FOUNDER_SYSTEM_STATUS_PATH = "/api/dashboard/route-iq/founder/system-status";
 const ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_CONTRACT_VERSION = "route-iq-commercial-readiness-intelligence-v1";
 const ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PRINCIPAL_ID = "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4";
 const ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV = Object.freeze({
@@ -379,6 +381,128 @@ async function authorizeRouteIqFounderDailySnapshot(request, env, testHooks) {
   }
 }
 
+function requestedRouteIqFounderWorkspace(request) {
+  const workspaceId = new URL(request.url).searchParams.get("workspace_id");
+  if (typeof workspaceId !== "string"
+    || !/^[a-z0-9][a-z0-9_]{0,63}$/u.test(workspaceId)
+    || !Object.hasOwn(supportedFieldSessionWorkspaces, workspaceId)) {
+    throw routeIqFounderSnapshotError("route_iq_founder_workspace_not_found", 404);
+  }
+  return supportedFieldSessionWorkspaces[workspaceId];
+}
+
+function routeIqFounderOperationalSession(workspace) {
+  return Object.freeze({
+    contractVersion: "route-iq-founder-operational-session-v1",
+    authorization: "SERVER_VERIFIED_CLOUDFLARE_ACCESS",
+    workspace: Object.freeze({
+      workspaceId: workspace.workspaceId,
+      operatingProfileId: workspace.operatingProfileId
+    }),
+    roleProjection: "founder_operator",
+    administratorRoleProjected: false,
+    customerActivationRequired: false,
+    customerPwaLaunch: "OFF",
+    capabilities: Object.freeze([
+      "dashboard_read",
+      "daily_snapshot_read",
+      "workspace_switch_read"
+    ]),
+    mutationCapabilities: Object.freeze([])
+  });
+}
+
+function routeIqFounderDeploymentIdentity(env) {
+  const id = env?.CF_VERSION_METADATA?.id;
+  return typeof id === "string" && /^[0-9a-f-]{36}$/u.test(id)
+    ? Object.freeze({ state: "AVAILABLE", worker: "prometheus-iq", versionId: id })
+    : Object.freeze({ state: "UNKNOWN", worker: "prometheus-iq", versionId: "UNKNOWN" });
+}
+
+function routeIqFounderSystemStatus(workspace, env) {
+  return Object.freeze({
+    contractVersion: "route-iq-founder-system-status-v1",
+    workspace: Object.freeze({
+      workspaceId: workspace.workspaceId,
+      operatingProfileId: workspace.operatingProfileId,
+      classification: workspace.workspaceId === "fitness_connection"
+        ? "FOUNDER_FIELD_RESEARCH"
+        : "UNKNOWN"
+    }),
+    customer: Object.freeze({
+      state: workspace.workspaceId === "fitness_connection" ? "NOT_A_CUSTOMER" : "UNKNOWN",
+      onboarding: "NO_PAID_CUSTOMER_CONFIGURATION"
+    }),
+    commercial: Object.freeze({ readiness: "NOT_APPLICABLE", bindingTerms: "UNKNOWN" }),
+    billing: Object.freeze({ state: "BLOCKED", liveActivityAllowed: false }),
+    activation: Object.freeze({ state: "OFF", permittedByThisResponse: false }),
+    roster: Object.freeze({ users: "UNKNOWN", locations: "UNKNOWN" }),
+    routeReadiness: Object.freeze({ state: "NOT_READY", reason: "VERIFIED_BUSINESSES_UNAVAILABLE" }),
+    crm: Object.freeze({ state: "UNKNOWN", followUpState: "UNKNOWN" }),
+    providers: Object.freeze({ refresh: "OFF", scheduler: "OFF" }),
+    protectedState: Object.freeze({
+      collection: "OFF",
+      activeCohorts: 0,
+      recommendationInfluence: "OFF",
+      customerPwaLaunch: "OFF"
+    }),
+    privateDeployment: routeIqFounderDeploymentIdentity(env),
+    next: Object.freeze({
+      action: workspace.workspaceId === "fitness_connection"
+        ? "CONTINUE_FOUNDER_FIELD_RESEARCH"
+        : "SELECT_GOVERNED_PAID_CUSTOMER_CONFIGURATION",
+      actor: "FOUNDER"
+    }),
+    audit: Object.freeze({ availability: "AVAILABLE", mutationPerformed: false })
+  });
+}
+
+async function handleRouteIqFounderOperationalSession(request, env = {}, { testHooks } = {}) {
+  try {
+    await authorizeRouteIqFounderDailySnapshot(request, env, testHooks);
+    if (request.method !== "GET") {
+      return routeIqFounderSnapshotResponse({
+        ok: false,
+        code: "route_iq_founder_session_method_not_allowed"
+      }, 405, { Allow: "GET" });
+    }
+    const workspace = requestedRouteIqFounderWorkspace(request);
+    return routeIqFounderSnapshotResponse({
+      ok: true,
+      session: routeIqFounderOperationalSession(workspace)
+    });
+  } catch (error) {
+    const status = Number.isInteger(error?.status) ? error.status : 500;
+    const code = typeof error?.code === "string" && /^route_iq_founder_[a-z0-9_]+$/u.test(error.code)
+      ? error.code
+      : "route_iq_founder_session_unavailable";
+    return routeIqFounderSnapshotResponse({ ok: false, code }, status);
+  }
+}
+
+async function handleRouteIqFounderSystemStatus(request, env = {}, { testHooks } = {}) {
+  try {
+    await authorizeRouteIqFounderDailySnapshot(request, env, testHooks);
+    if (request.method !== "GET") {
+      return routeIqFounderSnapshotResponse({
+        ok: false,
+        code: "route_iq_founder_system_status_method_not_allowed"
+      }, 405, { Allow: "GET" });
+    }
+    const workspace = requestedRouteIqFounderWorkspace(request);
+    return routeIqFounderSnapshotResponse({
+      ok: true,
+      status: routeIqFounderSystemStatus(workspace, env)
+    });
+  } catch (error) {
+    const status = Number.isInteger(error?.status) ? error.status : 500;
+    const code = typeof error?.code === "string" && /^route_iq_founder_[a-z0-9_]+$/u.test(error.code)
+      ? error.code
+      : "route_iq_founder_system_status_unavailable";
+    return routeIqFounderSnapshotResponse({ ok: false, code }, status);
+  }
+}
+
 async function handleRouteIqFounderDailySnapshot(request, env = {}, { testHooks } = {}) {
   try {
     const principal = await authorizeRouteIqFounderDailySnapshot(request, env, testHooks);
@@ -387,19 +511,31 @@ async function handleRouteIqFounderDailySnapshot(request, env = {}, { testHooks 
         Allow: "GET"
       });
     }
-    const source = testHooks?.enabled === true && testHooks.snapshot
-      ? testHooks.snapshot
-      : routeIqFounderDailySnapshot;
+    const workspace = requestedRouteIqFounderWorkspace(request);
+    const snapshots = testHooks?.enabled === true && testHooks.snapshots
+      ? testHooks.snapshots
+      : testHooks?.enabled === true && testHooks.snapshot
+        ? Object.freeze({ [workspace.workspaceId]: testHooks.snapshot })
+        : Object.freeze({ fitness_connection: routeIqFounderDailySnapshot });
+    const source = snapshots[workspace.workspaceId];
+    if (!source) {
+      throw routeIqFounderSnapshotError("route_iq_founder_snapshot_not_found", 404);
+    }
+    const snapshot = await validateRouteIqFounderDailySnapshot(source);
+    if (snapshot.workspaceId !== workspace.workspaceId
+      || snapshot.operatingProfileId !== workspace.operatingProfileId) {
+      throw routeIqFounderSnapshotError("route_iq_founder_snapshot_workspace_mismatch", 503);
+    }
     return routeIqFounderSnapshotResponse({
       ok: true,
       authorized: true,
       contractVersion: ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_CONTRACT_VERSION,
       principal,
-      snapshot: await validateRouteIqFounderDailySnapshot(source)
+      snapshot
     });
   } catch (error) {
     const status = Number.isInteger(error?.status) ? error.status : 500;
-    const code = typeof error?.code === "string" && /^route_iq_founder_snapshot_[a-z0-9_]+$/u.test(error.code)
+    const code = typeof error?.code === "string" && /^route_iq_founder_[a-z0-9_]+$/u.test(error.code)
       ? error.code
       : "route_iq_founder_snapshot_unavailable";
     return routeIqFounderSnapshotResponse({ ok: false, code }, status);
@@ -1031,6 +1167,12 @@ async function handleApiRequest(request, env, executionContext, {
   if (url.pathname === ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH) {
     return handleRouteIqFounderDailySnapshot(request, env, { testHooks: dailySnapshotTestHooks });
   }
+  if (url.pathname === ROUTE_IQ_FOUNDER_OPERATIONAL_SESSION_PATH) {
+    return handleRouteIqFounderOperationalSession(request, env, { testHooks: dailySnapshotTestHooks });
+  }
+  if (url.pathname === ROUTE_IQ_FOUNDER_SYSTEM_STATUS_PATH) {
+    return handleRouteIqFounderSystemStatus(request, env, { testHooks: dailySnapshotTestHooks });
+  }
   if (isRouteIqRequestCrmPath(url.pathname)) return handleRouteIqRequestCrmRuntimeRequest(request, env);
   if (CALLBACK_PATHS.includes(url.pathname)) return handleMetaInstagramCallback(request, env);
   if (url.pathname === STATUS_PATH) return handleMetaInstagramStatus(env);
@@ -1128,6 +1270,8 @@ export {
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PRINCIPAL_ID,
+  ROUTE_IQ_FOUNDER_OPERATIONAL_SESSION_PATH,
+  ROUTE_IQ_FOUNDER_SYSTEM_STATUS_PATH,
   ROUTE_IQ_PAID_CUSTOMER_DASHBOARD_PREVIEW_PATH,
   ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_ROOT,
   ROUTE_IQ_BUSINESS_AVAILABILITY_PATH,
@@ -1139,6 +1283,8 @@ export {
   handleRouteIqBusinessAvailabilityRequest,
   handleRouteIqBusinessAvailabilityScheduled,
   handleRouteIqFounderDailySnapshot,
+  handleRouteIqFounderOperationalSession,
+  handleRouteIqFounderSystemStatus,
   handleRouteIqPaidCustomerDashboardPreviewRequest,
   handleRouteIqPaidCustomerOnboardingRequest,
   handleRouteIqFieldSessionHandoff,

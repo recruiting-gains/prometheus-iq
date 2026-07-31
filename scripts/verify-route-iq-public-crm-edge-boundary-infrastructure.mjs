@@ -25,7 +25,7 @@ export const ROUTE_IQ_PUBLIC_EDGE_BOUNDARY_POLICY = Object.freeze({
   publicEntryExports: Object.freeze(["default", "RouteIqRequestCrmCoordinator"]),
   privateWorker: "prometheus-iq",
   privateConfigPath: "wrangler.jsonc",
-  privateConfigSha256: "dffa373f19f73efc3bc907ea4a396006c8e6a928797d4c7ddc07a959bd4d690f",
+  privateConfigSha256: "b888732c12aa34d07f538d7ae112b6eb3f966c75d24839bac76d4e8ea6b9a835",
   contractPath: "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json",
   documentationPath: "docs/route-iq-public-crm-edge-boundary-infrastructure-v1.md",
   preservedPublicTopLevelKeys: Object.freeze([

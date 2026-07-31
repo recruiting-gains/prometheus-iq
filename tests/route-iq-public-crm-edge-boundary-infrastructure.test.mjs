@@ -98,6 +98,10 @@ test("public bindings, migrations, variables, and assets remain byte-governed", 
 });
 
 test("private Worker configuration drift fails closed", () => {
+  assert.equal(
+    ROUTE_IQ_PUBLIC_EDGE_BOUNDARY_POLICY.privateConfigSha256,
+    "b888732c12aa34d07f538d7ae112b6eb3f966c75d24839bac76d4e8ea6b9a835"
+  );
   assert.throws(() => validate({ privateConfigText: `${canonical.privateConfigText}\n` }));
   assert.throws(() => validate({
     privateConfigText: canonical.privateConfigText.replace('"name": "prometheus-iq"', '"name": "prometheusrouteiq-website"')

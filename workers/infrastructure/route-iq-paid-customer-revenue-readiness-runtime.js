@@ -169,6 +169,27 @@ function snapshot(generatedAt) {
     payment: { state: "TEST_ONLY" },
     cancellation: { state: "COMPLETE" },
     support: { state: "DRAFT" },
+    operationalStatus: {
+      selectedWorkspace: null,
+      customerState: "NO_PAID_CUSTOMER_CONFIGURATION",
+      routeReadiness: "UNKNOWN",
+      deployment: {
+        releaseCommit: null,
+        workerVersion: null
+      },
+      protectedState: {
+        activeCohorts: 0,
+        collection: "OFF",
+        providerRefresh: "OFF",
+        recommendationInfluence: "OFF",
+        scheduler: "OFF"
+      },
+      workflow: {
+        crm: "UNKNOWN",
+        followUp: "UNKNOWN"
+      },
+      auditHistoryAvailable: null
+    },
     blockers: [
       {
         code: "LEGAL_FORMATION_REQUIRED",

@@ -1,0 +1,283 @@
+name: Full-System Harmony Audit v1
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_commit:
+        description: Exact synchronized main commit
+        required: true
+        type: string
+      candidate_tree:
+        description: Exact candidate tree
+        required: true
+        type: string
+      batch_id:
+        description: Exact BATCH-YYYYMMDD-NNN identifier
+        required: true
+        type: string
+      expected_public_worker_version:
+        description: Exact unchanged public Worker UUID
+        required: true
+        type: string
+      expected_private_worker_prefix:
+        description: Independently observed private Worker UUID prefix
+        required: true
+        type: string
+      runtime_repair_required:
+        description: Build and deploy the qualified private runtime repair
+        required: true
+        type: boolean
+      deployment_confirmation:
+        description: Exact confirmation required only for a runtime repair
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-system-harmony-audit-v1
+  cancel-in-progress: false
+
+env:
+  PROMETHEUS_CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+  PROMETHEUS_CANDIDATE_TREE: ${{ inputs.candidate_tree }}
+  PROMETHEUS_BATCH_ID: ${{ inputs.batch_id }}
+  PROMETHEUS_EXPECTED_PUBLIC_VERSION: ${{ inputs.expected_public_worker_version }}
+  PROMETHEUS_EXPECTED_PRIVATE_PREFIX: ${{ inputs.expected_private_worker_prefix }}
+  PROMETHEUS_RUNTIME_REPAIR_REQUIRED: ${{ inputs.runtime_repair_required }}
+  PROMETHEUS_DEPLOYMENT_CONFIRMATION: ${{ inputs.deployment_confirmation }}
+
+jobs:
+  preflight:
+    name: Verify exact no-secret source and run complete gates
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'PrometheusRouteIQ/prometheus-iq' &&
+      github.actor == 'PrometheusRouteIQ' &&
+      github.triggering_actor == 'PrometheusRouteIQ' &&
+      github.ref == 'refs/heads/main' &&
+      github.ref_name == 'main' &&
+      github.ref_type == 'branch' &&
+      github.sha == inputs.candidate_commit &&
+      github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: ${{ inputs.candidate_commit }}
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+      - name: Gate exact commit and tree before repository code
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "$PROMETHEUS_CANDIDATE_COMMIT"
+          test "$(git rev-parse HEAD^{tree})" = "$PROMETHEUS_CANDIDATE_TREE"
+          test "$(git rev-parse refs/remotes/origin/main)" = "$PROMETHEUS_CANDIDATE_COMMIT"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+      - run: npm ci
+      - name: Verify exact audit context and Infrastructure contracts
+        run: |
+          node scripts/run-full-system-harmony-audit-v1.mjs preflight
+          node scripts/verify-full-system-harmony-audit-v1.mjs
+          node --test tests/full-system-harmony-audit-infrastructure.test.mjs
+          node --test tests/route-iq-founder-daily-snapshot-infrastructure.test.mjs
+          node --test tests/route-iq-public-crm-edge-boundary-infrastructure.test.mjs
+          node --test tests/route-iq-paid-customer-infrastructure.test.mjs
+      - name: Run complete no-secret qualification
+        run: |
+          npm audit --omit=dev --audit-level=high
+          npm test
+          npm run lint
+          npm run typecheck
+          npm run security:check
+          npm run security:aegis:verify
+          node scripts/check-cloudflare-unattended-secret-presence.mjs --source=environment
+      - name: Require unchanged clean checkout
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+
+  inspect:
+    name: Resolve exact live Worker identities read-only
+    needs: preflight
+    environment:
+      name: prometheus-private-worker-production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      public_version: ${{ steps.identity.outputs.public_version }}
+      private_version: ${{ steps.identity.outputs.private_version }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: ${{ inputs.candidate_commit }}
+          persist-credentials: false
+          clean: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+      - run: npm ci
+      - name: Read exact public and private identities with GET only
+        id: identity
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/run-full-system-harmony-audit-v1.mjs inspect
+
+  qualify:
+    name: Build one immutable private runtime and rollback artifact
+    needs: inspect
+    if: inputs.runtime_repair_required == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+    env:
+      PROMETHEUS_LIVE_PUBLIC_VERSION: ${{ needs.inspect.outputs.public_version }}
+      PROMETHEUS_LIVE_PRIVATE_VERSION: ${{ needs.inspect.outputs.private_version }}
+      PROMETHEUS_QUALIFIED_RELEASE_OUTPUT: ${{ runner.temp }}/full-system-harmony-private-release
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      artifact_zip_sha256: ${{ steps.upload.outputs.artifact-digest }}
+      content_tree_sha256: ${{ steps.freeze.outputs.qualified_content_tree_sha256 }}
+      manifest_sha256: ${{ steps.freeze.outputs.qualified_manifest_sha256 }}
+      workflow_contract_sha256: ${{ steps.freeze.outputs.workflow_contract_sha256 }}
+      rollback_contract_sha256: ${{ steps.freeze.outputs.rollback_contract_sha256 }}
+      rollback_bundle_sha256: ${{ steps.freeze.outputs.rollback_bundle_sha256 }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: ${{ inputs.candidate_commit }}
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+      - run: npm ci
+      - name: Freeze exact private release once
+        id: freeze
+        run: node scripts/run-full-system-harmony-audit-v1.mjs qualify
+      - name: Upload immutable private release
+        id: upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: full-system-harmony-private-${{ inputs.candidate_commit }}
+          path: ${{ runner.temp }}/full-system-harmony-private-release
+          if-no-files-found: error
+          include-hidden-files: true
+          compression-level: 0
+          retention-days: 30
+
+  reverify:
+    name: Independently reverify immutable private artifact
+    needs: [inspect, qualify]
+    if: inputs.runtime_repair_required == true && needs.qualify.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    env:
+      PROMETHEUS_LIVE_PUBLIC_VERSION: ${{ needs.inspect.outputs.public_version }}
+      PROMETHEUS_LIVE_PRIVATE_VERSION: ${{ needs.inspect.outputs.private_version }}
+      PROMETHEUS_QUALIFICATION_RUN_ID: ${{ github.run_id }}
+      PROMETHEUS_QUALIFICATION_ARTIFACT_ID: ${{ needs.qualify.outputs.artifact_id }}
+      PROMETHEUS_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ needs.qualify.outputs.artifact_zip_sha256 }}
+      PROMETHEUS_QUALIFIED_CONTENT_TREE_SHA256: ${{ needs.qualify.outputs.content_tree_sha256 }}
+      PROMETHEUS_QUALIFIED_MANIFEST_SHA256: ${{ needs.qualify.outputs.manifest_sha256 }}
+      PROMETHEUS_WORKFLOW_CONTRACT_SHA256: ${{ needs.qualify.outputs.workflow_contract_sha256 }}
+      PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ needs.qualify.outputs.rollback_contract_sha256 }}
+      PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ needs.qualify.outputs.rollback_bundle_sha256 }}
+      PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/full-system-harmony-private-release
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: ${{ inputs.candidate_commit }}
+          persist-credentials: false
+          clean: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+      - run: npm ci
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ needs.qualify.outputs.artifact_id }}
+          github-token: ${{ github.token }}
+          repository: PrometheusRouteIQ/prometheus-iq
+          run-id: ${{ github.run_id }}
+          path: ${{ runner.temp }}/full-system-harmony-private-release
+      - run: node scripts/run-full-system-harmony-audit-v1.mjs verify-artifact
+
+  deploy:
+    name: Deploy exact qualified private runtime once
+    needs: [inspect, qualify, reverify]
+    if: >-
+      inputs.runtime_repair_required == true &&
+      inputs.deployment_confirmation == 'I AUTHORIZE THIS EXACT FULL-SYSTEM HARMONY RUNTIME REPAIR' &&
+      needs.reverify.result == 'success'
+    environment:
+      name: prometheus-private-worker-production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      actions: read
+    env:
+      PROMETHEUS_LIVE_PUBLIC_VERSION: ${{ needs.inspect.outputs.public_version }}
+      PROMETHEUS_LIVE_PRIVATE_VERSION: ${{ needs.inspect.outputs.private_version }}
+      PROMETHEUS_QUALIFICATION_RUN_ID: ${{ github.run_id }}
+      PROMETHEUS_QUALIFICATION_ARTIFACT_ID: ${{ needs.qualify.outputs.artifact_id }}
+      PROMETHEUS_QUALIFICATION_ARTIFACT_ZIP_SHA256: ${{ needs.qualify.outputs.artifact_zip_sha256 }}
+      PROMETHEUS_QUALIFIED_CONTENT_TREE_SHA256: ${{ needs.qualify.outputs.content_tree_sha256 }}
+      PROMETHEUS_QUALIFIED_MANIFEST_SHA256: ${{ needs.qualify.outputs.manifest_sha256 }}
+      PROMETHEUS_WORKFLOW_CONTRACT_SHA256: ${{ needs.qualify.outputs.workflow_contract_sha256 }}
+      PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ needs.qualify.outputs.rollback_contract_sha256 }}
+      PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ needs.qualify.outputs.rollback_bundle_sha256 }}
+      PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/full-system-harmony-private-release
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}
+      CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}
+      PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN: ${{ secrets.PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN }}
+      PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE: ${{ secrets.PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: ${{ inputs.candidate_commit }}
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+      - run: npm ci
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          artifact-ids: ${{ needs.qualify.outputs.artifact_id }}
+          github-token: ${{ github.token }}
+          repository: PrometheusRouteIQ/prometheus-iq
+          run-id: ${{ github.run_id }}
+          path: ${{ runner.temp }}/full-system-harmony-private-release
+      - name: Reverify and deploy through the governed private v2 lane
+        run: |
+          node scripts/run-full-system-harmony-audit-v1.mjs verify-artifact
+          node scripts/run-full-system-harmony-audit-v1.mjs deploy
+      - name: Require unchanged source after GET/HEAD acceptance
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"

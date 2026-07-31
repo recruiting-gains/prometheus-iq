@@ -64,18 +64,12 @@ function provisioningConfiguration() {
   );
 }
 
-function activeConfiguration() {
+function readyForActivationConfiguration() {
   let configuration = provisioningConfiguration();
-  configuration = transition(
+  return transition(
     configuration,
     "READY_FOR_ACTIVATION",
     "2026-07-26T12:04:00.000Z"
-  );
-  return transition(
-    configuration,
-    "ACTIVE",
-    "2026-07-26T12:05:00.000Z",
-    { activationAuthorizationRef: "synthetic_test_only_activation_reference" }
   );
 }
 
@@ -358,13 +352,13 @@ test("invalid lifecycle states and malformed owner configurations fail closed", 
 });
 
 test("suspension and offboarding previews preserve data boundaries and perform no write", async () => {
-  const active = activeConfiguration();
+  const ready = readyForActivationConfiguration();
   const suspensionResponse = await invoke(
     ROUTE_IQ_PAID_CUSTOMER_ONBOARDING_PATHS.suspensionPreview,
-    active,
+    ready,
     {
       body: {
-        configuration: active,
+        configuration: ready,
         transitionedAt: "2026-07-26T12:06:00.000Z",
         reasonCode: "synthetic_suspension"
       }
@@ -379,7 +373,7 @@ test("suspension and offboarding previews preserve data boundaries and perform n
   assert.equal(suspension.result.persistencePerformed, false);
 
   const suspended = transition(
-    active,
+    ready,
     "SUSPENDED",
     "2026-07-26T12:06:00.000Z"
   );

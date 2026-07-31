@@ -200,8 +200,10 @@ function relativeArtifactPath(value) {
 }
 
 function assertSession(session) {
+  const principalRoles = new Set(["founder", "customer_owner", "manager", "representative"]);
   if (!session
     || session.authorizationState !== "server_verified"
+    || !principalRoles.has(session.principalRole)
     || !strictId.test(session.workspaceId || "")
     || !strictId.test(session.operatingProfileId || "")
     || !strictId.test(session.userId || "")
@@ -209,8 +211,16 @@ function assertSession(session) {
     || !strictId.test(session.roleId || "")
     || !exactKeys(session.capabilities, sessionCapabilityKeys)
     || Object.values(session.capabilities).some(value => typeof value !== "boolean")
-    || session.capabilities.founderIntelligence !== false
+    || session.capabilities.founderIntelligence !== (session.principalRole === "founder")
     || session.capabilities.founderCrm !== false
+    || (session.principalRole === "founder" && (session.capabilities.readWorkspaceOperations !== true
+      || session.capabilities.administerWorkspaceRoster !== false))
+    || (session.principalRole === "customer_owner" && session.capabilities.administerWorkspaceRoster !== true)
+    || (session.principalRole === "manager" && (session.capabilities.readWorkspaceOperations !== true
+      || session.capabilities.administerWorkspaceRoster !== false))
+    || (session.principalRole === "representative" && (session.capabilities.operateOwnRoute !== true
+      || session.capabilities.readWorkspaceOperations !== false
+      || session.capabilities.administerWorkspaceRoster !== false))
     || session.safety?.prospectiveCollection !== "OFF"
     || session.safety?.activeCohorts !== 0
     || session.safety?.recommendationInfluence !== "OFF") {

@@ -1,5 +1,5 @@
 export const routeIqPaidCustomerRevenueReadinessVersion =
-  "route-iq-paid-customer-revenue-readiness-v1";
+  "route-iq-paid-customer-revenue-readiness-v2";
 
 const safeTextPattern = /^[^\u0000-\u001F\u007F<>{}`$\\]{1,160}$/u;
 const sha256Pattern = /^[a-f0-9]{64}$/u;
@@ -61,6 +61,7 @@ const responsibleActors = new Set([
   "PROMETHEUS_AI_OVERWATCH"
 ]);
 const severityOrder = Object.freeze({ BLOCKING: 0, REQUIRED: 1, INFORMATIONAL: 2 });
+const operationalStates = new Set(["READY", "BLOCKED", "UNKNOWN"]);
 
 export class RouteIqRevenueReadinessError extends Error {
   constructor(code, message) {
@@ -212,6 +213,19 @@ function statusLabel(value) {
   return value.toLowerCase().replaceAll("_", " ").replace(/^\w/u, letter => letter.toUpperCase());
 }
 
+function optionalOperationalState(value, scope) {
+  return value === null ? "UNKNOWN" : enumValue(value, operationalStates, scope);
+}
+
+function operationalStatusLabel(value, scope) {
+  const state = optionalOperationalState(value, scope);
+  return state === "UNKNOWN" ? state : statusLabel(state);
+}
+
+function unknownText(value, scope, maximum = 160) {
+  return value === null ? "UNKNOWN" : safeText(value, scope, maximum);
+}
+
 export function createPaidCustomerRevenueReadinessViewModel(snapshot, {
   session,
   now = new Date()
@@ -231,6 +245,7 @@ export function createPaidCustomerRevenueReadinessViewModel(snapshot, {
     "generatedAt",
     "nextAction",
     "onboardingState",
+    "operationalStatus",
     "orderForm",
     "payment",
     "pricing",
@@ -250,6 +265,35 @@ export function createPaidCustomerRevenueReadinessViewModel(snapshot, {
   const billingState = enumValue(snapshot.billing?.state, billingStates, "Billing state");
   const activationState = enumValue(snapshot.activation?.state, activationStates, "Activation state");
   const blockers = projectBlockers(snapshot.blockers);
+  if (!exactKeys(snapshot.operationalStatus, [
+    "auditHistoryAvailable",
+    "customerState",
+    "deployment",
+    "protectedState",
+    "routeReadiness",
+    "selectedWorkspace",
+    "workflow"
+  ])
+    || !exactKeys(snapshot.operationalStatus.deployment, ["releaseCommit", "workerVersion"])
+    || !exactKeys(snapshot.operationalStatus.protectedState, [
+      "activeCohorts",
+      "collection",
+      "providerRefresh",
+      "recommendationInfluence",
+      "scheduler"
+    ])
+    || !exactKeys(snapshot.operationalStatus.workflow, ["crm", "followUp"])) {
+    fail("route_iq_revenue_readiness_operational_status_invalid", "Founder operational status is incomplete.");
+  }
+  const protectedState = snapshot.operationalStatus.protectedState;
+  if (![null, "OFF"].includes(protectedState.providerRefresh)
+    || ![null, "OFF"].includes(protectedState.scheduler)
+    || ![null, "OFF"].includes(protectedState.collection)
+    || ![null, 0].includes(protectedState.activeCohorts)
+    || ![null, "OFF"].includes(protectedState.recommendationInfluence)
+    || ![null, true, false].includes(snapshot.operationalStatus.auditHistoryAvailable)) {
+    fail("route_iq_revenue_readiness_operational_status_invalid", "Founder operational status is not governed.");
+  }
 
   if (!exactKeys(snapshot.billing, ["mode", "state"])
     || !exactKeys(snapshot.activation, ["state"])
@@ -317,20 +361,39 @@ export function createPaidCustomerRevenueReadinessViewModel(snapshot, {
       cancellation: statusLabel(enumValue(snapshot.cancellation.state, cancellationStates, "Cancellation state")),
       support: statusLabel(enumValue(snapshot.support.state, supportStates, "Support state"))
     },
+    operationalStatus: {
+      selectedWorkspace: unknownText(snapshot.operationalStatus.selectedWorkspace, "Selected workspace"),
+      customerState: unknownText(snapshot.operationalStatus.customerState, "Customer state"),
+      routeReadiness: operationalStatusLabel(snapshot.operationalStatus.routeReadiness, "Route readiness"),
+      crm: operationalStatusLabel(snapshot.operationalStatus.workflow.crm, "CRM status"),
+      followUp: operationalStatusLabel(snapshot.operationalStatus.workflow.followUp, "Follow-up status"),
+      providerRefresh: snapshot.operationalStatus.protectedState.providerRefresh === "OFF" ? "Off" : "UNKNOWN",
+      scheduler: snapshot.operationalStatus.protectedState.scheduler === "OFF" ? "Off" : "UNKNOWN",
+      collection: snapshot.operationalStatus.protectedState.collection === "OFF" ? "Off" : "UNKNOWN",
+      activeCohorts: snapshot.operationalStatus.protectedState.activeCohorts === 0 ? "0" : "UNKNOWN",
+      recommendationInfluence: snapshot.operationalStatus.protectedState.recommendationInfluence === "OFF" ? "Off" : "UNKNOWN",
+      workerVersion: unknownText(snapshot.operationalStatus.deployment.workerVersion, "Worker version", 80),
+      releaseCommit: unknownText(snapshot.operationalStatus.deployment.releaseCommit, "Release commit", 80),
+      auditHistory: snapshot.operationalStatus.auditHistoryAvailable === true
+        ? "Available"
+        : snapshot.operationalStatus.auditHistoryAvailable === false
+          ? "Blocked"
+          : "UNKNOWN"
+    },
     blockers,
     auditHistory: projectAuditHistory(snapshot.auditHistory),
     layout: {
       desktop: {
         viewport: "min-width: 768px",
         columns: 2,
-        readingOrder: ["status", "next_action", "counts", "terms", "operations", "blockers", "audit"]
+        readingOrder: ["status", "operational_status", "next_action", "counts", "terms", "operations", "blockers", "audit"]
       },
       mobile: {
         viewport: "390x844",
         columns: 1,
         minimumInlineSize: 0,
         overflowWrap: "anywhere",
-        readingOrder: ["status", "next_action", "counts", "terms", "operations", "blockers", "audit"]
+        readingOrder: ["status", "operational_status", "next_action", "counts", "terms", "operations", "blockers", "audit"]
       }
     }
   };
@@ -408,6 +471,7 @@ export function renderPaidCustomerRevenueReadiness(view) {
   </style>
   <header><p>Founder only · Read-only advisory</p><h2 id="routeIqRevenueReadinessTitle">${escapeHtml(view.title)}</h2><p>${escapeHtml(view.company)}</p></header>
   <article aria-labelledby="revenueStatusTitle"><h3 id="revenueStatusTitle">Current status</h3><dl>${definitionList(view.summary)}</dl></article>
+  <article class="wide" aria-labelledby="revenueOperationalTitle"><h3 id="revenueOperationalTitle">Operational status</h3><dl>${definitionList(view.operationalStatus)}</dl></article>
   <article aria-labelledby="revenueNextTitle"><h3 id="revenueNextTitle">Required next action</h3><p>${escapeHtml(view.requiredNextStep.action)}</p><p>Responsible: ${escapeHtml(view.requiredNextStep.responsibleActor)}</p></article>
   <article aria-labelledby="revenueCountsTitle"><h3 id="revenueCountsTitle">Account scope</h3><dl>${definitionList(view.counts)}</dl></article>
   <article aria-labelledby="revenueTermsTitle"><h3 id="revenueTermsTitle">Commercial terms</h3><dl>${definitionList({

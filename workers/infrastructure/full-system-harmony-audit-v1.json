@@ -1,0 +1,37 @@
+{
+  "contractVersion": "full-system-harmony-audit-v1",
+  "owner": "Prometheus Infrastructure",
+  "repository": "PrometheusRouteIQ/prometheus-iq",
+  "branch": "main",
+  "workflow": ".github/workflows/full-system-harmony-audit-v1.yml",
+  "trigger": "workflow_dispatch",
+  "acceptedRevenueDeployment": {
+    "runId": 30627469584,
+    "applicationCommit": "cf7945bcd28e3666f860727d9746fee125a13918",
+    "privateWorkerVersion": "UNKNOWN",
+    "privateWorkerVersionPrefix": "b121a01a",
+    "trafficPercent": 100,
+    "resolution": "READ_ONLY_PROTECTED_HOSTED_PROBE_REQUIRED"
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providerRefresh": "OFF",
+    "scheduler": "OFF",
+    "customerActivation": "OFF",
+    "customerPwaLaunch": "OFF"
+  },
+  "deploymentBoundary": {
+    "target": "prometheus-iq",
+    "publicWorker": "prometheusrouteiq-website",
+    "publicWorkerMutationAllowed": false,
+    "runtimeRepairInputRequired": true,
+    "exactConfirmationRequired": true,
+    "oneAttempt": true,
+    "automaticRetry": false,
+    "smokeMethods": ["GET", "HEAD"],
+    "productionDataWrites": 0,
+    "crmWrites": 0
+  }
+}

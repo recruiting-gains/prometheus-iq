@@ -14,6 +14,15 @@
     "trafficPercent": 100,
     "evidence": "FOUNDER_CONFIRMED_REQUIRES_READ_ONLY_PREFLIGHT_BEFORE_ANY_FUTURE_DEPLOYMENT"
   },
+  "acceptedRevenueDeploymentProvenance": {
+    "runId": 30627469584,
+    "applicationCommit": "cf7945bcd28e3666f860727d9746fee125a13918",
+    "workerVersion": "UNKNOWN",
+    "workerVersionPrefix": "b121a01a",
+    "trafficPercent": 100,
+    "fullVersionResolution": "READ_ONLY_PROTECTED_HOSTED_PROBE_REQUIRED",
+    "fullVersionGuessingAllowed": false
+  },
   "applicationBehaviorSource": {
     "commit": "dec2ba1b137b0123b6f072ada4b3dd184f88c80d",
     "tree": "61258b4edcafe2af6e94f76b9e011e2486cb2fe6",

@@ -2,12 +2,22 @@
   "contractVersion": "paid-customer-revenue-readiness-v1",
   "product": "Route IQ",
   "owner": "Prometheus Infrastructure",
-  "status": "IMPLEMENTED_NOT_DISPATCHED_NOT_DEPLOYED",
+  "status": "DEPLOYED_ACCEPTED_FULL_VERSION_PROBE_REQUIRED",
   "baseline": {
     "commit": "f78d360c588e96fbbd91c0cbbe52a4d4cca4845c",
     "tree": "fd9cf889e5bce8bd7e445a6e6ca9fde5b38a1522",
     "privateWorkerVersion": "2f2b059b-8776-4d70-8848-1a0c5d5b18d4",
     "publicWorkerVersion": "6a8713c0-0712-4cda-8a13-daa893ca45f2"
+  },
+  "acceptedDeployment": {
+    "runId": 30627469584,
+    "applicationCommit": "cf7945bcd28e3666f860727d9746fee125a13918",
+    "privateWorkerVersion": "UNKNOWN",
+    "privateWorkerVersionPrefix": "b121a01a",
+    "trafficPercent": 100,
+    "fullVersionResolution": "READ_ONLY_PROTECTED_HOSTED_PROBE_REQUIRED",
+    "fullVersionGuessingAllowed": false,
+    "productionMutationRequiredForResolution": false
   },
   "workflow": {
     "path": ".github/workflows/paid-customer-revenue-readiness-v1.yml",
