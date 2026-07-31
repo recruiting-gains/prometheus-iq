@@ -71,6 +71,32 @@ test("tenant and workspace authorization rejects cross-company substitution", ()
   );
 });
 
+test("location hours require one exact schedule entry per weekday and a valid IANA timezone", () => {
+  const cases = [
+    value => value.locations[0].operatingHours.pop(),
+    value => { value.locations[0].operatingHours[6].day = "MONDAY"; },
+    value => { value.locations[0].operatingHours[0].unexpected = true; },
+    value => { value.locations[0].operatingHours[0].opens = "8:00"; },
+    value => { value.locations[0].operatingHours[0].closes = null; },
+    value => { value.locations[0].operatingHours[0].closes = "24:00"; },
+    value => { value.locations[0].timeZone = "Mars/Olympus_Mons"; }
+  ];
+  for (const mutate of cases) {
+    const value = fixture();
+    mutate(value);
+    assert.throws(
+      () => validateRouteIqPaidCustomerRevenueFixture(value),
+      error => [
+        "route_iq_revenue_data_location_invalid",
+        "route_iq_revenue_data_duplicate_identity",
+        "route_iq_revenue_data_fields_invalid",
+        "route_iq_revenue_data_operating_hours_invalid",
+        "route_iq_revenue_data_timezone_invalid"
+      ].includes(error.code)
+    );
+  }
+});
+
 test("representatives remain separated from Founder, billing, governance, and cross-company permissions", () => {
   const value = loadRouteIqPaidCustomerRevenueFixture();
   const representatives = value.principals.filter(item => item.role === "REPRESENTATIVE");
@@ -132,6 +158,50 @@ test("duplicate idempotency identities and conflicting correlations fail closed"
   const index = createRouteIqPaidCustomerRevenueAuditIndex(fixture());
   assert.equal(index.eventCount, 2);
   assert.equal(index.idempotencyKeys.length, 2);
+});
+
+test("audit evidence references are declared and events remain chronological", () => {
+  const unknownEvidence = fixture();
+  unknownEvidence.audit.events[0].evidenceReferences = ["orion_rehearsal_unknown_evidence"];
+  refreshEventHash(unknownEvidence.audit.events[0]);
+  unknownEvidence.audit.events[1].previousEventSha256 = unknownEvidence.audit.events[0].eventSha256;
+  refreshEventHash(unknownEvidence.audit.events[1]);
+  assert.throws(
+    () => validateRouteIqPaidCustomerRevenueFixture(unknownEvidence),
+    error => error.code === "route_iq_revenue_data_audit_evidence_unknown"
+  );
+
+  const outOfOrder = fixture();
+  outOfOrder.audit.events[1].occurredAt = "2026-07-29T18:05:00.000Z";
+  refreshEventHash(outOfOrder.audit.events[1]);
+  assert.throws(
+    () => validateRouteIqPaidCustomerRevenueFixture(outOfOrder),
+    error => error.code === "route_iq_revenue_data_audit_out_of_order"
+  );
+});
+
+test("lifecycle and cleanup evidence remain semantically bound", () => {
+  const lifecycle = fixture();
+  lifecycle.lifecycle.snapshots[0].evidenceSha256 = "f".repeat(64);
+  assert.throws(
+    () => validateRouteIqPaidCustomerRevenueFixture(lifecycle),
+    error => error.code === "route_iq_revenue_data_lifecycle_evidence_unbound"
+  );
+
+  const duplicateCleanupHash = fixture();
+  duplicateCleanupHash.cleanup.removalEvidence.evidenceSha256 =
+    duplicateCleanupHash.cleanup.quarantineEvidence.evidenceSha256;
+  assert.throws(
+    () => validateRouteIqPaidCustomerRevenueFixture(duplicateCleanupHash),
+    error => error.code === "route_iq_revenue_data_cleanup_evidence_invalid"
+  );
+
+  const reversedCleanup = fixture();
+  reversedCleanup.cleanup.removalEvidence.recordedAt = "2026-07-30T18:09:00.000Z";
+  assert.throws(
+    () => validateRouteIqPaidCustomerRevenueFixture(reversedCleanup),
+    error => error.code === "route_iq_revenue_data_cleanup_evidence_invalid"
+  );
 });
 
 test("cleanup is correlated, reversible, and affects zero production records", () => {

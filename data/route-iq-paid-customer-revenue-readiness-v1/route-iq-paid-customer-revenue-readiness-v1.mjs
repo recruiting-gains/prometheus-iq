@@ -10,6 +10,16 @@ const ID_PATTERN = /^[a-z][a-z0-9_]{2,127}$/u;
 const VERSION_PATTERN = /^[a-z][a-z0-9_.-]{2,127}$/u;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u;
+const LOCAL_TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d$/u;
+const WEEKDAYS = Object.freeze([
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+  "SUNDAY"
+]);
 const ALLOWED_LIFECYCLE_STATES = new Set(["DRAFT", "VALIDATED"]);
 const ALLOWED_ROLES = new Set(["OWNER_MANAGER", "REPRESENTATIVE"]);
 const ALLOWED_RESPONSIBILITIES = new Set([
@@ -135,6 +145,39 @@ function validateFixtureText(fixture) {
   }
 }
 
+function validateTimeZone(value, scope) {
+  if (typeof value !== "string" || value.length < 1 || value.length > 64) {
+    fail("route_iq_revenue_data_timezone_invalid", `${scope} is invalid.`);
+  }
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: value }).format();
+  } catch {
+    fail("route_iq_revenue_data_timezone_invalid", `${scope} is invalid.`);
+  }
+}
+
+function validateOperatingHours(value, scope) {
+  if (!Array.isArray(value) || value.length !== WEEKDAYS.length) {
+    fail("route_iq_revenue_data_operating_hours_invalid", `${scope} is invalid.`);
+  }
+  unique(value, item => item?.day, `${scope}.day`);
+  const actualDays = new Set(value.map(item => item?.day));
+  if (WEEKDAYS.some(day => !actualDays.has(day))) {
+    fail("route_iq_revenue_data_operating_hours_invalid", `${scope} is invalid.`);
+  }
+  for (const [index, period] of value.entries()) {
+    exactKeys(period, ["day", "opens", "closes"], `${scope}[${index}]`);
+    const bothClosed = period.opens === null && period.closes === null;
+    const bothTimed = typeof period.opens === "string"
+      && typeof period.closes === "string"
+      && LOCAL_TIME_PATTERN.test(period.opens)
+      && LOCAL_TIME_PATTERN.test(period.closes);
+    if (!WEEKDAYS.includes(period.day) || (!bothClosed && !bothTimed)) {
+      fail("route_iq_revenue_data_operating_hours_invalid", `${scope}[${index}] is invalid.`);
+    }
+  }
+}
+
 function validateCommercialVersions(commercial, expectedScope) {
   exactKeys(commercial, [
     "companyId",
@@ -189,13 +232,14 @@ function validateCommercialVersions(commercial, expectedScope) {
   }
 }
 
-function validateAudit(audit, expectedScope) {
+function validateAudit(audit, expectedScope, declaredEvidenceIds) {
   exactKeys(audit, ["ledgerVersion", "events"], "audit");
   version(audit.ledgerVersion, "audit.ledgerVersion");
   unique(audit.events, event => event.eventId, "audit.events.eventId");
   unique(audit.events, event => event.idempotencyKey, "audit.events.idempotencyKey");
   const correlationSubjects = new Map();
   let previousEventSha256 = null;
+  let previousOccurredAt = null;
   for (const [index, event] of audit.events.entries()) {
     exactKeys(event, [
       "eventId",
@@ -216,6 +260,8 @@ function validateAudit(audit, expectedScope) {
     id(event.idempotencyKey, `audit.events[${index}].idempotencyKey`);
     requireScope(event, expectedScope, `audit.events[${index}]`);
     timestamp(event.occurredAt, `audit.events[${index}].occurredAt`);
+    unique(event.evidenceReferences, reference => reference,
+      `audit.events[${index}].evidenceReferences`);
     const { eventSha256, ...eventBody } = event;
     if (!ALLOWED_LIFECYCLE_STATES.has(event.lifecycleState)
       || event.productionWriteCount !== 0
@@ -228,6 +274,16 @@ function validateAudit(audit, expectedScope) {
       ) !== eventSha256) {
       fail("route_iq_revenue_data_audit_invalid", "Commercial audit evidence is invalid.");
     }
+    if (event.evidenceReferences.some(reference => !declaredEvidenceIds.has(reference))) {
+      fail(
+        "route_iq_revenue_data_audit_evidence_unknown",
+        "Commercial audit evidence references an undeclared record."
+      );
+    }
+    const occurredAt = Date.parse(event.occurredAt);
+    if (previousOccurredAt !== null && occurredAt < previousOccurredAt) {
+      fail("route_iq_revenue_data_audit_out_of_order", "Commercial audit events are out of order.");
+    }
     const eventSubject = `${event.eventType}:${event.lifecycleState}`;
     const priorSubject = correlationSubjects.get(event.correlationId);
     if (priorSubject && priorSubject !== eventSubject) {
@@ -235,10 +291,11 @@ function validateAudit(audit, expectedScope) {
     }
     correlationSubjects.set(event.correlationId, eventSubject);
     previousEventSha256 = event.eventSha256;
+    previousOccurredAt = occurredAt;
   }
 }
 
-function validateLifecycle(fixture, expectedScope) {
+function validateLifecycle(fixture, expectedScope, evidenceHashesByType) {
   exactKeys(fixture.lifecycle, [
     "currentState",
     "activationAuthorized",
@@ -271,6 +328,15 @@ function validateLifecycle(fixture, expectedScope) {
       || !SHA256_PATTERN.test(snapshot.evidenceSha256)
       || snapshot.active !== false) {
       fail("route_iq_revenue_data_lifecycle_snapshot_invalid", "A lifecycle snapshot is invalid.");
+    }
+    const expectedEvidenceType = snapshot.state === "DRAFT"
+      ? "ONBOARDING_CONFIGURATION"
+      : "VALIDATION_RESULT";
+    if (!evidenceHashesByType.get(expectedEvidenceType)?.has(snapshot.evidenceSha256)) {
+      fail(
+        "route_iq_revenue_data_lifecycle_evidence_unbound",
+        "A lifecycle snapshot is not bound to its declared evidence."
+      );
     }
     states.add(snapshot.state);
   }
@@ -355,6 +421,15 @@ function validateCleanup(cleanup, expectedScope) {
   }
   if (cleanup.quarantineEvidence.correlationId !== cleanup.removalEvidence.correlationId) {
     fail("route_iq_revenue_data_cleanup_correlation_invalid", "Cleanup evidence is not correlated.");
+  }
+  if (cleanup.quarantineEvidence.evidenceId === cleanup.removalEvidence.evidenceId
+    || cleanup.quarantineEvidence.evidenceSha256 === cleanup.removalEvidence.evidenceSha256
+    || Date.parse(cleanup.removalEvidence.recordedAt)
+      < Date.parse(cleanup.quarantineEvidence.recordedAt)) {
+    fail(
+      "route_iq_revenue_data_cleanup_evidence_invalid",
+      "Cleanup evidence identities, hashes, or chronology are invalid."
+    );
   }
 }
 
@@ -447,6 +522,8 @@ export function validateRouteIqPaidCustomerRevenueFixture(input) {
       || !Array.isArray(location.operatingHours) || location.operatingHours.length !== 7) {
       fail("route_iq_revenue_data_location_invalid", "A fictional location is invalid.");
     }
+    validateTimeZone(location.timeZone, `locations[${index}].timeZone`);
+    validateOperatingHours(location.operatingHours, `locations[${index}].operatingHours`);
   }
 
   unique(fixture.principals, item => item.principalId, "principals");
@@ -483,9 +560,9 @@ export function validateRouteIqPaidCustomerRevenueFixture(input) {
     }
   }
 
-  validateLifecycle(fixture, expectedScope);
   validateCommercialVersions(fixture.commercial, expectedScope);
   unique(fixture.evidenceReferences, item => item.evidenceId, "evidenceReferences");
+  const evidenceHashesByType = new Map();
   for (const [index, reference] of fixture.evidenceReferences.entries()) {
     exactKeys(reference, [
       "evidenceId",
@@ -502,8 +579,16 @@ export function validateRouteIqPaidCustomerRevenueFixture(input) {
     if (!SHA256_PATTERN.test(reference.sha256) || reference.productionRecord !== false) {
       fail("route_iq_revenue_data_evidence_reference_invalid", "An evidence reference is invalid.");
     }
+    const hashes = evidenceHashesByType.get(reference.evidenceType) || new Set();
+    hashes.add(reference.sha256);
+    evidenceHashesByType.set(reference.evidenceType, hashes);
   }
-  validateAudit(fixture.audit, expectedScope);
+  validateLifecycle(fixture, expectedScope, evidenceHashesByType);
+  validateAudit(
+    fixture.audit,
+    expectedScope,
+    new Set(fixture.evidenceReferences.map(reference => reference.evidenceId))
+  );
   validateCleanup(fixture.cleanup, expectedScope);
   validateProtectedState(fixture.protectedStateBefore);
   validateProtectedState(fixture.protectedStateAfter);
