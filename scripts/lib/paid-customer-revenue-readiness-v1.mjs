@@ -127,8 +127,10 @@ export const REVENUE_READINESS_V1_POLICY = Object.freeze({
     "workers/prometheus-iq-worker.js"
   ]),
   infrastructureSuccessorPaths: Object.freeze([
+    "scripts/lib/route-iq-prospective-shadow-worker-dispatch-verifier.mjs",
     "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
-    "tests/cloudflare-unattended-runtime-guard.test.mjs"
+    "tests/cloudflare-unattended-runtime-guard.test.mjs",
+    "tests/route-iq-prospective-shadow-infrastructure.test.mjs"
   ]),
   intelligenceSuccessorPaths: Object.freeze([]),
   overwatchNewPaths: Object.freeze([
