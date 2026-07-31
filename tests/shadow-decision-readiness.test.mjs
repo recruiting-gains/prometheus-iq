@@ -22,6 +22,9 @@ import {
   validateShadowDecisionContractCoherence,
   verifyShadowDecisionReadiness,
 } from "../scripts/verify-shadow-decision-readiness.mjs";
+import {
+  verifyCrossIndustryZipFounderAccessAdoption,
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const fixture = JSON.parse(
   readFileSync(
@@ -1283,17 +1286,8 @@ test("cross-industry Dashboard successor preserves the historical shadow baselin
       "utf8",
     ),
   );
-  const zipFounderSuccessor = JSON.parse(
-    readFileSync(
-      "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
-      "utf8",
-    ),
-  );
   const zipFounderTransitions = Object.fromEntries(
-    zipFounderSuccessor.protectedBaselineSuccessors.map((transition) => [
-      transition.path,
-      transition,
-    ]),
+    verifyCrossIndustryZipFounderAccessAdoption().transitionByPath,
   );
   const transitionEntries = [
     ...successor.dashboardTransitions,
@@ -1526,19 +1520,13 @@ test("unattended runtime guard successor preserves history and admits only the b
       "utf8",
     ),
   );
-  const zipFounderSuccessor = JSON.parse(
-    readFileSync(
-      "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
-      "utf8",
-    ),
-  );
   const historicalWorkerTransition =
     crossIndustrySuccessor.infrastructureTransitions.find(
       (transition) => transition.path === worker.path,
     );
   const currentWorkerTransition =
-    zipFounderSuccessor.protectedBaselineSuccessors.find(
-      (transition) => transition.path === worker.path,
+    verifyCrossIndustryZipFounderAccessAdoption().transitionByPath.get(
+      worker.path,
     );
 
   assert.equal(successor.batchId, "BATCH-20260714-006");

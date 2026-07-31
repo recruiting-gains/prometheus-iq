@@ -1,0 +1,53 @@
+{
+  "version": "route-iq-intelligence-controlled-onboarding-rehearsal-smoke-contract-successor-v1",
+  "directive": "Controlled Paid-Customer Onboarding Rehearsal v1",
+  "status": "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Adopt the exact Infrastructure-owned unattended smoke-contract successor required by the controlled paid-customer onboarding rehearsal without rewriting the historical ZIP/Founder checkpoint or changing Intelligence behavior.",
+  "predecessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
+    "sha256": "2bc63f52f472c503745e08b6652ae8854683589552271e4d94d51c69cc0cee6e",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "protectedSourceTransitions": [
+    {
+      "path": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "96c8210b94c3b0214dede252aba3d6d46121cd05",
+      "tree": "8e7decf92b5d55e613d8a5ddc4bb2d1e3bd200af",
+      "subject": "infrastructure: execute controlled onboarding rehearsal",
+      "previousSha256": "aeae1e71674179b318dc41669d18f2dedc6ca7762802868820f672d5e0097db3",
+      "currentSha256": "ea28197db687ded60c2b87da87874e8615ea76a3333d68eea7d1395887215eb4"
+    },
+    {
+      "path": "workers/prometheus-iq-worker.js",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "96c8210b94c3b0214dede252aba3d6d46121cd05",
+      "tree": "8e7decf92b5d55e613d8a5ddc4bb2d1e3bd200af",
+      "subject": "infrastructure: execute controlled onboarding rehearsal",
+      "previousSha256": "58d52967de329daa034751c1cf95ad1ae3da8a853c5cceeb950f0656ed51e2c8",
+      "currentSha256": "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132"
+    }
+  ],
+  "coherence": {
+    "historicalZipFounderEvidenceRewritten": false,
+    "historicalContractSha256Preserved": true,
+    "successorCommitAndTreeVerified": true,
+    "successorOwnerIdentityVerified": true,
+    "intelligenceRuntimeChanged": false,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "businessHoursEligibilityChanged": false
+  },
+  "boundaries": {
+    "readinessState": "INSUFFICIENT_EVIDENCE",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}

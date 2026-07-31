@@ -8,6 +8,8 @@ const root = resolve(import.meta.dirname, "../..");
 
 export const crossIndustryZipFounderAccessProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json";
+export const controlledOnboardingRehearsalSmokeContractProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-controlled-onboarding-rehearsal-smoke-contract-v1.json";
 
 function read(path) {
   return readFileSync(resolve(root, path));
@@ -68,8 +70,96 @@ function verifyTransition(path, transition) {
   );
 }
 
+export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
+  const successor = JSON.parse(
+    read(controlledOnboardingRehearsalSmokeContractProvenancePath)
+  );
+  const historical = JSON.parse(
+    read(crossIndustryZipFounderAccessProvenancePath)
+  );
+  const historicalWorker = historical.protectedBaselineSuccessors.find(
+    entry => entry.path === "workers/prometheus-iq-worker.js"
+  );
+  const historicalContract = historicalWorker?.guardSuccessor;
+  assert.equal(
+    successor.version,
+    "route-iq-intelligence-controlled-onboarding-rehearsal-smoke-contract-successor-v1"
+  );
+  assert.equal(
+    successor.status,
+    "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR"
+  );
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(
+    successor.predecessor.path,
+    crossIndustryZipFounderAccessProvenancePath
+  );
+  assert.equal(
+    sha256(successor.predecessor.path),
+    successor.predecessor.sha256,
+    "Historical ZIP/Founder Intelligence provenance changed."
+  );
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(successor.predecessor.rewritten, false);
+
+  assert.equal(successor.protectedSourceTransitions.length, 2);
+  const transitionByPath = new Map(
+    successor.protectedSourceTransitions.map(transition => [
+      transition.path,
+      transition
+    ])
+  );
+  assert.equal(transitionByPath.size, 2);
+  const transition = transitionByPath.get(
+    "workers/infrastructure/cloudflare-unattended-smoke-contract.js"
+  );
+  assert.equal(
+    transition.path,
+    "workers/infrastructure/cloudflare-unattended-smoke-contract.js"
+  );
+  assert.equal(
+    transition.previousSha256,
+    historicalContract.contractSha256
+  );
+  assert.equal(
+    transitionByPath.get("workers/prometheus-iq-worker.js").previousSha256,
+    historicalWorker.currentSha256
+  );
+  for (const protectedTransition of transitionByPath.values()) {
+    verifyTransition(protectedTransition.path, protectedTransition);
+    assert.equal(
+      sha256(protectedTransition.path),
+      protectedTransition.currentSha256,
+      `Current controlled-rehearsal protected source changed: ${protectedTransition.path}`
+    );
+  }
+  assert.deepEqual(successor.coherence, {
+    historicalZipFounderEvidenceRewritten: false,
+    historicalContractSha256Preserved: true,
+    successorCommitAndTreeVerified: true,
+    successorOwnerIdentityVerified: true,
+    intelligenceRuntimeChanged: false,
+    routeOrderingChanged: false,
+    routeScoringChanged: false,
+    businessHoursEligibilityChanged: false
+  });
+  assert.deepEqual(successor.boundaries, {
+    readinessState: "INSUFFICIENT_EVIDENCE",
+    prospectiveCollection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    representativeShadowOutputExposed: false,
+    deploymentPerformed: false,
+    productionAccessPerformed: false,
+    productionMutationPerformed: false
+  });
+  return Object.freeze({ successor, transitionByPath });
+}
+
 export function verifyCrossIndustryZipFounderAccessAdoption() {
   const adoption = JSON.parse(read(crossIndustryZipFounderAccessProvenancePath));
+  const rehearsalSuccessor =
+    verifyControlledOnboardingRehearsalSmokeContractSuccessor();
   assert.equal(adoption.version, "route-iq-intelligence-cross-industry-zip-founder-access-v1");
   assert.equal(adoption.status, "OWNER_REVIEWED_PROTECTED_BASELINE_SUCCESSOR");
   assert.equal(adoption.ownerSubsystem, "Prometheus Intelligence Engine");
@@ -102,9 +192,25 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
         );
       }
     }
-    assert.equal(sha256(successor.path), successor.currentSha256,
+    const rehearsalTransition =
+      rehearsalSuccessor.transitionByPath.get(successor.path);
+    if (rehearsalTransition) {
+      assert.equal(
+        rehearsalTransition.previousSha256,
+        successor.currentSha256,
+        `Broken controlled-rehearsal transition chain: ${successor.path}`
+      );
+    }
+    const currentSuccessor = rehearsalTransition
+      ? {
+          ...successor,
+          currentSha256: rehearsalTransition.currentSha256,
+          transitions: [...successor.transitions, rehearsalTransition]
+        }
+      : successor;
+    assert.equal(sha256(successor.path), currentSuccessor.currentSha256,
       `Current ZIP/Founder protected source changed: ${successor.path}`);
-    transitionByPath.set(successor.path, successor);
+    transitionByPath.set(successor.path, currentSuccessor);
   }
 
   assert.equal(
@@ -119,9 +225,15 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
     workerGuard.sha256,
     "Current service-principal guard changed."
   );
+  const smokeContractSuccessor =
+    rehearsalSuccessor.transitionByPath.get(workerGuard.contractPath);
+  assert.equal(
+    smokeContractSuccessor.path,
+    workerGuard.contractPath
+  );
   assert.equal(
     sha256(workerGuard.contractPath),
-    workerGuard.contractSha256,
+    smokeContractSuccessor.currentSha256,
     "Current service-principal contract changed."
   );
   assert.equal(
@@ -186,6 +298,7 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
 
   return Object.freeze({
     adoption,
+    rehearsalSuccessor,
     transitionByPath,
     resolveBaseline(path, historicalSha256) {
       const successor = transitionByPath.get(path);

@@ -31,6 +31,7 @@ import {
   validateRouteIqProspectiveRetentionPolicy,
 } from "../intelligence/route-iq-prospective-retention-admission.mjs";
 import {
+  verifyControlledOnboardingRehearsalSmokeContractSuccessor,
   verifyCrossIndustryZipFounderAccessAdoption,
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
@@ -331,7 +332,17 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   const smokeGuard =
     runtimeGuardSuccessor.infrastructureOwnerTransition.servicePrincipalGuard;
   assert.equal(sha256File(smokeGuard.guardPath), smokeGuard.guardSha256);
-  assert.equal(sha256File(smokeGuard.contractPath), smokeGuard.contractSha256);
+  const rehearsalSmokeContract =
+    verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+      .transitionByPath.get(smokeGuard.contractPath);
+  assert.equal(
+    rehearsalSmokeContract.previousSha256,
+    smokeGuard.contractSha256,
+  );
+  assert.equal(
+    sha256File(smokeGuard.contractPath),
+    rehearsalSmokeContract.currentSha256,
+  );
   assert.equal(smokeGuard.ordinaryAuthenticatedHumanRoutingChanged, false);
   const smokeTimeoutSuccessor =
     runtimeGuardSuccessor.infrastructureSmokeTimeoutSuccessor;
