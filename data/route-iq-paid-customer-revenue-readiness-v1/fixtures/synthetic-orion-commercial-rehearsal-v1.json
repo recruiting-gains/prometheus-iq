@@ -1,0 +1,284 @@
+{
+  "schemaVersion": "route-iq-paid-customer-revenue-readiness-data-v1",
+  "fixtureId": "orion_facility_safety_commercial_rehearsal_v1",
+  "classification": "FICTIONAL_NONPRODUCTION_COMMERCIAL_REHEARSAL",
+  "ownerSubsystem": "Prometheus Data",
+  "companyId": "company_orion_facility_safety_rehearsal",
+  "workspaceId": "workspace_orion_facility_safety_rehearsal",
+  "company": {
+    "companyId": "company_orion_facility_safety_rehearsal",
+    "workspaceId": "workspace_orion_facility_safety_rehearsal",
+    "displayName": "Orion Facility Safety Rehearsal",
+    "fictional": true,
+    "industry": "facility_safety_services",
+    "operatingTerminology": {
+      "representativeSingular": "field advisor",
+      "representativePlural": "field advisors",
+      "locationSingular": "service office",
+      "locationPlural": "service offices",
+      "primaryOutcome": "safety assessment"
+    }
+  },
+  "locations": [
+    {
+      "locationId": "location_orion_cedar_plains_rehearsal",
+      "companyId": "company_orion_facility_safety_rehearsal",
+      "workspaceId": "workspace_orion_facility_safety_rehearsal",
+      "displayName": "Orion Cedar Plains Fictional Office",
+      "fictional": true,
+      "timeZone": "America/Chicago",
+      "operatingHours": [
+        {"day": "MONDAY", "opens": "08:00", "closes": "17:00"},
+        {"day": "TUESDAY", "opens": "08:00", "closes": "17:00"},
+        {"day": "WEDNESDAY", "opens": "08:00", "closes": "17:00"},
+        {"day": "THURSDAY", "opens": "08:00", "closes": "17:00"},
+        {"day": "FRIDAY", "opens": "08:00", "closes": "16:00"},
+        {"day": "SATURDAY", "opens": null, "closes": null},
+        {"day": "SUNDAY", "opens": null, "closes": null}
+      ],
+      "active": false
+    },
+    {
+      "locationId": "location_orion_lake_junction_rehearsal",
+      "companyId": "company_orion_facility_safety_rehearsal",
+      "workspaceId": "workspace_orion_facility_safety_rehearsal",
+      "displayName": "Orion Lake Junction Fictional Office",
+      "fictional": true,
+      "timeZone": "America/Chicago",
+      "operatingHours": [
+        {"day": "MONDAY", "opens": "09:00", "closes": "18:00"},
+        {"day": "TUESDAY", "opens": "09:00", "closes": "18:00"},
+        {"day": "WEDNESDAY", "opens": "09:00", "closes": "18:00"},
+        {"day": "THURSDAY", "opens": "09:00", "closes": "18:00"},
+        {"day": "FRIDAY", "opens": "09:00", "closes": "17:00"},
+        {"day": "SATURDAY", "opens": null, "closes": null},
+        {"day": "SUNDAY", "opens": null, "closes": null}
+      ],
+      "active": false
+    }
+  ],
+  "principals": [
+    {
+      "principalId": "principal_orion_rehearsal_manager",
+      "companyId": "company_orion_facility_safety_rehearsal",
+      "workspaceId": "workspace_orion_facility_safety_rehearsal",
+      "displayName": "Morgan Vale Fictional Manager",
+      "fictional": true,
+      "role": "OWNER_MANAGER",
+      "authorizedLocationIds": [
+        "location_orion_cedar_plains_rehearsal",
+        "location_orion_lake_junction_rehearsal"
+      ],
+      "permissions": ["workspace_read", "configuration_preview", "representative_roster_read"],
+      "active": false
+    },
+    {
+      "principalId": "principal_orion_rehearsal_rep_alpha",
+      "companyId": "company_orion_facility_safety_rehearsal",
+      "workspaceId": "workspace_orion_facility_safety_rehearsal",
+      "displayName": "Jordan North Fictional Advisor",
+      "fictional": true,
+      "role": "REPRESENTATIVE",
+      "authorizedLocationIds": ["location_orion_cedar_plains_rehearsal"],
+      "permissions": ["assigned_location_read", "own_schedule_read"],
+      "active": false
+    },
+    {
+      "principalId": "principal_orion_rehearsal_rep_beta",
+      "companyId": "company_orion_facility_safety_rehearsal",
+      "workspaceId": "workspace_orion_facility_safety_rehearsal",
+      "displayName": "Casey Harbor Fictional Advisor",
+      "fictional": true,
+      "role": "REPRESENTATIVE",
+      "authorizedLocationIds": ["location_orion_lake_junction_rehearsal"],
+      "permissions": ["assigned_location_read", "own_schedule_read"],
+      "active": false
+    }
+  ],
+  "lifecycle": {
+    "currentState": "VALIDATED",
+    "activationAuthorized": false,
+    "productionAdmissionAuthorized": false,
+    "snapshots": [
+      {
+        "snapshotId": "orion_rehearsal_draft_snapshot",
+        "companyId": "company_orion_facility_safety_rehearsal",
+        "workspaceId": "workspace_orion_facility_safety_rehearsal",
+        "state": "DRAFT",
+        "recordedAt": "2026-07-30T18:00:00.000Z",
+        "configurationVersion": "orion-commercial-config-v1.0.0",
+        "evidenceSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "active": false
+      },
+      {
+        "snapshotId": "orion_rehearsal_validated_snapshot",
+        "companyId": "company_orion_facility_safety_rehearsal",
+        "workspaceId": "workspace_orion_facility_safety_rehearsal",
+        "state": "VALIDATED",
+        "recordedAt": "2026-07-30T18:05:00.000Z",
+        "configurationVersion": "orion-commercial-config-v1.0.0",
+        "evidenceSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "active": false
+      }
+    ]
+  },
+  "commercial": {
+    "companyId": "company_orion_facility_safety_rehearsal",
+    "workspaceId": "workspace_orion_facility_safety_rehearsal",
+    "pricingModelId": "route_iq_location_and_user_pricing",
+    "currentPricingVersion": "route-iq-pricing-v2",
+    "currentCommercialTermsVersion": "route-iq-commercial-terms-v2",
+    "liveBillingAuthorized": false,
+    "paymentProviderObjectId": null,
+    "history": [
+      {
+        "pricingVersion": "route-iq-pricing-v1",
+        "commercialTermsVersion": "route-iq-commercial-terms-v1",
+        "effectiveAt": "2026-07-30T17:00:00.000Z",
+        "status": "SUPERSEDED",
+        "monthlyPriceCents": 45000,
+        "currency": "USD",
+        "snapshotSha256": "3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      {
+        "pricingVersion": "route-iq-pricing-v2",
+        "commercialTermsVersion": "route-iq-commercial-terms-v2",
+        "effectiveAt": "2026-07-30T18:00:00.000Z",
+        "status": "CURRENT",
+        "monthlyPriceCents": 50000,
+        "currency": "USD",
+        "snapshotSha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      }
+    ]
+  },
+  "evidenceReferences": [
+    {
+      "evidenceId": "orion_rehearsal_configuration_evidence",
+      "companyId": "company_orion_facility_safety_rehearsal",
+      "workspaceId": "workspace_orion_facility_safety_rehearsal",
+      "evidenceType": "ONBOARDING_CONFIGURATION",
+      "schemaVersion": "route-iq-paid-customer-onboarding-v1",
+      "sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "productionRecord": false
+    },
+    {
+      "evidenceId": "orion_rehearsal_validation_evidence",
+      "companyId": "company_orion_facility_safety_rehearsal",
+      "workspaceId": "workspace_orion_facility_safety_rehearsal",
+      "evidenceType": "VALIDATION_RESULT",
+      "schemaVersion": "route-iq-paid-customer-validation-v1",
+      "sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+      "productionRecord": false
+    }
+  ],
+  "audit": {
+    "ledgerVersion": "route-iq-commercial-audit-ledger-v1",
+    "events": [
+      {
+        "eventId": "orion_rehearsal_draft_recorded",
+        "companyId": "company_orion_facility_safety_rehearsal",
+        "workspaceId": "workspace_orion_facility_safety_rehearsal",
+        "correlationId": "correlation_orion_draft",
+        "idempotencyKey": "idempotency_orion_draft_v1",
+        "eventType": "DRAFT_RECORDED",
+        "occurredAt": "2026-07-30T18:00:00.000Z",
+        "lifecycleState": "DRAFT",
+        "productionWriteCount": 0,
+        "evidenceReferences": ["orion_rehearsal_configuration_evidence"],
+        "previousEventSha256": null,
+        "eventSha256": "0597ef9bab76830dd248e07eb5f399268abbc21e8a8789f63a9d46d4c2cae159"
+      },
+      {
+        "eventId": "orion_rehearsal_validated_recorded",
+        "companyId": "company_orion_facility_safety_rehearsal",
+        "workspaceId": "workspace_orion_facility_safety_rehearsal",
+        "correlationId": "correlation_orion_validated",
+        "idempotencyKey": "idempotency_orion_validated_v1",
+        "eventType": "VALIDATION_COMPLETED",
+        "occurredAt": "2026-07-30T18:05:00.000Z",
+        "lifecycleState": "VALIDATED",
+        "productionWriteCount": 0,
+        "evidenceReferences": ["orion_rehearsal_validation_evidence"],
+        "previousEventSha256": "0597ef9bab76830dd248e07eb5f399268abbc21e8a8789f63a9d46d4c2cae159",
+        "eventSha256": "e300201107daa22a0070525be5465384f3c0fc5cd0613d6265789d0ec42ba6bc"
+      }
+    ]
+  },
+  "cleanup": {
+    "companyId": "company_orion_facility_safety_rehearsal",
+    "workspaceId": "workspace_orion_facility_safety_rehearsal",
+    "strategy": "ISOLATED_FIXTURE_QUARANTINE_THEN_REMOVE",
+    "quarantineEvidence": {
+      "evidenceId": "orion_rehearsal_cleanup_quarantined",
+      "correlationId": "correlation_orion_cleanup",
+      "status": "QUARANTINED",
+      "recordedAt": "2026-07-30T18:10:00.000Z",
+      "affectedProductionRecords": 0,
+      "evidenceSha256": "9999999999999999999999999999999999999999999999999999999999999999"
+    },
+    "removalEvidence": {
+      "evidenceId": "orion_rehearsal_cleanup_removed",
+      "correlationId": "correlation_orion_cleanup",
+      "status": "REMOVED",
+      "recordedAt": "2026-07-30T18:11:00.000Z",
+      "affectedProductionRecords": 0,
+      "evidenceSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "rollbackSupported": true,
+    "productionMutationAuthorized": false
+  },
+  "protectedStateBefore": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providerRefresh": "OFF",
+    "scheduler": "OFF",
+    "customerActivation": "OFF",
+    "activePool": 0,
+    "reservePool": 0,
+    "quarantinePool": 398,
+    "productionWrites": 0,
+    "crmWrites": 0,
+    "billingWrites": 0,
+    "invitationWrites": 0,
+    "capturedAt": "2026-07-30T18:12:00.000Z",
+    "snapshotSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "protectedStateAfter": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providerRefresh": "OFF",
+    "scheduler": "OFF",
+    "customerActivation": "OFF",
+    "activePool": 0,
+    "reservePool": 0,
+    "quarantinePool": 398,
+    "productionWrites": 0,
+    "crmWrites": 0,
+    "billingWrites": 0,
+    "invitationWrites": 0,
+    "capturedAt": "2026-07-30T18:12:00.000Z",
+    "snapshotSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "responsibilities": {
+    "retention": {
+      "classification": "GOVERNED_OPERATION",
+      "responsibleSubsystem": "PROMETHEUS_DATA",
+      "customerAuthorizationRequired": false,
+      "productionExecutionAuthorized": false
+    },
+    "export": {
+      "classification": "CUSTOMER_REQUEST_OPERATION",
+      "responsibleSubsystem": "CUSTOMER_AUTHORIZED_ADMINISTRATOR",
+      "customerAuthorizationRequired": true,
+      "productionExecutionAuthorized": false
+    },
+    "deletion": {
+      "classification": "CUSTOMER_REQUEST_OPERATION",
+      "responsibleSubsystem": "PROMETHEUS_DATA",
+      "customerAuthorizationRequired": true,
+      "productionExecutionAuthorized": false
+    }
+  }
+}
