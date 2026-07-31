@@ -24,7 +24,9 @@
     {"commit": "de1b6c75648b2df90b71e8fd460f05a61dfda3f9", "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>"},
     {"commit": "6b9820a5acf67e7d403d112a71fea4dd37abcf5d", "owner": "Prometheus Overwatch <overwatch@prometheus.local>"},
     {"commit": "63ceb0ec767dcb4acd8d5874b4ee05cfe2a84420", "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>"},
-    {"commit": "7d4110f2d51e3aaf75bd9ac184e91ed6d9d550c5", "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>"}
+    {"commit": "7d4110f2d51e3aaf75bd9ac184e91ed6d9d550c5", "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>"},
+    {"commit": "0cb3300c6ed22b8179cccb09c069c80503dbfa2d", "owner": "Prometheus Overwatch <overwatch@prometheus.local>"},
+    {"commit": "94d0959b499a7b83da565b41cdde2e474e880315", "owner": "Prometheus Administration <administration@prometheus.local>"}
   ],
   "commercialDecision": {
     "maximumVerdict": "CONDITIONAL_GO",
