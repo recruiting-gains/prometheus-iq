@@ -32,10 +32,7 @@ assert.equal(
   packageJson.scripts["overwatch:early-github-handoff:dispatch"],
   "node scripts/run-early-github-handoff-v1.mjs"
 );
-assert.match(
-  packageJson.scripts["overwatch:auto-push-governance:check"],
-  /overwatch:early-github-handoff:check/u
-);
+assert.match(workflow, /npm run overwatch:early-github-handoff:check/u);
 assert.match(runbook, /exact commit SHA, branch, workflow identity, and dispatch timestamp/u);
 assert.match(autoPush, /Early GitHub Handoff/u);
 
