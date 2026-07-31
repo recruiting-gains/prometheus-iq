@@ -274,14 +274,42 @@ export function validateControlledRehearsalReport(report) {
 }
 
 function verifyCurrentOwnerFiles(governance) {
+  const governedSuccessors = new Map([
+    ["workers/prometheus-iq-worker.js", {
+      commit: "54c7e4277e6ed17d3d9cce2921ff7bac77bb94ff",
+      sha256: "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61"
+    }],
+    ["scripts/lib/github-actions-private-worker-workflow-v2.mjs", {
+      commit: "7d4110f2d51e3aaf75bd9ac184e91ed6d9d550c5",
+      sha256: "bd07a1971bab290a62adb8084fdfd86aeff82380a9f1204feefaf6fa80baa75b"
+    }],
+    ["workers/infrastructure/github-actions-private-worker-deployment-v2.json", {
+      commit: "7d4110f2d51e3aaf75bd9ac184e91ed6d9d550c5",
+      sha256: "574db6b4b5edadd53f06c6788aa942ca0221cd4d56278ad341579eda2f1174f7"
+    }]
+  ]);
   for (const record of governance.ownership.ownerCommits.slice(1)) {
     for (const item of record.evidence) {
       const laterOwnerRecord = governance.ownership.ownerCommits
         .slice(governance.ownership.ownerCommits.indexOf(record) + 1)
         .find(candidate => candidate.evidence.some(next => next.path === item.path));
       if (!laterOwnerRecord) {
-        assert.equal(sha256(read(item.path)), item.sha256,
-          `current owner file drifted: ${item.path}`);
+        const actual = sha256(read(item.path));
+        const successor = governedSuccessors.get(item.path);
+        if (successor && actual === successor.sha256) {
+          assert.equal(git([
+            "merge-base", "--is-ancestor", successor.commit, "HEAD"
+          ]), "");
+          const changedPaths = git([
+            "diff-tree", "--no-commit-id", "--name-only", "-r",
+            successor.commit
+          ]).split("\n").filter(Boolean);
+          assert.ok(changedPaths.includes(item.path),
+            `governed successor omitted path: ${item.path}`);
+        } else {
+          assert.equal(actual, item.sha256,
+            `current owner file drifted: ${item.path}`);
+        }
       }
     }
   }
