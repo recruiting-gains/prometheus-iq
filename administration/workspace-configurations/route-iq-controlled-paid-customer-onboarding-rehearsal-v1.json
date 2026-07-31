@@ -1,0 +1,146 @@
+{
+  "schemaVersion": "route-iq-controlled-paid-customer-onboarding-rehearsal-v1",
+  "rehearsalId": "controlled_paid_customer_onboarding_rehearsal_orion_v1",
+  "classification": "SYNTHETIC_EPHEMERAL_PRODUCTION_REHEARSAL",
+  "templateConfigurationId": "config_aster_security_services_v1",
+  "productionExecution": {
+    "authenticatedReadOnlyInvocationRequired": true,
+    "inMemoryOnly": true,
+    "persistenceAllowed": false,
+    "productionCustomerMutationAllowed": false,
+    "crmMutationAllowed": false,
+    "invitationAllowed": false,
+    "providerCallAllowed": false,
+    "schedulerAllowed": false,
+    "recommendationInfluenceAllowed": false,
+    "liveBillingAllowed": false
+  },
+  "configurationIdentity": {
+    "configurationId": "config_orion_facility_safety_rehearsal_v1",
+    "configurationRevision": 1,
+    "companyId": "company_orion_facility_safety_rehearsal",
+    "workspaceId": "workspace_orion_facility_safety_rehearsal",
+    "legalName": "Orion Facility Safety Rehearsal Synthetic LLC",
+    "displayName": "Orion Facility Safety Rehearsal",
+    "territoryId": "orion_central_rehearsal_territory",
+    "territoryDisplayLabel": "Orion Central Rehearsal Territory",
+    "representativeScheduleId": "orion_rehearsal_field_week",
+    "dashboardProfileId": "orion_rehearsal_security_dashboard",
+    "crmWorkflowId": "orion_rehearsal_security_crm_workflow",
+    "createdAt": "2026-07-30T15:00:00.000Z",
+    "createdByReference": "synthetic_rehearsal_administration_owner"
+  },
+  "supportContacts": [
+    {
+      "contactId": "orion_rehearsal_operations_contact",
+      "contactType": "OPERATIONAL",
+      "displayLabel": "Synthetic rehearsal operations contact",
+      "contactReference": "contact_ref_orion_rehearsal_operations",
+      "active": true
+    },
+    {
+      "contactId": "orion_rehearsal_security_contact",
+      "contactType": "SECURITY",
+      "displayLabel": "Synthetic rehearsal security contact",
+      "contactReference": "contact_ref_orion_rehearsal_security",
+      "active": true
+    }
+  ],
+  "locations": [
+    {
+      "locationId": "location_orion_cedar_plains_rehearsal",
+      "businessId": "business_orion_cedar_plains_rehearsal",
+      "displayName": "Orion Cedar Plains Office Synthetic",
+      "address": {
+        "line1": "100 Fictional Way",
+        "city": "Cedar Plains",
+        "stateCode": "TX",
+        "zipCode": "75001"
+      },
+      "territoryId": "orion_central_rehearsal_territory",
+      "categoryId": "commercial_property_management",
+      "operatingHours": {
+        "timeZone": "America/Chicago",
+        "state": "OPEN_VERIFIED",
+        "weeklyScheduleVersion": "orion_rehearsal_hours_v1",
+        "verifiedAt": "2026-07-30T14:00:00.000Z",
+        "expiresAt": "2026-07-31T14:00:00.000Z"
+      }
+    },
+    {
+      "locationId": "location_orion_lake_junction_rehearsal",
+      "businessId": "business_orion_lake_junction_rehearsal",
+      "displayName": "Orion Lake Junction Office Synthetic",
+      "address": {
+        "line1": "200 Example Avenue",
+        "city": "Lake Junction",
+        "stateCode": "TX",
+        "zipCode": "75002"
+      },
+      "territoryId": "orion_central_rehearsal_territory",
+      "categoryId": "light_industrial_facility",
+      "operatingHours": {
+        "timeZone": "America/Chicago",
+        "state": "CLOSED_VERIFIED",
+        "weeklyScheduleVersion": "orion_rehearsal_hours_v1",
+        "verifiedAt": "2026-07-30T14:00:00.000Z",
+        "expiresAt": "2026-07-31T14:00:00.000Z"
+      }
+    }
+  ],
+  "principals": [
+    {
+      "principalId": "principal_orion_rehearsal_manager",
+      "profileId": "profile_orion_rehearsal_manager",
+      "displayName": "Synthetic Orion Owner Manager",
+      "roleId": "security_operations_manager",
+      "principalKind": "OWNER_MANAGER",
+      "invitationState": "NOT_SENT",
+      "activationState": "INACTIVE"
+    },
+    {
+      "principalId": "principal_orion_rehearsal_rep_alpha",
+      "profileId": "profile_orion_rehearsal_rep_alpha",
+      "displayName": "Synthetic Orion Representative Alpha",
+      "roleId": "security_field_advisor",
+      "principalKind": "REPRESENTATIVE",
+      "invitationState": "NOT_SENT",
+      "activationState": "INACTIVE"
+    },
+    {
+      "principalId": "principal_orion_rehearsal_rep_beta",
+      "profileId": "profile_orion_rehearsal_rep_beta",
+      "displayName": "Synthetic Orion Representative Beta",
+      "roleId": "security_field_advisor",
+      "principalKind": "REPRESENTATIVE",
+      "invitationState": "NOT_SENT",
+      "activationState": "INACTIVE"
+    }
+  ],
+  "billing": {
+    "mode": "SIMULATED_ONLY",
+    "planId": "route_iq_rehearsal_standard_monthly",
+    "currency": "USD",
+    "unitAmountCents": 125000,
+    "stripeMode": "DISABLED",
+    "stripeCustomerId": null,
+    "subscriptionId": null,
+    "paymentMethodId": null,
+    "legalEntityConfirmed": false,
+    "einConfirmed": false,
+    "bankAccountConfirmed": false,
+    "billingActivationState": "BLOCKED"
+  },
+  "expected": {
+    "evaluatedAt": "2026-07-30T15:00:00.000Z",
+    "initialLifecycleState": "DRAFT",
+    "failedLifecycleState": "VALIDATION_FAILED",
+    "finalLifecycleState": "VALIDATED",
+    "locationCount": 2,
+    "representativeCount": 2,
+    "managerCount": 1,
+    "openLocationCount": 1,
+    "closedLocationCount": 1,
+    "finalStoreRecordCount": 0
+  }
+}
