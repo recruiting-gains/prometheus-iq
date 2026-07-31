@@ -1,0 +1,59 @@
+{
+  "governanceId": "paid-customer-revenue-readiness-v1",
+  "batchId": "BATCH-20260731-001",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "status": "CONDITIONAL_GO_SOURCE_VERIFIED_QUALIFICATION_PENDING",
+  "acceptedBaseline": {
+    "commit": "f78d360c588e96fbbd91c0cbbe52a4d4cca4845c",
+    "tree": "fd9cf889e5bce8bd7e445a6e6ca9fde5b38a1522",
+    "privateWorker": "2f2b059b-8776-4d70-8848-1a0c5d5b18d4",
+    "publicWorker": "6a8713c0-0712-4cda-8a13-daa893ca45f2"
+  },
+  "ownerCommits": [
+    {"commit": "343bd40ae005e96d7826ab193e920c3abbda67dd", "owner": "Prometheus Administration <administration@prometheus.local>"},
+    {"commit": "ec58b4ea4516a1af61f9773e0184358c93d8e7a0", "owner": "Prometheus CRM <crm@prometheus.local>"},
+    {"commit": "e16a4a312a8b2b4bd4c5dd316199388fcc6a2cbd", "owner": "Prometheus Administration <administration@prometheus.local>"},
+    {"commit": "f86ef30bc07240dca4995775ad6d2d56410dc90e", "owner": "Prometheus Data <data@prometheus.local>"},
+    {"commit": "6f5a7a56bc7074ee84d311b8c433b24d7cfb2173", "owner": "Prometheus Dashboard <dashboard@prometheus.local>"},
+    {"commit": "b02f27f0815f938aa6a8730e285dc3745e4134a6", "owner": "Prometheus Security <security@prometheus.local>"},
+    {"commit": "86055bbf2ec7eda71e1d9957984e0697580e7542", "owner": "Prometheus Dashboard <dashboard@prometheus.local>"},
+    {"commit": "2caef259fe78032d95428cb7bf4fdbe4a3d30a26", "owner": "Prometheus Administration <administration@prometheus.local>"},
+    {"commit": "90a6cca9fa7f06859e82a99751c6ba1c8aed975a", "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>"},
+    {"commit": "54c7e4277e6ed17d3d9cce2921ff7bac77bb94ff", "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>"},
+    {"commit": "f5cbbfe4fe88944533fae68f954aa25b669eed69", "owner": "Prometheus Dashboard <dashboard@prometheus.local>"},
+    {"commit": "de1b6c75648b2df90b71e8fd460f05a61dfda3f9", "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>"}
+  ],
+  "commercialDecision": {
+    "maximumVerdict": "CONDITIONAL_GO",
+    "legalEntity": "FOUNDER_DECISION_REQUIRED",
+    "ein": "FOUNDER_DECISION_REQUIRED",
+    "banking": "FOUNDER_DECISION_REQUIRED",
+    "stripeAccount": "FOUNDER_DECISION_REQUIRED",
+    "pricing": "FOUNDER_DECISION_REQUIRED",
+    "tax": "FOUNDER_DECISION_REQUIRED",
+    "refunds": "FOUNDER_DECISION_REQUIRED",
+    "liveBilling": "BLOCKED",
+    "customerActivation": "OFF"
+  },
+  "defectLedger": {
+    "p0": [],
+    "p1": [],
+    "p2": ["Founder legal, tax, banking, pricing, refund, and Stripe decisions remain unresolved"],
+    "p3": ["Stripe Test Mode is not configured; contract-level simulation is the available evidence"]
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providerRefresh": "OFF",
+    "scheduler": "OFF",
+    "customerActivation": "OFF",
+    "anthonyMapped": false,
+    "activeBusinesses": 0,
+    "reserveBusinesses": 0,
+    "quarantinedBusinesses": 398,
+    "crmReceipt": "riq_receipt_e74e57903a211291a9f1f37a",
+    "crmMutationAllowed": false,
+    "publicWorkerMutationAllowed": false
+  }
+}
