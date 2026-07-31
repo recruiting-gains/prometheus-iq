@@ -7,7 +7,6 @@ const read = path => readFileSync(resolve(root, path), "utf8");
 
 const agents = read("AGENTS.md");
 const workflow = read(".github/workflows/early-github-handoff-v1.yml");
-const packageJson = JSON.parse(read("package.json"));
 const runbook = read("docs/early-github-handoff-v1.md");
 const autoPush = read("overwatch/governance/verified-engineering-batch-auto-push-v1.md");
 
@@ -28,11 +27,9 @@ assert.match(workflow, /git rev-parse HEAD/u);
 assert.match(workflow, /npm test/u);
 assert.doesNotMatch(workflow, /environment:|CLOUDFLARE_|wrangler deploy|git push/u);
 
-assert.equal(
-  packageJson.scripts["overwatch:early-github-handoff:dispatch"],
-  "node scripts/run-early-github-handoff-v1.mjs"
-);
-assert.match(workflow, /npm run overwatch:early-github-handoff:check/u);
+assert.match(workflow, /node scripts\/verify-early-github-handoff-v1\.mjs/u);
+assert.match(workflow, /node scripts\/verify-overwatch-early-github-handoff-v1\.mjs/u);
+assert.match(workflow, /node --test tests\/early-github-handoff-v1\.test\.mjs/u);
 assert.match(runbook, /exact commit SHA, branch, workflow identity, and dispatch timestamp/u);
 assert.match(autoPush, /Early GitHub Handoff/u);
 

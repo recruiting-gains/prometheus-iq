@@ -13,7 +13,7 @@ result using the exact commit SHA, branch, workflow identity, and dispatch times
 The default no-secret repository qualification is:
 
 ```sh
-npm run overwatch:early-github-handoff:dispatch -- \
+node scripts/run-early-github-handoff-v1.mjs \
   --commit "$(git rev-parse HEAD)"
 ```
 
@@ -22,7 +22,7 @@ nonsecret JSON input file. The dispatcher always injects `candidate_commit`
 and rejects a conflicting value.
 
 ```sh
-npm run overwatch:early-github-handoff:dispatch -- \
+node scripts/run-early-github-handoff-v1.mjs \
   --workflow governed-workflow.yml \
   --branch main \
   --commit "$(git rev-parse HEAD)" \

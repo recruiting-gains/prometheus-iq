@@ -61,7 +61,10 @@ jobs:
         run: npm ci
 
       - name: Verify permanent early handoff controls
-        run: npm run overwatch:early-github-handoff:check
+        run: |
+          node scripts/verify-early-github-handoff-v1.mjs
+          node scripts/verify-overwatch-early-github-handoff-v1.mjs
+          node --test tests/early-github-handoff-v1.test.mjs
 
       - name: Run complete repository qualification
         run: npm test
