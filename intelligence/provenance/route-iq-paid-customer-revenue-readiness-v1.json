@@ -1,0 +1,40 @@
+{
+  "version": "route_iq_intelligence_paid_customer_revenue_readiness_v1",
+  "owner": "Prometheus Intelligence Engine",
+  "purpose": "Prove that paid-customer commercial provenance remains isolated from every Route IQ recommendation and routing surface.",
+  "mode": "VERIFICATION_ONLY",
+  "fictionalEvidenceOnly": true,
+  "commercialDomains": [
+    "commercial",
+    "billing",
+    "payment",
+    "proposal",
+    "agreement",
+    "orderForm",
+    "onboarding",
+    "cancellation"
+  ],
+  "protectedSurfaces": {
+    "recommendations": "ZERO_MUTATIONS",
+    "activePool": "ZERO_MUTATIONS",
+    "reservePool": "ZERO_MUTATIONS",
+    "quarantinePool": "ZERO_MUTATIONS",
+    "cohorts": "ZERO_MUTATIONS",
+    "collection": "ZERO_MUTATIONS",
+    "providerRefresh": "ZERO_MUTATIONS",
+    "scheduling": "ZERO_MUTATIONS",
+    "activeCustomerRouting": "ZERO_MUTATIONS"
+  },
+  "invariants": {
+    "recommendationInfluence": "OFF",
+    "customerActivationAuthorized": false,
+    "representativeRoutingAuthorized": false,
+    "commercialStateCanAuthorizeIntelligence": false,
+    "billingStateCanAuthorizeIntelligence": false,
+    "paymentStateCanAuthorizeIntelligence": false,
+    "onboardingStateCanAuthorizeIntelligence": false,
+    "cancellationStateCanAuthorizeIntelligence": false,
+    "replayedEventCanAuthorizeIntelligence": false,
+    "forgedActivationCanAuthorizeIntelligence": false
+  }
+}
