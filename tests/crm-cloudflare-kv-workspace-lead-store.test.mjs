@@ -1,29 +1,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  CrmWorkspaceLeadStoreBindingError,
-  createCloudflareKvCrmWorkspaceLeadStore,
   crmWorkspaceLeadStoreBinding,
-  crmWorkspaceLeadStoreTechnology,
   validateCloudflareKvCrmWorkspaceLeadStoreBinding
 } from "../crm/cloudflare-kv-workspace-lead-store.mjs";
 import {
   persistWorkspaceLeadIntakeWithProductionStore,
-  readWorkspaceLeadIntakeFromProductionStore
+  productionCrmWorkspaceLeadBindingStatus
 } from "../crm/workspace-lead-production-runtime.mjs";
-import {
-  crmWorkspaceLeadPersistencePrefix
-} from "../crm/workspace-lead-persistence.mjs";
 import {
   CrmProductionWorkerEntrypointError,
   crmComposedWorkerEntrypoint,
   crmPublicWorkerEntrypoint,
   validateCrmProductionWorkerEntrypoints
 } from "../crm/production-worker-entrypoint-contract.mjs";
-import {
-  createCrmState,
-  persistWorkspaceLeadIntakeHandoff
-} from "../crm/crm-foundation.mjs";
 import {
   createSharedLeadIntakeSubmission
 } from "../workers/infrastructure/shared-lead-intake-pipeline.js";
@@ -108,7 +98,7 @@ async function intakeRecord(workspaceId = "fitness_connection", suffix = "defaul
   return result.record;
 }
 
-test("production CRM adapter writes durably and a separate runtime operation reads the lead back", async () => {
+test("production Fitness Connection research handoff is governance blocked before KV access", async () => {
   const binding = kvBinding();
   const env = { [crmWorkspaceLeadStoreBinding]: binding };
   const record = await intakeRecord("fitness_connection", "readback");
@@ -120,48 +110,22 @@ test("production CRM adapter writes durably and a separate runtime operation rea
     storageTechnology: "cloudflare_workers_kv",
     missingMethods: []
   });
+  assert.equal(productionCrmWorkspaceLeadBindingStatus(env).atomicPutIfAbsent, false);
 
   const written = await persistWorkspaceLeadIntakeWithProductionStore(record, {
     env,
     now: "2026-07-10T12:02:00.000Z"
   });
   assert.equal(written.ok, true);
-  assert.equal(written.persisted, true);
+  assert.equal(written.persisted, false);
   assert.equal(written.duplicate, false);
-  assert.equal(written.storageTechnology, crmWorkspaceLeadStoreTechnology);
-  assert.equal(binding.data.size, 3);
-
-  const existingInterfaceResult = await persistWorkspaceLeadIntakeHandoff(
-    createCrmState({ now: "2026-07-10T12:02:00.000Z" }),
-    record,
-    {
-      store: kvBinding(),
-      persistedAt: "2026-07-10T12:02:00.000Z"
-    }
-  );
-  assert.deepEqual(written.record, existingInterfaceResult.record);
-
-  const firstAdapter = createCloudflareKvCrmWorkspaceLeadStore(env);
-  const separateAdapter = createCloudflareKvCrmWorkspaceLeadStore(env);
-  assert.notEqual(separateAdapter, firstAdapter);
-  const readBack = await readWorkspaceLeadIntakeFromProductionStore({
-    workspaceId: "fitness_connection",
-    submissionId: record.submissionId
-  }, { env });
-
-  assert.equal(readBack.ok, true);
-  assert.equal(readBack.found, true);
-  assert.deepEqual(readBack.record, written.record);
-  assert.equal(readBack.record.metadata.handoffContract, "shared_workspace_crm_lead_intake_packet.v1");
-  assert.equal(readBack.record.storage.keys.record, `${crmWorkspaceLeadPersistencePrefix}/workspaces/fitness_connection/submissions/${record.submissionId}/lead.json`);
-
-  await assert.rejects(() => readWorkspaceLeadIntakeFromProductionStore({
-    workspaceId: "unapproved_company_workspace",
-    submissionId: record.submissionId
-  }, { env }), /Unknown CRM workspace intake workspace: unapproved_company_workspace/);
+  assert.equal(written.status, "governance_blocked");
+  assert.equal(written.code, "crm_workspace_runtime_governance_blocked");
+  assert.equal(binding.data.size, 0);
+  assert.equal(binding.writes.length, 0);
 });
 
-test("production CRM adapter treats a duplicate submission as the same durable record", async () => {
+test("production Fitness Connection retries remain blocked with no lead consumption or writes", async () => {
   const binding = kvBinding();
   const env = { [crmWorkspaceLeadStoreBinding]: binding };
   const record = await intakeRecord("fitness_connection", "duplicate");
@@ -170,18 +134,15 @@ test("production CRM adapter treats a duplicate submission as the same durable r
     env,
     now: "2026-07-10T12:03:00.000Z"
   });
-  const writeCount = binding.writes.length;
   const second = await persistWorkspaceLeadIntakeWithProductionStore(record, {
     env,
     now: "2026-07-10T12:04:00.000Z"
   });
 
-  assert.equal(first.duplicate, false);
-  assert.equal(second.duplicate, true);
-  assert.equal(second.status, "already_persisted");
-  assert.equal(second.record.recordId, first.record.recordId);
-  assert.equal(binding.writes.length, writeCount);
-  assert.equal(binding.data.size, 3);
+  assert.equal(first.status, "governance_blocked");
+  assert.equal(second.status, "governance_blocked");
+  assert.equal(binding.writes.length, 0);
+  assert.equal(binding.data.size, 0);
 });
 
 test("production CRM adapter rejects cross-workspace contamination without writes", async () => {
@@ -195,16 +156,11 @@ test("production CRM adapter rejects cross-workspace contamination without write
   assert.equal(binding.data.size, 0);
 });
 
-test("production CRM adapter fails closed when its KV binding is missing", async () => {
+test("production Fitness Connection governance denial does not require or inspect a KV binding", async () => {
   const record = await intakeRecord("fitness_connection", "missing_binding");
-
-  await assert.rejects(() => persistWorkspaceLeadIntakeWithProductionStore(record, { env: {} }), error => {
-    assert.equal(error instanceof CrmWorkspaceLeadStoreBindingError, true);
-    assert.equal(error.code, "crm_workspace_lead_store_binding_missing");
-    assert.equal(error.status, 503);
-    assert.deepEqual(error.missingMethods, ["get", "put"]);
-    return true;
-  });
+  const result = await persistWorkspaceLeadIntakeWithProductionStore(record, { env: {} });
+  assert.equal(result.status, "governance_blocked");
+  assert.equal(result.persisted, false);
 });
 
 test("production CRM adapter rejects an unknown workspace before durable writes", async () => {

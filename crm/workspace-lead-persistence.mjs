@@ -10,7 +10,8 @@ export const supportedWorkspaceLeadIntakeWorkspaces = Object.freeze({
     workspaceName: "Fitness Connection",
     operatingProfileId: "fitness",
     target: "lead",
-    runtimePersistenceAllowed: true
+    researchClassification: "FOUNDER_FIELD_RESEARCH",
+    runtimePersistenceAllowed: false
   })
 });
 
@@ -132,22 +133,24 @@ export function crmWorkspaceLeadStorageKeys(workspaceId, submissionId, leadId) {
 }
 
 function requireCrmWorkspaceLeadStore(store) {
-  if (!store || (typeof store.put !== "function" && typeof store.setItem !== "function")) {
-    throw new Error("CRM workspace lead persistence requires a CRM-owned durable store adapter.");
+  if (!store
+    || (typeof store.get !== "function" && typeof store.getItem !== "function")
+    || typeof store.putIfAbsent !== "function"
+    || (typeof store.put !== "function" && typeof store.setItem !== "function")) {
+    throw new Error("CRM workspace lead persistence requires a readable CRM-owned durable store adapter with atomic putIfAbsent.");
   }
+}
+
+async function writeCrmWorkspaceLeadStoreIfAbsent(store, key, value, metadata) {
+  const inserted = await store.putIfAbsent(key, JSON.stringify(value), { metadata });
+  if (inserted !== true && inserted !== false) {
+    throw new Error("CRM workspace lead atomic putIfAbsent returned an invalid result.");
+  }
+  return inserted;
 }
 
 function readableCrmWorkspaceLeadStore(store) {
   return Boolean(store && (typeof store.get === "function" || typeof store.getItem === "function"));
-}
-
-async function writeCrmWorkspaceLeadStore(store, key, value, metadata) {
-  const serialized = JSON.stringify(value);
-  if (typeof store.put === "function") {
-    await store.put(key, serialized, { metadata });
-    return;
-  }
-  await store.setItem(key, serialized);
 }
 
 async function readCrmWorkspaceLeadStore(store, key) {
@@ -268,6 +271,28 @@ function buildCrmWorkspaceLeadPersistenceRecord(state, normalized, consumed, opt
   };
 }
 
+function assertCanonicalWorkspaceLeadRecord(record, state, normalized, projectedConsumption) {
+  const persistedAt = record?.storage?.persistedAt;
+  if (typeof persistedAt !== "string") {
+    throw new Error("CRM workspace lead canonical durable record is malformed.");
+  }
+  const expected = buildCrmWorkspaceLeadPersistenceRecord(state, normalized, projectedConsumption, {
+    persistedAt
+  });
+  if (JSON.stringify(record) !== JSON.stringify(expected)) {
+    throw new Error("CRM workspace lead canonical durable record does not match the submitted handoff.");
+  }
+  return record;
+}
+
+async function repairWorkspaceLeadIndex(store, key, value, metadata) {
+  await writeCrmWorkspaceLeadStoreIfAbsent(store, key, value, metadata);
+  const existing = await readCrmWorkspaceLeadStore(store, key);
+  if (JSON.stringify(existing) !== JSON.stringify(value)) {
+    throw new Error(`CRM workspace lead durable index conflicts with canonical record at ${key}.`);
+  }
+}
+
 export function createFitnessConnectionRuntimeLeadConsumption(normalized, options = {}) {
   if (normalized.workspaceId !== "fitness_connection") {
     throw new Error(`CRM production runtime projection is not approved for ${normalized.workspaceId}.`);
@@ -304,58 +329,39 @@ export function createFitnessConnectionRuntimeLeadConsumption(normalized, option
   };
 }
 
-function governanceError(workspaceId) {
-  const error = new Error(`CRM runtime persistence is not authorized for workspace ${workspaceId}.`);
-  error.code = "crm_workspace_runtime_governance_blocked";
-  error.status = 409;
-  return error;
-}
-
 export async function persistWorkspaceLeadIntakeHandoffCore(state, input = {}, options = {}) {
   const normalized = normalizeWorkspaceLeadIntakeInput(input);
-  if (!normalized.workspace.runtimePersistenceAllowed) throw governanceError(normalized.workspaceId);
   requireCrmWorkspaceLeadStore(options.store);
   if (!Array.isArray(state?.workspaceLeadPersistenceRecords)) {
     throw new Error("CRM workspace lead persistence requires workspaceLeadPersistenceRecords state.");
   }
 
-  const existingRecord = state.workspaceLeadPersistenceRecords.find(record => {
-    return record.workspace.workspaceId === normalized.workspaceId && record.metadata.submissionId === normalized.submissionId;
-  });
-  if (existingRecord) {
-    return {
-      ok: true,
-      duplicate: true,
-      consumerVersion: workspaceLeadIntakeConsumerVersion,
-      persistenceVersion: crmWorkspaceLeadPersistenceVersion,
+  const projectedConsumption = createFitnessConnectionRuntimeLeadConsumption(normalized, options);
+  const candidate = buildCrmWorkspaceLeadPersistenceRecord(state, normalized, projectedConsumption, options);
+  const inserted = await writeCrmWorkspaceLeadStoreIfAbsent(
+    options.store,
+    candidate.storage.keys.record,
+    candidate,
+    {
       workspaceId: normalized.workspaceId,
-      record: existingRecord,
-      storage: existingRecord.storage
-    };
-  }
-
-  if (readableCrmWorkspaceLeadStore(options.store)) {
-    const durableRecord = await readPersistedWorkspaceLeadBySubmission(options.store, {
-      workspaceId: normalized.workspaceId,
-      submissionId: normalized.submissionId
-    });
-    if (durableRecord) {
-      state.workspaceLeadPersistenceRecords.push(durableRecord);
-      return {
-        ok: true,
-        duplicate: true,
-        consumerVersion: workspaceLeadIntakeConsumerVersion,
-        persistenceVersion: crmWorkspaceLeadPersistenceVersion,
-        workspaceId: normalized.workspaceId,
-        record: durableRecord,
-        storage: durableRecord.storage
-      };
+      submissionId: normalized.submissionId,
+      leadId: candidate.leadId,
+      status: candidate.status,
+      persistedAt: candidate.storage.persistedAt
     }
-  }
-
+  );
+  const durableRecord = assertCanonicalWorkspaceLeadRecord(
+    await readCrmWorkspaceLeadStore(options.store, candidate.storage.keys.record),
+    state,
+    normalized,
+    projectedConsumption
+  );
   const consume = options.consumeWorkspaceLeadIntake || createFitnessConnectionRuntimeLeadConsumption;
-  const consumed = await consume(state, input, options, normalized);
-  const record = buildCrmWorkspaceLeadPersistenceRecord(state, normalized, consumed, options);
+  const consumed = inserted ? await consume(state, input, options, normalized) : null;
+  const record = durableRecord;
+  if (consumed) {
+    assertCanonicalWorkspaceLeadRecord(record, state, normalized, consumed);
+  }
   const metadata = {
     workspaceId: normalized.workspaceId,
     submissionId: normalized.submissionId,
@@ -364,15 +370,14 @@ export async function persistWorkspaceLeadIntakeHandoffCore(state, input = {}, o
     persistedAt: record.storage.persistedAt
   };
 
-  await writeCrmWorkspaceLeadStore(options.store, record.storage.keys.record, record, metadata);
-  await writeCrmWorkspaceLeadStore(options.store, record.storage.keys.leadIndex, {
+  await repairWorkspaceLeadIndex(options.store, record.storage.keys.leadIndex, {
     workspaceId: normalized.workspaceId,
     submissionId: normalized.submissionId,
     leadId: record.leadId,
     recordKey: record.storage.keys.record,
     persistedAt: record.storage.persistedAt
   }, metadata);
-  await writeCrmWorkspaceLeadStore(options.store, record.storage.keys.submissionIndex, {
+  await repairWorkspaceLeadIndex(options.store, record.storage.keys.submissionIndex, {
     workspaceId: normalized.workspaceId,
     submissionId: normalized.submissionId,
     leadId: record.leadId,
@@ -380,18 +385,20 @@ export async function persistWorkspaceLeadIntakeHandoffCore(state, input = {}, o
     persistedAt: record.storage.persistedAt
   }, metadata);
 
-  state.workspaceLeadPersistenceRecords.push(record);
-  if (typeof options.recordActivity === "function") {
+  if (!state.workspaceLeadPersistenceRecords.some(existing => existing.recordId === record.recordId)) {
+    state.workspaceLeadPersistenceRecords.push(record);
+  }
+  if (inserted && typeof options.recordActivity === "function") {
     await options.recordActivity({ state, normalized, consumed, record });
   }
 
   return {
     ok: true,
-    duplicate: false,
+    duplicate: !inserted,
     consumerVersion: workspaceLeadIntakeConsumerVersion,
     persistenceVersion: crmWorkspaceLeadPersistenceVersion,
     workspaceId: normalized.workspaceId,
-    consumed,
+    ...(consumed ? { consumed } : {}),
     record,
     storage: record.storage
   };

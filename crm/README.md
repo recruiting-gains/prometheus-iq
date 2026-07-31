@@ -36,9 +36,11 @@ Only workspaces explicitly registered in `supportedWorkspaceLeadIntakeWorkspaces
 
 ### Production Durable Store
 
-Production CRM workspace leads use the dedicated Cloudflare Workers KV binding `CRM_WORKSPACE_LEAD_STORE` and namespace `f20a0a4f66fb4b53ab26644e2d3bd0dd`. `createCloudflareKvCrmWorkspaceLeadStore` implements the existing readable/writable persistence interface, while `persistWorkspaceLeadIntakeWithProductionStore` composes the Infrastructure handoff packet into CRM-owned durable records. `readWorkspaceLeadIntakeFromProductionStore` resolves the submission index and verifies the workspace partition before returning a record.
+The legacy Fitness Connection workspace-lead handoff is classified as `FOUNDER_FIELD_RESEARCH`. Production mutation through `persistWorkspaceLeadIntakeWithProductionStore` is disabled and returns `governance_blocked` before reading or writing `CRM_WORKSPACE_LEAD_STORE`. Cloudflare Workers KV provides `get` and `put`, not atomic `putIfAbsent`, and is not represented as an atomic lead-acceptance store.
 
-The production Worker retains the narrowly approved Fitness Connection workspace lead handoff as a legacy compatibility route and fails closed when the CRM binding is unavailable. That route preserves historical Founder-research evidence; it is not a paid-customer dependency, onboarding default, or reusable CRM architecture. Every paid customer requires a separately validated workspace configuration and runtime approval before CRM routing or persistence is possible.
+The generic workspace-lead persistence core remains available only for a future CRM-owned adapter with readable storage and a genuine atomic `putIfAbsent` primitive. Paid-customer CRM uses the versioned paid-customer contract and, for public Route IQ requests, the existing SQLite Durable Object request CRM. The research handoff must not be treated as a paid-customer activation or production lead route.
+
+The production Worker retains the narrowly approved Fitness Connection workspace lead handoff as a legacy compatibility route, but production persistence is governance-blocked before storage access. That route preserves historical Founder-research evidence; it is not a paid-customer dependency, onboarding default, or reusable CRM architecture. Every future paid-customer route requires separately validated runtime approval and atomic storage before CRM routing or persistence is possible.
 
 ## Route IQ Requests
 

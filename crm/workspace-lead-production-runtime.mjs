@@ -42,7 +42,7 @@ export async function persistWorkspaceLeadIntakeWithProductionStore(input = {}, 
   }
 
   const now = iso(options.now || new Date());
-  const store = createCloudflareKvCrmWorkspaceLeadStore(options.env, options);
+  const store = options.store || createCloudflareKvCrmWorkspaceLeadStore(options.env, options);
   const result = await persistWorkspaceLeadIntakeHandoffCore(runtimeState(now), input, {
     store,
     persistedAt: now,
@@ -81,6 +81,7 @@ export function productionCrmWorkspaceLeadBindingStatus(env = {}) {
     bindingName: crmWorkspaceLeadStoreBinding,
     storageTechnology: crmWorkspaceLeadStoreTechnology,
     readable: typeof binding?.get === "function",
-    writable: typeof binding?.put === "function"
+    writable: typeof binding?.put === "function",
+    atomicPutIfAbsent: false
   };
 }

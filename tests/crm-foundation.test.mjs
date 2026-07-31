@@ -89,6 +89,14 @@ function memoryKvStore() {
   const items = new Map();
   return {
     items,
+    async get(key) {
+      return items.get(key)?.value ?? null;
+    },
+    async putIfAbsent(key, value, options = {}) {
+      if (items.has(key)) return false;
+      items.set(key, { value: String(value), options });
+      return true;
+    },
     async put(key, value, options = {}) {
       items.set(key, { value: String(value), options });
     },
@@ -947,4 +955,108 @@ test("CRM workspace lead persistence is idempotent per workspace submission", as
   assert.equal(state.workspaceLeadPersistenceRecords.length, 1);
   assert.equal(state.contacts.length, 1);
   assert.equal(state.leads.length, 1);
+});
+
+test("CRM workspace lead persistence recovers after canonical creation and repairs indexes without re-consuming", async () => {
+  const firstState = createCrmState({ now: "2026-07-04T15:40:00.000Z" });
+  const store = memoryKvStore();
+  const originalPutIfAbsent = store.putIfAbsent;
+  let failIndexOnce = true;
+  store.putIfAbsent = async (key, value, options) => {
+    if (failIndexOnce && key.includes("/leads/")) {
+      failIndexOnce = false;
+      throw new Error("synthetic index interruption");
+    }
+    return originalPutIfAbsent(key, value, options);
+  };
+  const record = canonicalWorkspaceIntakeRecord({
+    workspaceId: "fitness_connection",
+    companyName: "Restart Safe Fitness Lead",
+    contactName: "Morgan Recovery"
+  });
+
+  await assert.rejects(() => persistWorkspaceLeadIntakeHandoff(firstState, record, {
+    store,
+    persistedAt: "2026-07-04T15:41:00.000Z"
+  }), /synthetic index interruption/);
+  assert.equal(firstState.contacts.length, 1);
+  assert.equal(firstState.leads.length, 1);
+
+  const restartedState = createCrmState({ now: "2026-07-04T15:42:00.000Z" });
+  const recovered = await persistWorkspaceLeadIntakeHandoff(restartedState, record, {
+    store,
+    persistedAt: "2026-07-04T15:43:00.000Z"
+  });
+  assert.equal(recovered.duplicate, true);
+  assert.equal(recovered.record.storage.persistedAt, "2026-07-04T15:41:00.000Z");
+  assert.equal(restartedState.contacts.length, 0);
+  assert.equal(restartedState.leads.length, 0);
+  assert.equal(restartedState.workspaceLeadPersistenceRecords.length, 1);
+  assert.ok(store.readJson(recovered.record.storage.keys.leadIndex));
+  assert.ok(store.readJson(recovered.record.storage.keys.submissionIndex));
+});
+
+test("concurrent workspace lead attempts converge on one canonical record and one consumption", async () => {
+  const state = createCrmState({ now: "2026-07-04T15:50:00.000Z" });
+  const store = memoryKvStore();
+  const record = canonicalWorkspaceIntakeRecord({
+    workspaceId: "fitness_connection",
+    companyName: "Concurrent Fitness Lead",
+    contactName: "Quinn Convergence"
+  });
+
+  const results = await Promise.all([
+    persistWorkspaceLeadIntakeHandoff(state, record, { store, persistedAt: "2026-07-04T15:51:00.000Z" }),
+    persistWorkspaceLeadIntakeHandoff(state, record, { store, persistedAt: "2026-07-04T15:51:00.000Z" })
+  ]);
+  assert.deepEqual(results.map(result => result.duplicate).sort(), [false, true]);
+  assert.equal(results[0].record.recordId, results[1].record.recordId);
+  assert.equal(state.contacts.length, 1);
+  assert.equal(state.leads.length, 1);
+  assert.equal(state.workspaceLeadPersistenceRecords.length, 1);
+});
+
+test("mismatched canonical workspace lead records fail closed without consumption or index repair", async () => {
+  const state = createCrmState({ now: "2026-07-04T16:00:00.000Z" });
+  const store = memoryKvStore();
+  const record = canonicalWorkspaceIntakeRecord({
+    workspaceId: "fitness_connection",
+    companyName: "Canonical Fitness Lead",
+    contactName: "Avery Canonical"
+  });
+  const canonicalKey = `${crmWorkspaceLeadPersistencePrefix}/workspaces/fitness_connection/submissions/${record.submissionId}/lead.json`;
+  await store.putIfAbsent(canonicalKey, JSON.stringify({
+    version: "crm-workspace-lead-persistence-v1",
+    workspace: { workspaceId: "fitness_connection" },
+    metadata: { submissionId: record.submissionId },
+    storage: { persistedAt: "2026-07-04T16:01:00.000Z" }
+  }));
+
+  await assert.rejects(() => persistWorkspaceLeadIntakeHandoff(state, record, {
+    store,
+    persistedAt: "2026-07-04T16:02:00.000Z"
+  }), /canonical durable record does not match/);
+  assert.equal(state.contacts.length, 0);
+  assert.equal(state.leads.length, 0);
+  assert.equal(store.items.size, 1);
+});
+
+test("generic workspace lead persistence fails closed without a readable atomic adapter", async () => {
+  const state = createCrmState({ now: "2026-07-04T16:10:00.000Z" });
+  const record = canonicalWorkspaceIntakeRecord({
+    workspaceId: "fitness_connection",
+    companyName: "Atomic Adapter Required",
+    contactName: "Riley Atomic"
+  });
+  const nonAtomicStore = {
+    async get() { return null; },
+    async put() {}
+  };
+
+  await assert.rejects(() => persistWorkspaceLeadIntakeHandoff(state, record, {
+    store: nonAtomicStore
+  }), /readable CRM-owned durable store adapter with atomic putIfAbsent/);
+  assert.equal(state.contacts.length, 0);
+  assert.equal(state.leads.length, 0);
+  assert.equal(state.workspaceLeadPersistenceRecords.length, 0);
 });
