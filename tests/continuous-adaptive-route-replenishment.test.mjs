@@ -9,6 +9,7 @@ import {
   defaultRouteReplenishmentThreshold,
   maintainRouteQueue,
   normalizeRouteQueue,
+  recommendationInfluenceStateVersion,
   routeQueueIdentity,
   scoreAdaptiveCandidate,
   serializeRouteQueue
@@ -162,6 +163,22 @@ function maintain(queue, options = {}) {
   });
 }
 
+function testInfluenceState(intelligence, overrides = {}) {
+  return {
+    version: recommendationInfluenceStateVersion,
+    state: "ON",
+    mode: "TEST_FIXTURE_ONLY",
+    workspaceId: intelligence.workspaceId,
+    operatingProfileId: intelligence.operatingProfileId,
+    representativeId: intelligence.representativeId,
+    snapshotGeneratedAt: intelligence.generatedAt,
+    authorizedAt: intelligence.generatedAt,
+    expiresAt: new Date(new Date(intelligence.generatedAt).getTime() + 60_000).toISOString(),
+    sequence: 1,
+    ...overrides
+  };
+}
+
 test("initial generation fills a deterministic 15-stop Active Pool queue", () => {
   const primaryCandidates = Array.from({ length: 20 }, (_, index) => candidate(index));
   const result = maintain(null, { primaryCandidates, force: true, trigger: "startup" });
@@ -206,7 +223,7 @@ test("low-water recovery starts below five but does not mutate a healthy queue w
   assert.equal(recovered.queue.entries.length, 15);
 });
 
-test("latest outcome changes adaptive candidate scoring", () => {
+test("evidence learning remains available while recommendation influence defaults OFF", () => {
   const places = [candidate(1, { category: "Auto" }), candidate(2, { category: "Salon" })];
   const before = buildAdaptiveIntelligenceSnapshot({ workspaceId, operatingProfileId, governedRuntimeScope, representativeId, visits: [], places });
   const after = buildAdaptiveIntelligenceSnapshot({
@@ -231,12 +248,55 @@ test("latest outcome changes adaptive candidate scoring", () => {
   });
   const beforeScore = scoreAdaptiveCandidate({ candidate: places[0], baseScore: 80, intelligence: before, currentTimeWindow: "Midday", territoryLabel: "Ring 1", governedRuntimeScope });
   const afterScore = scoreAdaptiveCandidate({ candidate: places[0], baseScore: 80, intelligence: after, currentTimeWindow: "Midday", territoryLabel: "Ring 1", governedRuntimeScope });
-  assert.ok(afterScore.score > beforeScore.score);
-  assert.ok(afterScore.signals.includes("latest category evidence"));
-  assert.ok(afterScore.signals.includes("territory evidence"));
+  assert.deepEqual(beforeScore, { score: 80, influence: 0, signals: [] });
+  assert.deepEqual(afterScore, { score: 80, influence: 0, signals: [] });
   assert.ok(after.signals === undefined);
   assert.equal(after.outcomeSignals[0].closingObserved, true);
   assert.equal(after.outcomeSignals[0].objectionObserved, true);
+});
+
+test("only an exact scoped test-fixture ON state permits adaptive score influence", () => {
+  const place = candidate(1, { category: "Auto" });
+  const intelligence = buildAdaptiveIntelligenceSnapshot({
+    workspaceId, operatingProfileId, governedRuntimeScope, representativeId,
+    places: [place],
+    visits: [{ id: "visit-on", workspaceId, placeId: place.id, conversations: 1, leads: 1, units: 1, createdAt: evaluationTime }],
+    territoryResolver: () => "Ring 1",
+    generatedAt: evaluationTime
+  });
+  const input = { candidate: place, baseScore: 80, intelligence, territoryLabel: "Ring 1", governedRuntimeScope };
+  const enabled = scoreAdaptiveCandidate({ ...input, recommendationInfluenceState: testInfluenceState(intelligence) });
+  assert.ok(enabled.score > 80);
+  assert.ok(enabled.influence > 0);
+  assert.ok(enabled.signals.includes("latest category evidence"));
+});
+
+test("missing, malformed, expired, cross-workspace, and replayed influence states fail closed OFF", () => {
+  const place = candidate(1, { category: "Auto" });
+  const intelligence = buildAdaptiveIntelligenceSnapshot({
+    workspaceId, operatingProfileId, governedRuntimeScope, representativeId,
+    places: [place],
+    visits: [{ id: "visit-closed", workspaceId, placeId: place.id, conversations: 1, leads: 1, units: 1, createdAt: evaluationTime }],
+    generatedAt: evaluationTime
+  });
+  const exactOff = { score: 80, influence: 0, signals: [] };
+  const base = { candidate: place, baseScore: 80, intelligence, governedRuntimeScope };
+  const valid = testInfluenceState(intelligence);
+  const states = [
+    undefined,
+    { ...valid, state: "INVALID" },
+    { ...valid, workspaceId: "other_workspace" },
+    { ...valid, expiresAt: intelligence.generatedAt },
+    { ...valid, unexpected: true }
+  ];
+  for (const state of states) {
+    assert.deepEqual(scoreAdaptiveCandidate({ ...base, recommendationInfluenceState: state }), exactOff);
+  }
+  assert.deepEqual(scoreAdaptiveCandidate({
+    ...base,
+    recommendationInfluenceState: valid,
+    previousInfluenceSequence: valid.sequence
+  }), exactOff);
 });
 
 test("duplicates, completed locations, and invalid candidates are excluded", () => {

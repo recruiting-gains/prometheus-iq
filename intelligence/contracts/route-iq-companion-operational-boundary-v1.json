@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "route-iq-companion-operational-boundary-v1",
+  "owner": "Prometheus Intelligence Engine",
+  "status": "DORMANT_DISCONNECTED",
+  "runtimeIntegrationAuthorized": false,
+  "operationalRouteIqActions": [],
+  "crossTenantToolAccessAllowed": false,
+  "inactiveActionCompletionClaimAllowed": false,
+  "adviceOnlyWhenInactive": true,
+  "requiredInactiveOutcome": "NO_ACTION_PERFORMED",
+  "activationRequiresSeparateGovernedAuthorization": true
+}

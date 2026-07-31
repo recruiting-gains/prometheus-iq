@@ -8,6 +8,7 @@ import {
 } from "./route-business-hours-eligibility.mjs";
 
 export const continuousAdaptiveRouteReplenishmentVersion = "continuous-adaptive-route-replenishment-v1";
+export const recommendationInfluenceStateVersion = "route-iq-recommendation-influence-state-v1";
 export const defaultRouteQueueTarget = 15;
 export const defaultRouteReplenishmentThreshold = 5;
 export const routeIqWorkspaceId = "fitness_connection";
@@ -237,6 +238,36 @@ function performanceInfluence(metric) {
   return clamp(perVisit * maturity, -1.5, 2.5);
 }
 
+function influenceOff(baseScore) {
+  return { score: finiteNumber(baseScore), influence: 0, signals: [] };
+}
+
+function permitsTestOnlyInfluence(state, intelligence, previousSequence) {
+  if (!state || typeof state !== "object" || Array.isArray(state)) return false;
+  const expectedKeys = [
+    "authorizedAt", "expiresAt", "mode", "operatingProfileId", "representativeId",
+    "sequence", "snapshotGeneratedAt", "state", "version", "workspaceId"
+  ];
+  if (Object.keys(state).sort().join("\u0000") !== expectedKeys.sort().join("\u0000")) return false;
+  if (state.version !== recommendationInfluenceStateVersion
+    || state.state !== "ON"
+    || state.mode !== "TEST_FIXTURE_ONLY"
+    || state.workspaceId !== intelligence.workspaceId
+    || state.operatingProfileId !== intelligence.operatingProfileId
+    || state.representativeId !== intelligence.representativeId
+    || state.snapshotGeneratedAt !== intelligence.generatedAt
+    || !Number.isSafeInteger(state.sequence)
+    || state.sequence <= Math.max(0, Number(previousSequence) || 0)) return false;
+  const snapshotAt = new Date(intelligence.generatedAt).getTime();
+  const authorizedAt = new Date(state.authorizedAt).getTime();
+  const expiresAt = new Date(state.expiresAt).getTime();
+  return Number.isFinite(snapshotAt)
+    && Number.isFinite(authorizedAt)
+    && Number.isFinite(expiresAt)
+    && authorizedAt <= snapshotAt
+    && expiresAt > snapshotAt;
+}
+
 export function scoreAdaptiveCandidate({
   candidate,
   baseScore,
@@ -244,10 +275,15 @@ export function scoreAdaptiveCandidate({
   currentTimeWindow = "Anytime",
   territoryLabel = "",
   routeContextDistanceMiles = null,
-  governedRuntimeScope = null
+  governedRuntimeScope = null,
+  recommendationInfluenceState = null,
+  previousInfluenceSequence = 0
 } = {}) {
-  if (!candidate || !intelligence) return { score: finiteNumber(baseScore), signals: [] };
+  if (!candidate || !intelligence) return influenceOff(baseScore);
   assertRouteWorkspace(intelligence.workspaceId, intelligence.operatingProfileId, governedRuntimeScope);
+  if (!permitsTestOnlyInfluence(recommendationInfluenceState, intelligence, previousInfluenceSequence)) {
+    return influenceOff(baseScore);
+  }
   const identityKey = routeQueueIdentity(candidate);
   const categoryMetric = intelligence.categoryPerformance?.[cleanText(candidate.category, 80) || "Other"];
   const placeMetric = intelligence.placePerformance?.[identityKey];
