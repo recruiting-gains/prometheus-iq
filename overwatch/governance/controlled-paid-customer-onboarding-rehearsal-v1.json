@@ -103,6 +103,17 @@
           {"path": "scripts/verify-cloudflare-unattended-runtime-guard.mjs", "sha256": "40abe1f2947706ad510a7468018b950fd32ee874a9bad58a3acc8bd70543ddc7"},
           {"path": "tests/cloudflare-unattended-runtime-guard.test.mjs", "sha256": "20c926030decb7c6a4bf290f845703c58c33005ec499fc12bf266f7a00e5eef7"}
         ]
+      },
+      {
+        "commit": "488837c74eb91950bb8cd37e9b9764490dead98e",
+        "parent": "3dc74e3a2f783cbed7610e503a89f4c7c59e0239",
+        "tree": "cb523b32db075887c0bcac81816d4c47c85b0c66",
+        "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+        "subject": "infrastructure: repair rehearsal owner preflight",
+        "evidence": [
+          {"path": "scripts/lib/controlled-paid-customer-onboarding-rehearsal-v1.mjs", "sha256": "8d38f95bbd5aa91c4726bef7484d38786683f09a0cf59420cce42d0729437392"},
+          {"path": "tests/controlled-paid-customer-onboarding-rehearsal-v1.test.mjs", "sha256": "2db3ce593d0e00c07546754317dc0634bb04a4632447fcd088b37b010d1ec85c"}
+        ]
       }
     ]
   },

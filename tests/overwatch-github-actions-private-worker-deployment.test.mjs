@@ -129,6 +129,10 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     result.immutableWorkflowV2ControlledRehearsalGuardVerifierSuccessorCommit,
     "68b396623f6ef0190d4cd938aa6812326b5067f1"
   );
+  assert.equal(
+    result.immutableWorkflowV2ControlledRehearsalOwnerPreflightRepairCommit,
+    "488837c74eb91950bb8cd37e9b9764490dead98e"
+  );
   assert.equal(result.localRealWranglerDryRunPassed, true);
   assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);

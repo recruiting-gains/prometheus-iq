@@ -204,6 +204,12 @@ const v2ControlledRehearsalGuardVerifierSuccessorParent =
   "29173688b48f20d5ade5a105345b5de974a01c95";
 const v2ControlledRehearsalGuardVerifierSuccessorTree =
   "479f3097ad3b40038163b2b9fe6a67922511b45b";
+const v2ControlledRehearsalOwnerPreflightRepairCommit =
+  "488837c74eb91950bb8cd37e9b9764490dead98e";
+const v2ControlledRehearsalOwnerPreflightRepairParent =
+  "3dc74e3a2f783cbed7610e503a89f4c7c59e0239";
+const v2ControlledRehearsalOwnerPreflightRepairTree =
+  "cb523b32db075887c0bcac81816d4c47c85b0c66";
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -739,6 +745,13 @@ const v2ControlledRehearsalGuardVerifierSuccessorHashes = Object.freeze({
     "40abe1f2947706ad510a7468018b950fd32ee874a9bad58a3acc8bd70543ddc7",
   "tests/cloudflare-unattended-runtime-guard.test.mjs":
     "20c926030decb7c6a4bf290f845703c58c33005ec499fc12bf266f7a00e5eef7"
+});
+
+const v2ControlledRehearsalOwnerPreflightRepairHashes = Object.freeze({
+  "scripts/lib/controlled-paid-customer-onboarding-rehearsal-v1.mjs":
+    "8d38f95bbd5aa91c4726bef7484d38786683f09a0cf59420cce42d0729437392",
+  "tests/controlled-paid-customer-onboarding-rehearsal-v1.test.mjs":
+    "2db3ce593d0e00c07546754317dc0634bb04a4632447fcd088b37b010d1ec85c"
 });
 
 const historicalOwnerHashes = Object.freeze({
@@ -3176,11 +3189,20 @@ function verifyV2OwnerAndGovernance() {
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     const currentSha256 = sha256(readFileSync(resolve(root, path)));
-    const successorSha256 =
-      v2ControlledRehearsalGuardVerifierSuccessorHashes[path];
-    const successorPredecessorSha256 = successorSha256
+    const successor = v2ControlledRehearsalGuardVerifierSuccessorHashes[path]
+      ? {
+        sha256: v2ControlledRehearsalGuardVerifierSuccessorHashes[path],
+        parent: v2ControlledRehearsalGuardVerifierSuccessorParent
+      }
+      : v2ControlledRehearsalOwnerPreflightRepairHashes[path]
+        ? {
+          sha256: v2ControlledRehearsalOwnerPreflightRepairHashes[path],
+          parent: v2ControlledRehearsalOwnerPreflightRepairParent
+        }
+        : null;
+    const successorPredecessorSha256 = successor
       ? sha256(execFileSync("/usr/bin/git", [
-        "show", `${v2ControlledRehearsalGuardVerifierSuccessorParent}:${path}`
+        "show", `${successor.parent}:${path}`
       ], {
         cwd: root,
         encoding: null,
@@ -3188,7 +3210,7 @@ function verifyV2OwnerAndGovernance() {
       }))
       : null;
     if (!(currentSha256 === expected
-      || (successorSha256 === currentSha256
+      || (successor?.sha256 === currentSha256
         && successorPredecessorSha256 === expected))) {
       throw new Error(`Private Workflow v2 current owner evidence drifted: ${path}`);
     }
@@ -3254,6 +3276,70 @@ function verifyV2OwnerAndGovernance() {
       || guardVerifierEvidence.get(path) !== expected) {
       throw new Error(
         `Private Workflow v2 controlled-rehearsal guard-verifier evidence drifted: ${path}`
+      );
+    }
+  }
+
+  const ownerPreflightMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    v2ControlledRehearsalOwnerPreflightRepairCommit
+  ]).split("\n");
+  if (!equal(ownerPreflightMetadata, [
+    v2ControlledRehearsalOwnerPreflightRepairCommit,
+    v2ControlledRehearsalOwnerPreflightRepairParent,
+    v2ControlledRehearsalOwnerPreflightRepairTree,
+    infrastructureIdentity,
+    infrastructureIdentity,
+    "infrastructure: repair rehearsal owner preflight"
+  ])) {
+    throw new Error(
+      "Private Workflow v2 controlled-rehearsal owner-preflight provenance drifted."
+    );
+  }
+  const ownerPreflightPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    v2ControlledRehearsalOwnerPreflightRepairCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(
+    ownerPreflightPaths,
+    Object.keys(v2ControlledRehearsalOwnerPreflightRepairHashes)
+  )) {
+    throw new Error(
+      "Private Workflow v2 controlled-rehearsal owner-preflight path set drifted."
+    );
+  }
+  const ownerPreflightRecord = rehearsalGovernance.ownership.ownerCommits.find(
+    record => record.commit === v2ControlledRehearsalOwnerPreflightRepairCommit
+  );
+  if (!ownerPreflightRecord
+    || ownerPreflightRecord.parent !==
+      v2ControlledRehearsalOwnerPreflightRepairParent
+    || ownerPreflightRecord.tree !== v2ControlledRehearsalOwnerPreflightRepairTree
+    || ownerPreflightRecord.identity !== infrastructureIdentity
+    || ownerPreflightRecord.subject !==
+      "infrastructure: repair rehearsal owner preflight") {
+    throw new Error(
+      "Private Workflow v2 controlled-rehearsal owner-preflight evidence drifted."
+    );
+  }
+  const ownerPreflightEvidence = new Map(
+    ownerPreflightRecord.evidence.map(item => [item.path, item.sha256])
+  );
+  for (const [path, expected] of Object.entries(
+    v2ControlledRehearsalOwnerPreflightRepairHashes
+  )) {
+    const committed = execFileSync("/usr/bin/git", [
+      "show", `${v2ControlledRehearsalOwnerPreflightRepairCommit}:${path}`
+    ], {
+      cwd: root,
+      encoding: null,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    if (sha256(committed) !== expected
+      || sha256(readFileSync(resolve(root, path))) !== expected
+      || ownerPreflightEvidence.get(path) !== expected) {
+      throw new Error(
+        `Private Workflow v2 controlled-rehearsal owner-preflight evidence drifted: ${path}`
       );
     }
   }
@@ -3611,6 +3697,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2ControlledRehearsalIntelligenceSuccessorCommit,
     immutableWorkflowV2ControlledRehearsalGuardVerifierSuccessorCommit:
       v2ControlledRehearsalGuardVerifierSuccessorCommit,
+    immutableWorkflowV2ControlledRehearsalOwnerPreflightRepairCommit:
+      v2ControlledRehearsalOwnerPreflightRepairCommit,
     localRealWranglerDryRunPassed: true,
     cleanRunnerRealWranglerEvidencePending: true,
     protectedEnvironmentRequiredNamesPresent: true,

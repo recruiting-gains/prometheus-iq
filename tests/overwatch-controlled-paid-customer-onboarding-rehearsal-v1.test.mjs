@@ -22,7 +22,7 @@ test("Overwatch independently accepts the controlled rehearsal owner chain", asy
   const result = await verifyOverwatchControlledPaidCustomerOnboardingRehearsalV1();
   assert.equal(result.status,
     "CONTROLLED_PAID_CUSTOMER_ONBOARDING_REHEARSAL_OVERWATCH_PASS");
-  assert.equal(result.ownerCommitCount, 6);
+  assert.equal(result.ownerCommitCount, 7);
   assert.equal(result.fictionalCompanyCount, 1);
   assert.equal(result.locationCount, 2);
   assert.equal(result.representativeCount, 2);

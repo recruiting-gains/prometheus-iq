@@ -74,6 +74,13 @@ const expectedCommits = Object.freeze([
     tree: "479f3097ad3b40038163b2b9fe6a67922511b45b",
     identity: "Prometheus Infrastructure <infrastructure@prometheus.local>",
     subject: "infrastructure: verify rehearsal guard successor"
+  }),
+  Object.freeze({
+    commit: "488837c74eb91950bb8cd37e9b9764490dead98e",
+    parent: "3dc74e3a2f783cbed7610e503a89f4c7c59e0239",
+    tree: "cb523b32db075887c0bcac81816d4c47c85b0c66",
+    identity: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    subject: "infrastructure: repair rehearsal owner preflight"
   })
 ]);
 
