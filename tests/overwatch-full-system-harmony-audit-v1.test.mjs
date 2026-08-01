@@ -5,11 +5,13 @@ import test from "node:test";
 import {
   augustReadinessHarmonySuccessorRepair,
   crmResearchBoundaryValidatorSuccessor,
+  crmResearchPersistenceTypecheckRepair,
   currentHarmonySuccessorCompositionRepair,
   dashboardFounderReadinessSuccessor,
   intelligenceProtectedConsumerSuccessor,
   intelligenceProtectedDriftFixtureSuccessor,
   validateCrmResearchBoundaryValidatorSuccessor,
+  validateCrmResearchPersistenceTypecheckRepair,
   validateAugustReadinessHarmonySuccessorRepair,
   validateCurrentHarmonySuccessorCompositionRepair,
   validateDashboardFounderReadinessSuccessor,
@@ -34,11 +36,32 @@ test("Overwatch accepts only the exact owner chain and harmony boundary", () => 
   const result = verifyOverwatchFullSystemHarmonyAudit({ governance, report });
   assert.deepEqual(result, {
     status: "OVERWATCH_FULL_SYSTEM_HARMONY_AUDIT_V1_VERIFIED",
-    ownerCommitCount: 44,
+    ownerCommitCount: 46,
     subsystemCount: 20,
     contractCount: 19,
     decision: "CONDITIONAL_GO"
   });
+});
+
+test("CRM research-persistence typecheck repair is exact and CRM-owned", () => {
+  assert.equal(
+    validateCrmResearchPersistenceTypecheckRepair().commit,
+    crmResearchPersistenceTypecheckRepair.commit
+  );
+  for (const mutate of [
+    value => { value.commit = "0".repeat(40); },
+    value => { value.parent = "0".repeat(40); },
+    value => { value.tree = "0".repeat(40); },
+    value => { value.identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.subject = "crm: substitute research typecheck"; },
+    value => { value.evidence[0].path = "package.json"; },
+    value => { value.evidence[0].sha256 = "0".repeat(64); },
+    value => { value.evidence.pop(); }
+  ]) {
+    const candidate = structuredClone(crmResearchPersistenceTypecheckRepair);
+    mutate(candidate);
+    assert.throws(() => validateCrmResearchPersistenceTypecheckRepair(candidate));
+  }
 });
 
 test("August readiness harmony successor is exact and Overwatch-owned", () => {

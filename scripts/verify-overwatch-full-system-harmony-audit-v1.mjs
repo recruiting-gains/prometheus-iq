@@ -13,7 +13,7 @@ const root = resolve(import.meta.dirname, "..");
 const governancePath = "overwatch/governance/full-system-harmony-audit-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260731-002-full-system-harmony-audit-v1.json";
 const baseline = "1aa1372aeb9558e117cc2d83c6553b952d268730";
-const lastOwnerCommit = "e290d48bad72681e654a1147fc34ffad5fe91eb7";
+const lastOwnerCommit = "50ed71a9a4e1a1fa28c7b2f091bcd8f2fe815460";
 export const dashboardFounderReadinessSuccessor = Object.freeze({
   commit: "30ea86e0a2d0176cc22bad583a01829b3f379db3",
   parent: "231cd0110186a2347479eba4f6e05806b0db9652",
@@ -113,6 +113,19 @@ export const augustReadinessHarmonySuccessorRepair = Object.freeze({
     Object.freeze({
       path: "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       sha256: "4e109e596f22deb715677b7e570699bd21131ee766152f1c4bbcc9294411fdfe"
+    })
+  ])
+});
+export const crmResearchPersistenceTypecheckRepair = Object.freeze({
+  commit: "50ed71a9a4e1a1fa28c7b2f091bcd8f2fe815460",
+  parent: "090df0ae4c2c58cfad665922deb8d49831ed56d0",
+  tree: "771562367c894873aed51cfd0a2bbad28729fef4",
+  identity: "Prometheus CRM <crm@prometheus.local>",
+  subject: "crm: align typecheck with research persistence boundary",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "scripts/typecheck-crm.mjs",
+      sha256: "19874c5310de534b5d76686f57ac12e7b37365e7cfa7a1e64baaae0b18ac3f0d"
     })
   ])
 });
@@ -317,6 +330,38 @@ export function validateAugustReadinessHarmonySuccessorRepair(
   return record;
 }
 
+export function validateCrmResearchPersistenceTypecheckRepair(
+  record = crmResearchPersistenceTypecheckRepair
+) {
+  assert.deepEqual(record, crmResearchPersistenceTypecheckRepair,
+    "CRM research-persistence typecheck repair drifted");
+  const metadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n");
+  assert.deepEqual(metadata, [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "CRM research-persistence typecheck provenance drifted");
+  const paths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", record.commit
+  ]).split("\n").filter(Boolean);
+  assert.deepEqual(paths, record.evidence.map(item => item.path),
+    "CRM research-persistence typecheck path set drifted");
+  for (const item of record.evidence) {
+    const bytes = execFileSync("/usr/bin/git", [
+      "show", `${record.commit}:${item.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+    assert.equal(sha256(bytes), item.sha256,
+      `CRM research-persistence typecheck evidence drifted: ${item.path}`);
+  }
+  return record;
+}
+
 export function verifyOverwatchFullSystemHarmonyAudit({
   governance = readJson(governancePath),
   report = readJson(reportPath)
@@ -327,6 +372,7 @@ export function verifyOverwatchFullSystemHarmonyAudit({
   validateIntelligenceProtectedDriftFixtureSuccessor();
   validateCurrentHarmonySuccessorCompositionRepair();
   validateAugustReadinessHarmonySuccessorRepair();
+  validateCrmResearchPersistenceTypecheckRepair();
   assert.equal(governance.governanceId, "full-system-harmony-audit-v1");
   assert.equal(governance.batchId, "BATCH-20260731-002");
   assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");
