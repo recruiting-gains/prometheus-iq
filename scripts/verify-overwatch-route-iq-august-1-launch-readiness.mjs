@@ -593,7 +593,7 @@ export function validateAugust1ReadinessSuccessors(successors) {
     "route-iq-august-1-readiness-successors-v1");
   assert.equal(successors.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(successors.historicalCloseoutEvidenceRewritten, false);
-  assert.equal(successors.successors.length, 3);
+  assert.equal(successors.successors.length, 4);
   const infrastructureSuccessor = successors.successors[0];
   assert.equal(infrastructureSuccessor.commit,
     "96c8210b94c3b0214dede252aba3d6d46121cd05");
@@ -653,6 +653,22 @@ export function validateAugust1ReadinessSuccessors(successors) {
       path: "tests/dashboard-route-iq-product-focus.test.mjs",
       previousSha256: "f319f872421ac6b50ebe7c07865239053f6639fea106eafd51061ddd52ff0cbf",
       successorSha256: "8cdf3ae813a53279a18877541b3ab60e7e3e8bf8bc11d0d8524be853ecdcf5cf"
+    }
+  ]);
+  const harmonySuccessor = successors.successors[3];
+  assert.equal(harmonySuccessor.commit,
+    "f52e623f0cb9c37a7f9953bec221b52417ecfc51");
+  assert.equal(harmonySuccessor.tree,
+    "f6d75a51c1f0ff1bee113a67483da0e60cfcd75c");
+  assert.equal(harmonySuccessor.owner,
+    "Prometheus Overwatch <overwatch@prometheus.local>");
+  assert.ok(typeof harmonySuccessor.reason === "string"
+    && harmonySuccessor.reason.length >= 80);
+  assert.deepEqual(harmonySuccessor.evidence, [
+    {
+      path: "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+      previousSha256: "37464cccb6b300605f3bccfaf7ffdf4fbd8aa74acd2b3111af7e151e97972790",
+      successorSha256: "c9aca5d0af0bce1c675bffff4558e55cd7918d0e6b011f9747a716a6a2b7bdff"
     }
   ]);
   assert.ok(Array.isArray(successors.overwatchCurrentEvidence));

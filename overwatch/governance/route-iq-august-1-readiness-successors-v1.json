@@ -11,7 +11,7 @@
     {
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "previousSha256": "8f7a94f86ae419d735f31a6cce3509e459ed4b6df673d32cb8b63ad1586efdff",
-      "successorSha256": "c35eaee4792f33bdfc4af3ed7962f8e768345ca2b542166ddb04bcc9d3ce125c"
+      "successorSha256": "4e109e596f22deb715677b7e570699bd21131ee766152f1c4bbcc9294411fdfe"
     },
     {
       "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
@@ -71,6 +71,19 @@
           "path": "tests/dashboard-route-iq-product-focus.test.mjs",
           "previousSha256": "f319f872421ac6b50ebe7c07865239053f6639fea106eafd51061ddd52ff0cbf",
           "successorSha256": "8cdf3ae813a53279a18877541b3ab60e7e3e8bf8bc11d0d8524be853ecdcf5cf"
+        }
+      ]
+    },
+    {
+      "commit": "f52e623f0cb9c37a7f9953bec221b52417ecfc51",
+      "tree": "f6d75a51c1f0ff1bee113a67483da0e60cfcd75c",
+      "owner": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "reason": "The Full-System Harmony successor composes the exact current public deployment package while retaining every historical August 1 readiness pin and all deployment boundaries.",
+      "evidence": [
+        {
+          "path": "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "previousSha256": "37464cccb6b300605f3bccfaf7ffdf4fbd8aa74acd2b3111af7e151e97972790",
+          "successorSha256": "c9aca5d0af0bce1c675bffff4558e55cd7918d0e6b011f9747a716a6a2b7bdff"
         }
       ]
     }
