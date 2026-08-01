@@ -4,6 +4,8 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 
 const batchId = "BATCH-20260713-002";
+const fullSystemHarmonyGovernancePath =
+  "overwatch/governance/full-system-harmony-audit-v1.json";
 const legacyCommit = "049cf583b04900b2cbf38bbffc5f6293252365d0";
 const intelligenceRepairCommit = "1bb7d09dff254503d56027a87efe0d526228f35a";
 const dashboardRepairCommit = "a665b1b26db02716240b622d0b4d451d019c2896";
@@ -157,6 +159,71 @@ export const currentRevenueReadinessIntelligenceSuccessor = Object.freeze({
 });
 const currentRevenueReadinessIntelligenceSuccessorHashes = new Map(
   currentRevenueReadinessIntelligenceSuccessor.evidence.map(item => [
+    item.path,
+    item.sha256
+  ])
+);
+export const currentFullSystemHarmonyIntelligenceSuccessor = Object.freeze({
+  commit: "2f8992476ca37276b0ee388fe2e33a2158f9d906",
+  parent: "9c841ae7833ca51e2dc7a81243ed9fd34f5dcfdc",
+  tree: "09e61f884b11a1fa66e772fdba1e320f843af8c0",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: adopt full-system harmony successors",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "intelligence/provenance/protected-baseline-synchronization-full-system-harmony-v1.json",
+      sha256: "a7c9965e96c71c105276904d57ca2cf7264f47462ba9629429510e1ab7817446"
+    }),
+    Object.freeze({
+      path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      sha256: "dbf40b94b7a28aa6ec1a20b7a6148014f72f2057af005e23f4bef2c0c31adb34"
+    }),
+    Object.freeze({
+      path: "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+      sha256: "f0e1795811b098067c5ac8245a040e3790cb7710492f2975fabeb4c0dd4b34e2"
+    })
+  ])
+});
+const currentFullSystemHarmonyIntelligenceSuccessorHashes = new Map(
+  currentFullSystemHarmonyIntelligenceSuccessor.evidence.map(item => [
+    item.path,
+    item.sha256
+  ])
+);
+export const currentFullSystemHarmonyShadowReadinessSuccessor = Object.freeze({
+  commit: "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8",
+  parent: "0e312cbef36af838dd9f8ba434f2370605f384d4",
+  tree: "6658d930458909a4ba627f39c4f49d3f18c1de9f",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: compose harmony scoring successor",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "scripts/verify-shadow-decision-readiness.mjs",
+      sha256: "856b7f43150cc4eba0a9fee6d2df2f4254f32026dd64d92829cd4df74f17e364"
+    })
+  ])
+});
+const currentFullSystemHarmonyShadowReadinessSuccessorHashes = new Map(
+  currentFullSystemHarmonyShadowReadinessSuccessor.evidence.map(item => [
+    item.path,
+    item.sha256
+  ])
+);
+export const currentProtectedDriftFixtureIntelligenceSuccessor = Object.freeze({
+  commit: "ff63d927c121a0030a0cbb1f041a626ffe7968bc",
+  parent: "f17802246b06dbd1aca0f56fb257de34d78ecb24",
+  tree: "79601cf5e229578ebc44efc07908a9352d6d3575",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: align protected drift rejection fixture",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "tests/read-only-field-session-learning.test.mjs",
+      sha256: "0966415b41fb51742fd8328efbec5dce6f0c1d137abb48c37726ed15824e8cdc"
+    })
+  ])
+});
+const currentProtectedDriftFixtureIntelligenceSuccessorHashes = new Map(
+  currentProtectedDriftFixtureIntelligenceSuccessor.evidence.map(item => [
     item.path,
     item.sha256
   ])
@@ -564,7 +631,100 @@ function isCurrentPrivateSmokeTimeoutIntelligenceTransition(
   ) && sha256(read(path)) === currentSha256;
 }
 
+function validateCurrentIntelligenceSuccessor(record, expected, label) {
+  assert.deepEqual(record, expected, `${label} mapping drifted.`);
+  assert.deepEqual(git(
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ).split("\n"), [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], `${label} provenance drifted.`);
+  assert.deepEqual(changedPaths(record.commit),
+    record.evidence.map(item => item.path).sort(), `${label} path set drifted.`);
+  const governance = readJson(fullSystemHarmonyGovernancePath);
+  const ownerMatches = governance.ownerCommits.filter(item => (
+    item.commit === record.commit && item.owner === record.identity
+  ));
+  assert.equal(ownerMatches.length, 1, `${label} owner evidence drifted.`);
+  for (const item of record.evidence) {
+    assert.equal(sha256(gitBytes("show", `${record.commit}:${item.path}`)),
+      item.sha256, `${item.path} ${label} owner hash drifted.`);
+  }
+  return record;
+}
+
+export function validateFullSystemHarmonyIntelligenceSuccessor(
+  record = currentFullSystemHarmonyIntelligenceSuccessor
+) {
+  return validateCurrentIntelligenceSuccessor(
+    record,
+    currentFullSystemHarmonyIntelligenceSuccessor,
+    "Full-System Harmony Intelligence successor"
+  );
+}
+
+export function validateProtectedDriftFixtureIntelligenceSuccessor(
+  record = currentProtectedDriftFixtureIntelligenceSuccessor
+) {
+  return validateCurrentIntelligenceSuccessor(
+    record,
+    currentProtectedDriftFixtureIntelligenceSuccessor,
+    "Protected-drift fixture Intelligence successor"
+  );
+}
+
+export function validateFullSystemHarmonyShadowReadinessSuccessor(
+  record = currentFullSystemHarmonyShadowReadinessSuccessor
+) {
+  return validateCurrentIntelligenceSuccessor(
+    record,
+    currentFullSystemHarmonyShadowReadinessSuccessor,
+    "Full-System Harmony shadow-readiness successor"
+  );
+}
+
+function composeCurrentIntelligenceSha256(path, previousSha256) {
+  let expectedSha256 = previousSha256;
+  for (const [record, hashes, label] of [
+    [
+      currentFullSystemHarmonyIntelligenceSuccessor,
+      currentFullSystemHarmonyIntelligenceSuccessorHashes,
+      "Full-System Harmony"
+    ],
+    [
+      currentFullSystemHarmonyShadowReadinessSuccessor,
+      currentFullSystemHarmonyShadowReadinessSuccessorHashes,
+      "Full-System Harmony shadow-readiness"
+    ],
+    [
+      currentProtectedDriftFixtureIntelligenceSuccessor,
+      currentProtectedDriftFixtureIntelligenceSuccessorHashes,
+      "protected-drift fixture"
+    ]
+  ]) {
+    const successorSha256 = hashes.get(path);
+    if (!successorSha256) continue;
+    assert.equal(
+      sha256(gitBytes("show", `${record.parent}:${path}`)),
+      expectedSha256,
+      `${path} ${label} predecessor drifted.`
+    );
+    expectedSha256 = successorSha256;
+  }
+  return expectedSha256;
+}
+
 export function validateRevenueReadinessIntelligenceSuccessor(record) {
+  validateFullSystemHarmonyIntelligenceSuccessor();
+  validateFullSystemHarmonyShadowReadinessSuccessor();
+  validateProtectedDriftFixtureIntelligenceSuccessor();
   assert.deepEqual(record, currentRevenueReadinessIntelligenceSuccessor,
     "Revenue-readiness Intelligence successor mapping drifted.");
   assert.deepEqual(git(
@@ -591,7 +751,9 @@ export function validateRevenueReadinessIntelligenceSuccessor(record) {
   for (const item of record.evidence) {
     assert.equal(sha256(gitBytes("show", `${record.commit}:${item.path}`)),
       item.sha256, `${item.path} revenue-readiness owner hash drifted.`);
-    assert.equal(sha256(read(item.path)), item.sha256,
+    assert.equal(
+      sha256(read(item.path)),
+      composeCurrentIntelligenceSha256(item.path, item.sha256),
       `${item.path} current revenue-readiness successor drifted.`);
   }
   return record;
@@ -656,7 +818,9 @@ function verifyCurrentControlledRehearsalIntelligenceSuccessor() {
         `${currentRevenueReadinessIntelligenceSuccessor.parent}:${path}`
       )), expected, `${path} revenue-readiness predecessor drifted.`);
     }
-    assert.equal(sha256(read(path)), revenueSuccessor || expected,
+    assert.equal(
+      sha256(read(path)),
+      composeCurrentIntelligenceSha256(path, revenueSuccessor || expected),
       `${path} current controlled-rehearsal Intelligence successor drifted.`);
   }
 }
@@ -668,7 +832,10 @@ function isCurrentControlledRehearsalIntelligenceTransition(
 ) {
   const expected = currentControlledRehearsalIntelligenceSuccessorHashes.get(path);
   const revenueSuccessor = currentRevenueReadinessIntelligenceSuccessorHashes.get(path);
-  const acceptedCurrent = revenueSuccessor || expected;
+  const acceptedCurrent = composeCurrentIntelligenceSha256(
+    path,
+    revenueSuccessor || expected
+  );
   if (!expected || acceptedCurrent !== currentSha256) return false;
   const predecessorSha256 = sha256(gitBytes(
     "show",
@@ -685,18 +852,15 @@ function isCurrentControlledRehearsalIntelligenceTransition(
       `${currentControlledRehearsalIntelligenceSuccessorCommit}:${path}`
     )) === expected;
   if (!controlledCommitIsGoverned) return false;
-  if (revenueSuccessor) {
-    return sha256(gitBytes(
+  if (revenueSuccessor && !(sha256(gitBytes(
       "show",
       `${currentRevenueReadinessIntelligenceSuccessor.parent}:${path}`
     )) === expected
       && sha256(gitBytes(
         "show",
         `${currentRevenueReadinessIntelligenceSuccessor.commit}:${path}`
-      )) === revenueSuccessor
-      && sha256(read(path)) === revenueSuccessor;
-  }
-  return sha256(read(path)) === expected;
+      )) === revenueSuccessor)) return false;
+  return sha256(read(path)) === acceptedCurrent;
 }
 
 function verifyCurrentHardenedSmokeGuardIntelligenceSuccessor() {
@@ -1562,7 +1726,13 @@ export function verifyReleaseProvenanceRepair() {
     currentPrivateSmokeTimeoutIntelligenceSuccessorCommit,
     currentControlledRehearsalIntelligenceSuccessorCommit,
     currentRevenueReadinessIntelligenceSuccessorCommit:
-      currentRevenueReadinessIntelligenceSuccessor.commit
+      currentRevenueReadinessIntelligenceSuccessor.commit,
+    currentFullSystemHarmonyIntelligenceSuccessorCommit:
+      currentFullSystemHarmonyIntelligenceSuccessor.commit,
+    currentFullSystemHarmonyShadowReadinessSuccessorCommit:
+      currentFullSystemHarmonyShadowReadinessSuccessor.commit,
+    currentProtectedDriftFixtureIntelligenceSuccessorCommit:
+      currentProtectedDriftFixtureIntelligenceSuccessor.commit
   };
 }
 

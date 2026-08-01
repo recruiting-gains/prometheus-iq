@@ -6,9 +6,11 @@ import test from "node:test";
 
 import {
   evaluatePublicDeploymentWorkflowV2Governance,
+  fullSystemHarmonyPackageSuccessor,
   hasGovernedPublicDeploymentWorkflowV2PackageSuccessor,
   hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor,
   isGovernedPublicDeploymentWorkflowV2VerifierCommit,
+  validateFullSystemHarmonyPackageSuccessor,
   verifyOverwatchPublicDeploymentWorkflowV2
 } from "../scripts/verify-overwatch-public-deployment-workflow-v2.mjs";
 
@@ -29,6 +31,27 @@ function evaluate(changes = {}) {
 test("canonical Public Deployment Workflow v2 governance verifies", () => {
   assert.equal(evaluate().ok, true);
   assert.equal(verifyOverwatchPublicDeploymentWorkflowV2().status, "OVERWATCH_PUBLIC_DEPLOYMENT_WORKFLOW_V2_VERIFIED");
+});
+
+test("current package is admitted only through the exact Full-System Harmony successor", () => {
+  assert.equal(
+    validateFullSystemHarmonyPackageSuccessor().currentSha256,
+    sha256(read("package.json"))
+  );
+  for (const mutate of [
+    value => { value.commit = "0".repeat(40); },
+    value => { value.tree = "0".repeat(40); },
+    value => { value.parent = "0".repeat(40); },
+    value => { value.identity = "Prometheus Infrastructure <infrastructure@prometheus.local>"; },
+    value => { value.subject = "overwatch: substitute harmony package"; },
+    value => { value.path = "package-lock.json"; },
+    value => { value.previousSha256 = "0".repeat(64); },
+    value => { value.currentSha256 = "f".repeat(64); }
+  ]) {
+    const candidate = structuredClone(fullSystemHarmonyPackageSuccessor);
+    mutate(candidate);
+    assert.throws(() => validateFullSystemHarmonyPackageSuccessor(candidate));
+  }
 });
 
 test("historical Workflow v2 evidence remains historical beside exact current owner evidence", () => {

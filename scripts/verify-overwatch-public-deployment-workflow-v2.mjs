@@ -16,6 +16,8 @@ import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-de
 
 const root = resolve(import.meta.dirname, "..");
 const GOVERNANCE_PATH = "overwatch/governance/public-deployment-workflow-v2.json";
+const FULL_SYSTEM_HARMONY_GOVERNANCE_PATH =
+  "overwatch/governance/full-system-harmony-audit-v1.json";
 const HISTORICAL_READINESS_GOVERNANCE_PATH =
   "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json";
 const DOCUMENTATION_PATH = "overwatch/governance/public-deployment-workflow-v2.md";
@@ -112,7 +114,17 @@ const HISTORICAL_3D_PACKAGE_SHA256 = "f34246136a294d5a7180d76a452ff8c9c69bb7d1d3
 const REGISTERED_PACKAGE_SHA256 =
   "8ddf429fc08acd45eca4f59638324f06a80acab9c949168325299e5b73199e2f";
 const CURRENT_PACKAGE_SHA256 = "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a";
-const ACTIVE_PACKAGE_SHA256 = CURRENT_PACKAGE_SHA256;
+const ACTIVE_PACKAGE_SHA256 = "6a7434c52a2491f4820d18657aa2a2dcf92d02c3fdf910a365555aa096dd8e5d";
+export const fullSystemHarmonyPackageSuccessor = Object.freeze({
+  commit: "ecde11c54e2af76fb2f754dfdadabe516109532a",
+  tree: "7136078840cf498156e588fd4c14ee10b2e335e6",
+  parent: "4b81819c861ca7326b4749c06e69654eab8f3166",
+  identity: "Prometheus Overwatch <overwatch@prometheus.local>",
+  subject: "overwatch: qualify full-system harmony audit",
+  path: PACKAGE_PATH,
+  previousSha256: CURRENT_PACKAGE_SHA256,
+  currentSha256: ACTIVE_PACKAGE_SHA256
+});
 const REVENUE_READINESS_PACKAGE_SUCCESSOR_COMMIT =
   "6b9820a5acf67e7d403d112a71fea4dd37abcf5d";
 const REVENUE_READINESS_PACKAGE_SUCCESSOR_PARENT =
@@ -819,6 +831,18 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
   if (matches.length !== 1) return false;
   if (matches[0].successorSha256 === successorSha256) return true;
   if (successorSha256 === ACTIVE_PACKAGE_SHA256) {
+    const harmonyGovernance = readJson(FULL_SYSTEM_HARMONY_GOVERNANCE_PATH);
+    return hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+      governance,
+      predecessorGovernanceId,
+      historicalSha256,
+      successorSha256: CURRENT_PACKAGE_SHA256
+    }) && validateFullSystemHarmonyPackageSuccessor(
+      fullSystemHarmonyPackageSuccessor,
+      harmonyGovernance
+    ).currentSha256 === successorSha256;
+  }
+  if (successorSha256 === CURRENT_PACKAGE_SHA256) {
     const fields = git([
       "show",
       "-s",
@@ -843,7 +867,7 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
     ])
       && sha256(predecessorPackage) ===
         CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_SHA256
-      && sha256(successorPackage) === ACTIVE_PACKAGE_SHA256;
+      && sha256(successorPackage) === CURRENT_PACKAGE_SHA256;
   }
   if (![CROSS_INDUSTRY_PACKAGE_SUCCESSOR_SHA256,
     PRIVATE_DASHBOARD_REPAIRS_PACKAGE_SUCCESSOR_SHA256,
@@ -974,6 +998,41 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
       === CONTROLLED_REHEARSAL_PACKAGE_SUCCESSOR_COMMIT;
 }
 
+export function validateFullSystemHarmonyPackageSuccessor(
+  record = fullSystemHarmonyPackageSuccessor,
+  governance = readJson(FULL_SYSTEM_HARMONY_GOVERNANCE_PATH)
+) {
+  assert.deepEqual(record, fullSystemHarmonyPackageSuccessor,
+    "Full-System Harmony package successor drifted");
+  assert.deepEqual(git([
+    "show", "-s", "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n"), [
+    record.commit,
+    record.tree,
+    record.parent,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Full-System Harmony package successor provenance drifted");
+  const predecessorPackage = execFileSync("/usr/bin/git", [
+    "show", `${record.parent}:${record.path}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+  const successorPackage = execFileSync("/usr/bin/git", [
+    "show", `${record.commit}:${record.path}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+  assert.equal(sha256(predecessorPackage), record.previousSha256,
+    "Full-System Harmony package predecessor drifted");
+  assert.equal(sha256(successorPackage), record.currentSha256,
+    "Full-System Harmony package successor content drifted");
+  const ownerMatches = governance.ownerCommits?.filter(item => (
+    item.commit === record.commit && item.owner === record.identity
+  )) ?? [];
+  assert.equal(ownerMatches.length, 1,
+    "Full-System Harmony package owner evidence drifted");
+  return record;
+}
+
 export function isGovernedPublicDeploymentWorkflowV2VerifierCommit({
   path,
   author,
@@ -1014,8 +1073,8 @@ export function hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
       || governedTail?.unrelatedSubsystemCommitsAllowed !== true
       || governedTail?.subsystemImplementationAllowed !== false
       || JSON.stringify(governedTail?.allowedPaths) !== JSON.stringify(WORKFLOW_V2_TAIL_PATHS)) {
-      return false;
-    }
+  return false;
+}
 
     const historical = execFileSync("/usr/bin/git", [
       "show", `${WORKFLOW_V2_TAIL_PARENT}:${path}`
