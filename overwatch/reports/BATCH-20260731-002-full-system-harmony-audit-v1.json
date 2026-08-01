@@ -35,7 +35,9 @@
     {"owner": "Prometheus Overwatch", "result": "the controlled-rehearsal verifier independently accepts the exact Full-System Harmony Intelligence successor"},
     {"owner": "Prometheus Overwatch", "result": "the private deployment verifier composes and authenticates the same Intelligence successor before release admission"},
     {"owner": "Prometheus Intelligence Engine", "result": "shadow-readiness composes the verified advisory-only scoring successor while preserving insufficient-evidence and zero-influence behavior"},
-    {"owner": "Prometheus Overwatch", "result": "the shadow-readiness successor is bound into the exact audit owner chain before hosted qualification"}
+    {"owner": "Prometheus Overwatch", "result": "the shadow-readiness successor is bound into the exact audit owner chain before hosted qualification"},
+    {"owner": "Prometheus Overwatch", "result": "the shadow-readiness successor is synchronized across historical rehearsal and private-deployment governance"},
+    {"owner": "Prometheus Dashboard", "result": "the Founder workspace scenario now awaits the authenticated snapshot terminal state before asserting admission"}
   ],
   "acceptance": {
     "crossSubsystemContracts": "PASS",

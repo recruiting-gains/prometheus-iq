@@ -2,6 +2,7 @@
 
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,7 +13,24 @@ const root = resolve(import.meta.dirname, "..");
 const governancePath = "overwatch/governance/full-system-harmony-audit-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260731-002-full-system-harmony-audit-v1.json";
 const baseline = "1aa1372aeb9558e117cc2d83c6553b952d268730";
-const lastOwnerCommit = "a923071d512030e6fcb9a91cdb7651cc5ac86e21";
+const lastOwnerCommit = "30ea86e0a2d0176cc22bad583a01829b3f379db3";
+export const dashboardFounderReadinessSuccessor = Object.freeze({
+  commit: "30ea86e0a2d0176cc22bad583a01829b3f379db3",
+  parent: "231cd0110186a2347479eba4f6e05806b0db9652",
+  tree: "b863b743a7f54cb4ff784c60ee418addee963b97",
+  identity: "Prometheus Dashboard <dashboard@prometheus.local>",
+  subject: "dashboard: await Founder snapshot readiness",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "scripts/verify-dashboard-runtime-workflows.mjs",
+      sha256: "8ff5c687150a0b500dc6e8672b73156495c86021ae873e6ec13ac08ce720ee83"
+    }),
+    Object.freeze({
+      path: "tests/dashboard-route-iq-product-focus.test.mjs",
+      sha256: "8cdf3ae813a53279a18877541b3ab60e7e3e8bf8bc11d0d8524be853ecdcf5cf"
+    })
+  ])
+});
 
 const readJson = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
 const git = args => execFileSync("/usr/bin/git", args, {
@@ -20,11 +38,45 @@ const git = args => execFileSync("/usr/bin/git", args, {
   encoding: "utf8",
   stdio: ["ignore", "pipe", "pipe"]
 }).trim();
+const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
+
+export function validateDashboardFounderReadinessSuccessor(
+  record = dashboardFounderReadinessSuccessor
+) {
+  assert.deepEqual(record, dashboardFounderReadinessSuccessor,
+    "Dashboard Founder-readiness successor drifted");
+  const metadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n");
+  assert.deepEqual(metadata, [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Dashboard Founder-readiness provenance drifted");
+  const paths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", record.commit
+  ]).split("\n").filter(Boolean);
+  assert.deepEqual(paths, record.evidence.map(item => item.path),
+    "Dashboard Founder-readiness path set drifted");
+  for (const item of record.evidence) {
+    const bytes = execFileSync("/usr/bin/git", [
+      "show", `${record.commit}:${item.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+    assert.equal(sha256(bytes), item.sha256,
+      `Dashboard Founder-readiness evidence drifted: ${item.path}`);
+  }
+  return record;
+}
 
 export function verifyOverwatchFullSystemHarmonyAudit({
   governance = readJson(governancePath),
   report = readJson(reportPath)
 } = {}) {
+  validateDashboardFounderReadinessSuccessor();
   assert.equal(governance.governanceId, "full-system-harmony-audit-v1");
   assert.equal(governance.batchId, "BATCH-20260731-002");
   assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");
