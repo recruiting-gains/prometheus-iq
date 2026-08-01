@@ -13,7 +13,7 @@ const root = resolve(import.meta.dirname, "..");
 const governancePath = "overwatch/governance/full-system-harmony-audit-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260731-002-full-system-harmony-audit-v1.json";
 const baseline = "1aa1372aeb9558e117cc2d83c6553b952d268730";
-const lastOwnerCommit = "30ea86e0a2d0176cc22bad583a01829b3f379db3";
+const lastOwnerCommit = "4b69df78650ef8d0514e14420cb5b7edc20a83c9";
 export const dashboardFounderReadinessSuccessor = Object.freeze({
   commit: "30ea86e0a2d0176cc22bad583a01829b3f379db3",
   parent: "231cd0110186a2347479eba4f6e05806b0db9652",

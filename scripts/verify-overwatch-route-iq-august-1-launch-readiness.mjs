@@ -593,7 +593,7 @@ export function validateAugust1ReadinessSuccessors(successors) {
     "route-iq-august-1-readiness-successors-v1");
   assert.equal(successors.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(successors.historicalCloseoutEvidenceRewritten, false);
-  assert.equal(successors.successors.length, 2);
+  assert.equal(successors.successors.length, 3);
   const infrastructureSuccessor = successors.successors[0];
   assert.equal(infrastructureSuccessor.commit,
     "96c8210b94c3b0214dede252aba3d6d46121cd05");
@@ -632,6 +632,27 @@ export function validateAugust1ReadinessSuccessors(successors) {
       path: "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",
       previousSha256: "d4977bcfffd4c3c10170d32456ddadcac38c88043e4ce3ac44cac0d9dd097e83",
       successorSha256: "26516d3cfa664bf0258ba60e8a010e726bb2f0d2881e1df29ac6762bcbbbb075"
+    }
+  ]);
+  const dashboardSuccessor = successors.successors[2];
+  assert.equal(dashboardSuccessor.commit,
+    "30ea86e0a2d0176cc22bad583a01829b3f379db3");
+  assert.equal(dashboardSuccessor.tree,
+    "b863b743a7f54cb4ff784c60ee418addee963b97");
+  assert.equal(dashboardSuccessor.owner,
+    "Prometheus Dashboard <dashboard@prometheus.local>");
+  assert.ok(typeof dashboardSuccessor.reason === "string"
+    && dashboardSuccessor.reason.length >= 80);
+  assert.deepEqual(dashboardSuccessor.evidence, [
+    {
+      path: "scripts/verify-dashboard-runtime-workflows.mjs",
+      previousSha256: "ff8316baef4e9c02d81489a5f902de20fa17a9b9c6eb560d33d9026c5f3a66ad",
+      successorSha256: "8ff5c687150a0b500dc6e8672b73156495c86021ae873e6ec13ac08ce720ee83"
+    },
+    {
+      path: "tests/dashboard-route-iq-product-focus.test.mjs",
+      previousSha256: "f319f872421ac6b50ebe7c07865239053f6639fea106eafd51061ddd52ff0cbf",
+      successorSha256: "8cdf3ae813a53279a18877541b3ab60e7e3e8bf8bc11d0d8524be853ecdcf5cf"
     }
   ]);
   assert.ok(Array.isArray(successors.overwatchCurrentEvidence));

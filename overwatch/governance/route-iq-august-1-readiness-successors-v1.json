@@ -10,8 +10,8 @@
     },
     {
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
-      "previousSha256": "fd909a16a69d5286c1ead7710823bbd5c0bca5dbe62b64f37a11594452ea1759",
-      "successorSha256": "8f7a94f86ae419d735f31a6cce3509e459ed4b6df673d32cb8b63ad1586efdff"
+      "previousSha256": "8f7a94f86ae419d735f31a6cce3509e459ed4b6df673d32cb8b63ad1586efdff",
+      "successorSha256": "c35eaee4792f33bdfc4af3ed7962f8e768345ca2b542166ddb04bcc9d3ce125c"
     },
     {
       "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
@@ -53,6 +53,24 @@
           "path": "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",
           "previousSha256": "d4977bcfffd4c3c10170d32456ddadcac38c88043e4ce3ac44cac0d9dd097e83",
           "successorSha256": "26516d3cfa664bf0258ba60e8a010e726bb2f0d2881e1df29ac6762bcbbbb075"
+        }
+      ]
+    },
+    {
+      "commit": "30ea86e0a2d0176cc22bad583a01829b3f379db3",
+      "tree": "b863b743a7f54cb4ff784c60ee418addee963b97",
+      "owner": "Prometheus Dashboard <dashboard@prometheus.local>",
+      "reason": "The Full-System Harmony repair waits for the authenticated Founder intelligence terminal state before evaluating the workspace scenario, preserving every Dashboard runtime and production boundary.",
+      "evidence": [
+        {
+          "path": "scripts/verify-dashboard-runtime-workflows.mjs",
+          "previousSha256": "ff8316baef4e9c02d81489a5f902de20fa17a9b9c6eb560d33d9026c5f3a66ad",
+          "successorSha256": "8ff5c687150a0b500dc6e8672b73156495c86021ae873e6ec13ac08ce720ee83"
+        },
+        {
+          "path": "tests/dashboard-route-iq-product-focus.test.mjs",
+          "previousSha256": "f319f872421ac6b50ebe7c07865239053f6639fea106eafd51061ddd52ff0cbf",
+          "successorSha256": "8cdf3ae813a53279a18877541b3ab60e7e3e8bf8bc11d0d8524be853ecdcf5cf"
         }
       ]
     }
