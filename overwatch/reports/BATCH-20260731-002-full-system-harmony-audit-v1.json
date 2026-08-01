@@ -54,7 +54,9 @@
     {"owner": "Prometheus Overwatch", "result": "the CRM typecheck repair is independently pinned by exact commit, tree, owner identity, subject, path set, and evidence hash"},
     {"owner": "Prometheus Infrastructure", "result": "qualification, independent artifact reverification, and deployment bind the exact governed ubuntu-24.04 runner identity with fail-closed regression coverage"},
     {"owner": "Prometheus Overwatch", "result": "the exact runner-identity repair is independently pinned and admitted into the hosted harmony candidate"},
-    {"owner": "Prometheus Infrastructure", "result": "artifact-sensitive jobs use synchronized main checkout while candidate identity remains independently pinned and fail-closed"}
+    {"owner": "Prometheus Infrastructure", "result": "artifact-sensitive jobs use synchronized main checkout while candidate identity remains independently pinned and fail-closed"},
+    {"owner": "Prometheus Overwatch", "result": "the synchronized-main checkout repair is independently pinned and admitted into the hosted harmony candidate"},
+    {"owner": "Prometheus Infrastructure", "result": "immutable artifact reverification runs without protected credentials and the exact six governed settings are scoped only to the one deployment command"}
   ],
   "acceptance": {
     "crossSubsystemContracts": "PASS",

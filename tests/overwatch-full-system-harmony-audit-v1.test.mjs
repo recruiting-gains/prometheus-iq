@@ -10,6 +10,7 @@ import {
   dashboardFounderReadinessSuccessor,
   harmonyArtifactCheckoutRepair,
   harmonyArtifactToolchainRepair,
+  harmonyDeploymentCredentialScopeRepair,
   intelligenceProtectedConsumerSuccessor,
   intelligenceProtectedDriftFixtureSuccessor,
   validateCrmResearchBoundaryValidatorSuccessor,
@@ -19,6 +20,7 @@ import {
   validateDashboardFounderReadinessSuccessor,
   validateHarmonyArtifactCheckoutRepair,
   validateHarmonyArtifactToolchainRepair,
+  validateHarmonyDeploymentCredentialScopeRepair,
   validateIntelligenceProtectedConsumerSuccessor,
   validateIntelligenceProtectedDriftFixtureSuccessor,
   verifyOverwatchFullSystemHarmonyAudit
@@ -40,11 +42,32 @@ test("Overwatch accepts only the exact owner chain and harmony boundary", () => 
   const result = verifyOverwatchFullSystemHarmonyAudit({ governance, report });
   assert.deepEqual(result, {
     status: "OVERWATCH_FULL_SYSTEM_HARMONY_AUDIT_V1_VERIFIED",
-    ownerCommitCount: 50,
+    ownerCommitCount: 52,
     subsystemCount: 20,
     contractCount: 19,
     decision: "CONDITIONAL_GO"
   });
+});
+
+test("Infrastructure harmony deployment credential scope repair is exact and owner-produced", () => {
+  assert.equal(
+    validateHarmonyDeploymentCredentialScopeRepair().commit,
+    harmonyDeploymentCredentialScopeRepair.commit
+  );
+  for (const mutate of [
+    value => { value.commit = "0".repeat(40); },
+    value => { value.parent = "0".repeat(40); },
+    value => { value.tree = "0".repeat(40); },
+    value => { value.identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.subject = "infrastructure: substitute harmony credential scope"; },
+    value => { value.evidence[0].path = "package.json"; },
+    value => { value.evidence[0].sha256 = "0".repeat(64); },
+    value => { value.evidence.pop(); }
+  ]) {
+    const candidate = structuredClone(harmonyDeploymentCredentialScopeRepair);
+    mutate(candidate);
+    assert.throws(() => validateHarmonyDeploymentCredentialScopeRepair(candidate));
+  }
 });
 
 test("Infrastructure harmony artifact checkout repair is exact and owner-produced", () => {
