@@ -700,6 +700,8 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   ]) {
     const currentTransition =
       currentIntelligenceTransitions[intelligenceBaseline.path];
+    const latestTransition =
+      zipFounderAdoption.transitionByPath.get(intelligenceBaseline.path);
     assert.ok(currentTransition);
     assert.equal(
       currentTransition.ownerSubsystem,
@@ -710,10 +712,21 @@ export function validateShadowDecisionContractCoherence(contract, config) {
       "cc0e9ebd8cac784ad4cffa2897c3a537a7dff835",
     );
     assert.equal(currentTransition.previousSha256, intelligenceBaseline.sha256);
-    assert.equal(
-      currentTransition.currentSha256,
-      sha256File(intelligenceBaseline.path),
-    );
+    if (latestTransition) {
+      assert.equal(
+        latestTransition.previousSha256,
+        currentTransition.currentSha256,
+      );
+      assert.equal(
+        latestTransition.currentSha256,
+        sha256File(intelligenceBaseline.path),
+      );
+    } else {
+      assert.equal(
+        currentTransition.currentSha256,
+        sha256File(intelligenceBaseline.path),
+      );
+    }
   }
 
   const workerTransition = august1LaunchSuccessor.sourceTransitions.worker;
