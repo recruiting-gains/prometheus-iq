@@ -92,7 +92,10 @@ test("Overwatch independently verifies the Infrastructure-owned v2 repair", () =
   assert.deepEqual([...result.currentOverwatchVerifierSuccessorCommits], [
     "6db68f845e91c967e34f3b825e4cbc2372cef6d8",
     "4fb815a7e03f745685a36e24e847dbc1f109a7df",
-    "1a1e130b9ffe63948ceaf7fc7d5cfff647431e3e"
+    "1a1e130b9ffe63948ceaf7fc7d5cfff647431e3e",
+    "03117292d4253b5ed31c8f47d38d149a59fa1cec",
+    "0e92d266392bc82c553d546d55ef33641c894f8d",
+    "02b398bdfeb1e5fb8a82bb009e4776630cb3f7d8"
   ]);
   assert.equal(result.cloudflareApiContacted, false);
   assert.equal(result.realKeychainValuesRead, false);

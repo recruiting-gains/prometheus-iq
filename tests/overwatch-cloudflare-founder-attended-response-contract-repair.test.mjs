@@ -38,7 +38,9 @@ test("Overwatch independently verifies the owner-authored response-contract repa
   );
   assert.deepEqual([...result.acceptedCurrentOverwatchSuccessorCommits], [
     "6db68f845e91c967e34f3b825e4cbc2372cef6d8",
-    "4fb815a7e03f745685a36e24e847dbc1f109a7df"
+    "4fb815a7e03f745685a36e24e847dbc1f109a7df",
+    "03117292d4253b5ed31c8f47d38d149a59fa1cec",
+    "0e92d266392bc82c553d546d55ef33641c894f8d"
   ]);
   assert.equal(result.cloudflareApiContacted, false);
   assert.equal(result.realKeychainValuesRead, false);
