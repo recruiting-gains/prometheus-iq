@@ -132,6 +132,20 @@ export const fullSystemHarmonyIntelligenceSuccessor = Object.freeze({
   ])
 });
 
+export const fullSystemHarmonyShadowReadinessSuccessor = Object.freeze({
+  commit: "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8",
+  parent: "0e312cbef36af838dd9f8ba434f2370605f384d4",
+  tree: "6658d930458909a4ba627f39c4f49d3f18c1de9f",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: compose harmony scoring successor",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "scripts/verify-shadow-decision-readiness.mjs",
+      sha256: "856b7f43150cc4eba0a9fee6d2df2f4254f32026dd64d92829cd4df74f17e364"
+    })
+  ])
+});
+
 const protectedState = Object.freeze({
   collection: "OFF",
   activeCohorts: 0,
@@ -253,6 +267,38 @@ export function validateFullSystemHarmonyIntelligenceSuccessor(record) {
     ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
     assert.equal(sha256(bytes), item.sha256,
       `Full-System Harmony Intelligence successor evidence drifted: ${item.path}`);
+  }
+  assert.equal(git([
+    "merge-base", "--is-ancestor", record.commit, "HEAD"
+  ]), "");
+  return record;
+}
+
+export function validateFullSystemHarmonyShadowReadinessSuccessor(record) {
+  assert.deepEqual(record, fullSystemHarmonyShadowReadinessSuccessor,
+    "Full-System Harmony shadow-readiness successor drifted");
+  const metadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n");
+  assert.deepEqual(metadata, [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Full-System Harmony shadow-readiness successor provenance drifted");
+  const changedPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", record.commit
+  ]).split("\n").filter(Boolean);
+  assert.deepEqual(changedPaths, record.evidence.map(item => item.path));
+  for (const item of record.evidence) {
+    const bytes = execFileSync("/usr/bin/git", [
+      "show", `${record.commit}:${item.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+    assert.equal(sha256(bytes), item.sha256,
+      `Full-System Harmony shadow-readiness evidence drifted: ${item.path}`);
   }
   assert.equal(git([
     "merge-base", "--is-ancestor", record.commit, "HEAD"
@@ -396,6 +442,13 @@ function verifyCurrentOwnerFiles(governance) {
   const harmonyIntelligenceEvidence = new Map(
     harmonyIntelligenceSuccessor.evidence.map(item => [item.path, item])
   );
+  const shadowReadinessSuccessor =
+    validateFullSystemHarmonyShadowReadinessSuccessor(
+      fullSystemHarmonyShadowReadinessSuccessor
+    );
+  const shadowReadinessEvidence = new Map(
+    shadowReadinessSuccessor.evidence.map(item => [item.path, item])
+  );
   const governedSuccessors = new Map([
     ["workers/prometheus-iq-worker.js", {
       commit: "4b81819c861ca7326b4749c06e69654eab8f3166",
@@ -423,6 +476,12 @@ function verifyCurrentOwnerFiles(governance) {
       commit: harmonyIntelligenceSuccessor.commit,
       sha256: harmonyIntelligenceEvidence.get(
         "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+      ).sha256
+    }],
+    ["scripts/verify-shadow-decision-readiness.mjs", {
+      commit: shadowReadinessSuccessor.commit,
+      sha256: shadowReadinessEvidence.get(
+        "scripts/verify-shadow-decision-readiness.mjs"
       ).sha256
     }]
   ]);
