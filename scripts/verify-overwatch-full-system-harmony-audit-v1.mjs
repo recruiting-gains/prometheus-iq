@@ -13,7 +13,7 @@ const root = resolve(import.meta.dirname, "..");
 const governancePath = "overwatch/governance/full-system-harmony-audit-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260731-002-full-system-harmony-audit-v1.json";
 const baseline = "1aa1372aeb9558e117cc2d83c6553b952d268730";
-const lastOwnerCommit = "4b69df78650ef8d0514e14420cb5b7edc20a83c9";
+const lastOwnerCommit = "7cec0871ec24f6fe75091f075abf86c4ab01f7f4";
 export const dashboardFounderReadinessSuccessor = Object.freeze({
   commit: "30ea86e0a2d0176cc22bad583a01829b3f379db3",
   parent: "231cd0110186a2347479eba4f6e05806b0db9652",
@@ -28,6 +28,19 @@ export const dashboardFounderReadinessSuccessor = Object.freeze({
     Object.freeze({
       path: "tests/dashboard-route-iq-product-focus.test.mjs",
       sha256: "8cdf3ae813a53279a18877541b3ab60e7e3e8bf8bc11d0d8524be853ecdcf5cf"
+    })
+  ])
+});
+export const crmResearchBoundaryValidatorSuccessor = Object.freeze({
+  commit: "7cec0871ec24f6fe75091f075abf86c4ab01f7f4",
+  parent: "96997e8857ab6008c42cba0daf757104ade23e77",
+  tree: "6ed55665ea2b4116ca0b9a166d7e132ea248af24",
+  identity: "Prometheus CRM <crm@prometheus.local>",
+  subject: "crm: align production validator with research boundary",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "scripts/validate-crm-production-store.mjs",
+      sha256: "3032ee4837fc0e54085d89349760c5ff36bbdb987b4bacc3d688ee11c574484a"
     })
   ])
 });
@@ -72,11 +85,44 @@ export function validateDashboardFounderReadinessSuccessor(
   return record;
 }
 
+export function validateCrmResearchBoundaryValidatorSuccessor(
+  record = crmResearchBoundaryValidatorSuccessor
+) {
+  assert.deepEqual(record, crmResearchBoundaryValidatorSuccessor,
+    "CRM research-boundary validator successor drifted");
+  const metadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n");
+  assert.deepEqual(metadata, [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "CRM research-boundary validator provenance drifted");
+  const paths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", record.commit
+  ]).split("\n").filter(Boolean);
+  assert.deepEqual(paths, record.evidence.map(item => item.path),
+    "CRM research-boundary validator path set drifted");
+  for (const item of record.evidence) {
+    const bytes = execFileSync("/usr/bin/git", [
+      "show", `${record.commit}:${item.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+    assert.equal(sha256(bytes), item.sha256,
+      `CRM research-boundary validator evidence drifted: ${item.path}`);
+  }
+  return record;
+}
+
 export function verifyOverwatchFullSystemHarmonyAudit({
   governance = readJson(governancePath),
   report = readJson(reportPath)
 } = {}) {
   validateDashboardFounderReadinessSuccessor();
+  validateCrmResearchBoundaryValidatorSuccessor();
   assert.equal(governance.governanceId, "full-system-harmony-audit-v1");
   assert.equal(governance.batchId, "BATCH-20260731-002");
   assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");
