@@ -8,6 +8,7 @@ import {
   crmResearchPersistenceTypecheckRepair,
   currentHarmonySuccessorCompositionRepair,
   dashboardFounderReadinessSuccessor,
+  harmonyArtifactToolchainRepair,
   intelligenceProtectedConsumerSuccessor,
   intelligenceProtectedDriftFixtureSuccessor,
   validateCrmResearchBoundaryValidatorSuccessor,
@@ -15,6 +16,7 @@ import {
   validateAugustReadinessHarmonySuccessorRepair,
   validateCurrentHarmonySuccessorCompositionRepair,
   validateDashboardFounderReadinessSuccessor,
+  validateHarmonyArtifactToolchainRepair,
   validateIntelligenceProtectedConsumerSuccessor,
   validateIntelligenceProtectedDriftFixtureSuccessor,
   verifyOverwatchFullSystemHarmonyAudit
@@ -36,11 +38,32 @@ test("Overwatch accepts only the exact owner chain and harmony boundary", () => 
   const result = verifyOverwatchFullSystemHarmonyAudit({ governance, report });
   assert.deepEqual(result, {
     status: "OVERWATCH_FULL_SYSTEM_HARMONY_AUDIT_V1_VERIFIED",
-    ownerCommitCount: 46,
+    ownerCommitCount: 48,
     subsystemCount: 20,
     contractCount: 19,
     decision: "CONDITIONAL_GO"
   });
+});
+
+test("Infrastructure harmony artifact toolchain repair is exact and owner-produced", () => {
+  assert.equal(
+    validateHarmonyArtifactToolchainRepair().commit,
+    harmonyArtifactToolchainRepair.commit
+  );
+  for (const mutate of [
+    value => { value.commit = "0".repeat(40); },
+    value => { value.parent = "0".repeat(40); },
+    value => { value.tree = "0".repeat(40); },
+    value => { value.identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.subject = "infrastructure: substitute harmony toolchain"; },
+    value => { value.evidence[0].path = "package.json"; },
+    value => { value.evidence[0].sha256 = "0".repeat(64); },
+    value => { value.evidence.pop(); }
+  ]) {
+    const candidate = structuredClone(harmonyArtifactToolchainRepair);
+    mutate(candidate);
+    assert.throws(() => validateHarmonyArtifactToolchainRepair(candidate));
+  }
 });
 
 test("CRM research-persistence typecheck repair is exact and CRM-owned", () => {
