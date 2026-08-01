@@ -13,7 +13,7 @@ const root = resolve(import.meta.dirname, "..");
 const governancePath = "overwatch/governance/full-system-harmony-audit-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260731-002-full-system-harmony-audit-v1.json";
 const baseline = "1aa1372aeb9558e117cc2d83c6553b952d268730";
-const lastOwnerCommit = "ff63d927c121a0030a0cbb1f041a626ffe7968bc";
+const lastOwnerCommit = "f52e623f0cb9c37a7f9953bec221b52417ecfc51";
 export const dashboardFounderReadinessSuccessor = Object.freeze({
   commit: "30ea86e0a2d0176cc22bad583a01829b3f379db3",
   parent: "231cd0110186a2347479eba4f6e05806b0db9652",
@@ -71,6 +71,31 @@ export const intelligenceProtectedDriftFixtureSuccessor = Object.freeze({
     Object.freeze({
       path: "tests/read-only-field-session-learning.test.mjs",
       sha256: "0966415b41fb51742fd8328efbec5dce6f0c1d137abb48c37726ed15824e8cdc"
+    })
+  ])
+});
+export const currentHarmonySuccessorCompositionRepair = Object.freeze({
+  commit: "f52e623f0cb9c37a7f9953bec221b52417ecfc51",
+  parent: "ae1978d82b2e54edbd31638649f853de1ba24ee8",
+  tree: "f6d75a51c1f0ff1bee113a67483da0e60cfcd75c",
+  identity: "Prometheus Overwatch <overwatch@prometheus.local>",
+  subject: "overwatch: compose current harmony successors",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+      sha256: "c9aca5d0af0bce1c675bffff4558e55cd7918d0e6b011f9747a716a6a2b7bdff"
+    }),
+    Object.freeze({
+      path: "scripts/verify-release-provenance-repair.mjs",
+      sha256: "f90dca1bcb0adcf5d349c2b520621dbcb2f000ab7737900ecb85eb6f230530b2"
+    }),
+    Object.freeze({
+      path: "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+      sha256: "b15f05c7a03063319cf66620a4d0c1f7fcdfe4690202932666214ade5d95f18d"
+    }),
+    Object.freeze({
+      path: "tests/release-provenance-repair.test.mjs",
+      sha256: "ea4c859e23750b6e47ae063d0605ed53e2be8d836396bca4ac54448cfb40e49c"
     })
   ])
 });
@@ -211,6 +236,38 @@ export function validateIntelligenceProtectedDriftFixtureSuccessor(
   return record;
 }
 
+export function validateCurrentHarmonySuccessorCompositionRepair(
+  record = currentHarmonySuccessorCompositionRepair
+) {
+  assert.deepEqual(record, currentHarmonySuccessorCompositionRepair,
+    "Current harmony successor-composition repair drifted");
+  const metadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n");
+  assert.deepEqual(metadata, [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Current harmony successor-composition provenance drifted");
+  const paths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", record.commit
+  ]).split("\n").filter(Boolean);
+  assert.deepEqual(paths, record.evidence.map(item => item.path),
+    "Current harmony successor-composition path set drifted");
+  for (const item of record.evidence) {
+    const bytes = execFileSync("/usr/bin/git", [
+      "show", `${record.commit}:${item.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+    assert.equal(sha256(bytes), item.sha256,
+      `Current harmony successor-composition evidence drifted: ${item.path}`);
+  }
+  return record;
+}
+
 export function verifyOverwatchFullSystemHarmonyAudit({
   governance = readJson(governancePath),
   report = readJson(reportPath)
@@ -219,6 +276,7 @@ export function verifyOverwatchFullSystemHarmonyAudit({
   validateCrmResearchBoundaryValidatorSuccessor();
   validateIntelligenceProtectedConsumerSuccessor();
   validateIntelligenceProtectedDriftFixtureSuccessor();
+  validateCurrentHarmonySuccessorCompositionRepair();
   assert.equal(governance.governanceId, "full-system-harmony-audit-v1");
   assert.equal(governance.batchId, "BATCH-20260731-002");
   assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");

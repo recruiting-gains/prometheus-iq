@@ -4,10 +4,12 @@ import test from "node:test";
 
 import {
   crmResearchBoundaryValidatorSuccessor,
+  currentHarmonySuccessorCompositionRepair,
   dashboardFounderReadinessSuccessor,
   intelligenceProtectedConsumerSuccessor,
   intelligenceProtectedDriftFixtureSuccessor,
   validateCrmResearchBoundaryValidatorSuccessor,
+  validateCurrentHarmonySuccessorCompositionRepair,
   validateDashboardFounderReadinessSuccessor,
   validateIntelligenceProtectedConsumerSuccessor,
   validateIntelligenceProtectedDriftFixtureSuccessor,
@@ -30,11 +32,32 @@ test("Overwatch accepts only the exact owner chain and harmony boundary", () => 
   const result = verifyOverwatchFullSystemHarmonyAudit({ governance, report });
   assert.deepEqual(result, {
     status: "OVERWATCH_FULL_SYSTEM_HARMONY_AUDIT_V1_VERIFIED",
-    ownerCommitCount: 40,
+    ownerCommitCount: 42,
     subsystemCount: 20,
     contractCount: 19,
     decision: "CONDITIONAL_GO"
   });
+});
+
+test("current harmony successor composition is exact and Overwatch-owned", () => {
+  assert.equal(
+    validateCurrentHarmonySuccessorCompositionRepair().commit,
+    currentHarmonySuccessorCompositionRepair.commit
+  );
+  for (const mutate of [
+    value => { value.commit = "0".repeat(40); },
+    value => { value.parent = "0".repeat(40); },
+    value => { value.tree = "0".repeat(40); },
+    value => { value.identity = "Prometheus Intelligence Engine <intelligence@prometheus.local>"; },
+    value => { value.subject = "overwatch: substitute harmony successors"; },
+    value => { value.evidence[0].path = "package.json"; },
+    value => { value.evidence[0].sha256 = "0".repeat(64); },
+    value => { value.evidence.pop(); }
+  ]) {
+    const candidate = structuredClone(currentHarmonySuccessorCompositionRepair);
+    mutate(candidate);
+    assert.throws(() => validateCurrentHarmonySuccessorCompositionRepair(candidate));
+  }
 });
 
 test("Intelligence protected-drift fixture repair is exact and owner-produced", () => {
