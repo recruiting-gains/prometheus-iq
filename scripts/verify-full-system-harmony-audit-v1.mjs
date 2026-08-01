@@ -10,6 +10,47 @@ import { verifyRouteIqPublicCrmEdgeBoundaryInfrastructure } from "./verify-route
 
 const root = resolve(import.meta.dirname, "..");
 
+export function verifyFullSystemHarmonyWorkflowText(workflow, contract) {
+  assert.match(workflow, /^name: Full-System Harmony Audit v1$/mu);
+  const trigger = workflow.slice(workflow.indexOf("on:\n"), workflow.indexOf("permissions:\n"));
+  assert.deepEqual([...trigger.matchAll(/^  ([a-z_]+):$/gmu)].map(match => match[1]), ["workflow_dispatch"]);
+  for (const forbidden of ["push:", "pull_request:", "schedule:", "repository_dispatch:", "workflow_call:"]) {
+    assert.equal(trigger.includes(forbidden), false);
+  }
+  for (const required of [
+    "github.actor == 'PrometheusRouteIQ'",
+    "github.triggering_actor == 'PrometheusRouteIQ'",
+    "github.sha == inputs.candidate_commit",
+    "git rev-parse HEAD^{tree}",
+    "npm test",
+    "npm run security:check",
+    "npm run security:aegis:verify",
+    "run-full-system-harmony-audit-v1.mjs inspect",
+    "run-full-system-harmony-audit-v1.mjs qualify",
+    "run-full-system-harmony-audit-v1.mjs verify-artifact",
+    "run-full-system-harmony-audit-v1.mjs deploy",
+    "inputs.runtime_repair_required == true",
+    FULL_SYSTEM_HARMONY_AUDIT_POLICY.deploymentConfirmation,
+    "prometheus-private-worker-production"
+  ]) assert.ok(workflow.includes(required), required);
+
+  assert.equal(contract.runtimeIdentity.runnerImage, "ubuntu-24.04");
+  assert.deepEqual(contract.runtimeIdentity.requiredJobs, ["qualify", "reverify", "deploy"]);
+  for (const job of contract.runtimeIdentity.requiredJobs) {
+    const start = workflow.indexOf(`  ${job}:\n`);
+    const steps = workflow.indexOf("    steps:\n", start);
+    assert.ok(start >= 0 && steps > start, `${job} job structure`);
+    const jobConfiguration = workflow.slice(start, steps);
+    assert.equal(jobConfiguration.includes("runner.temp"), false,
+      `${job} job-level contexts must not reference runner.temp`);
+    assert.match(jobConfiguration, /^      PROMETHEUS_RUNNER_IMAGE: ubuntu-24\.04$/mu,
+      `${job} exact governed runner identity`);
+  }
+  assert.equal(/prometheusrouteiq-website[^\n]*(?:deploy|wrangler)/iu.test(workflow), false);
+  assert.equal(/(?:POST|PUT|PATCH|DELETE) \/api\/partner-intake/iu.test(workflow), false);
+  assert.match(workflow, /GET\/HEAD acceptance/u);
+}
+
 export function verifyFullSystemHarmonyAuditV1(repositoryRoot = root) {
   const workflow = readFileSync(resolve(repositoryRoot, ".github/workflows/full-system-harmony-audit-v1.yml"), "utf8");
   const worker = readFileSync(resolve(repositoryRoot, "workers/prometheus-iq-worker.js"), "utf8");
@@ -39,38 +80,7 @@ export function verifyFullSystemHarmonyAuditV1(repositoryRoot = root) {
   assert.equal(rollback.acceptedRevenueDeploymentProvenance.workerVersionPrefix, "b121a01a");
   assert.equal(rollback.acceptedRevenueDeploymentProvenance.fullVersionGuessingAllowed, false);
 
-  assert.match(workflow, /^name: Full-System Harmony Audit v1$/mu);
-  const trigger = workflow.slice(workflow.indexOf("on:\n"), workflow.indexOf("permissions:\n"));
-  assert.deepEqual([...trigger.matchAll(/^  ([a-z_]+):$/gmu)].map(match => match[1]), ["workflow_dispatch"]);
-  for (const forbidden of ["push:", "pull_request:", "schedule:", "repository_dispatch:", "workflow_call:"]) {
-    assert.equal(trigger.includes(forbidden), false);
-  }
-  for (const required of [
-    "github.actor == 'PrometheusRouteIQ'",
-    "github.triggering_actor == 'PrometheusRouteIQ'",
-    "github.sha == inputs.candidate_commit",
-    "git rev-parse HEAD^{tree}",
-    "npm test",
-    "npm run security:check",
-    "npm run security:aegis:verify",
-    "run-full-system-harmony-audit-v1.mjs inspect",
-    "run-full-system-harmony-audit-v1.mjs qualify",
-    "run-full-system-harmony-audit-v1.mjs verify-artifact",
-    "run-full-system-harmony-audit-v1.mjs deploy",
-    "inputs.runtime_repair_required == true",
-    FULL_SYSTEM_HARMONY_AUDIT_POLICY.deploymentConfirmation,
-    "prometheus-private-worker-production"
-  ]) assert.ok(workflow.includes(required), required);
-  for (const job of ["qualify", "reverify", "deploy"]) {
-    const start = workflow.indexOf(`  ${job}:\n`);
-    const steps = workflow.indexOf("    steps:\n", start);
-    assert.ok(start >= 0 && steps > start, `${job} job structure`);
-    assert.equal(workflow.slice(start, steps).includes("runner.temp"), false,
-      `${job} job-level contexts must not reference runner.temp`);
-  }
-  assert.equal(/prometheusrouteiq-website[^\n]*(?:deploy|wrangler)/iu.test(workflow), false);
-  assert.equal(/(?:POST|PUT|PATCH|DELETE) \/api\/partner-intake/iu.test(workflow), false);
-  assert.match(workflow, /GET\/HEAD acceptance/u);
+  verifyFullSystemHarmonyWorkflowText(workflow, contract);
 
   for (const path of [
     "/api/dashboard/route-iq/founder/session",

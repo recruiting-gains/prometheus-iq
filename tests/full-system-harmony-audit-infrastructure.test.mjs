@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import test from "node:test";
 
 import {
@@ -6,7 +8,12 @@ import {
   runFullSystemHarmonyAudit,
   validateFullSystemHarmonyAuditContext
 } from "../scripts/run-full-system-harmony-audit-v1.mjs";
-import { verifyFullSystemHarmonyAuditV1 } from "../scripts/verify-full-system-harmony-audit-v1.mjs";
+import {
+  verifyFullSystemHarmonyAuditV1,
+  verifyFullSystemHarmonyWorkflowText
+} from "../scripts/verify-full-system-harmony-audit-v1.mjs";
+
+const root = resolve(import.meta.dirname, "..");
 
 function environment(overrides = {}) {
   const commit = "a".repeat(40);
@@ -35,6 +42,29 @@ function environment(overrides = {}) {
 
 test("canonical Infrastructure workflow, provenance, rollback, and edge contracts verify", () => {
   assert.equal(verifyFullSystemHarmonyAuditV1().status, "FULL_SYSTEM_HARMONY_AUDIT_V1_VERIFIED");
+});
+
+test("artifact-sensitive jobs fail closed without the exact governed runner identity", () => {
+  const workflow = readFileSync(
+    resolve(root, ".github/workflows/full-system-harmony-audit-v1.yml"),
+    "utf8"
+  );
+  const contract = JSON.parse(readFileSync(
+    resolve(root, "workers/infrastructure/full-system-harmony-audit-v1.json"),
+    "utf8"
+  ));
+  for (const job of contract.runtimeIdentity.requiredJobs) {
+    const start = workflow.indexOf(`  ${job}:\n`);
+    const steps = workflow.indexOf("    steps:\n", start);
+    const jobConfiguration = workflow.slice(start, steps);
+    const mutated = workflow.slice(0, start) +
+      jobConfiguration.replace("      PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04\n", "") +
+      workflow.slice(steps);
+    assert.throws(
+      () => verifyFullSystemHarmonyWorkflowText(mutated, contract),
+      new RegExp(`${job} exact governed runner identity`, "u")
+    );
+  }
 });
 
 test("exact Founder, main, commit, tree, Worker baseline, and confirmation pass", async () => {

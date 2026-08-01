@@ -5,6 +5,10 @@
   "branch": "main",
   "workflow": ".github/workflows/full-system-harmony-audit-v1.yml",
   "trigger": "workflow_dispatch",
+  "runtimeIdentity": {
+    "runnerImage": "ubuntu-24.04",
+    "requiredJobs": ["qualify", "reverify", "deploy"]
+  },
   "acceptedRevenueDeployment": {
     "runId": 30627469584,
     "applicationCommit": "cf7945bcd28e3666f860727d9746fee125a13918",

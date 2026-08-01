@@ -143,6 +143,7 @@ jobs:
       contents: read
       actions: read
     env:
+      PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
       PROMETHEUS_LIVE_PUBLIC_VERSION: ${{ needs.inspect.outputs.public_version }}
       PROMETHEUS_LIVE_PRIVATE_VERSION: ${{ needs.inspect.outputs.private_version }}
     outputs:
@@ -191,6 +192,7 @@ jobs:
       contents: read
       actions: read
     env:
+      PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
       PROMETHEUS_LIVE_PUBLIC_VERSION: ${{ needs.inspect.outputs.public_version }}
       PROMETHEUS_LIVE_PRIVATE_VERSION: ${{ needs.inspect.outputs.private_version }}
       PROMETHEUS_QUALIFICATION_RUN_ID: ${{ github.run_id }}
@@ -238,6 +240,7 @@ jobs:
       contents: read
       actions: read
     env:
+      PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
       PROMETHEUS_LIVE_PUBLIC_VERSION: ${{ needs.inspect.outputs.public_version }}
       PROMETHEUS_LIVE_PRIVATE_VERSION: ${{ needs.inspect.outputs.private_version }}
       PROMETHEUS_QUALIFICATION_RUN_ID: ${{ github.run_id }}
