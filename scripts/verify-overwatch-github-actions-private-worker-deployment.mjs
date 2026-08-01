@@ -204,6 +204,12 @@ const v2RevenueReadinessIntelligenceSuccessorParent =
   "bc21696a653661ac0b90cd58e3f1744ade10ba70";
 const v2RevenueReadinessIntelligenceSuccessorTree =
   "06e35bc660be3b07da373c4242e1f1724002ec24";
+const v2FullSystemHarmonyIntelligenceSuccessorCommit =
+  "2f8992476ca37276b0ee388fe2e33a2158f9d906";
+const v2FullSystemHarmonyIntelligenceSuccessorParent =
+  "9c841ae7833ca51e2dc7a81243ed9fd34f5dcfdc";
+const v2FullSystemHarmonyIntelligenceSuccessorTree =
+  "09e61f884b11a1fa66e772fdba1e320f843af8c0";
 const v2RevenueReadinessOverwatchAcceptanceCommit =
   "fe3ade871ef7308b05501dce23fecbd9a2b9e363";
 const v2RevenueReadinessOverwatchAcceptanceParent =
@@ -761,6 +767,15 @@ const v2RevenueReadinessIntelligenceSuccessorHashes = Object.freeze({
     "9e3d7e6a9ac089d56b7b761758547dca82fac166412bbb74e9f75ba2e257c72f",
   "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs":
     "6f69166053117abe4c26a02c26f6492b6bea2649f07565083eb474f094153f53"
+});
+
+const v2FullSystemHarmonyIntelligenceSuccessorHashes = Object.freeze({
+  "intelligence/provenance/protected-baseline-synchronization-full-system-harmony-v1.json":
+    "a7c9965e96c71c105276904d57ca2cf7264f47462ba9629429510e1ab7817446",
+  "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs":
+    "dbf40b94b7a28aa6ec1a20b7a6148014f72f2057af005e23f4bef2c0c31adb34",
+  "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs":
+    "f0e1795811b098067c5ac8245a040e3790cb7710492f2975fabeb4c0dd4b34e2"
 });
 
 const v2RevenueReadinessOverwatchAcceptanceHashes = Object.freeze({
@@ -2614,6 +2629,9 @@ function verifyV2OwnerAndGovernance() {
   const rehearsalGovernance = readJson(
     "overwatch/governance/controlled-paid-customer-onboarding-rehearsal-v1.json"
   );
+  const harmonyGovernance = readJson(
+    "overwatch/governance/full-system-harmony-audit-v1.json"
+  );
   const contract = readJson(contractV2Path);
   const evaluation = evaluateGithubActionsPrivateWorkerV2Governance({
     governance,
@@ -3166,6 +3184,23 @@ function verifyV2OwnerAndGovernance() {
       }
       acceptedCurrentSha256 = revenueSuccessorSha256;
     }
+    const harmonySuccessorSha256 =
+      v2FullSystemHarmonyIntelligenceSuccessorHashes[path];
+    if (harmonySuccessorSha256) {
+      const predecessorSha256 = sha256(execFileSync("/usr/bin/git", [
+        "show", `${v2FullSystemHarmonyIntelligenceSuccessorParent}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }));
+      if (predecessorSha256 !== acceptedCurrentSha256) {
+        throw new Error(
+          `Private Workflow v2 Full-System Harmony Intelligence chain drifted: ${path}`
+        );
+      }
+      acceptedCurrentSha256 = harmonySuccessorSha256;
+    }
     if (sha256(committed) !== expected
       || currentSha256 !== acceptedCurrentSha256
       || recordedIntelligenceEvidence.get(path) !== expected) {
@@ -3231,7 +3266,9 @@ function verifyV2OwnerAndGovernance() {
     });
     const revenueSuccessorSha256 =
       v2RevenueReadinessIntelligenceSuccessorHashes[path];
-    const acceptedCurrentSha256 = revenueSuccessorSha256 || expected;
+    const harmonySuccessorSha256 =
+      v2FullSystemHarmonyIntelligenceSuccessorHashes[path];
+    let acceptedCurrentSha256 = revenueSuccessorSha256 || expected;
     if (revenueSuccessorSha256) {
       const predecessorSha256 = sha256(execFileSync("/usr/bin/git", [
         "show", `${v2RevenueReadinessIntelligenceSuccessorParent}:${path}`
@@ -3246,11 +3283,75 @@ function verifyV2OwnerAndGovernance() {
         );
       }
     }
+    if (harmonySuccessorSha256) {
+      const predecessorSha256 = sha256(execFileSync("/usr/bin/git", [
+        "show", `${v2FullSystemHarmonyIntelligenceSuccessorParent}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }));
+      if (predecessorSha256 !== acceptedCurrentSha256) {
+        throw new Error(
+          `Private Workflow v2 Full-System Harmony successor chain drifted: ${path}`
+        );
+      }
+      acceptedCurrentSha256 = harmonySuccessorSha256;
+    }
     if (sha256(committed) !== expected
       || sha256(readFileSync(resolve(root, path))) !== acceptedCurrentSha256
       || successorEvidence.get(path) !== expected) {
       throw new Error(
         `Private Workflow v2 controlled-rehearsal Intelligence evidence drifted: ${path}`
+      );
+    }
+  }
+
+  const harmonyMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    v2FullSystemHarmonyIntelligenceSuccessorCommit
+  ]).split("\n");
+  if (!equal(harmonyMetadata, [
+    v2FullSystemHarmonyIntelligenceSuccessorCommit,
+    v2FullSystemHarmonyIntelligenceSuccessorParent,
+    v2FullSystemHarmonyIntelligenceSuccessorTree,
+    intelligenceIdentity,
+    intelligenceIdentity,
+    "intelligence: adopt full-system harmony successors"
+  ])) {
+    throw new Error(
+      "Private Workflow v2 Full-System Harmony Intelligence provenance drifted."
+    );
+  }
+  const harmonyPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    v2FullSystemHarmonyIntelligenceSuccessorCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(
+    harmonyPaths,
+    Object.keys(v2FullSystemHarmonyIntelligenceSuccessorHashes)
+  )) {
+    throw new Error(
+      "Private Workflow v2 Full-System Harmony Intelligence path set drifted."
+    );
+  }
+  const harmonyOwnerRecord = harmonyGovernance.ownerCommits.find(
+    record => record.commit === v2FullSystemHarmonyIntelligenceSuccessorCommit
+  );
+  if (!harmonyOwnerRecord || harmonyOwnerRecord.owner !== intelligenceIdentity) {
+    throw new Error(
+      "Private Workflow v2 Full-System Harmony Intelligence owner record drifted."
+    );
+  }
+  for (const [path, expected] of Object.entries(
+    v2FullSystemHarmonyIntelligenceSuccessorHashes
+  )) {
+    const committed = execFileSync("/usr/bin/git", [
+      "show", `${v2FullSystemHarmonyIntelligenceSuccessorCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    if (sha256(committed) !== expected) {
+      throw new Error(
+        `Private Workflow v2 Full-System Harmony Intelligence evidence drifted: ${path}`
       );
     }
   }
