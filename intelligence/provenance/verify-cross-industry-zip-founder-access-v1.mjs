@@ -12,6 +12,8 @@ export const controlledOnboardingRehearsalSmokeContractProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-controlled-onboarding-rehearsal-smoke-contract-v1.json";
 export const paidCustomerRevenueReadinessWorkerProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-paid-customer-revenue-readiness-worker-v1.json";
+export const fullSystemHarmonyProtectedSuccessorProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-full-system-harmony-v1.json";
 
 function read(path) {
   return readFileSync(resolve(root, path));
@@ -144,13 +146,6 @@ function verifyPaidCustomerRevenueReadinessWorkerSuccessorAgainst(
       .previousSha256,
     historicalRouteQuality.sha256
   );
-  for (const [path, transitions] of transitionsByPath) {
-    assert.equal(
-      sha256(path),
-      transitions.at(-1).currentSha256,
-      `Current paid-customer revenue-readiness protected source changed: ${path}`
-    );
-  }
   assert.deepEqual(successor.coherence, {
     historicalControlledRehearsalEvidenceRewritten: false,
     successorCommitAndTreeVerified: true,
@@ -163,6 +158,109 @@ function verifyPaidCustomerRevenueReadinessWorkerSuccessorAgainst(
   });
   assert.deepEqual(successor.boundaries, rehearsalSuccessor.boundaries);
   return Object.freeze({ successor, transitionsByPath });
+}
+
+function verifyFullSystemHarmonyProtectedSuccessorAgainst(
+  revenueReadinessSuccessor,
+  historical
+) {
+  const successor = JSON.parse(read(fullSystemHarmonyProtectedSuccessorProvenancePath));
+  assert.equal(
+    successor.version,
+    "route-iq-intelligence-full-system-harmony-protected-successor-v1"
+  );
+  assert.equal(successor.status, "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(
+    successor.predecessor.path,
+    paidCustomerRevenueReadinessWorkerProvenancePath
+  );
+  assert.equal(
+    sha256(successor.predecessor.path),
+    successor.predecessor.sha256,
+    "Historical paid-customer revenue-readiness Intelligence provenance changed."
+  );
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(successor.protectedSourceTransitions.length, 4);
+
+  const successorTransitionsByPath = new Map();
+  for (const transition of successor.protectedSourceTransitions) {
+    assert.ok(
+      !successorTransitionsByPath.has(transition.path),
+      `Duplicate Full-System Harmony protected path: ${transition.path}`
+    );
+    const predecessorTransitions = revenueReadinessSuccessor.transitionsByPath
+      .get(transition.path);
+    if (predecessorTransitions) {
+      assert.equal(
+        transition.previousSha256,
+        predecessorTransitions.at(-1).currentSha256,
+        `Broken Full-System Harmony transition chain: ${transition.path}`
+      );
+    } else {
+      const historicalRuntime = historical.intelligenceRuntimeIntegrity.artifacts
+        .find(entry => entry.path === transition.path);
+      assert.equal(
+        transition.previousSha256,
+        historicalRuntime?.sha256,
+        `Missing Full-System Harmony historical runtime predecessor: ${transition.path}`
+      );
+    }
+    verifyTransition(transition.path, transition);
+    successorTransitionsByPath.set(transition.path, [transition]);
+  }
+  assert.deepEqual(
+    [...successorTransitionsByPath.keys()].sort(),
+    [
+      "deploy/cloudflare-pages/index.html",
+      "index.html",
+      "intelligence/continuous-adaptive-route-replenishment.mjs",
+      "workers/prometheus-iq-worker.js"
+    ]
+  );
+
+  const transitionsByPath = new Map();
+  for (const [path, transitions] of revenueReadinessSuccessor.transitionsByPath) {
+    transitionsByPath.set(path, [
+      ...transitions,
+      ...(successorTransitionsByPath.get(path) || [])
+    ]);
+  }
+  for (const [path, transitions] of successorTransitionsByPath) {
+    if (!transitionsByPath.has(path)) transitionsByPath.set(path, transitions);
+  }
+  for (const [path, transitions] of transitionsByPath) {
+    assert.equal(
+      sha256(path),
+      transitions.at(-1).currentSha256,
+      `Current Full-System Harmony protected source changed: ${path}`
+    );
+  }
+  assert.equal(
+    sha256("index.html"),
+    sha256("deploy/cloudflare-pages/index.html"),
+    "Full-System Harmony source and deploy mirror diverged."
+  );
+  assert.deepEqual(successor.coherence, {
+    historicalRevenueReadinessEvidenceRewritten: false,
+    successorCommitAndTreeVerified: true,
+    successorOwnerIdentityVerified: true,
+    sourceDeployParityRequired: true,
+    intelligenceRuntimeChanged: true,
+    recommendationInfluenceLockedOff: true,
+    testOnlyInfluenceRequiresExactAuthorization: true,
+    businessHoursEligibilityChanged: false
+  });
+  assert.deepEqual(
+    successor.boundaries,
+    revenueReadinessSuccessor.successor.boundaries
+  );
+  return Object.freeze({
+    successor,
+    successorTransitionsByPath,
+    transitionsByPath
+  });
 }
 
 export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
@@ -249,9 +347,14 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
       transitionByPath,
       historical
     );
+  const fullSystemHarmonySuccessor =
+    verifyFullSystemHarmonyProtectedSuccessorAgainst(
+      revenueReadinessSuccessor,
+      historical
+    );
   for (const protectedTransition of transitionByPath.values()) {
     const revenueTransitions =
-      revenueReadinessSuccessor.transitionsByPath.get(protectedTransition.path);
+      fullSystemHarmonySuccessor.transitionsByPath.get(protectedTransition.path);
     const expectedSha256 = revenueTransitions
       ? revenueTransitions.at(-1).currentSha256
       : protectedTransition.currentSha256;
@@ -264,13 +367,19 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
   return Object.freeze({
     successor,
     transitionByPath,
-    revenueReadinessSuccessor
+    revenueReadinessSuccessor,
+    fullSystemHarmonySuccessor
   });
 }
 
 export function verifyPaidCustomerRevenueReadinessWorkerSuccessor() {
   return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
     .revenueReadinessSuccessor;
+}
+
+export function verifyFullSystemHarmonyProtectedSuccessor() {
+  return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .fullSystemHarmonySuccessor;
 }
 
 export function verifyCrossIndustryZipFounderAccessAdoption() {
@@ -312,7 +421,7 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
     const rehearsalTransition =
       rehearsalSuccessor.transitionByPath.get(successor.path);
     const revenueReadinessTransitions =
-      rehearsalSuccessor.revenueReadinessSuccessor.transitionsByPath
+      rehearsalSuccessor.fullSystemHarmonySuccessor.transitionsByPath
         .get(successor.path) || [];
     if (rehearsalTransition) {
       assert.equal(
@@ -336,7 +445,7 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
     transitionByPath.set(successor.path, currentSuccessor);
   }
   for (const [path, transitions] of
-    rehearsalSuccessor.revenueReadinessSuccessor.transitionsByPath) {
+    rehearsalSuccessor.fullSystemHarmonySuccessor.transitionsByPath) {
     if (transitionByPath.has(path)) continue;
     transitionByPath.set(path, {
       path,
@@ -400,7 +509,7 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
   const runtimePaths = adoption.intelligenceRuntimeIntegrity.artifacts.map(({ path }) => path);
   for (const artifact of adoption.intelligenceRuntimeIntegrity.artifacts) {
     const approvedTransitions =
-      rehearsalSuccessor.revenueReadinessSuccessor.transitionsByPath.get(artifact.path);
+      rehearsalSuccessor.fullSystemHarmonySuccessor.transitionsByPath.get(artifact.path);
     const expectedSha256 = approvedTransitions
       ? approvedTransitions.at(-1).currentSha256
       : artifact.sha256;
@@ -408,7 +517,7 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       `Intelligence runtime changed during ZIP/Founder adoption: ${artifact.path}`);
   }
   const unchangedRuntimePaths = runtimePaths.filter(
-    path => !rehearsalSuccessor.revenueReadinessSuccessor.transitionsByPath.has(path)
+    path => !rehearsalSuccessor.fullSystemHarmonySuccessor.transitionsByPath.has(path)
   );
   execFileSync("/usr/bin/git", [
     "diff", "--quiet",

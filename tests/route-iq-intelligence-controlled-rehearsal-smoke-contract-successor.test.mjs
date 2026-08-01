@@ -5,9 +5,11 @@ import test from "node:test";
 import {
   controlledOnboardingRehearsalSmokeContractProvenancePath,
   crossIndustryZipFounderAccessProvenancePath,
+  fullSystemHarmonyProtectedSuccessorProvenancePath,
   paidCustomerRevenueReadinessWorkerProvenancePath,
   verifyControlledOnboardingRehearsalSmokeContractSuccessor,
   verifyCrossIndustryZipFounderAccessAdoption,
+  verifyFullSystemHarmonyProtectedSuccessor,
   verifyPaidCustomerRevenueReadinessWorkerSuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
@@ -105,15 +107,52 @@ test("composed adoption carries both Worker transitions without rewriting either
   const worker = adoption.transitionByPath.get("workers/prometheus-iq-worker.js");
 
   assert.equal(
-    worker.transitions.at(-2).currentSha256,
+    worker.transitions.at(-3).currentSha256,
     "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132"
   );
+  assert.equal(
+    worker.transitions.at(-2).previousSha256,
+    worker.transitions.at(-3).currentSha256
+  );
+  assert.equal(worker.transitions.at(-2).currentSha256,
+    "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61");
   assert.equal(
     worker.transitions.at(-1).previousSha256,
     worker.transitions.at(-2).currentSha256
   );
+  assert.equal(worker.currentSha256,
+    "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051");
+});
+
+test("Full-System Harmony successor preserves revenue-readiness evidence", () => {
+  const successor = readJson(fullSystemHarmonyProtectedSuccessorProvenancePath);
+  const verified = verifyFullSystemHarmonyProtectedSuccessor();
+
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(verified.successorTransitionsByPath.size, 4);
   assert.equal(
-    worker.currentSha256,
-    "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61"
+    verified.transitionsByPath.get("index.html").at(-1).currentSha256,
+    "336ca7a07fbf7ff9f27e77d674f9191d88253dd7db8ba5016e7f5da91884dad0"
   );
+  assert.equal(
+    verified.transitionsByPath.get("workers/prometheus-iq-worker.js").at(-1)
+      .currentSha256,
+    "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051"
+  );
+});
+
+test("Full-System Harmony source and deploy successors remain exact", () => {
+  const verified = verifyFullSystemHarmonyProtectedSuccessor();
+  const source = verified.successorTransitionsByPath.get("index.html")[0];
+  const deploy = verified.successorTransitionsByPath
+    .get("deploy/cloudflare-pages/index.html")[0];
+
+  assert.equal(source.ownerSubsystem, "Prometheus Dashboard");
+  assert.equal(deploy.ownerSubsystem, "Prometheus Infrastructure");
+  assert.equal(source.currentSha256, deploy.currentSha256);
+  assert.equal(verified.successor.coherence.intelligenceRuntimeChanged, true);
+  assert.equal(verified.successor.coherence.recommendationInfluenceLockedOff, true);
+  assert.equal(verified.successor.boundaries.prospectiveCollection, "OFF");
+  assert.equal(verified.successor.boundaries.recommendationInfluence, "OFF");
 });

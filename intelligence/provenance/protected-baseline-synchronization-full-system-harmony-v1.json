@@ -1,0 +1,71 @@
+{
+  "version": "route-iq-intelligence-full-system-harmony-protected-successor-v1",
+  "directive": "Full-System Harmony Audit v1",
+  "status": "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Adopt the exact owner-produced Full-System Harmony Dashboard, advisory-only Intelligence, and private Worker successors without rewriting paid-customer revenue-readiness evidence.",
+  "predecessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-paid-customer-revenue-readiness-worker-v1.json",
+    "sha256": "3f21d2b71b85510671a7d76c9043d4ff31421c0cfcc9ff937a16915a5c38b07a",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "protectedSourceTransitions": [
+    {
+      "path": "intelligence/continuous-adaptive-route-replenishment.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "f25ea46c5365a22ef87643f15355851dcdf0c323",
+      "tree": "853f6e1a4b4c4cd4b2d1056efd96e962201d05d7",
+      "subject": "intelligence: enforce advisory-only route scoring",
+      "previousSha256": "4b0f583ce97e8301fc2a67096a448995fa576e7f82ebbc474ca6c6348a432f0c",
+      "currentSha256": "5244ad3e842c679a1f3ce227a3e3972351ed30ab5143349a62aaa6aa4db8fc03"
+    },
+    {
+      "path": "index.html",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "commit": "9941fb1dacadeb93904c6518e2ec8ae6a73e028e",
+      "tree": "37b45df2d2c719f68a9fa9d16b3f4f3cf850cdec",
+      "subject": "dashboard: enforce verified Founder operability",
+      "previousSha256": "b627cc624e08eebb5ac280e8fe2e2e98a82d7f06005eee0a7eab13dcb4d357e2",
+      "currentSha256": "336ca7a07fbf7ff9f27e77d674f9191d88253dd7db8ba5016e7f5da91884dad0"
+    },
+    {
+      "path": "deploy/cloudflare-pages/index.html",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "4b81819c861ca7326b4749c06e69654eab8f3166",
+      "tree": "963034805de3a540cd0a1048206c12c2bbb16874",
+      "subject": "infrastructure: qualify full-system harmony runtime",
+      "previousSha256": "b627cc624e08eebb5ac280e8fe2e2e98a82d7f06005eee0a7eab13dcb4d357e2",
+      "currentSha256": "336ca7a07fbf7ff9f27e77d674f9191d88253dd7db8ba5016e7f5da91884dad0"
+    },
+    {
+      "path": "workers/prometheus-iq-worker.js",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "4b81819c861ca7326b4749c06e69654eab8f3166",
+      "tree": "963034805de3a540cd0a1048206c12c2bbb16874",
+      "subject": "infrastructure: qualify full-system harmony runtime",
+      "previousSha256": "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61",
+      "currentSha256": "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051"
+    }
+  ],
+  "coherence": {
+    "historicalRevenueReadinessEvidenceRewritten": false,
+    "successorCommitAndTreeVerified": true,
+    "successorOwnerIdentityVerified": true,
+    "sourceDeployParityRequired": true,
+    "intelligenceRuntimeChanged": true,
+    "recommendationInfluenceLockedOff": true,
+    "testOnlyInfluenceRequiresExactAuthorization": true,
+    "businessHoursEligibilityChanged": false
+  },
+  "boundaries": {
+    "readinessState": "INSUFFICIENT_EVIDENCE",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}
