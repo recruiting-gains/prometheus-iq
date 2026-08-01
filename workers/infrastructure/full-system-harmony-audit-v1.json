@@ -8,7 +8,16 @@
   "runtimeIdentity": {
     "runnerImage": "ubuntu-24.04",
     "checkoutRef": "main",
-    "requiredJobs": ["qualify", "reverify", "deploy"]
+    "requiredJobs": ["qualify", "reverify", "deploy"],
+    "protectedSecretScope": "DEPLOY_STEP_ONLY",
+    "protectedDeploymentSecretNames": [
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE"
+    ]
   },
   "acceptedRevenueDeployment": {
     "runId": 30627469584,

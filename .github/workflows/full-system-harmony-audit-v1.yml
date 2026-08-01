@@ -251,12 +251,6 @@ jobs:
       PROMETHEUS_WORKFLOW_CONTRACT_SHA256: ${{ needs.qualify.outputs.workflow_contract_sha256 }}
       PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ needs.qualify.outputs.rollback_contract_sha256 }}
       PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ needs.qualify.outputs.rollback_bundle_sha256 }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}
-      CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}
-      PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN: ${{ secrets.PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN }}
-      PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE: ${{ secrets.PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -276,12 +270,20 @@ jobs:
           repository: PrometheusRouteIQ/prometheus-iq
           run-id: ${{ github.run_id }}
           path: ${{ runner.temp }}/full-system-harmony-private-release
-      - name: Reverify and deploy through the governed private v2 lane
+      - name: Reverify immutable artifact before protected execution
         env:
           PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/full-system-harmony-private-release
-        run: |
-          node scripts/run-full-system-harmony-audit-v1.mjs verify-artifact
-          node scripts/run-full-system-harmony-audit-v1.mjs deploy
+        run: node scripts/run-full-system-harmony-audit-v1.mjs verify-artifact
+      - name: Deploy through the governed private v2 lane
+        env:
+          PROMETHEUS_QUALIFIED_RELEASE_PATH: ${{ runner.temp }}/full-system-harmony-private-release
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ACCESS_CLIENT_ID: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_ID }}
+          CLOUDFLARE_ACCESS_CLIENT_SECRET: ${{ secrets.CLOUDFLARE_ACCESS_CLIENT_SECRET }}
+          PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN: ${{ secrets.PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN }}
+          PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE: ${{ secrets.PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE }}
+        run: node scripts/run-full-system-harmony-audit-v1.mjs deploy
       - name: Require unchanged source after GET/HEAD acceptance
         run: |
           git diff --exit-code

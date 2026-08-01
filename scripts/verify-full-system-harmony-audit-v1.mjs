@@ -37,6 +37,7 @@ export function verifyFullSystemHarmonyWorkflowText(workflow, contract) {
   assert.equal(contract.runtimeIdentity.runnerImage, "ubuntu-24.04");
   assert.equal(contract.runtimeIdentity.checkoutRef, "main");
   assert.deepEqual(contract.runtimeIdentity.requiredJobs, ["qualify", "reverify", "deploy"]);
+  assert.equal(contract.runtimeIdentity.protectedSecretScope, "DEPLOY_STEP_ONLY");
   for (const [index, job] of contract.runtimeIdentity.requiredJobs.entries()) {
     const start = workflow.indexOf(`  ${job}:\n`);
     const steps = workflow.indexOf("    steps:\n", start);
@@ -53,6 +54,34 @@ export function verifyFullSystemHarmonyWorkflowText(workflow, contract) {
       `${job} exact synchronized main checkout`);
     assert.equal(jobText.includes("          ref: ${{ inputs.candidate_commit }}"), false,
       `${job} detached candidate checkout prohibited`);
+  }
+  const deployStart = workflow.indexOf("  deploy:\n");
+  const deploySteps = workflow.indexOf("    steps:\n", deployStart);
+  const deployJob = workflow.slice(deployStart);
+  const verifyStepStart = deployJob.indexOf(
+    "      - name: Reverify immutable artifact before protected execution\n"
+  );
+  const deployStepStart = deployJob.indexOf(
+    "      - name: Deploy through the governed private v2 lane\n"
+  );
+  const cleanStepStart = deployJob.indexOf(
+    "      - name: Require unchanged source after GET/HEAD acceptance\n"
+  );
+  assert.ok(deployStart >= 0 && deploySteps > deployStart,
+    "deploy job structure for protected secret scope");
+  assert.ok(verifyStepStart >= 0 && deployStepStart > verifyStepStart
+    && cleanStepStart > deployStepStart, "deploy step ordering");
+  const verifyStep = deployJob.slice(verifyStepStart, deployStepStart);
+  const protectedDeployStep = deployJob.slice(deployStepStart, cleanStepStart);
+  assert.equal(workflow.slice(deployStart, deploySteps).includes("secrets."), false,
+    "deploy job-level secret scope prohibited");
+  assert.equal(verifyStep.includes("secrets."), false,
+    "artifact reverification secret scope prohibited");
+  for (const name of contract.runtimeIdentity.protectedDeploymentSecretNames) {
+    const binding = `          ${name}: \${{ secrets.${name} }}`;
+    assert.equal((deployJob.match(new RegExp(binding.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "gu")) || []).length, 1,
+      `${name} exact protected deployment binding`);
+    assert.ok(protectedDeployStep.includes(binding), `${name} deploy-step scope`);
   }
   assert.equal(/prometheusrouteiq-website[^\n]*(?:deploy|wrangler)/iu.test(workflow), false);
   assert.equal(/(?:POST|PUT|PATCH|DELETE) \/api\/partner-intake/iu.test(workflow), false);

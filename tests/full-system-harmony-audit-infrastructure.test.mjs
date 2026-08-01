@@ -91,6 +91,43 @@ test("artifact-sensitive jobs reject detached candidate checkout", () => {
   }
 });
 
+test("protected credentials exist only in the single deployment step", () => {
+  const workflow = readFileSync(
+    resolve(root, ".github/workflows/full-system-harmony-audit-v1.yml"),
+    "utf8"
+  );
+  const contract = JSON.parse(readFileSync(
+    resolve(root, "workers/infrastructure/full-system-harmony-audit-v1.json"),
+    "utf8"
+  ));
+  const deployStart = workflow.indexOf("  deploy:\n");
+  const deploySteps = workflow.indexOf("    steps:\n", deployStart);
+  const jobScoped = workflow.slice(0, deploySteps) +
+    "      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}\n" +
+    workflow.slice(deploySteps);
+  assert.throws(
+    () => verifyFullSystemHarmonyWorkflowText(jobScoped, contract),
+    /deploy job-level secret scope prohibited/u
+  );
+
+  const deployJob = workflow.slice(deployStart);
+  const deployStepStart = deployJob.indexOf(
+    "      - name: Deploy through the governed private v2 lane\n"
+  );
+  for (const name of contract.runtimeIdentity.protectedDeploymentSecretNames) {
+    const binding = `          ${name}: \${{ secrets.${name} }}\n`;
+    const absoluteDeployStep = deployStart + deployStepStart;
+    const withoutDeployBinding = workflow.slice(0, absoluteDeployStep) +
+      workflow.slice(absoluteDeployStep).replace(binding, "");
+    const misplaced = withoutDeployBinding.slice(0, absoluteDeployStep) + binding +
+      withoutDeployBinding.slice(absoluteDeployStep);
+    assert.throws(
+      () => verifyFullSystemHarmonyWorkflowText(misplaced, contract),
+      /artifact reverification secret scope prohibited/u
+    );
+  }
+});
+
 test("exact Founder, main, commit, tree, Worker baseline, and confirmation pass", async () => {
   assert.equal(validateFullSystemHarmonyAuditContext(environment()).status,
     "FULL_SYSTEM_HARMONY_AUDIT_CONTEXT_VERIFIED");
