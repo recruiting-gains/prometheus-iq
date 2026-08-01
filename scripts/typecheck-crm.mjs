@@ -147,7 +147,11 @@ assert.equal(typeof readPersistedWorkspaceLeadBySubmission, "function");
 assert.equal(typeof validateWorkspaceLeadIntakeHandoff, "function");
 assert.equal(crmWorkspaceLeadStoreBinding, "CRM_WORKSPACE_LEAD_STORE");
 assert.equal(crmWorkspaceLeadStoreTechnology, "cloudflare_workers_kv");
-assert.equal(supportedWorkspaceLeadIntakeWorkspaces.fitness_connection.runtimePersistenceAllowed, true);
+assert.equal(
+  supportedWorkspaceLeadIntakeWorkspaces.fitness_connection.researchClassification,
+  "FOUNDER_FIELD_RESEARCH"
+);
+assert.equal(supportedWorkspaceLeadIntakeWorkspaces.fitness_connection.runtimePersistenceAllowed, false);
 assert.deepEqual(Object.keys(supportedWorkspaceLeadIntakeWorkspaces), ["fitness_connection"]);
 
 const kvBinding = {
@@ -160,7 +164,8 @@ assert.deepEqual(productionCrmWorkspaceLeadBindingStatus({ CRM_WORKSPACE_LEAD_ST
   bindingName: crmWorkspaceLeadStoreBinding,
   storageTechnology: crmWorkspaceLeadStoreTechnology,
   readable: true,
-  writable: true
+  writable: true,
+  atomicPutIfAbsent: false
 });
 
 console.log("CRM typecheck passed: exported API and runtime adapter contracts are valid.");
