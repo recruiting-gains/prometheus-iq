@@ -13,7 +13,7 @@ const root = resolve(import.meta.dirname, "..");
 const governancePath = "overwatch/governance/full-system-harmony-audit-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260731-002-full-system-harmony-audit-v1.json";
 const baseline = "1aa1372aeb9558e117cc2d83c6553b952d268730";
-const lastOwnerCommit = "7cec0871ec24f6fe75091f075abf86c4ab01f7f4";
+const lastOwnerCommit = "766a5da99c32b796143e2d6ab3f3884e3c46a407";
 export const dashboardFounderReadinessSuccessor = Object.freeze({
   commit: "30ea86e0a2d0176cc22bad583a01829b3f379db3",
   parent: "231cd0110186a2347479eba4f6e05806b0db9652",
@@ -41,6 +41,23 @@ export const crmResearchBoundaryValidatorSuccessor = Object.freeze({
     Object.freeze({
       path: "scripts/validate-crm-production-store.mjs",
       sha256: "3032ee4837fc0e54085d89349760c5ff36bbdb987b4bacc3d688ee11c574484a"
+    })
+  ])
+});
+export const intelligenceProtectedConsumerSuccessor = Object.freeze({
+  commit: "766a5da99c32b796143e2d6ab3f3884e3c46a407",
+  parent: "aabcf0c090e92e1986125a6b9845737803d15f12",
+  tree: "91f529230db9f5ff63ff928f911c63087099cac7",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: compose protected consumer successors",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs",
+      sha256: "89529db78c45767e77f2daa0fd88c20fb7eba6aed4293b333e1e0d1afe9801ce"
+    }),
+    Object.freeze({
+      path: "tests/intelligence-architecture.test.mjs",
+      sha256: "cc0512118357d6798d6f30c0cc540769e4839f8daeedd261f3a2c34332ac02d2"
     })
   ])
 });
@@ -117,12 +134,45 @@ export function validateCrmResearchBoundaryValidatorSuccessor(
   return record;
 }
 
+export function validateIntelligenceProtectedConsumerSuccessor(
+  record = intelligenceProtectedConsumerSuccessor
+) {
+  assert.deepEqual(record, intelligenceProtectedConsumerSuccessor,
+    "Intelligence protected-consumer successor drifted");
+  const metadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n");
+  assert.deepEqual(metadata, [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Intelligence protected-consumer provenance drifted");
+  const paths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", record.commit
+  ]).split("\n").filter(Boolean);
+  assert.deepEqual(paths, record.evidence.map(item => item.path),
+    "Intelligence protected-consumer path set drifted");
+  for (const item of record.evidence) {
+    const bytes = execFileSync("/usr/bin/git", [
+      "show", `${record.commit}:${item.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+    assert.equal(sha256(bytes), item.sha256,
+      `Intelligence protected-consumer evidence drifted: ${item.path}`);
+  }
+  return record;
+}
+
 export function verifyOverwatchFullSystemHarmonyAudit({
   governance = readJson(governancePath),
   report = readJson(reportPath)
 } = {}) {
   validateDashboardFounderReadinessSuccessor();
   validateCrmResearchBoundaryValidatorSuccessor();
+  validateIntelligenceProtectedConsumerSuccessor();
   assert.equal(governance.governanceId, "full-system-harmony-audit-v1");
   assert.equal(governance.batchId, "BATCH-20260731-002");
   assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");

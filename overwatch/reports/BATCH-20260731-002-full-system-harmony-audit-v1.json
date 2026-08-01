@@ -40,7 +40,9 @@
     {"owner": "Prometheus Dashboard", "result": "the Founder workspace scenario now awaits the authenticated snapshot terminal state before asserting admission"},
     {"owner": "Prometheus Overwatch", "result": "the Dashboard readiness repair is independently pinned by commit, tree, identity, subject, path set, and evidence hashes"},
     {"owner": "Prometheus Overwatch", "result": "the August readiness chain accepts only the exact Dashboard readiness successor while preserving historical evidence"},
-    {"owner": "Prometheus CRM", "result": "the production-store validator now requires Founder research classification and blocked legacy runtime persistence"}
+    {"owner": "Prometheus CRM", "result": "the production-store validator now requires Founder research classification and blocked legacy runtime persistence"},
+    {"owner": "Prometheus Overwatch", "result": "the CRM research-boundary validator repair is independently pinned to its exact owner evidence"},
+    {"owner": "Prometheus Intelligence Engine", "result": "the protected-consumer verifier composes the exact Full-System Harmony successor while preserving historical and adversarial fail-closed checks"}
   ],
   "acceptance": {
     "crossSubsystemContracts": "PASS",
