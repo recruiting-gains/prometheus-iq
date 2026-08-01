@@ -4,7 +4,9 @@ import test from "node:test";
 
 import {
   controlledRehearsalIntelligenceSuccessor,
+  fullSystemHarmonyIntelligenceSuccessor,
   validateControlledRehearsalIntelligenceSuccessor,
+  validateFullSystemHarmonyIntelligenceSuccessor,
   validateControlledRehearsalGovernance,
   validateControlledRehearsalReport,
   verifyOverwatchControlledPaidCustomerOnboardingRehearsalV1
@@ -40,6 +42,29 @@ test("Overwatch accepts only the exact Intelligence revenue-readiness successor"
     const candidate = clone(controlledRehearsalIntelligenceSuccessor);
     mutate(candidate);
     assert.throws(() => validateControlledRehearsalIntelligenceSuccessor(candidate));
+  }
+});
+
+test("Overwatch accepts only the exact Full-System Harmony Intelligence successor", () => {
+  assert.equal(
+    validateFullSystemHarmonyIntelligenceSuccessor(
+      fullSystemHarmonyIntelligenceSuccessor
+    ).commit,
+    "2f8992476ca37276b0ee388fe2e33a2158f9d906"
+  );
+  for (const mutate of [
+    value => { value.commit = "0".repeat(40); },
+    value => { value.parent = "0".repeat(40); },
+    value => { value.tree = "0".repeat(40); },
+    value => { value.identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.subject = "intelligence: substitute harmony successor"; },
+    value => { value.evidence[0].path = "package.json"; },
+    value => { value.evidence[1].sha256 = "0".repeat(64); },
+    value => { value.evidence.pop(); }
+  ]) {
+    const candidate = clone(fullSystemHarmonyIntelligenceSuccessor);
+    mutate(candidate);
+    assert.throws(() => validateFullSystemHarmonyIntelligenceSuccessor(candidate));
   }
 });
 

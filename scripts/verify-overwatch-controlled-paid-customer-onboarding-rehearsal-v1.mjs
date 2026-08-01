@@ -110,6 +110,28 @@ export const controlledRehearsalIntelligenceSuccessor = Object.freeze({
   ])
 });
 
+export const fullSystemHarmonyIntelligenceSuccessor = Object.freeze({
+  commit: "2f8992476ca37276b0ee388fe2e33a2158f9d906",
+  parent: "9c841ae7833ca51e2dc7a81243ed9fd34f5dcfdc",
+  tree: "09e61f884b11a1fa66e772fdba1e320f843af8c0",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: adopt full-system harmony successors",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "intelligence/provenance/protected-baseline-synchronization-full-system-harmony-v1.json",
+      sha256: "a7c9965e96c71c105276904d57ca2cf7264f47462ba9629429510e1ab7817446"
+    }),
+    Object.freeze({
+      path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      sha256: "dbf40b94b7a28aa6ec1a20b7a6148014f72f2057af005e23f4bef2c0c31adb34"
+    }),
+    Object.freeze({
+      path: "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+      sha256: "f0e1795811b098067c5ac8245a040e3790cb7710492f2975fabeb4c0dd4b34e2"
+    })
+  ])
+});
+
 const protectedState = Object.freeze({
   collection: "OFF",
   activeCohorts: 0,
@@ -199,6 +221,38 @@ export function validateControlledRehearsalIntelligenceSuccessor(record) {
     ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
     assert.equal(sha256(bytes), item.sha256,
       `controlled rehearsal Intelligence successor evidence drifted: ${item.path}`);
+  }
+  assert.equal(git([
+    "merge-base", "--is-ancestor", record.commit, "HEAD"
+  ]), "");
+  return record;
+}
+
+export function validateFullSystemHarmonyIntelligenceSuccessor(record) {
+  assert.deepEqual(record, fullSystemHarmonyIntelligenceSuccessor,
+    "Full-System Harmony Intelligence successor drifted");
+  const metadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n");
+  assert.deepEqual(metadata, [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Full-System Harmony Intelligence successor provenance drifted");
+  const changedPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", record.commit
+  ]).split("\n").filter(Boolean);
+  assert.deepEqual(changedPaths, record.evidence.map(item => item.path));
+  for (const item of record.evidence) {
+    const bytes = execFileSync("/usr/bin/git", [
+      "show", `${record.commit}:${item.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+    assert.equal(sha256(bytes), item.sha256,
+      `Full-System Harmony Intelligence successor evidence drifted: ${item.path}`);
   }
   assert.equal(git([
     "merge-base", "--is-ancestor", record.commit, "HEAD"
@@ -332,11 +386,15 @@ export function validateControlledRehearsalReport(report) {
 }
 
 function verifyCurrentOwnerFiles(governance) {
-  const intelligenceSuccessor = validateControlledRehearsalIntelligenceSuccessor(
+  validateControlledRehearsalIntelligenceSuccessor(
     controlledRehearsalIntelligenceSuccessor
   );
-  const intelligenceEvidence = new Map(
-    intelligenceSuccessor.evidence.map(item => [item.path, item])
+  const harmonyIntelligenceSuccessor =
+    validateFullSystemHarmonyIntelligenceSuccessor(
+      fullSystemHarmonyIntelligenceSuccessor
+    );
+  const harmonyIntelligenceEvidence = new Map(
+    harmonyIntelligenceSuccessor.evidence.map(item => [item.path, item])
   );
   const governedSuccessors = new Map([
     ["workers/prometheus-iq-worker.js", {
@@ -356,14 +414,14 @@ function verifyCurrentOwnerFiles(governance) {
       sha256: "0c38be17c0823b1e247f1781353bbce543d66deb46f775c7a905b4164cb6d951"
     }],
     ["intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs", {
-      commit: intelligenceSuccessor.commit,
-      sha256: intelligenceEvidence.get(
+      commit: harmonyIntelligenceSuccessor.commit,
+      sha256: harmonyIntelligenceEvidence.get(
         "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
       ).sha256
     }],
     ["tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs", {
-      commit: intelligenceSuccessor.commit,
-      sha256: intelligenceEvidence.get(
+      commit: harmonyIntelligenceSuccessor.commit,
+      sha256: harmonyIntelligenceEvidence.get(
         "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
       ).sha256
     }]
