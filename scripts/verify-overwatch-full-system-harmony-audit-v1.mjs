@@ -13,7 +13,7 @@ const root = resolve(import.meta.dirname, "..");
 const governancePath = "overwatch/governance/full-system-harmony-audit-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260731-002-full-system-harmony-audit-v1.json";
 const baseline = "1aa1372aeb9558e117cc2d83c6553b952d268730";
-const lastOwnerCommit = "c6b79451ebd60b090d46ea0931d5b5aa1ebd7cfd";
+const lastOwnerCommit = "e9308746125f793be9724f92ec845ee478c3a101";
 export const dashboardFounderReadinessSuccessor = Object.freeze({
   commit: "30ea86e0a2d0176cc22bad583a01829b3f379db3",
   parent: "231cd0110186a2347479eba4f6e05806b0db9652",
@@ -151,6 +151,31 @@ export const harmonyArtifactToolchainRepair = Object.freeze({
     Object.freeze({
       path: "workers/infrastructure/full-system-harmony-audit-v1.json",
       sha256: "7a07788b0b8c1bd7b9207e36406e4a35c2208a867cbe451dbf1f13bdb27e9565"
+    })
+  ])
+});
+export const harmonyArtifactCheckoutRepair = Object.freeze({
+  commit: "e9308746125f793be9724f92ec845ee478c3a101",
+  parent: "cd55f6b2ce0e18a1edec75aac087c9f08e71b4b4",
+  tree: "c1e263a761d8a14e6972982b92c766650b09efd6",
+  identity: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+  subject: "infrastructure: bind harmony artifact checkout",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: ".github/workflows/full-system-harmony-audit-v1.yml",
+      sha256: "6bda84062ee9aa04f91ccfc37194039cd1ce8abe44be5d70f5d00f96a5b42571"
+    }),
+    Object.freeze({
+      path: "scripts/verify-full-system-harmony-audit-v1.mjs",
+      sha256: "2f1e6cee359596241adeb64b97715a108c5ff3787fefdcad4db2a6feb17fbe62"
+    }),
+    Object.freeze({
+      path: "tests/full-system-harmony-audit-infrastructure.test.mjs",
+      sha256: "53627f4f40d26400df06e80c807f2c7f067e8603036137791841d7195ea1c8b0"
+    }),
+    Object.freeze({
+      path: "workers/infrastructure/full-system-harmony-audit-v1.json",
+      sha256: "6cb72b0e45f8ad4381cb633a148c5de897e3486e24826e683057c16e223e9122"
     })
   ])
 });
@@ -419,6 +444,38 @@ export function validateHarmonyArtifactToolchainRepair(
   return record;
 }
 
+export function validateHarmonyArtifactCheckoutRepair(
+  record = harmonyArtifactCheckoutRepair
+) {
+  assert.deepEqual(record, harmonyArtifactCheckoutRepair,
+    "Harmony artifact checkout repair drifted");
+  const metadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n");
+  assert.deepEqual(metadata, [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Harmony artifact checkout provenance drifted");
+  const paths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", record.commit
+  ]).split("\n").filter(Boolean);
+  assert.deepEqual(paths, record.evidence.map(item => item.path),
+    "Harmony artifact checkout path set drifted");
+  for (const item of record.evidence) {
+    const bytes = execFileSync("/usr/bin/git", [
+      "show", `${record.commit}:${item.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+    assert.equal(sha256(bytes), item.sha256,
+      `Harmony artifact checkout evidence drifted: ${item.path}`);
+  }
+  return record;
+}
+
 export function verifyOverwatchFullSystemHarmonyAudit({
   governance = readJson(governancePath),
   report = readJson(reportPath)
@@ -431,6 +488,7 @@ export function verifyOverwatchFullSystemHarmonyAudit({
   validateAugustReadinessHarmonySuccessorRepair();
   validateCrmResearchPersistenceTypecheckRepair();
   validateHarmonyArtifactToolchainRepair();
+  validateHarmonyArtifactCheckoutRepair();
   assert.equal(governance.governanceId, "full-system-harmony-audit-v1");
   assert.equal(governance.batchId, "BATCH-20260731-002");
   assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");

@@ -8,6 +8,7 @@ import {
   crmResearchPersistenceTypecheckRepair,
   currentHarmonySuccessorCompositionRepair,
   dashboardFounderReadinessSuccessor,
+  harmonyArtifactCheckoutRepair,
   harmonyArtifactToolchainRepair,
   intelligenceProtectedConsumerSuccessor,
   intelligenceProtectedDriftFixtureSuccessor,
@@ -16,6 +17,7 @@ import {
   validateAugustReadinessHarmonySuccessorRepair,
   validateCurrentHarmonySuccessorCompositionRepair,
   validateDashboardFounderReadinessSuccessor,
+  validateHarmonyArtifactCheckoutRepair,
   validateHarmonyArtifactToolchainRepair,
   validateIntelligenceProtectedConsumerSuccessor,
   validateIntelligenceProtectedDriftFixtureSuccessor,
@@ -38,11 +40,32 @@ test("Overwatch accepts only the exact owner chain and harmony boundary", () => 
   const result = verifyOverwatchFullSystemHarmonyAudit({ governance, report });
   assert.deepEqual(result, {
     status: "OVERWATCH_FULL_SYSTEM_HARMONY_AUDIT_V1_VERIFIED",
-    ownerCommitCount: 48,
+    ownerCommitCount: 50,
     subsystemCount: 20,
     contractCount: 19,
     decision: "CONDITIONAL_GO"
   });
+});
+
+test("Infrastructure harmony artifact checkout repair is exact and owner-produced", () => {
+  assert.equal(
+    validateHarmonyArtifactCheckoutRepair().commit,
+    harmonyArtifactCheckoutRepair.commit
+  );
+  for (const mutate of [
+    value => { value.commit = "0".repeat(40); },
+    value => { value.parent = "0".repeat(40); },
+    value => { value.tree = "0".repeat(40); },
+    value => { value.identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.subject = "infrastructure: substitute harmony checkout"; },
+    value => { value.evidence[0].path = "package.json"; },
+    value => { value.evidence[0].sha256 = "0".repeat(64); },
+    value => { value.evidence.pop(); }
+  ]) {
+    const candidate = structuredClone(harmonyArtifactCheckoutRepair);
+    mutate(candidate);
+    assert.throws(() => validateHarmonyArtifactCheckoutRepair(candidate));
+  }
 });
 
 test("Infrastructure harmony artifact toolchain repair is exact and owner-produced", () => {
