@@ -84,7 +84,11 @@ assert.equal(crmWorkspaceLeadStoreTechnology, "cloudflare_workers_kv");
 assert.equal(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.crmHandoffPacket.contract, "shared_workspace_crm_lead_intake_packet.v1");
 assert.equal(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.crmHandoffPacket.ownerSubsystem, "Prometheus CRM");
 assert.equal(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.crmHandoffPacket.mutationPerformedByInfrastructure, false);
-assert.equal(supportedWorkspaceLeadIntakeWorkspaces.fitness_connection.runtimePersistenceAllowed, true);
+assert.equal(
+  supportedWorkspaceLeadIntakeWorkspaces.fitness_connection.researchClassification,
+  "FOUNDER_FIELD_RESEARCH"
+);
+assert.equal(supportedWorkspaceLeadIntakeWorkspaces.fitness_connection.runtimePersistenceAllowed, false);
 assert.deepEqual(Object.keys(supportedWorkspaceLeadIntakeWorkspaces), ["fitness_connection"]);
 assert.equal(Object.hasOwn(supportedWorkspaceLeadIntakeWorkspaces, "retired_customer_workspace"), false);
 
