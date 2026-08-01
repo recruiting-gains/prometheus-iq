@@ -3,6 +3,9 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import {
+  verifyFullSystemHarmonyProtectedSuccessor
+} from "./verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 
@@ -41,6 +44,8 @@ export function verifyPaidCustomerRevenueReadinessProtectedConsumers({
   currentSha256ByPath = {}
 } = {}) {
   const evidence = suppliedEvidence || JSON.parse(read(paidCustomerRevenueReadinessProtectedConsumersPath));
+  const composeCurrentSuccessor =
+    suppliedEvidence === undefined && Object.keys(currentSha256ByPath).length === 0;
   assert.equal(
     evidence.version,
     "route-iq-intelligence-paid-customer-revenue-readiness-protected-consumers-v1"
@@ -84,8 +89,6 @@ export function verifyPaidCustomerRevenueReadinessProtectedConsumers({
         transition.currentSha256
       );
     }
-    const currentSha256 = currentSha256ByPath[consumer.path] || sha256Bytes(read(consumer.path));
-    assert.equal(currentSha256, consumer.currentSha256, `Protected consumer drifted: ${consumer.path}`);
     consumerByPath.set(consumer.path, consumer);
   }
   assert.deepEqual(
@@ -107,5 +110,54 @@ export function verifyPaidCustomerRevenueReadinessProtectedConsumers({
     recommendationInfluence: "OFF",
     representativeShadowOutputExposed: false
   });
-  return Object.freeze({ evidence, consumerByPath });
+
+  if (!composeCurrentSuccessor) {
+    for (const consumer of consumerByPath.values()) {
+      const currentSha256 = currentSha256ByPath[consumer.path] || sha256Bytes(read(consumer.path));
+      assert.equal(currentSha256, consumer.currentSha256, `Protected consumer drifted: ${consumer.path}`);
+    }
+    return Object.freeze({ evidence, consumerByPath });
+  }
+
+  const fullSystemHarmonySuccessor = verifyFullSystemHarmonyProtectedSuccessor();
+  const composedConsumerByPath = new Map();
+  for (const consumer of consumerByPath.values()) {
+    const transitions = fullSystemHarmonySuccessor.transitionsByPath.get(consumer.path);
+    assert.ok(transitions, `Missing current protected-consumer successor: ${consumer.path}`);
+    assert.deepEqual(
+      transitions.slice(0, consumer.transitions.length).map(({
+        ownerSubsystem,
+        commit,
+        tree,
+        subject,
+        previousSha256,
+        currentSha256
+      }) => ({
+        ownerSubsystem,
+        commit,
+        tree,
+        subject,
+        previousSha256,
+        currentSha256
+      })),
+      consumer.transitions,
+      `Historical protected-consumer transition changed: ${consumer.path}`
+    );
+    const currentSha256 = transitions.at(-1).currentSha256;
+    assert.equal(
+      sha256Bytes(read(consumer.path)),
+      currentSha256,
+      `Protected consumer drifted: ${consumer.path}`
+    );
+    composedConsumerByPath.set(consumer.path, Object.freeze({
+      ...consumer,
+      currentSha256,
+      transitions: Object.freeze([...transitions])
+    }));
+  }
+  return Object.freeze({
+    evidence,
+    consumerByPath: composedConsumerByPath,
+    fullSystemHarmonySuccessor
+  });
 }

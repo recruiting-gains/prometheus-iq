@@ -422,6 +422,14 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   );
   const revenueReadinessConsumers =
     verifyPaidCustomerRevenueReadinessProtectedConsumers();
+  assert.equal(
+    revenueReadinessConsumers.evidence.protectedConsumers[0].currentSha256,
+    "b627cc624e08eebb5ac280e8fe2e2e98a82d7f06005eee0a7eab13dcb4d357e2",
+  );
+  assert.equal(
+    revenueReadinessConsumers.consumerByPath.get("index.html").transitions.length,
+    3,
+  );
   const coordinatorSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
   );
@@ -764,7 +772,13 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     assert.notEqual(transition.previousSha256, transition.currentSha256, transition.path);
   }
   for (const artifact of crossIndustryRetentionSuccessor.intelligenceOwnerRuntimeTransition.artifacts) {
-    assert.equal(sha256(artifact.path), artifact.currentSha256, artifact.path);
+    const fullSystemHarmonyTransitions =
+      revenueReadinessConsumers.fullSystemHarmonySuccessor.transitionsByPath.get(artifact.path);
+    assert.equal(
+      sha256(artifact.path),
+      fullSystemHarmonyTransitions?.at(-1).currentSha256 || artifact.currentSha256,
+      artifact.path,
+    );
     assert.notEqual(artifact.previousSha256, artifact.currentSha256, artifact.path);
   }
   for (const consumer of crossIndustryRetentionSuccessor.intelligenceConsumerTransitions) {
