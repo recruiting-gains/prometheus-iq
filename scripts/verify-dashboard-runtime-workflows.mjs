@@ -2206,7 +2206,7 @@ async function clickTab(cdp, tab) {
   await wait(150);
 }
 
-async function waitForFounderDailyIntelligence(cdp, expectedStatus, timeoutMs = 8000) {
+export async function waitForFounderDailyIntelligence(cdp, expectedStatus, timeoutMs = 8000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     const state = await cdp.evaluate("window.prometheusDebugState?.founderDailyIntelligence || null");
@@ -4140,7 +4140,8 @@ async function runHarness() {
     await summitPage.close();
 
     const switcher = await runPageScenario(chrome, server, "/app?role=founder&debug=1&harness=workspace-switcher", "workspace-switcher");
-    const switcherSnap = switcher.initial;
+    await waitForFounderDailyIntelligence(switcher.cdp, "rendered");
+    const switcherSnap = await snapshot(switcher.cdp);
     const productFocus = await switcher.cdp.evaluate(`(() => ({
       title: document.querySelector(".brand h1")?.textContent?.trim() || "",
       bodyText: document.body.innerText,

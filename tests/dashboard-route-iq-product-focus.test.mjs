@@ -16,7 +16,8 @@ import {
   launchChrome,
   parseDevToolsActivePort,
   resolveChromeExecutable,
-  resolveRuntimeWorkflowScenarioClock
+  resolveRuntimeWorkflowScenarioClock,
+  waitForFounderDailyIntelligence
 } from "../scripts/verify-dashboard-runtime-workflows.mjs";
 import {
   evaluateRouteBusinessHoursEligibility
@@ -225,6 +226,25 @@ test("daily snapshot remains read-only and recommendation influence stays off", 
   assert.match(source, /snapshot\.safety\?\.routeScoringWeightsChanged !== false/);
   assert.match(source, /snapshot\.evidenceClassification !== "FOUNDER_FIELD_RESEARCH"/);
   assert.match(source, /This is governed observation, not a recommendation or prediction/);
+});
+
+test("Founder snapshot readiness waits through the transient request state", async () => {
+  const states = [
+    { status: "requesting", authorized: false, rendered: false },
+    { status: "rendered", authorized: true, rendered: true }
+  ];
+  let reads = 0;
+  const cdp = {
+    async evaluate() {
+      const state = states[Math.min(reads, states.length - 1)];
+      reads += 1;
+      return state;
+    }
+  };
+
+  const result = await waitForFounderDailyIntelligence(cdp, "rendered", 1000);
+  assert.deepEqual(result, states[1]);
+  assert.equal(reads, 2);
 });
 
 test("source service worker uses the v50 generic shell and never caches governed runtime data", () => {
