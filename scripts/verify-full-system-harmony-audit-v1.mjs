@@ -35,16 +35,24 @@ export function verifyFullSystemHarmonyWorkflowText(workflow, contract) {
   ]) assert.ok(workflow.includes(required), required);
 
   assert.equal(contract.runtimeIdentity.runnerImage, "ubuntu-24.04");
+  assert.equal(contract.runtimeIdentity.checkoutRef, "main");
   assert.deepEqual(contract.runtimeIdentity.requiredJobs, ["qualify", "reverify", "deploy"]);
-  for (const job of contract.runtimeIdentity.requiredJobs) {
+  for (const [index, job] of contract.runtimeIdentity.requiredJobs.entries()) {
     const start = workflow.indexOf(`  ${job}:\n`);
     const steps = workflow.indexOf("    steps:\n", start);
+    const nextJob = contract.runtimeIdentity.requiredJobs[index + 1];
+    const end = nextJob ? workflow.indexOf(`  ${nextJob}:\n`, steps) : workflow.length;
     assert.ok(start >= 0 && steps > start, `${job} job structure`);
     const jobConfiguration = workflow.slice(start, steps);
+    const jobText = workflow.slice(start, end);
     assert.equal(jobConfiguration.includes("runner.temp"), false,
       `${job} job-level contexts must not reference runner.temp`);
     assert.match(jobConfiguration, /^      PROMETHEUS_RUNNER_IMAGE: ubuntu-24\.04$/mu,
       `${job} exact governed runner identity`);
+    assert.equal((jobText.match(/^          ref: main$/gmu) || []).length, 1,
+      `${job} exact synchronized main checkout`);
+    assert.equal(jobText.includes("          ref: ${{ inputs.candidate_commit }}"), false,
+      `${job} detached candidate checkout prohibited`);
   }
   assert.equal(/prometheusrouteiq-website[^\n]*(?:deploy|wrangler)/iu.test(workflow), false);
   assert.equal(/(?:POST|PUT|PATCH|DELETE) \/api\/partner-intake/iu.test(workflow), false);

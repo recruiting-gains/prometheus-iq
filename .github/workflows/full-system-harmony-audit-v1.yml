@@ -158,7 +158,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           repository: PrometheusRouteIQ/prometheus-iq
-          ref: ${{ inputs.candidate_commit }}
+          ref: main
           fetch-depth: 0
           persist-credentials: false
           clean: true
@@ -207,7 +207,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           repository: PrometheusRouteIQ/prometheus-iq
-          ref: ${{ inputs.candidate_commit }}
+          ref: main
           persist-credentials: false
           clean: true
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -261,7 +261,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           repository: PrometheusRouteIQ/prometheus-iq
-          ref: ${{ inputs.candidate_commit }}
+          ref: main
           fetch-depth: 0
           persist-credentials: false
           clean: true

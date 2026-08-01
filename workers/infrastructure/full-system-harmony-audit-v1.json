@@ -7,6 +7,7 @@
   "trigger": "workflow_dispatch",
   "runtimeIdentity": {
     "runnerImage": "ubuntu-24.04",
+    "checkoutRef": "main",
     "requiredJobs": ["qualify", "reverify", "deploy"]
   },
   "acceptedRevenueDeployment": {

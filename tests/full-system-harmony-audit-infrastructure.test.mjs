@@ -67,6 +67,30 @@ test("artifact-sensitive jobs fail closed without the exact governed runner iden
   }
 });
 
+test("artifact-sensitive jobs reject detached candidate checkout", () => {
+  const workflow = readFileSync(
+    resolve(root, ".github/workflows/full-system-harmony-audit-v1.yml"),
+    "utf8"
+  );
+  const contract = JSON.parse(readFileSync(
+    resolve(root, "workers/infrastructure/full-system-harmony-audit-v1.json"),
+    "utf8"
+  ));
+  for (const [index, job] of contract.runtimeIdentity.requiredJobs.entries()) {
+    const start = workflow.indexOf(`  ${job}:\n`);
+    const nextJob = contract.runtimeIdentity.requiredJobs[index + 1];
+    const end = nextJob ? workflow.indexOf(`  ${nextJob}:\n`, start) : workflow.length;
+    const jobText = workflow.slice(start, end);
+    const mutated = workflow.slice(0, start) +
+      jobText.replace("          ref: main\n", "          ref: ${{ inputs.candidate_commit }}\n") +
+      workflow.slice(end);
+    assert.throws(
+      () => verifyFullSystemHarmonyWorkflowText(mutated, contract),
+      new RegExp(`${job} exact synchronized main checkout`, "u")
+    );
+  }
+});
+
 test("exact Founder, main, commit, tree, Worker baseline, and confirmation pass", async () => {
   assert.equal(validateFullSystemHarmonyAuditContext(environment()).status,
     "FULL_SYSTEM_HARMONY_AUDIT_CONTEXT_VERIFIED");
