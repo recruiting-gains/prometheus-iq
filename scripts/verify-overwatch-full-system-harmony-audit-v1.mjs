@@ -12,7 +12,7 @@ const root = resolve(import.meta.dirname, "..");
 const governancePath = "overwatch/governance/full-system-harmony-audit-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260731-002-full-system-harmony-audit-v1.json";
 const baseline = "1aa1372aeb9558e117cc2d83c6553b952d268730";
-const lastOwnerCommit = "0b3289a89d0ab68e95c53e7d4fd98b790feac195";
+const lastOwnerCommit = "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8";
 
 const readJson = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
 const git = args => execFileSync("/usr/bin/git", args, {
