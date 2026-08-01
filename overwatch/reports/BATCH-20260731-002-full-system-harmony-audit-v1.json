@@ -42,7 +42,9 @@
     {"owner": "Prometheus Overwatch", "result": "the August readiness chain accepts only the exact Dashboard readiness successor while preserving historical evidence"},
     {"owner": "Prometheus CRM", "result": "the production-store validator now requires Founder research classification and blocked legacy runtime persistence"},
     {"owner": "Prometheus Overwatch", "result": "the CRM research-boundary validator repair is independently pinned to its exact owner evidence"},
-    {"owner": "Prometheus Intelligence Engine", "result": "the protected-consumer verifier composes the exact Full-System Harmony successor while preserving historical and adversarial fail-closed checks"}
+    {"owner": "Prometheus Intelligence Engine", "result": "the protected-consumer verifier composes the exact Full-System Harmony successor while preserving historical and adversarial fail-closed checks"},
+    {"owner": "Prometheus Overwatch", "result": "the protected-consumer composition repair is independently pinned to its exact owner evidence"},
+    {"owner": "Prometheus Intelligence Engine", "result": "the arbitrary-drift fixture now requires the current Full-System Harmony rejection while preserving fail-closed behavior"}
   ],
   "acceptance": {
     "crossSubsystemContracts": "PASS",
