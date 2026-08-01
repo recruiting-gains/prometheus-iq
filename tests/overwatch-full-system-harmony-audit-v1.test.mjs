@@ -3,12 +3,14 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  augustReadinessHarmonySuccessorRepair,
   crmResearchBoundaryValidatorSuccessor,
   currentHarmonySuccessorCompositionRepair,
   dashboardFounderReadinessSuccessor,
   intelligenceProtectedConsumerSuccessor,
   intelligenceProtectedDriftFixtureSuccessor,
   validateCrmResearchBoundaryValidatorSuccessor,
+  validateAugustReadinessHarmonySuccessorRepair,
   validateCurrentHarmonySuccessorCompositionRepair,
   validateDashboardFounderReadinessSuccessor,
   validateIntelligenceProtectedConsumerSuccessor,
@@ -32,11 +34,32 @@ test("Overwatch accepts only the exact owner chain and harmony boundary", () => 
   const result = verifyOverwatchFullSystemHarmonyAudit({ governance, report });
   assert.deepEqual(result, {
     status: "OVERWATCH_FULL_SYSTEM_HARMONY_AUDIT_V1_VERIFIED",
-    ownerCommitCount: 42,
+    ownerCommitCount: 44,
     subsystemCount: 20,
     contractCount: 19,
     decision: "CONDITIONAL_GO"
   });
+});
+
+test("August readiness harmony successor is exact and Overwatch-owned", () => {
+  assert.equal(
+    validateAugustReadinessHarmonySuccessorRepair().commit,
+    augustReadinessHarmonySuccessorRepair.commit
+  );
+  for (const mutate of [
+    value => { value.commit = "0".repeat(40); },
+    value => { value.parent = "0".repeat(40); },
+    value => { value.tree = "0".repeat(40); },
+    value => { value.identity = "Prometheus Infrastructure <infrastructure@prometheus.local>"; },
+    value => { value.subject = "overwatch: substitute August successor"; },
+    value => { value.evidence[0].path = "package.json"; },
+    value => { value.evidence[0].sha256 = "0".repeat(64); },
+    value => { value.evidence.pop(); }
+  ]) {
+    const candidate = structuredClone(augustReadinessHarmonySuccessorRepair);
+    mutate(candidate);
+    assert.throws(() => validateAugustReadinessHarmonySuccessorRepair(candidate));
+  }
 });
 
 test("current harmony successor composition is exact and Overwatch-owned", () => {
