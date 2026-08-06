@@ -1,0 +1,88 @@
+name: First-Customer Activation Dress Rehearsal v1
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_commit:
+        description: Exact synchronized main commit
+        required: true
+        type: string
+      candidate_tree:
+        description: Exact candidate tree
+        required: true
+        type: string
+      batch_id:
+        description: Exact BATCH-YYYYMMDD-NNN identifier
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: first-customer-activation-dress-rehearsal-v1
+  cancel-in-progress: false
+
+jobs:
+  qualify:
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'PrometheusRouteIQ/prometheus-iq' &&
+      github.actor == 'PrometheusRouteIQ' &&
+      github.triggering_actor == 'PrometheusRouteIQ' &&
+      github.ref == 'refs/heads/main' &&
+      github.sha == inputs.candidate_commit &&
+      inputs.batch_id == 'BATCH-20260806-001' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: ${{ inputs.candidate_commit }}
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+      - name: Verify exact clean synchronized source
+        env:
+          CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+          CANDIDATE_TREE: ${{ inputs.candidate_tree }}
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_COMMIT"
+          test "$(git rev-parse HEAD^{tree})" = "$CANDIDATE_TREE"
+          test "$(git rev-parse origin/main)" = "$CANDIDATE_COMMIT"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+      - run: npm ci
+      - name: Run focused first-customer integration rehearsal
+        env:
+          PROMETHEUS_REHEARSAL_EVIDENCE_OUTPUT: ${{ runner.temp }}/first-customer-rehearsal/evidence.json
+        run: node scripts/verify-first-customer-activation-dress-rehearsal-v1.mjs
+      - name: Run complete hosted qualification
+        run: |
+          npm audit --omit=dev --audit-level=high
+          npm test
+          npm run lint
+          npm run typecheck
+          npm run security:check
+          npm run security:aegis:verify
+          node scripts/check-cloudflare-unattended-secret-presence.mjs --source=environment
+      - name: Preserve immutable rehearsal evidence
+        id: upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: first-customer-activation-dress-rehearsal-${{ inputs.candidate_commit }}
+          path: ${{ runner.temp }}/first-customer-rehearsal
+          if-no-files-found: error
+          include-hidden-files: true
+          compression-level: 0
+          retention-days: 30
+      - name: Require unchanged clean checkout
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
