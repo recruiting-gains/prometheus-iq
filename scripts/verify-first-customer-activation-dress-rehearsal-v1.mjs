@@ -56,7 +56,12 @@ function git(...args) {
 const commit = git("rev-parse", "HEAD");
 const tree = git("rev-parse", "HEAD^{tree}");
 const branch = git("branch", "--show-current");
-if (branch !== "main" || git("status", "--porcelain=v1", "--untracked-files=all") !== "") {
+const exactHostedMain = branch === ""
+  && process.env.GITHUB_ACTIONS === "true"
+  && process.env.GITHUB_REF === "refs/heads/main"
+  && process.env.GITHUB_SHA === commit;
+if ((branch !== "main" && !exactHostedMain)
+  || git("status", "--porcelain=v1", "--untracked-files=all") !== "") {
   throw new Error("first_customer_rehearsal_repository_not_clean_main");
 }
 if (git("rev-list", "--left-right", "--count", "HEAD...origin/main") !== "0\t0") {
@@ -86,7 +91,7 @@ const evidence = {
   evidenceVersion: "first-customer-activation-dress-rehearsal-v1",
   commit,
   tree,
-  branch,
+  branch: branch || "main",
   fictionalTenant: "company_orion_facility_safety_rehearsal",
   workspace: "workspace_orion_facility_safety_rehearsal",
   path: [

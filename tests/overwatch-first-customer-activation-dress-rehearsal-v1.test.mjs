@@ -49,3 +49,10 @@ test("verifier joins the required accepted subsystem tests and records no produc
   assert.match(verifier, /productionSubmissionPerformed: false/u);
   assert.match(verifier, /productionMutationPerformed: false/u);
 });
+
+test("verifier accepts detached HEAD only for GitHub's exact main commit context", () => {
+  assert.match(verifier, /process\.env\.GITHUB_ACTIONS === "true"/u);
+  assert.match(verifier, /process\.env\.GITHUB_REF === "refs\/heads\/main"/u);
+  assert.match(verifier, /process\.env\.GITHUB_SHA === commit/u);
+  assert.doesNotMatch(verifier, /branch !== "main"\) \{/u);
+});
