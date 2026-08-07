@@ -6,6 +6,7 @@ import test from "node:test";
 
 import {
   evaluateFounderAttendedTtyCompatibilityGovernance,
+  hasTtyPackageReleaseWiringSuccessor,
   verifyOverwatchFounderAttendedTtyCompatibility
 } from "../scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs";
 
@@ -13,6 +14,15 @@ const root = resolve(import.meta.dirname, "..");
 const readJson = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
 const governance = readJson("overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.json");
 const report = readJson("overwatch/reports/BATCH-20260715-001-cloudflare-founder-attended-real-macos-tty-compatibility.json");
+const fullSystemHarmonyGovernance = readJson(
+  "overwatch/governance/full-system-harmony-audit-v1.json"
+);
+const liveCanonicalIdentityGovernance = readJson(
+  "overwatch/governance/live-canonical-identity-migration-v1.json"
+);
+const currentReadinessSuccessors = readJson(
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
+);
 const clone = value => structuredClone(value);
 const evaluate = (nextGovernance = governance, nextReport = report) =>
   evaluateFounderAttendedTtyCompatibilityGovernance({ governance: nextGovernance, report: nextReport });
@@ -27,6 +37,33 @@ test("Overwatch verifies the owner-authored macOS TTY compatibility repair", () 
   assert.equal(result.rejectedPathExternalActivity, 0);
   assert.equal(result.cloudflareAccessPerformed, false);
   assert.equal(result.realKeychainValuesAccessed, false);
+});
+
+test("TTY verification accepts only the exact current canonical package successor", () => {
+  const currentPackageSha256 =
+    liveCanonicalIdentityGovernance.releasePreparation.packageReleaseWiringSuccessor.currentSha256;
+  assert.equal(hasTtyPackageReleaseWiringSuccessor({
+    fullSystemHarmonyGovernance,
+    liveCanonicalIdentityGovernance,
+    currentReadinessSuccessors,
+    currentPackageSha256
+  }), true);
+
+  const changedReadiness = clone(currentReadinessSuccessors);
+  changedReadiness.overwatchCurrentEvidence.find(item => item.path === "package.json")
+    .successorSha256 = "0".repeat(64);
+  assert.equal(hasTtyPackageReleaseWiringSuccessor({
+    fullSystemHarmonyGovernance,
+    liveCanonicalIdentityGovernance,
+    currentReadinessSuccessors: changedReadiness,
+    currentPackageSha256
+  }), false);
+  assert.equal(hasTtyPackageReleaseWiringSuccessor({
+    fullSystemHarmonyGovernance,
+    liveCanonicalIdentityGovernance,
+    currentReadinessSuccessors,
+    currentPackageSha256: "0".repeat(64)
+  }), false);
 });
 
 test("Overwatch rejects ownership, commit, or owner-evidence substitution", () => {
