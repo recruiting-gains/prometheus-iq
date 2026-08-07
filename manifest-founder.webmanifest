@@ -1,7 +1,7 @@
 {
-  "name": "Prometheus IQ Founder",
-  "short_name": "Prometheus IQ",
-  "description": "Founder command center for Prometheus IQ route intelligence, production insight, and field execution.",
+  "name": "Prometheus Route IQ by Prometheus.IQ",
+  "short_name": "Route IQ",
+  "description": "Founder command center for Prometheus Route IQ route intelligence, production insight, and field execution.",
   "start_url": "./index.html?role=founder&rep=cruz",
   "scope": "./",
   "display": "standalone",

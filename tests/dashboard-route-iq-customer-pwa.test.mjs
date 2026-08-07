@@ -11,7 +11,7 @@ const runtimeWorkflowHarness = readFileSync(resolve(root, "scripts/verify-dashbo
 const dashboardPlatform = readFileSync(resolve(root, "dashboard/route-iq-dashboard-platform.mjs"), "utf8");
 
 test("the customer PWA is one generic Route IQ app with a server-verified entry path", () => {
-  assert.equal(manifest.name, "Route IQ");
+  assert.equal(manifest.name, "Prometheus Route IQ by Prometheus.IQ");
   assert.equal(manifest.short_name, "Route IQ");
   assert.equal(manifest.start_url, "/app");
   assert.doesNotMatch(manifest.start_url, /(?:role|rep|profile|workspace|company)=/u);

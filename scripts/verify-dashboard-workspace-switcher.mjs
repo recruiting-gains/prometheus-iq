@@ -35,7 +35,7 @@ assert(!sourceIndex.includes(retiredBusinessId), "The retired workspace must not
 assert(!sourceIndex.includes(retiredDashboardPath), "The retired customer dashboard must not be linked from Route IQ.");
 assert(!/\bGaia\b/u.test(sourceIndex), "Route IQ must not expose Gaia in current product views.");
 assert(!/\bAthena\b/u.test(sourceIndex), "Route IQ must not expose Athena in current product views.");
-assert(sourceIndex.includes("<h1>Route IQ</h1>"), "Route IQ must remain the Dashboard product identity.");
+assert(sourceIndex.includes("<h1>Prometheus Route IQ</h1>"), "Prometheus Route IQ must remain the Dashboard product identity.");
 assert(
   sourceIndex.includes("Workspace configuration and governed business data are required. No route recommendations are active."),
   "Missing configuration must render a clear fail-closed empty state."

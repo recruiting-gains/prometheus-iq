@@ -4496,7 +4496,7 @@ async function runHarness() {
       "Customer PWA open-session expiry lock",
       customerExpiredBoundary.sessionRole === "unauthorized"
         && customerExpiredBoundary.sessionState === "expired"
-        && customerExpiredBoundary.blockedHeading === "Route IQ access unavailable"
+        && customerExpiredBoundary.blockedHeading === "Prometheus Route IQ access unavailable"
         && customerExpiredBoundary.scopedRecordPreserved,
       "expired server session removed the operational UI without deleting scoped customer records",
       JSON.stringify(customerExpiredBoundary)

@@ -174,9 +174,9 @@ function createRecoveringChromeReadinessFixture() {
 }
 
 test("Route IQ is the only active Dashboard product", () => {
-  assert.match(source, /<title>Route IQ<\/title>/);
-  assert.match(source, /apple-mobile-web-app-title" content="Route IQ"/);
-  assert.match(source, /<h1>Route IQ<\/h1>/);
+  assert.match(source, /<title>Prometheus Route IQ<\/title>/);
+  assert.match(source, /apple-mobile-web-app-title" content="Prometheus Route IQ"/);
+  assert.match(source, /<h1>Prometheus Route IQ<\/h1>/);
   assert.doesNotMatch(source, /data-workspace-select|workspaceSwitch|retired_customer_catalog/u);
   assert.doesNotMatch(source, /\bGaia\b|\bAthena\b/);
   assert.match(source, /const dashboardWorkspaces = Object\.freeze\(routeIqCustomerPwaSession/);
