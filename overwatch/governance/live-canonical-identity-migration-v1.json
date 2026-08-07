@@ -153,6 +153,8 @@
       "commit": "c7dc84a39de41bc5d87c6f4bd47533a82b8f6f3f",
       "tree": "68b3ef48bf757502e582bd499307e33110b41298"
     },
+    "publicWorkflowContractSha256": "17ac6ac53220f77fe2d49339e7a93566c7c2419bb19c462200a2077f1df34ca7",
+    "publicWorkflowsChanged": false,
     "publicDeploymentAssetsSha256": "93526aca609a237fe26ba69f11d786549623b186fe7f106f3bf998e476dd22cf",
     "publicRollback": {
       "contractPath": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",

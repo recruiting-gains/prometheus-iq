@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   ROUTE_IQ_3D_GOVERNANCE_PATH,
+  validateLiveCanonicalIdentityPublicRelease,
   validateRouteIq3dVisualContinuityGovernance,
   verifyOverwatchRouteIq3dVisualContinuity
 } from "../scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs";
@@ -15,11 +16,11 @@ test("Overwatch verifies the owned 3D successor, generated assets, CRM boundary,
   assert.equal(result.status, "ROUTE_IQ_3D_VISUAL_CONTINUITY_VERIFIED");
   assert.equal(result.batchId, "BATCH-20260719-006");
   assert.equal(result.ownerCommits.length, 7);
-  assert.equal(result.deploymentAssetsSha256, "ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e");
+  assert.equal(result.deploymentAssetsSha256, "93526aca609a237fe26ba69f11d786549623b186fe7f106f3bf998e476dd22cf");
   assert.equal(result.historicalDeploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
-  assert.equal(result.rollbackArtifactSha256, "37f215ffe57df61aaa741352111806b07ff1a97dabd07c36188080e62857e582");
+  assert.equal(result.rollbackArtifactSha256, "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6");
   assert.equal(result.historicalRollbackArtifactSha256, "381b471ed3fa0a1fdab0b612600be2f2b6e77b45d3b9c02418a056e0eb500b5a");
-  assert.equal(result.initialCriticalBytes, 459699);
+  assert.equal(result.initialCriticalBytes, 459986);
   assert.equal(result.lazy3dBytes, 892213);
   assert.equal(result.recommendationInfluence, "OFF");
   assert.equal(result.prospectiveCollection, "OFF");
@@ -29,24 +30,56 @@ test("Overwatch verifies the owned 3D successor, generated assets, CRM boundary,
 
 test("historical 3D release evidence remains historical beside the current candidate", () => {
   const historical = governance();
-  const current = JSON.parse(readFileSync(
+  const historicalCurrent = JSON.parse(readFileSync(
     "overwatch/governance/public-deployment-workflow-v2.json",
     "utf8"
   )).routeIqWebsitePositioningSuccessor;
+  const identity = JSON.parse(readFileSync(
+    "overwatch/governance/live-canonical-identity-migration-v1.json",
+    "utf8"
+  ));
+  const current = validateLiveCanonicalIdentityPublicRelease({
+    governance: identity,
+    historicalRelease: historicalCurrent
+  });
   assert.equal(
     historical.generatedAssets.deploymentAssetsSha256,
     "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15"
   );
   assert.equal(
     current.currentReleaseIdentities.deploymentAssetSha256,
-    "ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e"
+    "93526aca609a237fe26ba69f11d786549623b186fe7f106f3bf998e476dd22cf"
   );
-  assert.equal(current.historicalAugust1EvidencePreserved, true);
-  assert.equal(current.historicalAugust1HashesAreCurrent, false);
+  assert.equal(current.classification, "CONTROLLING_PUBLIC_IDENTITY_SUCCESSOR");
+  assert.equal(current.historicalReleaseClassification, "CONTROLLING_PUBLIC_RELEASE_SUCCESSOR");
   assert.notEqual(
     historical.generatedAssets.deploymentAssetsSha256,
     current.currentReleaseIdentities.deploymentAssetSha256
   );
+});
+
+test("canonical identity release rejects workflow and rollback drift", () => {
+  const historicalRelease = JSON.parse(readFileSync(
+    "overwatch/governance/public-deployment-workflow-v2.json",
+    "utf8"
+  )).routeIqWebsitePositioningSuccessor;
+  const identity = JSON.parse(readFileSync(
+    "overwatch/governance/live-canonical-identity-migration-v1.json",
+    "utf8"
+  ));
+
+  for (const mutate of [
+    value => { value.releasePreparation.publicWorkflowsChanged = true; },
+    value => { value.releasePreparation.publicRollback.contractSha256 = "0".repeat(64); },
+    value => { value.releasePreparation.publicRollback.artifactSha256 = "0".repeat(64); }
+  ]) {
+    const value = structuredClone(identity);
+    mutate(value);
+    assert.throws(() => validateLiveCanonicalIdentityPublicRelease({
+      governance: value,
+      historicalRelease
+    }));
+  }
 });
 
 test("the superseded static candidate can never be marked deployable", () => {

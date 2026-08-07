@@ -173,6 +173,9 @@ test("current governance records the launch facts and keeps protected receipts i
   );
   assert.equal(governance.releasePreparation.publicDeploymentAssetsSha256,
     "93526aca609a237fe26ba69f11d786549623b186fe7f106f3bf998e476dd22cf");
+  assert.equal(governance.releasePreparation.publicWorkflowContractSha256,
+    "17ac6ac53220f77fe2d49339e7a93566c7c2419bb19c462200a2077f1df34ca7");
+  assert.equal(governance.releasePreparation.publicWorkflowsChanged, false);
   assert.equal(governance.releasePreparation.publicRollback.artifactSha256,
     "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6");
   assert.deepEqual(governance.releasePreparation.deploymentOrder, [

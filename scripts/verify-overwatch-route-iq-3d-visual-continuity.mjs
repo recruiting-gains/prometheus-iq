@@ -13,6 +13,8 @@ import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-de
 export const ROUTE_IQ_3D_GOVERNANCE_PATH = "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 const PUBLIC_DEPLOYMENT_GOVERNANCE_PATH =
   "overwatch/governance/public-deployment-workflow-v2.json";
+const LIVE_IDENTITY_GOVERNANCE_PATH =
+  "overwatch/governance/live-canonical-identity-migration-v1.json";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const STARTING_COMMIT = "08b452c4cc187fd3b8bd957e6bedef3aed12ac01";
@@ -386,6 +388,65 @@ function verifyCrmAndIsolation(root) {
   }
 }
 
+export function validateLiveCanonicalIdentityPublicRelease({
+  governance,
+  historicalRelease
+}) {
+  assert.equal(governance?.governanceId, "live-canonical-identity-migration-v1");
+  assert.equal(governance?.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(governance?.canonicalIdentity?.company, "Prometheus.IQ");
+  assert.equal(governance?.canonicalIdentity?.product, "Prometheus Route IQ");
+  assert.equal(governance?.releasePreparation?.publicWorkflowsChanged, false);
+  assert.equal(
+    governance?.releasePreparation?.publicDeploymentAssetsSha256,
+    "93526aca609a237fe26ba69f11d786549623b186fe7f106f3bf998e476dd22cf"
+  );
+  assert.equal(
+    governance?.releasePreparation?.publicRollback?.contractSha256,
+    "4477ddff8777d95e74023a09f2e9a7895060e1d290eeb5d9b2557ca620d827c7"
+  );
+  assert.equal(
+    governance?.releasePreparation?.publicRollback?.artifactSha256,
+    "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6"
+  );
+  assert.equal(
+    governance?.releasePreparation?.publicWorkflowContractSha256,
+    "17ac6ac53220f77fe2d49339e7a93566c7c2419bb19c462200a2077f1df34ca7"
+  );
+  assert.equal(historicalRelease?.classification, "CONTROLLING_PUBLIC_RELEASE_SUCCESSOR");
+  assert.equal(historicalRelease?.historicalAugust1EvidencePreserved, true);
+  assert.equal(historicalRelease?.deploymentPerformed, false);
+  assert.equal(historicalRelease?.productionMutationPerformed, false);
+  assert.equal(
+    governance.releasePreparation.publicWorkflowContractSha256,
+    historicalRelease.currentReleaseIdentities.workflowContractSha256
+  );
+  assert.ok(governance.ownerCommitChain.some(entry => (
+    entry.subsystem === "Prometheus Website"
+    && entry.commit === "aa0c50ade9b66fd579c3609107a02e4c70de4179"
+  )));
+  assert.ok(governance.ownerCommitChain.some(entry => (
+    entry.subsystem === "Prometheus Infrastructure"
+    && entry.commit === "c4cb9150fb8ad218e34026a63fa577271860c270"
+  )));
+  return Object.freeze({
+    classification: "CONTROLLING_PUBLIC_IDENTITY_SUCCESSOR",
+    historicalReleaseClassification: historicalRelease.classification,
+    currentReleaseIdentities: Object.freeze({
+      deploymentAssetSha256:
+        governance.releasePreparation.publicDeploymentAssetsSha256,
+      rollbackContractSha256:
+        governance.releasePreparation.publicRollback.contractSha256,
+      rollbackArtifactSha256:
+        governance.releasePreparation.publicRollback.artifactSha256,
+      workflowContractSha256:
+        governance.releasePreparation.publicWorkflowContractSha256
+    }),
+    deploymentPerformed: false,
+    productionMutationPerformed: false
+  });
+}
+
 export function verifyOverwatchRouteIq3dVisualContinuity({
   root = ROOT,
   build = true,
@@ -399,14 +460,14 @@ export function verifyOverwatchRouteIq3dVisualContinuity({
     requireClean,
     requireCommittedOverwatch
   });
-  const activeRelease = readJson(
+  const historicalActiveRelease = readJson(
     root,
     PUBLIC_DEPLOYMENT_GOVERNANCE_PATH
   ).routeIqWebsitePositioningSuccessor;
-  assert.equal(activeRelease?.classification, "CONTROLLING_PUBLIC_RELEASE_SUCCESSOR");
-  assert.equal(activeRelease?.historicalAugust1EvidencePreserved, true);
-  assert.equal(activeRelease?.deploymentPerformed, false);
-  assert.equal(activeRelease?.productionMutationPerformed, false);
+  const activeRelease = validateLiveCanonicalIdentityPublicRelease({
+    governance: readJson(root, LIVE_IDENTITY_GOVERNANCE_PATH),
+    historicalRelease: historicalActiveRelease
+  });
   const commits = verifyOwnership(root, governance);
   verifyWebsiteAndClaims(root);
   verifyCrmAndIsolation(root);
