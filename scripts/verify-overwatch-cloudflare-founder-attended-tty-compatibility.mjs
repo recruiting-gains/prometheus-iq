@@ -12,8 +12,7 @@ import {
   hasGovernedPublicDeploymentWorkflowV2PackageSuccessor
 } from "./verify-overwatch-public-deployment-workflow-v2.mjs";
 import {
-  hasFullSystemHarmonyPackageWiringSuccessor,
-  hasLiveCanonicalIdentityPackageWiringSuccessor
+  hasCurrentCanonicalPackageWiringSuccessor
 } from "./verify-overwatch-cloudflare-founder-attended-service-token.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -39,8 +38,6 @@ const currentReadinessSuccessorsPath =
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 const controlledRehearsalPackageSha256 =
   "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a";
-const fullSystemHarmonyPackageSha256 =
-  "6a7434c52a2491f4820d18657aa2a2dcf92d02c3fdf910a365555aa096dd8e5d";
 const ownerCommit = "1853c6343090ed3430f7ba03a089f1008a12436c";
 const ownerParent = "1a1a6143366175accb12752a095d11a39566bb90";
 const ownerTree = "3936f8950d7884ad3358e5ba5b67a472e6afef97";
@@ -78,15 +75,12 @@ export function hasTtyPackageReleaseWiringSuccessor({
   currentReadinessSuccessors,
   currentPackageSha256
 }) {
-  return hasFullSystemHarmonyPackageWiringSuccessor({
-    governance: fullSystemHarmonyGovernance,
+  return hasCurrentCanonicalPackageWiringSuccessor({
+    fullSystemHarmonyGovernance,
+    liveCanonicalIdentityGovernance,
+    currentReadinessSuccessors,
     predecessorSha256: controlledRehearsalPackageSha256,
-    successorSha256: fullSystemHarmonyPackageSha256
-  }) && hasLiveCanonicalIdentityPackageWiringSuccessor({
-    governance: liveCanonicalIdentityGovernance,
-    readinessGovernance: currentReadinessSuccessors,
-    predecessorSha256: fullSystemHarmonyPackageSha256,
-    successorSha256: currentPackageSha256
+    currentPackageSha256
   });
 }
 

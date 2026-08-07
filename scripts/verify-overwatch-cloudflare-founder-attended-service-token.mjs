@@ -60,6 +60,8 @@ const fullSystemHarmonyPackageReleaseWiringParent =
   "4b81819c861ca7326b4749c06e69654eab8f3166";
 const fullSystemHarmonyPackageReleaseWiringTree =
   "7136078840cf498156e588fd4c14ee10b2e335e6";
+const fullSystemHarmonyPackageSuccessorSha256 =
+  "6a7434c52a2491f4820d18657aa2a2dcf92d02c3fdf910a365555aa096dd8e5d";
 const fullSystemHarmonyPackageReleaseWiringPaths = Object.freeze([
   "overwatch/governance/full-system-harmony-audit-v1.json",
   "overwatch/reports/BATCH-20260731-002-full-system-harmony-audit-v1.json",
@@ -85,6 +87,13 @@ const liveCanonicalIdentityPackageReleaseWiringPaths = Object.freeze([
   "social-media/founder-marketing-operating-system/brand-and-growth-strategy.md",
   "tests/live-canonical-identity-migration-v1.test.mjs",
   "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
+]);
+const liveCanonicalIdentityVerifierPaths = new Set([
+  "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs"
 ]);
 
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -175,6 +184,107 @@ export function hasLiveCanonicalIdentityPackageWiringSuccessor({
     && readinessGovernance?.ownerSubsystem === "Prometheus Overwatch"
     && readinessGovernance?.historicalCloseoutEvidenceRewritten === false
     && readinessMatches.length === 1;
+}
+
+export function hasCurrentCanonicalPackageWiringSuccessor({
+  fullSystemHarmonyGovernance,
+  liveCanonicalIdentityGovernance,
+  currentReadinessSuccessors,
+  predecessorSha256,
+  currentPackageSha256
+}) {
+  return hasFullSystemHarmonyPackageWiringSuccessor({
+    governance: fullSystemHarmonyGovernance,
+    predecessorSha256,
+    successorSha256: fullSystemHarmonyPackageSuccessorSha256
+  }) && hasLiveCanonicalIdentityPackageWiringSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    readinessGovernance: currentReadinessSuccessors,
+    predecessorSha256: fullSystemHarmonyPackageSuccessorSha256,
+    successorSha256: currentPackageSha256
+  });
+}
+
+export function hasLiveCanonicalIdentityVerifierSuccessor({
+  governance,
+  path,
+  currentSha256
+}) {
+  const record = governance?.historicalVerifierReconciliations
+    ?.founderAttendedPackageVerifiers;
+  if (governance?.governanceId !== "live-canonical-identity-migration-v1"
+    || governance?.ownerSubsystem !== "Prometheus Overwatch"
+    || record?.classification !== "LIVE_CANONICAL_IDENTITY_VERIFIER_SUCCESSORS"
+    || record?.ownerSubsystem !== "Prometheus Overwatch"
+    || record?.expectedCommitCount !== 3
+    || record?.runtimeBehaviorChanged !== false
+    || record?.credentialAccessChanged !== false
+    || record?.productionMutationAuthorized !== false
+    || !Array.isArray(record?.commits)
+    || record.commits.length !== record.expectedCommitCount
+    || !liveCanonicalIdentityVerifierPaths.has(path)
+    || !/^[0-9a-f]{64}$/u.test(currentSha256)) {
+    return false;
+  }
+
+  const seenCommits = new Set();
+  let accepted = false;
+  try {
+    for (const entry of record.commits) {
+      if (!/^[0-9a-f]{40}$/u.test(entry.commit)
+        || !/^[0-9a-f]{40}$/u.test(entry.parent)
+        || !/^[0-9a-f]{40}$/u.test(entry.tree)
+        || seenCommits.has(entry.commit)
+        || entry.owner !== "Prometheus Overwatch <overwatch@prometheus.local>"
+        || typeof entry.subject !== "string"
+        || !entry.subject.startsWith("overwatch:")
+        || !Array.isArray(entry.paths)
+        || !Array.isArray(entry.transitions)) {
+        return false;
+      }
+      seenCommits.add(entry.commit);
+      const fields = git([
+        "show",
+        "-s",
+        "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+        entry.commit
+      ]).split("\n");
+      const paths = git([
+        "diff-tree",
+        "--no-commit-id",
+        "--name-only",
+        "-r",
+        entry.commit
+      ]).split("\n").filter(Boolean).sort();
+      if (!equalJson(fields, [
+        entry.commit,
+        entry.parent,
+        entry.tree,
+        entry.owner,
+        entry.owner,
+        entry.subject
+      ]) || !equalJson(paths, [...entry.paths].sort())) {
+        return false;
+      }
+      execFileSync("/usr/bin/git", [
+        "merge-base", "--is-ancestor", entry.commit, "HEAD"
+      ], { cwd: root, stdio: "ignore" });
+      for (const transition of entry.transitions) {
+        if (!liveCanonicalIdentityVerifierPaths.has(transition.path)
+          || !entry.paths.includes(transition.path)
+          || transition.previousSha256 !== sha256(gitFile(entry.parent, transition.path))
+          || transition.currentSha256 !== sha256(gitFile(entry.commit, transition.path))) {
+          return false;
+        }
+        if (transition.path === path && transition.currentSha256 === currentSha256) {
+          accepted = true;
+        }
+      }
+    }
+  } catch {
+    return false;
+  }
+  return accepted;
 }
 const expectedEvidencePaths = Object.freeze([
   ".gitignore",

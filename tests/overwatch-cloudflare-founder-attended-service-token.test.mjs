@@ -7,6 +7,7 @@ import test from "node:test";
 import {
   evaluateFounderAttendedProvisioningGovernance,
   hasControlledRehearsalPackageWiringSuccessor,
+  hasCurrentCanonicalPackageWiringSuccessor,
   hasFullSystemHarmonyPackageWiringSuccessor,
   hasLiveCanonicalIdentityPackageWiringSuccessor,
   verifyOverwatchFounderAttendedProvisioning
@@ -166,6 +167,34 @@ test("Founder-attended governance accepts only the exact canonical identity pack
     readinessGovernance: changedReadiness,
     predecessorSha256: transition.previousSha256,
     successorSha256: transition.currentSha256
+  }), false);
+});
+
+test("Founder-attended governance composes the exact historical and current package chain", () => {
+  const transition =
+    liveCanonicalIdentityGovernance.releasePreparation.packageReleaseWiringSuccessor;
+  assert.equal(hasCurrentCanonicalPackageWiringSuccessor({
+    fullSystemHarmonyGovernance,
+    liveCanonicalIdentityGovernance,
+    currentReadinessSuccessors: currentCanonicalReadinessSuccessors,
+    predecessorSha256:
+      "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a",
+    currentPackageSha256: transition.currentSha256
+  }), true);
+  assert.equal(hasCurrentCanonicalPackageWiringSuccessor({
+    fullSystemHarmonyGovernance,
+    liveCanonicalIdentityGovernance,
+    currentReadinessSuccessors: currentCanonicalReadinessSuccessors,
+    predecessorSha256: "0".repeat(64),
+    currentPackageSha256: transition.currentSha256
+  }), false);
+  assert.equal(hasCurrentCanonicalPackageWiringSuccessor({
+    fullSystemHarmonyGovernance,
+    liveCanonicalIdentityGovernance,
+    currentReadinessSuccessors: currentCanonicalReadinessSuccessors,
+    predecessorSha256:
+      "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a",
+    currentPackageSha256: "0".repeat(64)
   }), false);
 });
 

@@ -28,7 +28,7 @@ import {
   hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor
 } from "./verify-overwatch-public-deployment-workflow-v2.mjs";
 import {
-  hasFullSystemHarmonyPackageWiringSuccessor
+  hasCurrentCanonicalPackageWiringSuccessor
 } from "./verify-overwatch-cloudflare-founder-attended-service-token.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -54,6 +54,10 @@ const commercialReadinessGovernancePath =
   "overwatch/governance/route-iq-commercial-readiness-v1.json";
 const fullSystemHarmonyGovernancePath =
   "overwatch/governance/full-system-harmony-audit-v1.json";
+const liveCanonicalIdentityGovernancePath =
+  "overwatch/governance/live-canonical-identity-migration-v1.json";
+const currentReadinessSuccessorsPath =
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 const controlledRehearsalPackageSha256 =
   "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a";
 const contractPath = "workers/infrastructure/cloudflare-founder-attended-create-receipt-v2.json";
@@ -894,10 +898,12 @@ function verifyPredecessorTransitions(governance, rotation) {
       historicalSha256: routeIq3dTransition.successorSha256,
       successorSha256: controlledRehearsalPackageSha256
     })
-    || !hasFullSystemHarmonyPackageWiringSuccessor({
-      governance: readJson(fullSystemHarmonyGovernancePath),
+    || !hasCurrentCanonicalPackageWiringSuccessor({
+      fullSystemHarmonyGovernance: readJson(fullSystemHarmonyGovernancePath),
+      liveCanonicalIdentityGovernance: readJson(liveCanonicalIdentityGovernancePath),
+      currentReadinessSuccessors: readJson(currentReadinessSuccessorsPath),
       predecessorSha256: controlledRehearsalPackageSha256,
-      successorSha256: sha256(read("package.json"))
+      currentPackageSha256: sha256(read("package.json"))
     })
     || packageTransition.owner !== "Prometheus Overwatch"
     || keychainTransition.owner !== "Prometheus Overwatch"
