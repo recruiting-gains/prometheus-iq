@@ -28,12 +28,12 @@ const MAX_PINNED_FILE_BYTES = 2_000_000;
 const COMMAND_TIMEOUT_MS = 240_000;
 const SHA256 = /^[0-9a-f]{64}$/u;
 export const PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE = Object.freeze({
-  commit: "25ff53a7e61b50962144c5c689cc7a546875f724",
-  tree: "25f27adbd21a281d1294a68362b994403934095e",
+  commit: "e225b9e6380416cceddbfe10ee7aa318b123e75c",
+  tree: "6fe395423d6b907c967e0ce588b53f7307cbba2b",
   owner: "Prometheus Infrastructure <infrastructure@prometheus.local>",
-  rollbackContractSha256: "df9a90e39076df62bb6c3ec521a9dd86afe8d65f0836645237dbc2d08c69302d",
+  rollbackContractSha256: "4477ddff8777d95e74023a09f2e9a7895060e1d290eeb5d9b2557ca620d827c7",
   packageLockSha256: "70bb4bb8a4ed855307ca98c0efd295e23825504bf225609d16be474640134a0c",
-  artifactSha256: "37f215ffe57df61aaa741352111806b07ff1a97dabd07c36188080e62857e582"
+  artifactSha256: "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6"
 });
 const GENERATED_OUTPUT_FILES = Object.freeze([
   "prometheusrouteiq-website-entry.js",

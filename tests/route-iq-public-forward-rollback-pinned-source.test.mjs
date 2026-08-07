@@ -29,7 +29,7 @@ const rollbackContract = JSON.parse(readFileSync(
   "utf8"
 ));
 const expectedArtifactSha256 =
-  "37f215ffe57df61aaa741352111806b07ff1a97dabd07c36188080e62857e582";
+  "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6";
 
 function git(repository, argumentsList, options = {}) {
   return execFileSync("git", argumentsList, {
@@ -74,7 +74,11 @@ test("public rollback build is pinned to the governed Infrastructure source snap
     "show",
     `${source.commit}:workers/prometheus-iq-worker.js`
   ]);
-  assert.notEqual(sha256(currentWorker), sha256(sourceWorker));
+  assert.equal(sha256(currentWorker), sha256(sourceWorker));
+  assert.notEqual(
+    sha256(sourceWorker),
+    rollbackContract.candidateStatefulFiles["workers/prometheus-iq-worker.js"].sha256
+  );
   assert.equal(
     verifyPublicForwardRollbackArtifact(root, expectedArtifactSha256).artifactSha256,
     expectedArtifactSha256
@@ -145,7 +149,14 @@ test("tampered provenance source commits and blob hashes fail closed", () => {
   const targetPath = "workers/infrastructure/route-iq-request-crm-runtime.js";
 
   const wrongSourceCommit = cloneProvenance();
-  wrongSourceCommit[targetPath].sourceCommit = PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE.commit;
+  const governedSource = wrongSourceCommit[targetPath];
+  const historicalSourceCommit = git(root, ["log", "--all", "--format=%H", "--", targetPath])
+    .trim()
+    .split("\n")
+    .find(commit => commit !== governedSource.sourceCommit
+      && sha256(git(root, ["show", `${commit}:${targetPath}`])) !== governedSource.sha256);
+  assert.match(historicalSourceCommit || "", /^[0-9a-f]{40}$/u);
+  wrongSourceCommit[targetPath].sourceCommit = historicalSourceCommit;
   expectPinnedSourceFailure(wrongSourceCommit);
 
   const missingSourceCommit = cloneProvenance();
