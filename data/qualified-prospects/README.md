@@ -1,6 +1,6 @@
 # Qualified Prospects Seed Database
 
-Purpose: provide Prometheus IQ with verified storefront prospects for rep-specific discovery routes.
+Purpose: provide Prometheus Route IQ with verified storefront prospects for rep-specific discovery routes.
 
 Base location:
 - Fitness Connection Almeda

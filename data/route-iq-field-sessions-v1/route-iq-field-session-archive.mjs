@@ -540,8 +540,8 @@ export function validateFinalRouteIqReport(rawReportText, context = {}) {
     });
   }
 
-  if (report.app !== "Prometheus IQ" || report.reportType !== "beta-daily-rep-report") {
-    throw new FieldSessionArchiveError("Source is not a supported Prometheus IQ Today report.", {
+  if (!["Prometheus Route IQ", "Prometheus IQ"].includes(report.app) || report.reportType !== "beta-daily-rep-report") {
+    throw new FieldSessionArchiveError("Source is not a supported Prometheus Route IQ Today report.", {
       code: "field_session_report_contract_mismatch",
       details: { app: report.app ?? null, reportType: report.reportType ?? null }
     });

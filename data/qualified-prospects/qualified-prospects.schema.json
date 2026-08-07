@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Prometheus IQ Qualified Prospect",
+  "title": "Prometheus Route IQ Qualified Prospect",
   "type": "object",
   "required": [
     "business_name",
