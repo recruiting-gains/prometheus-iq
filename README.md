@@ -1,13 +1,13 @@
-# Prometheus IQ
+# Prometheus Route IQ
 
-Prometheus IQ is a private-beta field-sales intelligence app for outside sales reps.
+Prometheus Route IQ is Prometheus.IQ's governed field-decision intelligence product for outside-sales organizations.
 
 Current focus:
 - Mobile-first field result logging
 - Route Intelligence recommendations
 - Rep Mode and Owner Mode workflow
 - Local backup/export process
-- Cloudflare-hosted private beta protected by email-code access
+- Cloudflare-hosted private workspace protected by server-verified access
 
 Important:
 - Do not commit passwords, API keys, customer personal data, or private exports.

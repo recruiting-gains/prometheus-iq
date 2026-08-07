@@ -35,7 +35,9 @@ test("Route IQ commercial product contract verifies committed owner boundaries",
 
 test("Route IQ is the sole active product and every directive gate has an owner surface", () => {
   const { contract } = loadRouteIqCommercialProductArtifacts();
+  assert.equal(contract.productPortfolio.company, "Prometheus.IQ");
   assert.equal(contract.productPortfolio.soleActiveProduct, "route_iq");
+  assert.equal(contract.productPortfolio.soleActiveProductDisplayName, "Prometheus Route IQ");
   assert.deepEqual(contract.productPortfolio.products, [
     { productId: "route_iq", state: "active" },
     { productId: "gaia", state: "paused" },

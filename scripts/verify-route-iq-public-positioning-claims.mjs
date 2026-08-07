@@ -120,9 +120,9 @@ export function validateRouteIqPublicPositioningClaims({ contract, commercialPro
   requireExact(contract.sourceBaseline?.commercialProductContract, routeIqPublicPositioningPaths.commercialProductContract, "route_iq_positioning_baseline_invalid", "commercial contract path");
   requireExact(contract.sourceBaseline?.commercialProductContractVersion, commercialProductContract.contractVersion, "route_iq_positioning_baseline_invalid", "commercial contract version");
 
-  requireExact(contract.portfolio?.company?.name, "Prometheus", "route_iq_positioning_portfolio_invalid", "company name");
+  requireExact(contract.portfolio?.company?.name, "Prometheus.IQ", "route_iq_positioning_portfolio_invalid", "company name");
   requireExact(contract.portfolio?.soleActiveProduct?.productId, "route_iq", "route_iq_positioning_portfolio_invalid", "sole active product ID");
-  requireExact(contract.portfolio?.soleActiveProduct?.name, "Route IQ", "route_iq_positioning_portfolio_invalid", "sole active product name");
+  requireExact(contract.portfolio?.soleActiveProduct?.name, "Prometheus Route IQ", "route_iq_positioning_portfolio_invalid", "sole active product name");
   requireExact(contract.portfolio?.soleActiveProduct?.state, "active", "route_iq_positioning_portfolio_invalid", "sole active product state");
   requireValue(Array.isArray(contract.portfolio?.inactiveProductsPromotedPublicly) && contract.portfolio.inactiveProductsPromotedPublicly.length === 0, "route_iq_positioning_portfolio_invalid", "inactive products cannot be publicly promoted");
   requireExact(contract.portfolio?.retiredCustomerWorkspacesPromotedPublicly, false, "route_iq_positioning_portfolio_invalid", "retired customer workspace promotion");

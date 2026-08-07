@@ -1,4 +1,11 @@
-# Prometheus Company Identity v1
+# Prometheus.IQ Company Identity v2
+
+## Canonical Names
+
+- Company: Prometheus.IQ
+- Flagship product: Prometheus Route IQ
+- Operator: Cruz Garza, sole proprietor
+- Product shorthand: Route IQ may be used only after Prometheus Route IQ has been established in the surface or context.
 
 ## Company Mission
 
@@ -8,7 +15,7 @@ Prometheus exists to make outside sales intelligent, directed, accountable, and 
 
 Prometheus is building the AI operating system for outside sales. Over time, Prometheus should become the intelligence layer behind every field sales motion: routing, territory learning, visit verification, opportunity discovery, follow-up, coaching, performance insight, and executive visibility.
 
-Prometheus IQ is the flagship product. It is the first expression of the company's larger operating system vision.
+Prometheus Route IQ is the flagship product. It is the first expression of the company's larger operating system vision.
 
 ## Core Values
 
@@ -81,7 +88,7 @@ Competitors should fear that Prometheus understands the field from the inside. T
 
 ## Permanent Decision Log
 
-1. Prometheus is the company. Prometheus IQ is the flagship product.
+1. Prometheus.IQ is the company. Prometheus Route IQ is the flagship product; Route IQ is permitted shorthand after the full product name is established.
 2. Prometheus is an AI operating system for outside sales, not a gym application.
 3. Gym sales is the first production validation environment, not the market definition.
 4. Prometheus serves all organizations where sales happen outside the office.

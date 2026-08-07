@@ -11,7 +11,7 @@ This document states the limits of the currently governed Route IQ production sc
 
 ## Current Product Boundary
 
-Prometheus is the company. Route IQ is the sole active production product. Route IQ structures field-operation context, representative actions, territories, customers, visits, and outcomes into governed evidence and decision-ready intelligence while preserving human control.
+Prometheus.IQ is the company. Prometheus Route IQ is the sole active production product. Route IQ structures field-operation context, representative actions, territories, customers, visits, and outcomes into governed evidence and decision-ready intelligence while preserving human control.
 
 Route IQ does not replace a customer's CRM, route planner, mapping application, payroll system, workforce-surveillance system, or general-purpose AI assistant.
 

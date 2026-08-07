@@ -1,6 +1,6 @@
 # Prometheus Product Vision v1
 
-Purpose: define the canonical product direction for the Prometheus platform. This document is the single source of truth for product vision across Prometheus, Prometheus IQ, Companion, and future products. `COMPANY_IDENTITY.md` remains the canonical company identity source.
+Purpose: define the canonical product direction for the Prometheus.IQ platform. This document is the single source of truth for product vision across Prometheus.IQ, Prometheus Route IQ, Companion, and future products. `COMPANY_IDENTITY.md` remains the canonical company identity source.
 
 ## 1. Mission
 
@@ -18,9 +18,9 @@ Prometheus should not merely record outside sales after the fact. It should help
 
 ## 3. Company Hierarchy
 
-- Prometheus is the company.
-- Prometheus owns the long-term outside-sales intelligence category.
-- Prometheus IQ is the flagship product.
+- Prometheus.IQ is the company.
+- Prometheus.IQ owns the long-term outside-sales intelligence category.
+- Prometheus Route IQ is the flagship product.
 - Companion is the founder executive operating system.
 - Gym and fitness sales are the first production validation environment only, not the company category.
 
@@ -28,13 +28,13 @@ Company identity decisions remain governed by `COMPANY_IDENTITY.md`. This produc
 
 ## 4. Product Hierarchy
 
-### Prometheus
+### Prometheus.IQ
 
-Prometheus is the company and ecosystem. It owns the operating philosophy, product portfolio, customer trust, data discipline, and long-term market position around outside-sales intelligence.
+Prometheus.IQ is the company and ecosystem. It owns the operating philosophy, product portfolio, customer trust, data discipline, and long-term market position around outside-sales intelligence.
 
-### Prometheus IQ
+### Prometheus Route IQ
 
-Prometheus IQ is the flagship product: an AI operating system for organizations that rely on outside sales professionals across industries.
+Prometheus Route IQ is the flagship product: a governed field-decision intelligence system for organizations that rely on outside sales professionals across industries.
 
 Its purpose is to help sales organizations plan field work, prioritize routes and accounts, learn from visits, verify intentional activity without surveillance, improve team performance, and give leadership a clearer view of field reality.
 
@@ -42,7 +42,7 @@ Its purpose is to help sales organizations plan field work, prioritize routes an
 
 Companion is the founder executive operating system. It exists to support founder memory, strategy, continuity, operational reflection, and executive decision-making.
 
-Companion is not the public product, not a customer-facing assistant, and not a runtime dependency for Prometheus IQ.
+Companion is not the public product, not a customer-facing assistant, and not a runtime dependency for Prometheus Route IQ.
 
 ### Future Products
 
@@ -321,8 +321,16 @@ The long-term platform should remain focused: not another CRM, not another chatb
 
 Decision: Create root `PRODUCT_VISION.md` as the canonical product vision source for the Prometheus platform.
 
-Reasoning: Product vision previously fell back to `docs/product-vision.md`, which focused on early Prometheus IQ validation. The platform now requires one root source that aligns Prometheus as the company, Prometheus IQ as the flagship product, Companion as the founder executive operating system, and gym/fitness as validation context only.
+Historical reasoning: Product vision previously fell back to `docs/product-vision.md`, which focused on early validation under a superseded product name. The platform required one root source aligning the company, flagship product, Companion, and gym/fitness validation context. The August 7, 2026 canonical identity decision above now governs current naming.
 
 Tradeoffs: The legacy product vision is no longer the active source of truth. Historical references should remain historically accurate, but active subsystem guidance should consume this root document.
 
 Long-term impact: Future subsystems have a single product-direction authority and should avoid duplicate product narratives, vertical narrowing, CRM drift, surveillance framing, and generic AI positioning.
+
+### 2026-08-07: Live Canonical Identity Migration v1
+
+Decision: Prometheus.IQ is the company and Prometheus Route IQ is the flagship product. Route IQ is shorthand only after the full product name has been established in a surface or context.
+
+Reasoning: The public launch established one company/product identity that must remain consistent across the Website, private workspace, intake, CRM, notifications, and current governance.
+
+Historical preservation: The 2026-07-01 entry remains dated evidence of the prior naming decision and is superseded for current identity use.

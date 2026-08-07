@@ -105,7 +105,9 @@ export function validateRouteIqCommercialProductContract(artifacts) {
   requireExact(contract.contractVersion, "route-iq-commercial-product-contract-v1", "route_iq_product_contract_version_invalid", "contract version");
   requireExact(contract.batchId, "BATCH-20260718-002", "route_iq_product_batch_invalid", "batch ID");
   requireExact(contract.ownerSubsystem, "Prometheus Route IQ", "route_iq_product_owner_invalid", "product contract owner");
+  requireExact(contract.productPortfolio?.company, "Prometheus.IQ", "route_iq_product_focus_invalid", "company name");
   requireExact(contract.productPortfolio?.soleActiveProduct, "route_iq", "route_iq_product_focus_invalid", "sole active product");
+  requireExact(contract.productPortfolio?.soleActiveProductDisplayName, "Prometheus Route IQ", "route_iq_product_focus_invalid", "sole active product display name");
   const productStates = new Map(contract.productPortfolio?.products?.map(product => [product.productId, product.state]));
   requireExact(productStates.get("route_iq"), "active", "route_iq_product_focus_invalid", "Route IQ state");
   requireExact(productStates.get("gaia"), "paused", "route_iq_product_focus_invalid", "Gaia state");

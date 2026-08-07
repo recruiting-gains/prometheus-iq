@@ -5,8 +5,9 @@
   "ownerSubsystem": "Prometheus Route IQ",
   "status": "commercial_release_candidate_contract",
   "productPortfolio": {
-    "company": "Prometheus",
+    "company": "Prometheus.IQ",
     "soleActiveProduct": "route_iq",
+    "soleActiveProductDisplayName": "Prometheus Route IQ",
     "products": [
       {
         "productId": "route_iq",

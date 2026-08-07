@@ -76,7 +76,7 @@ Every new Route IQ improvement must be treated as either an operational improvem
 
 ### 1. Prometheus Dashboard
 
-Scope: the Prometheus IQ product surface used by Founder, Owner, and Representative users.
+Scope: the Prometheus Route IQ product surface used by Founder, Owner, and Representative users.
 
 Areas:
 
@@ -111,7 +111,7 @@ Areas:
 - Diagnostics
 - AI Behavior
 
-Primary rule: Companion is founder-only. Do not confuse Companion work with the public website, Anthony beta, or production Prometheus IQ dashboard work.
+Primary rule: Companion is founder-only. Do not confuse Companion work with the public website, historical Anthony testing, or production Prometheus Route IQ Dashboard work.
 
 Quarantine rule: Companion is currently maintenance-only / dormant by Founder decision because prompts are hanging/stalling while other subsystems run normally. Do not assign new Companion feature work, contract-layer work, simulation work, or runtime work unless Founder explicitly reactivates Companion. Preserve the existing accepted Companion package; do not delete Companion or modify Companion code during quarantine. Current launch and contract-layer work should continue through non-Companion subsystems.
 
@@ -253,7 +253,7 @@ Primary rule: verified field data and Google-qualified data must remain trustwor
 
 ### 7. Prometheus Website
 
-Scope: public-facing PrometheusRouteIQ / Prometheus IQ web presence.
+Scope: the public-facing Prometheus.IQ company and Prometheus Route IQ product web presence.
 
 Areas:
 
@@ -264,11 +264,11 @@ Areas:
 - Blog
 - Support
 
-Primary rule: website work is separate from the Prometheus IQ dashboard and Companion unless explicitly linked by the task.
+Primary rule: website work is separate from the Prometheus Route IQ Dashboard and Companion unless explicitly linked by the task.
 
 ### 8. Prometheus Mobile
 
-Scope: phone and device behavior for Prometheus IQ and related experiences.
+Scope: phone and device behavior for Prometheus Route IQ and related experiences.
 
 Areas:
 

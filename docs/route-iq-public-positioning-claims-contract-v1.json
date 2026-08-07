@@ -12,12 +12,12 @@
   },
   "portfolio": {
     "company": {
-      "name": "Prometheus",
+      "name": "Prometheus.IQ",
       "role": "company_and_governed_product_platform"
     },
     "soleActiveProduct": {
       "productId": "route_iq",
-      "name": "Route IQ",
+      "name": "Prometheus Route IQ",
       "state": "active"
     },
     "inactiveProductsPromotedPublicly": [],
@@ -103,7 +103,7 @@
   "supportableClaims": [
     {
       "claimId": "prometheus_company_route_iq_product",
-      "publicText": "Prometheus is the company. Route IQ is its sole active product.",
+      "publicText": "Prometheus.IQ is the company. Prometheus Route IQ is its sole active product.",
       "evidenceBasis": [
         "docs/route-iq-commercial-product-contract-v1.json"
       ],
