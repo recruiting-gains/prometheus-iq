@@ -362,7 +362,7 @@ test("missing, drifted, and symlinked required artifacts fail closed", async t =
     writeFileSync(path, `${readFileSync(path, "utf8")}drift\n`, "utf8");
     assert.throws(
       () => verifyOverwatchRouteIqAugust1LaunchReadiness({ root: fixture, verifyGit: false }),
-      /Required launch artifact drifted/u
+      /(?:Required launch artifact|Launch successor evidence) drifted/u
     );
   });
 

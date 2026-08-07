@@ -195,7 +195,7 @@ function verifyPositioningAndClaims(governance, report, visualSuccessor) {
   assert.equal(route.fiveSecondPositioning.primaryBuyer.role, "field_operations_leader");
   assert.equal(route.fiveSecondPositioning.primaryUser.role, "field_representative");
   assert.equal(route.fiveSecondPositioning.primaryPublicAction, "REQUEST_ROUTE_IQ");
-  assert.equal(route.portfolio.soleActiveProduct.name, "Route IQ");
+  assert.equal(route.portfolio.soleActiveProduct.name, "Prometheus Route IQ");
   assert.equal(route.fitnessConnectionBoundary.classification, "FOUNDER_FIELD_RESEARCH");
   assert.equal(route.fitnessConnectionBoundary.customerClaimAllowed, false);
   assert.equal(route.safetyState.recommendationInfluence, "OFF");
@@ -281,7 +281,7 @@ function verifyPublicWebsite(governance) {
 
   const source = read("src/main.jsx");
   for (const required of [
-    "<h1>Route IQ</h1>",
+    "<h1>Prometheus Route IQ</h1>",
     "field operations leader accountable for distributed teams",
     "representative visiting businesses or locations every day",
     "The field knows more than the systems do.",
@@ -302,7 +302,7 @@ function verifyPublicWebsite(governance) {
   const landing = read("landing.html");
   const deployIndex = read("deploy/prometheusrouteiq-website/index.html");
   for (const html of [landing, deployIndex]) {
-    assert.match(html, /<title>Route IQ \| Field Evidence to Decision Intelligence<\/title>/u);
+    assert.match(html, /<title>Prometheus Route IQ \| Field Decision Intelligence for Outside Sales<\/title>/u);
     assert.match(html, /<link rel="canonical" href="https:\/\/prometheusrouteiq\.com\/">/u);
     assert.match(html, /twitter:card" content="summary_large_image"/u);
     assert.match(html, /route-iq-field-operations-social\.jpg/u);
@@ -311,8 +311,8 @@ function verifyPublicWebsite(governance) {
   assert.ok(structuredText, "JSON-LD is missing.");
   const graph = JSON.parse(structuredText)["@graph"];
   assert.deepEqual(graph.map(item => item["@type"]), ["Organization", "SoftwareApplication"]);
-  assert.equal(graph[0].name, "Prometheus");
-  assert.equal(graph[1].name, "Route IQ");
+  assert.equal(graph[0].name, "Prometheus.IQ");
+  assert.equal(graph[1].name, "Prometheus Route IQ");
   assert.equal(graph[1].audience.audienceType, "Field operations leaders and field representatives");
 
   for (const page of ["privacy", "terms", "data-deletion"]) {

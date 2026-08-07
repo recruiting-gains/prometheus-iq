@@ -14,7 +14,7 @@ Every engineering session must first search and verify:
 
 - GitHub repository
 - Current branch
-- Prometheus IQ dashboard
+- Prometheus Route IQ Dashboard
 - Prometheus OS
 - Prometheus Companion
 - Local project folders

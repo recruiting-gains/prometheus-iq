@@ -593,7 +593,7 @@ export function validateAugust1ReadinessSuccessors(successors) {
     "route-iq-august-1-readiness-successors-v1");
   assert.equal(successors.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(successors.historicalCloseoutEvidenceRewritten, false);
-  assert.equal(successors.successors.length, 4);
+  assert.equal(successors.successors.length, 10);
   const infrastructureSuccessor = successors.successors[0];
   assert.equal(infrastructureSuccessor.commit,
     "96c8210b94c3b0214dede252aba3d6d46121cd05");
@@ -671,6 +671,32 @@ export function validateAugust1ReadinessSuccessors(successors) {
       successorSha256: "c9aca5d0af0bce1c675bffff4558e55cd7918d0e6b011f9747a716a6a2b7bdff"
     }
   ]);
+  assert.deepEqual(
+    successors.successors.slice(4).map(successor => successor.commit),
+    [
+      "25f4ad75f8f550ae9bcdb864fe1a6f7acb4db96c",
+      "aa0c50ade9b66fd579c3609107a02e4c70de4179",
+      "9647934b75c46218f6af6304e8d169ccf7285529",
+      "f0782326c2339622feef098c22cf9330c342ae0b",
+      "c4cb9150fb8ad218e34026a63fa577271860c270",
+      "e225b9e6380416cceddbfe10ee7aa318b123e75c"
+    ]
+  );
+  for (const successor of successors.successors.slice(4)) {
+    assertExactObjectKeys(successor, ["commit", "evidence", "owner", "reason", "tree"], "identity successor");
+    assert.match(successor.commit, /^[a-f0-9]{40}$/u);
+    assert.match(successor.tree, /^[a-f0-9]{40}$/u);
+    assert.match(successor.owner, /^Prometheus .+ <[^>]+@prometheus\.local>$/u);
+    assert.ok(typeof successor.reason === "string" && successor.reason.length >= 80);
+    assert.ok(Array.isArray(successor.evidence) && successor.evidence.length > 0);
+    for (const evidence of successor.evidence) {
+      assertExactObjectKeys(evidence, ["path", "previousSha256", "successorSha256"], "identity successor evidence");
+      resolveSafePath("/tmp/overwatch-successor-root", evidence.path);
+      assert.match(evidence.previousSha256, /^[a-f0-9]{64}$/u);
+      assert.match(evidence.successorSha256, /^[a-f0-9]{64}$/u);
+      assert.notEqual(evidence.previousSha256, evidence.successorSha256);
+    }
+  }
   assert.ok(Array.isArray(successors.overwatchCurrentEvidence));
   assert.deepEqual(
     sorted(successors.overwatchCurrentEvidence.map(item => item.path)),
@@ -693,6 +719,16 @@ function successorEvidenceMap(successors) {
     ...successors.successors.flatMap(successor => successor.evidence),
     ...successors.overwatchCurrentEvidence
   ].map(item => [item.path, item]));
+}
+
+function verifySuccessorOwnerChain(root, successors) {
+  for (const successor of successors.successors) {
+    assert.equal(git(root, "rev-parse", `${successor.commit}^{tree}`), successor.tree,
+      `Successor tree drifted: ${successor.commit}`);
+    assert.equal(git(root, "show", "-s", "--format=%an <%ae>", successor.commit), successor.owner,
+      `Successor owner drifted: ${successor.commit}`);
+    git(root, "merge-base", "--is-ancestor", successor.commit, "HEAD");
+  }
 }
 
 function verifyArtifactPins(root, contract, successors) {
@@ -841,11 +877,11 @@ function verifyFixedOwnerEvidence(root, matrix, contract) {
   ]);
 
   const manifest = readJson(root, contract.sourceObservations.genericCustomerPwa.manifestPath);
-  assert.equal(manifest.name, "Route IQ");
+  assert.equal(manifest.name, "Prometheus Route IQ by Prometheus.IQ");
   assert.equal(manifest.short_name, "Route IQ");
   assert.equal(manifest.start_url, "/app");
   const founderManifest = readJson(root, "manifest-founder.webmanifest");
-  assert.match(founderManifest.name, /Founder/u);
+  assert.equal(founderManifest.name, "Prometheus Route IQ by Prometheus.IQ");
   assert.match(founderManifest.start_url, /role=founder/u);
   assert.deepEqual(contract.sourceObservations.genericCustomerPwa, {
     customerManifestCount: 1,
@@ -1034,6 +1070,7 @@ export function verifyOverwatchRouteIqAugust1LaunchReadiness({
     readJson(root, AUGUST_1_SUCCESSORS_PATH)
   );
   assert.equal(sha256(matrixBytes), contract.matrix.sha256, "Readiness matrix hash drifted.");
+  if (verifyGit) verifySuccessorOwnerChain(root, successors);
   verifyArtifactPins(root, contract, successors);
   verifyFixedOwnerEvidence(root, matrix, contract);
   const repository = verifyGit ? verifyRepositoryBaseline(root, contract, { requireClean }) : null;

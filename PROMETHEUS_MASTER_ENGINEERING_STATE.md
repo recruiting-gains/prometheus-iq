@@ -8345,22 +8345,37 @@ Remaining risks:
 - Actual provider execution still depends on each connector/plugin being available and returning usable evidence.
 - Future provider-specific adapters must produce Gaia Evidence Items before evidence can influence Executive Intelligence.
 
+### 2026-08-07: Live Canonical Identity Migration v1
+
+Current identity:
+
+- Company: `Prometheus.IQ`.
+- Product: `Prometheus Route IQ`; `Route IQ` is shorthand only after the full product name is established in the surface or context.
+- Operator: Cruz Garza, sole proprietor.
+- LLC formation and EIN acquisition are superseded as current engineering and launch blockers.
+- Public social launch completed August 6, 2026. The initial audience was friends and family, and the pages and Website are publicly available.
+- Pricing, customer contracts, business banking, tax configuration, and Stripe Live authorization remain external Founder decisions.
+- Founder email delivery remains production-proven.
+- The next product-learning boundary is first real prospect and conversion evidence.
+
+Historical naming, entity, EIN, beta, pilot, receipt, and deployment records remain dated evidence and are not retroactively rewritten. Stable Worker names, routes, bindings, Durable Object identifiers, environment variables, asset paths, email addresses, CRM field keys, URLs, and receipt identities remain unchanged.
+
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:
 
-Complete the external Founder decisions and evidence required for entity formation, EIN, banking, pricing, contracts, and Stripe Live eligibility without activating live billing prematurely.
+Obtain first-real-prospect and conversion evidence through the governed Prometheus Route IQ intake and onboarding path without activating live billing prematurely.
 
-Primary owner: Founder, with Legal, Finance, Administration, and Security review as separately authorized.
+Primary owner: Founder, with CRM, Sales, Administration, and Security support as separately authorized.
 
 Reason:
 
-The durable Website intake, Founder CRM visibility, verified notification destination, and one-shot inbox delivery path are now production-proven. Additional email-routing engineering is not the current constraint; the remaining revenue boundary is external business, legal, banking, pricing, contract, and Stripe Live evidence.
+The durable Website intake, Founder CRM visibility, verified notification destination, and one-shot inbox delivery path are production-proven. The next highest-value learning is whether a real prospect enters and advances through the governed conversion path. Pricing, contracts, business banking, tax configuration, and Stripe Live authorization remain external decisions; LLC formation and EIN acquisition are not current launch blockers.
 
 Current priority order after notification delivery acceptance:
 
-1. Complete external Founder decisions and evidence for entity formation, EIN, banking, pricing, contracts, and Stripe Live eligibility without activating live billing prematurely.
-2. Obtain first-customer evidence through the governed conversion and onboarding path before expanding product scope.
+1. Obtain first-customer evidence through the governed conversion and onboarding path before expanding product scope.
+2. Complete external Founder decisions for pricing, contracts, business banking, tax configuration, and Stripe Live eligibility without activating live billing prematurely.
 3. Consider broader social-launch conversion work only after the notification path and first-customer evidence boundary are controlled.
 
 Known completed Instagram analytics lane:

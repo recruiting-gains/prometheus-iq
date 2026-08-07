@@ -6,7 +6,7 @@ Owner: Prometheus Social Media
 
 Prometheus is the AI operating system for outside sales.
 
-Prometheus IQ is the flagship product and first expression of the larger company vision.
+Prometheus Route IQ is the flagship product and first expression of the larger Prometheus.IQ company vision.
 
 Gym sales is the first validation environment, not the market category.
 
@@ -90,7 +90,7 @@ Website and Sales reuse requires subsystem handoff. Social Media does not modify
 ## Brand Consistency Checklist
 
 - Prometheus is positioned as broad outside-sales infrastructure.
-- Prometheus IQ is named correctly as the flagship product.
+- Prometheus Route IQ is named correctly as the flagship product.
 - Field reality is central.
 - Proprietary intelligence is protected.
 - Claims are verifiable.

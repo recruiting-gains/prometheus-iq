@@ -1,0 +1,178 @@
+{
+  "governanceId": "live-canonical-identity-migration-v1",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "effectiveAt": "2026-08-07T00:00:00.000Z",
+  "startingRepository": {
+    "branch": "main",
+    "commit": "436d899d371b844585a61f232a7c371e33ef1174",
+    "tree": "6bc79df8d6abc36558e989222c6237653f934017"
+  },
+  "canonicalIdentity": {
+    "company": "Prometheus.IQ",
+    "product": "Prometheus Route IQ",
+    "permittedProductShorthand": "Route IQ",
+    "shorthandRule": "AFTER_FULL_NAME_ESTABLISHED",
+    "operator": "Cruz Garza",
+    "operatingForm": "SOLE_PROPRIETOR"
+  },
+  "currentState": {
+    "llcFormationLaunchBlocker": false,
+    "einAcquisitionLaunchBlocker": false,
+    "publicSocialLaunch": "COMPLETED_2026_08_06",
+    "initialAudience": "FRIENDS_AND_FAMILY",
+    "pagesPubliclyAvailable": true,
+    "founderEmailDelivery": "PRODUCTION_PROVEN",
+    "nextProductLearningBoundary": "FIRST_REAL_PROSPECT_AND_CONVERSION_EVIDENCE",
+    "externalFounderDecisions": [
+      "PRICING",
+      "CUSTOMER_CONTRACTS",
+      "BUSINESS_BANKING",
+      "TAX_CONFIGURATION",
+      "STRIPE_LIVE_AUTHORIZATION"
+    ]
+  },
+  "identityInventory": {
+    "currentPublicCustomerFacing": [
+      "landing.html",
+      "src/main.jsx",
+      "public-site-static/privacy/index.html",
+      "public-site-static/terms/index.html",
+      "public-site-static/data-deletion/index.html",
+      "public-site-static/site.webmanifest",
+      "public-site-static/site-20260701-brand-v2.webmanifest",
+      "deploy/prometheusrouteiq-website/**"
+    ],
+    "currentOperational": [
+      "index.html",
+      "manifest.webmanifest",
+      "manifest-founder.webmanifest",
+      "deploy/cloudflare-pages/**",
+      "workers/infrastructure/route-iq-request-crm-runtime.js",
+      "administration/contracts/route-iq-paid-customer-revenue-readiness-v1.*",
+      "administration/workflows/route-iq-first-customer-activation-v1.md",
+      "administration/workflows/route-iq-paid-customer-revenue-lifecycle-v1.md",
+      "docs/route-iq-commercial-product-contract-v1.json",
+      "docs/route-iq-public-positioning-claims-contract-v1.json",
+      "data/qualified-prospects/README.md",
+      "data/qualified-prospects/qualified-prospects.schema.json",
+      "prometheus-os/backend/server.js",
+      "sales/**"
+    ],
+    "currentGovernance": [
+      "COMPANY_IDENTITY.md",
+      "PRODUCT_VISION.md",
+      "README.md",
+      "PROMETHEUS_CONSTITUTION.md",
+      "PROMETHEUS_SYSTEM_MAP.md",
+      "docs/route-iq-production-known-limitations-v1.md",
+      "social-media/founder-marketing-operating-system/brand-and-growth-strategy.md",
+      "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+      "overwatch/governance/live-canonical-identity-migration-v1.json"
+    ],
+    "historicalEvidence": [
+      "PROMETHEUS EXECUTIVE PACKAGE/**",
+      "PROMETHEUS OPERATING SYSTEM/**",
+      "SENDABLE LEADERSHIP PACKET/**",
+      "PROMETHEUS_MASTER_CONTEXT.md",
+      "PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md",
+      "dated root engineering and intelligence reports",
+      "dated or superseded docs not listed as current governance or operations",
+      "legal/** draft and historical templates",
+      "patents/route-iq/** historical invention evidence",
+      "overwatch/reports/**",
+      "overwatch/governance/*-v1.json except this current migration record",
+      "data/route-iq-field-sessions-v1/workspaces/**",
+      "administration/registers/beta-testers.json",
+      "administration/registers/stabilization-issues.json"
+    ],
+    "stableTechnicalIdentifiers": [
+      "prometheusrouteiq.com",
+      "PrometheusRouteIQ/prometheus-iq",
+      "prometheus-iq",
+      "prometheusrouteiq-website",
+      "ROUTE_IQ_REQUEST_CRM_COORDINATOR",
+      "intake@prometheusrouteiq.com",
+      "prometheusrouteiq@gmail.com",
+      "riq_receipt_*",
+      "existing Worker routes, Durable Object names, bindings, environment variables, analytics keys, asset paths, CRM field keys, URLs, and bookmarks"
+    ],
+    "testFixturesAndCompatibility": [
+      "legacy Prometheus IQ report app values accepted only for historical import compatibility",
+      "legacy Prometheus IQ wording parsed only from immutable historical Aegis evidence",
+      "historical fixture paths and negative regression assertions",
+      "internal Prometheus subsystem program names"
+    ]
+  },
+  "protectedReceipts": [
+    "riq_receipt_e74e57903a211291a9f1f37a",
+    "riq_receipt_b06adcc8fb2a58449ecf52a3",
+    "riq_receipt_ba75a444905b0f6e78624b30"
+  ],
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "activeBusinesses": 0,
+    "reserveBusinesses": 0,
+    "quarantinedBusinesses": 398,
+    "companion": "DORMANT",
+    "anthonyMapped": false,
+    "stripeMode": "NON_LIVE",
+    "leadSubmissionsAuthorized": 0,
+    "crmMutationsAuthorized": 0,
+    "notificationAttemptsAuthorized": 0
+  },
+  "startingProduction": {
+    "publicWorker": {
+      "name": "prometheusrouteiq-website",
+      "version": "6a8713c0-0712-4cda-8a13-daa893ca45f2",
+      "trafficPercent": 100
+    },
+    "privateWorker": {
+      "name": "prometheus-iq",
+      "version": "38a35bd0-6bff-47ad-af70-6180a0b2fc55",
+      "trafficPercent": 100
+    }
+  },
+  "ownerCommitChain": [
+    { "subsystem": "Prometheus Route IQ", "commit": "25f4ad75f8f550ae9bcdb864fe1a6f7acb4db96c", "tree": "b517a1ef3ed850b114621e533ec7195f17954c05" },
+    { "subsystem": "Prometheus Administration", "commit": "0674b32f2214afe1af8b53fa9d7fedd42ff3b552", "tree": "89e78805239dfa12341843be3183a56f5fd17d3f" },
+    { "subsystem": "Prometheus Data", "commit": "a0856eb22bda483aa87f361ef9bb54d63b61e686", "tree": "940f09b83dab2762f55a5651a6dccdcc073d8a3f" },
+    { "subsystem": "Prometheus Website", "commit": "aa0c50ade9b66fd579c3609107a02e4c70de4179", "tree": "374b35edb1976e8eb0431acdf67c61f200c69739" },
+    { "subsystem": "Prometheus Dashboard", "commit": "9647934b75c46218f6af6304e8d169ccf7285529", "tree": "db270aabeb4b0bea9cc6e9690cb1cc4d129b15a8" },
+    { "subsystem": "Prometheus Sales", "commit": "f0782326c2339622feef098c22cf9330c342ae0b", "tree": "0e66b508157c937f08e6ac394b969734ce1f8c28" },
+    { "subsystem": "Prometheus Companion", "commit": "ce1d85b49511f80a7644e44ddeb90d90336b49c9", "tree": "8f39efe2965d3a7a96c9b437617641565a244d3d" },
+    { "subsystem": "Prometheus Infrastructure", "commit": "c4cb9150fb8ad218e34026a63fa577271860c270", "tree": "e7870b29540e0fb2fa89dbf691804192e3cf9c1d" },
+    { "subsystem": "Prometheus Infrastructure", "commit": "e225b9e6380416cceddbfe10ee7aa318b123e75c", "tree": "6fe395423d6b907c967e0ce588b53f7307cbba2b" },
+    { "subsystem": "Prometheus Infrastructure", "commit": "c7dc84a39de41bc5d87c6f4bd47533a82b8f6f3f", "tree": "68b3ef48bf757502e582bd499307e33110b41298" }
+  ],
+  "releasePreparation": {
+    "ownerChainHead": {
+      "commit": "c7dc84a39de41bc5d87c6f4bd47533a82b8f6f3f",
+      "tree": "68b3ef48bf757502e582bd499307e33110b41298"
+    },
+    "publicDeploymentAssetsSha256": "93526aca609a237fe26ba69f11d786549623b186fe7f106f3bf998e476dd22cf",
+    "publicRollback": {
+      "contractPath": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+      "contractSha256": "4477ddff8777d95e74023a09f2e9a7895060e1d290eeb5d9b2557ca620d827c7",
+      "artifactSha256": "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6"
+    },
+    "privateRollback": {
+      "contractPath": "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
+      "contractSha256": "0c38be17c0823b1e247f1781353bbce543d66deb46f775c7a905b4164cb6d951",
+      "contentTreeSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
+    },
+    "hostedQualification": "REQUIRED_AT_EXACT_FINAL_COMMIT",
+    "deploymentOrder": [
+      "prometheusrouteiq-website",
+      "prometheus-iq"
+    ]
+  },
+  "historicalPolicy": "PRESERVE_DATED_TRUTH_AND_SUPERSEDE_WITH_CURRENT_GOVERNANCE",
+  "deploymentScope": [
+    "prometheusrouteiq-website",
+    "prometheus-iq"
+  ]
+}

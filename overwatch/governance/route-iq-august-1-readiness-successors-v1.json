@@ -5,18 +5,18 @@
   "overwatchCurrentEvidence": [
     {
       "path": "package.json",
-      "previousSha256": "1478d8113583c10752c8c6eddf8bb301ea666830821fae8bafb1327f00d2ae6f",
-      "successorSha256": "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a"
+      "previousSha256": "6a7434c52a2491f4820d18657aa2a2dcf92d02c3fdf910a365555aa096dd8e5d",
+      "successorSha256": "3c7c9a50ffed874d711085ec95c04eb525f2caee88975eca20385f243aafda87"
     },
     {
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "previousSha256": "8f7a94f86ae419d735f31a6cce3509e459ed4b6df673d32cb8b63ad1586efdff",
-      "successorSha256": "4e109e596f22deb715677b7e570699bd21131ee766152f1c4bbcc9294411fdfe"
+      "successorSha256": "4cda61b89e44d776f5cb3391872231a46d2df6189bf576c4d635ebb127e11110"
     },
     {
       "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
-      "previousSha256": "1f44fda6b957e2f86b24eba1aab174c892fde986ecdbc764a2e97d53e6987725",
-      "successorSha256": "49d16901c39b8746e1d7ed354315557bf0e7d99adf519101b86c07b1d541524d"
+      "previousSha256": "49d16901c39b8746e1d7ed354315557bf0e7d99adf519101b86c07b1d541524d",
+      "successorSha256": "7c491c0f34244f0362fd1de5849ceb032fcaf8b6ed3e116eced48b90943e6e97"
     }
   ],
   "successors": [
@@ -84,6 +84,134 @@
           "path": "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
           "previousSha256": "37464cccb6b300605f3bccfaf7ffdf4fbd8aa74acd2b3111af7e151e97972790",
           "successorSha256": "c9aca5d0af0bce1c675bffff4558e55cd7918d0e6b011f9747a716a6a2b7bdff"
+        }
+      ]
+    },
+    {
+      "commit": "25f4ad75f8f550ae9bcdb864fe1a6f7acb4db96c",
+      "tree": "b517a1ef3ed850b114621e533ec7195f17954c05",
+      "owner": "Prometheus Route IQ <route-iq@prometheus.local>",
+      "reason": "The canonical identity migration updates the current Route IQ limitation disclosure while preserving every historical August 1 closeout record and protected operating boundary.",
+      "evidence": [
+        {
+          "path": "docs/route-iq-production-known-limitations-v1.md",
+          "previousSha256": "b8dcc3c4b1bff4d031c6f88e1a6efcc4006b2394078fd33c9b911cf8efe50ff4",
+          "successorSha256": "c829595aa736c97b4007d618fcd50b30ee2debec9bcf7e68aaac26b7f65c09e9"
+        }
+      ]
+    },
+    {
+      "commit": "aa0c50ade9b66fd579c3609107a02e4c70de4179",
+      "tree": "374b35edb1976e8eb0431acdf67c61f200c69739",
+      "owner": "Prometheus Website <website@prometheus.local>",
+      "reason": "The Website owner updates only canonical company and product wording while retaining the governed request contract, approved 3D presentation, and every production safety boundary.",
+      "evidence": [
+        {
+          "path": "tests/website-route-iq-product-focus.test.mjs",
+          "previousSha256": "3c04615d99b9c113ea0f17bfb814fcfd0606a9b250bcabcc0e4d2acaa4bb9b66",
+          "successorSha256": "a517f51c87f9e9f1f63469acd65c5c25ba839f2b19745d0fe3e636749642b257"
+        }
+      ]
+    },
+    {
+      "commit": "9647934b75c46218f6af6304e8d169ccf7285529",
+      "tree": "db270aabeb4b0bea9cc6e9690cb1cc4d129b15a8",
+      "owner": "Prometheus Dashboard <dashboard@prometheus.local>",
+      "reason": "The Dashboard owner establishes the canonical product identity on first-use and install surfaces while retaining role enforcement, tenant isolation, and protected OFF states.",
+      "evidence": [
+        {
+          "path": "index.html",
+          "previousSha256": "336ca7a07fbf7ff9f27e77d674f9191d88253dd7db8ba5016e7f5da91884dad0",
+          "successorSha256": "235be31ca523e7ba0d008de040fde8c32a4a8871c307eacb6a5273dd3646fa72"
+        },
+        {
+          "path": "manifest-founder.webmanifest",
+          "previousSha256": "40c0793fe0834d70a21acaea8b1b39992555e28474985df9d521b464c03212e6",
+          "successorSha256": "6da8943ff8942ab6c9342e48598a83a20459ab9a37d875fbd58408df499c7d51"
+        },
+        {
+          "path": "manifest.webmanifest",
+          "previousSha256": "6ff1654268df7e31cf0e09227fa31f6042e27246061d368023e7bc57724cbaf3",
+          "successorSha256": "6afeebcc34788895911d9da79fc9a3170fe62378ef82c678e8c0893d39b2d390"
+        },
+        {
+          "path": "scripts/verify-dashboard-runtime-workflows.mjs",
+          "previousSha256": "ff8316baef4e9c02d81489a5f902de20fa17a9b9c6eb560d33d9026c5f3a66ad",
+          "successorSha256": "ceedb7133621557fe188ccc9fec676a7d57b2b257e38b76855c6d1e98e0c29f5"
+        },
+        {
+          "path": "tests/dashboard-route-iq-customer-pwa.test.mjs",
+          "previousSha256": "d9f03bfa4bc48a43356e40ab565feaceb23edac90f71b88540f9357956aa0e56",
+          "successorSha256": "05efa523442ec5e8adf634f3367afc5662edf93782468cb3091398d8b123dd98"
+        },
+        {
+          "path": "tests/dashboard-route-iq-product-focus.test.mjs",
+          "previousSha256": "f319f872421ac6b50ebe7c07865239053f6639fea106eafd51061ddd52ff0cbf",
+          "successorSha256": "1b91ede6effcbf5697fdde6cb81a8489fcb6fbcde1e536a81f8e42e6f922c523"
+        }
+      ]
+    },
+    {
+      "commit": "f0782326c2339622feef098c22cf9330c342ae0b",
+      "tree": "0e66b508157c937f08e6ac394b969734ce1f8c28",
+      "owner": "Prometheus Sales <sales@prometheus.local>",
+      "reason": "The Sales owner applies the canonical product identity to current customer onboarding material without changing pricing authority, customer state, or activation controls.",
+      "evidence": [
+        {
+          "path": "sales/route-iq-customer-onboarding-v1.md",
+          "previousSha256": "896ffea9616ef3723b141e6dd6a479bf3abe88c0e67582c04d6f01343fe67e2f",
+          "successorSha256": "26700893991aa126a83ef24250a3ae35f8fb2eac05ed3831edcb737869756a10"
+        }
+      ]
+    },
+    {
+      "commit": "c4cb9150fb8ad218e34026a63fa577271860c270",
+      "tree": "e7870b29540e0fb2fa89dbf691804192e3cf9c1d",
+      "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "reason": "Infrastructure regenerates the private and public identity-bearing packages and notification labels while preserving bindings, migrations, routes, secrets, and existing CRM records.",
+      "evidence": [
+        {
+          "path": "_headers",
+          "previousSha256": "96a4816d019802805b61d88699ba952a7180428f9d9d006bb8e319ea3a536275",
+          "successorSha256": "2be69aefc6de11fd91620e8f9c253fbd37f5561fa28527b551ae0c593cd645a4"
+        },
+        {
+          "path": "deploy/cloudflare-pages/_headers",
+          "previousSha256": "96a4816d019802805b61d88699ba952a7180428f9d9d006bb8e319ea3a536275",
+          "successorSha256": "2be69aefc6de11fd91620e8f9c253fbd37f5561fa28527b551ae0c593cd645a4"
+        },
+        {
+          "path": "deploy/cloudflare-pages/index.html",
+          "previousSha256": "336ca7a07fbf7ff9f27e77d674f9191d88253dd7db8ba5016e7f5da91884dad0",
+          "successorSha256": "235be31ca523e7ba0d008de040fde8c32a4a8871c307eacb6a5273dd3646fa72"
+        },
+        {
+          "path": "deploy/cloudflare-pages/manifest-founder.webmanifest",
+          "previousSha256": "40c0793fe0834d70a21acaea8b1b39992555e28474985df9d521b464c03212e6",
+          "successorSha256": "6da8943ff8942ab6c9342e48598a83a20459ab9a37d875fbd58408df499c7d51"
+        },
+        {
+          "path": "deploy/cloudflare-pages/manifest.webmanifest",
+          "previousSha256": "6ff1654268df7e31cf0e09227fa31f6042e27246061d368023e7bc57724cbaf3",
+          "successorSha256": "6afeebcc34788895911d9da79fc9a3170fe62378ef82c678e8c0893d39b2d390"
+        },
+        {
+          "path": "workers/infrastructure/route-iq-request-crm-runtime.js",
+          "previousSha256": "d94123c135fa8030cd6cb10385ff2198ae71ce33e5b0580e7243bbd3aeba68a9",
+          "successorSha256": "0e85ad567529ea2d747dcc07352f7459801ca9058831e5630896ad94df081dcf"
+        }
+      ]
+    },
+    {
+      "commit": "e225b9e6380416cceddbfe10ee7aa318b123e75c",
+      "tree": "6fe395423d6b907c967e0ce588b53f7307cbba2b",
+      "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "reason": "Infrastructure binds the current canonical identity deployment assets to a forward-compatible rollback contract that preserves the CRM namespace, class, migration, and records.",
+      "evidence": [
+        {
+          "path": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+          "previousSha256": "df9a90e39076df62bb6c3ec521a9dd86afe8d65f0836645237dbc2d08c69302d",
+          "successorSha256": "4477ddff8777d95e74023a09f2e9a7895060e1d290eeb5d9b2557ca620d827c7"
         }
       ]
     }
