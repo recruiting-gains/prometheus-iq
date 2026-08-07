@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -7,6 +8,7 @@ import {
   evaluateFounderAttendedProvisioningGovernance,
   hasControlledRehearsalPackageWiringSuccessor,
   hasFullSystemHarmonyPackageWiringSuccessor,
+  hasLiveCanonicalIdentityPackageWiringSuccessor,
   verifyOverwatchFounderAttendedProvisioning
 } from "../scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs";
 
@@ -15,11 +17,22 @@ const readJson = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
 const contract = readJson("workers/infrastructure/cloudflare-founder-attended-service-token-v1.json");
 const governance = readJson("overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.json");
 const report = readJson("overwatch/reports/BATCH-20260714-007-cloudflare-founder-attended-service-token-provisioning.json");
-const controlledRehearsalSuccessors = readJson(
-  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
-);
+const readinessSuccessorsPath =
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
+const controlledRehearsalSuccessors = JSON.parse(execFileSync(
+  "/usr/bin/git",
+  [
+    "show",
+    `c7dc84a39de41bc5d87c6f4bd47533a82b8f6f3f:${readinessSuccessorsPath}`
+  ],
+  { cwd: root, encoding: "utf8" }
+));
+const currentCanonicalReadinessSuccessors = readJson(readinessSuccessorsPath);
 const fullSystemHarmonyGovernance = readJson(
   "overwatch/governance/full-system-harmony-audit-v1.json"
+);
+const liveCanonicalIdentityGovernance = readJson(
+  "overwatch/governance/live-canonical-identity-migration-v1.json"
 );
 const clone = value => structuredClone(value);
 const evaluate = (nextContract = contract, nextGovernance = governance, nextReport = report) =>
@@ -105,6 +118,54 @@ test("Founder-attended governance accepts only the exact harmony package success
     governance: fullSystemHarmonyGovernance,
     predecessorSha256,
     successorSha256: "0".repeat(64)
+  }), false);
+});
+
+test("Founder-attended governance accepts only the exact canonical identity package successor", () => {
+  const transition =
+    liveCanonicalIdentityGovernance.releasePreparation.packageReleaseWiringSuccessor;
+  assert.equal(hasLiveCanonicalIdentityPackageWiringSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    readinessGovernance: currentCanonicalReadinessSuccessors,
+    predecessorSha256: transition.previousSha256,
+    successorSha256: transition.currentSha256
+  }), true);
+
+  for (const mutate of [
+    value => { value.ownerSubsystem = "Prometheus Infrastructure"; },
+    value => { value.canonicalIdentity.company = "Prometheus IQ"; },
+    value => { value.releasePreparation.packageReleaseWiringSuccessor.ownerCommit = "0".repeat(40); },
+    value => { value.releasePreparation.packageReleaseWiringSuccessor.historicalPackageWiringRewritten = true; }
+  ]) {
+    const changed = clone(liveCanonicalIdentityGovernance);
+    mutate(changed);
+    assert.equal(hasLiveCanonicalIdentityPackageWiringSuccessor({
+      governance: changed,
+      readinessGovernance: currentCanonicalReadinessSuccessors,
+      predecessorSha256: transition.previousSha256,
+      successorSha256: transition.currentSha256
+    }), false);
+  }
+  assert.equal(hasLiveCanonicalIdentityPackageWiringSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    readinessGovernance: currentCanonicalReadinessSuccessors,
+    predecessorSha256: "0".repeat(64),
+    successorSha256: transition.currentSha256
+  }), false);
+  assert.equal(hasLiveCanonicalIdentityPackageWiringSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    readinessGovernance: currentCanonicalReadinessSuccessors,
+    predecessorSha256: transition.previousSha256,
+    successorSha256: "0".repeat(64)
+  }), false);
+  const changedReadiness = clone(currentCanonicalReadinessSuccessors);
+  changedReadiness.overwatchCurrentEvidence.find(item => item.path === "package.json")
+    .successorSha256 = "0".repeat(64);
+  assert.equal(hasLiveCanonicalIdentityPackageWiringSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    readinessGovernance: changedReadiness,
+    predecessorSha256: transition.previousSha256,
+    successorSha256: transition.currentSha256
   }), false);
 });
 

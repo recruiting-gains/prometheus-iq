@@ -181,6 +181,17 @@
       "contractSha256": "0c38be17c0823b1e247f1781353bbce543d66deb46f775c7a905b4164cb6d951",
       "contentTreeSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
     },
+    "packageReleaseWiringSuccessor": {
+      "classification": "LIVE_CANONICAL_IDENTITY_PACKAGE_SUCCESSOR",
+      "path": "package.json",
+      "previousSha256": "6a7434c52a2491f4820d18657aa2a2dcf92d02c3fdf910a365555aa096dd8e5d",
+      "currentSha256": "3c7c9a50ffed874d711085ec95c04eb525f2caee88975eca20385f243aafda87",
+      "ownerCommit": "e9971e6d5efc20ed9d0d2190949276cd38d1f50c",
+      "ownerParent": "c7dc84a39de41bc5d87c6f4bd47533a82b8f6f3f",
+      "ownerTree": "903deca544eb0b21dcaa16a18e044cc3f3890e2e",
+      "ownerSubsystem": "Prometheus Overwatch",
+      "historicalPackageWiringRewritten": false
+    },
     "hostedQualification": "REQUIRED_AT_EXACT_FINAL_COMMIT",
     "deploymentOrder": [
       "prometheusrouteiq-website",

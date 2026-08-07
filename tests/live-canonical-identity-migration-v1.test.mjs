@@ -192,6 +192,17 @@ test("current governance records the launch facts and keeps protected receipts i
   assert.equal(governance.releasePreparation.publicWorkflowsChanged, false);
   assert.equal(governance.releasePreparation.publicRollback.artifactSha256,
     "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6");
+  assert.deepEqual(governance.releasePreparation.packageReleaseWiringSuccessor, {
+    classification: "LIVE_CANONICAL_IDENTITY_PACKAGE_SUCCESSOR",
+    path: "package.json",
+    previousSha256: "6a7434c52a2491f4820d18657aa2a2dcf92d02c3fdf910a365555aa096dd8e5d",
+    currentSha256: "3c7c9a50ffed874d711085ec95c04eb525f2caee88975eca20385f243aafda87",
+    ownerCommit: "e9971e6d5efc20ed9d0d2190949276cd38d1f50c",
+    ownerParent: "c7dc84a39de41bc5d87c6f4bd47533a82b8f6f3f",
+    ownerTree: "903deca544eb0b21dcaa16a18e044cc3f3890e2e",
+    ownerSubsystem: "Prometheus Overwatch",
+    historicalPackageWiringRewritten: false
+  });
   assert.deepEqual(governance.releasePreparation.deploymentOrder, [
     "prometheusrouteiq-website",
     "prometheus-iq"

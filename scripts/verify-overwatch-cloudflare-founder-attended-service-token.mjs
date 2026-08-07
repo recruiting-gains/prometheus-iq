@@ -35,6 +35,8 @@ const controlledRehearsalReadinessSuccessorsPath =
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 const fullSystemHarmonyGovernancePath =
   "overwatch/governance/full-system-harmony-audit-v1.json";
+const liveCanonicalIdentityGovernancePath =
+  "overwatch/governance/live-canonical-identity-migration-v1.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const ownerCommit = "a0a1eb8e434015ea7a0f403e4be0a8979724d9a8";
 const ownerParent = "09418ac6eb4a67b7cc302ba7a30705e9c1012fd5";
@@ -65,6 +67,24 @@ const fullSystemHarmonyPackageReleaseWiringPaths = Object.freeze([
   "scripts/verify-overwatch-full-system-harmony-audit-v1.mjs",
   "tests/full-system-harmony-cross-subsystem.test.mjs",
   "tests/overwatch-full-system-harmony-audit-v1.test.mjs"
+]);
+const liveCanonicalIdentityPackageReleaseWiringCommit =
+  "e9971e6d5efc20ed9d0d2190949276cd38d1f50c";
+const liveCanonicalIdentityPackageReleaseWiringParent =
+  "c7dc84a39de41bc5d87c6f4bd47533a82b8f6f3f";
+const liveCanonicalIdentityPackageReleaseWiringTree =
+  "903deca544eb0b21dcaa16a18e044cc3f3890e2e";
+const liveCanonicalIdentityPackageReleaseWiringPaths = Object.freeze([
+  "PROMETHEUS_CONSTITUTION.md",
+  "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+  "overwatch/governance/live-canonical-identity-migration-v1.json",
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
+  "package.json",
+  "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+  "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs",
+  "social-media/founder-marketing-operating-system/brand-and-growth-strategy.md",
+  "tests/live-canonical-identity-migration-v1.test.mjs",
+  "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
 ]);
 
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -123,6 +143,38 @@ export function hasFullSystemHarmonyPackageWiringSuccessor({
     && successorSha256 ===
       "6a7434c52a2491f4820d18657aa2a2dcf92d02c3fdf910a365555aa096dd8e5d"
     && ownerMatches.length === 1;
+}
+
+export function hasLiveCanonicalIdentityPackageWiringSuccessor({
+  governance,
+  readinessGovernance,
+  predecessorSha256,
+  successorSha256
+}) {
+  const transition = governance?.releasePreparation?.packageReleaseWiringSuccessor;
+  const readinessMatches = readinessGovernance?.overwatchCurrentEvidence?.filter(item => (
+    item.path === "package.json"
+    && item.previousSha256 === predecessorSha256
+    && item.successorSha256 === successorSha256
+  )) ?? [];
+  return governance?.governanceId === "live-canonical-identity-migration-v1"
+    && governance?.ownerSubsystem === "Prometheus Overwatch"
+    && governance?.canonicalIdentity?.company === "Prometheus.IQ"
+    && governance?.canonicalIdentity?.product === "Prometheus Route IQ"
+    && transition?.classification === "LIVE_CANONICAL_IDENTITY_PACKAGE_SUCCESSOR"
+    && transition?.path === "package.json"
+    && transition?.previousSha256 === predecessorSha256
+    && transition?.currentSha256 === successorSha256
+    && transition?.ownerCommit === liveCanonicalIdentityPackageReleaseWiringCommit
+    && transition?.ownerParent === liveCanonicalIdentityPackageReleaseWiringParent
+    && transition?.ownerTree === liveCanonicalIdentityPackageReleaseWiringTree
+    && transition?.ownerSubsystem === "Prometheus Overwatch"
+    && transition?.historicalPackageWiringRewritten === false
+    && readinessGovernance?.governanceId ===
+      "route-iq-august-1-readiness-successors-v1"
+    && readinessGovernance?.ownerSubsystem === "Prometheus Overwatch"
+    && readinessGovernance?.historicalCloseoutEvidenceRewritten === false
+    && readinessMatches.length === 1;
 }
 const expectedEvidencePaths = Object.freeze([
   ".gitignore",
@@ -508,13 +560,18 @@ function verifyPackageReleaseWiring() {
       item.predecessorGovernanceId === "route-iq-3d-visual-continuity-v1"
       && item.path === "package.json"
     ));
-  const controlledRehearsalReadinessSuccessors =
+  const controlledRehearsalReadinessSuccessors = JSON.parse(gitFile(
+    liveCanonicalIdentityPackageReleaseWiringParent,
+    controlledRehearsalReadinessSuccessorsPath
+  ));
+  const currentCanonicalReadinessSuccessors =
     readJson(controlledRehearsalReadinessSuccessorsPath);
   const controlledRehearsalPackageTransition =
     controlledRehearsalReadinessSuccessors.overwatchCurrentEvidence?.find(
       item => item.path === "package.json"
     );
   const fullSystemHarmonyGovernance = readJson(fullSystemHarmonyGovernancePath);
+  const liveCanonicalIdentityGovernance = readJson(liveCanonicalIdentityGovernancePath);
   const packageOwnerFields = git([
     "show",
     "-s",
@@ -541,12 +598,33 @@ function verifyPackageReleaseWiring() {
     "-r",
     fullSystemHarmonyPackageReleaseWiringCommit
   ]).split("\n").filter(Boolean).sort();
+  const liveCanonicalIdentityPackageOwnerFields = git([
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    liveCanonicalIdentityPackageReleaseWiringCommit
+  ]).split("\n");
+  const liveCanonicalIdentityPackageOwnerPaths = git([
+    "diff-tree",
+    "--no-commit-id",
+    "--name-only",
+    "-r",
+    liveCanonicalIdentityPackageReleaseWiringCommit
+  ]).split("\n").filter(Boolean).sort();
   const fullSystemHarmonyPackagePredecessorSha256 = sha256(gitFile(
     fullSystemHarmonyPackageReleaseWiringParent,
     "package.json"
   ));
   const fullSystemHarmonyPackageSuccessorSha256 = sha256(gitFile(
     fullSystemHarmonyPackageReleaseWiringCommit,
+    "package.json"
+  ));
+  const liveCanonicalIdentityPackagePredecessorSha256 = sha256(gitFile(
+    liveCanonicalIdentityPackageReleaseWiringParent,
+    "package.json"
+  ));
+  const liveCanonicalIdentityPackageSuccessorSha256 = sha256(gitFile(
+    liveCanonicalIdentityPackageReleaseWiringCommit,
     "package.json"
   ));
   if (responseContractTransition?.successorSha256 !== packageTransition?.previousSha256
@@ -570,7 +648,15 @@ function verifyPackageReleaseWiring() {
       predecessorSha256: fullSystemHarmonyPackagePredecessorSha256,
       successorSha256: fullSystemHarmonyPackageSuccessorSha256
     })
-    || fullSystemHarmonyPackageSuccessorSha256 !== sha256(read("package.json"))
+    || fullSystemHarmonyPackageSuccessorSha256 !==
+      liveCanonicalIdentityPackagePredecessorSha256
+    || !hasLiveCanonicalIdentityPackageWiringSuccessor({
+      governance: liveCanonicalIdentityGovernance,
+      readinessGovernance: currentCanonicalReadinessSuccessors,
+      predecessorSha256: liveCanonicalIdentityPackagePredecessorSha256,
+      successorSha256: liveCanonicalIdentityPackageSuccessorSha256
+    })
+    || liveCanonicalIdentityPackageSuccessorSha256 !== sha256(read("package.json"))
     || packageTransition?.owner !== "Prometheus Overwatch"
     || keychainTransition?.owner !== "Prometheus Overwatch"
     || githubDeploymentTransition?.owner !== "Prometheus Overwatch"
@@ -597,6 +683,18 @@ function verifyPackageReleaseWiring() {
     || !equalJson(
       fullSystemHarmonyPackageOwnerPaths,
       [...fullSystemHarmonyPackageReleaseWiringPaths].sort()
+    )
+    || !equalJson(liveCanonicalIdentityPackageOwnerFields, [
+      liveCanonicalIdentityPackageReleaseWiringCommit,
+      liveCanonicalIdentityPackageReleaseWiringParent,
+      liveCanonicalIdentityPackageReleaseWiringTree,
+      "Prometheus Overwatch <overwatch@prometheus.local>",
+      "Prometheus Overwatch <overwatch@prometheus.local>",
+      "overwatch: govern live canonical identity migration"
+    ])
+    || !equalJson(
+      liveCanonicalIdentityPackageOwnerPaths,
+      [...liveCanonicalIdentityPackageReleaseWiringPaths].sort()
     )) {
     throw new Error("Current package release-wiring successor hash drifted.");
   }
