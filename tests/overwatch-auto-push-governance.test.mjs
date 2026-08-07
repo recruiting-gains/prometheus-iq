@@ -171,11 +171,21 @@ test("master engineering state preserves intake history while current CRM truth 
   assert.match(state, /RouteIqRequestCrmCoordinator/u);
   assert.match(state, /notification result is terminally classified `failed`/u);
   assert.match(state, /missing external Cloudflare email-destination configuration/u);
+  assert.match(state, /### 2026-08-07: Email Routing Domain Onboarding \+ Final Founder Delivery Acceptance v1/u);
+  assert.match(state, /`riq_receipt_e74e57903a211291a9f1f37a` remains terminal `failed`/u);
+  assert.match(state, /`riq_receipt_b06adcc8fb2a58449ecf52a3` remains terminal `delivery_ambiguous`/u);
+  assert.match(state, /`riq_receipt_ba75a444905b0f6e78624b30`/u);
+  assert.match(state, /final delivery classification is `delivered_inbox`/u);
+  assert.match(state, /SPF `pass`, DKIM `pass`, and DMARC `not-reported`/u);
+  assert.match(state, /No DMARC record, active routing rule, catch-all forwarding rule, paid Email Sending domain/u);
+  assert.match(state, /Founder notification delivery is production-proven/u);
 
   assert.match(duplicateRegister, /Current production accepts validated `POST \/api\/partner-intake` requests into durable CRM storage/u);
+  assert.match(duplicateRegister, /production-proven through the verified Cloudflare Email destination/u);
+  assert.match(duplicateRegister, /preserve both earlier terminal failure records as immutable evidence/u);
   assert.doesNotMatch(duplicateRegister, /current production flow is browser-local `localStorage` plus `mailto:` only/u);
-  assert.match(nextTask, /Founder notification external-configuration reconciliation and repair/u);
   assert.match(nextTask, /entity formation, EIN, banking, pricing, contracts, and Stripe Live eligibility/u);
+  assert.match(nextTask, /Additional email-routing engineering is not the current constraint/u);
   assert.match(nextTask, /first-customer evidence/u);
   assert.doesNotMatch(nextTask, /Current active highest-priority task:\s+Operation Aegis Phase II/u);
 });

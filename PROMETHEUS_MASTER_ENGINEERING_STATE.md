@@ -3111,6 +3111,36 @@ Smallest safe repair boundary:
 - Under separate Founder authorization, Infrastructure must onboard only the governed Cloudflare Email Routing destination, verify the Founder-owned destination address, and confirm the existing fixed binding can send to it.
 - The immutable failed receipt must not be retried or rewritten. Delivery acceptance must use one separately authorized, clearly synthetic new request after configuration passes.
 
+### 2026-08-07: Email Routing Domain Onboarding + Final Founder Delivery Acceptance v1
+
+Subsystem: Prometheus Infrastructure for the narrowly authorized Cloudflare Email Routing domain configuration, independently verified by Prometheus Overwatch through authoritative DNS, public Website, CRM receipt, and Founder-mailbox evidence.
+
+Status: PASS. This entry supersedes the missing-email-destination blocker for current production decisions without rewriting either historical terminal receipt above.
+
+Production configuration and rollback boundary:
+
+- Cloudflare Email Routing is enabled only for `prometheusrouteiq.com`.
+- The authorized DNS change consists of three Cloudflare MX records at priorities 16, 66, and 80, the exact Cloudflare Email Routing SPF record, and Cloudflare's generated `cf2024-1._domainkey` DKIM public key.
+- Both authoritative nameservers published the exact five-record set. Public DNS resolvers observed the set, while apex and `www` HTTPS continued to return `200` with the pre-change A/AAAA routing unchanged.
+- No DMARC record, active routing rule, catch-all forwarding rule, paid Email Sending domain, external mail provider, Worker deployment, source change, or unrelated DNS change was introduced. Cloudflare's built-in catch-all remains disabled with the drop action and is not counted as an active routing rule.
+- The Founder-owned destination `prometheusrouteiq@gmail.com` remains verified. The existing `FOUNDER_EMAIL` binding and fixed sender/destination variables were reused without value changes.
+- The prepared rollback is limited to disabling this Email Routing domain and removing only the three MX, SPF, and DKIM records added by this batch. Rollback was not invoked because routing, DNS, Website health, CRM acceptance, and inbox delivery all passed.
+
+Final synthetic acceptance:
+
+- Exactly one clearly synthetic production request was submitted at `2026-08-07T21:13:02.660Z`; it was durably accepted under receipt `riq_receipt_ba75a444905b0f6e78624b30`.
+- Synthetic identity is explicit in the business, contact, industry, territory, and use-case fields. The Website's governed runtime source normalization remains `route_iq_website`, so no separate synthetic acquisition-source value is claimed.
+- Exactly one notification attempt produced one Gmail message from `intake@prometheusrouteiq.com` to the Founder-owned destination with subject `New Route IQ request riq_receipt_ba75a444905b0f6e78624b30` at `2026-08-07T21:13:03Z`.
+- Gmail placed the exact message in `INBOX`; the final delivery classification is `delivered_inbox`. No resend, notification retry, duplicate request, or second acceptance submission occurred.
+- Gmail's sanitized authentication results were SPF `pass`, DKIM `pass`, and DMARC `not-reported`, consistent with the authorized absence of a DMARC record.
+- Cloudflare Email Sending activity remains unavailable on the current non-paid account surface; mailbox receipt is the decisive delivery evidence for this verified-destination send path.
+- Receipt `riq_receipt_e74e57903a211291a9f1f37a` remains terminal `failed` with `founder_notification_delivery_failed`. Receipt `riq_receipt_b06adcc8fb2a58449ecf52a3` remains terminal `delivery_ambiguous` with `founder_notification_delivery_ambiguous`. Neither historical record or notification result was modified, retried, resent, deleted, or replaced.
+
+Current controlling decision:
+
+- Founder notification delivery is production-proven for newly accepted Route IQ requests through the current verified-destination Cloudflare Email binding.
+- A future mail-provider migration must first reconcile the Cloudflare MX, SPF, and DKIM records and preserve notification-after-persistence, one-shot delivery, immutable receipt, and no-PII notification contracts.
+
 ### Completed Work Lane: Mobile Experience Audit + Native Roadmap v1
 
 Primary subsystem: Prometheus Mobile
@@ -8047,7 +8077,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Website/Social Attribution Path v1; reuse `deploy/prometheusrouteiq-website/website-attribution.js`, `tests/website-social-attribution.test.mjs`, local-only UTM/campaign/referrer/landing-path visitor/session capture, credential-param sanitization, and the existing Social Media attribution contract shape `website_visit`, `website_traffic`, and `website_contract`. CRM must consume this output rather than creating a parallel attribution capture system.
 - Do not duplicate the public Route IQ request path. Preserve the 2026-07-02 browser-local intake as historical evidence, but use the current Website form, `POST /api/partner-intake`, Infrastructure server validation and abuse controls, CRM-owned durable receipt contract, deterministic duplicate handling, acquisition attribution, Founder-only retrieval/export, and notification-after-persistence boundary as the controlling architecture.
 - Do not reintroduce public pilot/beta program positioning on PrometheusRouteIQ.com; Replace Pilot Program Language With Operational Partner Language v1 makes Partner Intake, Growth Partner Application, Operational Onboarding, Request Access, Apply for Growth Partnership, qualified businesses, franchise groups, outside-sales organizations, qualified lead generation, operating profile configuration, and private onboarding the canonical Website conversion language.
-- Do not revert the public Route IQ request path to browser-local or mailto-only behavior. Current production accepts validated `POST /api/partner-intake` requests into durable CRM storage with unique receipts and deterministic duplicate protection. Founder notification remains a real post-persistence path, but delivery is currently blocked by missing verified Cloudflare email-destination configuration and must not be reported as operational until a separately authorized synthetic acceptance proves it.
+- Do not revert the public Route IQ request path to browser-local or mailto-only behavior. Current production accepts validated `POST /api/partner-intake` requests into durable CRM storage with unique receipts and deterministic duplicate protection. Founder notification remains a post-persistence, one-shot path and is production-proven through the verified Cloudflare Email destination and the `delivered_inbox` acceptance for receipt `riq_receipt_ba75a444905b0f6e78624b30`; preserve both earlier terminal failure records as immutable evidence.
 - Do not treat Mobile Experience Audit + Native Roadmap v1 as permission to modify the live Dashboard PWA during active beta; preserve PWA production behavior unless a confirmed beta-critical defect is assigned.
 - Do not duplicate Native Mobile Readiness v1; reuse the M0-M6 native roadmap, shared TypeScript domain core recommendation, offline/sync/GPS/push architecture, app store readiness checklist, and no-PWA-change guardrails.
 - Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
@@ -8319,20 +8349,15 @@ Remaining risks:
 
 Current active highest-priority task:
 
-Founder notification external-configuration reconciliation and repair.
+Complete the external Founder decisions and evidence required for entity formation, EIN, banking, pricing, contracts, and Stripe Live eligibility without activating live billing prematurely.
 
-Primary subsystem: Prometheus Infrastructure for the Cloudflare Email Routing destination boundary.
-
-Secondary subsystems:
-
-- Prometheus Overwatch for immutable receipt protection and independent read-only verification.
-- Prometheus Administration only for the attended Founder account action and authorization boundary.
+Primary owner: Founder, with Legal, Finance, Administration, and Security review as separately authorized.
 
 Reason:
 
-The current CRM path durably accepted the immutable synthetic request, but its only Founder notification failed because the Cloudflare account has no verified destination address and Email Routing is not onboarded. The next work must repair only that external boundary and prove delivery with one separately authorized synthetic request; it must not retry or rewrite the existing failed receipt.
+The durable Website intake, Founder CRM visibility, verified notification destination, and one-shot inbox delivery path are now production-proven. Additional email-routing engineering is not the current constraint; the remaining revenue boundary is external business, legal, banking, pricing, contract, and Stripe Live evidence.
 
-Current priority order after notification reconciliation:
+Current priority order after notification delivery acceptance:
 
 1. Complete external Founder decisions and evidence for entity formation, EIN, banking, pricing, contracts, and Stripe Live eligibility without activating live billing prematurely.
 2. Obtain first-customer evidence through the governed conversion and onboarding path before expanding product scope.
