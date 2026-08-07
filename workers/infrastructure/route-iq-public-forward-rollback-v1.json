@@ -5,11 +5,11 @@
   "target": "prometheusrouteiq-website",
   "strategy": "new_forward_deployment",
   "nativeCloudflareRollbackAllowed": false,
-  "candidateWebsiteCommit": "72f3f5733f35a4ab56ae528f3a3616b455bd9ee6",
-  "candidateWebsiteTree": "6fa5e855c0ae14e97186b219073c1aa0ae5d9381",
-  "candidateDeploymentAssetsSha256": "ce5279cb7f1b904457bb83d5b844b3f7339a586544d0a36b4eb3e41c1715276e",
-  "sourceWebsiteCommit": "cb413fdf3a9676c238c02532261ffcf3a24f2b21",
-  "sourceWebsiteTree": "ccd8356a5f820df14c574ff2be5196459422acbe",
+  "candidateWebsiteCommit": "c4cb9150fb8ad218e34026a63fa577271860c270",
+  "candidateWebsiteTree": "e7870b29540e0fb2fa89dbf691804192e3cf9c1d",
+  "candidateDeploymentAssetsSha256": "93526aca609a237fe26ba69f11d786549623b186fe7f106f3bf998e476dd22cf",
+  "sourceWebsiteCommit": "436d899d371b844585a61f232a7c371e33ef1174",
+  "sourceWebsiteTree": "6bc79df8d6abc36558e989222c6237653f934017",
   "websiteAssetPath": "deploy/prometheusrouteiq-website",
   "candidateStatefulFiles": {
     "wrangler.prometheusrouteiq-website.jsonc": {
@@ -33,8 +33,8 @@
       "sourceOwnerSubsystem": "Prometheus Infrastructure"
     },
     "workers/infrastructure/route-iq-request-crm-runtime.js": {
-      "sha256": "7726770982fe39bb4030a24b8117dfb2cac69954c4279a8876282e4b8e1adac8",
-      "sourceCommit": "b7ab413a298d62806f7274d5ef63e6cb63bddf2c",
+      "sha256": "0e85ad567529ea2d747dcc07352f7459801ca9058831e5630896ad94df081dcf",
+      "sourceCommit": "c4cb9150fb8ad218e34026a63fa577271860c270",
       "sourceOwnerSubsystem": "Prometheus Infrastructure"
     },
     "workers/infrastructure/route-iq-request-crm-runtime-v1.json": {
