@@ -2886,6 +2886,8 @@ Prometheus CRM for CRM Lead Attribution from Social Campaigns v1, consuming Webs
 
 ### 2026-07-02: Prometheus Website - Enterprise Lead Intake + Beta Request Conversion Platform v1
 
+Historical record as of 2026-07-02. The browser-local and mailto-only architecture described in this entry was superseded by the 2026-08-07 current-state entry below. Preserve this entry as dated evidence; do not use it as the current production contract.
+
 Subsystem: Prometheus Website
 
 Task: Enterprise Lead Intake + Beta Request Conversion Platform v1
@@ -2993,6 +2995,8 @@ Prometheus Website only if additional public conversion refinement is explicitly
 
 ### 2026-07-03: Prometheus Website - Lead Submission Trace + Founder Notification Investigation
 
+Historical record as of 2026-07-03. The missing-endpoint findings described in this entry were superseded by the 2026-08-07 current-state entry below. Preserve this entry as dated evidence; do not use it as the current production contract.
+
 Subsystem: Prometheus Website
 
 Task: Lead Submission Trace + Founder Notification Investigation
@@ -3077,6 +3081,35 @@ Remaining blockers:
 Next recommended subsystem:
 
 Prometheus Infrastructure for `POST /api/partner-intake`, durable storage, notification controls, and rate-limited production deployment. Prometheus CRM should follow with lead ingestion/persistence ownership. Website should update success-state behavior only after the endpoint exists.
+
+### 2026-08-07: Founder Notification Reconciliation + Master-State Supersession v1
+
+Subsystem: Prometheus Overwatch, with read-only CRM, Infrastructure, Cloudflare, and Founder-mailbox evidence.
+
+Status: Current controlling production state. The 2026-07-02 and 2026-07-03 Website records above remain historically true for their dates but are superseded for current architecture and priority decisions.
+
+Current public intake and CRM state:
+
+- The public website submits requests to `POST /api/partner-intake`.
+- Infrastructure performs server-side validation, abuse controls, normalization, and acquisition-attribution capture before CRM acceptance.
+- `RouteIqRequestCrmCoordinator` provides durable receipt-scoped storage through `ROUTE_IQ_REQUEST_CRM_COORDINATOR`.
+- Accepted requests receive a unique `riq_receipt_*` identifier; duplicate submissions are handled deterministically without duplicate accepted records or notification sends.
+- Founder-only Cloudflare Access protects request retrieval, receipt monitoring, and CSV/JSON export.
+- Founder notification is attempted only after durable persistence and contains no contact PII.
+
+Immutable receipt reconciliation:
+
+- Receipt `riq_receipt_e74e57903a211291a9f1f37a` remains durably accepted with exactly one record and no duplicate.
+- Its one notification result is terminally classified `failed` with fixed code `founder_notification_delivery_failed`.
+- Read-only Gmail searches for the exact receipt, exact `New Route IQ request` subject, and the recorded July 21-23 submission window found no delivered message.
+- The Worker source includes the `FOUNDER_EMAIL` binding and fixed Founder-owned destination, so this is not the `not_configured` runtime branch.
+- Read-only Cloudflare account inspection found no verified destination addresses and Email Routing not onboarded. The exact failure boundary is missing external Cloudflare email-destination configuration, which caused the provider send to reject.
+- No resend, retry, replacement notification, new lead, CRM mutation, deployment, or production-setting change occurred during reconciliation.
+
+Smallest safe repair boundary:
+
+- Under separate Founder authorization, Infrastructure must onboard only the governed Cloudflare Email Routing destination, verify the Founder-owned destination address, and confirm the existing fixed binding can send to it.
+- The immutable failed receipt must not be retried or rewritten. Delivery acceptance must use one separately authorized, clearly synthetic new request after configuration passes.
 
 ### Completed Work Lane: Mobile Experience Audit + Native Roadmap v1
 
@@ -8012,9 +8045,9 @@ Current duplicate-prevention sources:
 - Do not duplicate Public Website Canonical Branding Asset Audit + Hero Messaging Completion; reuse the canonical Company Identity logo assets, versioned `20260701-brand-v2` public asset filenames, `site.webmanifest` icon wiring, favicon / Apple touch icon / Open Graph / Twitter image updates, and the completed hero message "Make outside sales intelligent, directed, accountable, and compounding."
 - Do not duplicate Public Meta Compliance Pages; reuse `https://prometheusrouteiq.com/privacy`, `https://prometheusrouteiq.com/terms`, `https://prometheusrouteiq.com/data-deletion`, and the corresponding `deploy/prometheusrouteiq-website/*/index.html` routes for Meta app review, OAuth compliance, and public policy references.
 - Do not duplicate Website/Social Attribution Path v1; reuse `deploy/prometheusrouteiq-website/website-attribution.js`, `tests/website-social-attribution.test.mjs`, local-only UTM/campaign/referrer/landing-path visitor/session capture, credential-param sanitization, and the existing Social Media attribution contract shape `website_visit`, `website_traffic`, and `website_contract`. CRM must consume this output rather than creating a parallel attribution capture system.
-- Do not duplicate Enterprise Lead Intake + Beta Request Conversion Platform v1; reuse `deploy/prometheusrouteiq-website/enterprise-lead-intake.js`, `tests/website-enterprise-lead-intake.test.mjs`, the Website-side operating-profile intake, CRM-compatible founder-ready packet generation, spam/duplicate guards, mailto handoff, and deployed Cloudflare Website version `40ecb192-f25b-43dc-850d-3e96ff6076fa`. Website must not mutate CRM records directly until a CRM-owned or Infrastructure-owned durable persistence endpoint is approved.
+- Do not duplicate the public Route IQ request path. Preserve the 2026-07-02 browser-local intake as historical evidence, but use the current Website form, `POST /api/partner-intake`, Infrastructure server validation and abuse controls, CRM-owned durable receipt contract, deterministic duplicate handling, acquisition attribution, Founder-only retrieval/export, and notification-after-persistence boundary as the controlling architecture.
 - Do not reintroduce public pilot/beta program positioning on PrometheusRouteIQ.com; Replace Pilot Program Language With Operational Partner Language v1 makes Partner Intake, Growth Partner Application, Operational Onboarding, Request Access, Apply for Growth Partnership, qualified businesses, franchise groups, outside-sales organizations, qualified lead generation, operating profile configuration, and private onboarding the canonical Website conversion language.
-- Do not treat Website Partner Intake packet generation as backend submission; Lead Submission Trace + Founder Notification Investigation confirmed the current production flow is browser-local `localStorage` plus `mailto:` only, with no Worker request, no `POST /api/partner-intake`, no durable storage, no automatic Founder notification, and no CRM write. Future implementation must route Infrastructure-owned durable endpoint work before Website claims submission success.
+- Do not revert the public Route IQ request path to browser-local or mailto-only behavior. Current production accepts validated `POST /api/partner-intake` requests into durable CRM storage with unique receipts and deterministic duplicate protection. Founder notification remains a real post-persistence path, but delivery is currently blocked by missing verified Cloudflare email-destination configuration and must not be reported as operational until a separately authorized synthetic acceptance proves it.
 - Do not treat Mobile Experience Audit + Native Roadmap v1 as permission to modify the live Dashboard PWA during active beta; preserve PWA production behavior unless a confirmed beta-critical defect is assigned.
 - Do not duplicate Native Mobile Readiness v1; reuse the M0-M6 native roadmap, shared TypeScript domain core recommendation, offline/sync/GPS/push architecture, app store readiness checklist, and no-PWA-change guardrails.
 - Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
@@ -8286,17 +8319,24 @@ Remaining risks:
 
 Current active highest-priority task:
 
-Operation Aegis Phase II: account-level security controls and verification.
+Founder notification external-configuration reconciliation and repair.
 
-Primary subsystem: Prometheus Infrastructure/Auth.
+Primary subsystem: Prometheus Infrastructure for the Cloudflare Email Routing destination boundary.
 
 Secondary subsystems:
 
-- Prometheus Administration only if founder approval or account-owner action is needed for GitHub/Cloudflare settings
+- Prometheus Overwatch for immutable receipt protection and independent read-only verification.
+- Prometheus Administration only for the attended Founder account action and authorization boundary.
 
 Reason:
 
-Operation Aegis Phase I is deployed and verified for Infrastructure-owned Worker controls, headers, KV-backed rate limits, CI security gates, Dependabot scaffolding, and repeatable verification documentation. The highest remaining security work is account-level enforcement: Cloudflare Zero Trust MFA/session/revocation/preview coverage, Cloudflare WAF/rate-limit rules, GitHub branch protection, required checks/reviews, secret scanning, push protection, and repository security setting verification. During active beta, security work outranks new customer-facing feature expansion unless explicitly approved by the Founder.
+The current CRM path durably accepted the immutable synthetic request, but its only Founder notification failed because the Cloudflare account has no verified destination address and Email Routing is not onboarded. The next work must repair only that external boundary and prove delivery with one separately authorized synthetic request; it must not retry or rewrite the existing failed receipt.
+
+Current priority order after notification reconciliation:
+
+1. Complete external Founder decisions and evidence for entity formation, EIN, banking, pricing, contracts, and Stripe Live eligibility without activating live billing prematurely.
+2. Obtain first-customer evidence through the governed conversion and onboarding path before expanding product scope.
+3. Consider broader social-launch conversion work only after the notification path and first-customer evidence boundary are controlled.
 
 Known completed Instagram analytics lane:
 

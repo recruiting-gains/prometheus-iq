@@ -157,6 +157,29 @@ test("autonomous predeployment closure persists across sessions without granting
   assert.equal(closure.founderReturnConditions.length, 5);
 });
 
+test("master engineering state preserves intake history while current CRM truth cannot regress", () => {
+  const state = readFileSync("PROMETHEUS_MASTER_ENGINEERING_STATE.md", "utf8");
+  const duplicateRegister = state.slice(state.indexOf("## Duplicate Prevention Register"));
+  const nextTask = state.slice(state.lastIndexOf("## Next Recommended Engineering Task"));
+
+  assert.match(state, /### 2026-07-02: Prometheus Website - Enterprise Lead Intake/u);
+  assert.match(state, /### 2026-07-03: Prometheus Website - Lead Submission Trace/u);
+  assert.match(state, /Historical record as of 2026-07-02\.[\s\S]*superseded/u);
+  assert.match(state, /Historical record as of 2026-07-03\.[\s\S]*superseded/u);
+  assert.match(state, /### 2026-08-07: Founder Notification Reconciliation \+ Master-State Supersession v1/u);
+  assert.match(state, /`POST \/api\/partner-intake`/u);
+  assert.match(state, /RouteIqRequestCrmCoordinator/u);
+  assert.match(state, /notification result is terminally classified `failed`/u);
+  assert.match(state, /missing external Cloudflare email-destination configuration/u);
+
+  assert.match(duplicateRegister, /Current production accepts validated `POST \/api\/partner-intake` requests into durable CRM storage/u);
+  assert.doesNotMatch(duplicateRegister, /current production flow is browser-local `localStorage` plus `mailto:` only/u);
+  assert.match(nextTask, /Founder notification external-configuration reconciliation and repair/u);
+  assert.match(nextTask, /entity formation, EIN, banking, pricing, contracts, and Stripe Live eligibility/u);
+  assert.match(nextTask, /first-customer evidence/u);
+  assert.doesNotMatch(nextTask, /Current active highest-priority task:\s+Operation Aegis Phase II/u);
+});
+
 test("A complete Founder-authorized batch is auto-push eligible", () => {
   assert.deepEqual(evaluateAutomaticPushEligibility(passingManifest()), {
     status: "AUTO_PUSH_ELIGIBLE",
