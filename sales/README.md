@@ -1,8 +1,8 @@
 # Prometheus Sales
 
-Purpose: own the reusable go-to-market operating system for Prometheus IQ.
+Purpose: own the reusable go-to-market operating system for Prometheus Route IQ.
 
-Prometheus IQ is an AI operating system for organizations that rely on outside sales representatives. Gym sales is the first production validation environment, not the market boundary.
+Prometheus Route IQ is an AI operating system for organizations that rely on outside sales representatives. Gym sales is the first production validation environment, not the market boundary.
 
 Sales owns strategy, messaging, discovery, qualification, pilots, demos, onboarding, expansion, renewal, enablement, and customer-facing sales documentation. Sales does not own Dashboard, Companion, CRM implementation, Infrastructure, Integrations, or the Intelligence Engine.
 

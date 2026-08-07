@@ -1,8 +1,8 @@
 # Enterprise Industry Playbooks
 
-Purpose: define how Prometheus IQ should be sold into enterprise outside-sales markets.
+Purpose: define how Prometheus Route IQ should be sold into enterprise outside-sales markets.
 
-Prometheus IQ is the AI operating system for organizations that sell in the physical world. Gym sales is the first validation environment only. These playbooks translate the same core operating loop into industry-specific sales motions:
+Prometheus Route IQ is the AI operating system for organizations that sell in the physical world. Gym sales is the first validation environment only. These playbooks translate the same core operating loop into industry-specific sales motions:
 
 `decide where to go -> verify what happened -> log outcomes -> learn what produces -> improve the next route`
 
@@ -67,7 +67,7 @@ Lead with referral-source intelligence, not generic route planning. Discovery sh
 - Competitors are winning referral relationships.
 - Manual referral-source reporting is unreliable.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps healthcare field teams focus on the right referral sources, track approved outreach activity, identify productive relationship patterns, and improve territory coverage without becoming a surveillance tool.
 
@@ -137,7 +137,7 @@ Position Prometheus as territory execution intelligence. Discovery should separa
 - Sales leadership wants better account coverage.
 - Reps are spending time without clear opportunity movement.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps device teams direct territory visits, capture approved account activity, identify which stakeholders and facilities produce progress, and coach reps before pipeline data appears.
 
@@ -207,7 +207,7 @@ Lead with smarter canvassing and appointment generation. Discovery should map te
 - Field managers lack reliable activity data.
 - Existing canvassing tools do not show production learning.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps solar teams select better neighborhoods, log field outcomes, identify productive areas and time windows, and improve canvassing routes from real appointment data.
 
@@ -278,7 +278,7 @@ Position Prometheus as inspection and territory intelligence. Discovery should m
 - Too much wasted canvassing.
 - Manager needs better territory coverage evidence.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps roofing teams prioritize neighborhoods, verify field activity, track inspection outcomes, learn where bookings occur, and coordinate follow-up after field visits.
 
@@ -349,7 +349,7 @@ Sell Prometheus as site-assessment and territory intelligence. Discovery should 
 - Field team growth.
 - Manager wants better proof of field work.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps security teams focus on better territories, log visit outcomes, identify productive property types, and increase site-assessment opportunities.
 
@@ -419,7 +419,7 @@ Position Prometheus as field acquisition and service-area execution intelligence
 - Competitive overbuild campaign.
 - Need to prove field team productivity.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps telecom teams direct reps to better serviceable areas, track field outcomes, identify productive zones, and improve appointment generation.
 
@@ -488,7 +488,7 @@ Sell Prometheus as business-owner visit intelligence. Discovery should map targe
 - Rep ramp concerns.
 - Weak insight into local business prospecting.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps payroll reps focus local outreach, capture decision-maker access patterns, learn which business categories produce meetings, and improve self-sourced pipeline before CRM opportunity creation.
 
@@ -557,7 +557,7 @@ Position Prometheus as facility-targeting intelligence. Discovery should map ide
 - Weak visibility into property-manager outreach.
 - Poor conversion from visits to proposals.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps commercial cleaning teams identify better facility targets, log visit outcomes, learn which property types produce walkthroughs, and improve follow-up discipline.
 
@@ -626,7 +626,7 @@ Sell Prometheus as seasonal field-demand and estimate intelligence. Discovery sh
 - New territory or branch.
 - Low visibility into field-sourced estimates.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps HVAC teams target better neighborhoods, properties, and commercial accounts, track inspection and estimate outcomes, and improve follow-up from field activity.
 
@@ -696,7 +696,7 @@ Position Prometheus as appointment and referral-source intelligence. Discovery s
 - Weak follow-up after community or business outreach.
 - Manager needs better field activity visibility.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps insurance teams organize local prospecting, identify productive referral and business categories, improve appointment generation, and make producer field activity visible without replacing human relationship-building.
 
@@ -767,7 +767,7 @@ Sell Prometheus as territory coverage and account-visit intelligence. Discovery 
 - Weak visibility into account coverage.
 - Need to improve service or parts account development.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps industrial sales teams prioritize account visits, capture approved field outcomes, learn which account types produce quotes or service opportunities, and improve territory coverage.
 
@@ -837,7 +837,7 @@ Position Prometheus as field account-development intelligence. Discovery should 
 - Need for better territory discipline.
 - Rep turnover or uneven regional performance.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps manufacturers direct field account activity, compare territory coverage, identify productive account and channel patterns, and improve field-to-pipeline learning.
 
@@ -907,7 +907,7 @@ Sell Prometheus as shipper and lane-development field intelligence. Discovery sh
 - Low rep productivity in industrial territories.
 - Desire to improve account targeting.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps logistics teams focus on better shipper targets, track field visits and lane opportunities, identify productive industrial areas, and improve follow-up discipline.
 
@@ -977,7 +977,7 @@ Position Prometheus as field-sourced pipeline intelligence. Discovery should map
 - Sales leadership wants better territory activity insight.
 - Partner or channel teams need operating discipline.
 
-### Prometheus IQ Value Proposition
+### Prometheus Route IQ Value Proposition
 
 Prometheus helps B2B SaaS teams connect offline field activity to qualified meetings, demos, partner opportunities, and territory learning before CRM opportunities appear.
 

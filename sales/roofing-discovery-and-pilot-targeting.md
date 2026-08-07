@@ -1,6 +1,6 @@
 # Roofing Discovery And Pilot Targeting
 
-Purpose: give Prometheus Sales a roofing-specific package for evaluating, qualifying, and selling Prometheus IQ into roofing companies without guessing.
+Purpose: give Prometheus Sales a roofing-specific package for evaluating, qualifying, and selling Prometheus Route IQ into roofing companies without guessing.
 
 Roofing is the first recommended post-Fitness expansion vertical because the field motion is explicit: canvassing, storm response, territory coverage, inspections, estimates, follow-up, and signed contracts. Prometheus should enter roofing as an outside-sales intelligence layer, not as a CRM replacement, roofing production system, insurance-claim platform, or generic canvassing map.
 
@@ -42,11 +42,11 @@ Priority target segments:
 
 ## Roofing Value Proposition
 
-Prometheus IQ helps roofing companies turn canvassing and field visits into measurable territory intelligence.
+Prometheus Route IQ helps roofing companies turn canvassing and field visits into measurable territory intelligence.
 
 Buyer-facing version:
 
-`Prometheus IQ helps roofing teams know which neighborhoods to work, verify field activity, track inspections and estimates, learn which territories produce contracts, and improve follow-up after every visit.`
+`Prometheus Route IQ helps roofing teams know which neighborhoods to work, verify field activity, track inspections and estimates, learn which territories produce contracts, and improve follow-up after every visit.`
 
 Founder-facing version:
 
@@ -321,7 +321,7 @@ Exceptional success:
 
 Opening:
 
-`I am reaching out because Prometheus IQ is being evaluated for roofing teams that rely on canvassing, inspections, estimates, and territory coverage. I am not calling to replace your CRM or production system. I want to understand whether your field team has a territory-intelligence problem worth piloting.`
+`I am reaching out because Prometheus Route IQ is being evaluated for roofing teams that rely on canvassing, inspections, estimates, and territory coverage. I am not calling to replace your CRM or production system. I want to understand whether your field team has a territory-intelligence problem worth piloting.`
 
 Problem framing:
 
@@ -351,7 +351,7 @@ Hi [Name],
 
 Thank you for taking the time to discuss how your roofing team handles field sales, canvassing, inspections, estimates, and territory coverage.
 
-Based on our conversation, Prometheus IQ may be worth a controlled pilot if your team wants better visibility into:
+Based on our conversation, Prometheus Route IQ may be worth a controlled pilot if your team wants better visibility into:
 
 - which neighborhoods or territories are being worked,
 - which field visits create inspections,
@@ -370,7 +370,7 @@ The pilot I would recommend is intentionally narrow:
 - no production-system changes,
 - and no background surveillance.
 
-The goal would be to prove whether Prometheus IQ improves roofing field execution before discussing a larger rollout.
+The goal would be to prove whether Prometheus Route IQ improves roofing field execution before discussing a larger rollout.
 
 Recommended next step:
 

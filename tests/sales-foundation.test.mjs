@@ -222,7 +222,7 @@ test("Enterprise industry playbooks cover required industries and sales sections
     "Sales Process",
     "Decision Makers",
     "Buying Triggers",
-    "Prometheus IQ Value Proposition",
+    "Prometheus Route IQ Value Proposition",
     "Pilot Strategy",
     "Enterprise Rollout Strategy",
     "ROI Discussion",

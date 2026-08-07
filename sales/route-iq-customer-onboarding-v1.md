@@ -61,7 +61,7 @@ No onboarding facilitator may infer a Founder decision from a calendar invitatio
 
 Say:
 
-> Prometheus is the company. Route IQ is the production field-operations product. It helps field teams structure routes, visits, territory context, customer context, and outcomes into governed evidence and decision-ready intelligence. People remain responsible for every field and business decision.
+> Prometheus.IQ is the company. Prometheus Route IQ is the production field-operations product. It helps field teams structure routes, visits, territory context, customer context, and outcomes into governed evidence and decision-ready intelligence. People remain responsible for every field and business decision.
 
 Then state:
 

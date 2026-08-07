@@ -21,7 +21,7 @@ const requiredFiles = [
 ];
 
 const requiredPhrases = new Map([
-  ["sales/README.md", ["Prometheus IQ is an AI operating system", "Sales does not own Dashboard"]],
+  ["sales/README.md", ["Prometheus Route IQ is an AI operating system", "Sales does not own Dashboard"]],
   ["sales/enterprise-sales-methodology.md", ["Do not sell Prometheus as a CRM replacement", "Enterprise"]],
   ["sales/multi-industry-enterprise-sales-playbook.md", ["Universal Sales Framework", "Repeatable Founder Sales Motion", "Operating Profiles Covered", "Remaining Industries Requiring Research"]],
   ["sales/enterprise-industry-playbooks.md", ["Healthcare", "Medical Devices", "B2B SaaS", "Cross-Industry Qualification Rule"]],
@@ -62,7 +62,7 @@ const requiredIndustrySections = [
   "Sales Process",
   "Decision Makers",
   "Buying Triggers",
-  "Prometheus IQ Value Proposition",
+  "Prometheus Route IQ Value Proposition",
   "Pilot Strategy",
   "Enterprise Rollout Strategy",
   "ROI Discussion",

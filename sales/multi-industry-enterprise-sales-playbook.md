@@ -1,8 +1,8 @@
 # Multi-Industry Enterprise Sales Playbook
 
-Purpose: give the Founder one repeatable enterprise sales motion for every supported Prometheus IQ Operating Profile.
+Purpose: give the Founder one repeatable enterprise sales motion for every supported Prometheus Route IQ Operating Profile.
 
-Prometheus IQ should be sold as the AI operating system for outside sales. The Founder should not rebuild the sales process for each industry. The Founder should select the customer Operating Profile, translate the language, and run the same enterprise motion: qualify field pain, prove pilot fit, run a controlled pilot, measure operating outcomes, and expand from evidence.
+Prometheus Route IQ should be sold as the AI operating system for outside sales. The Founder should not rebuild the sales process for each industry. The Founder should select the customer Operating Profile, translate the language, and run the same enterprise motion: qualify field pain, prove pilot fit, run a controlled pilot, measure operating outcomes, and expand from evidence.
 
 ## Sales Boundary
 

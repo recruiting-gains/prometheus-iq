@@ -4,7 +4,7 @@ Purpose: give Prometheus reusable positioning by industry while keeping the core
 
 ## Universal Positioning
 
-Prometheus IQ helps outside sales teams know where to go, verify what happened, learn which field activity produces, and improve the next route.
+Prometheus Route IQ helps outside sales teams know where to go, verify what happened, learn which field activity produces, and improve the next route.
 
 Universal pains:
 

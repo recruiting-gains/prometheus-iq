@@ -1,8 +1,8 @@
 # Enterprise Pilot Sales Package
 
-Purpose: give the Founder a complete buyer-facing and founder-facing package for selling Prometheus IQ pilots to enterprise and multi-location outside-sales organizations.
+Purpose: give the Founder a complete buyer-facing and founder-facing package for selling Prometheus Route IQ pilots to enterprise and multi-location outside-sales organizations.
 
-Prometheus IQ should be positioned as the AI operating system for outside sales: a governed way to decide where field reps should go, verify intentional field work, capture outcomes, learn from the field, and expand what works across teams and locations.
+Prometheus Route IQ should be positioned as the AI operating system for outside sales: a governed way to decide where field reps should go, verify intentional field work, capture outcomes, learn from the field, and expand what works across teams and locations.
 
 This package supports:
 
@@ -25,7 +25,7 @@ Sales must not modify or imply ownership over Companion, Website, CRM runtime, M
 
 Buyer-facing statement:
 
-Prometheus IQ helps outside-sales organizations run a controlled pilot that proves whether field teams can spend time in better places, capture cleaner field evidence, improve follow-up, and give managers clearer visibility into what actually produces.
+Prometheus Route IQ helps outside-sales organizations run a controlled pilot that proves whether field teams can spend time in better places, capture cleaner field evidence, improve follow-up, and give managers clearer visibility into what actually produces.
 
 Enterprise framing:
 
@@ -38,13 +38,13 @@ Enterprise framing:
 
 Buyer talk track:
 
-`The first goal is not to force a company-wide change. The first goal is to run a controlled pilot with approved users, clear data boundaries, and success criteria that show whether Prometheus IQ improves field execution for your team.`
+`The first goal is not to force a company-wide change. The first goal is to run a controlled pilot with approved users, clear data boundaries, and success criteria that show whether Prometheus Route IQ improves field execution for your team.`
 
 ### Operating Profile Explanation
 
 Buyer-facing explanation:
 
-An Operating Profile is the industry configuration that translates Prometheus IQ into the customer's field-sales language. It defines the words, outcomes, success events, and reporting labels for the pilot while preserving the same core outside-sales operating system.
+An Operating Profile is the industry configuration that translates Prometheus Route IQ into the customer's field-sales language. It defines the words, outcomes, success events, and reporting labels for the pilot while preserving the same core outside-sales operating system.
 
 Examples:
 
@@ -87,7 +87,7 @@ Disqualifiers:
 
 Opening:
 
-`Thanks for taking the time. I want to understand how your outside-sales team works before talking about product details. Prometheus IQ is most useful when there is a real field execution problem: reps need better direction, managers need clearer visibility, and leadership needs proof that field time is producing.`
+`Thanks for taking the time. I want to understand how your outside-sales team works before talking about product details. Prometheus Route IQ is most useful when there is a real field execution problem: reps need better direction, managers need clearer visibility, and leadership needs proof that field time is producing.`
 
 Field motion:
 

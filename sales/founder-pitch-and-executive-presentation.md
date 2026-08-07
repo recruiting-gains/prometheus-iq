@@ -6,7 +6,7 @@ Purpose: standardize how Prometheus is explained by the founder and in executive
 
 Short pitch:
 
-Prometheus IQ is an AI operating system for outside sales teams. It helps reps know where to go, verify what happened, learn which field activity produces, and improve the next route. Most sales tools start after a lead exists. Prometheus focuses on the field work that creates the lead in the first place.
+Prometheus Route IQ is an AI operating system for outside sales teams. It helps reps know where to go, verify what happened, learn which field activity produces, and improve the next route. Most sales tools start after a lead exists. Prometheus focuses on the field work that creates the lead in the first place.
 
 Problem:
 
@@ -34,7 +34,7 @@ Start with controlled pilots, prove measurable field execution improvement, conv
 
 Title:
 
-`Prometheus IQ: The Field-Sales Operating System`
+`Prometheus Route IQ: The Field-Sales Operating System`
 
 Core message:
 

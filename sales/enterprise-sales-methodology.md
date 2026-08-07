@@ -4,7 +4,7 @@ Purpose: define how Prometheus sells across industries without being limited to 
 
 ## Category Definition
 
-Prometheus IQ is the field-sales operating layer that sits before and during CRM activity.
+Prometheus Route IQ is the field-sales operating layer that sits before and during CRM activity.
 
 CRM systems record contacts, opportunities, accounts, and pipeline after sales activity has created something worth tracking. Prometheus helps outside sales teams decide where to go, verify field activity, capture visit outcomes, learn which locations produce, and improve tomorrow's route.
 
