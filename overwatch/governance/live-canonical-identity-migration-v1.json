@@ -148,6 +148,21 @@
     { "subsystem": "Prometheus Infrastructure", "commit": "e225b9e6380416cceddbfe10ee7aa318b123e75c", "tree": "6fe395423d6b907c967e0ce588b53f7307cbba2b" },
     { "subsystem": "Prometheus Infrastructure", "commit": "c7dc84a39de41bc5d87c6f4bd47533a82b8f6f3f", "tree": "68b3ef48bf757502e582bd499307e33110b41298" }
   ],
+  "dataCompatibility": {
+    "fieldSessionArchiveIdentitySuccessor": {
+      "classification": "CANONICAL_REPORT_IDENTITY_COMPATIBILITY_SUCCESSOR",
+      "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+      "previousSha256": "631c48d6fb0193f2356113d70ace4a7dbd0bf85d16ef8bf3a5a737a9430ce80a",
+      "currentSha256": "4b682c744aa19fa53813dfac838a638810e55c3067033f1cf711e83df6ee73c3",
+      "ownerCommit": "a0856eb22bda483aa87f361ef9bb54d63b61e686",
+      "ownerSubsystem": "Prometheus Data",
+      "acceptedCurrentReportIdentity": "Prometheus Route IQ",
+      "acceptedHistoricalReportIdentity": "Prometheus IQ",
+      "retentionSemanticsChanged": false,
+      "storageSchemaChanged": false,
+      "historicalContractsRewritten": false
+    }
+  },
   "releasePreparation": {
     "ownerChainHead": {
       "commit": "c7dc84a39de41bc5d87c6f4bd47533a82b8f6f3f",

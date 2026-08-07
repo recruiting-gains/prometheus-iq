@@ -2,10 +2,17 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { verifyOverwatchRouteIqProspectiveEvidenceRetention } from "../scripts/verify-overwatch-route-iq-prospective-evidence-retention.mjs";
+import {
+  validateFieldSessionArchiveIdentitySuccessor,
+  verifyOverwatchRouteIqProspectiveEvidenceRetention
+} from "../scripts/verify-overwatch-route-iq-prospective-evidence-retention.mjs";
 
 const retentionGovernance = () => JSON.parse(readFileSync(
   new URL("../overwatch/governance/route-iq-prospective-evidence-retention-v1.json", import.meta.url),
+  "utf8"
+));
+const liveIdentity = () => JSON.parse(readFileSync(
+  new URL("../overwatch/governance/live-canonical-identity-migration-v1.json", import.meta.url),
   "utf8"
 ));
 
@@ -42,4 +49,28 @@ test("retention governance admits only the exact Intelligence Worker-safe succes
     admission.runtimeSuccessorClassification,
     "WORKER_SAFE_STATIC_POLICY_IMPORT_WITH_UNCHANGED_GOVERNED_POLICY_HASH"
   );
+});
+
+test("retention preserves its historical archive checkpoint through the exact identity successor", () => {
+  const identity = liveIdentity();
+  const successor = identity.dataCompatibility.fieldSessionArchiveIdentitySuccessor;
+  assert.equal(validateFieldSessionArchiveIdentitySuccessor({
+    liveIdentity: identity,
+    historicalArchiveSha256: successor.previousSha256,
+    currentArchiveSha256: successor.currentSha256
+  }), successor);
+
+  for (const mutate of [
+    value => { value.currentSha256 = "0".repeat(64); },
+    value => { value.retentionSemanticsChanged = true; },
+    value => { value.storageSchemaChanged = true; }
+  ]) {
+    const changed = structuredClone(identity);
+    mutate(changed.dataCompatibility.fieldSessionArchiveIdentitySuccessor);
+    assert.throws(() => validateFieldSessionArchiveIdentitySuccessor({
+      liveIdentity: changed,
+      historicalArchiveSha256: successor.previousSha256,
+      currentArchiveSha256: successor.currentSha256
+    }));
+  }
 });

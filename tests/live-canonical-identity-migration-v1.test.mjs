@@ -78,6 +78,20 @@ test("new field reports use canonical identity while legacy reports remain reada
   assert.match(dashboard, /Prometheus Route IQ Daily Rep Summary/u);
   assert.match(dashboard, /prometheus-route-iq-\$\{report\.rep\.id\}-daily-report/u);
   assert.match(archive, /\["Prometheus Route IQ", "Prometheus IQ"\]\.includes\(report\.app\)/u);
+  const governance = json("overwatch/governance/live-canonical-identity-migration-v1.json");
+  assert.deepEqual(governance.dataCompatibility.fieldSessionArchiveIdentitySuccessor, {
+    classification: "CANONICAL_REPORT_IDENTITY_COMPATIBILITY_SUCCESSOR",
+    path: "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+    previousSha256: "631c48d6fb0193f2356113d70ace4a7dbd0bf85d16ef8bf3a5a737a9430ce80a",
+    currentSha256: "4b682c744aa19fa53813dfac838a638810e55c3067033f1cf711e83df6ee73c3",
+    ownerCommit: "a0856eb22bda483aa87f361ef9bb54d63b61e686",
+    ownerSubsystem: "Prometheus Data",
+    acceptedCurrentReportIdentity: "Prometheus Route IQ",
+    acceptedHistoricalReportIdentity: "Prometheus IQ",
+    retentionSemanticsChanged: false,
+    storageSchemaChanged: false,
+    historicalContractsRewritten: false
+  });
 });
 
 test("current operational sources use the canonical identity and supersede entity blockers", () => {

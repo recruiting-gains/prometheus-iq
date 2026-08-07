@@ -42,6 +42,8 @@ const baseTree = "52d248178b85d46f26d4a8a12c95f56597a8b304";
 const governancePath = "overwatch/governance/route-iq-prospective-evidence-retention-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260714-004-route-iq-prospective-evidence-retention.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
+const liveIdentityGovernancePath =
+  "overwatch/governance/live-canonical-identity-migration-v1.json";
 
 const ownerCommits = Object.freeze({
   "Prometheus Data": Object.freeze([
@@ -91,6 +93,36 @@ function assertOwnedPaths(owner, paths) {
   for (const path of paths) {
     assert.equal(allowed.some(prefix => path.startsWith(prefix)), true, `${owner} changed out-of-scope path ${path}.`);
   }
+}
+
+export function validateFieldSessionArchiveIdentitySuccessor({
+  liveIdentity,
+  historicalArchiveSha256,
+  currentArchiveSha256
+}) {
+  assert.equal(liveIdentity?.governanceId, "live-canonical-identity-migration-v1");
+  const successor = liveIdentity?.dataCompatibility?.fieldSessionArchiveIdentitySuccessor;
+  assert.ok(successor);
+  assert.equal(
+    successor.classification,
+    "CANONICAL_REPORT_IDENTITY_COMPATIBILITY_SUCCESSOR"
+  );
+  assert.equal(
+    successor.path,
+    "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs"
+  );
+  assert.equal(successor.previousSha256, historicalArchiveSha256);
+  assert.equal(successor.currentSha256, currentArchiveSha256);
+  assert.equal(successor.currentSha256,
+    "4b682c744aa19fa53813dfac838a638810e55c3067033f1cf711e83df6ee73c3");
+  assert.equal(successor.ownerCommit, "a0856eb22bda483aa87f361ef9bb54d63b61e686");
+  assert.equal(successor.ownerSubsystem, "Prometheus Data");
+  assert.equal(successor.acceptedCurrentReportIdentity, "Prometheus Route IQ");
+  assert.equal(successor.acceptedHistoricalReportIdentity, "Prometheus IQ");
+  assert.equal(successor.retentionSemanticsChanged, false);
+  assert.equal(successor.storageSchemaChanged, false);
+  assert.equal(successor.historicalContractsRewritten, false);
+  return successor;
 }
 
 async function ledgerFor(subject, authority = createRetentionAuthority("overwatch-retention-verification-key-material-v1")) {
@@ -392,6 +424,13 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
   const policy = readJson(governance.dataContract.policyPath);
   const dataRuntimeContract = readJson(governance.dataContract.runtimeContractPath);
   const protectedBaseline = readJson(governance.intelligenceAdmission.protectedBaselinePath);
+  const liveIdentity = readJson(liveIdentityGovernancePath);
+  const currentArchiveSha256 = sha256(read(governance.dataContract.archiveRuntimePath));
+  const archiveIdentitySuccessor = validateFieldSessionArchiveIdentitySuccessor({
+    liveIdentity,
+    historicalArchiveSha256: governance.dataContract.archiveRuntimeSha256,
+    currentArchiveSha256
+  });
 
   assert.equal(git("rev-parse", `${baseCommit}^{tree}`), baseTree);
   assert.equal(governance.batchId, batchId);
@@ -434,7 +473,12 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
     ["archiveRuntimePath", "archiveRuntimeSha256"],
     ["runtimeContractPath", "runtimeContractSha256"]
   ]) {
-    assert.equal(sha256(read(governance.dataContract[pathKey])), governance.dataContract[hashKey]);
+    if (pathKey === "archiveRuntimePath") {
+      assert.equal(governance.dataContract[hashKey], archiveIdentitySuccessor.previousSha256);
+      assert.equal(currentArchiveSha256, archiveIdentitySuccessor.currentSha256);
+    } else {
+      assert.equal(sha256(read(governance.dataContract[pathKey])), governance.dataContract[hashKey]);
+    }
   }
   for (const [pathKey, hashKey] of [
     ["runtimePath", "runtimeSha256"],
@@ -564,8 +608,19 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
   );
   assert.equal(
     sha256(read(crossIndustryAdoption.dataOwnerTransition.archiveRuntime.path)),
-    governance.intelligenceAdmission.currentArchiveRuntimeSha256
+    archiveIdentitySuccessor.currentSha256
   );
+  assert.equal(
+    governance.intelligenceAdmission.currentArchiveRuntimeSha256,
+    archiveIdentitySuccessor.previousSha256
+  );
+  assert.equal(git("cat-file", "-t", archiveIdentitySuccessor.ownerCommit), "commit");
+  execFileSync("git", [
+    "merge-base",
+    "--is-ancestor",
+    archiveIdentitySuccessor.ownerCommit,
+    "HEAD"
+  ]);
   assert.equal(crossIndustryAdoption.governedEmptyState.activeBusinessCount, 0);
   assert.equal(crossIndustryAdoption.governedEmptyState.retiredOrDemoSupplyRestored, false);
   assert.equal(crossIndustryAdoption.boundaries.prospectiveCollection, "OFF");
