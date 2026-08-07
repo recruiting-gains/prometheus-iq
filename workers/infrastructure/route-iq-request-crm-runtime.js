@@ -465,9 +465,9 @@ async function notifyFounder(env, store, result, now) {
     await env.FOUNDER_EMAIL.send({
       to: env.FOUNDER_NOTIFICATION_TO || undefined,
       from: env.FOUNDER_NOTIFICATION_FROM || "intake@prometheusrouteiq.com",
-      subject: `New Route IQ request ${result.receiptId}`,
+      subject: `New Prometheus Route IQ request ${result.receiptId}`,
       text: [
-        "A Route IQ request was durably accepted.",
+        "A Prometheus Route IQ request was durably accepted for Prometheus.IQ Founder review.",
         `Receipt: ${result.receiptId}`,
         `Submitted: ${result.record.request.submittedAt}`,
         `Business type: ${result.record.request.businessType}`,
@@ -565,7 +565,7 @@ async function handleFounderGet(request, env, options) {
         generatedAt: options.now || new Date()
       });
       return response(exported, 200, {
-        "Content-Disposition": `attachment; filename="route-iq-requests.${format === "csv" ? "csv" : "json"}"`,
+        "Content-Disposition": `attachment; filename="prometheus-route-iq-requests.${format === "csv" ? "csv" : "json"}"`,
         "Content-Type": format === "csv" ? "text/csv; charset=utf-8" : "application/json; charset=utf-8"
       });
     }

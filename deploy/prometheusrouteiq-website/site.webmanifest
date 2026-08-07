@@ -1,7 +1,7 @@
 {
-  "name": "Route IQ by Prometheus",
+  "name": "Prometheus Route IQ by Prometheus.IQ",
   "short_name": "Route IQ",
-  "description": "Governed field evidence and decision intelligence for field operations leaders and representatives.",
+  "description": "Prometheus Route IQ provides governed field evidence and decision intelligence for field operations leaders and representatives.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

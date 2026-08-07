@@ -141,7 +141,7 @@ export function evaluateGuardEvidence(evidence) {
 export function evaluateMobilePageEvidence(page) {
   const failures = [];
   if (page?.authenticated !== true) failures.push("The production app was not authenticated.");
-  if (page?.rendered !== true) failures.push("Prometheus IQ did not render.");
+  if (page?.rendered !== true) failures.push("Prometheus Route IQ did not render.");
   if (page?.routeIntelligenceVisible !== true) failures.push("Route Intelligence was not visible.");
   if (page?.directionsAvailable !== true) failures.push("Directions was not available.");
   if (page?.logResultAvailable !== true) failures.push("Log Result was not available.");
@@ -546,7 +546,7 @@ function pageEvidenceExpression(productionOrigin) {
     } catch {}
     return {
       authenticated: location.origin === ${JSON.stringify(productionOrigin)} && !/cloudflareaccess/i.test(location.hostname),
-      rendered: bodyText.includes("Prometheus IQ"),
+      rendered: bodyText.includes("Prometheus Route IQ"),
       routeIntelligenceVisible: bodyText.includes("Route Intelligence"),
       directionsAvailable: labels.some(label => /Directions/i.test(label)),
       logResultAvailable: labels.some(label => /Log Result/i.test(label)),
@@ -570,7 +570,7 @@ async function waitForAuthenticatedProduction(client, sessionId, productionOrigi
     try {
       const state = await evaluateInPage(client, sessionId, `(() => ({
         production: location.origin === ${JSON.stringify(productionOrigin)},
-        rendered: (document.body?.innerText || "").includes("Prometheus IQ"),
+        rendered: (document.body?.innerText || "").includes("Prometheus Route IQ"),
         ready: document.readyState === "complete" || document.readyState === "interactive"
       }))()`);
       if (state?.production && state?.rendered && state?.ready) return;

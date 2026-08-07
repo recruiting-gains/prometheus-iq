@@ -1,5 +1,5 @@
 {
-  "name": "Route IQ",
+  "name": "Prometheus Route IQ by Prometheus.IQ",
   "short_name": "Route IQ",
   "description": "A governed field operations workspace for routes, visits, places, and outcomes.",
   "start_url": "/app",

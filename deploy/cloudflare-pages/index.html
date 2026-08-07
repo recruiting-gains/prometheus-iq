@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Route IQ</title>
+  <title>Prometheus Route IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-pdbxLJdpvby5FXDO6TsMYqHRBCgMgJAhJsgSSGDK2RQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-raRms1zpsteU4vx+A4XKAAogChN50loa3OnC/lZyFxI='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Route IQ">
+  <meta name="apple-mobile-web-app-title" content="Prometheus Route IQ">
   <link rel="manifest" href="manifest.webmanifest" id="prometheusManifest">
   <link rel="icon" href="icons/prometheus.svg" type="image/svg+xml">
   <style>
@@ -1611,7 +1611,7 @@
     <header>
       <div class="topline">
         <div class="brand">
-          <h1>Route IQ</h1>
+          <h1>Prometheus Route IQ</h1>
           <p id="todayLabel">Field intelligence</p>
         </div>
         <div class="workspace-switch" id="founderWorkspaceSwitch" hidden>
@@ -1683,7 +1683,7 @@
         <div class="panel pad command-panel" id="routeIntelligence">
           <div class="intel-grid">
             <div class="intel-main">
-              <div class="intel-label">Prometheus IQ read</div>
+              <div class="intel-label">Route IQ read</div>
               <h3 id="bestNextMove">Loading route signal</h3>
               <p class="intel-address" id="bestMoveAddress">Verified address pending</p>
               <div class="decision-line intel-decision-line">
@@ -1699,7 +1699,7 @@
               </div>
               <details class="route-details">
                 <summary>Why?</summary>
-                <p id="bestMoveReason">Prometheus IQ is checking today's activity and saved territory.</p>
+                <p id="bestMoveReason">Route IQ is checking today's activity and saved territory.</p>
                 <p id="bestMoveDetails">Detailed reasoning appears when a route signal is ready.</p>
                 <div class="quick-facts route-detail-facts">
                   <div class="quick-fact"><span>Potential</span><b id="intelExpected">-</b><small id="intelExpectedReason">Waiting for route signal</small></div>
@@ -2124,7 +2124,7 @@
         document.body.innerHTML = `<main class="route-iq-customer-session-blocked"><div><h1>No paid-customer configuration selected</h1><p>No paid-customer configuration is selected or activated for this secure session. A validated configuration and explicit approval are required before customer operations can begin.</p></div></main>`;
         return;
       }
-      document.body.innerHTML = `<main class="route-iq-customer-session-blocked"><div><h1>Route IQ access unavailable</h1><p>Your secure session is missing, expired, or outside the authorized workspace. Reconnect and sign in again.</p></div></main>`;
+      document.body.innerHTML = `<main class="route-iq-customer-session-blocked"><div><h1>Prometheus Route IQ access unavailable</h1><p>Your secure session is missing, expired, or outside the authorized workspace. Reconnect and sign in again.</p></div></main>`;
     }
 
     const routeIqCustomerPwaSession = readRouteIqCustomerPwaSession();
@@ -3579,7 +3579,7 @@
       const visitIds = new Set(originalVisits.map(visit => visit.id));
       const correctionEvents = (state.visitCorrections || []).filter(event => visitIds.has(event.visitId));
       return {
-        app: "Prometheus IQ",
+        app: "Prometheus Route IQ",
         reportType: "route-iq-daily-representative-report-v1",
         generatedAt: reportGeneratedAt,
         date: todayKey(),
@@ -3668,7 +3668,7 @@
       } catch (error) {
         throw new Error("Today’s report could not be validated.");
       }
-      if (report.app !== "Prometheus IQ"
+      if (!["Prometheus Route IQ", "Prometheus IQ"].includes(report.app)
         || !["route-iq-daily-representative-report-v1", "beta-daily-rep-report"].includes(report.reportType)) {
         throw new Error("Today’s report contract is invalid.");
       }
@@ -3938,7 +3938,7 @@
     function formatTodaySummary(report) {
       const vocabulary = activeOperatingVocabulary();
       const lines = [
-        `Prometheus IQ Daily Rep Summary`,
+        `Prometheus Route IQ Daily Rep Summary`,
         `Rep: ${report.rep.name}`,
         `Date: ${report.date}`,
         `Generated: ${report.generatedAt}`,
@@ -4009,7 +4009,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `prometheus-iq-${report.rep.id}-daily-report-${report.date}.json`;
+      link.download = `prometheus-route-iq-${report.rep.id}-daily-report-${report.date}.json`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -4026,7 +4026,7 @@
       }
       syncActiveProfile();
       const payload = {
-        app: "Prometheus IQ",
+        app: "Prometheus Route IQ",
         version: 3,
         exportedAt: new Date().toISOString(),
         sensitiveData: ["visit.location", "repProfiles.visits.location", "founderHistoricalSnapshot"],
@@ -4036,7 +4036,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `prometheus-iq-backup-${todayKey()}.json`;
+      link.download = `prometheus-route-iq-backup-${todayKey()}.json`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -7799,7 +7799,7 @@
 
     function visitLocationMarkup() {
       return `<div class="visit-location">
-        <p><b>Device-Reported Visit Location</b> attaches your current GPS location to this logged business visit only. Prometheus IQ does not track your full day or background movement. A device location is not fraud-proof until server verification is enabled.</p>
+        <p><b>Device-Reported Visit Location</b> attaches your current GPS location to this logged business visit only. Prometheus Route IQ does not track your full day or background movement. A device location is not fraud-proof until server verification is enabled.</p>
         <button class="btn secondary" type="button" data-verify-location>Attach Current Location</button>
         <div class="location-status" data-location-status>Optional. Tap only when you want a location attached to this visit.</div>
       </div>`;

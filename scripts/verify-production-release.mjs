@@ -532,7 +532,7 @@ function runtimeSmokeExpression(role) {
       buildMarker: get(/const appBuildVersion = "([^"]+)"/),
       serviceWorkerVersion: get(/const serviceWorkerCacheVersion = "([^"]+)"/),
       activePath: get(/const runtimeDatasetActivePath = "([^"]+)"/),
-      renderOk: text.includes("Prometheus IQ"),
+      renderOk: text.includes("Prometheus Route IQ"),
       founderMode: document.body?.dataset?.sessionRole === "founder" || /Founder/i.test(text),
       repMode: document.body?.dataset?.sessionRole === "rep" || /\\bRep\\b/i.test(text),
       routeInitialized: /Today.?s Route|Route Intelligence|Build Route/i.test(text),
@@ -608,7 +608,7 @@ async function verifyBrowserRuntime(localContracts) {
 
     const failures = [];
     for (const smoke of [founder, rep]) {
-      if (!smoke.renderOk) failures.push(`${smoke.role} render did not include Prometheus IQ.`);
+      if (!smoke.renderOk) failures.push(`${smoke.role} render did not include Prometheus Route IQ.`);
       if (smoke.role === "founder" && !smoke.founderMode) failures.push("Founder smoke did not enter Founder mode.");
       if (smoke.role === "rep" && !smoke.repMode) failures.push("Rep smoke did not enter Rep mode.");
       if (smoke.buildMarker !== localContracts.buildMarker) failures.push(`${smoke.role} build marker mismatch.`);

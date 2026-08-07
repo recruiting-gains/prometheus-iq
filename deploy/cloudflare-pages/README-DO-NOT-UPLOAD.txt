@@ -1,4 +1,4 @@
-This folder is the prepared Prometheus IQ Cloudflare Pages build.
+This folder is the prepared Prometheus Route IQ private Dashboard build.
 
 Static-only upload items:
 
