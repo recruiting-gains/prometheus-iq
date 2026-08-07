@@ -258,7 +258,7 @@ test("live revenue remains blocked without every commercial prerequisite", () =>
   const activation = verified(ROUTE_IQ_ACTIVATION_EVIDENCE);
   const revenue = verified(ROUTE_IQ_LIVE_REVENUE_EVIDENCE);
   assert.equal(evaluateRouteIqLiveRevenueGate(revenue).pass, true);
-  delete revenue.registered_legal_entity;
+  delete revenue.operator_business_identity_confirmed;
   expectCode("route_iq_revenue_live_billing_blocked", () =>
     evaluateRouteIqLiveRevenueGate(revenue)
   );

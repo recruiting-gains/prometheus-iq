@@ -5,8 +5,8 @@
   "modelId": "route_iq_authoritative_commercial_model",
   "modelVersion": "1.0.0",
   "company": {
-    "proposedName": "Prometheus Route Intelligence LLC",
-    "registrationStatus": "PROPOSED_UNREGISTERED"
+    "proposedName": "Prometheus.IQ",
+    "registrationStatus": "SOLE_PROPRIETOR"
   },
   "product": {
     "name": "Prometheus Route IQ",
@@ -41,7 +41,7 @@
   "liveRevenue": {
     "enabled": false,
     "requiredEvidence": [
-      { "evidenceId": "registered_legal_entity", "required": true, "status": "FOUNDER DECISION REQUIRED" },
+      { "evidenceId": "operator_business_identity_confirmed", "required": true, "status": "FOUNDER DECISION REQUIRED" },
       { "evidenceId": "tax_identity_confirmed", "required": true, "status": "FOUNDER DECISION REQUIRED" },
       { "evidenceId": "business_bank_account_confirmed", "required": true, "status": "FOUNDER DECISION REQUIRED" },
       { "evidenceId": "founder_price_approval", "required": true, "status": "FOUNDER DECISION REQUIRED" },

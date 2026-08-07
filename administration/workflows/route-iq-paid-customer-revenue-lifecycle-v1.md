@@ -2,8 +2,8 @@
 
 Owner: Prometheus Administration
 
-`Prometheus Route Intelligence LLC` is a proposed, unregistered entity. `Prometheus Route IQ`
-is the product. This specification supplies no binding price, payment, legal, service, refund,
+`Prometheus.IQ` is the company operating as a sole proprietorship. `Prometheus Route IQ`
+is the product. LLC formation and EIN acquisition are not current launch prerequisites. This specification supplies no binding price, payment, legal, service, refund,
 privacy, tax, or cancellation term.
 
 ## Authoritative Sequence
@@ -24,7 +24,7 @@ permission to collect revenue.
 acceptance, legal review, data-handling approval, support ownership, workspace validation, and a
 server-authoritative customer-activation authorization receipt.
 
-`ACTIVE` additionally requires a registered entity, confirmed tax identity and bank account,
+`ACTIVE` additionally requires confirmed operator business identity, tax configuration and bank account,
 approved pricing, an approved production billing provider, customer payment authorization,
 an executed agreement, an approved refund/cancellation policy, and a separately issued
 server-authoritative live-revenue authorization receipt.

@@ -45,7 +45,7 @@ Other subsystems continue to own implementation:
 5. Tester onboarding is completed using the Administration checklist.
 6. Device inventory is recorded before first field use.
 7. Release/version assignment is recorded.
-8. Test session history is recorded when a tester uses Prometheus IQ in the field.
+8. Test session history is recorded when a tester uses Prometheus Route IQ in the field.
 9. Bugs, feature requests, positive feedback, workflow observations, route quality observations, and performance observations are triaged through Administration workflows.
 10. Confirmed engineering work is routed to the owning subsystem.
 11. Release verification and regression verification are recorded after subsystem handoff.

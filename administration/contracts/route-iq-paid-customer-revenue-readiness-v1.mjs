@@ -1,7 +1,7 @@
 export const ROUTE_IQ_REVENUE_SCHEMA_VERSION = "route-iq-paid-customer-revenue-readiness-v1";
 export const ROUTE_IQ_REVENUE_CONTRACT_VERSION = "1.0.0";
 export const ROUTE_IQ_REVENUE_AUTHORITY = "prometheus_administration";
-export const ROUTE_IQ_PROPOSED_ENTITY = "Prometheus Route Intelligence LLC";
+export const ROUTE_IQ_PROPOSED_ENTITY = "Prometheus.IQ";
 export const ROUTE_IQ_PRODUCT_NAME = "Prometheus Route IQ";
 
 export const ROUTE_IQ_REVENUE_STATES = Object.freeze([
@@ -36,7 +36,7 @@ export const ROUTE_IQ_ACTIVATION_EVIDENCE = Object.freeze([
 ]);
 
 export const ROUTE_IQ_LIVE_REVENUE_EVIDENCE = Object.freeze([
-  "registered_legal_entity",
+  "operator_business_identity_confirmed",
   "tax_identity_confirmed",
   "business_bank_account_confirmed",
   "founder_price_approval",
@@ -187,9 +187,9 @@ export function validateRouteIqRevenueModel(input) {
   assertKeys(model.company, ["proposedName", "registrationStatus"], "model.company");
   if (
     model.company.proposedName !== ROUTE_IQ_PROPOSED_ENTITY
-    || model.company.registrationStatus !== "PROPOSED_UNREGISTERED"
+    || model.company.registrationStatus !== "SOLE_PROPRIETOR"
   ) {
-    fail("route_iq_revenue_entity_status_invalid", "The proposed entity must remain unregistered.");
+    fail("route_iq_revenue_entity_status_invalid", "The company must remain bound to the governed sole-proprietor identity.");
   }
   assertKeys(model.product, ["name", "activeProduct"], "model.product");
   if (model.product.name !== ROUTE_IQ_PRODUCT_NAME || model.product.activeProduct !== true) {

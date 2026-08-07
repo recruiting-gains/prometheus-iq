@@ -1,6 +1,6 @@
-# Route IQ First-Customer Activation Runbook v1
+# Prometheus Route IQ First-Customer Activation Runbook v1
 
-This runbook governs the first real Route IQ customer after the external legal, entity, banking, pricing, contract, and Stripe Live gates are complete. Validation, billing readiness, and commercial acceptance never activate a customer by themselves.
+This runbook governs the first real Prometheus Route IQ customer after the external legal, banking, pricing, contract, tax-configuration, and Stripe Live gates are complete. Prometheus.IQ operates as a sole proprietorship; LLC formation and EIN acquisition are not current activation prerequisites. Validation, billing readiness, and commercial acceptance never activate a customer by themselves.
 
 ## 1. Lead received
 
@@ -58,4 +58,4 @@ This runbook governs the first real Route IQ customer after the external legal, 
 
 ## External gates
 
-The following wait for separate Founder decisions and evidence: LLC formation, EIN, business bank account, final pricing, customer contract and consent, tax/refund policy, Stripe Live credentials, payment collection, real customer activation, real user invitations, provider activation, collection activation, cohorts, scheduling, and recommendation influence.
+The following wait for separate Founder decisions and evidence: business bank account, final pricing, customer contract and consent, tax and refund configuration, Stripe Live credentials, payment collection, real customer activation, real user invitations, provider activation, collection activation, cohorts, scheduling, and recommendation influence. LLC formation and EIN acquisition are not current launch blockers.
