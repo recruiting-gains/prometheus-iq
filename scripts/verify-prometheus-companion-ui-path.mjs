@@ -400,7 +400,7 @@ const infrastructureTimelineFixture = {
     overallStatusReason: "Production controls are verified, but founder/account-owner actions remain.",
     operationalPhase: ["Deployment readiness", "Customer onboarding", "Enterprise hardening", "Continuous operational improvement"],
     productionAvailability: { state: "verified", detail: "zone active at prometheusrouteiq.com" },
-    cloudflareWorker: { state: "verified", detail: "private Prometheus IQ Worker protected by Cloudflare Access" },
+    cloudflareWorker: { state: "verified", detail: "private Prometheus Route IQ Worker protected by Cloudflare Access" },
     accessAuth: { state: "verified", detail: "unauthenticated private Worker request redirects through Cloudflare Access with HTTP 302" },
     aegis: { state: "verified", detail: "Phase II complete for Infrastructure-owned controls" },
     wafRateLimiting: { state: "verified", detail: "WAF unsafe-method guard returns 403 and Worker/KV AEGIS_RATE_LIMITS is active" },

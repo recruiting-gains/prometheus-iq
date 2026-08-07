@@ -267,7 +267,7 @@ function infrastructureTimelineState({ masterState, systemMap, aegisReport, proj
     ),
     cloudflareWorker: verifiedState(
       workerVerified,
-      "private Prometheus IQ Worker protected by Cloudflare Access",
+      "private Prometheus Route IQ Worker protected by Cloudflare Access",
       "current Worker state is not verified in the latest canonical report"
     ),
     accessAuth: verifiedState(
