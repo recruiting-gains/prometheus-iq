@@ -170,6 +170,34 @@
       "prometheus-iq"
     ]
   },
+  "historicalVerifierReconciliations": {
+    "paidCustomerOnboardingFoundation": {
+      "classification": "GOVERNED_PUBLIC_IDENTITY_SUCCESSOR",
+      "authorizedMigration": "live-canonical-identity-migration-v1",
+      "baselineCommit": "404f8bf6a5aa04ab73ddfa658c0f084c3da916a6",
+      "reason": "The historical paid-customer foundation correctly prohibited incidental public-lane drift. This separately authorized canonical-identity migration supersedes only the exact Website and Infrastructure files below without changing public deployment workflows, routes, bindings, or CRM schema.",
+      "ownerCommits": [
+        "aa0c50ade9b66fd579c3609107a02e4c70de4179",
+        "c4cb9150fb8ad218e34026a63fa577271860c270",
+        "e225b9e6380416cceddbfe10ee7aa318b123e75c"
+      ],
+      "changedPaths": [
+        "deploy/prometheusrouteiq-website/_headers",
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-BLFmJFP3.js",
+        "deploy/prometheusrouteiq-website/assets/landing-C2NZ4sqg.js",
+        "deploy/prometheusrouteiq-website/data-deletion/index.html",
+        "deploy/prometheusrouteiq-website/index.html",
+        "deploy/prometheusrouteiq-website/privacy/index.html",
+        "deploy/prometheusrouteiq-website/site-20260701-brand-v2.webmanifest",
+        "deploy/prometheusrouteiq-website/site.webmanifest",
+        "deploy/prometheusrouteiq-website/terms/index.html",
+        "src/main.jsx",
+        "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+      ],
+      "publicWorkflowChanged": false,
+      "routesBindingsAndSchemaUnchanged": true
+    }
+  },
   "historicalPolicy": "PRESERVE_DATED_TRUTH_AND_SUPERSEDE_WITH_CURRENT_GOVERNANCE",
   "deploymentScope": [
     "prometheusrouteiq-website",

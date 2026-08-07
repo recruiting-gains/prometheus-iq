@@ -18,6 +18,8 @@ const runtimePath =
   "workers/infrastructure/route-iq-paid-customer-onboarding-runtime-v1.json";
 const privateWorkflowPath =
   "workers/infrastructure/github-actions-private-worker-deployment-v2.json";
+const liveIdentityGovernancePath =
+  "overwatch/governance/live-canonical-identity-migration-v1.json";
 
 const expectedGateIds = Object.freeze([
   "private_dashboard_production",
@@ -221,17 +223,77 @@ function verifyOwnerCommits(ownerCommits) {
   }
 }
 
-function verifyPublicLaneUnchanged(baselineCommit) {
-  const publicPaths = [
-    ".github/workflows/deploy-prometheus-public-worker.yml",
-    ".github/workflows/qualify-prometheus-public-worker.yml",
-    "deploy/prometheusrouteiq-website",
-    "src",
-    "workers/infrastructure/github-actions-public-worker-deployment-v2.json",
-    "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
-    "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
-  ];
-  assert.equal(git(["diff", "--name-only", baselineCommit, "--", ...publicPaths]), "");
+const paidCustomerPublicPaths = Object.freeze([
+  ".github/workflows/deploy-prometheus-public-worker.yml",
+  ".github/workflows/qualify-prometheus-public-worker.yml",
+  "deploy/prometheusrouteiq-website",
+  "src",
+  "workers/infrastructure/github-actions-public-worker-deployment-v2.json",
+  "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+  "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+]);
+
+export function validateGovernedPublicLaneSuccessor({
+  governance,
+  baselineCommit,
+  changedPaths
+}) {
+  assert.equal(governance.governanceId, "live-canonical-identity-migration-v1");
+  assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");
+  const reconciliation = governance.historicalVerifierReconciliations
+    ?.paidCustomerOnboardingFoundation;
+  assert.ok(reconciliation);
+  assert.equal(reconciliation.classification, "GOVERNED_PUBLIC_IDENTITY_SUCCESSOR");
+  assert.equal(reconciliation.authorizedMigration, governance.governanceId);
+  assert.equal(reconciliation.baselineCommit, baselineCommit);
+  assert.equal(reconciliation.publicWorkflowChanged, false);
+  assert.equal(reconciliation.routesBindingsAndSchemaUnchanged, true);
+  assert.deepEqual(reconciliation.ownerCommits, [
+    "aa0c50ade9b66fd579c3609107a02e4c70de4179",
+    "c4cb9150fb8ad218e34026a63fa577271860c270",
+    "e225b9e6380416cceddbfe10ee7aa318b123e75c"
+  ]);
+  assert.deepEqual(changedPaths, reconciliation.changedPaths);
+  return reconciliation;
+}
+
+function verifyPublicLaneCompatibility(baselineCommit) {
+  const changedPaths = git([
+    "diff",
+    "--name-only",
+    baselineCommit,
+    "--",
+    ...paidCustomerPublicPaths
+  ]).split("\n").filter(Boolean);
+  if (changedPaths.length === 0) return;
+
+  const governance = readJson(liveIdentityGovernancePath);
+  const reconciliation = validateGovernedPublicLaneSuccessor({
+    governance,
+    baselineCommit,
+    changedPaths
+  });
+  assert.equal(git([
+    "merge-base",
+    "--is-ancestor",
+    governance.startingRepository.commit,
+    "HEAD"
+  ]), "");
+  for (const commit of reconciliation.ownerCommits) {
+    assert.equal(git(["merge-base", "--is-ancestor", commit, "HEAD"]), "");
+  }
+  for (const path of changedPaths) {
+    const touchingCommits = git([
+      "log",
+      "--format=%H",
+      `${baselineCommit}..HEAD`,
+      "--",
+      path
+    ]).split("\n").filter(Boolean);
+    assert.ok(touchingCommits.length > 0);
+    assert.ok(touchingCommits.every(commit => reconciliation.ownerCommits.includes(commit)),
+      `ungoverned public successor commit touched ${path}`);
+  }
 }
 
 function verifyPaidCustomerRuntimeBoundaries() {
@@ -296,7 +358,7 @@ export function verifyOverwatchRouteIqPaidCustomerOnboardingFoundation() {
   const ledger = validatePaidCustomerProductionGateLedger(readJson(ledgerPath));
   const lineage = validatePrivateWorkerLineage(readJson(lineagePath));
   verifyOwnerCommits(ledger.ownerCommits);
-  verifyPublicLaneUnchanged(ledger.releaseBaseline.sourceCommit);
+  verifyPublicLaneCompatibility(ledger.releaseBaseline.sourceCommit);
   verifyPaidCustomerRuntimeBoundaries();
 
   const runtime = readJson(runtimePath);

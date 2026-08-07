@@ -3,6 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 
 import {
+  validateGovernedPublicLaneSuccessor,
   validatePaidCustomerProductionGateLedger,
   validatePrivateWorkerLineage,
   verifyOverwatchRouteIqPaidCustomerOnboardingFoundation
@@ -24,6 +25,34 @@ test("Overwatch independently accepts the owner-separated paid-customer foundati
   assert.equal(result.protectedOperatingState.collection, "OFF");
   assert.equal(result.protectedOperatingState.activeCohorts, 0);
   assert.equal(result.protectedOperatingState.recommendationInfluence, "OFF");
+});
+
+test("historical public-lane guard admits only the exact governed identity successor", () => {
+  const governance = readJson(
+    "overwatch/governance/live-canonical-identity-migration-v1.json"
+  );
+  const reconciliation = governance.historicalVerifierReconciliations
+    .paidCustomerOnboardingFoundation;
+  assert.equal(validateGovernedPublicLaneSuccessor({
+    governance,
+    baselineCommit: reconciliation.baselineCommit,
+    changedPaths: reconciliation.changedPaths
+  }), reconciliation);
+
+  assert.throws(() => validateGovernedPublicLaneSuccessor({
+    governance,
+    baselineCommit: reconciliation.baselineCommit,
+    changedPaths: [...reconciliation.changedPaths, "src/unapproved-public-change.js"]
+  }));
+
+  const weakened = clone(governance);
+  weakened.historicalVerifierReconciliations
+    .paidCustomerOnboardingFoundation.routesBindingsAndSchemaUnchanged = false;
+  assert.throws(() => validateGovernedPublicLaneSuccessor({
+    governance: weakened,
+    baselineCommit: reconciliation.baselineCommit,
+    changedPaths: reconciliation.changedPaths
+  }));
 });
 
 test("paid-customer ledger rejects percentage inflation and documentation-only readiness", () => {
