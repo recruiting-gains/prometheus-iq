@@ -62,10 +62,10 @@ test("five-second positioning names one product, buyer, user, problem, differenc
   const source = read("src/main.jsx");
   const metadata = read("landing.html");
 
-  assert.match(source, /<h1>Route IQ<\/h1>/);
+  assert.match(source, /<h1>Prometheus Route IQ<\/h1>/);
   assert.match(
     source,
-    /<p className="patent-label">U\.S\. PATENT PENDING TECHNOLOGY<\/p>\s*<SectionLabel>Prometheus Field Decision Intelligence<\/SectionLabel>/
+    /<p className="patent-label">U\.S\. PATENT PENDING TECHNOLOGY<\/p>\s*<SectionLabel>Prometheus\.IQ Field Decision Intelligence<\/SectionLabel>/
   );
   assert.match(source, /Field decision intelligence for outside-sales teams/);
   assert.match(source, /outside-sales leaders and representatives/);
@@ -73,7 +73,7 @@ test("five-second positioning names one product, buyer, user, problem, differenc
   assert.match(source, /More than businesses on a map/);
   assert.match(source, />REQUEST ROUTE IQ</);
   assert.match(source, />See How Route IQ Works</);
-  assert.match(metadata, /Route IQ \| Field Decision Intelligence for Outside Sales/);
+  assert.match(metadata, /Prometheus Route IQ \| Field Decision Intelligence for Outside Sales/);
 });
 
 test("public claims explain the governed intelligence loop without publishing internal-report copy", () => {
@@ -160,8 +160,8 @@ test("metadata, social preview, canonical URL, and structured data describe only
   assert.ok(structured, "The landing page must publish a JSON-LD record.");
   const graph = JSON.parse(structured)["@graph"];
   assert.deepEqual(graph.map(item => item["@type"]), ["Organization", "SoftwareApplication"]);
-  assert.equal(graph[0].name, "Prometheus");
-  assert.equal(graph[1].name, "Route IQ");
+  assert.equal(graph[0].name, "Prometheus.IQ");
+  assert.equal(graph[1].name, "Prometheus Route IQ");
   assert.equal(graph[1].audience.audienceType, "Field operations leaders and field representatives");
   assert.doesNotMatch(structured, /customer|partner|pilot|Fitness Connection/i);
   const structuredHash = createHash("sha256").update(structured).digest("base64");
@@ -261,7 +261,7 @@ test("Route IQ request UI captures only governed fields and explains durable acc
   for (const name of expected) assert.match(source, new RegExp(`name="${name}"`));
   assert.match(source, /Success appears only after durable acceptance/);
   assert.match(source, /You will receive a unique receipt/);
-  assert.match(source, /Prometheus then reviews the request and may follow up/);
+  assert.match(source, /Prometheus\.IQ then reviews the request and may follow up/);
   assert.match(source, /role="status"/);
   assert.match(source, /Receipt <strong>/);
   assert.equal(ROUTE_IQ_REQUEST_ENDPOINT, "/api/partner-intake");

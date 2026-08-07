@@ -76,7 +76,7 @@ test("current product claims, synthetic ProductView, and CRM request UX remain i
   const source = read("src/main.jsx");
 
   assert.match(source, /U\.S\. PATENT PENDING TECHNOLOGY/);
-  assert.match(source, /Prometheus Field Decision Intelligence/);
+  assert.match(source, /Prometheus\.IQ Field Decision Intelligence/);
   assert.match(source, /Field decision intelligence for outside-sales teams/);
   assert.match(source, /outside-sales leaders and representatives/);
   assert.match(source, /More than businesses on a map/);

@@ -190,23 +190,23 @@ function RouteIqRequestForm() {
     }
 
     setSubmitting(true);
-    setStatus({ kind: "pending", message: "Validating your Route IQ request...", receiptId: "" });
+    setStatus({ kind: "pending", message: "Validating your Prometheus Route IQ request...", receiptId: "" });
     try {
       const result = await submitRouteIqRequest({ payload: request.payload });
       setStatus({
         kind: "success",
         message: result.duplicate
-          ? "Your existing request was found. The original receipt remains valid."
-          : "Your request was accepted and stored for Founder review.",
+          ? "Your existing Prometheus Route IQ request was found. The original receipt remains valid."
+          : "Your Prometheus Route IQ request was accepted and stored for Founder review.",
         receiptId: result.receiptId
       });
       form.reset();
     } catch (error) {
       const messages = {
         REQUEST_RATE_LIMITED: "Too many requests were submitted. Please wait before trying again.",
-        REQUEST_NETWORK_FAILED: "Prometheus could not confirm that your request was stored. Please try again later.",
-        REQUEST_RECEIPT_MISSING: "Prometheus could not confirm a storage receipt. Please try again later.",
-        REQUEST_RESPONSE_INVALID: "Prometheus returned an invalid confirmation. Please try again later."
+        REQUEST_NETWORK_FAILED: "Prometheus.IQ could not confirm that your request was stored. Please try again later.",
+        REQUEST_RECEIPT_MISSING: "Prometheus.IQ could not confirm a storage receipt. Please try again later.",
+        REQUEST_RESPONSE_INVALID: "Prometheus.IQ returned an invalid confirmation. Please try again later."
       };
       setStatus({
         kind: "error",
@@ -275,10 +275,10 @@ function RouteIqRequestForm() {
       </div>
       <label className="consent-field">
         <input name="consent" type="checkbox" required />
-        <span>I agree that Prometheus may use this information to respond to my Route IQ request.</span>
+        <span>I agree that Prometheus.IQ may use this information to respond to my Prometheus Route IQ request.</span>
       </label>
       <p id="request-privacy-note" className="request-note">Only the information needed to review and respond to this request is collected.</p>
-      <p id="request-process-note" className="request-note">Success appears only after durable acceptance. You will receive a unique receipt; Prometheus then reviews the request and may follow up.</p>
+      <p id="request-process-note" className="request-note">Success appears only after durable acceptance. You will receive a unique receipt; Prometheus.IQ then reviews the request and may follow up.</p>
       <button className="button primary request-submit" type="submit" disabled={submitting}>
         {submitting ? "SUBMITTING" : "REQUEST ROUTE IQ"}
       </button>
@@ -326,7 +326,7 @@ function App() {
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Prometheus Route IQ home">
           <LogoMark />
-          <span className="brand-lockup"><strong>Prometheus</strong><small>Route IQ</small></span>
+          <span className="brand-lockup"><strong>Prometheus.IQ</strong><small>Prometheus Route IQ</small></span>
         </a>
         <nav aria-label="Primary navigation">
           <a href="#teams">For teams</a>
@@ -353,8 +353,8 @@ function App() {
           transition={{ duration: prefersReducedMotion ? 0 : 0.72 }}
         >
           <p className="patent-label">U.S. PATENT PENDING TECHNOLOGY</p>
-          <SectionLabel>Prometheus Field Decision Intelligence</SectionLabel>
-          <h1>Route IQ</h1>
+          <SectionLabel>Prometheus.IQ Field Decision Intelligence</SectionLabel>
+          <h1>Prometheus Route IQ</h1>
           <p className="hero-statement">Field decision intelligence for outside-sales teams.</p>
           <p className="hero-detail">Route IQ brings approved business context, territory, timing, availability, field activity, and governed outcome context together so outside-sales leaders and representatives can compare opportunities with better information.</p>
           <p className="hero-difference">More than businesses on a map, Route IQ supports the action between one CRM record and the next while keeping people in control.</p>
@@ -490,11 +490,11 @@ function App() {
           <div className="request-copy">
             <SectionLabel>Request Route IQ</SectionLabel>
             <h2>See what Route IQ could clarify for your field team.</h2>
-            <p>Tell Prometheus how your outside-sales organization operates, where field decisions break down, and what representatives or leaders need to understand more clearly.</p>
+            <p>Tell Prometheus.IQ how your outside-sales organization operates, where field decisions break down, and what representatives or leaders need to understand more clearly.</p>
             <ol className="request-steps">
               <li><span>1</span><p><strong>Share the field problem</strong> Describe the team, territory, and decision that needs better context.</p></li>
               <li><span>2</span><p><strong>Receive a receipt</strong> The request is confirmed only after durable acceptance.</p></li>
-              <li><span>3</span><p><strong>Founder review</strong> Prometheus reviews the fit and may follow up about the next step.</p></li>
+              <li><span>3</span><p><strong>Founder review</strong> Prometheus.IQ reviews the fit and may follow up about the next step.</p></li>
             </ol>
           </div>
           <RouteIqRequestForm />
@@ -503,7 +503,7 @@ function App() {
 
       <footer className="site-footer">
         <div className="shell footer-grid">
-          <div className="footer-brand"><LogoMark /><div><strong>Prometheus</strong><span>Company behind Route IQ</span></div></div>
+          <div className="footer-brand"><LogoMark /><div><strong>Prometheus.IQ</strong><span>Company behind Prometheus Route IQ</span></div></div>
           <div className="footer-links">
             <a href="#how-it-works">How it works</a>
             <a href="#request">Request Route IQ</a>
