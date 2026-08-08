@@ -290,6 +290,25 @@ const currentLiveCanonicalIdentityProtectedConsumerCompositionRepairHashes =
     currentLiveCanonicalIdentityProtectedConsumerCompositionRepair.evidence
       .map(item => [item.path, item.sha256])
   );
+export const currentLiveCanonicalIdentityOffRouteBaselineRepair = Object.freeze({
+  commit: "db74fd379f0624f3abfaf1ddee1827c3fe4f1e60",
+  parent: "daa461ebc3d359117e78f14bca2c6da92726524b",
+  tree: "aefdf1f611c138827f731235fb1caa673a58a136",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: compose canonical off-route baseline",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "tests/off-route-learning-intelligence.test.mjs",
+      sha256: "5c24ea2615105a3e9403450ee4e68747c8508257eec4ca844a070b8a6b9395e0"
+    })
+  ])
+});
+const currentLiveCanonicalIdentityOffRouteBaselineRepairHashes = new Map(
+  currentLiveCanonicalIdentityOffRouteBaselineRepair.evidence.map(item => [
+    item.path,
+    item.sha256
+  ])
+);
 export const currentProtectedDriftFixtureIntelligenceSuccessor = Object.freeze({
   commit: "ff63d927c121a0030a0cbb1f041a626ffe7968bc",
   parent: "f17802246b06dbd1aca0f56fb257de34d78ecb24",
@@ -908,6 +927,50 @@ export function validateLiveCanonicalIdentityProtectedConsumerCompositionRepair(
   return record;
 }
 
+export function validateLiveCanonicalIdentityOffRouteBaselineRepair(
+  record = currentLiveCanonicalIdentityOffRouteBaselineRepair
+) {
+  assert.deepEqual(
+    record,
+    currentLiveCanonicalIdentityOffRouteBaselineRepair,
+    "Live canonical identity off-route baseline repair mapping drifted."
+  );
+  assert.deepEqual(git(
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ).split("\n"), [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Live canonical identity off-route baseline repair provenance drifted.");
+  assert.deepEqual(
+    changedPaths(record.commit),
+    record.evidence.map(item => item.path).sort(),
+    "Live canonical identity off-route baseline repair path set drifted."
+  );
+  const governance = readJson(liveCanonicalIdentityGovernancePath);
+  const ownerMatches = governance.protectedConsumerSuccessors.filter(item => (
+    item.commit === record.commit
+    && item.tree === record.tree
+    && item.owner === record.identity
+  ));
+  assert.equal(ownerMatches.length, 1,
+    "Live canonical identity off-route baseline owner evidence drifted.");
+  for (const item of record.evidence) {
+    assert.equal(
+      sha256(gitBytes("show", `${record.commit}:${item.path}`)),
+      item.sha256,
+      `${item.path} live canonical off-route baseline owner hash drifted.`
+    );
+  }
+  return record;
+}
+
 function composeCurrentIntelligenceSha256(path, previousSha256) {
   let expectedSha256 = previousSha256;
   for (const [record, hashes, label] of [
@@ -940,6 +1003,11 @@ function composeCurrentIntelligenceSha256(path, previousSha256) {
       currentLiveCanonicalIdentityProtectedConsumerCompositionRepair,
       currentLiveCanonicalIdentityProtectedConsumerCompositionRepairHashes,
       "live canonical identity protected-consumer composition"
+    ],
+    [
+      currentLiveCanonicalIdentityOffRouteBaselineRepair,
+      currentLiveCanonicalIdentityOffRouteBaselineRepairHashes,
+      "live canonical identity off-route baseline"
     ]
   ]) {
     const successorSha256 = hashes.get(path);
@@ -960,6 +1028,7 @@ export function validateRevenueReadinessIntelligenceSuccessor(record) {
   validateFullSystemHarmonyShadowReadinessSuccessor();
   validateLiveCanonicalIdentityShadowReadinessRepair();
   validateLiveCanonicalIdentityProtectedConsumerCompositionRepair();
+  validateLiveCanonicalIdentityOffRouteBaselineRepair();
   validateProtectedDriftFixtureIntelligenceSuccessor();
   assert.deepEqual(record, currentRevenueReadinessIntelligenceSuccessor,
     "Revenue-readiness Intelligence successor mapping drifted.");
@@ -1973,6 +2042,8 @@ export function verifyReleaseProvenanceRepair() {
       currentLiveCanonicalIdentityShadowReadinessRepair.commit,
     currentLiveCanonicalIdentityProtectedConsumerCompositionRepairCommit:
       currentLiveCanonicalIdentityProtectedConsumerCompositionRepair.commit,
+    currentLiveCanonicalIdentityOffRouteBaselineRepairCommit:
+      currentLiveCanonicalIdentityOffRouteBaselineRepair.commit,
     currentProtectedDriftFixtureIntelligenceSuccessorCommit:
       currentProtectedDriftFixtureIntelligenceSuccessor.commit
   };

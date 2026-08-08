@@ -225,6 +225,27 @@ test("current governance records the launch facts and keeps protected receipts i
             "dd7449ad92b8932b9d7dc0fe29d25f7f2e3a4b931726f1400d35156476e0a00c"
         }
       ]
+    },
+    {
+      classification: "LIVE_CANONICAL_IDENTITY_INTELLIGENCE_CONSUMER_REPAIR",
+      subsystem: "Prometheus Intelligence Engine",
+      owner: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      commit: "db74fd379f0624f3abfaf1ddee1827c3fe4f1e60",
+      parent: "daa461ebc3d359117e78f14bca2c6da92726524b",
+      tree: "aefdf1f611c138827f731235fb1caa673a58a136",
+      subject: "intelligence: compose canonical off-route baseline",
+      historicalEvidenceRewritten: false,
+      intelligenceBehaviorChanged: false,
+      recommendationInfluenceChanged: false,
+      evidence: [
+        {
+          path: "tests/off-route-learning-intelligence.test.mjs",
+          previousSha256:
+            "5d03da7a6a28beed849d1dc51430da7dab74bba1672642e95e75428da8ea5a44",
+          currentSha256:
+            "5c24ea2615105a3e9403450ee4e68747c8508257eec4ca844a070b8a6b9395e0"
+        }
+      ]
     }
   ]);
   assert.equal(governance.ownerCommitChain.length, 10);
