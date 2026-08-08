@@ -143,12 +143,20 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "0515e5993547e5e1b3a0b5897f12ac53060a8b35"
   );
   assert.equal(
+    result.immutableWorkflowV2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit,
+    "a6e85f05fe57a5bff8b2fc6bc168f541272ac0b8"
+  );
+  assert.equal(
     result.immutableWorkflowV2LiveCanonicalIdentityOverwatchAcceptanceCommit,
     "d904f5b3420d6fee328f69fba5850b49b6bb3637"
   );
   assert.equal(
     result.immutableWorkflowV2LiveCanonicalIdentityShadowReadinessAcceptanceCommit,
     "da8b92ba2a33c8ca02e8ee681877ff057ce6da70"
+  );
+  assert.equal(
+    result.immutableWorkflowV2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit,
+    "b627c876d424dd9f435bf340fa86017be4eb966d"
   );
   assert.equal(
     result.immutableWorkflowV2ControlledRehearsalGuardVerifierSuccessorCommit,
@@ -178,6 +186,17 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
     path,
     previousSha256,
     currentSha256
+  }), true);
+
+  const protectedConsumerPath =
+    "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs";
+  assert.equal(hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: protectedConsumerPath,
+    previousSha256:
+      "89529db78c45767e77f2daa0fd88c20fb7eba6aed4293b333e1e0d1afe9801ce",
+    currentSha256: sha256(readFileSync(resolve(root, protectedConsumerPath)))
   }), true);
 
   const changed = clone(currentReadinessSuccessors);
@@ -396,6 +415,21 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
         .sha256 = "0".repeat(64);
     },
     value => {
+      value.ownership
+        .intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairCommit
+        .commit = "0".repeat(40);
+    },
+    value => {
+      value.ownership
+        .intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairPaths
+        .pop();
+    },
+    value => {
+      value.ownership
+        .intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairEvidence[0]
+        .sha256 = "0".repeat(64);
+    },
+    value => {
       value.ownership.overwatchRevenueReadinessAcceptanceCommit.commit =
         "0".repeat(40);
     },
@@ -433,6 +467,21 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => {
       value.ownership
         .overwatchLiveCanonicalIdentityShadowReadinessAcceptanceEvidence[0]
+        .sha256 = "0".repeat(64);
+    },
+    value => {
+      value.ownership
+        .overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit
+        .commit = "0".repeat(40);
+    },
+    value => {
+      value.ownership
+        .overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptancePaths
+        .pop();
+    },
+    value => {
+      value.ownership
+        .overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceEvidence[0]
         .sha256 = "0".repeat(64);
     },
     value => {

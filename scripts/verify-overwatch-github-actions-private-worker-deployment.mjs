@@ -232,6 +232,12 @@ const v2LiveCanonicalIdentityShadowReadinessRepairParent =
   "cad76ff923278a84245c42749c8d3d1cceb78f4d";
 const v2LiveCanonicalIdentityShadowReadinessRepairTree =
   "4bcc06a1c15e74e8a7673d21afa8659721ee264a";
+const v2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit =
+  "a6e85f05fe57a5bff8b2fc6bc168f541272ac0b8";
+const v2LiveCanonicalIdentityProtectedConsumerCompositionRepairParent =
+  "c1d0cf056e6cd13689254a062636be783a1a66c7";
+const v2LiveCanonicalIdentityProtectedConsumerCompositionRepairTree =
+  "efadb319180da76a28787843f7132252d7866625";
 const v2RevenueReadinessOverwatchAcceptanceCommit =
   "fe3ade871ef7308b05501dce23fecbd9a2b9e363";
 const v2RevenueReadinessOverwatchAcceptanceParent =
@@ -250,6 +256,12 @@ const v2LiveCanonicalIdentityShadowReadinessAcceptanceParent =
   "79db561e3cb17b97b49af08df22556e9d2a2d893";
 const v2LiveCanonicalIdentityShadowReadinessAcceptanceTree =
   "57e13a9adb8f0b7db1517baa11739c0c07a4f7b3";
+const v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit =
+  "b627c876d424dd9f435bf340fa86017be4eb966d";
+const v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceParent =
+  v2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit;
+const v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceTree =
+  "18766dd2e91ee2a6085573c04610a8e6ea2b2862";
 const v2ControlledRehearsalGuardVerifierSuccessorCommit =
   "68b396623f6ef0190d4cd938aa6812326b5067f1";
 const v2ControlledRehearsalGuardVerifierSuccessorParent =
@@ -835,6 +847,14 @@ const v2LiveCanonicalIdentityShadowReadinessRepairHashes = Object.freeze({
     "726510bdd55114d81ae0cc1290b884d851f6b1b5dc0b7107e0bd9f78e9e1b4b6"
 });
 
+const v2LiveCanonicalIdentityProtectedConsumerCompositionRepairHashes =
+  Object.freeze({
+    "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs":
+      "da7660a5e7e846f772ee9ef59d8bae502a2c43942a2eeec65639d4df9ba687cb",
+    "tests/intelligence-architecture.test.mjs":
+      "dd7449ad92b8932b9d7dc0fe29d25f7f2e3a4b931726f1400d35156476e0a00c"
+  });
+
 const v2RevenueReadinessOverwatchAcceptanceHashes = Object.freeze({
   "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs":
     "b761f4b019061a59faec7ca22c6aa795fe6bd59b4085528ef059f8d730432b52",
@@ -863,6 +883,18 @@ const v2LiveCanonicalIdentityShadowReadinessAcceptanceHashes = Object.freeze({
   "tests/release-provenance-repair.test.mjs":
     "d02be5134a922bcec0e0eb33a71edaad3402ba58b0377a5d903bb161a4b306dd"
 });
+
+const v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceHashes =
+  Object.freeze({
+    "overwatch/governance/live-canonical-identity-migration-v1.json":
+      "803d57a461c66d63d5b7529750fb109fc8277cb78459bddbc4ad6355964fd5b6",
+    "scripts/verify-release-provenance-repair.mjs":
+      "ae99873cfcc291c4cf9d70e8a70562d03581dc70b0d1bb2e28e3e4456c45c0b4",
+    "tests/live-canonical-identity-migration-v1.test.mjs":
+      "f0a8e451a185cf0f7495ce7a1f1d8fa68c4bb0bd20c1f2db587d931d259187ec",
+    "tests/release-provenance-repair.test.mjs":
+      "7ead4a362ba1064bcb1b0acd755b8e739b24d8a788c58d8976e24a2654d0e4d4"
+  });
 
 const v2ControlledRehearsalGuardVerifierSuccessorHashes = Object.freeze({
   "scripts/verify-cloudflare-unattended-runtime-guard.mjs":
@@ -1949,6 +1981,21 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership
       ?.intelligenceLiveCanonicalIdentityShadowReadinessRepairCommit?.committer ===
       intelligenceIdentity
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairCommit
+      ?.commit === v2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairCommit
+      ?.parent === v2LiveCanonicalIdentityProtectedConsumerCompositionRepairParent
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairCommit
+      ?.tree === v2LiveCanonicalIdentityProtectedConsumerCompositionRepairTree
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairCommit
+      ?.author === intelligenceIdentity
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairCommit
+      ?.committer === intelligenceIdentity
     && governance?.ownership?.overwatchRevenueReadinessAcceptanceCommit?.commit ===
       v2RevenueReadinessOverwatchAcceptanceCommit
     && governance?.ownership?.overwatchRevenueReadinessAcceptanceCommit?.parent ===
@@ -1984,6 +2031,21 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership
       ?.overwatchLiveCanonicalIdentityShadowReadinessAcceptanceCommit?.committer ===
       overwatchIdentity
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit
+      ?.commit === v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit
+      ?.parent === v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceParent
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit
+      ?.tree === v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceTree
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit
+      ?.author === overwatchIdentity
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit
+      ?.committer === overwatchIdentity
     && governance?.ownership?.intelligenceModifiedInfrastructureImplementation ===
       false
     && governance?.ownership?.overwatchModifiedIntelligenceImplementation ===
@@ -2257,6 +2319,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       ?.intelligenceLiveCanonicalIdentityShadowReadinessRepairEvidence,
     evidenceMap(v2LiveCanonicalIdentityShadowReadinessRepairHashes)),
   "Private Workflow v2 Intelligence canonical shadow-readiness repair evidence drifted.");
+  require(equal(
+    governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairPaths,
+    Object.keys(v2LiveCanonicalIdentityProtectedConsumerCompositionRepairHashes)),
+  "Private Workflow v2 Intelligence canonical protected-consumer repair path set drifted.");
+  require(equal(
+    governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairEvidence,
+    evidenceMap(v2LiveCanonicalIdentityProtectedConsumerCompositionRepairHashes)),
+  "Private Workflow v2 Intelligence canonical protected-consumer repair evidence drifted.");
   require(equal(governance?.ownership?.overwatchRevenueReadinessAcceptancePaths,
     Object.keys(v2RevenueReadinessOverwatchAcceptanceHashes)),
   "Private Workflow v2 Overwatch revenue-readiness acceptance path set drifted.");
@@ -2279,6 +2351,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       ?.overwatchLiveCanonicalIdentityShadowReadinessAcceptanceEvidence,
     evidenceMap(v2LiveCanonicalIdentityShadowReadinessAcceptanceHashes)),
   "Private Workflow v2 Overwatch canonical shadow-readiness acceptance evidence drifted.");
+  require(equal(
+    governance?.ownership
+      ?.overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptancePaths,
+    Object.keys(v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceHashes)),
+  "Private Workflow v2 Overwatch canonical protected-consumer acceptance path set drifted.");
+  require(equal(
+    governance?.ownership
+      ?.overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceEvidence,
+    evidenceMap(v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceHashes)),
+  "Private Workflow v2 Overwatch canonical protected-consumer acceptance evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -3940,6 +4022,30 @@ function verifyV2OwnerAndGovernance() {
       recorded:
         governance.ownership
           .overwatchLiveCanonicalIdentityShadowReadinessAcceptanceEvidence
+    },
+    {
+      label: "Intelligence canonical protected-consumer composition repair",
+      commit: v2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit,
+      parent: v2LiveCanonicalIdentityProtectedConsumerCompositionRepairParent,
+      tree: v2LiveCanonicalIdentityProtectedConsumerCompositionRepairTree,
+      identity: intelligenceIdentity,
+      subject: "intelligence: compose canonical protected consumers",
+      hashes: v2LiveCanonicalIdentityProtectedConsumerCompositionRepairHashes,
+      recorded:
+        governance.ownership
+          .intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairEvidence
+    },
+    {
+      label: "Overwatch canonical protected-consumer composition acceptance",
+      commit: v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit,
+      parent: v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceParent,
+      tree: v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceTree,
+      identity: overwatchIdentity,
+      subject: "overwatch: accept canonical protected consumer successor",
+      hashes: v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceHashes,
+      recorded:
+        governance.ownership
+          .overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceEvidence
     }
   ]) {
     const metadata = git([
@@ -4547,12 +4653,16 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2LiveCanonicalIdentityIntelligenceSuccessorCommit,
     immutableWorkflowV2LiveCanonicalIdentityShadowReadinessRepairCommit:
       v2LiveCanonicalIdentityShadowReadinessRepairCommit,
+    immutableWorkflowV2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit:
+      v2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit,
     immutableWorkflowV2RevenueReadinessOverwatchAcceptanceCommit:
       v2RevenueReadinessOverwatchAcceptanceCommit,
     immutableWorkflowV2LiveCanonicalIdentityOverwatchAcceptanceCommit:
       v2LiveCanonicalIdentityOverwatchAcceptanceCommit,
     immutableWorkflowV2LiveCanonicalIdentityShadowReadinessAcceptanceCommit:
       v2LiveCanonicalIdentityShadowReadinessAcceptanceCommit,
+    immutableWorkflowV2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit:
+      v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit,
     immutableWorkflowV2ControlledRehearsalGuardVerifierSuccessorCommit:
       v2ControlledRehearsalGuardVerifierSuccessorCommit,
     immutableWorkflowV2ControlledRehearsalOwnerPreflightRepairCommit:

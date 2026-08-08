@@ -375,6 +375,28 @@
         "sha256": "726510bdd55114d81ae0cc1290b884d851f6b1b5dc0b7107e0bd9f78e9e1b4b6"
       }
     ],
+    "intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairCommit": {
+      "commit": "a6e85f05fe57a5bff8b2fc6bc168f541272ac0b8",
+      "parent": "c1d0cf056e6cd13689254a062636be783a1a66c7",
+      "tree": "efadb319180da76a28787843f7132252d7866625",
+      "author": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "committer": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose canonical protected consumers"
+    },
+    "intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairPaths": [
+      "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs",
+      "tests/intelligence-architecture.test.mjs"
+    ],
+    "intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairEvidence": [
+      {
+        "path": "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs",
+        "sha256": "da7660a5e7e846f772ee9ef59d8bae502a2c43942a2eeec65639d4df9ba687cb"
+      },
+      {
+        "path": "tests/intelligence-architecture.test.mjs",
+        "sha256": "dd7449ad92b8932b9d7dc0fe29d25f7f2e3a4b931726f1400d35156476e0a00c"
+      }
+    ],
     "overwatchRevenueReadinessAcceptanceCommit": {
       "commit": "fe3ade871ef7308b05501dce23fecbd9a2b9e363",
       "parent": "c025fd95a8f5141dc4c32af3ca83292711fb1df7",
@@ -459,6 +481,38 @@
       {
         "path": "tests/release-provenance-repair.test.mjs",
         "sha256": "d02be5134a922bcec0e0eb33a71edaad3402ba58b0377a5d903bb161a4b306dd"
+      }
+    ],
+    "overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit": {
+      "commit": "b627c876d424dd9f435bf340fa86017be4eb966d",
+      "parent": "a6e85f05fe57a5bff8b2fc6bc168f541272ac0b8",
+      "tree": "18766dd2e91ee2a6085573c04610a8e6ea2b2862",
+      "author": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "subject": "overwatch: accept canonical protected consumer successor"
+    },
+    "overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptancePaths": [
+      "overwatch/governance/live-canonical-identity-migration-v1.json",
+      "scripts/verify-release-provenance-repair.mjs",
+      "tests/live-canonical-identity-migration-v1.test.mjs",
+      "tests/release-provenance-repair.test.mjs"
+    ],
+    "overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceEvidence": [
+      {
+        "path": "overwatch/governance/live-canonical-identity-migration-v1.json",
+        "sha256": "803d57a461c66d63d5b7529750fb109fc8277cb78459bddbc4ad6355964fd5b6"
+      },
+      {
+        "path": "scripts/verify-release-provenance-repair.mjs",
+        "sha256": "ae99873cfcc291c4cf9d70e8a70562d03581dc70b0d1bb2e28e3e4456c45c0b4"
+      },
+      {
+        "path": "tests/live-canonical-identity-migration-v1.test.mjs",
+        "sha256": "f0a8e451a185cf0f7495ce7a1f1d8fa68c4bb0bd20c1f2db587d931d259187ec"
+      },
+      {
+        "path": "tests/release-provenance-repair.test.mjs",
+        "sha256": "7ead4a362ba1064bcb1b0acd755b8e739b24d8a788c58d8976e24a2654d0e4d4"
       }
     ],
     "intelligenceModifiedInfrastructureImplementation": false,
