@@ -15,6 +15,10 @@ const liveIdentity = () => JSON.parse(readFileSync(
   new URL("../overwatch/governance/live-canonical-identity-migration-v1.json", import.meta.url),
   "utf8"
 ));
+const reportTypeRepair = () => JSON.parse(readFileSync(
+  new URL("../overwatch/governance/field-session-report-type-contract-drift-repair-v1.json", import.meta.url),
+  "utf8"
+));
 
 test("Overwatch independently verifies the Founder retention boundary and held activation state", async () => {
   assert.deepEqual(await verifyOverwatchRouteIqProspectiveEvidenceRetention(), {
@@ -53,24 +57,31 @@ test("retention governance admits only the exact Intelligence Worker-safe succes
 
 test("retention preserves its historical archive checkpoint through the exact identity successor", () => {
   const identity = liveIdentity();
-  const successor = identity.dataCompatibility.fieldSessionArchiveIdentitySuccessor;
+  const repair = reportTypeRepair();
+  const identitySuccessor = identity.dataCompatibility.fieldSessionArchiveIdentitySuccessor;
+  const reportTypeSuccessor = repair.retentionCompatibility;
   assert.equal(validateFieldSessionArchiveIdentitySuccessor({
     liveIdentity: identity,
-    historicalArchiveSha256: successor.previousSha256,
-    currentArchiveSha256: successor.currentSha256
-  }), successor);
+    reportTypeRepair: repair,
+    historicalArchiveSha256: identitySuccessor.previousSha256,
+    currentArchiveSha256: reportTypeSuccessor.currentSha256
+  }).reportTypeSuccessor, reportTypeSuccessor);
 
-  for (const mutate of [
-    value => { value.currentSha256 = "0".repeat(64); },
-    value => { value.retentionSemanticsChanged = true; },
-    value => { value.storageSchemaChanged = true; }
+  for (const [mutateIdentity, mutateRepair] of [
+    [value => { value.currentSha256 = "0".repeat(64); }, () => {}],
+    [() => {}, value => { value.currentSha256 = "0".repeat(64); }],
+    [() => {}, value => { value.retentionSemanticsChanged = true; }],
+    [() => {}, value => { value.storageSchemaChanged = true; }]
   ]) {
     const changed = structuredClone(identity);
-    mutate(changed.dataCompatibility.fieldSessionArchiveIdentitySuccessor);
+    const changedRepair = structuredClone(repair);
+    mutateIdentity(changed.dataCompatibility.fieldSessionArchiveIdentitySuccessor);
+    mutateRepair(changedRepair.retentionCompatibility);
     assert.throws(() => validateFieldSessionArchiveIdentitySuccessor({
       liveIdentity: changed,
-      historicalArchiveSha256: successor.previousSha256,
-      currentArchiveSha256: successor.currentSha256
+      reportTypeRepair: changedRepair,
+      historicalArchiveSha256: identitySuccessor.previousSha256,
+      currentArchiveSha256: reportTypeSuccessor.currentSha256
     }));
   }
 });

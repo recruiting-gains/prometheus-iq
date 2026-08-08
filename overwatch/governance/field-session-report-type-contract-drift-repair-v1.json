@@ -104,6 +104,21 @@
     "allOtherTypesFailClosed": true,
     "dashboardFixtureDerivedFromActualProducer": true
   },
+  "retentionCompatibility": {
+    "classification": "FIELD_SESSION_REPORT_TYPE_ALLOWLIST_SUCCESSOR",
+    "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+    "previousSha256": "4b682c744aa19fa53813dfac838a638810e55c3067033f1cf711e83df6ee73c3",
+    "currentSha256": "5b4bc3d49596b3b4fa3c348ece30344f852f92056b0ceb8db8007cacbdfe2d2a",
+    "ownerCommit": "c7f854047b0091fc29e671a97c7c9d21dfcf2dff",
+    "ownerSubsystem": "Prometheus Data",
+    "acceptedReportTypes": [
+      "route-iq-daily-representative-report-v1",
+      "beta-daily-rep-report"
+    ],
+    "retentionSemanticsChanged": false,
+    "storageSchemaChanged": false,
+    "historicalContractsRewritten": false
+  },
   "archiveEvidence": {
     "historicalSessionPath": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
     "rawReportSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",

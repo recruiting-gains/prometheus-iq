@@ -44,6 +44,8 @@ const reportPath = "overwatch/reports/BATCH-20260714-004-route-iq-prospective-ev
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const liveIdentityGovernancePath =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
+const fieldSessionReportTypeGovernancePath =
+  "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json";
 
 const ownerCommits = Object.freeze({
   "Prometheus Data": Object.freeze([
@@ -97,6 +99,7 @@ function assertOwnedPaths(owner, paths) {
 
 export function validateFieldSessionArchiveIdentitySuccessor({
   liveIdentity,
+  reportTypeRepair,
   historicalArchiveSha256,
   currentArchiveSha256
 }) {
@@ -112,7 +115,6 @@ export function validateFieldSessionArchiveIdentitySuccessor({
     "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs"
   );
   assert.equal(successor.previousSha256, historicalArchiveSha256);
-  assert.equal(successor.currentSha256, currentArchiveSha256);
   assert.equal(successor.currentSha256,
     "4b682c744aa19fa53813dfac838a638810e55c3067033f1cf711e83df6ee73c3");
   assert.equal(successor.ownerCommit, "a0856eb22bda483aa87f361ef9bb54d63b61e686");
@@ -122,7 +124,33 @@ export function validateFieldSessionArchiveIdentitySuccessor({
   assert.equal(successor.retentionSemanticsChanged, false);
   assert.equal(successor.storageSchemaChanged, false);
   assert.equal(successor.historicalContractsRewritten, false);
-  return successor;
+
+  assert.equal(
+    reportTypeRepair?.governanceId,
+    "field-session-report-type-contract-drift-repair-v1"
+  );
+  const reportTypeSuccessor = reportTypeRepair?.retentionCompatibility;
+  assert.ok(reportTypeSuccessor);
+  assert.equal(
+    reportTypeSuccessor.classification,
+    "FIELD_SESSION_REPORT_TYPE_ALLOWLIST_SUCCESSOR"
+  );
+  assert.equal(reportTypeSuccessor.path, successor.path);
+  assert.equal(reportTypeSuccessor.previousSha256, successor.currentSha256);
+  assert.equal(reportTypeSuccessor.currentSha256, currentArchiveSha256);
+  assert.equal(reportTypeSuccessor.currentSha256,
+    "5b4bc3d49596b3b4fa3c348ece30344f852f92056b0ceb8db8007cacbdfe2d2a");
+  assert.equal(reportTypeSuccessor.ownerCommit,
+    "c7f854047b0091fc29e671a97c7c9d21dfcf2dff");
+  assert.equal(reportTypeSuccessor.ownerSubsystem, "Prometheus Data");
+  assert.deepEqual(reportTypeSuccessor.acceptedReportTypes, [
+    "route-iq-daily-representative-report-v1",
+    "beta-daily-rep-report"
+  ]);
+  assert.equal(reportTypeSuccessor.retentionSemanticsChanged, false);
+  assert.equal(reportTypeSuccessor.storageSchemaChanged, false);
+  assert.equal(reportTypeSuccessor.historicalContractsRewritten, false);
+  return { identitySuccessor: successor, reportTypeSuccessor };
 }
 
 async function ledgerFor(subject, authority = createRetentionAuthority("overwatch-retention-verification-key-material-v1")) {
@@ -425,9 +453,11 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
   const dataRuntimeContract = readJson(governance.dataContract.runtimeContractPath);
   const protectedBaseline = readJson(governance.intelligenceAdmission.protectedBaselinePath);
   const liveIdentity = readJson(liveIdentityGovernancePath);
+  const reportTypeRepair = readJson(fieldSessionReportTypeGovernancePath);
   const currentArchiveSha256 = sha256(read(governance.dataContract.archiveRuntimePath));
   const archiveIdentitySuccessor = validateFieldSessionArchiveIdentitySuccessor({
     liveIdentity,
+    reportTypeRepair,
     historicalArchiveSha256: governance.dataContract.archiveRuntimeSha256,
     currentArchiveSha256
   });
@@ -474,8 +504,14 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
     ["runtimeContractPath", "runtimeContractSha256"]
   ]) {
     if (pathKey === "archiveRuntimePath") {
-      assert.equal(governance.dataContract[hashKey], archiveIdentitySuccessor.previousSha256);
-      assert.equal(currentArchiveSha256, archiveIdentitySuccessor.currentSha256);
+      assert.equal(
+        governance.dataContract[hashKey],
+        archiveIdentitySuccessor.identitySuccessor.previousSha256
+      );
+      assert.equal(
+        currentArchiveSha256,
+        archiveIdentitySuccessor.reportTypeSuccessor.currentSha256
+      );
     } else {
       assert.equal(sha256(read(governance.dataContract[pathKey])), governance.dataContract[hashKey]);
     }
@@ -608,19 +644,19 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
   );
   assert.equal(
     sha256(read(crossIndustryAdoption.dataOwnerTransition.archiveRuntime.path)),
-    archiveIdentitySuccessor.currentSha256
+    archiveIdentitySuccessor.reportTypeSuccessor.currentSha256
   );
   assert.equal(
     governance.intelligenceAdmission.currentArchiveRuntimeSha256,
-    archiveIdentitySuccessor.previousSha256
+    archiveIdentitySuccessor.identitySuccessor.previousSha256
   );
-  assert.equal(git("cat-file", "-t", archiveIdentitySuccessor.ownerCommit), "commit");
-  execFileSync("git", [
-    "merge-base",
-    "--is-ancestor",
-    archiveIdentitySuccessor.ownerCommit,
-    "HEAD"
-  ]);
+  for (const ownerCommit of [
+    archiveIdentitySuccessor.identitySuccessor.ownerCommit,
+    archiveIdentitySuccessor.reportTypeSuccessor.ownerCommit
+  ]) {
+    assert.equal(git("cat-file", "-t", ownerCommit), "commit");
+    execFileSync("git", ["merge-base", "--is-ancestor", ownerCommit, "HEAD"]);
+  }
   assert.equal(crossIndustryAdoption.governedEmptyState.activeBusinessCount, 0);
   assert.equal(crossIndustryAdoption.governedEmptyState.retiredOrDemoSupplyRestored, false);
   assert.equal(crossIndustryAdoption.boundaries.prospectiveCollection, "OFF");
