@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -16,6 +17,7 @@ import {
 
 const root = resolve(import.meta.dirname, "..");
 const readJson = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
+const sha256 = value => createHash("sha256").update(value).digest("hex");
 const contract = readJson("workers/infrastructure/cloudflare-founder-attended-service-token-v1.json");
 const governance = readJson("overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.json");
 const report = readJson("overwatch/reports/BATCH-20260714-007-cloudflare-founder-attended-service-token-provisioning.json");
@@ -201,9 +203,7 @@ test("Founder-attended governance composes the exact historical and current pack
 
 test("Founder-attended governance accepts only commit-bound canonical verifier successors", () => {
   const path = "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs";
-  const currentSha256 = liveCanonicalIdentityGovernance
-    .historicalVerifierReconciliations.founderAttendedPackageVerifiers.commits
-    .at(-1).transitions.find(item => item.path === path).currentSha256;
+  const currentSha256 = sha256(readFileSync(resolve(root, path)));
   assert.equal(hasLiveCanonicalIdentityVerifierSuccessor({
     governance: liveCanonicalIdentityGovernance,
     path,

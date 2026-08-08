@@ -211,11 +211,13 @@ test("current governance records the launch facts and keeps protected receipts i
     governance.historicalVerifierReconciliations.founderAttendedPackageVerifiers;
   assert.equal(verifierSuccessors.classification,
     "LIVE_CANONICAL_IDENTITY_VERIFIER_SUCCESSORS");
-  assert.equal(verifierSuccessors.expectedCommitCount, 3);
+  assert.equal(verifierSuccessors.expectedCommitCount, 5);
   assert.deepEqual(verifierSuccessors.commits.map(item => item.commit), [
     "8e104a35fae77e4c6776793026fd61493c444f30",
     "05bd5ba8b74a1ba7efe5f4425fc7f13431bd7eb9",
-    "7161581fa0ed3c4fd61214d8a3e238fb5f5958e3"
+    "7161581fa0ed3c4fd61214d8a3e238fb5f5958e3",
+    "fcc2caa2f91c2cd01cec4b71aa4c05a54633842b",
+    "a95950713e018a31044be6b26ba67c6b97e1d5e8"
   ]);
   assert.equal(verifierSuccessors.runtimeBehaviorChanged, false);
   assert.equal(verifierSuccessors.credentialAccessChanged, false);

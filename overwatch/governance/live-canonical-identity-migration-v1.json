@@ -228,7 +228,7 @@
     "founderAttendedPackageVerifiers": {
       "classification": "LIVE_CANONICAL_IDENTITY_VERIFIER_SUCCESSORS",
       "ownerSubsystem": "Prometheus Overwatch",
-      "expectedCommitCount": 3,
+      "expectedCommitCount": 5,
       "runtimeBehaviorChanged": false,
       "credentialAccessChanged": false,
       "productionMutationAuthorized": false,
@@ -310,6 +310,43 @@
               "path": "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
               "previousSha256": "57ccce06d2142d9e674e4e28a37a12eb49989ab39059af7664bef9c6c838baab",
               "currentSha256": "2dd4eeab3e8af2ce2bdf53df7c66d3fea40ba179d1d2902988ef8583b8fd9b1b"
+            }
+          ]
+        },
+        {
+          "commit": "fcc2caa2f91c2cd01cec4b71aa4c05a54633842b",
+          "parent": "7161581fa0ed3c4fd61214d8a3e238fb5f5958e3",
+          "tree": "9bd51324d7f9b2a429a64eb460c1e219c0603d73",
+          "owner": "Prometheus Overwatch <overwatch@prometheus.local>",
+          "subject": "overwatch: govern canonical verifier lineage",
+          "paths": [
+            "overwatch/governance/live-canonical-identity-migration-v1.json",
+            "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+            "tests/live-canonical-identity-migration-v1.test.mjs",
+            "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs"
+          ],
+          "transitions": [
+            {
+              "path": "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+              "previousSha256": "bb16cabca9dfacc3a73e8670d0fe381e1edd9f039bcbaffcec48da20c6d6a5fb",
+              "currentSha256": "e85eabb9b44d002f8888ea9783927cae3fdc5cdfcd7fe02e90e3c6943ba3fe50"
+            }
+          ]
+        },
+        {
+          "commit": "a95950713e018a31044be6b26ba67c6b97e1d5e8",
+          "parent": "fcc2caa2f91c2cd01cec4b71aa4c05a54633842b",
+          "tree": "c7f5b013484597ebd93b470372ce5e52944c2074",
+          "owner": "Prometheus Overwatch <overwatch@prometheus.local>",
+          "subject": "overwatch: bound canonical verifier ledger",
+          "paths": [
+            "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs"
+          ],
+          "transitions": [
+            {
+              "path": "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+              "previousSha256": "2c797d34313a6e585a9ebe3fa47612da2fef0d560eec55e983a6ea9f59e0d615",
+              "currentSha256": "0c73339a3e87b3f89ddcdd003f53c68307168d3c3516c730b781314f0013e51b"
             }
           ]
         }
