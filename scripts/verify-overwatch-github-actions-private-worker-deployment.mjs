@@ -244,6 +244,12 @@ const v2LiveCanonicalIdentityOverwatchAcceptanceParent =
   v2LiveCanonicalIdentityIntelligenceSuccessorCommit;
 const v2LiveCanonicalIdentityOverwatchAcceptanceTree =
   "230261b982925d619a0d63bfb8b996c7bd362f24";
+const v2LiveCanonicalIdentityShadowReadinessAcceptanceCommit =
+  "da8b92ba2a33c8ca02e8ee681877ff057ce6da70";
+const v2LiveCanonicalIdentityShadowReadinessAcceptanceParent =
+  "79db561e3cb17b97b49af08df22556e9d2a2d893";
+const v2LiveCanonicalIdentityShadowReadinessAcceptanceTree =
+  "57e13a9adb8f0b7db1517baa11739c0c07a4f7b3";
 const v2ControlledRehearsalGuardVerifierSuccessorCommit =
   "68b396623f6ef0190d4cd938aa6812326b5067f1";
 const v2ControlledRehearsalGuardVerifierSuccessorParent =
@@ -841,6 +847,21 @@ const v2LiveCanonicalIdentityOverwatchAcceptanceHashes = Object.freeze({
     "4380526826787d762a7f9fc6bca5c79305cd49628a286b3cb21d3a903d90bf8e",
   "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs":
     "1f39b1a2ba4450b4a3002d1732d2194c713f5945f4bd0caf35bb805168ac820a"
+});
+
+const v2LiveCanonicalIdentityShadowReadinessAcceptanceHashes = Object.freeze({
+  "overwatch/governance/live-canonical-identity-migration-v1.json":
+    "5b0fca10ae0812b97cf79c91eed63796f1ca11780de99472309c77a39bc9a608",
+  "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs":
+    "cb2a1aebdf90cd589a08dd639ccd26b8ac279b6ddaa96d6823caf22680c743fb",
+  "scripts/verify-release-provenance-repair.mjs":
+    "6b405f678c0b991c99034cd307249558764683ba356992fc7d673839e52361f4",
+  "tests/live-canonical-identity-migration-v1.test.mjs":
+    "d0f4e32db6b4d6dd6dee13791d53ac03353b38fb174f97dc0f58e9d0c3024deb",
+  "tests/overwatch-github-actions-private-worker-deployment.test.mjs":
+    "29f202c37263b0bb7225ba8e34446044be6e9c6cdd8cf2ff31aaf8d7c5f0eab8",
+  "tests/release-provenance-repair.test.mjs":
+    "d02be5134a922bcec0e0eb33a71edaad3402ba58b0377a5d903bb161a4b306dd"
 });
 
 const v2ControlledRehearsalGuardVerifierSuccessorHashes = Object.freeze({
@@ -1948,6 +1969,21 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       overwatchIdentity
     && governance?.ownership?.overwatchLiveCanonicalIdentityAcceptanceCommit?.committer ===
       overwatchIdentity
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityShadowReadinessAcceptanceCommit?.commit ===
+      v2LiveCanonicalIdentityShadowReadinessAcceptanceCommit
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityShadowReadinessAcceptanceCommit?.parent ===
+      v2LiveCanonicalIdentityShadowReadinessAcceptanceParent
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityShadowReadinessAcceptanceCommit?.tree ===
+      v2LiveCanonicalIdentityShadowReadinessAcceptanceTree
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityShadowReadinessAcceptanceCommit?.author ===
+      overwatchIdentity
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityShadowReadinessAcceptanceCommit?.committer ===
+      overwatchIdentity
     && governance?.ownership?.intelligenceModifiedInfrastructureImplementation ===
       false
     && governance?.ownership?.overwatchModifiedIntelligenceImplementation ===
@@ -2233,6 +2269,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.overwatchLiveCanonicalIdentityAcceptanceEvidence,
     evidenceMap(v2LiveCanonicalIdentityOverwatchAcceptanceHashes)),
   "Private Workflow v2 Overwatch canonical-identity acceptance evidence drifted.");
+  require(equal(
+    governance?.ownership
+      ?.overwatchLiveCanonicalIdentityShadowReadinessAcceptancePaths,
+    Object.keys(v2LiveCanonicalIdentityShadowReadinessAcceptanceHashes)),
+  "Private Workflow v2 Overwatch canonical shadow-readiness acceptance path set drifted.");
+  require(equal(
+    governance?.ownership
+      ?.overwatchLiveCanonicalIdentityShadowReadinessAcceptanceEvidence,
+    evidenceMap(v2LiveCanonicalIdentityShadowReadinessAcceptanceHashes)),
+  "Private Workflow v2 Overwatch canonical shadow-readiness acceptance evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -3882,6 +3928,18 @@ function verifyV2OwnerAndGovernance() {
       recorded:
         governance.ownership
           .intelligenceLiveCanonicalIdentityShadowReadinessRepairEvidence
+    },
+    {
+      label: "Overwatch canonical shadow-readiness acceptance",
+      commit: v2LiveCanonicalIdentityShadowReadinessAcceptanceCommit,
+      parent: v2LiveCanonicalIdentityShadowReadinessAcceptanceParent,
+      tree: v2LiveCanonicalIdentityShadowReadinessAcceptanceTree,
+      identity: overwatchIdentity,
+      subject: "overwatch: accept canonical shadow readiness successor",
+      hashes: v2LiveCanonicalIdentityShadowReadinessAcceptanceHashes,
+      recorded:
+        governance.ownership
+          .overwatchLiveCanonicalIdentityShadowReadinessAcceptanceEvidence
     }
   ]) {
     const metadata = git([
@@ -4493,6 +4551,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2RevenueReadinessOverwatchAcceptanceCommit,
     immutableWorkflowV2LiveCanonicalIdentityOverwatchAcceptanceCommit:
       v2LiveCanonicalIdentityOverwatchAcceptanceCommit,
+    immutableWorkflowV2LiveCanonicalIdentityShadowReadinessAcceptanceCommit:
+      v2LiveCanonicalIdentityShadowReadinessAcceptanceCommit,
     immutableWorkflowV2ControlledRehearsalGuardVerifierSuccessorCommit:
       v2ControlledRehearsalGuardVerifierSuccessorCommit,
     immutableWorkflowV2ControlledRehearsalOwnerPreflightRepairCommit:
