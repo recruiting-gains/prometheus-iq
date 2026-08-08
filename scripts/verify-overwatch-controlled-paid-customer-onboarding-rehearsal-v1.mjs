@@ -135,6 +135,32 @@ export const fullSystemHarmonyIntelligenceSuccessor = Object.freeze({
   ])
 });
 
+export const liveCanonicalIdentityIntelligenceSuccessor = Object.freeze({
+  commit: "56f67124c1beba2f9289538d65e782cd808eacb2",
+  parent: "dc0f6f96d9208a1041c60f609d1b5dabb294e956",
+  tree: "841aaee1f02c3aa09dde1dc333c2db68cf296f9f",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: adopt canonical identity protected successors",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "intelligence/provenance/protected-baseline-synchronization-live-canonical-identity-v1.json",
+      sha256: "cfb89774373db0928ad5e360ec642a4e49eef3d2d68583aecdab71f61114e562"
+    }),
+    Object.freeze({
+      path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      sha256: "5ee03775a417d214e075881815ef9886520bf9e083c2c912ff6d7a2a85617ea5"
+    }),
+    Object.freeze({
+      path: "tests/read-only-field-session-learning.test.mjs",
+      sha256: "9a7c35d96a326364e023c26fcd8eb1f9ef19be8e8074dcb81862c8cc05fabe66"
+    }),
+    Object.freeze({
+      path: "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+      sha256: "8cd7c6caa9e5557cb50a36d1edd609cf83ce0962cf89651c8ed64e469e0bf944"
+    })
+  ])
+});
+
 export const fullSystemHarmonyShadowReadinessSuccessor = Object.freeze({
   commit: "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8",
   parent: "0e312cbef36af838dd9f8ba434f2370605f384d4",
@@ -271,6 +297,16 @@ export function validateFullSystemHarmonyIntelligenceSuccessor(record) {
     assert.equal(sha256(bytes), item.sha256,
       `Full-System Harmony Intelligence successor evidence drifted: ${item.path}`);
   }
+  assert.equal(git([
+    "merge-base", "--is-ancestor", record.commit, "HEAD"
+  ]), "");
+  return record;
+}
+
+export function validateLiveCanonicalIdentityIntelligenceSuccessor(record) {
+  assert.deepEqual(record, liveCanonicalIdentityIntelligenceSuccessor,
+    "live canonical identity Intelligence successor drifted");
+  verifyOwnerCommit(record, liveCanonicalIdentityIntelligenceSuccessor);
   assert.equal(git([
     "merge-base", "--is-ancestor", record.commit, "HEAD"
   ]), "");
@@ -444,12 +480,15 @@ function verifyCurrentOwnerFiles(governance) {
   validateControlledRehearsalIntelligenceSuccessor(
     controlledRehearsalIntelligenceSuccessor
   );
-  const harmonyIntelligenceSuccessor =
-    validateFullSystemHarmonyIntelligenceSuccessor(
-      fullSystemHarmonyIntelligenceSuccessor
+  validateFullSystemHarmonyIntelligenceSuccessor(
+    fullSystemHarmonyIntelligenceSuccessor
+  );
+  const canonicalIdentityIntelligenceSuccessor =
+    validateLiveCanonicalIdentityIntelligenceSuccessor(
+      liveCanonicalIdentityIntelligenceSuccessor
     );
-  const harmonyIntelligenceEvidence = new Map(
-    harmonyIntelligenceSuccessor.evidence.map(item => [item.path, item])
+  const canonicalIdentityIntelligenceEvidence = new Map(
+    canonicalIdentityIntelligenceSuccessor.evidence.map(item => [item.path, item])
   );
   const shadowReadinessSuccessor =
     validateFullSystemHarmonyShadowReadinessSuccessor(
@@ -476,15 +515,21 @@ function verifyCurrentOwnerFiles(governance) {
       sha256: "0c38be17c0823b1e247f1781353bbce543d66deb46f775c7a905b4164cb6d951"
     }],
     ["intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs", {
-      commit: harmonyIntelligenceSuccessor.commit,
-      sha256: harmonyIntelligenceEvidence.get(
+      commit: canonicalIdentityIntelligenceSuccessor.commit,
+      sha256: canonicalIdentityIntelligenceEvidence.get(
         "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
       ).sha256
     }],
     ["tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs", {
-      commit: harmonyIntelligenceSuccessor.commit,
-      sha256: harmonyIntelligenceEvidence.get(
+      commit: canonicalIdentityIntelligenceSuccessor.commit,
+      sha256: canonicalIdentityIntelligenceEvidence.get(
         "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+      ).sha256
+    }],
+    ["tests/read-only-field-session-learning.test.mjs", {
+      commit: canonicalIdentityIntelligenceSuccessor.commit,
+      sha256: canonicalIdentityIntelligenceEvidence.get(
+        "tests/read-only-field-session-learning.test.mjs"
       ).sha256
     }],
     ["scripts/verify-shadow-decision-readiness.mjs", {
