@@ -1351,9 +1351,9 @@ export function verifyShadowDecisionReadiness({
       .update(readFileSync(resolve(root, baseline.path)))
       .digest("hex");
     const transition = currentProtectedSuccessors[baseline.path];
+    const latestTransition =
+      zipFounderAdoption.transitionByPath.get(baseline.path);
     if (transition) {
-      const latestTransition =
-        zipFounderAdoption.transitionByPath.get(baseline.path);
       assert.equal(
         transition.previousSha256,
         baseline.sha256,
@@ -1370,6 +1370,17 @@ export function verifyShadowDecisionReadiness({
         actual,
         latestTransition?.currentSha256 || transition.currentSha256,
         `Protected zero-influence successor changed: ${name}`,
+      );
+    } else if (latestTransition) {
+      assert.equal(
+        latestTransition.previousSha256,
+        baseline.sha256,
+        `Protected direct successor predecessor changed: ${name}`,
+      );
+      assert.equal(
+        actual,
+        latestTransition.currentSha256,
+        `Protected direct successor changed: ${name}`,
       );
     } else {
       assert.equal(

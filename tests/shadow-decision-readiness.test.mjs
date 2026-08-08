@@ -259,6 +259,24 @@ test("canonical archive remains four exclusions and fixture is never canonical",
   );
 });
 
+test("shadow readiness composes the direct canonical Data archive successor", () => {
+  const contract = JSON.parse(
+    readFileSync(
+      "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "utf8",
+    ),
+  );
+  const baseline = contract.protectedBehaviorBaselines.dataArchiveRuntime;
+  const transition = verifyCrossIndustryZipFounderAccessAdoption()
+    .transitionByPath.get(baseline.path);
+  assert.equal(transition.previousSha256, baseline.sha256);
+  assert.equal(
+    digest(readFileSync(baseline.path)),
+    transition.currentSha256,
+  );
+  assert.equal(verifyShadowDecisionReadiness().status, "passed");
+});
+
 test("prospective generator is deterministic, internal, normalized, and leakage-safe", () => {
   const timestamp = "2026-07-02T12:00:00.000Z";
   const first = record(1, timestamp),
