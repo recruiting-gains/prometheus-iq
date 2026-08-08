@@ -135,6 +135,14 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "41679ab6742dc9fd8639bbc7cfe6a1dc2328d540"
   );
   assert.equal(
+    result.immutableWorkflowV2LiveCanonicalIdentityIntelligenceSuccessorCommit,
+    "56f67124c1beba2f9289538d65e782cd808eacb2"
+  );
+  assert.equal(
+    result.immutableWorkflowV2LiveCanonicalIdentityOverwatchAcceptanceCommit,
+    "d904f5b3420d6fee328f69fba5850b49b6bb3637"
+  );
+  assert.equal(
     result.immutableWorkflowV2ControlledRehearsalGuardVerifierSuccessorCommit,
     "68b396623f6ef0190d4cd938aa6812326b5067f1"
   );
@@ -333,6 +341,17 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
         "0".repeat(64);
     },
     value => {
+      value.ownership.intelligenceLiveCanonicalIdentitySuccessorCommit.commit =
+        "0".repeat(40);
+    },
+    value => {
+      value.ownership.intelligenceLiveCanonicalIdentitySuccessorPaths.pop();
+    },
+    value => {
+      value.ownership.intelligenceLiveCanonicalIdentitySuccessorEvidence[0].sha256 =
+        "0".repeat(64);
+    },
+    value => {
       value.ownership.overwatchRevenueReadinessAcceptanceCommit.commit =
         "0".repeat(40);
     },
@@ -345,6 +364,17 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     },
     value => {
       value.ownership.overwatchRevenueReadinessAcceptanceEvidence[0].sha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.ownership.overwatchLiveCanonicalIdentityAcceptanceCommit.commit =
+        "0".repeat(40);
+    },
+    value => {
+      value.ownership.overwatchLiveCanonicalIdentityAcceptancePaths.pop();
+    },
+    value => {
+      value.ownership.overwatchLiveCanonicalIdentityAcceptanceEvidence[0].sha256 =
         "0".repeat(64);
     },
     value => {

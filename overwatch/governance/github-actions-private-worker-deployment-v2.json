@@ -321,6 +321,38 @@
         "sha256": "6f69166053117abe4c26a02c26f6492b6bea2649f07565083eb474f094153f53"
       }
     ],
+    "intelligenceLiveCanonicalIdentitySuccessorCommit": {
+      "commit": "56f67124c1beba2f9289538d65e782cd808eacb2",
+      "parent": "dc0f6f96d9208a1041c60f609d1b5dabb294e956",
+      "tree": "841aaee1f02c3aa09dde1dc333c2db68cf296f9f",
+      "author": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "committer": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: adopt canonical identity protected successors"
+    },
+    "intelligenceLiveCanonicalIdentitySuccessorPaths": [
+      "intelligence/provenance/protected-baseline-synchronization-live-canonical-identity-v1.json",
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "tests/read-only-field-session-learning.test.mjs",
+      "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+    ],
+    "intelligenceLiveCanonicalIdentitySuccessorEvidence": [
+      {
+        "path": "intelligence/provenance/protected-baseline-synchronization-live-canonical-identity-v1.json",
+        "sha256": "cfb89774373db0928ad5e360ec642a4e49eef3d2d68583aecdab71f61114e562"
+      },
+      {
+        "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+        "sha256": "5ee03775a417d214e075881815ef9886520bf9e083c2c912ff6d7a2a85617ea5"
+      },
+      {
+        "path": "tests/read-only-field-session-learning.test.mjs",
+        "sha256": "9a7c35d96a326364e023c26fcd8eb1f9ef19be8e8074dcb81862c8cc05fabe66"
+      },
+      {
+        "path": "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+        "sha256": "8cd7c6caa9e5557cb50a36d1edd609cf83ce0962cf89651c8ed64e469e0bf944"
+      }
+    ],
     "overwatchRevenueReadinessAcceptanceCommit": {
       "commit": "fe3ade871ef7308b05501dce23fecbd9a2b9e363",
       "parent": "c025fd95a8f5141dc4c32af3ca83292711fb1df7",
@@ -341,6 +373,28 @@
       {
         "path": "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
         "sha256": "dbc9fb7bdccb946cb95512e89a4448054871c4f71934ed3ac366cdb51e3a4f44"
+      }
+    ],
+    "overwatchLiveCanonicalIdentityAcceptanceCommit": {
+      "commit": "d904f5b3420d6fee328f69fba5850b49b6bb3637",
+      "parent": "56f67124c1beba2f9289538d65e782cd808eacb2",
+      "tree": "230261b982925d619a0d63bfb8b996c7bd362f24",
+      "author": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "subject": "overwatch: verify canonical identity intelligence successor"
+    },
+    "overwatchLiveCanonicalIdentityAcceptancePaths": [
+      "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+      "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs"
+    ],
+    "overwatchLiveCanonicalIdentityAcceptanceEvidence": [
+      {
+        "path": "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+        "sha256": "4380526826787d762a7f9fc6bca5c79305cd49628a286b3cb21d3a903d90bf8e"
+      },
+      {
+        "path": "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
+        "sha256": "1f39b1a2ba4450b4a3002d1732d2194c713f5945f4bd0caf35bb805168ac820a"
       }
     ],
     "intelligenceModifiedInfrastructureImplementation": false,
