@@ -216,7 +216,9 @@ export function hasLiveCanonicalIdentityVerifierSuccessor({
     || governance?.ownerSubsystem !== "Prometheus Overwatch"
     || record?.classification !== "LIVE_CANONICAL_IDENTITY_VERIFIER_SUCCESSORS"
     || record?.ownerSubsystem !== "Prometheus Overwatch"
-    || record?.expectedCommitCount !== 3
+    || !Number.isInteger(record?.expectedCommitCount)
+    || record.expectedCommitCount < 3
+    || record.expectedCommitCount > 8
     || record?.runtimeBehaviorChanged !== false
     || record?.credentialAccessChanged !== false
     || record?.productionMutationAuthorized !== false
