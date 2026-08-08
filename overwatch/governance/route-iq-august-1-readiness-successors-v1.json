@@ -11,12 +11,12 @@
     {
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "previousSha256": "8f7a94f86ae419d735f31a6cce3509e459ed4b6df673d32cb8b63ad1586efdff",
-      "successorSha256": "381f727f5e6cdc584ea5e753a2ac9ab819594fb89005df23bd1efc3446d02ac8"
+      "successorSha256": "73631bda94096f599af36c5388e278ce9f13418933481ab097e1ea2536f35356"
     },
     {
       "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
       "previousSha256": "49d16901c39b8746e1d7ed354315557bf0e7d99adf519101b86c07b1d541524d",
-      "successorSha256": "a0c25bacdd223df92b81f6beca3854dfdfa2f43afaa1d04ba5bcc70328dd2e33"
+      "successorSha256": "efc91b85cb331e7617a33c31cd0695d0ccad5e921ca78b1f664713bb8b5cbe68"
     }
   ],
   "successors": [
@@ -225,6 +225,29 @@
           "path": "scripts/verify-dashboard-runtime-workflows.mjs",
           "previousSha256": "ceedb7133621557fe188ccc9fec676a7d57b2b257e38b76855c6d1e98e0c29f5",
           "successorSha256": "f15bef69f0bffc9104b64f71fd7328df3da4f711d73270226ff67e259789bb9c"
+        }
+      ]
+    },
+    {
+      "commit": "bb1fd5556b1dea353ec67159c263b7a7474683a0",
+      "tree": "9403e81467ae41a8b04b0b25f69fbf60a3aeb939",
+      "owner": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "reason": "The canonical identity migration composes the exact current public package, deployment assets, and rollback identities into the historical release verifier without changing runtime behavior or production state.",
+      "evidence": [
+        {
+          "path": "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "previousSha256": "c9aca5d0af0bce1c675bffff4558e55cd7918d0e6b011f9747a716a6a2b7bdff",
+          "successorSha256": "9f9d684c4b8c01f824fe784d70364c0b72b3f2fc00343a001827d692247f11f4"
+        },
+        {
+          "path": "tests/overwatch-auto-push-governance.test.mjs",
+          "previousSha256": "79f76a983b13d0cf942455e2c9258e1f818b3d028aa678f4dee018ae93cc73d8",
+          "successorSha256": "481dde2cf97bb28b369842af0501e4895f01664ad04f5e8609760003054b535e"
+        },
+        {
+          "path": "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+          "previousSha256": "b15f05c7a03063319cf66620a4d0c1f7fcdfe4690202932666214ade5d95f18d",
+          "successorSha256": "b2fe3c47929454c0e863a4592d8278352bdf791c963cdd07a88b47cc7d540b58"
         }
       ]
     }

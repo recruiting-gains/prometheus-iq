@@ -593,7 +593,7 @@ export function validateAugust1ReadinessSuccessors(successors) {
     "route-iq-august-1-readiness-successors-v1");
   assert.equal(successors.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(successors.historicalCloseoutEvidenceRewritten, false);
-  assert.equal(successors.successors.length, 11);
+  assert.equal(successors.successors.length, 12);
   const infrastructureSuccessor = successors.successors[0];
   assert.equal(infrastructureSuccessor.commit,
     "96c8210b94c3b0214dede252aba3d6d46121cd05");
@@ -680,7 +680,8 @@ export function validateAugust1ReadinessSuccessors(successors) {
       "f0782326c2339622feef098c22cf9330c342ae0b",
       "c4cb9150fb8ad218e34026a63fa577271860c270",
       "e225b9e6380416cceddbfe10ee7aa318b123e75c",
-      "254218013ea7ef29eb679220a6219fd976c1a39f"
+      "254218013ea7ef29eb679220a6219fd976c1a39f",
+      "bb1fd5556b1dea353ec67159c263b7a7474683a0"
     ]
   );
   for (const successor of successors.successors.slice(4)) {
@@ -710,6 +711,30 @@ export function validateAugust1ReadinessSuccessors(successors) {
     previousSha256: "ceedb7133621557fe188ccc9fec676a7d57b2b257e38b76855c6d1e98e0c29f5",
     successorSha256: "f15bef69f0bffc9104b64f71fd7328df3da4f711d73270226ff67e259789bb9c"
   }]);
+  const canonicalPublicReleaseVerifierSuccessor = successors.successors[11];
+  assert.equal(canonicalPublicReleaseVerifierSuccessor.commit,
+    "bb1fd5556b1dea353ec67159c263b7a7474683a0");
+  assert.equal(canonicalPublicReleaseVerifierSuccessor.tree,
+    "9403e81467ae41a8b04b0b25f69fbf60a3aeb939");
+  assert.equal(canonicalPublicReleaseVerifierSuccessor.owner,
+    "Prometheus Overwatch <overwatch@prometheus.local>");
+  assert.deepEqual(canonicalPublicReleaseVerifierSuccessor.evidence, [
+    {
+      path: "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+      previousSha256: "c9aca5d0af0bce1c675bffff4558e55cd7918d0e6b011f9747a716a6a2b7bdff",
+      successorSha256: "9f9d684c4b8c01f824fe784d70364c0b72b3f2fc00343a001827d692247f11f4"
+    },
+    {
+      path: "tests/overwatch-auto-push-governance.test.mjs",
+      previousSha256: "79f76a983b13d0cf942455e2c9258e1f818b3d028aa678f4dee018ae93cc73d8",
+      successorSha256: "481dde2cf97bb28b369842af0501e4895f01664ad04f5e8609760003054b535e"
+    },
+    {
+      path: "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+      previousSha256: "b15f05c7a03063319cf66620a4d0c1f7fcdfe4690202932666214ade5d95f18d",
+      successorSha256: "b2fe3c47929454c0e863a4592d8278352bdf791c963cdd07a88b47cc7d540b58"
+    }
+  ]);
   assert.ok(Array.isArray(successors.overwatchCurrentEvidence));
   assert.deepEqual(
     sorted(successors.overwatchCurrentEvidence.map(item => item.path)),
