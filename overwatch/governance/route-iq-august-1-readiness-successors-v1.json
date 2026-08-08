@@ -17,6 +17,16 @@
       "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
       "previousSha256": "49d16901c39b8746e1d7ed354315557bf0e7d99adf519101b86c07b1d541524d",
       "successorSha256": "efc91b85cb331e7617a33c31cd0695d0ccad5e921ca78b1f664713bb8b5cbe68"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "73631bda94096f599af36c5388e278ce9f13418933481ab097e1ea2536f35356",
+      "successorSha256": "bcae2bb35b860ce4e940159f7fdcbb874b8c4f26be7ba942f952042a5565f881"
+    },
+    {
+      "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+      "previousSha256": "efc91b85cb331e7617a33c31cd0695d0ccad5e921ca78b1f664713bb8b5cbe68",
+      "successorSha256": "18420dba8bb3187c4f129a82e54b9eb5ad28733de3cd3866395e2d4cf9951f7a"
     }
   ],
   "successors": [
@@ -248,6 +258,19 @@
           "path": "tests/overwatch-public-deployment-workflow-v2.test.mjs",
           "previousSha256": "b15f05c7a03063319cf66620a4d0c1f7fcdfe4690202932666214ade5d95f18d",
           "successorSha256": "b2fe3c47929454c0e863a4592d8278352bdf791c963cdd07a88b47cc7d540b58"
+        }
+      ]
+    },
+    {
+      "commit": "bbed83c62e6c8d2c73ce287161df282005f99187",
+      "tree": "bf5eefb132663c5a2fc0b424cf9613e69455ca86",
+      "owner": "Prometheus Dashboard <dashboard@prometheus.local>",
+      "reason": "The field-session contract repair derives the Dashboard archive fixture from the actual canonical report producer while preserving every historical August 1 readiness pin and protected operating boundary.",
+      "evidence": [
+        {
+          "path": "tests/dashboard-route-iq-field-session-producer.test.mjs",
+          "previousSha256": "5bd7e5da3f7597034ca684f02d45026c6244025429a2e348ed2395aed59be9dd",
+          "successorSha256": "6f676f95c2f56bde6457c197b1fe917fa4d3b594c0bae971fb0faf51f9122477"
         }
       ]
     }

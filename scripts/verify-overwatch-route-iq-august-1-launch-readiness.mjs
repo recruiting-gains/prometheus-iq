@@ -593,7 +593,7 @@ export function validateAugust1ReadinessSuccessors(successors) {
     "route-iq-august-1-readiness-successors-v1");
   assert.equal(successors.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(successors.historicalCloseoutEvidenceRewritten, false);
-  assert.equal(successors.successors.length, 12);
+  assert.equal(successors.successors.length, 13);
   const infrastructureSuccessor = successors.successors[0];
   assert.equal(infrastructureSuccessor.commit,
     "96c8210b94c3b0214dede252aba3d6d46121cd05");
@@ -681,7 +681,8 @@ export function validateAugust1ReadinessSuccessors(successors) {
       "c4cb9150fb8ad218e34026a63fa577271860c270",
       "e225b9e6380416cceddbfe10ee7aa318b123e75c",
       "254218013ea7ef29eb679220a6219fd976c1a39f",
-      "bb1fd5556b1dea353ec67159c263b7a7474683a0"
+      "bb1fd5556b1dea353ec67159c263b7a7474683a0",
+      "bbed83c62e6c8d2c73ce287161df282005f99187"
     ]
   );
   for (const successor of successors.successors.slice(4)) {
@@ -735,12 +736,26 @@ export function validateAugust1ReadinessSuccessors(successors) {
       successorSha256: "b2fe3c47929454c0e863a4592d8278352bdf791c963cdd07a88b47cc7d540b58"
     }
   ]);
+  const fieldSessionProducerFixtureSuccessor = successors.successors[12];
+  assert.equal(fieldSessionProducerFixtureSuccessor.commit,
+    "bbed83c62e6c8d2c73ce287161df282005f99187");
+  assert.equal(fieldSessionProducerFixtureSuccessor.tree,
+    "bf5eefb132663c5a2fc0b424cf9613e69455ca86");
+  assert.equal(fieldSessionProducerFixtureSuccessor.owner,
+    "Prometheus Dashboard <dashboard@prometheus.local>");
+  assert.deepEqual(fieldSessionProducerFixtureSuccessor.evidence, [{
+    path: "tests/dashboard-route-iq-field-session-producer.test.mjs",
+    previousSha256: "5bd7e5da3f7597034ca684f02d45026c6244025429a2e348ed2395aed59be9dd",
+    successorSha256: "6f676f95c2f56bde6457c197b1fe917fa4d3b594c0bae971fb0faf51f9122477"
+  }]);
   assert.ok(Array.isArray(successors.overwatchCurrentEvidence));
   assert.deepEqual(
     sorted(successors.overwatchCurrentEvidence.map(item => item.path)),
     sorted([
       "package.json",
       "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
       "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
     ])
   );
