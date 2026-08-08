@@ -285,34 +285,56 @@ test("current governance records the launch facts and keeps protected receipts i
             "b2fe3c47929454c0e863a4592d8278352bdf791c963cdd07a88b47cc7d540b58"
         }
       ]
+    },
+    {
+      classification: "LIVE_CANONICAL_IDENTITY_PUBLIC_WORKFLOW_FIXTURE_SUCCESSOR",
+      subsystem: "Prometheus Infrastructure",
+      owner: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      commit: "931be599a58cad21f2fb6e32133ce3f7cb99de58",
+      parent: "556a35cfc6a61e1d09d2166617f0d81f6ee51ba3",
+      tree: "8297e3f50ef39b96661d57f08d3ac7c7384cb832",
+      subject: "infrastructure: advance canonical public rollback fixture",
+      runtimeBehaviorChanged: false,
+      deploymentAssetChanged: false,
+      productionMutationAuthorized: false,
+      evidence: [
+        {
+          path: "tests/github-actions-public-worker-workflow-v2.test.mjs",
+          previousSha256:
+            "03c35afd5c6c8d627b1dfa77b292bb0e947a78427bdaa673f535df19e6aa51b9",
+          currentSha256:
+            "8e8959529e0839b9238307379a8b0cdaf505af779633ba8152af653b1d9426d2"
+        }
+      ]
     }
   ]);
-  const currentVerifierSuccessor = governance.currentVerifierSuccessors[0];
-  assert.deepEqual(execFileSync("/usr/bin/git", [
-    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
-    currentVerifierSuccessor.commit
-  ], { cwd: root, encoding: "utf8" }).trim().split("\n"), [
-    currentVerifierSuccessor.commit,
-    currentVerifierSuccessor.parent,
-    currentVerifierSuccessor.tree,
-    currentVerifierSuccessor.owner,
-    currentVerifierSuccessor.owner,
-    currentVerifierSuccessor.subject
-  ]);
-  assert.deepEqual(execFileSync("/usr/bin/git", [
-    "diff-tree", "--no-commit-id", "--name-only", "-r",
-    currentVerifierSuccessor.commit
-  ], { cwd: root, encoding: "utf8" }).trim().split("\n").sort(),
-  currentVerifierSuccessor.evidence.map(item => item.path).sort());
-  for (const evidence of currentVerifierSuccessor.evidence) {
-    const previous = execFileSync("/usr/bin/git", [
-      "show", `${currentVerifierSuccessor.parent}:${evidence.path}`
-    ], { cwd: root, encoding: null });
-    const current = execFileSync("/usr/bin/git", [
-      "show", `${currentVerifierSuccessor.commit}:${evidence.path}`
-    ], { cwd: root, encoding: null });
-    assert.equal(sha256(previous), evidence.previousSha256, evidence.path);
-    assert.equal(sha256(current), evidence.currentSha256, evidence.path);
+  for (const currentVerifierSuccessor of governance.currentVerifierSuccessors) {
+    assert.deepEqual(execFileSync("/usr/bin/git", [
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      currentVerifierSuccessor.commit
+    ], { cwd: root, encoding: "utf8" }).trim().split("\n"), [
+      currentVerifierSuccessor.commit,
+      currentVerifierSuccessor.parent,
+      currentVerifierSuccessor.tree,
+      currentVerifierSuccessor.owner,
+      currentVerifierSuccessor.owner,
+      currentVerifierSuccessor.subject
+    ]);
+    assert.deepEqual(execFileSync("/usr/bin/git", [
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      currentVerifierSuccessor.commit
+    ], { cwd: root, encoding: "utf8" }).trim().split("\n").sort(),
+    currentVerifierSuccessor.evidence.map(item => item.path).sort());
+    for (const evidence of currentVerifierSuccessor.evidence) {
+      const previous = execFileSync("/usr/bin/git", [
+        "show", `${currentVerifierSuccessor.parent}:${evidence.path}`
+      ], { cwd: root, encoding: null });
+      const current = execFileSync("/usr/bin/git", [
+        "show", `${currentVerifierSuccessor.commit}:${evidence.path}`
+      ], { cwd: root, encoding: null });
+      assert.equal(sha256(previous), evidence.previousSha256, evidence.path);
+      assert.equal(sha256(current), evidence.currentSha256, evidence.path);
+    }
   }
   assert.equal(governance.ownerCommitChain.length, 10);
   assert.deepEqual(
