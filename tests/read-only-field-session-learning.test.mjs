@@ -129,7 +129,7 @@ test("approved ZIP and Founder Dashboard adoption rejects matching arbitrary sou
       (error) => {
         assert.match(
           error.stderr.toString("utf8"),
-          /Current Full-System Harmony protected source changed: index\.html/u
+          /Current live canonical identity protected source changed: index\.html/u
         );
         return true;
       }

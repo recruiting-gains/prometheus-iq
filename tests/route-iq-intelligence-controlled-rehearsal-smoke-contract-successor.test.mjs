@@ -6,10 +6,12 @@ import {
   controlledOnboardingRehearsalSmokeContractProvenancePath,
   crossIndustryZipFounderAccessProvenancePath,
   fullSystemHarmonyProtectedSuccessorProvenancePath,
+  liveCanonicalIdentityProtectedSuccessorProvenancePath,
   paidCustomerRevenueReadinessWorkerProvenancePath,
   verifyControlledOnboardingRehearsalSmokeContractSuccessor,
   verifyCrossIndustryZipFounderAccessAdoption,
   verifyFullSystemHarmonyProtectedSuccessor,
+  verifyLiveCanonicalIdentityProtectedSuccessor,
   verifyPaidCustomerRevenueReadinessWorkerSuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
@@ -153,6 +155,36 @@ test("Full-System Harmony source and deploy successors remain exact", () => {
   assert.equal(source.currentSha256, deploy.currentSha256);
   assert.equal(verified.successor.coherence.intelligenceRuntimeChanged, true);
   assert.equal(verified.successor.coherence.recommendationInfluenceLockedOff, true);
+  assert.equal(verified.successor.boundaries.prospectiveCollection, "OFF");
+  assert.equal(verified.successor.boundaries.recommendationInfluence, "OFF");
+});
+
+test("live canonical identity composes exact Data, Dashboard, and Infrastructure successors", () => {
+  const successor = readJson(liveCanonicalIdentityProtectedSuccessorProvenancePath);
+  const verified = verifyLiveCanonicalIdentityProtectedSuccessor();
+  const source = verified.successorTransitionsByPath.get("index.html")[0];
+  const deploy = verified.successorTransitionsByPath
+    .get("deploy/cloudflare-pages/index.html")[0];
+  const data = verified.successorTransitionsByPath
+    .get("data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs")[0];
+
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(source.ownerSubsystem, "Prometheus Dashboard");
+  assert.equal(deploy.ownerSubsystem, "Prometheus Infrastructure");
+  assert.equal(data.ownerSubsystem, "Prometheus Data");
+  assert.equal(source.previousSha256,
+    "336ca7a07fbf7ff9f27e77d674f9191d88253dd7db8ba5016e7f5da91884dad0");
+  assert.equal(source.currentSha256,
+    "235be31ca523e7ba0d008de040fde8c32a4a8871c307eacb6a5273dd3646fa72");
+  assert.equal(source.currentSha256, deploy.currentSha256);
+  assert.equal(data.previousSha256,
+    "631c48d6fb0193f2356113d70ace4a7dbd0bf85d16ef8bf3a5a737a9430ce80a");
+  assert.equal(data.currentSha256,
+    "4b682c744aa19fa53813dfac838a638810e55c3067033f1cf711e83df6ee73c3");
+  assert.equal(verified.successor.coherence.identityPresentationOnly, true);
+  assert.equal(verified.successor.coherence.dataRecordCompatibilityOnly, true);
+  assert.equal(verified.successor.coherence.intelligenceRuntimeChanged, false);
   assert.equal(verified.successor.boundaries.prospectiveCollection, "OFF");
   assert.equal(verified.successor.boundaries.recommendationInfluence, "OFF");
 });

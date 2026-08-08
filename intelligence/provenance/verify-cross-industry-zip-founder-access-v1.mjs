@@ -14,6 +14,10 @@ export const paidCustomerRevenueReadinessWorkerProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-paid-customer-revenue-readiness-worker-v1.json";
 export const fullSystemHarmonyProtectedSuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-full-system-harmony-v1.json";
+export const liveCanonicalIdentityProtectedSuccessorProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-live-canonical-identity-v1.json";
+const crossIndustryDashboardRetentionProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json";
 
 function read(path) {
   return readFileSync(resolve(root, path));
@@ -42,6 +46,9 @@ function expectedIdentity(ownerSubsystem) {
   }
   if (ownerSubsystem === "Prometheus Infrastructure") {
     return "Prometheus Infrastructure <infrastructure@prometheus.local>";
+  }
+  if (ownerSubsystem === "Prometheus Data") {
+    return "Prometheus Data <data@prometheus.local>";
   }
   if (ownerSubsystem === "Prometheus Intelligence Engine") {
     return "Prometheus Intelligence Engine <intelligence@prometheus.local>";
@@ -230,18 +237,6 @@ function verifyFullSystemHarmonyProtectedSuccessorAgainst(
   for (const [path, transitions] of successorTransitionsByPath) {
     if (!transitionsByPath.has(path)) transitionsByPath.set(path, transitions);
   }
-  for (const [path, transitions] of transitionsByPath) {
-    assert.equal(
-      sha256(path),
-      transitions.at(-1).currentSha256,
-      `Current Full-System Harmony protected source changed: ${path}`
-    );
-  }
-  assert.equal(
-    sha256("index.html"),
-    sha256("deploy/cloudflare-pages/index.html"),
-    "Full-System Harmony source and deploy mirror diverged."
-  );
   assert.deepEqual(successor.coherence, {
     historicalRevenueReadinessEvidenceRewritten: false,
     successorCommitAndTreeVerified: true,
@@ -255,6 +250,117 @@ function verifyFullSystemHarmonyProtectedSuccessorAgainst(
   assert.deepEqual(
     successor.boundaries,
     revenueReadinessSuccessor.successor.boundaries
+  );
+  return Object.freeze({
+    successor,
+    successorTransitionsByPath,
+    transitionsByPath
+  });
+}
+
+function verifyLiveCanonicalIdentityProtectedSuccessorAgainst(
+  fullSystemHarmonySuccessor
+) {
+  const successor = JSON.parse(
+    read(liveCanonicalIdentityProtectedSuccessorProvenancePath)
+  );
+  assert.equal(
+    successor.version,
+    "route-iq-intelligence-live-canonical-identity-protected-successor-v1"
+  );
+  assert.equal(successor.status, "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(
+    successor.predecessor.path,
+    fullSystemHarmonyProtectedSuccessorProvenancePath
+  );
+  assert.equal(
+    sha256(successor.predecessor.path),
+    successor.predecessor.sha256,
+    "Historical Full-System Harmony Intelligence provenance changed."
+  );
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(successor.protectedSourceTransitions.length, 3);
+  const crossIndustryDashboardRetention = JSON.parse(
+    read(crossIndustryDashboardRetentionProvenancePath)
+  );
+
+  const successorTransitionsByPath = new Map();
+  for (const transition of successor.protectedSourceTransitions) {
+    assert.ok(
+      !successorTransitionsByPath.has(transition.path),
+      `Duplicate live canonical identity protected path: ${transition.path}`
+    );
+    const predecessorTransitions = fullSystemHarmonySuccessor.transitionsByPath
+      .get(transition.path);
+    if (predecessorTransitions) {
+      assert.equal(
+        transition.previousSha256,
+        predecessorTransitions.at(-1).currentSha256,
+        `Broken live canonical identity transition chain: ${transition.path}`
+      );
+    } else {
+      assert.equal(
+        transition.path,
+        "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+        `Missing live canonical identity predecessor: ${transition.path}`
+      );
+      assert.equal(
+        transition.previousSha256,
+        crossIndustryDashboardRetention.dataOwnerTransition.archiveRuntime.currentSha256,
+        `Broken live canonical Data transition chain: ${transition.path}`
+      );
+    }
+    verifyTransition(transition.path, transition);
+    successorTransitionsByPath.set(transition.path, [transition]);
+  }
+  assert.deepEqual(
+    [...successorTransitionsByPath.keys()].sort(),
+    [
+      "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+      "deploy/cloudflare-pages/index.html",
+      "index.html"
+    ]
+  );
+
+  const transitionsByPath = new Map();
+  for (const [path, transitions] of fullSystemHarmonySuccessor.transitionsByPath) {
+    transitionsByPath.set(path, [
+      ...transitions,
+      ...(successorTransitionsByPath.get(path) || [])
+    ]);
+  }
+  for (const [path, transitions] of successorTransitionsByPath) {
+    if (!transitionsByPath.has(path)) transitionsByPath.set(path, transitions);
+  }
+  for (const [path, transitions] of transitionsByPath) {
+    assert.equal(
+      sha256(path),
+      transitions.at(-1).currentSha256,
+      `Current live canonical identity protected source changed: ${path}`
+    );
+  }
+  assert.equal(
+    sha256("index.html"),
+    sha256("deploy/cloudflare-pages/index.html"),
+    "Live canonical identity source and deploy mirror diverged."
+  );
+  assert.deepEqual(successor.coherence, {
+    historicalFullSystemHarmonyEvidenceRewritten: false,
+    successorCommitAndTreeVerified: true,
+    successorOwnerIdentityVerified: true,
+    sourceDeployParityRequired: true,
+    identityPresentationOnly: true,
+    dataRecordCompatibilityOnly: true,
+    intelligenceRuntimeChanged: false,
+    routeOrderingChanged: false,
+    routeScoringChanged: false,
+    businessHoursEligibilityChanged: false
+  });
+  assert.deepEqual(
+    successor.boundaries,
+    fullSystemHarmonySuccessor.successor.boundaries
   );
   return Object.freeze({
     successor,
@@ -352,9 +458,14 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
       revenueReadinessSuccessor,
       historical
     );
+  const liveCanonicalIdentityProtectedSuccessor =
+    verifyLiveCanonicalIdentityProtectedSuccessorAgainst(
+      fullSystemHarmonySuccessor
+    );
   for (const protectedTransition of transitionByPath.values()) {
     const revenueTransitions =
-      fullSystemHarmonySuccessor.transitionsByPath.get(protectedTransition.path);
+      liveCanonicalIdentityProtectedSuccessor.transitionsByPath
+        .get(protectedTransition.path);
     const expectedSha256 = revenueTransitions
       ? revenueTransitions.at(-1).currentSha256
       : protectedTransition.currentSha256;
@@ -368,7 +479,8 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     successor,
     transitionByPath,
     revenueReadinessSuccessor,
-    fullSystemHarmonySuccessor
+    fullSystemHarmonySuccessor,
+    liveCanonicalIdentityProtectedSuccessor
   });
 }
 
@@ -380,6 +492,11 @@ export function verifyPaidCustomerRevenueReadinessWorkerSuccessor() {
 export function verifyFullSystemHarmonyProtectedSuccessor() {
   return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
     .fullSystemHarmonySuccessor;
+}
+
+export function verifyLiveCanonicalIdentityProtectedSuccessor() {
+  return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .liveCanonicalIdentityProtectedSuccessor;
 }
 
 export function verifyCrossIndustryZipFounderAccessAdoption() {
@@ -421,7 +538,7 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
     const rehearsalTransition =
       rehearsalSuccessor.transitionByPath.get(successor.path);
     const revenueReadinessTransitions =
-      rehearsalSuccessor.fullSystemHarmonySuccessor.transitionsByPath
+      rehearsalSuccessor.liveCanonicalIdentityProtectedSuccessor.transitionsByPath
         .get(successor.path) || [];
     if (rehearsalTransition) {
       assert.equal(
@@ -445,7 +562,7 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
     transitionByPath.set(successor.path, currentSuccessor);
   }
   for (const [path, transitions] of
-    rehearsalSuccessor.fullSystemHarmonySuccessor.transitionsByPath) {
+    rehearsalSuccessor.liveCanonicalIdentityProtectedSuccessor.transitionsByPath) {
     if (transitionByPath.has(path)) continue;
     transitionByPath.set(path, {
       path,

@@ -1,0 +1,64 @@
+{
+  "version": "route-iq-intelligence-live-canonical-identity-protected-successor-v1",
+  "directive": "Live Canonical Identity Migration v1",
+  "status": "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Adopt the exact owner-produced canonical Dashboard identity and byte-identical deploy mirror without rewriting Full-System Harmony evidence or changing any Intelligence runtime behavior.",
+  "predecessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-full-system-harmony-v1.json",
+    "sha256": "a7c9965e96c71c105276904d57ca2cf7264f47462ba9629429510e1ab7817446",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "protectedSourceTransitions": [
+    {
+      "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "a0856eb22bda483aa87f361ef9bb54d63b61e686",
+      "tree": "940f09b83dab2762f55a5651a6dccdcc073d8a3f",
+      "subject": "data: adopt canonical Route IQ record identity",
+      "previousSha256": "631c48d6fb0193f2356113d70ace4a7dbd0bf85d16ef8bf3a5a737a9430ce80a",
+      "currentSha256": "4b682c744aa19fa53813dfac838a638810e55c3067033f1cf711e83df6ee73c3"
+    },
+    {
+      "path": "index.html",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "commit": "9647934b75c46218f6af6304e8d169ccf7285529",
+      "tree": "db270aabeb4b0bea9cc6e9690cb1cc4d129b15a8",
+      "subject": "dashboard: establish canonical product identity",
+      "previousSha256": "336ca7a07fbf7ff9f27e77d674f9191d88253dd7db8ba5016e7f5da91884dad0",
+      "currentSha256": "235be31ca523e7ba0d008de040fde8c32a4a8871c307eacb6a5273dd3646fa72"
+    },
+    {
+      "path": "deploy/cloudflare-pages/index.html",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "c4cb9150fb8ad218e34026a63fa577271860c270",
+      "tree": "e7870b29540e0fb2fa89dbf691804192e3cf9c1d",
+      "subject": "infrastructure: package canonical identity runtimes",
+      "previousSha256": "336ca7a07fbf7ff9f27e77d674f9191d88253dd7db8ba5016e7f5da91884dad0",
+      "currentSha256": "235be31ca523e7ba0d008de040fde8c32a4a8871c307eacb6a5273dd3646fa72"
+    }
+  ],
+  "coherence": {
+    "historicalFullSystemHarmonyEvidenceRewritten": false,
+    "successorCommitAndTreeVerified": true,
+    "successorOwnerIdentityVerified": true,
+    "sourceDeployParityRequired": true,
+    "identityPresentationOnly": true,
+    "dataRecordCompatibilityOnly": true,
+    "intelligenceRuntimeChanged": false,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "businessHoursEligibilityChanged": false
+  },
+  "boundaries": {
+    "readinessState": "INSUFFICIENT_EVIDENCE",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}
