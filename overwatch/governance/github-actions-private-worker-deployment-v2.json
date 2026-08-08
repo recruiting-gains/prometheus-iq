@@ -397,6 +397,23 @@
         "sha256": "dd7449ad92b8932b9d7dc0fe29d25f7f2e3a4b931726f1400d35156476e0a00c"
       }
     ],
+    "intelligenceLiveCanonicalIdentityOffRouteBaselineRepairCommit": {
+      "commit": "db74fd379f0624f3abfaf1ddee1827c3fe4f1e60",
+      "parent": "daa461ebc3d359117e78f14bca2c6da92726524b",
+      "tree": "aefdf1f611c138827f731235fb1caa673a58a136",
+      "author": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "committer": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose canonical off-route baseline"
+    },
+    "intelligenceLiveCanonicalIdentityOffRouteBaselineRepairPaths": [
+      "tests/off-route-learning-intelligence.test.mjs"
+    ],
+    "intelligenceLiveCanonicalIdentityOffRouteBaselineRepairEvidence": [
+      {
+        "path": "tests/off-route-learning-intelligence.test.mjs",
+        "sha256": "5c24ea2615105a3e9403450ee4e68747c8508257eec4ca844a070b8a6b9395e0"
+      }
+    ],
     "overwatchRevenueReadinessAcceptanceCommit": {
       "commit": "fe3ade871ef7308b05501dce23fecbd9a2b9e363",
       "parent": "c025fd95a8f5141dc4c32af3ca83292711fb1df7",
@@ -513,6 +530,38 @@
       {
         "path": "tests/release-provenance-repair.test.mjs",
         "sha256": "7ead4a362ba1064bcb1b0acd755b8e739b24d8a788c58d8976e24a2654d0e4d4"
+      }
+    ],
+    "overwatchLiveCanonicalIdentityOffRouteBaselineAcceptanceCommit": {
+      "commit": "ec33c3b4bc66be9b0b177eac94b50cc9d692ac23",
+      "parent": "db74fd379f0624f3abfaf1ddee1827c3fe4f1e60",
+      "tree": "34bb43df06a94bd375c2b0bda555c5594b94d898",
+      "author": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "subject": "overwatch: accept canonical off-route successor"
+    },
+    "overwatchLiveCanonicalIdentityOffRouteBaselineAcceptancePaths": [
+      "overwatch/governance/live-canonical-identity-migration-v1.json",
+      "scripts/verify-release-provenance-repair.mjs",
+      "tests/live-canonical-identity-migration-v1.test.mjs",
+      "tests/release-provenance-repair.test.mjs"
+    ],
+    "overwatchLiveCanonicalIdentityOffRouteBaselineAcceptanceEvidence": [
+      {
+        "path": "overwatch/governance/live-canonical-identity-migration-v1.json",
+        "sha256": "c23dd13f5bc3c172fd5665611a4b827b78c7a9e67e57b033ca4373af226ce90f"
+      },
+      {
+        "path": "scripts/verify-release-provenance-repair.mjs",
+        "sha256": "2767bed24e42e603a7c2aa1fb6347c124acb81962b993b1781998a5f100d701f"
+      },
+      {
+        "path": "tests/live-canonical-identity-migration-v1.test.mjs",
+        "sha256": "a088a4488adae6079489796404faad1529f9b4bb211d4096b37ad98d8879d759"
+      },
+      {
+        "path": "tests/release-provenance-repair.test.mjs",
+        "sha256": "6af689487534bd3a1fdbd4b0182fa68ea3546ecf418d59a8c353e86d28d96a0d"
       }
     ],
     "intelligenceModifiedInfrastructureImplementation": false,

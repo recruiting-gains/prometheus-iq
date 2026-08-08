@@ -238,6 +238,12 @@ const v2LiveCanonicalIdentityProtectedConsumerCompositionRepairParent =
   "c1d0cf056e6cd13689254a062636be783a1a66c7";
 const v2LiveCanonicalIdentityProtectedConsumerCompositionRepairTree =
   "efadb319180da76a28787843f7132252d7866625";
+const v2LiveCanonicalIdentityOffRouteBaselineRepairCommit =
+  "db74fd379f0624f3abfaf1ddee1827c3fe4f1e60";
+const v2LiveCanonicalIdentityOffRouteBaselineRepairParent =
+  "daa461ebc3d359117e78f14bca2c6da92726524b";
+const v2LiveCanonicalIdentityOffRouteBaselineRepairTree =
+  "aefdf1f611c138827f731235fb1caa673a58a136";
 const v2RevenueReadinessOverwatchAcceptanceCommit =
   "fe3ade871ef7308b05501dce23fecbd9a2b9e363";
 const v2RevenueReadinessOverwatchAcceptanceParent =
@@ -262,6 +268,12 @@ const v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceParent =
   v2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit;
 const v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceTree =
   "18766dd2e91ee2a6085573c04610a8e6ea2b2862";
+const v2LiveCanonicalIdentityOffRouteBaselineAcceptanceCommit =
+  "ec33c3b4bc66be9b0b177eac94b50cc9d692ac23";
+const v2LiveCanonicalIdentityOffRouteBaselineAcceptanceParent =
+  v2LiveCanonicalIdentityOffRouteBaselineRepairCommit;
+const v2LiveCanonicalIdentityOffRouteBaselineAcceptanceTree =
+  "34bb43df06a94bd375c2b0bda555c5594b94d898";
 const v2ControlledRehearsalGuardVerifierSuccessorCommit =
   "68b396623f6ef0190d4cd938aa6812326b5067f1";
 const v2ControlledRehearsalGuardVerifierSuccessorParent =
@@ -855,6 +867,11 @@ const v2LiveCanonicalIdentityProtectedConsumerCompositionRepairHashes =
       "dd7449ad92b8932b9d7dc0fe29d25f7f2e3a4b931726f1400d35156476e0a00c"
   });
 
+const v2LiveCanonicalIdentityOffRouteBaselineRepairHashes = Object.freeze({
+  "tests/off-route-learning-intelligence.test.mjs":
+    "5c24ea2615105a3e9403450ee4e68747c8508257eec4ca844a070b8a6b9395e0"
+});
+
 const v2RevenueReadinessOverwatchAcceptanceHashes = Object.freeze({
   "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs":
     "b761f4b019061a59faec7ca22c6aa795fe6bd59b4085528ef059f8d730432b52",
@@ -895,6 +912,17 @@ const v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceHashes =
     "tests/release-provenance-repair.test.mjs":
       "7ead4a362ba1064bcb1b0acd755b8e739b24d8a788c58d8976e24a2654d0e4d4"
   });
+
+const v2LiveCanonicalIdentityOffRouteBaselineAcceptanceHashes = Object.freeze({
+  "overwatch/governance/live-canonical-identity-migration-v1.json":
+    "c23dd13f5bc3c172fd5665611a4b827b78c7a9e67e57b033ca4373af226ce90f",
+  "scripts/verify-release-provenance-repair.mjs":
+    "2767bed24e42e603a7c2aa1fb6347c124acb81962b993b1781998a5f100d701f",
+  "tests/live-canonical-identity-migration-v1.test.mjs":
+    "a088a4488adae6079489796404faad1529f9b4bb211d4096b37ad98d8879d759",
+  "tests/release-provenance-repair.test.mjs":
+    "6af689487534bd3a1fdbd4b0182fa68ea3546ecf418d59a8c353e86d28d96a0d"
+});
 
 const v2ControlledRehearsalGuardVerifierSuccessorHashes = Object.freeze({
   "scripts/verify-cloudflare-unattended-runtime-guard.mjs":
@@ -1996,6 +2024,21 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership
       ?.intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairCommit
       ?.committer === intelligenceIdentity
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityOffRouteBaselineRepairCommit?.commit ===
+      v2LiveCanonicalIdentityOffRouteBaselineRepairCommit
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityOffRouteBaselineRepairCommit?.parent ===
+      v2LiveCanonicalIdentityOffRouteBaselineRepairParent
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityOffRouteBaselineRepairCommit?.tree ===
+      v2LiveCanonicalIdentityOffRouteBaselineRepairTree
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityOffRouteBaselineRepairCommit?.author ===
+      intelligenceIdentity
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityOffRouteBaselineRepairCommit?.committer ===
+      intelligenceIdentity
     && governance?.ownership?.overwatchRevenueReadinessAcceptanceCommit?.commit ===
       v2RevenueReadinessOverwatchAcceptanceCommit
     && governance?.ownership?.overwatchRevenueReadinessAcceptanceCommit?.parent ===
@@ -2046,6 +2089,21 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
     && governance?.ownership
       ?.overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit
       ?.committer === overwatchIdentity
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityOffRouteBaselineAcceptanceCommit?.commit ===
+      v2LiveCanonicalIdentityOffRouteBaselineAcceptanceCommit
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityOffRouteBaselineAcceptanceCommit?.parent ===
+      v2LiveCanonicalIdentityOffRouteBaselineAcceptanceParent
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityOffRouteBaselineAcceptanceCommit?.tree ===
+      v2LiveCanonicalIdentityOffRouteBaselineAcceptanceTree
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityOffRouteBaselineAcceptanceCommit?.author ===
+      overwatchIdentity
+    && governance?.ownership
+      ?.overwatchLiveCanonicalIdentityOffRouteBaselineAcceptanceCommit?.committer ===
+      overwatchIdentity
     && governance?.ownership?.intelligenceModifiedInfrastructureImplementation ===
       false
     && governance?.ownership?.overwatchModifiedIntelligenceImplementation ===
@@ -2329,6 +2387,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       ?.intelligenceLiveCanonicalIdentityProtectedConsumerCompositionRepairEvidence,
     evidenceMap(v2LiveCanonicalIdentityProtectedConsumerCompositionRepairHashes)),
   "Private Workflow v2 Intelligence canonical protected-consumer repair evidence drifted.");
+  require(equal(
+    governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityOffRouteBaselineRepairPaths,
+    Object.keys(v2LiveCanonicalIdentityOffRouteBaselineRepairHashes)),
+  "Private Workflow v2 Intelligence canonical off-route repair path set drifted.");
+  require(equal(
+    governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityOffRouteBaselineRepairEvidence,
+    evidenceMap(v2LiveCanonicalIdentityOffRouteBaselineRepairHashes)),
+  "Private Workflow v2 Intelligence canonical off-route repair evidence drifted.");
   require(equal(governance?.ownership?.overwatchRevenueReadinessAcceptancePaths,
     Object.keys(v2RevenueReadinessOverwatchAcceptanceHashes)),
   "Private Workflow v2 Overwatch revenue-readiness acceptance path set drifted.");
@@ -2361,6 +2429,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       ?.overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceEvidence,
     evidenceMap(v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceHashes)),
   "Private Workflow v2 Overwatch canonical protected-consumer acceptance evidence drifted.");
+  require(equal(
+    governance?.ownership
+      ?.overwatchLiveCanonicalIdentityOffRouteBaselineAcceptancePaths,
+    Object.keys(v2LiveCanonicalIdentityOffRouteBaselineAcceptanceHashes)),
+  "Private Workflow v2 Overwatch canonical off-route acceptance path set drifted.");
+  require(equal(
+    governance?.ownership
+      ?.overwatchLiveCanonicalIdentityOffRouteBaselineAcceptanceEvidence,
+    evidenceMap(v2LiveCanonicalIdentityOffRouteBaselineAcceptanceHashes)),
+  "Private Workflow v2 Overwatch canonical off-route acceptance evidence drifted.");
   require(governance?.rootCause?.legacyQualificationArtifactDeployable === false
     && governance?.rootCause?.legacyWorkflowRebuildsCurrentMain === true
     && governance?.rootCause?.legacyWorkflowConsumesExactQualifiedPayload === false
@@ -4046,6 +4124,30 @@ function verifyV2OwnerAndGovernance() {
       recorded:
         governance.ownership
           .overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceEvidence
+    },
+    {
+      label: "Intelligence canonical off-route baseline repair",
+      commit: v2LiveCanonicalIdentityOffRouteBaselineRepairCommit,
+      parent: v2LiveCanonicalIdentityOffRouteBaselineRepairParent,
+      tree: v2LiveCanonicalIdentityOffRouteBaselineRepairTree,
+      identity: intelligenceIdentity,
+      subject: "intelligence: compose canonical off-route baseline",
+      hashes: v2LiveCanonicalIdentityOffRouteBaselineRepairHashes,
+      recorded:
+        governance.ownership
+          .intelligenceLiveCanonicalIdentityOffRouteBaselineRepairEvidence
+    },
+    {
+      label: "Overwatch canonical off-route baseline acceptance",
+      commit: v2LiveCanonicalIdentityOffRouteBaselineAcceptanceCommit,
+      parent: v2LiveCanonicalIdentityOffRouteBaselineAcceptanceParent,
+      tree: v2LiveCanonicalIdentityOffRouteBaselineAcceptanceTree,
+      identity: overwatchIdentity,
+      subject: "overwatch: accept canonical off-route successor",
+      hashes: v2LiveCanonicalIdentityOffRouteBaselineAcceptanceHashes,
+      recorded:
+        governance.ownership
+          .overwatchLiveCanonicalIdentityOffRouteBaselineAcceptanceEvidence
     }
   ]) {
     const metadata = git([
@@ -4655,6 +4757,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2LiveCanonicalIdentityShadowReadinessRepairCommit,
     immutableWorkflowV2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit:
       v2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit,
+    immutableWorkflowV2LiveCanonicalIdentityOffRouteBaselineRepairCommit:
+      v2LiveCanonicalIdentityOffRouteBaselineRepairCommit,
     immutableWorkflowV2RevenueReadinessOverwatchAcceptanceCommit:
       v2RevenueReadinessOverwatchAcceptanceCommit,
     immutableWorkflowV2LiveCanonicalIdentityOverwatchAcceptanceCommit:
@@ -4663,6 +4767,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2LiveCanonicalIdentityShadowReadinessAcceptanceCommit,
     immutableWorkflowV2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit:
       v2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit,
+    immutableWorkflowV2LiveCanonicalIdentityOffRouteBaselineAcceptanceCommit:
+      v2LiveCanonicalIdentityOffRouteBaselineAcceptanceCommit,
     immutableWorkflowV2ControlledRehearsalGuardVerifierSuccessorCommit:
       v2ControlledRehearsalGuardVerifierSuccessorCommit,
     immutableWorkflowV2ControlledRehearsalOwnerPreflightRepairCommit:

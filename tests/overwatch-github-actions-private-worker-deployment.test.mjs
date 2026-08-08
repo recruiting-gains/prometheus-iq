@@ -147,6 +147,10 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "a6e85f05fe57a5bff8b2fc6bc168f541272ac0b8"
   );
   assert.equal(
+    result.immutableWorkflowV2LiveCanonicalIdentityOffRouteBaselineRepairCommit,
+    "db74fd379f0624f3abfaf1ddee1827c3fe4f1e60"
+  );
+  assert.equal(
     result.immutableWorkflowV2LiveCanonicalIdentityOverwatchAcceptanceCommit,
     "d904f5b3420d6fee328f69fba5850b49b6bb3637"
   );
@@ -157,6 +161,10 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
   assert.equal(
     result.immutableWorkflowV2LiveCanonicalIdentityProtectedConsumerCompositionAcceptanceCommit,
     "b627c876d424dd9f435bf340fa86017be4eb966d"
+  );
+  assert.equal(
+    result.immutableWorkflowV2LiveCanonicalIdentityOffRouteBaselineAcceptanceCommit,
+    "ec33c3b4bc66be9b0b177eac94b50cc9d692ac23"
   );
   assert.equal(
     result.immutableWorkflowV2ControlledRehearsalGuardVerifierSuccessorCommit,
@@ -430,6 +438,20 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
         .sha256 = "0".repeat(64);
     },
     value => {
+      value.ownership
+        .intelligenceLiveCanonicalIdentityOffRouteBaselineRepairCommit.commit =
+        "0".repeat(40);
+    },
+    value => {
+      value.ownership
+        .intelligenceLiveCanonicalIdentityOffRouteBaselineRepairPaths.pop();
+    },
+    value => {
+      value.ownership
+        .intelligenceLiveCanonicalIdentityOffRouteBaselineRepairEvidence[0]
+        .sha256 = "0".repeat(64);
+    },
+    value => {
       value.ownership.overwatchRevenueReadinessAcceptanceCommit.commit =
         "0".repeat(40);
     },
@@ -482,6 +504,20 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => {
       value.ownership
         .overwatchLiveCanonicalIdentityProtectedConsumerCompositionAcceptanceEvidence[0]
+        .sha256 = "0".repeat(64);
+    },
+    value => {
+      value.ownership
+        .overwatchLiveCanonicalIdentityOffRouteBaselineAcceptanceCommit.commit =
+        "0".repeat(40);
+    },
+    value => {
+      value.ownership
+        .overwatchLiveCanonicalIdentityOffRouteBaselineAcceptancePaths.pop();
+    },
+    value => {
+      value.ownership
+        .overwatchLiveCanonicalIdentityOffRouteBaselineAcceptanceEvidence[0]
         .sha256 = "0".repeat(64);
     },
     value => {
