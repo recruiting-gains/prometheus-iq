@@ -19,6 +19,9 @@ import {
 import {
   executeControlledPaidCustomerOnboardingRehearsal
 } from "../workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.js";
+import {
+  hasLiveCanonicalIdentityOwnerEvidenceSuccessor
+} from "./verify-overwatch-github-actions-private-worker-deployment.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -432,6 +435,12 @@ export function validateControlledRehearsalReport(report) {
 }
 
 function verifyCurrentOwnerFiles(governance) {
+  const liveCanonicalIdentityGovernance = readJson(
+    "overwatch/governance/live-canonical-identity-migration-v1.json"
+  );
+  const currentReadinessSuccessors = readJson(
+    "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
+  );
   validateControlledRehearsalIntelligenceSuccessor(
     controlledRehearsalIntelligenceSuccessor
   );
@@ -503,6 +512,15 @@ function verifyCurrentOwnerFiles(governance) {
           ]).split("\n").filter(Boolean);
           assert.ok(changedPaths.includes(item.path),
             `governed successor omitted path: ${item.path}`);
+        } else if (hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+          governance: liveCanonicalIdentityGovernance,
+          readinessSuccessors: currentReadinessSuccessors,
+          path: item.path,
+          previousSha256: successor?.sha256 ?? item.sha256,
+          currentSha256: actual
+        })) {
+          assert.notEqual(actual, item.sha256,
+            `canonical successor did not advance owner evidence: ${item.path}`);
         } else {
           assert.equal(actual, item.sha256,
             `current owner file drifted: ${item.path}`);
