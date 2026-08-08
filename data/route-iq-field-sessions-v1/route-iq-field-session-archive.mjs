@@ -10,6 +10,12 @@ export const routeIqEndOfDayHandoffContractId = "route-iq-end-of-day-data-handof
 export const routeIqFieldSessionStoreBinding = "DATA_ROUTE_IQ_FIELD_SESSION_STORE";
 export const routeIqFieldSessionStorageTechnology = "cloudflare_workers_kv";
 export const routeIqFieldSessionStoragePrefix = "route-iq-field-sessions/v1";
+export const routeIqCanonicalDailyRepresentativeReportType = "route-iq-daily-representative-report-v1";
+export const routeIqLegacyDailyRepresentativeReportType = "beta-daily-rep-report";
+export const routeIqSupportedDailyRepresentativeReportTypes = Object.freeze([
+  routeIqCanonicalDailyRepresentativeReportType,
+  routeIqLegacyDailyRepresentativeReportType
+]);
 export const routeIqChronologicalEvidenceProjectionVersion = "route-iq-chronological-evidence-projection-v1";
 export const routeIqFieldSessionOutcomeProjectionVersion = "route-iq-field-session-outcome-projection-v1";
 export const routeIqFieldSessionAdministrativeDispositionVersion = "route-iq-field-session-administrative-disposition-v1";
@@ -540,7 +546,8 @@ export function validateFinalRouteIqReport(rawReportText, context = {}) {
     });
   }
 
-  if (!["Prometheus Route IQ", "Prometheus IQ"].includes(report.app) || report.reportType !== "beta-daily-rep-report") {
+  if (!["Prometheus Route IQ", "Prometheus IQ"].includes(report.app)
+    || !routeIqSupportedDailyRepresentativeReportTypes.includes(report.reportType)) {
     throw new FieldSessionArchiveError("Source is not a supported Prometheus Route IQ Today report.", {
       code: "field_session_report_contract_mismatch",
       details: { app: report.app ?? null, reportType: report.reportType ?? null }

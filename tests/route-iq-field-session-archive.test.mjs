@@ -28,10 +28,13 @@ import {
   routeIqFieldSessionAdministrativeDispositionState,
   routeIqFieldSessionAdministrativeDispositionVersion,
   routeIqFieldSessionAdministrativeExclusionDomains,
+  routeIqCanonicalDailyRepresentativeReportType,
   routeIqEndOfDayHandoffContractId,
   routeIqFieldSessionArchiveVersion,
+  routeIqLegacyDailyRepresentativeReportType,
   routeIqFieldSessionStoreBinding,
   routeIqRecommendationDecisionValues,
+  routeIqSupportedDailyRepresentativeReportTypes,
   routeIqVisitDecisionSourceIds,
   validateFieldSessionStoreBinding,
   validateFinalRouteIqReport
@@ -192,6 +195,8 @@ function exactAdministrativeDispositionRecord() {
 
 function canonicalPackageReport() {
   const report = JSON.parse(readFileSync(RAW_PATH, "utf8"));
+  report.app = "Prometheus Route IQ";
+  report.reportType = routeIqCanonicalDailyRepresentativeReportType;
   report.visits = report.visits.map(visit => ({
     ...visit,
     visitDecisionSource: {
@@ -207,6 +212,13 @@ function canonicalPackageReport() {
       decision: null
     }
   }));
+  return report;
+}
+
+function legacyPackageReport() {
+  const report = canonicalPackageReport();
+  report.app = "Prometheus IQ";
+  report.reportType = routeIqLegacyDailyRepresentativeReportType;
   return report;
 }
 
@@ -303,6 +315,85 @@ test("actual Founder final report remains byte-preserved with its deterministic 
   }), SESSION_ID);
   for (const [path, expectedHash] of Object.entries(EXPECTED_IMMUTABLE_ARTIFACT_HASHES)) {
     assert.equal(sha(readFileSync(path)), expectedHash, `Historical artifact changed: ${path}`);
+  }
+});
+
+test("canonical and legacy report types are the complete fail-closed allowlist", () => {
+  assert.deepEqual(routeIqSupportedDailyRepresentativeReportTypes, [
+    "route-iq-daily-representative-report-v1",
+    "beta-daily-rep-report"
+  ]);
+  assert.equal(Object.isFrozen(routeIqSupportedDailyRepresentativeReportTypes), true);
+
+  for (const [report, expectedType] of [
+    [canonicalPackageReport(), routeIqCanonicalDailyRepresentativeReportType],
+    [legacyPackageReport(), routeIqLegacyDailyRepresentativeReportType]
+  ]) {
+    const rawReportText = `${JSON.stringify(report, null, 2)}\n`;
+    const archive = archivePackage({ rawReportText });
+    assert.equal(archive.normalizedRecord.verifiedFields.sourceReportType, expectedType);
+    assert.equal(archive.rawReportText, rawReportText);
+    assert.equal(archive.rawSha256, sha(rawReportText));
+    assert.equal(archive.sessionId, SESSION_ID);
+    assert.equal(archive.normalizedRecord.sessionId, SESSION_ID);
+  }
+});
+
+test("unknown report-type variations fail closed without partial matching", () => {
+  for (const reportType of [
+    "",
+    "ROUTE-IQ-DAILY-REPRESENTATIVE-REPORT-V1",
+    "route-iq-daily-representative-report",
+    "route-iq-daily-representative-report-v1-extra",
+    "prefix-route-iq-daily-representative-report-v1",
+    "route-iq-daily-representative-report-v2",
+    "Beta-Daily-Rep-Report",
+    "beta-daily-rep",
+    null,
+    undefined
+  ]) {
+    const report = canonicalPackageReport();
+    if (reportType === undefined) delete report.reportType;
+    else report.reportType = reportType;
+    assert.throws(() => archivePackage({ rawReportText: JSON.stringify(report) }), error => {
+      assert.equal(error instanceof FieldSessionArchiveError, true);
+      assert.equal(error.code, "field_session_report_contract_mismatch");
+      assert.equal(error.details.reportType, reportType ?? null);
+      return true;
+    });
+  }
+});
+
+test("End Route and End Day canonical payloads satisfy the repaired archive contract", async () => {
+  const source = packageInput();
+  for (const completionAction of ["end_route", "end_day"]) {
+    const binding = kvBinding();
+    const result = await consumeRouteIqEndOfDayHandoff({
+      handoffContractId: routeIqEndOfDayHandoffContractId,
+      producerSubsystem: "Prometheus Dashboard",
+      completionAction,
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      finalExportConfirmed: true,
+      sourceFinalizedAt: "2026-07-12T00:30:00.000Z",
+      rawReportText: source.rawReportText
+    }, {
+      env: { [routeIqFieldSessionStoreBinding]: binding },
+      ingestedAt: "2026-07-12T00:31:00.000Z",
+      runtimePools: source.runtimePools,
+      activePool: source.activePool,
+      businessHours: source.businessHours
+    });
+
+    assert.equal(result.status, "archived", completionAction);
+    assert.equal(
+      result.normalizedRecord.verifiedFields.sourceReportType,
+      routeIqCanonicalDailyRepresentativeReportType,
+      completionAction
+    );
+    const rawKey = fieldSessionStorageKeys("fitness_connection", SESSION_ID).raw;
+    assert.equal(binding.data.get(rawKey).value, source.rawReportText, completionAction);
+    assert.equal(sha(binding.data.get(rawKey).value), result.rawSha256, completionAction);
   }
 });
 
@@ -910,6 +1001,7 @@ test("exact re-ingestion is idempotent and performs no second write", async () =
   assert.equal(binding.writes.length, writeCount);
   assert.equal(binding.data.size, 12);
   assert.equal(first.keys.historyEntries.length, 6);
+  assert.equal(input.normalizedRecord.verifiedFields.sourceReportType, routeIqCanonicalDailyRepresentativeReportType);
 });
 
 test("same deterministic session with different raw evidence is rejected without overwrite", async () => {
