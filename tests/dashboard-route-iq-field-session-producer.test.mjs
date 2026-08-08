@@ -20,6 +20,17 @@ function sourceSection(start, end) {
   return dashboardSource.slice(startIndex, endIndex);
 }
 
+function currentDashboardReportContract() {
+  const reportBuilder = sourceSection("function todayReportPayload", "function fieldSessionScope");
+  const app = reportBuilder.match(/app:\s*"([^"]+)"/u)?.[1] || null;
+  const reportType = reportBuilder.match(/reportType:\s*"([^"]+)"/u)?.[1] || null;
+  assert.equal(app, "Prometheus Route IQ");
+  assert.equal(reportType, "route-iq-daily-representative-report-v1");
+  return Object.freeze({ app, reportType });
+}
+
+const dashboardReportContract = currentDashboardReportContract();
+
 function kvBinding() {
   const data = new Map();
   const writes = [];
@@ -116,8 +127,8 @@ function report(overrides = {}) {
     ...(overrides.visit || {})
   };
   return {
-    app: "Prometheus IQ",
-    reportType: "beta-daily-rep-report",
+    app: dashboardReportContract.app,
+    reportType: dashboardReportContract.reportType,
     generatedAt: "2026-07-11T20:05:00.000Z",
     date: "2026-07-11",
     rep: { id: "anthony", name: "Anthony" },
@@ -303,11 +314,25 @@ test("Dashboard End Route producer receives a committed Data acknowledgment", as
   const storedRaw = JSON.parse(binding.data.get(rawKey).value);
   const normalized = JSON.parse(binding.data.get(normalizedKey).value);
   const history = JSON.parse(binding.data.get(historyKey).value);
+  assert.equal(storedRaw.app, dashboardReportContract.app);
+  assert.equal(storedRaw.reportType, dashboardReportContract.reportType);
+  assert.equal(normalized.verifiedFields.sourceReportType, dashboardReportContract.reportType);
   assert.equal(storedRaw.visits[0].visitDecisionSource.sourceId, "route_iq_recommendation");
   assert.equal(storedRaw.visits[0].recommendationDecisionContext.decision, "accepted");
   assert.equal(normalized.verifiedFields.completedVisits[0].governedBusinessIdentity.googlePlaceId, "ChIJDashboardProducerTest");
   assert.equal(history.customerOutcomeHistory.length, 1);
   assert.equal(history.categoryOutcomeHistory[0].category, "Business");
+});
+
+test("Dashboard producer fixture derives its report identity from todayReportPayload", () => {
+  const fixture = report();
+  assert.deepEqual(
+    { app: fixture.app, reportType: fixture.reportType },
+    dashboardReportContract
+  );
+  assert.match(report.toString(), /app:\s*dashboardReportContract\.app/u);
+  assert.match(report.toString(), /reportType:\s*dashboardReportContract\.reportType/u);
+  assert.doesNotMatch(report.toString(), /beta-daily-rep-report/u);
 });
 
 test("Dashboard correction ledger is archived verbatim with the final verified outcome", async () => {
