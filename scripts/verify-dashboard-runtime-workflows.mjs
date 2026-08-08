@@ -4149,7 +4149,7 @@ async function runHarness() {
       retiredProductLinks: document.querySelectorAll("[data-retired-product], a[href*='/legacy-customer-dashboard/']").length
     }))()`);
     assertWorkflow("Route IQ authenticated workspace", switcherSnap.workspaceId === "northstar_outside_sales_synthetic" && switcherSnap.workspaceOperatingProfileId === "general_outside_sales", `workspace ${switcherSnap.workspaceId}, profile ${switcherSnap.workspaceOperatingProfileId}`, JSON.stringify({ workspaceId: switcherSnap.workspaceId, workspaceName: switcherSnap.workspaceName, debug: switcherSnap.debug.workspace }));
-    assertWorkflow("Route IQ only active Dashboard product", productFocus.title === "Route IQ" && productFocus.workspaceControls === 0 && productFocus.retiredProductLinks === 0 && !/\bGaia\b|\bAthena\b/.test(productFocus.bodyText), "Route IQ renders without inactive-product navigation or current-product labels", JSON.stringify(productFocus));
+    assertWorkflow("Route IQ only active Dashboard product", productFocus.title === "Prometheus Route IQ" && productFocus.workspaceControls === 0 && productFocus.retiredProductLinks === 0 && !/\bGaia\b|\bAthena\b/.test(productFocus.bodyText), "Prometheus Route IQ renders without inactive-product navigation or current-product labels", JSON.stringify(productFocus));
     const switcherFounderRequests = server.founderDailyIntelligenceRequests.slice();
     const switcherFounderRequest = switcherFounderRequests[0];
     assertWorkflow(
