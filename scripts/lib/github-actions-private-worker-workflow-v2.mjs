@@ -125,8 +125,8 @@ export const PRIVATE_WORKFLOW_V2_POLICY = Object.freeze({
     candidateTree: "da156b1ffe2ccb0b4071dae747fe821d7eb45854",
     qualificationArtifactContentTreeSha256:
       "de7b35909f9bd1bf8f15c8fe605cf494a5f39171e6b2bdf822e60031c590b0e7",
-    deployParitySha256: "8967e7f269f415bf02921e094a010bccd742260d333c9717218b99936a07bbfa",
-    forwardPayloadSha256: "800e3ebe685d8b801d1b07a34c228ffe1ddea536623c67354d51fd9f601df7f6",
+    deployParitySha256: "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9",
+    forwardPayloadSha256: "5a5269a5a5669f87bacbe3f18f6783485f7f8da5ca2c0e3ffd57bbcca281ef51",
     rollbackBundleSha256: "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
   })
 });
