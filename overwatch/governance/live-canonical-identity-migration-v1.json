@@ -187,6 +187,30 @@
           "currentSha256": "726510bdd55114d81ae0cc1290b884d851f6b1b5dc0b7107e0bd9f78e9e1b4b6"
         }
       ]
+    },
+    {
+      "classification": "LIVE_CANONICAL_IDENTITY_INTELLIGENCE_CONSUMER_REPAIR",
+      "subsystem": "Prometheus Intelligence Engine",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "commit": "a6e85f05fe57a5bff8b2fc6bc168f541272ac0b8",
+      "parent": "c1d0cf056e6cd13689254a062636be783a1a66c7",
+      "tree": "efadb319180da76a28787843f7132252d7866625",
+      "subject": "intelligence: compose canonical protected consumers",
+      "historicalEvidenceRewritten": false,
+      "intelligenceBehaviorChanged": false,
+      "recommendationInfluenceChanged": false,
+      "evidence": [
+        {
+          "path": "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs",
+          "previousSha256": "89529db78c45767e77f2daa0fd88c20fb7eba6aed4293b333e1e0d1afe9801ce",
+          "currentSha256": "da7660a5e7e846f772ee9ef59d8bae502a2c43942a2eeec65639d4df9ba687cb"
+        },
+        {
+          "path": "tests/intelligence-architecture.test.mjs",
+          "previousSha256": "cc0512118357d6798d6f30c0cc540769e4839f8daeedd261f3a2c34332ac02d2",
+          "currentSha256": "dd7449ad92b8932b9d7dc0fe29d25f7f2e3a4b931726f1400d35156476e0a00c"
+        }
+      ]
     }
   ],
   "releasePreparation": {

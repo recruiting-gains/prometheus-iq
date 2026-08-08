@@ -5,12 +5,14 @@ import {
   currentFullSystemHarmonyIntelligenceSuccessor,
   currentFullSystemHarmonyShadowReadinessSuccessor,
   currentLiveCanonicalIdentityIntelligenceSuccessor,
+  currentLiveCanonicalIdentityProtectedConsumerCompositionRepair,
   currentLiveCanonicalIdentityShadowReadinessRepair,
   currentProtectedDriftFixtureIntelligenceSuccessor,
   currentRevenueReadinessIntelligenceSuccessor,
   validateFullSystemHarmonyIntelligenceSuccessor,
   validateFullSystemHarmonyShadowReadinessSuccessor,
   validateLiveCanonicalIdentityIntelligenceSuccessor,
+  validateLiveCanonicalIdentityProtectedConsumerCompositionRepair,
   validateLiveCanonicalIdentityShadowReadinessRepair,
   validateProtectedDriftFixtureIntelligenceSuccessor,
   validateRevenueReadinessIntelligenceSuccessor,
@@ -49,6 +51,8 @@ test("release provenance composes only exact current Intelligence successors", (
       validateLiveCanonicalIdentityIntelligenceSuccessor],
     [currentLiveCanonicalIdentityShadowReadinessRepair,
       validateLiveCanonicalIdentityShadowReadinessRepair],
+    [currentLiveCanonicalIdentityProtectedConsumerCompositionRepair,
+      validateLiveCanonicalIdentityProtectedConsumerCompositionRepair],
     [currentProtectedDriftFixtureIntelligenceSuccessor,
       validateProtectedDriftFixtureIntelligenceSuccessor]
   ]) {
@@ -104,6 +108,8 @@ test("Overwatch verifies Route IQ release provenance repair", () => {
       "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8",
     currentLiveCanonicalIdentityShadowReadinessRepairCommit:
       "0515e5993547e5e1b3a0b5897f12ac53060a8b35",
+    currentLiveCanonicalIdentityProtectedConsumerCompositionRepairCommit:
+      "a6e85f05fe57a5bff8b2fc6bc168f541272ac0b8",
     currentProtectedDriftFixtureIntelligenceSuccessorCommit:
       "ff63d927c121a0030a0cbb1f041a626ffe7968bc"
   });
