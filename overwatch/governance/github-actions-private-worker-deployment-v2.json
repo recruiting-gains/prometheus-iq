@@ -353,6 +353,28 @@
         "sha256": "8cd7c6caa9e5557cb50a36d1edd609cf83ce0962cf89651c8ed64e469e0bf944"
       }
     ],
+    "intelligenceLiveCanonicalIdentityShadowReadinessRepairCommit": {
+      "commit": "0515e5993547e5e1b3a0b5897f12ac53060a8b35",
+      "parent": "cad76ff923278a84245c42749c8d3d1cceb78f4d",
+      "tree": "4bcc06a1c15e74e8a7673d21afa8659721ee264a",
+      "author": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "committer": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose canonical archive successor"
+    },
+    "intelligenceLiveCanonicalIdentityShadowReadinessRepairPaths": [
+      "scripts/verify-shadow-decision-readiness.mjs",
+      "tests/shadow-decision-readiness.test.mjs"
+    ],
+    "intelligenceLiveCanonicalIdentityShadowReadinessRepairEvidence": [
+      {
+        "path": "scripts/verify-shadow-decision-readiness.mjs",
+        "sha256": "0ef3dff897cb9ed90dd90a81b55e09e7a8649153192c943fd595a8a1f144b12b"
+      },
+      {
+        "path": "tests/shadow-decision-readiness.test.mjs",
+        "sha256": "726510bdd55114d81ae0cc1290b884d851f6b1b5dc0b7107e0bd9f78e9e1b4b6"
+      }
+    ],
     "overwatchRevenueReadinessAcceptanceCommit": {
       "commit": "fe3ade871ef7308b05501dce23fecbd9a2b9e363",
       "parent": "c025fd95a8f5141dc4c32af3ca83292711fb1df7",

@@ -226,6 +226,12 @@ const v2FullSystemHarmonyShadowReadinessSuccessorParent =
   "0e312cbef36af838dd9f8ba434f2370605f384d4";
 const v2FullSystemHarmonyShadowReadinessSuccessorTree =
   "6658d930458909a4ba627f39c4f49d3f18c1de9f";
+const v2LiveCanonicalIdentityShadowReadinessRepairCommit =
+  "0515e5993547e5e1b3a0b5897f12ac53060a8b35";
+const v2LiveCanonicalIdentityShadowReadinessRepairParent =
+  "cad76ff923278a84245c42749c8d3d1cceb78f4d";
+const v2LiveCanonicalIdentityShadowReadinessRepairTree =
+  "4bcc06a1c15e74e8a7673d21afa8659721ee264a";
 const v2RevenueReadinessOverwatchAcceptanceCommit =
   "fe3ade871ef7308b05501dce23fecbd9a2b9e363";
 const v2RevenueReadinessOverwatchAcceptanceParent =
@@ -814,6 +820,13 @@ const v2LiveCanonicalIdentityIntelligenceSuccessorHashes = Object.freeze({
 const v2FullSystemHarmonyShadowReadinessSuccessorHashes = Object.freeze({
   "scripts/verify-shadow-decision-readiness.mjs":
     "856b7f43150cc4eba0a9fee6d2df2f4254f32026dd64d92829cd4df74f17e364"
+});
+
+const v2LiveCanonicalIdentityShadowReadinessRepairHashes = Object.freeze({
+  "scripts/verify-shadow-decision-readiness.mjs":
+    "0ef3dff897cb9ed90dd90a81b55e09e7a8649153192c943fd595a8a1f144b12b",
+  "tests/shadow-decision-readiness.test.mjs":
+    "726510bdd55114d81ae0cc1290b884d851f6b1b5dc0b7107e0bd9f78e9e1b4b6"
 });
 
 const v2RevenueReadinessOverwatchAcceptanceHashes = Object.freeze({
@@ -1875,6 +1888,21 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       intelligenceIdentity
     && governance?.ownership?.intelligenceLiveCanonicalIdentitySuccessorCommit?.committer ===
       intelligenceIdentity
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityShadowReadinessRepairCommit?.commit ===
+      v2LiveCanonicalIdentityShadowReadinessRepairCommit
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityShadowReadinessRepairCommit?.parent ===
+      v2LiveCanonicalIdentityShadowReadinessRepairParent
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityShadowReadinessRepairCommit?.tree ===
+      v2LiveCanonicalIdentityShadowReadinessRepairTree
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityShadowReadinessRepairCommit?.author ===
+      intelligenceIdentity
+    && governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityShadowReadinessRepairCommit?.committer ===
+      intelligenceIdentity
     && governance?.ownership?.overwatchRevenueReadinessAcceptanceCommit?.commit ===
       v2RevenueReadinessOverwatchAcceptanceCommit
     && governance?.ownership?.overwatchRevenueReadinessAcceptanceCommit?.parent ===
@@ -2158,6 +2186,16 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(equal(governance?.ownership?.intelligenceLiveCanonicalIdentitySuccessorEvidence,
     evidenceMap(v2LiveCanonicalIdentityIntelligenceSuccessorHashes)),
   "Private Workflow v2 Intelligence canonical-identity successor evidence drifted.");
+  require(equal(
+    governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityShadowReadinessRepairPaths,
+    Object.keys(v2LiveCanonicalIdentityShadowReadinessRepairHashes)),
+  "Private Workflow v2 Intelligence canonical shadow-readiness repair path set drifted.");
+  require(equal(
+    governance?.ownership
+      ?.intelligenceLiveCanonicalIdentityShadowReadinessRepairEvidence,
+    evidenceMap(v2LiveCanonicalIdentityShadowReadinessRepairHashes)),
+  "Private Workflow v2 Intelligence canonical shadow-readiness repair evidence drifted.");
   require(equal(governance?.ownership?.overwatchRevenueReadinessAcceptancePaths,
     Object.keys(v2RevenueReadinessOverwatchAcceptanceHashes)),
   "Private Workflow v2 Overwatch revenue-readiness acceptance path set drifted.");
@@ -3455,6 +3493,23 @@ function verifyV2OwnerAndGovernance() {
       }
       acceptedCurrentSha256 = shadowReadinessSuccessorSha256;
     }
+    const canonicalShadowReadinessRepairSha256 =
+      v2LiveCanonicalIdentityShadowReadinessRepairHashes[path];
+    if (canonicalShadowReadinessRepairSha256) {
+      const predecessorSha256 = sha256(execFileSync("/usr/bin/git", [
+        "show", `${v2LiveCanonicalIdentityShadowReadinessRepairParent}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }));
+      if (predecessorSha256 !== acceptedCurrentSha256) {
+        throw new Error(
+          `Private Workflow v2 canonical shadow-readiness repair chain drifted: ${path}`
+        );
+      }
+      acceptedCurrentSha256 = canonicalShadowReadinessRepairSha256;
+    }
     if (sha256(committed) !== expected
       || currentSha256 !== acceptedCurrentSha256
       || recordedIntelligenceEvidence.get(path) !== expected) {
@@ -3585,6 +3640,23 @@ function verifyV2OwnerAndGovernance() {
         );
       }
       acceptedCurrentSha256 = shadowReadinessSuccessorSha256;
+    }
+    const canonicalShadowReadinessRepairSha256 =
+      v2LiveCanonicalIdentityShadowReadinessRepairHashes[path];
+    if (canonicalShadowReadinessRepairSha256) {
+      const predecessorSha256 = sha256(execFileSync("/usr/bin/git", [
+        "show", `${v2LiveCanonicalIdentityShadowReadinessRepairParent}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }));
+      if (predecessorSha256 !== acceptedCurrentSha256) {
+        throw new Error(
+          `Private Workflow v2 canonical shadow-readiness successor chain drifted: ${path}`
+        );
+      }
+      acceptedCurrentSha256 = canonicalShadowReadinessRepairSha256;
     }
     if (sha256(committed) !== expected
       || sha256(readFileSync(resolve(root, path))) !== acceptedCurrentSha256
@@ -3773,6 +3845,18 @@ function verifyV2OwnerAndGovernance() {
       subject: "overwatch: verify canonical identity intelligence successor",
       hashes: v2LiveCanonicalIdentityOverwatchAcceptanceHashes,
       recorded: governance.ownership.overwatchLiveCanonicalIdentityAcceptanceEvidence
+    },
+    {
+      label: "Intelligence canonical shadow-readiness repair",
+      commit: v2LiveCanonicalIdentityShadowReadinessRepairCommit,
+      parent: v2LiveCanonicalIdentityShadowReadinessRepairParent,
+      tree: v2LiveCanonicalIdentityShadowReadinessRepairTree,
+      identity: intelligenceIdentity,
+      subject: "intelligence: compose canonical archive successor",
+      hashes: v2LiveCanonicalIdentityShadowReadinessRepairHashes,
+      recorded:
+        governance.ownership
+          .intelligenceLiveCanonicalIdentityShadowReadinessRepairEvidence
     }
   ]) {
     const metadata = git([
@@ -4378,6 +4462,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2RevenueReadinessIntelligenceSuccessorCommit,
     immutableWorkflowV2LiveCanonicalIdentityIntelligenceSuccessorCommit:
       v2LiveCanonicalIdentityIntelligenceSuccessorCommit,
+    immutableWorkflowV2LiveCanonicalIdentityShadowReadinessRepairCommit:
+      v2LiveCanonicalIdentityShadowReadinessRepairCommit,
     immutableWorkflowV2RevenueReadinessOverwatchAcceptanceCommit:
       v2RevenueReadinessOverwatchAcceptanceCommit,
     immutableWorkflowV2LiveCanonicalIdentityOverwatchAcceptanceCommit:

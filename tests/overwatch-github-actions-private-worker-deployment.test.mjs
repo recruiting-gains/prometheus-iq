@@ -139,6 +139,10 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "56f67124c1beba2f9289538d65e782cd808eacb2"
   );
   assert.equal(
+    result.immutableWorkflowV2LiveCanonicalIdentityShadowReadinessRepairCommit,
+    "0515e5993547e5e1b3a0b5897f12ac53060a8b35"
+  );
+  assert.equal(
     result.immutableWorkflowV2LiveCanonicalIdentityOverwatchAcceptanceCommit,
     "d904f5b3420d6fee328f69fba5850b49b6bb3637"
   );
@@ -350,6 +354,20 @@ test("immutable private Workflow v2 governance fails closed on ownership and saf
     value => {
       value.ownership.intelligenceLiveCanonicalIdentitySuccessorEvidence[0].sha256 =
         "0".repeat(64);
+    },
+    value => {
+      value.ownership
+        .intelligenceLiveCanonicalIdentityShadowReadinessRepairCommit.commit =
+        "0".repeat(40);
+    },
+    value => {
+      value.ownership
+        .intelligenceLiveCanonicalIdentityShadowReadinessRepairPaths.pop();
+    },
+    value => {
+      value.ownership
+        .intelligenceLiveCanonicalIdentityShadowReadinessRepairEvidence[0]
+        .sha256 = "0".repeat(64);
     },
     value => {
       value.ownership.overwatchRevenueReadinessAcceptanceCommit.commit =
