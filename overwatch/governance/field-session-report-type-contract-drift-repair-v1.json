@@ -1,0 +1,132 @@
+{
+  "governanceId": "field-session-report-type-contract-drift-repair-v1",
+  "directive": "Field Session Report Type Contract Drift Repair v1",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "status": "SOURCE_REPAIR_COMPLETE_EXACT_HOSTED_QUALIFICATION_REQUIRED",
+  "startingRepository": {
+    "branch": "main",
+    "commit": "20536fdbf8aaedf91774e71d965c00c58e8bfd60",
+    "tree": "4b34deb6c9e817e9b1d94baf74b4b7c58f6d8c3c",
+    "divergence": "+0/-0",
+    "worktree": "CLEAN"
+  },
+  "rootCause": {
+    "dashboardProducerReportType": "route-iq-daily-representative-report-v1",
+    "dataValidatorPreviouslyAcceptedOnly": "beta-daily-rep-report",
+    "producerFixturePreviouslyUsed": "beta-daily-rep-report",
+    "failureMode": "CURRENT_DASHBOARD_END_ROUTE_OR_END_DAY_REJECTED_BY_DATA_VALIDATOR",
+    "classification": "CROSS_SUBSYSTEM_EXACT_TYPE_CONTRACT_DRIFT"
+  },
+  "ownerCommits": [
+    {
+      "ownerSubsystem": "Prometheus Data",
+      "identity": "Prometheus Data <data@prometheus.local>",
+      "commit": "c7f854047b0091fc29e671a97c7c9d21dfcf2dff",
+      "tree": "d387916343d2c55111efeadf8e9eb709c5379747",
+      "parent": "20536fdbf8aaedf91774e71d965c00c58e8bfd60",
+      "subject": "data: accept canonical field-session report type",
+      "paths": [
+        "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+        "tests/route-iq-field-session-archive.test.mjs"
+      ]
+    },
+    {
+      "ownerSubsystem": "Prometheus Dashboard",
+      "identity": "Prometheus Dashboard <dashboard@prometheus.local>",
+      "commit": "bbed83c62e6c8d2c73ce287161df282005f99187",
+      "tree": "bf5eefb132663c5a2fc0b424cf9613e69455ca86",
+      "parent": "c7f854047b0091fc29e671a97c7c9d21dfcf2dff",
+      "subject": "dashboard: bind field-session fixture to producer",
+      "paths": [
+        "tests/dashboard-route-iq-field-session-producer.test.mjs"
+      ]
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "commit": "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18",
+      "tree": "38ce2be37f66f49202967a285a003755ebc21dcc",
+      "parent": "bbed83c62e6c8d2c73ce287161df282005f99187",
+      "subject": "intelligence: compose field-session report contract repair",
+      "paths": [
+        "intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json",
+        "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+        "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+      ]
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "commit": "655224332c65ec28d5c45b1accd2eae3d12555c2",
+      "tree": "5eeb4224f913faafcd3114e713092a8d6e668ec0",
+      "parent": "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18",
+      "subject": "intelligence: bind drift rejection to report successor",
+      "paths": [
+        "tests/read-only-field-session-learning.test.mjs"
+      ]
+    }
+  ],
+  "acceptedContract": {
+    "exactReportTypeAllowlist": [
+      "route-iq-daily-representative-report-v1",
+      "beta-daily-rep-report"
+    ],
+    "canonicalDashboardType": "route-iq-daily-representative-report-v1",
+    "legacyCompatibilityType": "beta-daily-rep-report",
+    "receivedTypePreservedAt": "verifiedFields.sourceReportType",
+    "legacyIdentifierNormalized": false,
+    "allOtherTypesFailClosed": true,
+    "dashboardFixtureDerivedFromActualProducer": true
+  },
+  "archiveEvidence": {
+    "historicalSessionPath": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+    "rawReportSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+    "manifestSha256": "e0bc2cc65e1c67fb39784c3a1fe87732875b64b6f5f2365df1924da5083265ba",
+    "normalizedFieldSessionSha256": "b162ba286debf97461e2f2e172377ed00b07c6c755cd152678e7a944dbccafc8",
+    "rawBytesRewritten": false,
+    "deterministicSessionIdentityChanged": false,
+    "historicalRecordMutationAuthorized": false
+  },
+  "independentVerification": {
+    "intelligenceSuccessor": "intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json",
+    "canonicalAndLegacyAcceptanceRequired": true,
+    "unknownVariantRejectionRequired": true,
+    "rawByteAndShaPreservationRequired": true,
+    "idempotentRetryAndConflictBehaviorRequired": true,
+    "endRouteAndEndDayCoverageRequired": true,
+    "exactFinalCommitHostedQualificationRequired": true,
+    "productionVerificationRequired": false
+  },
+  "rollback": {
+    "strategy": "FORWARD_REVERT_EXACT_OWNER_CHAIN",
+    "nativeOrDestructiveRollbackAllowed": false,
+    "latestFirstOwnerCommits": [
+      "655224332c65ec28d5c45b1accd2eae3d12555c2",
+      "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18",
+      "bbed83c62e6c8d2c73ce287161df282005f99187",
+      "c7f854047b0091fc29e671a97c7c9d21dfcf2dff"
+    ],
+    "finalOverwatchCommit": "RESOLVE_FROM_ACCEPTED_FINAL_HEAD",
+    "procedure": "Revert the accepted final Overwatch commit first, then revert latestFirstOwnerCommits in listed order; rerun the exact governed qualification before any later release.",
+    "archiveRewriteAllowed": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "canonicalProspectiveRecords": 0,
+    "canonicalProspectiveEvaluations": 0,
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "companion": "DORMANT",
+    "anthonyMapped": false,
+    "stripeMode": "NON_LIVE"
+  },
+  "releaseBoundary": {
+    "deploymentAuthorized": false,
+    "productionAccessAuthorized": false,
+    "productionMutationAuthorized": false,
+    "collectionActivationAuthorized": false,
+    "recommendationInfluenceActivationAuthorized": false
+  }
+}

@@ -8063,6 +8063,7 @@ Prometheus Infrastructure/Auth for authenticated production verification only, o
 
 Current duplicate-prevention sources:
 
+- Do not create another field-session report or archive contract. Dashboard `todayReportPayload()` emits `route-iq-daily-representative-report-v1`; Data's canonical validator in `data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs` accepts exactly that identifier plus legacy `beta-daily-rep-report`, preserves the received value at `verifiedFields.sourceReportType`, and rejects every other value. Keep `tests/dashboard-route-iq-field-session-producer.test.mjs` bound to the actual producer and extend the existing archive, retry, conflict, retention, and Intelligence successor gates instead of adding a parallel evidence path.
 - Do not duplicate Cross-Subsystem Artifact Contract Audit v1 or Subsystem and Workspace Contract Compliance Audit v1; reuse `overwatch/artifact-contracts/canonical-artifact-registry.json`, `overwatch/artifact-contracts/cross-subsystem-artifact-contract-v1.md`, `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json`, `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.md`, `scripts/verify-cross-subsystem-artifact-contracts.mjs`, and `tests/cross-subsystem-artifact-contracts.test.mjs` as the canonical connection layer for all subsystems and workspaces. Future cross-subsystem handoffs must use explicit canonical artifact contracts, preserve read/write ownership, fail closed on missing artifacts, reject production fixture/demo data, preserve workspace isolation, and complete or include scheduled remediation before feature work in any subsystem or workspace marked `partial_compliance` or `bypass_identified`.
 - Do not route new work to Companion while Companion Quarantine Status v1 is active. Companion is maintenance-only / dormant; preserve the existing accepted package and do not modify Companion code, runtime, visual files, simulation paths, or contract-layer consumers unless Founder explicitly reactivates Companion.
 - Do not duplicate the existing Prometheus IQ dashboard in `index.html` and `deploy/cloudflare-pages/index.html`.
@@ -8359,6 +8360,30 @@ Current identity:
 - The next product-learning boundary is first real prospect and conversion evidence.
 
 Historical naming, entity, EIN, beta, pilot, receipt, and deployment records remain dated evidence and are not retroactively rewritten. Stable Worker names, routes, bindings, Durable Object identifiers, environment variables, asset paths, email addresses, CRM field keys, URLs, and receipt identities remain unchanged.
+
+### 2026-08-08: Field Session Report Type Contract Drift Repair v1
+
+Status:
+
+Source repair complete; exact-final-commit hosted qualification is required before acceptance. Production deployment and production mutation remain unauthorized.
+
+Owner chain:
+
+- Prometheus Data accepts exactly `route-iq-daily-representative-report-v1` and legacy `beta-daily-rep-report`, preserves the received identifier, and fails closed on all other values.
+- Prometheus Dashboard binds its integration fixture directly to `todayReportPayload()` and exercises the complete Dashboard-to-archive path.
+- Prometheus Intelligence Engine composes the owner transitions without rewriting the historical live-canonical successor or archived learning evidence.
+- Prometheus Overwatch independently verifies owner identity, path scope, archive hashes, retry/conflict behavior, End Route and End Day compatibility, protected state, and forward-revert requirements.
+
+Protected boundaries:
+
+- Historical field-session bytes and hashes remain unchanged.
+- Dashboard UI and behavior, route ordering, scoring, collection, cohorts, recommendation influence, providers, scheduler, Companion, Anthony mapping, Stripe, CRM, Website, and production remain unchanged.
+- No deployment or production record is authorized by this repair.
+
+Canonical governance:
+
+- `intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json`
+- `overwatch/governance/field-session-report-type-contract-drift-repair-v1.json`
 
 ## Next Recommended Engineering Task
 

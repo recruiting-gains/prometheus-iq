@@ -4,6 +4,9 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+import {
+  verifyFieldSessionReportTypeContractProtectedSuccessor
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const baseline = "436d899d371b844585a61f232a7c371e33ef1174";
@@ -94,6 +97,55 @@ test("new field reports use canonical identity while legacy reports remain reada
     storageSchemaChanged: false,
     historicalContractsRewritten: false
   });
+});
+
+test("field-session report-type drift repair is owner-authenticated and archive-safe", () => {
+  const governance = json(
+    "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json"
+  );
+  const verified = verifyFieldSessionReportTypeContractProtectedSuccessor();
+
+  assert.equal(governance.startingRepository.commit,
+    "20536fdbf8aaedf91774e71d965c00c58e8bfd60");
+  assert.equal(governance.startingRepository.tree,
+    "4b34deb6c9e817e9b1d94baf74b4b7c58f6d8c3c");
+  assert.deepEqual(governance.acceptedContract.exactReportTypeAllowlist, [
+    "route-iq-daily-representative-report-v1",
+    "beta-daily-rep-report"
+  ]);
+  assert.deepEqual(
+    governance.acceptedContract.exactReportTypeAllowlist,
+    verified.successor.reportTypeContract.exactAllowlist
+  );
+  assert.equal(governance.acceptedContract.receivedTypePreservedAt,
+    "verifiedFields.sourceReportType");
+  assert.equal(governance.archiveEvidence.rawBytesRewritten, false);
+  assert.equal(governance.archiveEvidence.rawReportSha256,
+    "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a");
+
+  for (const ownerCommit of governance.ownerCommits) {
+    assert.deepEqual(execFileSync("/usr/bin/git", [
+      "show", "-s", "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+      ownerCommit.commit
+    ], { cwd: root, encoding: "utf8" }).trim().split("\n"), [
+      ownerCommit.commit,
+      ownerCommit.tree,
+      ownerCommit.parent,
+      ownerCommit.identity,
+      ownerCommit.identity,
+      ownerCommit.subject
+    ]);
+    assert.deepEqual(execFileSync("/usr/bin/git", [
+      "diff-tree", "--no-commit-id", "--name-only", "-r", ownerCommit.commit
+    ], { cwd: root, encoding: "utf8" }).trim().split("\n").sort(),
+    [...ownerCommit.paths].sort());
+  }
+
+  assert.equal(governance.protectedState.collection, "OFF");
+  assert.equal(governance.protectedState.activeCohorts, 0);
+  assert.equal(governance.protectedState.recommendationInfluence, "OFF");
+  assert.equal(governance.releaseBoundary.deploymentAuthorized, false);
+  assert.equal(governance.releaseBoundary.productionMutationAuthorized, false);
 });
 
 test("current operational sources use the canonical identity and supersede entity blockers", () => {
