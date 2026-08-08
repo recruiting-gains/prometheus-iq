@@ -4,10 +4,14 @@ import test from "node:test";
 
 import {
   controlledRehearsalIntelligenceSuccessor,
+  fieldSessionReportTypeContractIntelligenceSuccessor,
+  fieldSessionReportTypeDriftFixtureSuccessor,
   fullSystemHarmonyIntelligenceSuccessor,
   fullSystemHarmonyShadowReadinessSuccessor,
   liveCanonicalIdentityIntelligenceSuccessor,
   validateControlledRehearsalIntelligenceSuccessor,
+  validateFieldSessionReportTypeContractIntelligenceSuccessor,
+  validateFieldSessionReportTypeDriftFixtureSuccessor,
   validateFullSystemHarmonyIntelligenceSuccessor,
   validateFullSystemHarmonyShadowReadinessSuccessor,
   validateLiveCanonicalIdentityIntelligenceSuccessor,
@@ -117,6 +121,39 @@ test("Overwatch accepts only the exact harmony shadow-readiness successor", () =
     mutate(candidate);
     assert.throws(() =>
       validateFullSystemHarmonyShadowReadinessSuccessor(candidate));
+  }
+});
+
+test("Overwatch accepts only the exact field-session report-type successors", () => {
+  assert.equal(
+    validateFieldSessionReportTypeContractIntelligenceSuccessor(
+      fieldSessionReportTypeContractIntelligenceSuccessor
+    ).commit,
+    "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18"
+  );
+  assert.equal(
+    validateFieldSessionReportTypeDriftFixtureSuccessor(
+      fieldSessionReportTypeDriftFixtureSuccessor
+    ).commit,
+    "655224332c65ec28d5c45b1accd2eae3d12555c2"
+  );
+  for (const [source, validate] of [
+    [fieldSessionReportTypeContractIntelligenceSuccessor,
+      validateFieldSessionReportTypeContractIntelligenceSuccessor],
+    [fieldSessionReportTypeDriftFixtureSuccessor,
+      validateFieldSessionReportTypeDriftFixtureSuccessor]
+  ]) {
+    for (const mutate of [
+      value => { value.commit = "0".repeat(40); },
+      value => { value.identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+      value => { value.evidence[0].path = "package.json"; },
+      value => { value.evidence[0].sha256 = "0".repeat(64); },
+      value => { value.evidence.pop(); }
+    ]) {
+      const candidate = clone(source);
+      mutate(candidate);
+      assert.throws(() => validate(candidate));
+    }
   }
 });
 

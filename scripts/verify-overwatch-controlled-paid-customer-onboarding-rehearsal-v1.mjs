@@ -161,6 +161,42 @@ export const liveCanonicalIdentityIntelligenceSuccessor = Object.freeze({
   ])
 });
 
+export const fieldSessionReportTypeContractIntelligenceSuccessor = Object.freeze({
+  commit: "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18",
+  parent: "bbed83c62e6c8d2c73ce287161df282005f99187",
+  tree: "38ce2be37f66f49202967a285a003755ebc21dcc",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: compose field-session report contract repair",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json",
+      sha256: "77c88bc9a18d852c4b937303918be47a17b2423eba46c142cf5d2d4e9d5a0198"
+    }),
+    Object.freeze({
+      path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      sha256: "9ecd9ca37e8d42209aaf7b53cb0bcae06f431bee29059a81fd5b1333863118c1"
+    }),
+    Object.freeze({
+      path: "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+      sha256: "04014936bb2bebbb1b17c22048449b325e8667c8809f9ba382e7532ee6a4ff4b"
+    })
+  ])
+});
+
+export const fieldSessionReportTypeDriftFixtureSuccessor = Object.freeze({
+  commit: "655224332c65ec28d5c45b1accd2eae3d12555c2",
+  parent: "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18",
+  tree: "5eeb4224f913faafcd3114e713092a8d6e668ec0",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: bind drift rejection to report successor",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "tests/read-only-field-session-learning.test.mjs",
+      sha256: "0fe879e56ff462e8b18b0fcee0515d082edbdfb16b1ae90fc3137a48d85fa41d"
+    })
+  ])
+});
+
 export const fullSystemHarmonyShadowReadinessSuccessor = Object.freeze({
   commit: "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8",
   parent: "0e312cbef36af838dd9f8ba434f2370605f384d4",
@@ -307,6 +343,26 @@ export function validateLiveCanonicalIdentityIntelligenceSuccessor(record) {
   assert.deepEqual(record, liveCanonicalIdentityIntelligenceSuccessor,
     "live canonical identity Intelligence successor drifted");
   verifyOwnerCommit(record, liveCanonicalIdentityIntelligenceSuccessor);
+  assert.equal(git([
+    "merge-base", "--is-ancestor", record.commit, "HEAD"
+  ]), "");
+  return record;
+}
+
+export function validateFieldSessionReportTypeContractIntelligenceSuccessor(record) {
+  assert.deepEqual(record, fieldSessionReportTypeContractIntelligenceSuccessor,
+    "field-session report-type Intelligence successor drifted");
+  verifyOwnerCommit(record, fieldSessionReportTypeContractIntelligenceSuccessor);
+  assert.equal(git([
+    "merge-base", "--is-ancestor", record.commit, "HEAD"
+  ]), "");
+  return record;
+}
+
+export function validateFieldSessionReportTypeDriftFixtureSuccessor(record) {
+  assert.deepEqual(record, fieldSessionReportTypeDriftFixtureSuccessor,
+    "field-session report-type drift fixture successor drifted");
+  verifyOwnerCommit(record, fieldSessionReportTypeDriftFixtureSuccessor);
   assert.equal(git([
     "merge-base", "--is-ancestor", record.commit, "HEAD"
   ]), "");
@@ -483,12 +539,22 @@ function verifyCurrentOwnerFiles(governance) {
   validateFullSystemHarmonyIntelligenceSuccessor(
     fullSystemHarmonyIntelligenceSuccessor
   );
-  const canonicalIdentityIntelligenceSuccessor =
-    validateLiveCanonicalIdentityIntelligenceSuccessor(
-      liveCanonicalIdentityIntelligenceSuccessor
+  validateLiveCanonicalIdentityIntelligenceSuccessor(
+    liveCanonicalIdentityIntelligenceSuccessor
+  );
+  const fieldSessionContractSuccessor =
+    validateFieldSessionReportTypeContractIntelligenceSuccessor(
+      fieldSessionReportTypeContractIntelligenceSuccessor
     );
-  const canonicalIdentityIntelligenceEvidence = new Map(
-    canonicalIdentityIntelligenceSuccessor.evidence.map(item => [item.path, item])
+  const fieldSessionContractEvidence = new Map(
+    fieldSessionContractSuccessor.evidence.map(item => [item.path, item])
+  );
+  const fieldSessionDriftFixtureSuccessor =
+    validateFieldSessionReportTypeDriftFixtureSuccessor(
+      fieldSessionReportTypeDriftFixtureSuccessor
+    );
+  const fieldSessionDriftFixtureEvidence = new Map(
+    fieldSessionDriftFixtureSuccessor.evidence.map(item => [item.path, item])
   );
   const shadowReadinessSuccessor =
     validateFullSystemHarmonyShadowReadinessSuccessor(
@@ -515,20 +581,20 @@ function verifyCurrentOwnerFiles(governance) {
       sha256: "0c38be17c0823b1e247f1781353bbce543d66deb46f775c7a905b4164cb6d951"
     }],
     ["intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs", {
-      commit: canonicalIdentityIntelligenceSuccessor.commit,
-      sha256: canonicalIdentityIntelligenceEvidence.get(
+      commit: fieldSessionContractSuccessor.commit,
+      sha256: fieldSessionContractEvidence.get(
         "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
       ).sha256
     }],
     ["tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs", {
-      commit: canonicalIdentityIntelligenceSuccessor.commit,
-      sha256: canonicalIdentityIntelligenceEvidence.get(
+      commit: fieldSessionContractSuccessor.commit,
+      sha256: fieldSessionContractEvidence.get(
         "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
       ).sha256
     }],
     ["tests/read-only-field-session-learning.test.mjs", {
-      commit: canonicalIdentityIntelligenceSuccessor.commit,
-      sha256: canonicalIdentityIntelligenceEvidence.get(
+      commit: fieldSessionDriftFixtureSuccessor.commit,
+      sha256: fieldSessionDriftFixtureEvidence.get(
         "tests/read-only-field-session-learning.test.mjs"
       ).sha256
     }],
