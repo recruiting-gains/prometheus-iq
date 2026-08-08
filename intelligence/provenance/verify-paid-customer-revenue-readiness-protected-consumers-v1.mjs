@@ -4,7 +4,8 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
-  verifyFullSystemHarmonyProtectedSuccessor
+  verifyFullSystemHarmonyProtectedSuccessor,
+  verifyLiveCanonicalIdentityProtectedSuccessor
 } from "./verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -120,9 +121,12 @@ export function verifyPaidCustomerRevenueReadinessProtectedConsumers({
   }
 
   const fullSystemHarmonySuccessor = verifyFullSystemHarmonyProtectedSuccessor();
+  const liveCanonicalIdentityProtectedSuccessor =
+    verifyLiveCanonicalIdentityProtectedSuccessor();
   const composedConsumerByPath = new Map();
   for (const consumer of consumerByPath.values()) {
-    const transitions = fullSystemHarmonySuccessor.transitionsByPath.get(consumer.path);
+    const transitions =
+      liveCanonicalIdentityProtectedSuccessor.transitionsByPath.get(consumer.path);
     assert.ok(transitions, `Missing current protected-consumer successor: ${consumer.path}`);
     assert.deepEqual(
       transitions.slice(0, consumer.transitions.length).map(({
@@ -158,6 +162,7 @@ export function verifyPaidCustomerRevenueReadinessProtectedConsumers({
   return Object.freeze({
     evidence,
     consumerByPath: composedConsumerByPath,
-    fullSystemHarmonySuccessor
+    fullSystemHarmonySuccessor,
+    liveCanonicalIdentityProtectedSuccessor
   });
 }

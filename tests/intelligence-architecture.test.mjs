@@ -428,7 +428,15 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   );
   assert.equal(
     revenueReadinessConsumers.consumerByPath.get("index.html").transitions.length,
-    3,
+    4,
+  );
+  assert.equal(
+    revenueReadinessConsumers.consumerByPath.get("index.html").currentSha256,
+    "235be31ca523e7ba0d008de040fde8c32a4a8871c307eacb6a5273dd3646fa72",
+  );
+  assert.equal(
+    revenueReadinessConsumers.liveCanonicalIdentityProtectedSuccessor.successor.version,
+    "route-iq-intelligence-live-canonical-identity-protected-successor-v1",
   );
   const coordinatorSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
@@ -729,9 +737,15 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     crossIndustryRetentionSuccessor.dataOwnerTransition.commit,
     "c9b8ac823fac489e017c9ddd0c116d60985542e8",
   );
+  const liveCanonicalArchiveTransitions =
+    revenueReadinessConsumers.liveCanonicalIdentityProtectedSuccessor
+      .transitionsByPath.get(
+        crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.path,
+      );
   assert.equal(
     sha256(crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.path),
-    crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.currentSha256,
+    liveCanonicalArchiveTransitions?.at(-1).currentSha256
+      || crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.currentSha256,
   );
   assert.notEqual(
     crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.previousSha256,
