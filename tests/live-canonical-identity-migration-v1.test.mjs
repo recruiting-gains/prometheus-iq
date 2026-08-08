@@ -140,6 +140,23 @@ test("field-session report-type drift repair is owner-authenticated and archive-
     ], { cwd: root, encoding: "utf8" }).trim().split("\n").sort(),
     [...ownerCommit.paths].sort());
   }
+  for (const overwatchCommit of governance.overwatchCommits) {
+    assert.deepEqual(execFileSync("/usr/bin/git", [
+      "show", "-s", "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+      overwatchCommit.commit
+    ], { cwd: root, encoding: "utf8" }).trim().split("\n"), [
+      overwatchCommit.commit,
+      overwatchCommit.tree,
+      overwatchCommit.parent,
+      overwatchCommit.identity,
+      overwatchCommit.identity,
+      overwatchCommit.subject
+    ]);
+    assert.deepEqual(execFileSync("/usr/bin/git", [
+      "diff-tree", "--no-commit-id", "--name-only", "-r", overwatchCommit.commit
+    ], { cwd: root, encoding: "utf8" }).trim().split("\n").sort(),
+    [...overwatchCommit.paths].sort());
+  }
 
   assert.equal(governance.protectedState.collection, "OFF");
   assert.equal(governance.protectedState.activeCohorts, 0);

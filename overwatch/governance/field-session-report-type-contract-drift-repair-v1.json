@@ -66,6 +66,32 @@
       ]
     }
   ],
+  "overwatchCommits": [
+    {
+      "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "commit": "d67a9f8d05ebdc4e29e6839195aed89ca0250e64",
+      "tree": "157361ed012f3748728b898043ca887a91bae950",
+      "parent": "655224332c65ec28d5c45b1accd2eae3d12555c2",
+      "subject": "overwatch: govern field-session report contract repair",
+      "paths": [
+        "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json",
+        "tests/live-canonical-identity-migration-v1.test.mjs"
+      ]
+    },
+    {
+      "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "commit": "68d0d3dfbe75882f3f51e23a0b2cbc403b37bd8a",
+      "tree": "27e02c512928324e468feccbe4b5016c51ae0dfb",
+      "parent": "d67a9f8d05ebdc4e29e6839195aed89ca0250e64",
+      "subject": "overwatch: advance field-session readiness successor",
+      "paths": [
+        "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
+        "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+        "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
+      ]
+    }
+  ],
   "acceptedContract": {
     "exactReportTypeAllowlist": [
       "route-iq-daily-representative-report-v1",
@@ -106,8 +132,12 @@
       "bbed83c62e6c8d2c73ce287161df282005f99187",
       "c7f854047b0091fc29e671a97c7c9d21dfcf2dff"
     ],
+    "latestFirstGovernanceCommits": [
+      "68d0d3dfbe75882f3f51e23a0b2cbc403b37bd8a",
+      "d67a9f8d05ebdc4e29e6839195aed89ca0250e64"
+    ],
     "finalOverwatchCommit": "RESOLVE_FROM_ACCEPTED_FINAL_HEAD",
-    "procedure": "Revert the accepted final Overwatch commit first, then revert latestFirstOwnerCommits in listed order; rerun the exact governed qualification before any later release.",
+    "procedure": "Revert the accepted final Overwatch commit first, then latestFirstGovernanceCommits and latestFirstOwnerCommits in listed order; rerun the exact governed qualification before any later release.",
     "archiveRewriteAllowed": false
   },
   "protectedState": {
