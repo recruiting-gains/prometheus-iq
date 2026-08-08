@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -8,6 +9,7 @@ const root = resolve(import.meta.dirname, "..");
 const baseline = "436d899d371b844585a61f232a7c371e33ef1174";
 const read = path => readFileSync(resolve(root, path), "utf8");
 const json = path => JSON.parse(read(path));
+const sha256 = value => createHash("sha256").update(value).digest("hex");
 
 const publicIdentityPaths = [
   "landing.html",
@@ -248,6 +250,70 @@ test("current governance records the launch facts and keeps protected receipts i
       ]
     }
   ]);
+  assert.deepEqual(governance.currentVerifierSuccessors, [
+    {
+      classification: "LIVE_CANONICAL_IDENTITY_PUBLIC_RELEASE_VERIFIER_REPAIR",
+      subsystem: "Prometheus Overwatch",
+      owner: "Prometheus Overwatch <overwatch@prometheus.local>",
+      commit: "bb1fd5556b1dea353ec67159c263b7a7474683a0",
+      parent: "c062ba6c0b1c1b1a171c671ac004d3a5936673b8",
+      tree: "9403e81467ae41a8b04b0b25f69fbf60a3aeb939",
+      subject: "overwatch: compose canonical public release successor",
+      runtimeBehaviorChanged: false,
+      deploymentAssetChanged: false,
+      productionMutationAuthorized: false,
+      evidence: [
+        {
+          path: "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          previousSha256:
+            "c9aca5d0af0bce1c675bffff4558e55cd7918d0e6b011f9747a716a6a2b7bdff",
+          currentSha256:
+            "9f9d684c4b8c01f824fe784d70364c0b72b3f2fc00343a001827d692247f11f4"
+        },
+        {
+          path: "tests/overwatch-auto-push-governance.test.mjs",
+          previousSha256:
+            "79f76a983b13d0cf942455e2c9258e1f818b3d028aa678f4dee018ae93cc73d8",
+          currentSha256:
+            "481dde2cf97bb28b369842af0501e4895f01664ad04f5e8609760003054b535e"
+        },
+        {
+          path: "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+          previousSha256:
+            "b15f05c7a03063319cf66620a4d0c1f7fcdfe4690202932666214ade5d95f18d",
+          currentSha256:
+            "b2fe3c47929454c0e863a4592d8278352bdf791c963cdd07a88b47cc7d540b58"
+        }
+      ]
+    }
+  ]);
+  const currentVerifierSuccessor = governance.currentVerifierSuccessors[0];
+  assert.deepEqual(execFileSync("/usr/bin/git", [
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    currentVerifierSuccessor.commit
+  ], { cwd: root, encoding: "utf8" }).trim().split("\n"), [
+    currentVerifierSuccessor.commit,
+    currentVerifierSuccessor.parent,
+    currentVerifierSuccessor.tree,
+    currentVerifierSuccessor.owner,
+    currentVerifierSuccessor.owner,
+    currentVerifierSuccessor.subject
+  ]);
+  assert.deepEqual(execFileSync("/usr/bin/git", [
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    currentVerifierSuccessor.commit
+  ], { cwd: root, encoding: "utf8" }).trim().split("\n").sort(),
+  currentVerifierSuccessor.evidence.map(item => item.path).sort());
+  for (const evidence of currentVerifierSuccessor.evidence) {
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${currentVerifierSuccessor.parent}:${evidence.path}`
+    ], { cwd: root, encoding: null });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${currentVerifierSuccessor.commit}:${evidence.path}`
+    ], { cwd: root, encoding: null });
+    assert.equal(sha256(previous), evidence.previousSha256, evidence.path);
+    assert.equal(sha256(current), evidence.currentSha256, evidence.path);
+  }
   assert.equal(governance.ownerCommitChain.length, 10);
   assert.deepEqual(
     governance.ownerCommitChain.map(item => item.subsystem),
