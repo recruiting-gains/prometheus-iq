@@ -19,6 +19,9 @@ import {
   loadReadOnlyFieldSessionLearningContract
 } from "../intelligence/read-only-field-session-learning.mjs";
 import { verifyOffRouteLearningIntelligence } from "../scripts/verify-off-route-learning-intelligence.mjs";
+import {
+  verifyLiveCanonicalIdentityProtectedSuccessor
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = new URL("../", import.meta.url);
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -318,12 +321,27 @@ test("projection is deterministic, deeply frozen, read-only, and matches the can
 test("protected Dashboard and route-generation successors are governed while Data and scoring stay unchanged", () => {
   const { contract } = fixtures();
   const result = verifyOffRouteLearningIntelligence();
+  const canonicalIdentitySuccessor =
+    verifyLiveCanonicalIdentityProtectedSuccessor();
 
   assert.equal(result.protectedBehaviorSuccessors, 3);
   for (const name of ["dataArchiveRuntime", "dataRuntimeContract", "routeScoring"]) {
     const baseline = contract.protectedBehaviorBaselines[name];
-    assert.equal(sha256(baseline.path), baseline.sha256, name);
+    const transitions = canonicalIdentitySuccessor.transitionsByPath.get(baseline.path);
+    assert.equal(
+      sha256(baseline.path),
+      transitions?.at(-1).currentSha256 || baseline.sha256,
+      name
+    );
   }
+  assert.equal(
+    canonicalIdentitySuccessor.successor.coherence.dataRecordCompatibilityOnly,
+    true
+  );
+  assert.equal(
+    canonicalIdentitySuccessor.successor.coherence.intelligenceRuntimeChanged,
+    false
+  );
   assert.equal(contract.readOnlySafety.modifyData, false);
   assert.equal(contract.readOnlySafety.modifyDashboard, false);
   assert.equal(contract.readOnlySafety.modifyRecommendationScoring, false);
