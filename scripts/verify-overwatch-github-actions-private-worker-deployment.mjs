@@ -34,6 +34,10 @@ const contractPath =
   "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json";
 const contractV2Path =
   "workers/infrastructure/github-actions-private-worker-deployment-v2.json";
+const liveCanonicalIdentityGovernancePath =
+  "overwatch/governance/live-canonical-identity-migration-v1.json";
+const currentReadinessSuccessorsPath =
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 
 const historicalOwnerCommit = "7f67855145104034b32551e25d2ebf407ce2369c";
 const historicalOwnerRepairCommit = "335f75fa1d7e32160624e9ebe197d11a03e77b4e";
@@ -1012,6 +1016,118 @@ const git = args => execFileSync("/usr/bin/git", args, {
   encoding: "utf8",
   stdio: ["ignore", "pipe", "ignore"]
 }).trim();
+
+export function hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+  governance,
+  readinessSuccessors,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const ownerIdentityBySubsystem = new Map([
+    ["Prometheus Dashboard", "Prometheus Dashboard <dashboard@prometheus.local>"],
+    ["Prometheus Infrastructure", "Prometheus Infrastructure <infrastructure@prometheus.local>"]
+  ]);
+  if (governance?.governanceId !== "live-canonical-identity-migration-v1"
+    || governance?.ownerSubsystem !== "Prometheus Overwatch"
+    || governance?.canonicalIdentity?.company !== "Prometheus.IQ"
+    || governance?.canonicalIdentity?.product !== "Prometheus Route IQ"
+    || governance?.releasePreparation?.publicWorkflowsChanged !== false
+    || readinessSuccessors?.governanceId !==
+      "route-iq-august-1-readiness-successors-v1"
+    || readinessSuccessors?.historicalCloseoutEvidenceRewritten !== false
+    || !/^[0-9a-f]{64}$/u.test(previousSha256)
+    || !/^[0-9a-f]{64}$/u.test(currentSha256)) {
+    return false;
+  }
+  const readinessMatches = (readinessSuccessors.successors ?? []).flatMap(successor =>
+    (successor.evidence ?? []).filter(item => (
+      item.path === path
+      && item.previousSha256 === previousSha256
+      && item.successorSha256 === currentSha256
+    )).map(evidence => ({ successor, evidence }))
+  );
+  const privateWorkflow = governance.releasePreparation?.privateWorkflowContinuitySuccessor;
+  const privateWorkflowMatches = (privateWorkflow?.evidence ?? []).filter(item => (
+    item.path === path
+    && item.previousSha256 === previousSha256
+    && item.currentSha256 === currentSha256
+  )).map(evidence => ({
+    successor: {
+      commit: privateWorkflow.ownerCommit,
+      parent: privateWorkflow.ownerParent,
+      tree: privateWorkflow.ownerTree,
+      owner: privateWorkflow.owner,
+      subsystem: privateWorkflow.ownerSubsystem,
+      subject: privateWorkflow.subject
+    },
+    evidence,
+    exactPaths: privateWorkflow.evidence.map(item => item.path).sort()
+  }));
+  const matches = [...readinessMatches, ...privateWorkflowMatches];
+  if (matches.length !== 1) return false;
+  const { successor, exactPaths } = matches[0];
+  if (exactPaths) {
+    if (privateWorkflow.classification !==
+        "LIVE_CANONICAL_IDENTITY_PRIVATE_WORKFLOW_SUCCESSOR"
+      || privateWorkflow.historicalContinuityRewritten !== false
+      || privateWorkflow.productionMutationAuthorized !== false
+      || successor.owner !== ownerIdentityBySubsystem.get(successor.subsystem)) {
+      return false;
+    }
+  } else {
+    const ownerChain = governance.ownerCommitChain?.filter(item =>
+      item.commit === successor.commit && item.tree === successor.tree
+    ) ?? [];
+    if (ownerChain.length !== 1
+      || successor.owner !== ownerIdentityBySubsystem.get(ownerChain[0].subsystem)) {
+      return false;
+    }
+  }
+  try {
+    const fields = git([
+      "show",
+      "-s",
+      "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      successor.commit
+    ]).split("\n");
+    const paths = git([
+      "diff-tree",
+      "--no-commit-id",
+      "--name-only",
+      "-r",
+      successor.commit
+    ]).split("\n").filter(Boolean);
+    const parent = git(["rev-parse", `${successor.commit}^`]);
+    const previous = execFileSync("/usr/bin/git", ["show", `${parent}:${path}`], {
+      cwd: root,
+      encoding: null,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    const current = execFileSync("/usr/bin/git", ["show", `${successor.commit}:${path}`], {
+      cwd: root,
+      encoding: null,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor", successor.commit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return equal(fields, [
+      successor.commit,
+      parent,
+      successor.tree,
+      successor.owner,
+      successor.owner,
+      successor.subject ?? fields[5]
+    ])
+      && (!successor.parent || successor.parent === parent)
+      && (exactPaths ? equal(paths, exactPaths) : paths.includes(path))
+      && sha256(previous) === previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
 
 function count(source, pattern) {
   return [...source.matchAll(pattern)].length;
@@ -2497,10 +2613,41 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637"
     && governance?.controlledRehearsalSuccessor?.qualifiedRollbackBundleSha256 ===
       "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
-    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+    && governance?.liveCanonicalIdentitySuccessor?.authorization ===
+      "live-canonical-identity-migration-v1"
+    && governance?.liveCanonicalIdentitySuccessor?.historicalContinuityRewritten === false
+    && governance?.liveCanonicalIdentitySuccessor?.productionMutationAuthorized === false
+    && governance?.liveCanonicalIdentitySuccessor?.implementationCommit ===
+      "e6913bce779473417d06da128a19b89cee26936c"
+    && governance?.liveCanonicalIdentitySuccessor?.implementationParent ===
+      "38204f4889705c2b31ac36fa6280772c0c5b18e0"
+    && governance?.liveCanonicalIdentitySuccessor?.implementationTree ===
+      "d4a746da623979fa3059500a482bfe11d3bb6e74"
+    && governance?.liveCanonicalIdentitySuccessor?.implementationOwner ===
+      "Prometheus Infrastructure <infrastructure@prometheus.local>"
+    && governance?.liveCanonicalIdentitySuccessor?.implementationSubject ===
+      "infrastructure: qualify canonical identity private payload"
+    && governance?.liveCanonicalIdentitySuccessor?.previousDeployParitySha256 ===
+      "8967e7f269f415bf02921e094a010bccd742260d333c9717218b99936a07bbfa"
+    && governance?.liveCanonicalIdentitySuccessor?.deployParitySha256 ===
+      "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9"
+    && governance?.liveCanonicalIdentitySuccessor
+      ?.previousQualifiedForwardPayloadSha256 ===
       governance?.controlledRehearsalSuccessor?.qualifiedForwardPayloadSha256
-    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+    && governance?.liveCanonicalIdentitySuccessor?.qualifiedForwardPayloadSha256 ===
+      "5a5269a5a5669f87bacbe3f18f6783485f7f8da5ca2c0e3ffd57bbcca281ef51"
+    && governance?.liveCanonicalIdentitySuccessor?.qualifiedRollbackBundleSha256 ===
       governance?.controlledRehearsalSuccessor?.qualifiedRollbackBundleSha256
+    && equal(governance?.liveCanonicalIdentitySuccessor?.changedPaths, [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ])
+    && contract?.continuity?.privateDeployParitySha256 ===
+      governance?.liveCanonicalIdentitySuccessor?.deployParitySha256
+    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+      governance?.liveCanonicalIdentitySuccessor?.qualifiedForwardPayloadSha256
+    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+      governance?.liveCanonicalIdentitySuccessor?.qualifiedRollbackBundleSha256
     && contract?.browserAcceptance?.contract ===
       "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
     && contract?.browserAcceptance?.runner ===
@@ -3556,6 +3703,14 @@ function verifyV2OwnerAndGovernance() {
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     const currentSha256 = sha256(readFileSync(resolve(root, path)));
+    const liveCanonicalIdentitySuccessor =
+      hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+        governance: readJson(liveCanonicalIdentityGovernancePath),
+        readinessSuccessors: readJson(currentReadinessSuccessorsPath),
+        path,
+        previousSha256: expected,
+        currentSha256
+      });
     const successor = v2ControlledRehearsalGuardVerifierSuccessorHashes[path]
       ? {
         sha256: v2ControlledRehearsalGuardVerifierSuccessorHashes[path],
@@ -3578,7 +3733,8 @@ function verifyV2OwnerAndGovernance() {
       : null;
     if (!(currentSha256 === expected
       || (successor?.sha256 === currentSha256
-        && successorPredecessorSha256 === expected))) {
+        && successorPredecessorSha256 === expected)
+      || liveCanonicalIdentitySuccessor)) {
       throw new Error(`Private Workflow v2 current owner evidence drifted: ${path}`);
     }
   }

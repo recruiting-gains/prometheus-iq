@@ -192,6 +192,34 @@
       "ownerSubsystem": "Prometheus Overwatch",
       "historicalPackageWiringRewritten": false
     },
+    "privateWorkflowContinuitySuccessor": {
+      "classification": "LIVE_CANONICAL_IDENTITY_PRIVATE_WORKFLOW_SUCCESSOR",
+      "ownerCommit": "e6913bce779473417d06da128a19b89cee26936c",
+      "ownerParent": "38204f4889705c2b31ac36fa6280772c0c5b18e0",
+      "ownerTree": "d4a746da623979fa3059500a482bfe11d3bb6e74",
+      "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "subject": "infrastructure: qualify canonical identity private payload",
+      "previousDeployParitySha256": "8967e7f269f415bf02921e094a010bccd742260d333c9717218b99936a07bbfa",
+      "currentDeployParitySha256": "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9",
+      "previousForwardPayloadSha256": "800e3ebe685d8b801d1b07a34c228ffe1ddea536623c67354d51fd9f601df7f6",
+      "currentForwardPayloadSha256": "5a5269a5a5669f87bacbe3f18f6783485f7f8da5ca2c0e3ffd57bbcca281ef51",
+      "rollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+      "historicalContinuityRewritten": false,
+      "productionMutationAuthorized": false,
+      "evidence": [
+        {
+          "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+          "previousSha256": "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
+          "currentSha256": "2bc9eb64d77ba28754ff00c33f5d7d72de844931a2dbfa34087feebe04a583de"
+        },
+        {
+          "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+          "previousSha256": "30810573fc0926c03a6bbc5337db4ce7030c419a4b08c64b219db7c3abeb371b",
+          "currentSha256": "936c4af96a9091fc5f785cf86b2b4a0b2a0a75d7b3cae9bf8a0959acdb59015e"
+        }
+      ]
+    },
     "hostedQualification": "REQUIRED_AT_EXACT_FINAL_COMMIT",
     "deploymentOrder": [
       "prometheusrouteiq-website",

@@ -1606,6 +1606,25 @@
     "previousQualifiedRollbackBundleSha256": "efdb20005ee5b11c32f1714c3c3a35bdb1d4ab05349415a991743be0dfc57637",
     "qualifiedRollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
   },
+  "liveCanonicalIdentitySuccessor": {
+    "authorization": "live-canonical-identity-migration-v1",
+    "historicalContinuityRewritten": false,
+    "productionMutationAuthorized": false,
+    "implementationCommit": "e6913bce779473417d06da128a19b89cee26936c",
+    "implementationParent": "38204f4889705c2b31ac36fa6280772c0c5b18e0",
+    "implementationTree": "d4a746da623979fa3059500a482bfe11d3bb6e74",
+    "implementationOwner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "implementationSubject": "infrastructure: qualify canonical identity private payload",
+    "previousDeployParitySha256": "8967e7f269f415bf02921e094a010bccd742260d333c9717218b99936a07bbfa",
+    "deployParitySha256": "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9",
+    "previousQualifiedForwardPayloadSha256": "800e3ebe685d8b801d1b07a34c228ffe1ddea536623c67354d51fd9f601df7f6",
+    "qualifiedForwardPayloadSha256": "5a5269a5a5669f87bacbe3f18f6783485f7f8da5ca2c0e3ffd57bbcca281ef51",
+    "qualifiedRollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+    "changedPaths": [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ]
+  },
   "workflowBoundary": {
     "qualificationWorkflow": "Qualify Prometheus Private Worker v2",
     "deploymentWorkflow": "Deploy Prometheus Private Worker v2",

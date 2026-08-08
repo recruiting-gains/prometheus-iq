@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -10,6 +11,7 @@ import {
   evaluateGithubActionsPrivateWorkerSuccessorOwnership,
   evaluateGithubActionsPrivateWorkerV2Governance,
   evaluateGithubActionsPrivateWorkerWorkflow,
+  hasLiveCanonicalIdentityOwnerEvidenceSuccessor,
   verifyOverwatchGithubActionsPrivateWorkerDeployment
 } from "../scripts/verify-overwatch-github-actions-private-worker-deployment.mjs";
 
@@ -33,6 +35,13 @@ const contractV2 = readJson(
   "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
 );
 const clone = value => structuredClone(value);
+const sha256 = value => createHash("sha256").update(value).digest("hex");
+const liveCanonicalIdentityGovernance = readJson(
+  "overwatch/governance/live-canonical-identity-migration-v1.json"
+);
+const currentReadinessSuccessors = readJson(
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
+);
 
 function evaluate(nextGovernance = governance, nextReport = report, nextContract = contract) {
   return evaluateGithubActionsPrivateWorkerDeploymentGovernance({
@@ -140,6 +149,62 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
   assert.equal(result.failedDeploymentRunRollbackVerified, true);
   assert.equal(result.runnerWorkspaceFailureReachedProductionMutation, false);
   assert.equal(result.wranglerScratchFailureReachedProductionMutation, false);
+});
+
+test("private Workflow v2 accepts only owner-proven canonical identity assets", () => {
+  const path = "_headers";
+  const previousSha256 =
+    "96a4816d019802805b61d88699ba952a7180428f9d9d006bb8e319ea3a536275";
+  const currentSha256 = sha256(readFileSync(resolve(root, path)));
+  assert.equal(hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path,
+    previousSha256,
+    currentSha256
+  }), true);
+
+  const changed = clone(currentReadinessSuccessors);
+  changed.successors.find(item => item.commit.startsWith("c4cb9150"))
+    .owner = "Prometheus Overwatch <overwatch@prometheus.local>";
+  assert.equal(hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    readinessSuccessors: changed,
+    path,
+    previousSha256,
+    currentSha256
+  }), false);
+  assert.equal(hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path,
+    previousSha256,
+    currentSha256: "0".repeat(64)
+  }), false);
+
+  const workflowPath =
+    "workers/infrastructure/github-actions-private-worker-deployment-v2.json";
+  const workflowPreviousSha256 =
+    "30810573fc0926c03a6bbc5337db4ce7030c419a4b08c64b219db7c3abeb371b";
+  const workflowCurrentSha256 = sha256(readFileSync(resolve(root, workflowPath)));
+  assert.equal(hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: workflowPath,
+    previousSha256: workflowPreviousSha256,
+    currentSha256: workflowCurrentSha256
+  }), true);
+
+  const changedGovernance = clone(liveCanonicalIdentityGovernance);
+  changedGovernance.releasePreparation.privateWorkflowContinuitySuccessor.ownerCommit =
+    "0".repeat(40);
+  assert.equal(hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+    governance: changedGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: workflowPath,
+    previousSha256: workflowPreviousSha256,
+    currentSha256: workflowCurrentSha256
+  }), false);
 });
 
 test("Overwatch governance accepts the immutable private Workflow v2 owner release", () => {
@@ -761,6 +826,19 @@ test("private Workflow v2 governance rejects controlled-rehearsal successor drif
     value => {
       value.controlledRehearsalSuccessor.qualifiedRollbackBundleSha256 =
         "0".repeat(64);
+    },
+    value => {
+      value.liveCanonicalIdentitySuccessor.implementationCommit = "0".repeat(40);
+    },
+    value => {
+      value.liveCanonicalIdentitySuccessor.deployParitySha256 = "0".repeat(64);
+    },
+    value => {
+      value.liveCanonicalIdentitySuccessor.qualifiedForwardPayloadSha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.liveCanonicalIdentitySuccessor.productionMutationAuthorized = true;
     }
   ]) {
     const candidate = clone(governanceV2);
