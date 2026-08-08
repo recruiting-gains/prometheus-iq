@@ -207,6 +207,19 @@ test("current governance records the launch facts and keeps protected receipts i
     "prometheusrouteiq-website",
     "prometheus-iq"
   ]);
+  const verifierSuccessors =
+    governance.historicalVerifierReconciliations.founderAttendedPackageVerifiers;
+  assert.equal(verifierSuccessors.classification,
+    "LIVE_CANONICAL_IDENTITY_VERIFIER_SUCCESSORS");
+  assert.equal(verifierSuccessors.expectedCommitCount, 3);
+  assert.deepEqual(verifierSuccessors.commits.map(item => item.commit), [
+    "8e104a35fae77e4c6776793026fd61493c444f30",
+    "05bd5ba8b74a1ba7efe5f4425fc7f13431bd7eb9",
+    "7161581fa0ed3c4fd61214d8a3e238fb5f5958e3"
+  ]);
+  assert.equal(verifierSuccessors.runtimeBehaviorChanged, false);
+  assert.equal(verifierSuccessors.credentialAccessChanged, false);
+  assert.equal(verifierSuccessors.productionMutationAuthorized, false);
 });
 
 test("historical evidence and stable identifiers are not rewritten", () => {

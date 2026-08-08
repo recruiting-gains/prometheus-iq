@@ -28,7 +28,8 @@ import {
   hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor
 } from "./verify-overwatch-public-deployment-workflow-v2.mjs";
 import {
-  hasCurrentCanonicalPackageWiringSuccessor
+  hasCurrentCanonicalPackageWiringSuccessor,
+  hasLiveCanonicalIdentityVerifierSuccessor
 } from "./verify-overwatch-cloudflare-founder-attended-service-token.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -976,6 +977,12 @@ function verifyPredecessorTransitions(governance, rotation) {
         historicalSha256: routeIq3dTransition.successorSha256,
         successorSha256: current
       });
+    const isLiveCanonicalIdentitySuccessor =
+      hasLiveCanonicalIdentityVerifierSuccessor({
+        governance: readJson(liveCanonicalIdentityGovernancePath),
+        path: item.path,
+        currentSha256: current
+      });
     if (item.previousSha256 !== sha256(previous)
       || (item.successorSha256 !== current
         && !isRotationSuccessor
@@ -984,6 +991,7 @@ function verifyPredecessorTransitions(governance, rotation) {
         && !isCommercialReadinessSuccessor
         && !isRouteIq3dSuccessor
         && !isWorkflowV2Successor
+        && !isLiveCanonicalIdentitySuccessor
         && !isCurrentOverwatchSuccessor)
       || (isRotationSuccessor && item.successorSha256 !== current
         && !isKeychainSuccessor
@@ -991,6 +999,7 @@ function verifyPredecessorTransitions(governance, rotation) {
         && !isCommercialReadinessSuccessor
         && !isRouteIq3dSuccessor
         && !isWorkflowV2Successor
+        && !isLiveCanonicalIdentitySuccessor
         && !isCurrentOverwatchSuccessor)
       || item.owner !== "Prometheus Overwatch") {
       throw new Error(`Overwatch verification successor drifted: ${item.path}`);

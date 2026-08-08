@@ -224,6 +224,96 @@
       ],
       "publicWorkflowChanged": false,
       "routesBindingsAndSchemaUnchanged": true
+    },
+    "founderAttendedPackageVerifiers": {
+      "classification": "LIVE_CANONICAL_IDENTITY_VERIFIER_SUCCESSORS",
+      "ownerSubsystem": "Prometheus Overwatch",
+      "expectedCommitCount": 3,
+      "runtimeBehaviorChanged": false,
+      "credentialAccessChanged": false,
+      "productionMutationAuthorized": false,
+      "commits": [
+        {
+          "commit": "8e104a35fae77e4c6776793026fd61493c444f30",
+          "parent": "585e1d3ef7941bc53cc6c2c44246871ecab1b250",
+          "tree": "6f5ff0027582f25d0fa1f7602fc70c411a6961d4",
+          "owner": "Prometheus Overwatch <overwatch@prometheus.local>",
+          "subject": "overwatch: reconcile canonical package lineage",
+          "paths": [
+            "overwatch/governance/live-canonical-identity-migration-v1.json",
+            "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+            "tests/live-canonical-identity-migration-v1.test.mjs",
+            "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs"
+          ],
+          "transitions": [
+            {
+              "path": "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+              "previousSha256": "bcda2f36357cf27b892421f4257b10d18cf74063de5a6f6defe03be2317399e8",
+              "currentSha256": "a46ee03a12314351014ad44cba4438da5f8fd613d0075d6da2e85762427bc7a4"
+            }
+          ]
+        },
+        {
+          "commit": "05bd5ba8b74a1ba7efe5f4425fc7f13431bd7eb9",
+          "parent": "8e104a35fae77e4c6776793026fd61493c444f30",
+          "tree": "c89fe8b14a6f4907a78ed61c6ecbba7e113ffc99",
+          "owner": "Prometheus Overwatch <overwatch@prometheus.local>",
+          "subject": "overwatch: reconcile tty package successor",
+          "paths": [
+            "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
+            "tests/overwatch-cloudflare-founder-attended-tty-compatibility.test.mjs"
+          ],
+          "transitions": [
+            {
+              "path": "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
+              "previousSha256": "aed0a31fd6704626424e2d6f14f41200e62d47c671411d028d571d65e63218b0",
+              "currentSha256": "57ccce06d2142d9e674e4e28a37a12eb49989ab39059af7664bef9c6c838baab"
+            }
+          ]
+        },
+        {
+          "commit": "7161581fa0ed3c4fd61214d8a3e238fb5f5958e3",
+          "parent": "05bd5ba8b74a1ba7efe5f4425fc7f13431bd7eb9",
+          "tree": "05200bdf470baa5392b11021b27daed77de3c8e3",
+          "owner": "Prometheus Overwatch <overwatch@prometheus.local>",
+          "subject": "overwatch: unify canonical verifier successors",
+          "paths": [
+            "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+            "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
+            "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
+            "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+            "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
+            "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs"
+          ],
+          "transitions": [
+            {
+              "path": "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+              "previousSha256": "610cf79b0e765a6a8bd89cd883f4dac87a8b269a74cfaa6fa21e47228109cb4c",
+              "currentSha256": "bb16cabca9dfacc3a73e8670d0fe381e1edd9f039bcbaffcec48da20c6d6a5fb"
+            },
+            {
+              "path": "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
+              "previousSha256": "05c09251247f63a566d1a4bd633f00f62f76fa3e8dcc72b8a7fd1bf95158c706",
+              "currentSha256": "515e7779be6a382c92048e151218185c78e17de1e43451a2f88dfce12b2acb1a"
+            },
+            {
+              "path": "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
+              "previousSha256": "ba3ac1600a340b127c9a487087e77ffa65a22752656755582c7a8efe45605d8c",
+              "currentSha256": "9e5d7d2ec670f5b6790f8871cd3dc661e14e6e23c205a0062c12c8ecc664e886"
+            },
+            {
+              "path": "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+              "previousSha256": "a46ee03a12314351014ad44cba4438da5f8fd613d0075d6da2e85762427bc7a4",
+              "currentSha256": "2c797d34313a6e585a9ebe3fa47612da2fef0d560eec55e983a6ea9f59e0d615"
+            },
+            {
+              "path": "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
+              "previousSha256": "57ccce06d2142d9e674e4e28a37a12eb49989ab39059af7664bef9c6c838baab",
+              "currentSha256": "2dd4eeab3e8af2ce2bdf53df7c66d3fea40ba179d1d2902988ef8583b8fd9b1b"
+            }
+          ]
+        }
+      ]
     }
   },
   "historicalPolicy": "PRESERVE_DATED_TRUTH_AND_SUPERSEDE_WITH_CURRENT_GOVERNANCE",

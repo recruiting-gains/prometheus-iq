@@ -10,6 +10,7 @@ import {
   hasCurrentCanonicalPackageWiringSuccessor,
   hasFullSystemHarmonyPackageWiringSuccessor,
   hasLiveCanonicalIdentityPackageWiringSuccessor,
+  hasLiveCanonicalIdentityVerifierSuccessor,
   verifyOverwatchFounderAttendedProvisioning
 } from "../scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs";
 
@@ -195,6 +196,51 @@ test("Founder-attended governance composes the exact historical and current pack
     predecessorSha256:
       "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a",
     currentPackageSha256: "0".repeat(64)
+  }), false);
+});
+
+test("Founder-attended governance accepts only commit-bound canonical verifier successors", () => {
+  const path = "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs";
+  const currentSha256 = liveCanonicalIdentityGovernance
+    .historicalVerifierReconciliations.founderAttendedPackageVerifiers.commits
+    .at(-1).transitions.find(item => item.path === path).currentSha256;
+  assert.equal(hasLiveCanonicalIdentityVerifierSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    path,
+    currentSha256
+  }), true);
+
+  for (const mutate of [
+    value => {
+      value.historicalVerifierReconciliations.founderAttendedPackageVerifiers
+        .runtimeBehaviorChanged = true;
+    },
+    value => {
+      value.historicalVerifierReconciliations.founderAttendedPackageVerifiers
+        .commits[2].owner = "Prometheus Infrastructure <infrastructure@prometheus.local>";
+    },
+    value => {
+      value.historicalVerifierReconciliations.founderAttendedPackageVerifiers
+        .commits[2].transitions[3].currentSha256 = "0".repeat(64);
+    }
+  ]) {
+    const changed = clone(liveCanonicalIdentityGovernance);
+    mutate(changed);
+    assert.equal(hasLiveCanonicalIdentityVerifierSuccessor({
+      governance: changed,
+      path,
+      currentSha256
+    }), false);
+  }
+  assert.equal(hasLiveCanonicalIdentityVerifierSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    path,
+    currentSha256: "0".repeat(64)
+  }), false);
+  assert.equal(hasLiveCanonicalIdentityVerifierSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    path: "scripts/run-cloudflare-founder-attended-service-token.mjs",
+    currentSha256
   }), false);
 });
 
