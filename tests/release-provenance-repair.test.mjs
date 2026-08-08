@@ -4,10 +4,14 @@ import test from "node:test";
 import {
   currentFullSystemHarmonyIntelligenceSuccessor,
   currentFullSystemHarmonyShadowReadinessSuccessor,
+  currentLiveCanonicalIdentityIntelligenceSuccessor,
+  currentLiveCanonicalIdentityShadowReadinessRepair,
   currentProtectedDriftFixtureIntelligenceSuccessor,
   currentRevenueReadinessIntelligenceSuccessor,
   validateFullSystemHarmonyIntelligenceSuccessor,
   validateFullSystemHarmonyShadowReadinessSuccessor,
+  validateLiveCanonicalIdentityIntelligenceSuccessor,
+  validateLiveCanonicalIdentityShadowReadinessRepair,
   validateProtectedDriftFixtureIntelligenceSuccessor,
   validateRevenueReadinessIntelligenceSuccessor,
   verifyReleaseProvenanceRepair
@@ -41,6 +45,10 @@ test("release provenance composes only exact current Intelligence successors", (
       validateFullSystemHarmonyIntelligenceSuccessor],
     [currentFullSystemHarmonyShadowReadinessSuccessor,
       validateFullSystemHarmonyShadowReadinessSuccessor],
+    [currentLiveCanonicalIdentityIntelligenceSuccessor,
+      validateLiveCanonicalIdentityIntelligenceSuccessor],
+    [currentLiveCanonicalIdentityShadowReadinessRepair,
+      validateLiveCanonicalIdentityShadowReadinessRepair],
     [currentProtectedDriftFixtureIntelligenceSuccessor,
       validateProtectedDriftFixtureIntelligenceSuccessor]
   ]) {
@@ -90,8 +98,12 @@ test("Overwatch verifies Route IQ release provenance repair", () => {
       "c025fd95a8f5141dc4c32af3ca83292711fb1df7",
     currentFullSystemHarmonyIntelligenceSuccessorCommit:
       "2f8992476ca37276b0ee388fe2e33a2158f9d906",
+    currentLiveCanonicalIdentityIntelligenceSuccessorCommit:
+      "56f67124c1beba2f9289538d65e782cd808eacb2",
     currentFullSystemHarmonyShadowReadinessSuccessorCommit:
       "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8",
+    currentLiveCanonicalIdentityShadowReadinessRepairCommit:
+      "0515e5993547e5e1b3a0b5897f12ac53060a8b35",
     currentProtectedDriftFixtureIntelligenceSuccessorCommit:
       "ff63d927c121a0030a0cbb1f041a626ffe7968bc"
   });

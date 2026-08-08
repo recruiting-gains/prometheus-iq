@@ -217,6 +217,28 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
     previousSha256: workflowPreviousSha256,
     currentSha256: workflowCurrentSha256
   }), false);
+
+  const shadowPath = "scripts/verify-shadow-decision-readiness.mjs";
+  const canonicalShadowPreviousSha256 =
+    "856b7f43150cc4eba0a9fee6d2df2f4254f32026dd64d92829cd4df74f17e364";
+  const shadowCurrentSha256 = sha256(readFileSync(resolve(root, shadowPath)));
+  assert.equal(hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+    governance: liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: shadowPath,
+    previousSha256: canonicalShadowPreviousSha256,
+    currentSha256: shadowCurrentSha256
+  }), true);
+  const changedConsumerGovernance = clone(liveCanonicalIdentityGovernance);
+  changedConsumerGovernance.protectedConsumerSuccessors[0].owner =
+    "Prometheus Overwatch <overwatch@prometheus.local>";
+  assert.equal(hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+    governance: changedConsumerGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: shadowPath,
+    previousSha256: canonicalShadowPreviousSha256,
+    currentSha256: shadowCurrentSha256
+  }), false);
 });
 
 test("Overwatch governance accepts the immutable private Workflow v2 owner release", () => {

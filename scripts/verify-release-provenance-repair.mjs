@@ -6,6 +6,10 @@ import fs from "node:fs";
 const batchId = "BATCH-20260713-002";
 const fullSystemHarmonyGovernancePath =
   "overwatch/governance/full-system-harmony-audit-v1.json";
+const liveCanonicalIdentityGovernancePath =
+  "overwatch/governance/live-canonical-identity-migration-v1.json";
+const privateWorkflowGovernancePath =
+  "overwatch/governance/github-actions-private-worker-deployment-v2.json";
 const legacyCommit = "049cf583b04900b2cbf38bbffc5f6293252365d0";
 const intelligenceRepairCommit = "1bb7d09dff254503d56027a87efe0d526228f35a";
 const dashboardRepairCommit = "a665b1b26db02716240b622d0b4d451d019c2896";
@@ -190,6 +194,37 @@ const currentFullSystemHarmonyIntelligenceSuccessorHashes = new Map(
     item.sha256
   ])
 );
+export const currentLiveCanonicalIdentityIntelligenceSuccessor = Object.freeze({
+  commit: "56f67124c1beba2f9289538d65e782cd808eacb2",
+  parent: "dc0f6f96d9208a1041c60f609d1b5dabb294e956",
+  tree: "841aaee1f02c3aa09dde1dc333c2db68cf296f9f",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: adopt canonical identity protected successors",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "intelligence/provenance/protected-baseline-synchronization-live-canonical-identity-v1.json",
+      sha256: "cfb89774373db0928ad5e360ec642a4e49eef3d2d68583aecdab71f61114e562"
+    }),
+    Object.freeze({
+      path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      sha256: "5ee03775a417d214e075881815ef9886520bf9e083c2c912ff6d7a2a85617ea5"
+    }),
+    Object.freeze({
+      path: "tests/read-only-field-session-learning.test.mjs",
+      sha256: "9a7c35d96a326364e023c26fcd8eb1f9ef19be8e8074dcb81862c8cc05fabe66"
+    }),
+    Object.freeze({
+      path: "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+      sha256: "8cd7c6caa9e5557cb50a36d1edd609cf83ce0962cf89651c8ed64e469e0bf944"
+    })
+  ])
+});
+const currentLiveCanonicalIdentityIntelligenceSuccessorHashes = new Map(
+  currentLiveCanonicalIdentityIntelligenceSuccessor.evidence.map(item => [
+    item.path,
+    item.sha256
+  ])
+);
 export const currentFullSystemHarmonyShadowReadinessSuccessor = Object.freeze({
   commit: "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8",
   parent: "0e312cbef36af838dd9f8ba434f2370605f384d4",
@@ -205,6 +240,29 @@ export const currentFullSystemHarmonyShadowReadinessSuccessor = Object.freeze({
 });
 const currentFullSystemHarmonyShadowReadinessSuccessorHashes = new Map(
   currentFullSystemHarmonyShadowReadinessSuccessor.evidence.map(item => [
+    item.path,
+    item.sha256
+  ])
+);
+export const currentLiveCanonicalIdentityShadowReadinessRepair = Object.freeze({
+  commit: "0515e5993547e5e1b3a0b5897f12ac53060a8b35",
+  parent: "cad76ff923278a84245c42749c8d3d1cceb78f4d",
+  tree: "4bcc06a1c15e74e8a7673d21afa8659721ee264a",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: compose canonical archive successor",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "scripts/verify-shadow-decision-readiness.mjs",
+      sha256: "0ef3dff897cb9ed90dd90a81b55e09e7a8649153192c943fd595a8a1f144b12b"
+    }),
+    Object.freeze({
+      path: "tests/shadow-decision-readiness.test.mjs",
+      sha256: "726510bdd55114d81ae0cc1290b884d851f6b1b5dc0b7107e0bd9f78e9e1b4b6"
+    })
+  ])
+});
+const currentLiveCanonicalIdentityShadowReadinessRepairHashes = new Map(
+  currentLiveCanonicalIdentityShadowReadinessRepair.evidence.map(item => [
     item.path,
     item.sha256
   ])
@@ -670,6 +728,55 @@ export function validateFullSystemHarmonyIntelligenceSuccessor(
   );
 }
 
+export function validateLiveCanonicalIdentityIntelligenceSuccessor(
+  record = currentLiveCanonicalIdentityIntelligenceSuccessor
+) {
+  assert.deepEqual(
+    record,
+    currentLiveCanonicalIdentityIntelligenceSuccessor,
+    "Live canonical identity Intelligence successor mapping drifted."
+  );
+  assert.deepEqual(git(
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ).split("\n"), [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Live canonical identity Intelligence successor provenance drifted.");
+  assert.deepEqual(
+    changedPaths(record.commit),
+    record.evidence.map(item => item.path).sort(),
+    "Live canonical identity Intelligence successor path set drifted."
+  );
+  const governance = readJson(privateWorkflowGovernancePath).ownership;
+  assert.deepEqual(
+    governance.intelligenceLiveCanonicalIdentitySuccessorCommit,
+    {
+      commit: record.commit,
+      parent: record.parent,
+      tree: record.tree,
+      author: record.identity,
+      committer: record.identity,
+      subject: record.subject
+    },
+    "Live canonical identity Intelligence owner evidence drifted."
+  );
+  for (const item of record.evidence) {
+    assert.equal(
+      sha256(gitBytes("show", `${record.commit}:${item.path}`)),
+      item.sha256,
+      `${item.path} live canonical identity owner hash drifted.`
+    );
+  }
+  return record;
+}
+
 export function validateProtectedDriftFixtureIntelligenceSuccessor(
   record = currentProtectedDriftFixtureIntelligenceSuccessor
 ) {
@@ -690,6 +797,50 @@ export function validateFullSystemHarmonyShadowReadinessSuccessor(
   );
 }
 
+export function validateLiveCanonicalIdentityShadowReadinessRepair(
+  record = currentLiveCanonicalIdentityShadowReadinessRepair
+) {
+  assert.deepEqual(
+    record,
+    currentLiveCanonicalIdentityShadowReadinessRepair,
+    "Live canonical identity shadow-readiness repair mapping drifted."
+  );
+  assert.deepEqual(git(
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ).split("\n"), [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Live canonical identity shadow-readiness repair provenance drifted.");
+  assert.deepEqual(
+    changedPaths(record.commit),
+    record.evidence.map(item => item.path).sort(),
+    "Live canonical identity shadow-readiness repair path set drifted."
+  );
+  const governance = readJson(liveCanonicalIdentityGovernancePath);
+  const ownerMatches = governance.protectedConsumerSuccessors.filter(item => (
+    item.commit === record.commit
+    && item.tree === record.tree
+    && item.owner === record.identity
+  ));
+  assert.equal(ownerMatches.length, 1,
+    "Live canonical identity shadow-readiness owner evidence drifted.");
+  for (const item of record.evidence) {
+    assert.equal(
+      sha256(gitBytes("show", `${record.commit}:${item.path}`)),
+      item.sha256,
+      `${item.path} live canonical shadow-readiness owner hash drifted.`
+    );
+  }
+  return record;
+}
+
 function composeCurrentIntelligenceSha256(path, previousSha256) {
   let expectedSha256 = previousSha256;
   for (const [record, hashes, label] of [
@@ -707,6 +858,16 @@ function composeCurrentIntelligenceSha256(path, previousSha256) {
       currentProtectedDriftFixtureIntelligenceSuccessor,
       currentProtectedDriftFixtureIntelligenceSuccessorHashes,
       "protected-drift fixture"
+    ],
+    [
+      currentLiveCanonicalIdentityIntelligenceSuccessor,
+      currentLiveCanonicalIdentityIntelligenceSuccessorHashes,
+      "live canonical identity"
+    ],
+    [
+      currentLiveCanonicalIdentityShadowReadinessRepair,
+      currentLiveCanonicalIdentityShadowReadinessRepairHashes,
+      "live canonical identity shadow-readiness"
     ]
   ]) {
     const successorSha256 = hashes.get(path);
@@ -723,7 +884,9 @@ function composeCurrentIntelligenceSha256(path, previousSha256) {
 
 export function validateRevenueReadinessIntelligenceSuccessor(record) {
   validateFullSystemHarmonyIntelligenceSuccessor();
+  validateLiveCanonicalIdentityIntelligenceSuccessor();
   validateFullSystemHarmonyShadowReadinessSuccessor();
+  validateLiveCanonicalIdentityShadowReadinessRepair();
   validateProtectedDriftFixtureIntelligenceSuccessor();
   assert.deepEqual(record, currentRevenueReadinessIntelligenceSuccessor,
     "Revenue-readiness Intelligence successor mapping drifted.");
@@ -1729,8 +1892,12 @@ export function verifyReleaseProvenanceRepair() {
       currentRevenueReadinessIntelligenceSuccessor.commit,
     currentFullSystemHarmonyIntelligenceSuccessorCommit:
       currentFullSystemHarmonyIntelligenceSuccessor.commit,
+    currentLiveCanonicalIdentityIntelligenceSuccessorCommit:
+      currentLiveCanonicalIdentityIntelligenceSuccessor.commit,
     currentFullSystemHarmonyShadowReadinessSuccessorCommit:
       currentFullSystemHarmonyShadowReadinessSuccessor.commit,
+    currentLiveCanonicalIdentityShadowReadinessRepairCommit:
+      currentLiveCanonicalIdentityShadowReadinessRepair.commit,
     currentProtectedDriftFixtureIntelligenceSuccessorCommit:
       currentProtectedDriftFixtureIntelligenceSuccessor.commit
   };

@@ -1069,7 +1069,8 @@ export function hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
 }) {
   const ownerIdentityBySubsystem = new Map([
     ["Prometheus Dashboard", "Prometheus Dashboard <dashboard@prometheus.local>"],
-    ["Prometheus Infrastructure", "Prometheus Infrastructure <infrastructure@prometheus.local>"]
+    ["Prometheus Infrastructure", "Prometheus Infrastructure <infrastructure@prometheus.local>"],
+    ["Prometheus Intelligence Engine", "Prometheus Intelligence Engine <intelligence@prometheus.local>"]
   ]);
   if (governance?.governanceId !== "live-canonical-identity-migration-v1"
     || governance?.ownerSubsystem !== "Prometheus Overwatch"
@@ -1105,16 +1106,40 @@ export function hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
       subject: privateWorkflow.subject
     },
     evidence,
-    exactPaths: privateWorkflow.evidence.map(item => item.path).sort()
+    exactPaths: privateWorkflow.evidence.map(item => item.path).sort(),
+    kind: "privateWorkflow"
   }));
-  const matches = [...readinessMatches, ...privateWorkflowMatches];
+  const protectedConsumerMatches = (governance.protectedConsumerSuccessors ?? [])
+    .flatMap(successor => (successor.evidence ?? []).filter(item => (
+      item.path === path
+      && item.previousSha256 === previousSha256
+      && item.currentSha256 === currentSha256
+    )).map(evidence => ({
+      successor,
+      evidence,
+      exactPaths: successor.evidence.map(item => item.path).sort(),
+      kind: "protectedConsumer"
+    })));
+  const matches = [
+    ...readinessMatches,
+    ...privateWorkflowMatches,
+    ...protectedConsumerMatches
+  ];
   if (matches.length !== 1) return false;
-  const { successor, exactPaths } = matches[0];
+  const { successor, exactPaths, kind } = matches[0];
   if (exactPaths) {
-    if (privateWorkflow.classification !==
+    const privateWorkflowValid = kind === "privateWorkflow"
+      && privateWorkflow.classification ===
         "LIVE_CANONICAL_IDENTITY_PRIVATE_WORKFLOW_SUCCESSOR"
-      || privateWorkflow.historicalContinuityRewritten !== false
-      || privateWorkflow.productionMutationAuthorized !== false
+      && privateWorkflow.historicalContinuityRewritten === false
+      && privateWorkflow.productionMutationAuthorized === false;
+    const protectedConsumerValid = kind === "protectedConsumer"
+      && successor.classification ===
+        "LIVE_CANONICAL_IDENTITY_INTELLIGENCE_CONSUMER_REPAIR"
+      && successor.historicalEvidenceRewritten === false
+      && successor.intelligenceBehaviorChanged === false
+      && successor.recommendationInfluenceChanged === false;
+    if ((!privateWorkflowValid && !protectedConsumerValid)
       || successor.owner !== ownerIdentityBySubsystem.get(successor.subsystem)) {
       return false;
     }

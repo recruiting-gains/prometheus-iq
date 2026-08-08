@@ -163,6 +163,32 @@
       "historicalContractsRewritten": false
     }
   },
+  "protectedConsumerSuccessors": [
+    {
+      "classification": "LIVE_CANONICAL_IDENTITY_INTELLIGENCE_CONSUMER_REPAIR",
+      "subsystem": "Prometheus Intelligence Engine",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "commit": "0515e5993547e5e1b3a0b5897f12ac53060a8b35",
+      "parent": "cad76ff923278a84245c42749c8d3d1cceb78f4d",
+      "tree": "4bcc06a1c15e74e8a7673d21afa8659721ee264a",
+      "subject": "intelligence: compose canonical archive successor",
+      "historicalEvidenceRewritten": false,
+      "intelligenceBehaviorChanged": false,
+      "recommendationInfluenceChanged": false,
+      "evidence": [
+        {
+          "path": "scripts/verify-shadow-decision-readiness.mjs",
+          "previousSha256": "856b7f43150cc4eba0a9fee6d2df2f4254f32026dd64d92829cd4df74f17e364",
+          "currentSha256": "0ef3dff897cb9ed90dd90a81b55e09e7a8649153192c943fd595a8a1f144b12b"
+        },
+        {
+          "path": "tests/shadow-decision-readiness.test.mjs",
+          "previousSha256": "59cc3737e55222816115ef1608c7a43502894935f256a1bc4812d83dbc2c9cbb",
+          "currentSha256": "726510bdd55114d81ae0cc1290b884d851f6b1b5dc0b7107e0bd9f78e9e1b4b6"
+        }
+      ]
+    }
+  ],
   "releasePreparation": {
     "ownerChainHead": {
       "commit": "c7dc84a39de41bc5d87c6f4bd47533a82b8f6f3f",
