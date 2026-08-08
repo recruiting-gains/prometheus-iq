@@ -116,6 +116,9 @@ test("August 1 successor evidence preserves historical pins and rejects drift", 
     value => { value.successors[1].owner =
       "Prometheus Infrastructure <infrastructure@prometheus.local>"; },
     value => { value.successors[1].evidence[1].successorSha256 = "0".repeat(64); },
+    value => { value.successors[10].commit = "0".repeat(40); },
+    value => { value.successors[10].evidence[0].previousSha256 = "0".repeat(64); },
+    value => { value.successors[10].evidence[0].successorSha256 = "0".repeat(64); },
     value => { value.overwatchCurrentEvidence.pop(); }
   ]) {
     const candidate = clone(successors);

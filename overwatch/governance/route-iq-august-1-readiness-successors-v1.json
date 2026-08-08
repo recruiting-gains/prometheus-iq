@@ -11,12 +11,12 @@
     {
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "previousSha256": "8f7a94f86ae419d735f31a6cce3509e459ed4b6df673d32cb8b63ad1586efdff",
-      "successorSha256": "4cda61b89e44d776f5cb3391872231a46d2df6189bf576c4d635ebb127e11110"
+      "successorSha256": "381f727f5e6cdc584ea5e753a2ac9ab819594fb89005df23bd1efc3446d02ac8"
     },
     {
       "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
       "previousSha256": "49d16901c39b8746e1d7ed354315557bf0e7d99adf519101b86c07b1d541524d",
-      "successorSha256": "7c491c0f34244f0362fd1de5849ceb032fcaf8b6ed3e116eced48b90943e6e97"
+      "successorSha256": "a0c25bacdd223df92b81f6beca3854dfdfa2f43afaa1d04ba5bcc70328dd2e33"
     }
   ],
   "successors": [
@@ -212,6 +212,19 @@
           "path": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
           "previousSha256": "df9a90e39076df62bb6c3ec521a9dd86afe8d65f0836645237dbc2d08c69302d",
           "successorSha256": "4477ddff8777d95e74023a09f2e9a7895060e1d290eeb5d9b2557ca620d827c7"
+        }
+      ]
+    },
+    {
+      "commit": "254218013ea7ef29eb679220a6219fd976c1a39f",
+      "tree": "9cf5db1956ced5381d4c1759822849f58a43a8d0",
+      "owner": "Prometheus Dashboard <dashboard@prometheus.local>",
+      "reason": "The Dashboard owner aligns the production browser harness with the approved full Prometheus Route IQ title while preserving runtime behavior, tenant controls, and inactive-product exclusions.",
+      "evidence": [
+        {
+          "path": "scripts/verify-dashboard-runtime-workflows.mjs",
+          "previousSha256": "ceedb7133621557fe188ccc9fec676a7d57b2b257e38b76855c6d1e98e0c29f5",
+          "successorSha256": "f15bef69f0bffc9104b64f71fd7328df3da4f711d73270226ff67e259789bb9c"
         }
       ]
     }

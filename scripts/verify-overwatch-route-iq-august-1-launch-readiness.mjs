@@ -593,7 +593,7 @@ export function validateAugust1ReadinessSuccessors(successors) {
     "route-iq-august-1-readiness-successors-v1");
   assert.equal(successors.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(successors.historicalCloseoutEvidenceRewritten, false);
-  assert.equal(successors.successors.length, 10);
+  assert.equal(successors.successors.length, 11);
   const infrastructureSuccessor = successors.successors[0];
   assert.equal(infrastructureSuccessor.commit,
     "96c8210b94c3b0214dede252aba3d6d46121cd05");
@@ -679,7 +679,8 @@ export function validateAugust1ReadinessSuccessors(successors) {
       "9647934b75c46218f6af6304e8d169ccf7285529",
       "f0782326c2339622feef098c22cf9330c342ae0b",
       "c4cb9150fb8ad218e34026a63fa577271860c270",
-      "e225b9e6380416cceddbfe10ee7aa318b123e75c"
+      "e225b9e6380416cceddbfe10ee7aa318b123e75c",
+      "254218013ea7ef29eb679220a6219fd976c1a39f"
     ]
   );
   for (const successor of successors.successors.slice(4)) {
@@ -697,6 +698,18 @@ export function validateAugust1ReadinessSuccessors(successors) {
       assert.notEqual(evidence.previousSha256, evidence.successorSha256);
     }
   }
+  const canonicalIdentityHarnessSuccessor = successors.successors[10];
+  assert.equal(canonicalIdentityHarnessSuccessor.commit,
+    "254218013ea7ef29eb679220a6219fd976c1a39f");
+  assert.equal(canonicalIdentityHarnessSuccessor.tree,
+    "9cf5db1956ced5381d4c1759822849f58a43a8d0");
+  assert.equal(canonicalIdentityHarnessSuccessor.owner,
+    "Prometheus Dashboard <dashboard@prometheus.local>");
+  assert.deepEqual(canonicalIdentityHarnessSuccessor.evidence, [{
+    path: "scripts/verify-dashboard-runtime-workflows.mjs",
+    previousSha256: "ceedb7133621557fe188ccc9fec676a7d57b2b257e38b76855c6d1e98e0c29f5",
+    successorSha256: "f15bef69f0bffc9104b64f71fd7328df3da4f711d73270226ff67e259789bb9c"
+  }]);
   assert.ok(Array.isArray(successors.overwatchCurrentEvidence));
   assert.deepEqual(
     sorted(successors.overwatchCurrentEvidence.map(item => item.path)),
@@ -715,10 +728,33 @@ export function validateAugust1ReadinessSuccessors(successors) {
 }
 
 function successorEvidenceMap(successors) {
-  return new Map([
+  const evidenceByPath = new Map();
+  for (const item of [
     ...successors.successors.flatMap(successor => successor.evidence),
     ...successors.overwatchCurrentEvidence
-  ].map(item => [item.path, item]));
+  ]) {
+    const evidence = evidenceByPath.get(item.path) ?? [];
+    evidence.push(item);
+    evidenceByPath.set(item.path, evidence);
+  }
+  return evidenceByPath;
+}
+
+function successorChainReaches(evidence, historicalSha256, currentSha256) {
+  const pending = [historicalSha256];
+  const visited = new Set();
+  while (pending.length > 0) {
+    const candidate = pending.shift();
+    if (candidate === currentSha256) return true;
+    if (visited.has(candidate)) continue;
+    visited.add(candidate);
+    for (const item of evidence) {
+      if (item.previousSha256 === candidate && !visited.has(item.successorSha256)) {
+        pending.push(item.successorSha256);
+      }
+    }
+  }
+  return false;
 }
 
 function verifySuccessorOwnerChain(root, successors) {
@@ -736,12 +772,13 @@ function verifyArtifactPins(root, contract, successors) {
   for (const artifact of contract.artifactPins) {
     assertRegularFile(root, artifact.path);
     const actual = sha256(read(root, artifact.path));
-    const successor = accepted.get(artifact.path);
-    if (actual !== artifact.sha256 && successor) {
-      assert.equal(successor.previousSha256, artifact.sha256,
-        `Historical launch pin was not preserved: ${artifact.path}`);
-      assert.equal(successor.successorSha256, actual,
-        `Launch successor evidence drifted: ${artifact.path}`);
+    const successorEvidence = accepted.get(artifact.path);
+    if (actual !== artifact.sha256 && successorEvidence) {
+      assert.equal(
+        successorChainReaches(successorEvidence, artifact.sha256, actual),
+        true,
+        `Launch successor evidence drifted: no chain connects the historical pin to the current artifact: ${artifact.path}`
+      );
       continue;
     }
     assert.equal(
