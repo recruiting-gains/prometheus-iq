@@ -5,11 +5,13 @@ import test from "node:test";
 import {
   controlledOnboardingRehearsalSmokeContractProvenancePath,
   crossIndustryZipFounderAccessProvenancePath,
+  fieldSessionReportTypeContractProtectedSuccessorProvenancePath,
   fullSystemHarmonyProtectedSuccessorProvenancePath,
   liveCanonicalIdentityProtectedSuccessorProvenancePath,
   paidCustomerRevenueReadinessWorkerProvenancePath,
   verifyControlledOnboardingRehearsalSmokeContractSuccessor,
   verifyCrossIndustryZipFounderAccessAdoption,
+  verifyFieldSessionReportTypeContractProtectedSuccessor,
   verifyFullSystemHarmonyProtectedSuccessor,
   verifyLiveCanonicalIdentityProtectedSuccessor,
   verifyPaidCustomerRevenueReadinessWorkerSuccessor
@@ -185,6 +187,38 @@ test("live canonical identity composes exact Data, Dashboard, and Infrastructure
   assert.equal(verified.successor.coherence.identityPresentationOnly, true);
   assert.equal(verified.successor.coherence.dataRecordCompatibilityOnly, true);
   assert.equal(verified.successor.coherence.intelligenceRuntimeChanged, false);
+  assert.equal(verified.successor.boundaries.prospectiveCollection, "OFF");
+  assert.equal(verified.successor.boundaries.recommendationInfluence, "OFF");
+});
+
+test("field-session report-type successor composes exact Data and Dashboard owner repairs", () => {
+  const successor = readJson(
+    fieldSessionReportTypeContractProtectedSuccessorProvenancePath
+  );
+  const verified = verifyFieldSessionReportTypeContractProtectedSuccessor();
+  const data = verified.successorTransitionsByPath
+    .get("data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs")[0];
+  const dataTest = verified.successorTransitionsByPath
+    .get("tests/route-iq-field-session-archive.test.mjs")[0];
+  const dashboardTest = verified.successorTransitionsByPath
+    .get("tests/dashboard-route-iq-field-session-producer.test.mjs")[0];
+
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(data.ownerSubsystem, "Prometheus Data");
+  assert.equal(dataTest.commit, data.commit);
+  assert.equal(dashboardTest.ownerSubsystem, "Prometheus Dashboard");
+  assert.equal(data.previousSha256,
+    "4b682c744aa19fa53813dfac838a638810e55c3067033f1cf711e83df6ee73c3");
+  assert.equal(data.currentSha256,
+    "5b4bc3d49596b3b4fa3c348ece30344f852f92056b0ceb8db8007cacbdfe2d2a");
+  assert.deepEqual(successor.reportTypeContract.exactAllowlist, [
+    "route-iq-daily-representative-report-v1",
+    "beta-daily-rep-report"
+  ]);
+  assert.equal(successor.archiveEvidencePreservation.length, 6);
+  assert.equal(verified.successor.coherence.rawEvidenceRewritten, false);
+  assert.equal(verified.successor.coherence.routeScoringChanged, false);
   assert.equal(verified.successor.boundaries.prospectiveCollection, "OFF");
   assert.equal(verified.successor.boundaries.recommendationInfluence, "OFF");
 });

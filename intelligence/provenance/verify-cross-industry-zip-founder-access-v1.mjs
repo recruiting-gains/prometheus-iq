@@ -16,6 +16,8 @@ export const fullSystemHarmonyProtectedSuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-full-system-harmony-v1.json";
 export const liveCanonicalIdentityProtectedSuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-live-canonical-identity-v1.json";
+export const fieldSessionReportTypeContractProtectedSuccessorProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json";
 const crossIndustryDashboardRetentionProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json";
 
@@ -334,18 +336,6 @@ function verifyLiveCanonicalIdentityProtectedSuccessorAgainst(
   for (const [path, transitions] of successorTransitionsByPath) {
     if (!transitionsByPath.has(path)) transitionsByPath.set(path, transitions);
   }
-  for (const [path, transitions] of transitionsByPath) {
-    assert.equal(
-      sha256(path),
-      transitions.at(-1).currentSha256,
-      `Current live canonical identity protected source changed: ${path}`
-    );
-  }
-  assert.equal(
-    sha256("index.html"),
-    sha256("deploy/cloudflare-pages/index.html"),
-    "Live canonical identity source and deploy mirror diverged."
-  );
   assert.deepEqual(successor.coherence, {
     historicalFullSystemHarmonyEvidenceRewritten: false,
     successorCommitAndTreeVerified: true,
@@ -362,6 +352,135 @@ function verifyLiveCanonicalIdentityProtectedSuccessorAgainst(
     successor.boundaries,
     fullSystemHarmonySuccessor.successor.boundaries
   );
+  return Object.freeze({
+    successor,
+    successorTransitionsByPath,
+    transitionsByPath
+  });
+}
+
+function verifyFieldSessionReportTypeContractProtectedSuccessorAgainst(
+  liveCanonicalIdentitySuccessor
+) {
+  const successor = JSON.parse(
+    read(fieldSessionReportTypeContractProtectedSuccessorProvenancePath)
+  );
+  assert.equal(
+    successor.version,
+    "route-iq-intelligence-field-session-report-type-contract-successor-v1"
+  );
+  assert.equal(successor.status, "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(
+    successor.predecessor.path,
+    liveCanonicalIdentityProtectedSuccessorProvenancePath
+  );
+  assert.equal(
+    sha256(successor.predecessor.path),
+    successor.predecessor.sha256,
+    "Historical live canonical identity Intelligence provenance changed."
+  );
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(successor.protectedSourceTransitions.length, 3);
+
+  const successorTransitionsByPath = new Map();
+  for (const transition of successor.protectedSourceTransitions) {
+    assert.ok(
+      !successorTransitionsByPath.has(transition.path),
+      `Duplicate field-session report-type protected path: ${transition.path}`
+    );
+    const predecessorTransitions = liveCanonicalIdentitySuccessor.transitionsByPath
+      .get(transition.path);
+    if (predecessorTransitions) {
+      assert.equal(
+        transition.previousSha256,
+        predecessorTransitions.at(-1).currentSha256,
+        `Broken field-session report-type transition chain: ${transition.path}`
+      );
+    }
+    verifyTransition(transition.path, transition);
+    successorTransitionsByPath.set(transition.path, [transition]);
+  }
+  assert.deepEqual(
+    [...successorTransitionsByPath.keys()].sort(),
+    [
+      "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+      "tests/dashboard-route-iq-field-session-producer.test.mjs",
+      "tests/route-iq-field-session-archive.test.mjs"
+    ]
+  );
+
+  const transitionsByPath = new Map();
+  for (const [path, transitions] of liveCanonicalIdentitySuccessor.transitionsByPath) {
+    transitionsByPath.set(path, [
+      ...transitions,
+      ...(successorTransitionsByPath.get(path) || [])
+    ]);
+  }
+  for (const [path, transitions] of successorTransitionsByPath) {
+    if (!transitionsByPath.has(path)) transitionsByPath.set(path, transitions);
+  }
+  for (const [path, transitions] of transitionsByPath) {
+    assert.equal(
+      sha256(path),
+      transitions.at(-1).currentSha256,
+      `Current field-session report-type protected source changed: ${path}`
+    );
+  }
+  assert.equal(
+    sha256("index.html"),
+    sha256("deploy/cloudflare-pages/index.html"),
+    "Field-session repair changed Dashboard source/deploy parity."
+  );
+  assert.deepEqual(successor.reportTypeContract, {
+    canonical: "route-iq-daily-representative-report-v1",
+    legacy: "beta-daily-rep-report",
+    exactAllowlist: [
+      "route-iq-daily-representative-report-v1",
+      "beta-daily-rep-report"
+    ],
+    preserveReceivedSourceReportType: true,
+    normalizeLegacyIdentifier: false,
+    unknownTypesFailClosed: true
+  });
+  assert.equal(successor.archiveEvidencePreservation.length, 6);
+  for (const artifact of successor.archiveEvidencePreservation) {
+    assert.equal(
+      sha256(artifact.path),
+      artifact.sha256,
+      `Historical field-session evidence changed: ${artifact.path}`
+    );
+  }
+  assert.deepEqual(successor.coherence, {
+    historicalLiveCanonicalEvidenceRewritten: false,
+    successorCommitAndTreeVerified: true,
+    successorOwnerIdentityVerified: true,
+    dashboardProducerContractDerived: true,
+    rawEvidenceRewritten: false,
+    deterministicSessionIdentityChanged: false,
+    retentionSemanticsChanged: false,
+    intelligenceRuntimeChanged: false,
+    routeOrderingChanged: false,
+    routeScoringChanged: false,
+    businessHoursEligibilityChanged: false
+  });
+  assert.deepEqual(successor.boundaries, {
+    prospectiveCollection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    canonicalProspectiveRecords: 0,
+    canonicalProspectiveEvaluations: 0,
+    providers: "OFF",
+    scheduler: "OFF",
+    companion: "DORMANT",
+    anthonyMapped: false,
+    stripeMode: "NON_LIVE",
+    dashboardBehaviorChanged: false,
+    deploymentPerformed: false,
+    productionAccessPerformed: false,
+    productionMutationPerformed: false
+  });
   return Object.freeze({
     successor,
     successorTransitionsByPath,
@@ -462,9 +581,13 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     verifyLiveCanonicalIdentityProtectedSuccessorAgainst(
       fullSystemHarmonySuccessor
     );
+  const fieldSessionReportTypeContractProtectedSuccessor =
+    verifyFieldSessionReportTypeContractProtectedSuccessorAgainst(
+      liveCanonicalIdentityProtectedSuccessor
+    );
   for (const protectedTransition of transitionByPath.values()) {
     const revenueTransitions =
-      liveCanonicalIdentityProtectedSuccessor.transitionsByPath
+      fieldSessionReportTypeContractProtectedSuccessor.transitionsByPath
         .get(protectedTransition.path);
     const expectedSha256 = revenueTransitions
       ? revenueTransitions.at(-1).currentSha256
@@ -480,7 +603,8 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     transitionByPath,
     revenueReadinessSuccessor,
     fullSystemHarmonySuccessor,
-    liveCanonicalIdentityProtectedSuccessor
+    liveCanonicalIdentityProtectedSuccessor,
+    fieldSessionReportTypeContractProtectedSuccessor
   });
 }
 
@@ -497,6 +621,11 @@ export function verifyFullSystemHarmonyProtectedSuccessor() {
 export function verifyLiveCanonicalIdentityProtectedSuccessor() {
   return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
     .liveCanonicalIdentityProtectedSuccessor;
+}
+
+export function verifyFieldSessionReportTypeContractProtectedSuccessor() {
+  return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .fieldSessionReportTypeContractProtectedSuccessor;
 }
 
 export function verifyCrossIndustryZipFounderAccessAdoption() {
@@ -538,7 +667,8 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
     const rehearsalTransition =
       rehearsalSuccessor.transitionByPath.get(successor.path);
     const revenueReadinessTransitions =
-      rehearsalSuccessor.liveCanonicalIdentityProtectedSuccessor.transitionsByPath
+      rehearsalSuccessor.fieldSessionReportTypeContractProtectedSuccessor
+        .transitionsByPath
         .get(successor.path) || [];
     if (rehearsalTransition) {
       assert.equal(
@@ -562,7 +692,8 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
     transitionByPath.set(successor.path, currentSuccessor);
   }
   for (const [path, transitions] of
-    rehearsalSuccessor.liveCanonicalIdentityProtectedSuccessor.transitionsByPath) {
+    rehearsalSuccessor.fieldSessionReportTypeContractProtectedSuccessor
+      .transitionsByPath) {
     if (transitionByPath.has(path)) continue;
     transitionByPath.set(path, {
       path,

@@ -1,0 +1,108 @@
+{
+  "version": "route-iq-intelligence-field-session-report-type-contract-successor-v1",
+  "directive": "Field Session Report Type Contract Drift Repair v1",
+  "status": "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Compose the exact Data-owned canonical and legacy report-type compatibility repair with the Dashboard-owned producer-derived fixture without rewriting historical evidence or changing Intelligence behavior.",
+  "predecessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-live-canonical-identity-v1.json",
+    "sha256": "cfb89774373db0928ad5e360ec642a4e49eef3d2d68583aecdab71f61114e562",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "protectedSourceTransitions": [
+    {
+      "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "c7f854047b0091fc29e671a97c7c9d21dfcf2dff",
+      "tree": "d387916343d2c55111efeadf8e9eb709c5379747",
+      "subject": "data: accept canonical field-session report type",
+      "previousSha256": "4b682c744aa19fa53813dfac838a638810e55c3067033f1cf711e83df6ee73c3",
+      "currentSha256": "5b4bc3d49596b3b4fa3c348ece30344f852f92056b0ceb8db8007cacbdfe2d2a"
+    },
+    {
+      "path": "tests/route-iq-field-session-archive.test.mjs",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "c7f854047b0091fc29e671a97c7c9d21dfcf2dff",
+      "tree": "d387916343d2c55111efeadf8e9eb709c5379747",
+      "subject": "data: accept canonical field-session report type",
+      "previousSha256": "f13a7b9c6729d3269b58b4c94f1bd529b9d0a59ebbcca6af03f5fa1087635175",
+      "currentSha256": "2d88333c79d3bcb8487bcc537225de12153bb66939226198146ce9e434e79381"
+    },
+    {
+      "path": "tests/dashboard-route-iq-field-session-producer.test.mjs",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "commit": "bbed83c62e6c8d2c73ce287161df282005f99187",
+      "tree": "bf5eefb132663c5a2fc0b424cf9613e69455ca86",
+      "subject": "dashboard: bind field-session fixture to producer",
+      "previousSha256": "5bd7e5da3f7597034ca684f02d45026c6244025429a2e348ed2395aed59be9dd",
+      "currentSha256": "6f676f95c2f56bde6457c197b1fe917fa4d3b594c0bae971fb0faf51f9122477"
+    }
+  ],
+  "reportTypeContract": {
+    "canonical": "route-iq-daily-representative-report-v1",
+    "legacy": "beta-daily-rep-report",
+    "exactAllowlist": [
+      "route-iq-daily-representative-report-v1",
+      "beta-daily-rep-report"
+    ],
+    "preserveReceivedSourceReportType": true,
+    "normalizeLegacyIdentifier": false,
+    "unknownTypesFailClosed": true
+  },
+  "archiveEvidencePreservation": [
+    {
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/evidence/stress-test-observations.json",
+      "sha256": "6030bd109659140b00c012fbf09e6a05d63c23f197a58daec8bc63dd2603179e"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/manifest.json",
+      "sha256": "e0bc2cc65e1c67fb39784c3a1fe87732875b64b6f5f2365df1924da5083265ba"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/calculated-metrics.json",
+      "sha256": "71171b79aa725e533113f5cc1d040b13f6fc5cb3b5b4cdee993e8d4b836de911"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json",
+      "sha256": "b162ba286debf97461e2f2e172377ed00b07c6c755cd152678e7a944dbccafc8"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/history-updates.json",
+      "sha256": "0d3f2508b92290b04a1d7b1cc979ee298eea97c9dda84061dbe66e2bea5b5c09"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/raw/prometheus-iq-cruz-daily-report-2026-07-11.json",
+      "sha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a"
+    }
+  ],
+  "coherence": {
+    "historicalLiveCanonicalEvidenceRewritten": false,
+    "successorCommitAndTreeVerified": true,
+    "successorOwnerIdentityVerified": true,
+    "dashboardProducerContractDerived": true,
+    "rawEvidenceRewritten": false,
+    "deterministicSessionIdentityChanged": false,
+    "retentionSemanticsChanged": false,
+    "intelligenceRuntimeChanged": false,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "businessHoursEligibilityChanged": false
+  },
+  "boundaries": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "canonicalProspectiveRecords": 0,
+    "canonicalProspectiveEvaluations": 0,
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "companion": "DORMANT",
+    "anthonyMapped": false,
+    "stripeMode": "NON_LIVE",
+    "dashboardBehaviorChanged": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}
