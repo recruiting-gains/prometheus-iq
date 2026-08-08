@@ -38,6 +38,8 @@ const liveCanonicalIdentityGovernancePath =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
 const currentReadinessSuccessorsPath =
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
+const fieldSessionReportTypeGovernancePath =
+  "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json";
 
 const historicalOwnerCommit = "7f67855145104034b32551e25d2ebf407ce2369c";
 const historicalOwnerRepairCommit = "335f75fa1d7e32160624e9ebe197d11a03e77b4e";
@@ -220,6 +222,12 @@ const v2LiveCanonicalIdentityIntelligenceSuccessorParent =
   "dc0f6f96d9208a1041c60f609d1b5dabb294e956";
 const v2LiveCanonicalIdentityIntelligenceSuccessorTree =
   "841aaee1f02c3aa09dde1dc333c2db68cf296f9f";
+const v2FieldSessionReportTypeIntelligenceSuccessorCommit =
+  "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18";
+const v2FieldSessionReportTypeIntelligenceSuccessorParent =
+  "bbed83c62e6c8d2c73ce287161df282005f99187";
+const v2FieldSessionReportTypeIntelligenceSuccessorTree =
+  "38ce2be37f66f49202967a285a003755ebc21dcc";
 const v2FullSystemHarmonyShadowReadinessSuccessorCommit =
   "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8";
 const v2FullSystemHarmonyShadowReadinessSuccessorParent =
@@ -847,6 +855,15 @@ const v2LiveCanonicalIdentityIntelligenceSuccessorHashes = Object.freeze({
     "8cd7c6caa9e5557cb50a36d1edd609cf83ce0962cf89651c8ed64e469e0bf944"
 });
 
+const v2FieldSessionReportTypeIntelligenceSuccessorHashes = Object.freeze({
+  "intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json":
+    "77c88bc9a18d852c4b937303918be47a17b2423eba46c142cf5d2d4e9d5a0198",
+  "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs":
+    "9ecd9ca37e8d42209aaf7b53cb0bcae06f431bee29059a81fd5b1333863118c1",
+  "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs":
+    "04014936bb2bebbb1b17c22048449b325e8667c8809f9ba382e7532ee6a4ff4b"
+});
+
 const v2FullSystemHarmonyShadowReadinessSuccessorHashes = Object.freeze({
   "scripts/verify-shadow-decision-readiness.mjs":
     "856b7f43150cc4eba0a9fee6d2df2f4254f32026dd64d92829cd4df74f17e364"
@@ -1291,6 +1308,49 @@ function section(source, start, end) {
 
 function evidenceMap(hashes) {
   return Object.entries(hashes).map(([path, hash]) => ({ path, sha256: hash }));
+}
+
+export function evaluatePrivateWorkflowV2FieldSessionReportTypeSuccessor({
+  governance
+}) {
+  const failures = [];
+  const require = (condition, message) => {
+    if (!condition) failures.push(message);
+  };
+  const ownerRecord = governance?.ownerCommits?.find(
+    record => record.commit === v2FieldSessionReportTypeIntelligenceSuccessorCommit
+  );
+  require(
+    governance?.governanceId === "field-session-report-type-contract-drift-repair-v1"
+      && governance?.ownerSubsystem === "Prometheus Overwatch",
+    "Private Workflow v2 field-session governance identity drifted."
+  );
+  require(ownerRecord?.ownerSubsystem === "Prometheus Intelligence Engine"
+    && ownerRecord?.identity === intelligenceIdentity
+    && ownerRecord?.parent === v2FieldSessionReportTypeIntelligenceSuccessorParent
+    && ownerRecord?.tree === v2FieldSessionReportTypeIntelligenceSuccessorTree
+    && ownerRecord?.subject === "intelligence: compose field-session report contract repair",
+  "Private Workflow v2 field-session Intelligence provenance drifted.");
+  require(equal(ownerRecord?.paths, Object.keys(
+    v2FieldSessionReportTypeIntelligenceSuccessorHashes
+  )), "Private Workflow v2 field-session Intelligence path set drifted.");
+  require(equal(governance?.acceptedContract?.exactReportTypeAllowlist, [
+    "route-iq-daily-representative-report-v1",
+    "beta-daily-rep-report"
+  ])
+    && governance?.acceptedContract?.allOtherTypesFailClosed === true
+    && governance?.acceptedContract?.legacyIdentifierNormalized === false,
+  "Private Workflow v2 field-session report contract drifted.");
+  require(governance?.protectedState?.collection === "OFF"
+    && governance?.protectedState?.activeCohorts === 0
+    && governance?.protectedState?.recommendationInfluence === "OFF"
+    && governance?.releaseBoundary?.deploymentAuthorized === false
+    && governance?.releaseBoundary?.productionMutationAuthorized === false,
+  "Private Workflow v2 field-session protected boundary drifted.");
+  return Object.freeze({
+    ok: failures.length === 0,
+    failures: Object.freeze(failures)
+  });
 }
 
 export function evaluateGithubActionsPrivateWorkerWorkflow(workflow) {
@@ -3115,6 +3175,9 @@ function verifyOwnerHistory(governance) {
 
 function verifyV2OwnerAndGovernance() {
   const governance = readJson(governanceV2Path);
+  const fieldSessionReportTypeGovernance = readJson(
+    fieldSessionReportTypeGovernancePath
+  );
   const rehearsalGovernance = readJson(
     "overwatch/governance/controlled-paid-customer-onboarding-rehearsal-v1.json"
   );
@@ -3127,6 +3190,13 @@ function verifyV2OwnerAndGovernance() {
     contract
   });
   if (!evaluation.ok) throw new Error(evaluation.failures.join("\n"));
+  const fieldSessionEvaluation =
+    evaluatePrivateWorkflowV2FieldSessionReportTypeSuccessor({
+      governance: fieldSessionReportTypeGovernance
+    });
+  if (!fieldSessionEvaluation.ok) {
+    throw new Error(fieldSessionEvaluation.failures.join("\n"));
+  }
 
   const metadata = git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
@@ -3707,6 +3777,23 @@ function verifyV2OwnerAndGovernance() {
       }
       acceptedCurrentSha256 = canonicalIdentitySuccessorSha256;
     }
+    const fieldSessionReportTypeSuccessorSha256 =
+      v2FieldSessionReportTypeIntelligenceSuccessorHashes[path];
+    if (fieldSessionReportTypeSuccessorSha256) {
+      const predecessorSha256 = sha256(execFileSync("/usr/bin/git", [
+        "show", `${v2FieldSessionReportTypeIntelligenceSuccessorParent}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }));
+      if (predecessorSha256 !== acceptedCurrentSha256) {
+        throw new Error(
+          `Private Workflow v2 field-session Intelligence chain drifted: ${path}`
+        );
+      }
+      acceptedCurrentSha256 = fieldSessionReportTypeSuccessorSha256;
+    }
     const shadowReadinessSuccessorSha256 =
       v2FullSystemHarmonyShadowReadinessSuccessorHashes[path];
     if (shadowReadinessSuccessorSha256) {
@@ -3855,6 +3942,23 @@ function verifyV2OwnerAndGovernance() {
       }
       acceptedCurrentSha256 = canonicalIdentitySuccessorSha256;
     }
+    const fieldSessionReportTypeSuccessorSha256 =
+      v2FieldSessionReportTypeIntelligenceSuccessorHashes[path];
+    if (fieldSessionReportTypeSuccessorSha256) {
+      const predecessorSha256 = sha256(execFileSync("/usr/bin/git", [
+        "show", `${v2FieldSessionReportTypeIntelligenceSuccessorParent}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }));
+      if (predecessorSha256 !== acceptedCurrentSha256) {
+        throw new Error(
+          `Private Workflow v2 field-session successor chain drifted: ${path}`
+        );
+      }
+      acceptedCurrentSha256 = fieldSessionReportTypeSuccessorSha256;
+    }
     const shadowReadinessSuccessorSha256 =
       v2FullSystemHarmonyShadowReadinessSuccessorHashes[path];
     if (shadowReadinessSuccessorSha256) {
@@ -3983,6 +4087,46 @@ function verifyV2OwnerAndGovernance() {
     if (sha256(committed) !== expected) {
       throw new Error(
         `Private Workflow v2 canonical-identity Intelligence evidence drifted: ${path}`
+      );
+    }
+  }
+  const fieldSessionMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    v2FieldSessionReportTypeIntelligenceSuccessorCommit
+  ]).split("\n");
+  if (!equal(fieldSessionMetadata, [
+    v2FieldSessionReportTypeIntelligenceSuccessorCommit,
+    v2FieldSessionReportTypeIntelligenceSuccessorParent,
+    v2FieldSessionReportTypeIntelligenceSuccessorTree,
+    intelligenceIdentity,
+    intelligenceIdentity,
+    "intelligence: compose field-session report contract repair"
+  ])) {
+    throw new Error(
+      "Private Workflow v2 field-session Intelligence provenance drifted."
+    );
+  }
+  const fieldSessionPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    v2FieldSessionReportTypeIntelligenceSuccessorCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(
+    fieldSessionPaths,
+    Object.keys(v2FieldSessionReportTypeIntelligenceSuccessorHashes)
+  )) {
+    throw new Error(
+      "Private Workflow v2 field-session Intelligence path set drifted."
+    );
+  }
+  for (const [path, expected] of Object.entries(
+    v2FieldSessionReportTypeIntelligenceSuccessorHashes
+  )) {
+    const committed = execFileSync("/usr/bin/git", [
+      "show", `${v2FieldSessionReportTypeIntelligenceSuccessorCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    if (sha256(committed) !== expected) {
+      throw new Error(
+        `Private Workflow v2 field-session Intelligence evidence drifted: ${path}`
       );
     }
   }

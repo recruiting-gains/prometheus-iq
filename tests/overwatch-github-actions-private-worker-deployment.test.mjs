@@ -10,6 +10,7 @@ import {
   evaluateGithubActionsPrivateWorkerDeploymentGovernance,
   evaluateGithubActionsPrivateWorkerSuccessorOwnership,
   evaluateGithubActionsPrivateWorkerV2Governance,
+  evaluatePrivateWorkflowV2FieldSessionReportTypeSuccessor,
   evaluateGithubActionsPrivateWorkerWorkflow,
   hasLiveCanonicalIdentityOwnerEvidenceSuccessor,
   verifyOverwatchGithubActionsPrivateWorkerDeployment
@@ -41,6 +42,9 @@ const liveCanonicalIdentityGovernance = readJson(
 );
 const currentReadinessSuccessors = readJson(
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
+);
+const fieldSessionReportTypeGovernance = readJson(
+  "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json"
 );
 
 function evaluate(nextGovernance = governance, nextReport = report, nextContract = contract) {
@@ -1021,5 +1025,26 @@ test("private Workflow v2 governance rejects controlled-rehearsal successor drif
       contract: contractV2
     });
     assert.equal(result.ok, false);
+  }
+});
+
+test("private Workflow v2 admits only the exact field-session Intelligence successor", () => {
+  assert.equal(evaluatePrivateWorkflowV2FieldSessionReportTypeSuccessor({
+    governance: fieldSessionReportTypeGovernance
+  }).ok, true);
+
+  for (const mutate of [
+    value => { value.ownerCommits[2].commit = "0".repeat(40); },
+    value => { value.ownerCommits[2].identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.ownerCommits[2].paths[0] = "workers/infrastructure/unauthorized"; },
+    value => { value.acceptedContract.exactReportTypeAllowlist.push("report-prefix-v1"); },
+    value => { value.protectedState.collection = "ON"; },
+    value => { value.releaseBoundary.deploymentAuthorized = true; }
+  ]) {
+    const candidate = clone(fieldSessionReportTypeGovernance);
+    mutate(candidate);
+    assert.equal(evaluatePrivateWorkflowV2FieldSessionReportTypeSuccessor({
+      governance: candidate
+    }).ok, false);
   }
 });
