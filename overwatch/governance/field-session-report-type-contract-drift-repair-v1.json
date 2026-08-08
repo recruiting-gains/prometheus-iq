@@ -90,6 +90,51 @@
         "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
         "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
       ]
+    },
+    {
+      "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "commit": "e0493327b2bf068b13df14b49513d7d3b4b7cf28",
+      "tree": "cbc79b0eb3d924c4201675188336ba2b05fc2166",
+      "parent": "68d0d3dfbe75882f3f51e23a0b2cbc403b37bd8a",
+      "subject": "overwatch: bind field-session repair owner chain",
+      "paths": [
+        "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json",
+        "tests/live-canonical-identity-migration-v1.test.mjs"
+      ]
+    },
+    {
+      "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "commit": "5a4f49e2ae06288940b6df14dc9f5d37854bc9b9",
+      "tree": "af00750aa421d83159d4aee76d571745740c511c",
+      "parent": "e0493327b2bf068b13df14b49513d7d3b4b7cf28",
+      "subject": "overwatch: compose field-session rehearsal successor",
+      "paths": [
+        "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+        "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs"
+      ]
+    },
+    {
+      "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "commit": "8608b8217311cd9833190eab7b29e30e80573a3a",
+      "tree": "cf6f9f9ac80edb4ddfd69571057ffbffcb989a8c",
+      "parent": "5a4f49e2ae06288940b6df14dc9f5d37854bc9b9",
+      "subject": "overwatch: chain field-session retention successor",
+      "paths": [
+        "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json",
+        "scripts/verify-overwatch-route-iq-prospective-evidence-retention.mjs",
+        "tests/overwatch-route-iq-prospective-evidence-retention.test.mjs"
+      ]
+    },
+    {
+      "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "commit": "5f08ab750862d382634dbe1fecb1aefaa40862eb",
+      "tree": "39b53fc645006ac6bc9dfd2ad15eeb76160af348",
+      "parent": "8608b8217311cd9833190eab7b29e30e80573a3a",
+      "subject": "overwatch: compose field-session workflow successor",
+      "paths": [
+        "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
+        "tests/overwatch-github-actions-private-worker-deployment.test.mjs"
+      ]
     }
   ],
   "acceptedContract": {
@@ -148,6 +193,10 @@
       "c7f854047b0091fc29e671a97c7c9d21dfcf2dff"
     ],
     "latestFirstGovernanceCommits": [
+      "5f08ab750862d382634dbe1fecb1aefaa40862eb",
+      "8608b8217311cd9833190eab7b29e30e80573a3a",
+      "5a4f49e2ae06288940b6df14dc9f5d37854bc9b9",
+      "e0493327b2bf068b13df14b49513d7d3b4b7cf28",
       "68d0d3dfbe75882f3f51e23a0b2cbc403b37bd8a",
       "d67a9f8d05ebdc4e29e6839195aed89ca0250e64"
     ],
