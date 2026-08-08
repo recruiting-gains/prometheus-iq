@@ -10,7 +10,9 @@ import {
   hasGovernedPublicDeploymentWorkflowV2PackageSuccessor,
   hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor,
   isGovernedPublicDeploymentWorkflowV2VerifierCommit,
+  liveCanonicalIdentityPackageSuccessor,
   validateFullSystemHarmonyPackageSuccessor,
+  validateLiveCanonicalIdentityPackageSuccessor,
   verifyOverwatchPublicDeploymentWorkflowV2
 } from "../scripts/verify-overwatch-public-deployment-workflow-v2.mjs";
 
@@ -33,10 +35,14 @@ test("canonical Public Deployment Workflow v2 governance verifies", () => {
   assert.equal(verifyOverwatchPublicDeploymentWorkflowV2().status, "OVERWATCH_PUBLIC_DEPLOYMENT_WORKFLOW_V2_VERIFIED");
 });
 
-test("current package is admitted only through the exact Full-System Harmony successor", () => {
+test("current package composes the exact Full-System Harmony and canonical identity successors", () => {
+  assert.equal(
+    validateLiveCanonicalIdentityPackageSuccessor().currentSha256,
+    sha256(read("package.json"))
+  );
   assert.equal(
     validateFullSystemHarmonyPackageSuccessor().currentSha256,
-    sha256(read("package.json"))
+    liveCanonicalIdentityPackageSuccessor.previousSha256
   );
   for (const mutate of [
     value => { value.commit = "0".repeat(40); },
@@ -51,6 +57,20 @@ test("current package is admitted only through the exact Full-System Harmony suc
     const candidate = structuredClone(fullSystemHarmonyPackageSuccessor);
     mutate(candidate);
     assert.throws(() => validateFullSystemHarmonyPackageSuccessor(candidate));
+  }
+  for (const mutate of [
+    value => { value.commit = "0".repeat(40); },
+    value => { value.tree = "0".repeat(40); },
+    value => { value.parent = "0".repeat(40); },
+    value => { value.identity = "Prometheus Infrastructure <infrastructure@prometheus.local>"; },
+    value => { value.subject = "overwatch: substitute canonical package"; },
+    value => { value.path = "package-lock.json"; },
+    value => { value.previousSha256 = "0".repeat(64); },
+    value => { value.currentSha256 = "f".repeat(64); }
+  ]) {
+    const candidate = structuredClone(liveCanonicalIdentityPackageSuccessor);
+    mutate(candidate);
+    assert.throws(() => validateLiveCanonicalIdentityPackageSuccessor(candidate));
   }
 });
 

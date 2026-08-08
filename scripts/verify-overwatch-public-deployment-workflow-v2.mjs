@@ -18,6 +18,8 @@ const root = resolve(import.meta.dirname, "..");
 const GOVERNANCE_PATH = "overwatch/governance/public-deployment-workflow-v2.json";
 const FULL_SYSTEM_HARMONY_GOVERNANCE_PATH =
   "overwatch/governance/full-system-harmony-audit-v1.json";
+const LIVE_CANONICAL_IDENTITY_GOVERNANCE_PATH =
+  "overwatch/governance/live-canonical-identity-migration-v1.json";
 const HISTORICAL_READINESS_GOVERNANCE_PATH =
   "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json";
 const DOCUMENTATION_PATH = "overwatch/governance/public-deployment-workflow-v2.md";
@@ -74,6 +76,16 @@ const WEBSITE_POSITIONING_ROLLBACK_ARTIFACT_SHA256 =
   "37f215ffe57df61aaa741352111806b07ff1a97dabd07c36188080e62857e582";
 const WEBSITE_POSITIONING_WORKFLOW_CONTRACT_SHA256 =
   "17ac6ac53220f77fe2d49339e7a93566c7c2419bb19c462200a2077f1df34ca7";
+const LIVE_CANONICAL_IDENTITY_DEPLOYMENT_ASSET_SHA256 =
+  "93526aca609a237fe26ba69f11d786549623b186fe7f106f3bf998e476dd22cf";
+const LIVE_CANONICAL_IDENTITY_ROLLBACK_CONTRACT_SHA256 =
+  "4477ddff8777d95e74023a09f2e9a7895060e1d290eeb5d9b2557ca620d827c7";
+const LIVE_CANONICAL_IDENTITY_ROLLBACK_ARTIFACT_SHA256 =
+  "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6";
+const LIVE_CANONICAL_IDENTITY_PUBLIC_ASSET_COMMIT =
+  "c4cb9150fb8ad218e34026a63fa577271860c270";
+const LIVE_CANONICAL_IDENTITY_PUBLIC_ASSET_TREE =
+  "e7870b29540e0fb2fa89dbf691804192e3cf9c1d";
 const UNATTENDED_GOVERNANCE_ID = "cloudflare-unattended-deployment-access-governance-v1";
 const ROUTE_IQ_3D_GOVERNANCE_ID = "route-iq-3d-visual-continuity-v1";
 const PACKAGE_PATH = "package.json";
@@ -114,7 +126,9 @@ const HISTORICAL_3D_PACKAGE_SHA256 = "f34246136a294d5a7180d76a452ff8c9c69bb7d1d3
 const REGISTERED_PACKAGE_SHA256 =
   "8ddf429fc08acd45eca4f59638324f06a80acab9c949168325299e5b73199e2f";
 const CURRENT_PACKAGE_SHA256 = "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a";
-const ACTIVE_PACKAGE_SHA256 = "6a7434c52a2491f4820d18657aa2a2dcf92d02c3fdf910a365555aa096dd8e5d";
+const FULL_SYSTEM_HARMONY_PACKAGE_SHA256 =
+  "6a7434c52a2491f4820d18657aa2a2dcf92d02c3fdf910a365555aa096dd8e5d";
+const ACTIVE_PACKAGE_SHA256 = "3c7c9a50ffed874d711085ec95c04eb525f2caee88975eca20385f243aafda87";
 export const fullSystemHarmonyPackageSuccessor = Object.freeze({
   commit: "ecde11c54e2af76fb2f754dfdadabe516109532a",
   tree: "7136078840cf498156e588fd4c14ee10b2e335e6",
@@ -123,6 +137,16 @@ export const fullSystemHarmonyPackageSuccessor = Object.freeze({
   subject: "overwatch: qualify full-system harmony audit",
   path: PACKAGE_PATH,
   previousSha256: CURRENT_PACKAGE_SHA256,
+  currentSha256: FULL_SYSTEM_HARMONY_PACKAGE_SHA256
+});
+export const liveCanonicalIdentityPackageSuccessor = Object.freeze({
+  commit: "e9971e6d5efc20ed9d0d2190949276cd38d1f50c",
+  tree: "903deca544eb0b21dcaa16a18e044cc3f3890e2e",
+  parent: "c7dc84a39de41bc5d87c6f4bd47533a82b8f6f3f",
+  identity: OVERWATCH_IDENTITY,
+  subject: "overwatch: govern live canonical identity migration",
+  path: PACKAGE_PATH,
+  previousSha256: FULL_SYSTEM_HARMONY_PACKAGE_SHA256,
   currentSha256: ACTIVE_PACKAGE_SHA256
 });
 const REVENUE_READINESS_PACKAGE_SUCCESSOR_COMMIT =
@@ -831,6 +855,20 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
   if (matches.length !== 1) return false;
   if (matches[0].successorSha256 === successorSha256) return true;
   if (successorSha256 === ACTIVE_PACKAGE_SHA256) {
+    const liveCanonicalIdentityGovernance = readJson(
+      LIVE_CANONICAL_IDENTITY_GOVERNANCE_PATH
+    );
+    return hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+      governance,
+      predecessorGovernanceId,
+      historicalSha256,
+      successorSha256: FULL_SYSTEM_HARMONY_PACKAGE_SHA256
+    }) && validateLiveCanonicalIdentityPackageSuccessor(
+      liveCanonicalIdentityPackageSuccessor,
+      liveCanonicalIdentityGovernance
+    ).currentSha256 === successorSha256;
+  }
+  if (successorSha256 === FULL_SYSTEM_HARMONY_PACKAGE_SHA256) {
     const harmonyGovernance = readJson(FULL_SYSTEM_HARMONY_GOVERNANCE_PATH);
     return hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
       governance,
@@ -1030,6 +1068,51 @@ export function validateFullSystemHarmonyPackageSuccessor(
   )) ?? [];
   assert.equal(ownerMatches.length, 1,
     "Full-System Harmony package owner evidence drifted");
+  return record;
+}
+
+export function validateLiveCanonicalIdentityPackageSuccessor(
+  record = liveCanonicalIdentityPackageSuccessor,
+  governance = readJson(LIVE_CANONICAL_IDENTITY_GOVERNANCE_PATH)
+) {
+  assert.deepEqual(record, liveCanonicalIdentityPackageSuccessor,
+    "Live canonical identity package successor drifted");
+  assert.deepEqual(git([
+    "show", "-s", "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n"), [
+    record.commit,
+    record.tree,
+    record.parent,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Live canonical identity package successor provenance drifted");
+  const predecessorPackage = execFileSync("/usr/bin/git", [
+    "show", `${record.parent}:${record.path}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+  const successorPackage = execFileSync("/usr/bin/git", [
+    "show", `${record.commit}:${record.path}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+  assert.equal(sha256(predecessorPackage), record.previousSha256,
+    "Live canonical identity package predecessor drifted");
+  assert.equal(sha256(successorPackage), record.currentSha256,
+    "Live canonical identity package successor content drifted");
+  const governed = governance.releasePreparation?.packageReleaseWiringSuccessor;
+  assert.equal(governed?.classification, "LIVE_CANONICAL_IDENTITY_PACKAGE_SUCCESSOR",
+    "Live canonical identity package classification drifted");
+  assert.equal(governed?.ownerCommit, record.commit,
+    "Live canonical identity package owner commit drifted");
+  assert.equal(governed?.ownerParent, record.parent,
+    "Live canonical identity package owner parent drifted");
+  assert.equal(governed?.ownerTree, record.tree,
+    "Live canonical identity package owner tree drifted");
+  assert.equal(governed?.previousSha256, record.previousSha256,
+    "Live canonical identity package predecessor hash drifted");
+  assert.equal(governed?.currentSha256, record.currentSha256,
+    "Live canonical identity package current hash drifted");
+  assert.equal(governed?.ownerSubsystem, "Prometheus Overwatch",
+    "Live canonical identity package owner subsystem drifted");
   return record;
 }
 
@@ -1483,21 +1566,44 @@ export function verifyOverwatchPublicDeploymentWorkflowV2() {
 
   verifyAutomaticCommitPushGovernance();
   verifyGithubActionsPublicWorkerWorkflowV2();
+  const liveCanonicalIdentity = readJson(LIVE_CANONICAL_IDENTITY_GOVERNANCE_PATH);
+  assert.equal(
+    liveCanonicalIdentity.releasePreparation?.publicWorkflowsChanged,
+    false
+  );
+  assert.equal(
+    liveCanonicalIdentity.releasePreparation?.publicDeploymentAssetsSha256,
+    LIVE_CANONICAL_IDENTITY_DEPLOYMENT_ASSET_SHA256
+  );
+  assert.equal(
+    liveCanonicalIdentity.releasePreparation?.publicRollback?.contractSha256,
+    LIVE_CANONICAL_IDENTITY_ROLLBACK_CONTRACT_SHA256
+  );
+  assert.equal(
+    liveCanonicalIdentity.releasePreparation?.publicRollback?.artifactSha256,
+    LIVE_CANONICAL_IDENTITY_ROLLBACK_ARTIFACT_SHA256
+  );
   const assets = verifyRouteIqPublicDeploymentAssets({ build: false });
-  assert.equal(assets.deploymentAssetsSha256, WEBSITE_POSITIONING_DEPLOYMENT_ASSET_SHA256);
+  assert.equal(
+    assets.deploymentAssetsSha256,
+    LIVE_CANONICAL_IDENTITY_DEPLOYMENT_ASSET_SHA256
+  );
   assert.equal(
     assets.candidateWebsiteCommit,
-    ROUTE_IQ_WEBSITE_POSITIONING_SUCCESSOR.websiteAssets.commit
+    LIVE_CANONICAL_IDENTITY_PUBLIC_ASSET_COMMIT
   );
   assert.equal(
     assets.candidateWebsiteTree,
-    ROUTE_IQ_WEBSITE_POSITIONING_SUCCESSOR.websiteAssets.tree
+    LIVE_CANONICAL_IDENTITY_PUBLIC_ASSET_TREE
   );
   const rollback = verifyPublicForwardRollbackArtifact(root);
-  assert.equal(rollback.artifactSha256, WEBSITE_POSITIONING_ROLLBACK_ARTIFACT_SHA256);
+  assert.equal(
+    rollback.artifactSha256,
+    LIVE_CANONICAL_IDENTITY_ROLLBACK_ARTIFACT_SHA256
+  );
   assert.equal(
     rollback.candidateDeploymentAssetsSha256,
-    WEBSITE_POSITIONING_DEPLOYMENT_ASSET_SHA256
+    LIVE_CANONICAL_IDENTITY_DEPLOYMENT_ASSET_SHA256
   );
   return Object.freeze({ status: "OVERWATCH_PUBLIC_DEPLOYMENT_WORKFLOW_V2_VERIFIED" });
 }
