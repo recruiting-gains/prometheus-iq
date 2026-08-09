@@ -247,6 +247,10 @@
         "path": "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",
         "sha256": "4fd7994c5de49da135263d7b4db39ca3b13e528610a9be70e90827a4d54483dd"
       },
+      "ttyRegressionTest": {
+        "path": "tests/overwatch-cloudflare-founder-attended-tty-compatibility.test.mjs",
+        "sha256": "2c3f3c831b0c1a17310f077194368c1e4c174b2b35d85f22d10b22754c81b7ca"
+      },
       "orderedPackageChainRequired": true,
       "missingReorderedCyclicOrTerminalDriftFailsClosed": true
     }

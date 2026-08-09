@@ -50,7 +50,7 @@
       "intelligenceArchitectureRegressionTests": "15/15 PASS",
       "controlledRehearsalRegressionTests": "13/13 PASS",
       "hostedCheckoutBranchRegressionTests": "4/4 PASS",
-      "founderAttendedPackageWiringRegressionTests": "14/14 PASS"
+      "founderAttendedPackageWiringRegressionTests": "20/20 PASS"
     },
     "initialHostedQualificationRun": 31336094147,
     "initialHostedQualificationResult": "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN",

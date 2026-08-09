@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import test from "node:test";
@@ -12,6 +13,7 @@ import {
 
 const root = resolve(import.meta.dirname, "..");
 const readJson = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
+const sha256 = value => createHash("sha256").update(value).digest("hex");
 const governance = readJson("overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.json");
 const report = readJson("overwatch/reports/BATCH-20260715-001-cloudflare-founder-attended-real-macos-tty-compatibility.json");
 const fullSystemHarmonyGovernance = readJson(
@@ -40,8 +42,7 @@ test("Overwatch verifies the owner-authored macOS TTY compatibility repair", () 
 });
 
 test("TTY verification accepts only the exact current canonical package successor", () => {
-  const currentPackageSha256 =
-    liveCanonicalIdentityGovernance.releasePreparation.packageReleaseWiringSuccessor.currentSha256;
+  const currentPackageSha256 = sha256(readFileSync(resolve(root, "package.json")));
   assert.equal(hasTtyPackageReleaseWiringSuccessor({
     fullSystemHarmonyGovernance,
     liveCanonicalIdentityGovernance,

@@ -181,6 +181,7 @@ function verifyPinnedFiles(governance) {
     governance.qualificationRepair.founderAttendedPackageWiring.canonicalLedger,
     governance.qualificationRepair.founderAttendedPackageWiring.verifier,
     governance.qualificationRepair.founderAttendedPackageWiring.regressionTest,
+    governance.qualificationRepair.founderAttendedPackageWiring.ttyRegressionTest,
     governance.forwardRevert
   ];
   for (const pin of pins) assert.equal(sha256(read(pin.path)), pin.sha256, `${pin.path} hash drifted.`);
@@ -317,7 +318,7 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.qualification.focusedPreflight.controlledRehearsalRegressionTests, "13/13 PASS");
   assert.equal(report.qualification.focusedPreflight.hostedCheckoutBranchRegressionTests, "4/4 PASS");
   assert.equal(report.qualification.focusedPreflight.founderAttendedPackageWiringRegressionTests,
-    "14/14 PASS");
+    "20/20 PASS");
   assert.equal(report.qualification.initialHostedQualificationRun, 31336094147);
   assert.equal(report.qualification.initialHostedQualificationResult, "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN");
   assert.equal(report.qualification.secondHostedQualificationRun, 31336503689);
