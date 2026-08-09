@@ -13,6 +13,7 @@ import {
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs";
 import {
   evaluateRouteIqDeidentifiedAggregateRetention,
+  readRouteIqRetentionDeletionStatus,
   routeIqDeidentifiedAggregateAttestationVersion,
   routeIqDeidentifiedAggregateVersion,
   routeIqRetentionMaximumCalendarMonths,
@@ -23,7 +24,7 @@ export const routeIqProspectiveIntelligenceRetentionAdmissionVersion =
 export const routeIqProspectiveRetentionPolicyPath =
   "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json";
 export const routeIqProspectiveRetentionPolicySha256 =
-  "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601";
+  "a0a60f3ffb693d9fadd2b1637d22fc6f6f035f8fa2533af96dc3a0c1644e1a9f";
 
 const routeIqProspectiveRetentionPolicySnapshot = JSON.stringify(
   routeIqProspectiveRetentionPolicy,
@@ -127,7 +128,7 @@ export function validateRouteIqProspectiveRetentionPolicy(policy) {
     policy?.batchId !== "BATCH-20260714-004" ||
     policy?.owningSubsystem !== "Prometheus Data" ||
     policy?.status !==
-      "founder_authorized_18_month_maximum_runtime_deletion_inactive" ||
+      "founder_authorized_18_month_maximum_source_deletion_runtime_dormant" ||
     policy?.scope?.collectionActivated !== false ||
     policy?.scope?.activeCohorts !== 0 ||
     policy?.scope?.recommendationInfluence !== "off" ||
@@ -262,11 +263,23 @@ export function evaluateRouteIqProspectiveIntelligenceRetentionAdmission(
     };
   }
   const audit = disposalAudit(dataAdmission.sourceSession);
+  let deletionStarted = false;
+  if (retentionGovernanceLedger) {
+    try {
+      deletionStarted = readRouteIqRetentionDeletionStatus(
+        retentionGovernanceLedger,
+        dataAdmission.envelope.retentionBoundary.subject,
+      ).deletionStarted;
+    } catch {
+      deletionStarted = true;
+    }
+  }
   const reasonCodes = [
     ...dataResult.reasons,
     ...(audit ? ["administrative_disposition_policy_exclusion"] : []),
+    ...(deletionStarted ? ["retention_deletion_started"] : []),
   ];
-  const admitted = dataResult.eligible === true && audit === null;
+  const admitted = dataResult.eligible === true && audit === null && !deletionStarted;
   const boundary = dataAdmission.envelope.retentionBoundary;
   const result = {
     admissionVersion: routeIqProspectiveIntelligenceRetentionAdmissionVersion,

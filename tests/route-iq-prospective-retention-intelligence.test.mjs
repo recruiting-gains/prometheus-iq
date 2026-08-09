@@ -23,6 +23,7 @@ import {
 import {
   createRetentionAuthority,
   createRetentionStore,
+  retentionOperationAuthorityClaims,
 } from "./route-iq-retention-test-support.mjs";
 
 const digest = (value) => createHash("sha256").update(value).digest("hex");
@@ -76,7 +77,13 @@ async function dataAdmission(overrides = {}) {
       },
     },
   };
-  return { input: structuredClone({ ...input, ...overrides }), ledger };
+  return {
+    input: structuredClone({ ...input, ...overrides }),
+    ledger,
+    authority,
+    boundary,
+    subject,
+  };
 }
 
 test("final Data policy is hash-bound to the 18-calendar-month contract", () => {
@@ -172,4 +179,41 @@ test("the July 14 accidental archive remains hash-only and excluded", async () =
   assert.equal(result.reasonCodes.includes("administrative_disposition_policy_exclusion"), true);
   assert.deepEqual(result.audit, { sourceRawSha256: input.dataAdmission.sourceSession.rawSha256 });
   assert.equal(JSON.stringify(result).includes(input.dataAdmission.sourceSession.fieldSessionId), false);
+});
+
+test("a deletion-started governance event excludes the subject before any Intelligence consumer can admit it", async () => {
+  const { input, ledger, authority, boundary, subject } = await dataAdmission();
+  const deletionPlanSha256 = digest("intelligence-deletion-plan");
+  const unsigned = {
+    operation: "physical_deletion",
+    requestedAt: "2028-01-14T12:00:00.001Z",
+    subject,
+    retentionBoundary: boundary,
+    administrativeDispositionTarget: null,
+    deletionPlanSha256,
+  };
+  const receipt = await ledger.appendOperationReceipt({
+    ...unsigned,
+    authorization: authority.sign(retentionOperationAuthorityClaims(unsigned), {
+      seed: "intelligence-deletion-start",
+    }),
+  });
+  assert.equal(receipt.decision.allowed, true);
+  await ledger.appendDeletionEvent({
+    eventType: "DELETION_STARTED",
+    recordedAt: "2028-01-14T12:00:00.002Z",
+    deletionPlanSha256,
+    operationReceiptSha256: receipt.recordSha256,
+    legalHoldSnapshotIdentitySha256: digest("intelligence-legal-hold-snapshot"),
+    artifact: null,
+    totalArtifactCount: 1,
+    completedArtifactCount: 0,
+    continuationCursor: `riq_retention_cursor_${digest("intelligence-cursor")}`,
+  });
+  const result = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(input, {
+    retentionGovernanceLedger: ledger,
+  });
+  assert.equal(result.admitted, false);
+  assert.equal(result.canonicalProductionEvaluationAllowed, false);
+  assert.equal(result.reasonCodes.includes("retention_deletion_started"), true);
 });
