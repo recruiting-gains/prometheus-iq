@@ -206,6 +206,10 @@
         "path": "tests/intelligence-architecture.test.mjs",
         "sha256": "36c866c04ddde38fa0018a843c8d3ac7e49f4e3c3c537eb82f2b7bc2a0364f96"
       },
+      "controlledRehearsalVerifier": {
+        "path": "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+        "sha256": "fe75962ad7c9b9e710bd09cb979a39915b165da5f020051994d06c976b8e65d3"
+      },
       "overwatchRegressionTest": {
         "path": "tests/live-canonical-identity-migration-v1.test.mjs",
         "sha256": "4c5f21f7c242ba5eb9ed720d541d04a7cdd97fd32b570859c8180bf95ce2c053"

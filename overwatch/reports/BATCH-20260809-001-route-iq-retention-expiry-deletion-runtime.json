@@ -47,7 +47,8 @@
       "productionReleaseCurrentDashboardRegressionTests": "3/3 PASS",
       "localProductionReleaseVerification": "PASS",
       "liveCanonicalIdentityRegressionTests": "18/18 PASS",
-      "intelligenceArchitectureRegressionTests": "15/15 PASS"
+      "intelligenceArchitectureRegressionTests": "15/15 PASS",
+      "controlledRehearsalRegressionTests": "13/13 PASS"
     },
     "initialHostedQualificationRun": 31336094147,
     "initialHostedQualificationResult": "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN",

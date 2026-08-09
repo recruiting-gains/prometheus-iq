@@ -546,12 +546,8 @@ function verifyCurrentOwnerFiles(governance) {
   validateLiveCanonicalIdentityIntelligenceSuccessor(
     liveCanonicalIdentityIntelligenceSuccessor
   );
-  const fieldSessionContractSuccessor =
-    validateFieldSessionReportTypeContractIntelligenceSuccessor(
-      fieldSessionReportTypeContractIntelligenceSuccessor
-    );
-  const fieldSessionContractEvidence = new Map(
-    fieldSessionContractSuccessor.evidence.map(item => [item.path, item])
+  validateFieldSessionReportTypeContractIntelligenceSuccessor(
+    fieldSessionReportTypeContractIntelligenceSuccessor
   );
   const fieldSessionDriftFixtureSuccessor =
     validateFieldSessionReportTypeDriftFixtureSuccessor(
@@ -585,16 +581,12 @@ function verifyCurrentOwnerFiles(governance) {
       sha256: "0c38be17c0823b1e247f1781353bbce543d66deb46f775c7a905b4164cb6d951"
     }],
     ["intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs", {
-      commit: fieldSessionContractSuccessor.commit,
-      sha256: fieldSessionContractEvidence.get(
-        "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
-      ).sha256
+      commit: "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0",
+      sha256: "d709cfea9765ee13cb43f86fe5084f6cdc3521fcb08d28f5deeed580189a2284"
     }],
     ["tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs", {
-      commit: fieldSessionContractSuccessor.commit,
-      sha256: fieldSessionContractEvidence.get(
-        "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
-      ).sha256
+      commit: "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0",
+      sha256: "84f124dc1137926c86687ab61274392c16dae53dc11f723300c5982557fd4118"
     }],
     ["tests/read-only-field-session-learning.test.mjs", {
       commit: fieldSessionDriftFixtureSuccessor.commit,

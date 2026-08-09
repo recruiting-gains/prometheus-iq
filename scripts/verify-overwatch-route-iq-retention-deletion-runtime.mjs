@@ -164,6 +164,7 @@ function verifyPinnedFiles(governance) {
     governance.qualificationRepair.liveCanonicalIdentity.verifier,
     governance.qualificationRepair.liveCanonicalIdentity.intelligenceRegressionTest,
     governance.qualificationRepair.liveCanonicalIdentity.architectureRegressionTest,
+    governance.qualificationRepair.liveCanonicalIdentity.controlledRehearsalVerifier,
     governance.qualificationRepair.liveCanonicalIdentity.overwatchRegressionTest,
     governance.forwardRevert
   ];
@@ -284,6 +285,7 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.qualification.focusedPreflight.localProductionReleaseVerification, "PASS");
   assert.equal(report.qualification.focusedPreflight.liveCanonicalIdentityRegressionTests, "18/18 PASS");
   assert.equal(report.qualification.focusedPreflight.intelligenceArchitectureRegressionTests, "15/15 PASS");
+  assert.equal(report.qualification.focusedPreflight.controlledRehearsalRegressionTests, "13/13 PASS");
   assert.equal(report.qualification.initialHostedQualificationRun, 31336094147);
   assert.equal(report.qualification.initialHostedQualificationResult, "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN");
   assert.equal(report.qualification.secondHostedQualificationRun, 31336503689);
