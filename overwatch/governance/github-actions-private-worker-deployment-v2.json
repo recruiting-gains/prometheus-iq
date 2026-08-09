@@ -1846,6 +1846,24 @@
       "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
     ]
   },
+  "fieldSessionReportTypeSuccessor": {
+    "authorization": "field-session-report-type-contract-drift-repair-v1",
+    "historicalContinuityRewritten": false,
+    "productionMutationAuthorized": false,
+    "implementationCommit": "a51eb4113fcbb08eb2e4bb797533c5e960ae4e0e",
+    "implementationParent": "c923b3726495710ba23ea70c583950c7eb346708",
+    "implementationTree": "00df6f98a6a51abb0e85f274eb58571ac6855231",
+    "implementationOwner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "implementationSubject": "infrastructure: refresh field-session private payload pin",
+    "deployParitySha256": "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9",
+    "previousQualifiedForwardPayloadSha256": "5a5269a5a5669f87bacbe3f18f6783485f7f8da5ca2c0e3ffd57bbcca281ef51",
+    "qualifiedForwardPayloadSha256": "d9846e24a2d15ee2a5b540cbe6420d1acd1adf83dec32f593d2c4970e511263a",
+    "qualifiedRollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+    "changedPaths": [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ]
+  },
   "workflowBoundary": {
     "qualificationWorkflow": "Qualify Prometheus Private Worker v2",
     "deploymentWorkflow": "Deploy Prometheus Private Worker v2",

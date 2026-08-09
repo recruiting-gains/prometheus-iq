@@ -64,6 +64,18 @@
       "paths": [
         "tests/read-only-field-session-learning.test.mjs"
       ]
+    },
+    {
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "commit": "a51eb4113fcbb08eb2e4bb797533c5e960ae4e0e",
+      "tree": "00df6f98a6a51abb0e85f274eb58571ac6855231",
+      "parent": "c923b3726495710ba23ea70c583950c7eb346708",
+      "subject": "infrastructure: refresh field-session private payload pin",
+      "paths": [
+        "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+      ]
     }
   ],
   "overwatchCommits": [
@@ -164,6 +176,33 @@
     "storageSchemaChanged": false,
     "historicalContractsRewritten": false
   },
+  "privateWorkflowContinuity": {
+    "classification": "FIELD_SESSION_REPORT_TYPE_PRIVATE_PAYLOAD_SUCCESSOR",
+    "ownerCommit": "a51eb4113fcbb08eb2e4bb797533c5e960ae4e0e",
+    "ownerParent": "c923b3726495710ba23ea70c583950c7eb346708",
+    "ownerTree": "00df6f98a6a51abb0e85f274eb58571ac6855231",
+    "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "ownerSubsystem": "Prometheus Infrastructure",
+    "subject": "infrastructure: refresh field-session private payload pin",
+    "previousForwardPayloadSha256": "5a5269a5a5669f87bacbe3f18f6783485f7f8da5ca2c0e3ffd57bbcca281ef51",
+    "currentForwardPayloadSha256": "d9846e24a2d15ee2a5b540cbe6420d1acd1adf83dec32f593d2c4970e511263a",
+    "deployParitySha256": "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9",
+    "rollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+    "historicalContinuityRewritten": false,
+    "productionMutationAuthorized": false,
+    "evidence": [
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "previousSha256": "2bc9eb64d77ba28754ff00c33f5d7d72de844931a2dbfa34087feebe04a583de",
+        "currentSha256": "559ae2314f0afef2a3314620290ddc5d1e3c4adf9fd9ce0e5cac6931e05449c6"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "previousSha256": "936c4af96a9091fc5f785cf86b2b4a0b2a0a75d7b3cae9bf8a0959acdb59015e",
+        "currentSha256": "4487cae150550393dc5a2ff56b2f8411a0ef1a532522226d9c9c0e2996713056"
+      }
+    ]
+  },
   "archiveEvidence": {
     "historicalSessionPath": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
     "rawReportSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
@@ -187,6 +226,7 @@
     "strategy": "FORWARD_REVERT_EXACT_OWNER_CHAIN",
     "nativeOrDestructiveRollbackAllowed": false,
     "latestFirstOwnerCommits": [
+      "a51eb4113fcbb08eb2e4bb797533c5e960ae4e0e",
       "655224332c65ec28d5c45b1accd2eae3d12555c2",
       "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18",
       "bbed83c62e6c8d2c73ce287161df282005f99187",

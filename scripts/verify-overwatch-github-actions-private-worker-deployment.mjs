@@ -1295,6 +1295,73 @@ export function hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
   }
 }
 
+export function hasFieldSessionReportTypeInfrastructureSuccessor({
+  governance,
+  liveCanonicalIdentityGovernance,
+  readinessSuccessors,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const successor = governance?.privateWorkflowContinuity;
+  const evidence = successor?.evidence?.filter(item => item.path === path) ?? [];
+  if (governance?.governanceId !==
+      "field-session-report-type-contract-drift-repair-v1"
+    || governance?.ownerSubsystem !== "Prometheus Overwatch"
+    || successor?.classification !==
+      "FIELD_SESSION_REPORT_TYPE_PRIVATE_PAYLOAD_SUCCESSOR"
+    || successor?.ownerCommit !== "a51eb4113fcbb08eb2e4bb797533c5e960ae4e0e"
+    || successor?.ownerParent !== "c923b3726495710ba23ea70c583950c7eb346708"
+    || successor?.ownerTree !== "00df6f98a6a51abb0e85f274eb58571ac6855231"
+    || successor?.owner !== infrastructureIdentity
+    || successor?.ownerSubsystem !== "Prometheus Infrastructure"
+    || successor?.subject !== "infrastructure: refresh field-session private payload pin"
+    || successor?.historicalContinuityRewritten !== false
+    || successor?.productionMutationAuthorized !== false
+    || evidence.length !== 1
+    || evidence[0].currentSha256 !== currentSha256
+    || !hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+      governance: liveCanonicalIdentityGovernance,
+      readinessSuccessors,
+      path,
+      previousSha256,
+      currentSha256: evidence[0].previousSha256
+    })) {
+    return false;
+  }
+  try {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      successor.ownerCommit
+    ]).split("\n");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r", successor.ownerCommit
+    ]).split("\n").filter(Boolean);
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${successor.ownerParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${successor.ownerCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor", successor.ownerCommit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return equal(fields, [
+      successor.ownerCommit,
+      successor.ownerParent,
+      successor.ownerTree,
+      infrastructureIdentity,
+      infrastructureIdentity,
+      successor.subject
+    ])
+      && equal(paths, successor.evidence.map(item => item.path).sort())
+      && sha256(previous) === evidence[0].previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
+
 function count(source, pattern) {
   return [...source.matchAll(pattern)].length;
 }
@@ -1320,6 +1387,9 @@ export function evaluatePrivateWorkflowV2FieldSessionReportTypeSuccessor({
   const ownerRecord = governance?.ownerCommits?.find(
     record => record.commit === v2FieldSessionReportTypeIntelligenceSuccessorCommit
   );
+  const infrastructureRecord = governance?.ownerCommits?.find(
+    record => record.commit === "a51eb4113fcbb08eb2e4bb797533c5e960ae4e0e"
+  );
   require(
     governance?.governanceId === "field-session-report-type-contract-drift-repair-v1"
       && governance?.ownerSubsystem === "Prometheus Overwatch",
@@ -1334,6 +1404,31 @@ export function evaluatePrivateWorkflowV2FieldSessionReportTypeSuccessor({
   require(equal(ownerRecord?.paths, Object.keys(
     v2FieldSessionReportTypeIntelligenceSuccessorHashes
   )), "Private Workflow v2 field-session Intelligence path set drifted.");
+  require(infrastructureRecord?.ownerSubsystem === "Prometheus Infrastructure"
+    && infrastructureRecord?.identity === infrastructureIdentity
+    && infrastructureRecord?.parent === "c923b3726495710ba23ea70c583950c7eb346708"
+    && infrastructureRecord?.tree === "00df6f98a6a51abb0e85f274eb58571ac6855231"
+    && infrastructureRecord?.subject ===
+      "infrastructure: refresh field-session private payload pin"
+    && equal(infrastructureRecord?.paths, [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ]), "Private Workflow v2 field-session Infrastructure provenance drifted.");
+  require(governance?.privateWorkflowContinuity?.classification ===
+      "FIELD_SESSION_REPORT_TYPE_PRIVATE_PAYLOAD_SUCCESSOR"
+    && governance?.privateWorkflowContinuity?.ownerCommit ===
+      "a51eb4113fcbb08eb2e4bb797533c5e960ae4e0e"
+    && governance?.privateWorkflowContinuity?.previousForwardPayloadSha256 ===
+      "5a5269a5a5669f87bacbe3f18f6783485f7f8da5ca2c0e3ffd57bbcca281ef51"
+    && governance?.privateWorkflowContinuity?.currentForwardPayloadSha256 ===
+      "d9846e24a2d15ee2a5b540cbe6420d1acd1adf83dec32f593d2c4970e511263a"
+    && governance?.privateWorkflowContinuity?.deployParitySha256 ===
+      "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9"
+    && governance?.privateWorkflowContinuity?.rollbackBundleSha256 ===
+      "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
+    && governance?.privateWorkflowContinuity?.historicalContinuityRewritten === false
+    && governance?.privateWorkflowContinuity?.productionMutationAuthorized === false,
+  "Private Workflow v2 field-session private continuity drifted.");
   require(equal(governance?.acceptedContract?.exactReportTypeAllowlist, [
     "route-iq-daily-representative-report-v1",
     "beta-daily-rep-report"
@@ -3033,12 +3128,38 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
       "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
     ])
-    && contract?.continuity?.privateDeployParitySha256 ===
-      governance?.liveCanonicalIdentitySuccessor?.deployParitySha256
-    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+    && governance?.fieldSessionReportTypeSuccessor?.authorization ===
+      "field-session-report-type-contract-drift-repair-v1"
+    && governance?.fieldSessionReportTypeSuccessor?.historicalContinuityRewritten === false
+    && governance?.fieldSessionReportTypeSuccessor?.productionMutationAuthorized === false
+    && governance?.fieldSessionReportTypeSuccessor?.implementationCommit ===
+      "a51eb4113fcbb08eb2e4bb797533c5e960ae4e0e"
+    && governance?.fieldSessionReportTypeSuccessor?.implementationParent ===
+      "c923b3726495710ba23ea70c583950c7eb346708"
+    && governance?.fieldSessionReportTypeSuccessor?.implementationTree ===
+      "00df6f98a6a51abb0e85f274eb58571ac6855231"
+    && governance?.fieldSessionReportTypeSuccessor?.implementationOwner ===
+      infrastructureIdentity
+    && governance?.fieldSessionReportTypeSuccessor?.implementationSubject ===
+      "infrastructure: refresh field-session private payload pin"
+    && governance?.fieldSessionReportTypeSuccessor?.previousQualifiedForwardPayloadSha256 ===
       governance?.liveCanonicalIdentitySuccessor?.qualifiedForwardPayloadSha256
-    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+    && governance?.fieldSessionReportTypeSuccessor?.qualifiedForwardPayloadSha256 ===
+      "d9846e24a2d15ee2a5b540cbe6420d1acd1adf83dec32f593d2c4970e511263a"
+    && governance?.fieldSessionReportTypeSuccessor?.deployParitySha256 ===
+      governance?.liveCanonicalIdentitySuccessor?.deployParitySha256
+    && governance?.fieldSessionReportTypeSuccessor?.qualifiedRollbackBundleSha256 ===
       governance?.liveCanonicalIdentitySuccessor?.qualifiedRollbackBundleSha256
+    && equal(governance?.fieldSessionReportTypeSuccessor?.changedPaths, [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ])
+    && contract?.continuity?.privateDeployParitySha256 ===
+      governance?.fieldSessionReportTypeSuccessor?.deployParitySha256
+    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+      governance?.fieldSessionReportTypeSuccessor?.qualifiedForwardPayloadSha256
+    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+      governance?.fieldSessionReportTypeSuccessor?.qualifiedRollbackBundleSha256
     && contract?.browserAcceptance?.contract ===
       "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
     && contract?.browserAcceptance?.runner ===
@@ -4378,6 +4499,15 @@ function verifyV2OwnerAndGovernance() {
   };
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     const currentSha256 = sha256(readFileSync(resolve(root, path)));
+    const fieldSessionReportTypeSuccessor =
+      hasFieldSessionReportTypeInfrastructureSuccessor({
+        governance: fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance: readJson(liveCanonicalIdentityGovernancePath),
+        readinessSuccessors: readJson(currentReadinessSuccessorsPath),
+        path,
+        previousSha256: expected,
+        currentSha256
+      });
     const liveCanonicalIdentitySuccessor =
       hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
         governance: readJson(liveCanonicalIdentityGovernancePath),
@@ -4409,7 +4539,8 @@ function verifyV2OwnerAndGovernance() {
     if (!(currentSha256 === expected
       || (successor?.sha256 === currentSha256
         && successorPredecessorSha256 === expected)
-      || liveCanonicalIdentitySuccessor)) {
+      || liveCanonicalIdentitySuccessor
+      || fieldSessionReportTypeSuccessor)) {
       throw new Error(`Private Workflow v2 current owner evidence drifted: ${path}`);
     }
   }

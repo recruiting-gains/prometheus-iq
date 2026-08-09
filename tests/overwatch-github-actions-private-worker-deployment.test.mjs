@@ -12,6 +12,7 @@ import {
   evaluateGithubActionsPrivateWorkerV2Governance,
   evaluatePrivateWorkflowV2FieldSessionReportTypeSuccessor,
   evaluateGithubActionsPrivateWorkerWorkflow,
+  hasFieldSessionReportTypeInfrastructureSuccessor,
   hasLiveCanonicalIdentityOwnerEvidenceSuccessor,
   verifyOverwatchGithubActionsPrivateWorkerDeployment
 } from "../scripts/verify-overwatch-github-actions-private-worker-deployment.mjs";
@@ -234,19 +235,31 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
   const workflowPreviousSha256 =
     "30810573fc0926c03a6bbc5337db4ce7030c419a4b08c64b219db7c3abeb371b";
   const workflowCurrentSha256 = sha256(readFileSync(resolve(root, workflowPath)));
+  const workflowCanonicalSha256 = fieldSessionReportTypeGovernance
+    .privateWorkflowContinuity.evidence.find(item => item.path === workflowPath)
+    .previousSha256;
   assert.equal(hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
     governance: liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: workflowPath,
+    previousSha256: workflowPreviousSha256,
+    currentSha256: workflowCanonicalSha256
+  }), true);
+  assert.equal(hasFieldSessionReportTypeInfrastructureSuccessor({
+    governance: fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
     readinessSuccessors: currentReadinessSuccessors,
     path: workflowPath,
     previousSha256: workflowPreviousSha256,
     currentSha256: workflowCurrentSha256
   }), true);
 
-  const changedGovernance = clone(liveCanonicalIdentityGovernance);
-  changedGovernance.releasePreparation.privateWorkflowContinuitySuccessor.ownerCommit =
+  const changedGovernance = clone(fieldSessionReportTypeGovernance);
+  changedGovernance.privateWorkflowContinuity.ownerCommit =
     "0".repeat(40);
-  assert.equal(hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+  assert.equal(hasFieldSessionReportTypeInfrastructureSuccessor({
     governance: changedGovernance,
+    liveCanonicalIdentityGovernance,
     readinessSuccessors: currentReadinessSuccessors,
     path: workflowPath,
     previousSha256: workflowPreviousSha256,
@@ -1037,6 +1050,8 @@ test("private Workflow v2 admits only the exact field-session Intelligence succe
     value => { value.ownerCommits[2].commit = "0".repeat(40); },
     value => { value.ownerCommits[2].identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
     value => { value.ownerCommits[2].paths[0] = "workers/infrastructure/unauthorized"; },
+    value => { value.ownerCommits[4].identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.privateWorkflowContinuity.currentForwardPayloadSha256 = "0".repeat(64); },
     value => { value.acceptedContract.exactReportTypeAllowlist.push("report-prefix-v1"); },
     value => { value.protectedState.collection = "ON"; },
     value => { value.releaseBoundary.deploymentAuthorized = true; }

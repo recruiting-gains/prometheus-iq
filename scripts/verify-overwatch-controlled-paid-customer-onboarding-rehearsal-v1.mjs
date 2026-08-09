@@ -20,6 +20,7 @@ import {
   executeControlledPaidCustomerOnboardingRehearsal
 } from "../workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.js";
 import {
+  hasFieldSessionReportTypeInfrastructureSuccessor,
   hasLiveCanonicalIdentityOwnerEvidenceSuccessor
 } from "./verify-overwatch-github-actions-private-worker-deployment.mjs";
 
@@ -533,6 +534,9 @@ function verifyCurrentOwnerFiles(governance) {
   const currentReadinessSuccessors = readJson(
     "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
   );
+  const fieldSessionReportTypeGovernance = readJson(
+    "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json"
+  );
   validateControlledRehearsalIntelligenceSuccessor(
     controlledRehearsalIntelligenceSuccessor
   );
@@ -623,6 +627,16 @@ function verifyCurrentOwnerFiles(governance) {
           ]).split("\n").filter(Boolean);
           assert.ok(changedPaths.includes(item.path),
             `governed successor omitted path: ${item.path}`);
+        } else if (hasFieldSessionReportTypeInfrastructureSuccessor({
+          governance: fieldSessionReportTypeGovernance,
+          liveCanonicalIdentityGovernance,
+          readinessSuccessors: currentReadinessSuccessors,
+          path: item.path,
+          previousSha256: successor?.sha256 ?? item.sha256,
+          currentSha256: actual
+        })) {
+          assert.notEqual(actual, item.sha256,
+            `field-session successor did not advance owner evidence: ${item.path}`);
         } else if (hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
           governance: liveCanonicalIdentityGovernance,
           readinessSuccessors: currentReadinessSuccessors,
