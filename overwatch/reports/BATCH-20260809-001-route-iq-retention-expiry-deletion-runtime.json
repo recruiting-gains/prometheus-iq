@@ -20,9 +20,10 @@
       "subsystem": "Prometheus Intelligence Engine",
       "commits": [
         "f5a473a4fbab7d0f876be36c65b603d9b13bcc0a",
-        "17bef15930ded364a55aadd47d0f96722cc8e9c6"
+        "17bef15930ded364a55aadd47d0f96722cc8e9c6",
+        "b359d8e701e13d2f9911dcd0cb917eecce8aa7ac"
       ],
-      "scope": "started/completed subject exclusion from learning, evaluation, readiness and recommendation input"
+      "scope": "started/completed subject exclusion from learning, evaluation, readiness and recommendation input, plus protected live-identity source succession"
     },
     {
       "subsystem": "Prometheus Infrastructure",
@@ -43,10 +44,13 @@
       "realSqliteMaintenance": "PASS",
       "historicalArchiveSuite": "PASS",
       "productionReleaseCurrentDashboardRegressionTests": "3/3 PASS",
-      "localProductionReleaseVerification": "PASS"
+      "localProductionReleaseVerification": "PASS",
+      "liveCanonicalIdentityRegressionTests": "18/18 PASS"
     },
     "initialHostedQualificationRun": 31336094147,
     "initialHostedQualificationResult": "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN",
+    "secondHostedQualificationRun": 31336503689,
+    "secondHostedQualificationResult": "FAILED_CLOSED_LIVE_IDENTITY_SUCCESSOR_AND_HISTORICAL_SCOPE",
     "exactFinalCommitHostedQualification": "REQUIRED_BEFORE_RELEASE_ACCEPTANCE"
   },
   "deletionGraph": {

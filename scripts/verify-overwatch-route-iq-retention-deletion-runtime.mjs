@@ -99,6 +99,15 @@ const ownerCommits = Object.freeze({
       "workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json"
     ])
   }),
+  "b359d8e701e13d2f9911dcd0cb917eecce8aa7ac": Object.freeze({
+    name: "Prometheus Intelligence Engine",
+    email: "intelligence@prometheus.local",
+    files: Object.freeze([
+      "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json",
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+    ])
+  }),
   "a445bf4bdb068eb597b11e60ff10cdd2d1f4e023": Object.freeze({
     name: "Prometheus Infrastructure",
     email: "infrastructure@prometheus.local",
@@ -141,6 +150,10 @@ function verifyPinnedFiles(governance) {
     { path: governance.infrastructureBoundary.contractPath, sha256: governance.infrastructureBoundary.contractSha256 },
     governance.qualificationRepair.productionReleaseVerifier,
     governance.qualificationRepair.regressionTest,
+    governance.qualificationRepair.liveCanonicalIdentity.protectedSuccessor,
+    governance.qualificationRepair.liveCanonicalIdentity.verifier,
+    governance.qualificationRepair.liveCanonicalIdentity.intelligenceRegressionTest,
+    governance.qualificationRepair.liveCanonicalIdentity.overwatchRegressionTest,
     governance.forwardRevert
   ];
   for (const pin of pins) assert.equal(sha256(read(pin.path)), pin.sha256, `${pin.path} hash drifted.`);
@@ -195,6 +208,8 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(governance.qualificationRepair.legacyRuntimePoolSelectionAccepted, false);
   assert.equal(governance.qualificationRepair.sessionBoundBusinessHoursRequired, true);
   assert.equal(governance.qualificationRepair.localProductionReleaseVerification, "PASS");
+  assert.equal(governance.qualificationRepair.liveCanonicalIdentity.historicalBaselineObjectsRemainExact, true);
+  assert.equal(governance.qualificationRepair.liveCanonicalIdentity.newGovernedReportsClassifiedAsHistoricalRewrites, false);
 
   const runtimeSource = read(governance.dataRuntime.deletionRuntime.path).toString("utf8");
   const infrastructureSource = read(governance.infrastructureBoundary.runtimePath).toString("utf8");
@@ -256,8 +271,12 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.fixtureExecution.identicalRetry, "IDEMPOTENT");
   assert.equal(report.qualification.focusedPreflight.productionReleaseCurrentDashboardRegressionTests, "3/3 PASS");
   assert.equal(report.qualification.focusedPreflight.localProductionReleaseVerification, "PASS");
+  assert.equal(report.qualification.focusedPreflight.liveCanonicalIdentityRegressionTests, "18/18 PASS");
   assert.equal(report.qualification.initialHostedQualificationRun, 31336094147);
   assert.equal(report.qualification.initialHostedQualificationResult, "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN");
+  assert.equal(report.qualification.secondHostedQualificationRun, 31336503689);
+  assert.equal(report.qualification.secondHostedQualificationResult,
+    "FAILED_CLOSED_LIVE_IDENTITY_SUCCESSOR_AND_HISTORICAL_SCOPE");
   assert.equal(report.releaseBoundary.deploymentAuthorized, false);
   assert.equal(report.releaseBoundary.productionDeletionAuthorized, false);
   assert.equal(report.releaseBoundary.collectionActivationAuthorized, false);

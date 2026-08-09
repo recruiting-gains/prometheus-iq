@@ -498,8 +498,7 @@ test("current governance records the launch facts and keeps protected receipts i
 });
 
 test("historical evidence and stable identifiers are not rewritten", () => {
-  const unchanged = execFileSync("/usr/bin/git", [
-    "diff", "--name-only", `${baseline}..HEAD`, "--",
+  const protectedRoots = [
     "PROMETHEUS EXECUTIVE PACKAGE",
     "PROMETHEUS OPERATING SYSTEM",
     "SENDABLE LEADERSHIP PACKET",
@@ -507,8 +506,20 @@ test("historical evidence and stable identifiers are not rewritten", () => {
     "data/route-iq-field-sessions-v1/workspaces",
     "administration/registers/beta-testers.json",
     "administration/registers/stabilization-issues.json"
-  ], { cwd: root, encoding: "utf8" }).trim();
-  assert.equal(unchanged, "");
+  ];
+  const historicalPaths = execFileSync("/usr/bin/git", [
+    "ls-tree", "-r", "--name-only", baseline, "--", ...protectedRoots
+  ], { cwd: root, encoding: "utf8" }).trim().split("\n").filter(Boolean);
+  assert.ok(historicalPaths.length > 0);
+  for (const path of historicalPaths) {
+    const historicalObject = execFileSync("/usr/bin/git", [
+      "rev-parse", `${baseline}:${path}`
+    ], { cwd: root, encoding: "utf8" }).trim();
+    const currentObject = execFileSync("/usr/bin/git", [
+      "rev-parse", `HEAD:${path}`
+    ], { cwd: root, encoding: "utf8" }).trim();
+    assert.equal(currentObject, historicalObject, `Historical evidence changed: ${path}`);
+  }
 
   const governance = json("overwatch/governance/live-canonical-identity-migration-v1.json");
   for (const stable of [

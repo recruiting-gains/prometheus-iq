@@ -29,7 +29,8 @@
       ],
       "Prometheus Intelligence Engine": [
         "f5a473a4fbab7d0f876be36c65b603d9b13bcc0a",
-        "17bef15930ded364a55aadd47d0f96722cc8e9c6"
+        "17bef15930ded364a55aadd47d0f96722cc8e9c6",
+        "b359d8e701e13d2f9911dcd0cb917eecce8aa7ac"
       ],
       "Prometheus Infrastructure": [
         "7280f2b505e244f187755990d55bcfa701d1ef46",
@@ -186,7 +187,27 @@
     },
     "legacyRuntimePoolSelectionAccepted": false,
     "sessionBoundBusinessHoursRequired": true,
-    "localProductionReleaseVerification": "PASS"
+    "localProductionReleaseVerification": "PASS",
+    "liveCanonicalIdentity": {
+      "protectedSuccessor": {
+        "path": "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json",
+        "sha256": "de278f6f10eed3c3a6cf72eb2d041374158bbc86f6317dfb43e4001159e7e9da"
+      },
+      "verifier": {
+        "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+        "sha256": "7f798b82e68699fb71413ae4d72e03ee864aa9e1a9a46573869a1559205823d8"
+      },
+      "intelligenceRegressionTest": {
+        "path": "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+        "sha256": "9c8f7ae2f72beb4463fe53f0b710b7c54702e1dccb5607faf58dc1e66c48adec"
+      },
+      "overwatchRegressionTest": {
+        "path": "tests/live-canonical-identity-migration-v1.test.mjs",
+        "sha256": "4c5f21f7c242ba5eb9ed720d541d04a7cdd97fd32b570859c8180bf95ce2c053"
+      },
+      "historicalBaselineObjectsRemainExact": true,
+      "newGovernedReportsClassifiedAsHistoricalRewrites": false
+    }
   },
   "historicalEvidence": {
     "sessionSubtreeGitObjectBefore": "07485b3c4a14d56779e8b321e6c3410b970db2de",
