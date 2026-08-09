@@ -203,6 +203,17 @@
       "paths": [
         "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json"
       ]
+    },
+    {
+      "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "commit": "d0afed7105a8dedd4cda0b5df58900a7e7804cc2",
+      "tree": "72825d1c2e23cbdebd3e4f6b607bf20b01182434",
+      "parent": "ffc9bd4e5fe6cd3f4e81c0a38909c2914c99ba7d",
+      "subject": "overwatch: compose field-session release provenance",
+      "paths": [
+        "scripts/verify-release-provenance-repair.mjs",
+        "tests/release-provenance-repair.test.mjs"
+      ]
     }
   ],
   "acceptedContract": {
@@ -265,6 +276,44 @@
     "routeScoringChanged": false,
     "recommendationInfluenceChanged": false
   },
+  "releaseProvenanceConsumer": {
+    "classification": "FIELD_SESSION_REPORT_TYPE_RELEASE_PROVENANCE_SUCCESSOR",
+    "overwatchCommit": "d0afed7105a8dedd4cda0b5df58900a7e7804cc2",
+    "overwatchParent": "ffc9bd4e5fe6cd3f4e81c0a38909c2914c99ba7d",
+    "overwatchTree": "72825d1c2e23cbdebd3e4f6b607bf20b01182434",
+    "owner": "Prometheus Overwatch <overwatch@prometheus.local>",
+    "subject": "overwatch: compose field-session release provenance",
+    "ownerSuccessors": [
+      {
+        "commit": "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18",
+        "parent": "bbed83c62e6c8d2c73ce287161df282005f99187",
+        "tree": "38ce2be37f66f49202967a285a003755ebc21dcc",
+        "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+        "subject": "intelligence: compose field-session report contract repair"
+      },
+      {
+        "commit": "655224332c65ec28d5c45b1accd2eae3d12555c2",
+        "parent": "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18",
+        "tree": "5eeb4224f913faafcd3114e713092a8d6e668ec0",
+        "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+        "subject": "intelligence: bind drift rejection to report successor"
+      }
+    ],
+    "evidence": [
+      {
+        "path": "scripts/verify-release-provenance-repair.mjs",
+        "previousSha256": "2767bed24e42e603a7c2aa1fb6347c124acb81962b993b1781998a5f100d701f",
+        "currentSha256": "16b58d44386201384c85da9adcc3e6f2f929d4f33dcd7b8566430a02a69c1772"
+      },
+      {
+        "path": "tests/release-provenance-repair.test.mjs",
+        "previousSha256": "6af689487534bd3a1fdbd4b0182fa68ea3546ecf418d59a8c353e86d28d96a0d",
+        "currentSha256": "c4a5ec78ae6c275082778abefd688f285f7188359578e9a8320228c0aae1f9ee"
+      }
+    ],
+    "historicalCheckpointRewritten": false,
+    "productionRuntimeChanged": false
+  },
   "privateWorkflowContinuity": {
     "classification": "FIELD_SESSION_REPORT_TYPE_PRIVATE_PAYLOAD_SUCCESSOR",
     "ownerCommit": "a51eb4113fcbb08eb2e4bb797533c5e960ae4e0e",
@@ -311,6 +360,7 @@
     "exactFinalCommitHostedQualificationRequired": true,
     "intelligenceArchitectureSuccessorRequired": true,
     "offRouteIntelligenceSuccessorRequired": true,
+    "releaseProvenanceSuccessorRequired": true,
     "productionVerificationRequired": false
   },
   "rollback": {
@@ -326,6 +376,7 @@
       "c7f854047b0091fc29e671a97c7c9d21dfcf2dff"
     ],
     "latestFirstGovernanceCommits": [
+      "d0afed7105a8dedd4cda0b5df58900a7e7804cc2",
       "59dcfce5ee9a731a51684445ee9901116ae06d3f",
       "d98f7dca8d885a597629a6d4179a4738e06f7869",
       "320e72f4765b161c29ee0baf5a51d55545d323db",
