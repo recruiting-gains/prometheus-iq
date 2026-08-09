@@ -1,16 +1,25 @@
 {
   "version": "route-iq-intelligence-prospective-retention-admission-spec-v2",
   "batchId": "BATCH-20260714-004",
+  "sourceDeletionSuccessorBatchId": "BATCH-20260809-001",
   "ownerSubsystem": "Prometheus Intelligence Engine",
   "purpose": "Consume only the final Data-authenticated and hash-bound prospective retention admission before any Intelligence learning, shadow evaluation, readiness, calibration, baseline, segment, or recommendation-input use.",
   "dataOwnerLineage": {
     "finalRetentionCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
+    "sourceDeletionSuccessorCommits": [
+      "8845846632801ccf29e52a36139a43c1063fcc2e",
+      "28c8a51b4aafef777e407c324ea15c57f4f12454",
+      "82b2edd12f15978d97f0950657c5c123a01a54a7",
+      "a8fedf7c0b88f0611b4f721b08641e55413c591a"
+    ],
     "retentionPolicyPath": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
-    "retentionPolicySha256": "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601",
+    "retentionPolicySha256": "a0a60f3ffb693d9fadd2b1637d22fc6f6f035f8fa2533af96dc3a0c1644e1a9f",
     "retentionEvaluatorPath": "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
-    "retentionEvaluatorSha256": "6b831aa261bd6d61ab184ee22163341d385f3051e2cf3ec8ca88fdc1bc87b28e",
+    "retentionEvaluatorSha256": "1299d480d5e8d9418a143eb4817572a0362dd4a9649eb6f337e783c519e3bd20",
     "retentionGovernancePath": "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs",
-    "retentionGovernanceSha256": "b58ed4cb3bad768fb07c8e4cd627ade8fd26b4ba4fc5c684661e1a52224f79cd",
+    "retentionGovernanceSha256": "0bd6519d40ea76f5ad771e19dd0ffe4fe840c7c3aeb0ad2ce1987e681985dabb",
+    "retentionDeletionRuntimePath": "data/route-iq-field-sessions-v1/route-iq-retention-deletion-runtime.mjs",
+    "retentionDeletionRuntimeSha256": "1ee36eb278646e8179fa092a2b4e32ae92cdaeba55f5a89ad9c7de24febbdc43",
     "coordinatorPath": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
     "coordinatorSha256": "30727656084c774d48a2d80b79f7dcad66a864fd6bd5c489905d9247fd953e85"
   },
@@ -21,6 +30,9 @@
     "maximumCalendarMonths": 18,
     "customerMayOnlyShorten": true,
     "customerMayExpand": false,
+    "deletionStartedOrCompletedSubjectAdmissionAllowed": false,
+    "deletionStartedOrCompletedEvaluationAllowed": false,
+    "deletionStartedOrCompletedRecommendationInputAllowed": false,
     "authorizedReleaseMayExtendOriginalExpiry": false,
     "expiredOverRetainedTamperedCrossScopeHistoricalSyntheticReplayAllowed": false,
     "indefiniteRawRetentionAllowed": false,

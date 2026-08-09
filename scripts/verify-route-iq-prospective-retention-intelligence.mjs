@@ -44,7 +44,9 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
 
   assert.equal(validateRouteIqProspectiveRetentionPolicy(policy), true);
   assert.equal(specification.batchId, "BATCH-20260714-004");
+  assert.equal(specification.sourceDeletionSuccessorBatchId, "BATCH-20260809-001");
   assert.equal(specification.dataOwnerLineage.finalRetentionCommit, "c73118ddb262d3010bbc94a900f8506fb2f56192");
+  assert.equal(specification.dataOwnerLineage.sourceDeletionSuccessorCommits.at(-1), "a8fedf7c0b88f0611b4f721b08641e55413c591a");
   assert.equal(specification.dataOwnerLineage.retentionPolicySha256, dataPolicySha256);
   assert.equal(
     specification.dataOwnerLineage.retentionEvaluatorSha256,
@@ -65,6 +67,7 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
   for (const contract of [readOnlyContract, offRouteContract, shadowContract]) {
     const retention = contract.prospectiveRetentionAdmission;
     assert.equal(retention.batchId, "BATCH-20260714-004");
+    assert.equal(retention.sourceDeletionSuccessorBatchId, "BATCH-20260809-001");
     assert.equal(retention.dataPolicySha256, dataPolicySha256);
     assert.equal(retention.dataAuthenticatedAndHashBoundRequired, true);
     assert.equal(retention.maximumCalendarMonths, 18);
@@ -74,6 +77,7 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
     assert.equal(retention.historicalSyntheticReplayAdmissionAllowed, false);
     assert.equal(retention.indefiniteRawRetentionAllowed, false);
     assert.equal(retention.recommendationInfluenceAllowed, false);
+    assert.equal(retention.deletionStartedOrCompletedAdmissionAllowed, false);
   }
 
   const readOnlyArtifact = readJson(paths.readOnlyArtifact);

@@ -40,9 +40,12 @@
   },
   "prospectiveRetentionAdmission": {
     "batchId": "BATCH-20260714-004",
+    "sourceDeletionSuccessorBatchId": "BATCH-20260809-001",
     "inheritedFromUpstreamReadOnlyLearning": true,
     "dataExactKeySuccessorCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
-    "dataPolicySha256": "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601",
+    "dataPolicySha256": "a0a60f3ffb693d9fadd2b1637d22fc6f6f035f8fa2533af96dc3a0c1644e1a9f",
+    "dataDeletionRuntimeFinalCommit": "a8fedf7c0b88f0611b4f721b08641e55413c591a",
+    "deletionStartedOrCompletedAdmissionAllowed": false,
     "dataAuthenticatedAndHashBoundRequired": true,
     "authoritativeLegalHoldLedgerRequired": true,
     "maximumCalendarMonths": 18,
