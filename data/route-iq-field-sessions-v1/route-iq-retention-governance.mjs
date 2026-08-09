@@ -1368,3 +1368,29 @@ export function validateRouteIqRetentionDeletionEvent(event, ledger) {
   }
   return deepFreeze(clone(validateDeletionEventRecord(event, state, state.records.slice(0, index))));
 }
+
+export function readRouteIqRetentionDeletionStatus(ledger, subject) {
+  const state = requireLedger(ledger, subject);
+  const events = state.records.filter(record => record.recordKind === "route_iq_retention_deletion_event");
+  const latest = events.at(-1) || null;
+  if (!latest) {
+    return deepFreeze({
+      state: "AVAILABLE",
+      deletionStarted: false,
+      deletionCompleted: false,
+      deletionPlanSha256: null,
+      lastEventSha256: null,
+      completedArtifactCount: 0,
+      totalArtifactCount: 0
+    });
+  }
+  return deepFreeze({
+    state: latest.stateAfter,
+    deletionStarted: true,
+    deletionCompleted: latest.stateAfter === "DELETION_COMPLETED",
+    deletionPlanSha256: latest.deletionPlanSha256,
+    lastEventSha256: latest.recordSha256,
+    completedArtifactCount: latest.completedArtifactCount,
+    totalArtifactCount: latest.totalArtifactCount
+  });
+}

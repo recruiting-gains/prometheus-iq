@@ -169,6 +169,11 @@ test("Data policy records the Founder maximum while collection and physical dele
   assert.equal(retention.retentionOperationReceiptsDeriveAllowedAndReasons, true);
   assert.equal(retention.physicalDeletionImplementationAvailable, false);
   assert.equal(retention.activationEligibleUnderRetentionPolicy, false);
+  assert.equal(policy.expiryAndDeletion.physicalDeletionImplementationStatus, "source_complete_dormant_not_deployed");
+  assert.equal(policy.expiryAndDeletion.authenticatedMaintenanceMutationPathAvailable, true);
+  assert.equal(policy.expiryAndDeletion.deletionPlanSchemaVersion, "route-iq-retention-deletion-plan-v1");
+  assert.equal(policy.expiryAndDeletion.deletionEventSchemaVersion, "route-iq-retention-deletion-event-v1");
+  assert.equal(policy.expiryAndDeletion.physicalDeletionActivated, false);
 });
 
 test("18 calendar months uses canonical UTC month addition, target-day clamp, milliseconds, and exclusive expiry", () => {

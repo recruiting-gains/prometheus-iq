@@ -22,6 +22,7 @@ import {
 import {
   calculateRouteIqRetentionBoundary,
   openRouteIqRetentionGovernanceLedger,
+  readRouteIqRetentionDeletionStatus,
   readRouteIqRetentionLedgerRecords,
   routeIqRetentionDeletionEventVersion
 } from "../data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs";
@@ -584,6 +585,7 @@ test("partial non-atomic deletion stays unavailable, resumes deterministically, 
   assert.equal(partial.state, "DELETION_IN_PROGRESS");
   assert.equal(partial.completedArtifactCount, 2);
   assert.match(partial.continuationCursor, /^riq_retention_cursor_[a-f0-9]{64}$/);
+  assert.equal(readRouteIqRetentionDeletionStatus(context.ledger, SUBJECT).state, "DELETION_IN_PROGRESS");
   const unavailable = await readRouteIqFieldSessionArchive({
     workspaceId: SUBJECT.workspaceId,
     operatingProfileId: SUBJECT.operatingProfileId,
@@ -595,6 +597,7 @@ test("partial non-atomic deletion stays unavailable, resumes deterministically, 
     maximumOperationCount: 100
   });
   assert.equal(resumed.state, "DELETION_COMPLETED");
+  assert.equal(readRouteIqRetentionDeletionStatus(context.ledger, SUBJECT).state, "DELETION_COMPLETED");
   const ledgerRecords = readRouteIqRetentionLedgerRecords(context.ledger);
   const ledgerText = stableJson(ledgerRecords);
   assert.equal(ledgerText.includes("retention-runtime-raw-source"), false);

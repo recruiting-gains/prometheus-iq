@@ -2,7 +2,7 @@
   "policyVersion": "route-iq-prospective-shadow-retention-policy-v1",
   "batchId": "BATCH-20260714-004",
   "owningSubsystem": "Prometheus Data",
-  "status": "founder_authorized_18_month_maximum_runtime_deletion_inactive",
+  "status": "founder_authorized_18_month_maximum_source_deletion_runtime_dormant",
   "scope": {
     "workspaceId": "fitness_connection",
     "operatingProfileId": "fitness",
@@ -129,7 +129,7 @@
   "expiryAndDeletion": {
     "expiredEvidenceAdmissionAllowed": false,
     "expiredEvidenceEvaluationAllowed": false,
-    "physicalDeletionImplementationStatus": "not_implemented_requires_separate_data_owner_batch",
+    "physicalDeletionImplementationStatus": "source_complete_dormant_not_deployed",
     "physicalDeletionActivated": false,
     "expiredEvidencePhysicalMutationAuthorized": false,
     "sourceDeletionBeforeDerivedProjectionAllowed": false,
@@ -139,7 +139,10 @@
     "deletionRequiresAppendOnlyAuditReceipt": true,
     "retentionOperationReceiptSchemaVersion": "route-iq-retention-operation-receipt-v1",
     "retentionOperationReceiptsRecomputeAllowedAndReasons": true,
-    "physicalDeletionEvaluatorCanPerformMutation": false,
+    "physicalDeletionEvaluatorCanPerformMutation": true,
+    "authenticatedMaintenanceMutationPathAvailable": true,
+    "deletionPlanSchemaVersion": "route-iq-retention-deletion-plan-v1",
+    "deletionEventSchemaVersion": "route-iq-retention-deletion-event-v1",
     "silentArchiveRewriteAllowed": false,
     "minimalDeletionReceiptRequiresSeparateAuthorization": true,
     "unknownExpiryBehavior": "fail_closed"
