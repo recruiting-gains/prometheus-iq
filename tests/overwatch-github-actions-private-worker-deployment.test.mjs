@@ -14,6 +14,7 @@ import {
   evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors,
   evaluateGithubActionsPrivateWorkerWorkflow,
   hasFieldSessionReportTypeInfrastructureSuccessor,
+  hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasLiveCanonicalIdentityOwnerEvidenceSuccessor,
   verifyOverwatchGithubActionsPrivateWorkerDeployment
 } from "../scripts/verify-overwatch-github-actions-private-worker-deployment.mjs";
@@ -1088,6 +1089,42 @@ test("private Workflow v2 admits only the exact field-session Intelligence succe
       governance: candidate
     }).ok, false);
   }
+});
+
+test("private Workflow v2 composes only the exact retention deletion payload successor", () => {
+  for (const [path, previousSha256] of Object.entries({
+    "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+      "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
+    "tests/github-actions-private-worker-workflow-v2.test.mjs":
+      "ebe86706cbf5e9cdac53a3446306df81aa054e5f63df99c7218237284e459b5d",
+    "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+      "30810573fc0926c03a6bbc5337db4ce7030c419a4b08c64b219db7c3abeb371b"
+  })) {
+    assert.equal(hasRetentionDeletionPayloadInfrastructureSuccessor({
+      governance: governanceV2,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors: currentReadinessSuccessors,
+      path,
+      previousSha256,
+      currentSha256: sha256(read(path))
+    }), true);
+  }
+  const changed = clone(governanceV2);
+  changed.retentionDeletionPayloadSuccessor.evidence[0].previousSha256 =
+    "0".repeat(64);
+  assert.equal(hasRetentionDeletionPayloadInfrastructureSuccessor({
+    governance: changed,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+    previousSha256:
+      "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
+    currentSha256: sha256(read(
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs"
+    ))
+  }), false);
 });
 
 test("private Workflow v2 composes only the governed retention-deletion Intelligence successors", () => {
