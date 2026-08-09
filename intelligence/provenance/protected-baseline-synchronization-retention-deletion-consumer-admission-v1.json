@@ -1,0 +1,113 @@
+{
+  "version": "route-iq-intelligence-retention-deletion-consumer-admission-successor-v1",
+  "directive": "Route IQ Retention Expiry and Deletion Runtime v1",
+  "status": "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Compose the source-complete dormant retention-deletion state with read-only field-session learning and shadow readiness while preserving historical contract checkpoints and all inactive production boundaries.",
+  "predecessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json",
+    "sha256": "441451263c1517ca87d993c571798874a85bc5241c2e9c92444ca7abc017647a",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "implementation": {
+    "commit": "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
+    "tree": "ad140ba5e4e7b1b1131d33afc9ba0618fa059d12",
+    "subject": "fix(intelligence): admit dormant retention deletion state",
+    "ownerSubsystem": "Prometheus Intelligence Engine"
+  },
+  "coherenceImplementation": {
+    "commit": "f37a1e16a73d89c57fb988c53c472a570fdbc15f",
+    "tree": "d734e6e235174d870d3c82c5c78e1edcdc1cc74b",
+    "subject": "fix(intelligence): compose retention data successor",
+    "ownerSubsystem": "Prometheus Intelligence Engine"
+  },
+  "protectedSourceTransitions": [
+    {
+      "path": "intelligence/read-only-field-session-learning.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
+      "tree": "ad140ba5e4e7b1b1131d33afc9ba0618fa059d12",
+      "subject": "fix(intelligence): admit dormant retention deletion state",
+      "previousSha256": "affa6e4c27c944fdba525442eb950d75eebc5aaccc8cf40c82269433ef7c0046",
+      "currentSha256": "1eb8084ca8470533ac34b445bb7404865e00bf7f1ae02d01cc40b466c3e3e2ee"
+    },
+    {
+      "path": "scripts/verify-shadow-decision-readiness.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
+      "tree": "ad140ba5e4e7b1b1131d33afc9ba0618fa059d12",
+      "subject": "fix(intelligence): admit dormant retention deletion state",
+      "previousSha256": "0ef3dff897cb9ed90dd90a81b55e09e7a8649153192c943fd595a8a1f144b12b",
+      "currentSha256": "b634c99b52aa355422cb9b37a63ce742293057303a06e548b4121c80cb522876"
+    },
+    {
+      "path": "tests/read-only-field-session-learning.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
+      "tree": "ad140ba5e4e7b1b1131d33afc9ba0618fa059d12",
+      "subject": "fix(intelligence): admit dormant retention deletion state",
+      "previousSha256": "0fe879e56ff462e8b18b0fcee0515d082edbdfb16b1ae90fc3137a48d85fa41d",
+      "currentSha256": "4ca183de17f9d870d2ca448b6cf6dadf7f5c58a56132ba38ffde38edce14e20b"
+    },
+    {
+      "path": "tests/shadow-decision-readiness.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
+      "tree": "ad140ba5e4e7b1b1131d33afc9ba0618fa059d12",
+      "subject": "fix(intelligence): admit dormant retention deletion state",
+      "previousSha256": "726510bdd55114d81ae0cc1290b884d851f6b1b5dc0b7107e0bd9f78e9e1b4b6",
+      "currentSha256": "90bf943f8296d8c7e5ab14e57b5a2f02801260ebf2968f5bbbd4ce8b42af9d88"
+    }
+  ],
+  "coherenceSourceTransition": {
+    "path": "scripts/verify-shadow-decision-readiness.mjs",
+    "ownerSubsystem": "Prometheus Intelligence Engine",
+    "commit": "f37a1e16a73d89c57fb988c53c472a570fdbc15f",
+    "tree": "d734e6e235174d870d3c82c5c78e1edcdc1cc74b",
+    "subject": "fix(intelligence): compose retention data successor",
+    "previousSha256": "b634c99b52aa355422cb9b37a63ce742293057303a06e548b4121c80cb522876",
+    "currentSha256": "bda4488c6015751fe24ddd36dd5dec38a8106a0a2a061a56e3232785b325c911"
+  },
+  "upstreamDataTransitions": [
+    {
+      "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "e0a5fb7a9089cae62081295875793f9c635c498c",
+      "tree": "8bab2ffbc9b2344fa255e804c17d84b94e6cda85",
+      "subject": "fix(data): synchronize retention policy hash pin",
+      "previousSha256": "30727656084c774d48a2d80b79f7dcad66a864fd6bd5c489905d9247fd953e85",
+      "currentSha256": "586d19dbf65c4c740ecea6a7e0b4e1d01d733471a2604f8a92b946af092ee282"
+    },
+    {
+      "path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "82b2edd12f15978d97f0950657c5c123a01a54a7",
+      "tree": "3e267a2542cde289a09ff2f558609378e6c23a04",
+      "subject": "fix(data): publish deletion runtime contract",
+      "previousSha256": "c792c9967ebaa2878ba9aa4f54a6cd18c4395c04cdfd9ed3cdbc5ec7762660cf",
+      "currentSha256": "c87a2769f6571e3efb221fe9f5948d4bcbe0c5c6b25a30ae72e9dbfbb32da288"
+    }
+  ],
+  "contractComposition": {
+    "acceptedRetentionPolicyStatus": "founder_authorized_18_month_maximum_source_deletion_runtime_dormant",
+    "acceptedPhysicalDeletionImplementationStatus": "source_complete_dormant_not_deployed",
+    "unknownActiveOrUnsafeStatusAdmissionAllowed": false,
+    "deletionStartedOrCompletedEvidenceAdmissionAllowed": false,
+    "shadowHistoricalCheckpointSha256": "c814acf7d0d1c08dbc42c24ca1231135b7123397c0c5b2698d3898ca0b3e9ab6",
+    "shadowRetentionDeletionSuccessorSha256": "15995f73e9e8b1b28099f921d2a2f9ac6f3fc93390c17c960cd58e748c9c81d5",
+    "historicalPinsRewritten": false
+  },
+  "boundaries": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "physicalDeletionDeployed": false,
+    "physicalDeletionActivated": false,
+    "canonicalProspectiveRecords": 0,
+    "canonicalProspectiveEvaluations": 0,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}
