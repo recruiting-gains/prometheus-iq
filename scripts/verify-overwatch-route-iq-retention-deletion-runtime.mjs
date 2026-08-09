@@ -108,6 +108,16 @@ const ownerCommits = Object.freeze({
       "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
     ])
   }),
+  "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0": Object.freeze({
+    name: "Prometheus Intelligence Engine",
+    email: "intelligence@prometheus.local",
+    files: Object.freeze([
+      "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json",
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "tests/intelligence-architecture.test.mjs",
+      "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+    ])
+  }),
   "a445bf4bdb068eb597b11e60ff10cdd2d1f4e023": Object.freeze({
     name: "Prometheus Infrastructure",
     email: "infrastructure@prometheus.local",
@@ -153,6 +163,7 @@ function verifyPinnedFiles(governance) {
     governance.qualificationRepair.liveCanonicalIdentity.protectedSuccessor,
     governance.qualificationRepair.liveCanonicalIdentity.verifier,
     governance.qualificationRepair.liveCanonicalIdentity.intelligenceRegressionTest,
+    governance.qualificationRepair.liveCanonicalIdentity.architectureRegressionTest,
     governance.qualificationRepair.liveCanonicalIdentity.overwatchRegressionTest,
     governance.forwardRevert
   ];
@@ -272,6 +283,7 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.qualification.focusedPreflight.productionReleaseCurrentDashboardRegressionTests, "3/3 PASS");
   assert.equal(report.qualification.focusedPreflight.localProductionReleaseVerification, "PASS");
   assert.equal(report.qualification.focusedPreflight.liveCanonicalIdentityRegressionTests, "18/18 PASS");
+  assert.equal(report.qualification.focusedPreflight.intelligenceArchitectureRegressionTests, "15/15 PASS");
   assert.equal(report.qualification.initialHostedQualificationRun, 31336094147);
   assert.equal(report.qualification.initialHostedQualificationResult, "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN");
   assert.equal(report.qualification.secondHostedQualificationRun, 31336503689);

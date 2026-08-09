@@ -21,7 +21,8 @@
       "commits": [
         "f5a473a4fbab7d0f876be36c65b603d9b13bcc0a",
         "17bef15930ded364a55aadd47d0f96722cc8e9c6",
-        "b359d8e701e13d2f9911dcd0cb917eecce8aa7ac"
+        "b359d8e701e13d2f9911dcd0cb917eecce8aa7ac",
+        "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0"
       ],
       "scope": "started/completed subject exclusion from learning, evaluation, readiness and recommendation input, plus protected live-identity source succession"
     },
@@ -45,7 +46,8 @@
       "historicalArchiveSuite": "PASS",
       "productionReleaseCurrentDashboardRegressionTests": "3/3 PASS",
       "localProductionReleaseVerification": "PASS",
-      "liveCanonicalIdentityRegressionTests": "18/18 PASS"
+      "liveCanonicalIdentityRegressionTests": "18/18 PASS",
+      "intelligenceArchitectureRegressionTests": "15/15 PASS"
     },
     "initialHostedQualificationRun": 31336094147,
     "initialHostedQualificationResult": "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN",
