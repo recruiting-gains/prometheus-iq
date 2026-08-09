@@ -496,6 +496,9 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     ),
   );
   const zipFounderAdoption = verifyCrossIndustryZipFounderAccessAdoption();
+  const retentionDeletionSuccessor =
+    zipFounderAdoption.rehearsalSuccessor
+      .retentionDeletionRuntimeProtectedSuccessor;
   assert.equal(
     dashboardCoherenceSuccessor.version,
     "route-iq-intelligence-cross-industry-shadow-readiness-coherence-v1",
@@ -778,8 +781,19 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     dashboardCoherenceSuccessor.protectedConsumer.path,
     contract.artifacts.contract,
   );
+  const retentionDeletionContractTransitions =
+    retentionDeletionSuccessor.successorTransitionsByPath.get(
+      contract.artifacts.contract,
+    );
+  assert.equal(retentionDeletionContractTransitions.length, 1);
+  const retentionDeletionContractTransition =
+    retentionDeletionContractTransitions[0];
   assert.equal(
     dashboardCoherenceSuccessor.protectedConsumer.currentSha256,
+    retentionDeletionContractTransition.previousSha256,
+  );
+  assert.equal(
+    retentionDeletionContractTransition.currentSha256,
     sha256File(dashboardCoherenceSuccessor.protectedConsumer.path),
   );
   assert.equal(
@@ -872,6 +886,14 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     "c73118ddb262d3010bbc94a900f8506fb2f56192",
   );
   assert.equal(
+    contract.prospectiveRetentionAdmission.sourceDeletionSuccessorBatchId,
+    "BATCH-20260809-001",
+  );
+  assert.equal(
+    contract.prospectiveRetentionAdmission.dataDeletionRuntimeFinalCommit,
+    "a8fedf7c0b88f0611b4f721b08641e55413c591a",
+  );
+  assert.equal(
     contract.prospectiveRetentionAdmission.dataCoordinatorAdmissionSuccessorCommit,
     "c73118ddb262d3010bbc94a900f8506fb2f56192",
   );
@@ -917,6 +939,7 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     "missingExpiredUnknownStaleMalformedOrUnauthorizedAdmissionAllowed",
     "noncanonicalOriginAdmissionAllowed",
     "unknownOrActiveLegalHoldAdmissionAllowed",
+    "deletionStartedOrCompletedAdmissionAllowed",
     "derivedProjectionMayOutliveSource",
     "administrativelyDisposedSessionAdmissionAllowed",
     "historicalArchiveRewriteAllowed",
@@ -946,17 +969,18 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     contract.prospectiveRetentionAdmission.protectedDataSources.retentionPolicy
       .sha256,
   );
-  for (const source of Object.values(
+  const expectedRetentionSourceCommits = {
+    retentionPolicy: "28c8a51b4aafef777e407c324ea15c57f4f12454",
+    retentionEvaluator: "8845846632801ccf29e52a36139a43c1063fcc2e",
+  };
+  for (const [sourceName, source] of Object.entries(
     contract.prospectiveRetentionAdmission.protectedDataSources,
   )) {
     const actual = createHash("sha256")
       .update(readFileSync(resolve(root, source.path)))
       .digest("hex");
     assert.equal(actual, source.sha256);
-    assert.equal(
-      source.sourceCommit,
-      contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit,
-    );
+    assert.equal(source.sourceCommit, expectedRetentionSourceCommits[sourceName]);
     assert.equal(source.sourceOwnerSubsystem, "Prometheus Data");
   }
   assert.equal(

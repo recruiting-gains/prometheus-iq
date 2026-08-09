@@ -177,17 +177,88 @@ test("canonical contract and governed policy activate only read-only Intelligenc
   assert.equal(contract.administrativeDispositionAdmission.auditProjectionRawPayloadAllowed, false);
   assert.equal(contract.prospectiveRetentionAdmission.dataFoundationCommit, "a5bd1d431e778cec045d1e8412efb396674ea321");
   assert.equal(contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit, "c73118ddb262d3010bbc94a900f8506fb2f56192");
-  for (const field of ["prospectiveEvidencePromotionByArchivedLearningAllowed", "missingExpiredUnknownOrMalformedBoundaryAdmissionAllowed", "noncanonicalOriginAdmissionAllowed", "unknownOrActiveLegalHoldAdmissionAllowed", "derivedProjectionMayOutliveSource", "automaticZeroVisitExclusionAllowed", "productionActivationEligible"]) {
+  assert.equal(contract.prospectiveRetentionAdmission.sourceDeletionSuccessorBatchId, "BATCH-20260809-001");
+  assert.equal(contract.prospectiveRetentionAdmission.dataDeletionRuntimeFinalCommit, "a8fedf7c0b88f0611b4f721b08641e55413c591a");
+  for (const field of ["prospectiveEvidencePromotionByArchivedLearningAllowed", "missingExpiredUnknownOrMalformedBoundaryAdmissionAllowed", "noncanonicalOriginAdmissionAllowed", "unknownOrActiveLegalHoldAdmissionAllowed", "deletionStartedOrCompletedAdmissionAllowed", "derivedProjectionMayOutliveSource", "automaticZeroVisitExclusionAllowed", "productionActivationEligible"]) {
     assert.equal(contract.prospectiveRetentionAdmission[field], false, field);
   }
-  assert.equal(dataContract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.retentionPolicyProvided, true);
-  assert.equal(dataContract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.activationEligibleUnderRetentionPolicy, false);
-  assert.equal(dataContract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.productionCollectionActivated, false);
-  assert.equal(dataContract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.productionEvidenceRecords, 0);
+  const retention = dataContract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection;
+  const activation = dataContract.prospectiveShadowEvidenceLifecycleContract.activation;
+  assert.equal(retention.retentionPolicyProvided, true);
+  assert.equal(retention.retentionPolicyStatus, "founder_authorized_18_month_maximum_source_deletion_runtime_dormant");
+  assert.equal(retention.physicalDeletionImplementationStatus, "source_complete_dormant_not_deployed");
+  assert.equal(retention.physicalDeletionImplementationVerified, true);
+  assert.equal(retention.physicalDeletionImplementationAvailable, true);
+  assert.equal(retention.physicalDeletionDeployed, false);
+  assert.equal(retention.physicalDeletionActivated, false);
+  assert.equal(retention.activationEligibleUnderRetentionPolicy, false);
+  assert.equal(retention.productionCollectionActivated, false);
+  assert.equal(retention.productionEvidenceRecords, 0);
+  assert.equal(activation.productionConsumerActivated, false);
+  assert.equal(activation.recommendationInfluenceActivated, false);
+  assert.equal(activation.recommendationInfluenceState, "OFF");
   assert.deepEqual(
     contract.administrativeDispositionAdmission.requiredExcludedDomains,
     dataContract.fieldSessionAdministrativeDispositionContract.excludedDomains
   );
+});
+
+test("read-only learning accepts only the exact dormant deletion state and fails closed on unsafe variants", () => {
+  const { contract, dataContract } = fixtures();
+  const cases = [
+    ["unknown status", value => { value.retentionPolicyStatus = "unknown"; }, "data_retention_policy_status_invalid"],
+    ["superseded status", value => { value.retentionPolicyStatus = "founder_authorized_18_month_maximum_runtime_deletion_inactive"; }, "data_retention_policy_status_invalid"],
+    ["active status", value => { value.retentionPolicyStatus = "founder_authorized_18_month_maximum_source_deletion_runtime_active"; }, "data_retention_policy_status_invalid"],
+    ["unverified implementation", value => { value.physicalDeletionImplementationVerified = false; }, "data_retention_deletion_implementation_unverified"],
+    ["unavailable implementation", value => { value.physicalDeletionImplementationAvailable = false; }, "data_retention_deletion_implementation_unavailable"],
+    ["wrong implementation state", value => { value.physicalDeletionImplementationStatus = "active"; }, "data_retention_deletion_implementation_status_invalid"],
+    ["deployed implementation", value => { value.physicalDeletionDeployed = true; }, "data_retention_deletion_deployed"],
+    ["active implementation", value => { value.physicalDeletionActivated = true; }, "data_retention_deletion_active"],
+    ["missing maintenance boundary", value => { value.authenticatedMaintenanceMutationPathRequired = false; }, "data_retention_maintenance_boundary_missing"],
+    ["unsafe legal hold", value => { value.activeOrUnknownLegalHoldBlocksAnalyticsAndEvaluation = false; }, "data_retention_legal_hold_consumer_block_missing"],
+    ["collection active", value => { value.productionCollectionActivated = true; }, "data_prospective_collection_active"]
+  ];
+
+  for (const [label, mutate, expected] of cases) {
+    const changed = clone(dataContract);
+    mutate(changed.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection);
+    assert.equal(
+      validateReadOnlyFieldSessionLearningContract(contract, changed).includes(expected),
+      true,
+      label
+    );
+  }
+
+  for (const [field, value, expected] of [
+    ["productionConsumerActivated", true, "data_prospective_consumer_active"],
+    ["intelligenceProductionConsumerAuthorized", true, "data_intelligence_consumer_authorized"],
+    ["recommendationInfluenceActivated", true, "data_recommendation_influence_active"],
+    ["recommendationInfluenceState", "ON", "data_recommendation_influence_state_invalid"]
+  ]) {
+    const changed = clone(dataContract);
+    changed.prospectiveShadowEvidenceLifecycleContract.activation[field] = value;
+    assert.equal(
+      validateReadOnlyFieldSessionLearningContract(contract, changed).includes(expected),
+      true,
+      field
+    );
+  }
+
+  const unsafeContract = clone(contract);
+  unsafeContract.prospectiveRetentionAdmission.deletionStartedOrCompletedAdmissionAllowed = true;
+  assert.equal(
+    validateReadOnlyFieldSessionLearningContract(unsafeContract, dataContract)
+      .includes("prospective_retention_boundary_enabled:deletionStartedOrCompletedAdmissionAllowed"),
+    true
+  );
+});
+
+test("deletion-started and completed archive evidence is excluded from read-only learning", () => {
+  for (const state of ["DELETION_STARTED", "DELETION_IN_PROGRESS", "DELETION_COMPLETED"]) {
+    const current = fixtures();
+    current.archivePackages[0].consumptionEligibility = { eligible: true, state };
+    assert.throws(() => build(current), /retention_deletion_subject_excluded/, state);
+  }
 });
 
 test("administratively disposed sessions fail closed before learning without a blanket zero-visit rule", () => {

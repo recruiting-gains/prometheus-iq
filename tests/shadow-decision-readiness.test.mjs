@@ -1386,6 +1386,37 @@ test("cross-industry Dashboard successor preserves the historical shadow baselin
   );
 });
 
+test("retention deletion successor composes the current shadow contract without rewriting its historical checkpoint", () => {
+  const dashboardSuccessor = JSON.parse(
+    readFileSync(
+      "intelligence/provenance/protected-baseline-synchronization-cross-industry-shadow-readiness-coherence-v1.json",
+      "utf8",
+    ),
+  );
+  const retentionSuccessor = JSON.parse(
+    readFileSync(
+      "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json",
+      "utf8",
+    ),
+  );
+  const transition = retentionSuccessor.protectedSourceTransitions.find(
+    value => value.path === "intelligence/contracts/shadow-decision-readiness-contracts.json",
+  );
+
+  assert.ok(transition);
+  assert.equal(
+    dashboardSuccessor.protectedConsumer.currentSha256,
+    "c814acf7d0d1c08dbc42c24ca1231135b7123397c0c5b2698d3898ca0b3e9ab6",
+  );
+  assert.equal(transition.previousSha256, dashboardSuccessor.protectedConsumer.currentSha256);
+  assert.equal(
+    transition.currentSha256,
+    digest(readFileSync(transition.path)),
+  );
+  assert.equal(transition.commit, "17bef15930ded364a55aadd47d0f96722cc8e9c6");
+  assert.equal(dashboardSuccessor.protectedConsumer.modifiedByThisSuccessor, false);
+});
+
 test("unresolved conflict is explicit and unscored", () => {
   const candidate = record(590, "2026-07-02T12:00:00.000Z");
   let value = ledger([candidate]);
@@ -1708,6 +1739,11 @@ test("prospective retention admission remains fail closed and inactive", () => {
     retention.dataCoordinatorAdmissionSuccessorCommit,
     "c73118ddb262d3010bbc94a900f8506fb2f56192",
   );
+  assert.equal(retention.sourceDeletionSuccessorBatchId, "BATCH-20260809-001");
+  assert.equal(
+    retention.dataDeletionRuntimeFinalCommit,
+    "a8fedf7c0b88f0611b4f721b08641e55413c591a",
+  );
   assert.equal(
     retention.infrastructureRetentionFailClosedSuccessorCommit,
     "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
@@ -1750,12 +1786,16 @@ test("prospective retention admission remains fail closed and inactive", () => {
     "retentionEvaluator",
     "retentionPolicy",
   ]);
-  for (const source of Object.values(retention.protectedDataSources)) {
+  const expectedSourceCommits = {
+    retentionPolicy: "28c8a51b4aafef777e407c324ea15c57f4f12454",
+    retentionEvaluator: "8845846632801ccf29e52a36139a43c1063fcc2e",
+  };
+  for (const [sourceName, source] of Object.entries(retention.protectedDataSources)) {
     assert.equal(
       createHash("sha256").update(readFileSync(source.path)).digest("hex"),
       source.sha256,
     );
-    assert.equal(source.sourceCommit, retention.dataExactKeySuccessorCommit);
+    assert.equal(source.sourceCommit, expectedSourceCommits[sourceName]);
     assert.equal(source.sourceOwnerSubsystem, "Prometheus Data");
   }
   assert.equal(retention.auditVisibility, "hash_only");
@@ -1763,6 +1803,7 @@ test("prospective retention admission remains fail closed and inactive", () => {
     "missingExpiredUnknownStaleMalformedOrUnauthorizedAdmissionAllowed",
     "noncanonicalOriginAdmissionAllowed",
     "unknownOrActiveLegalHoldAdmissionAllowed",
+    "deletionStartedOrCompletedAdmissionAllowed",
     "derivedProjectionMayOutliveSource",
     "administrativelyDisposedSessionAdmissionAllowed",
     "historicalArchiveRewriteAllowed",

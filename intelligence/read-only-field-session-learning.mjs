@@ -10,6 +10,15 @@ export const readOnlyFieldSessionLearningOperatingProfileId = "fitness";
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(moduleDir, "..");
 const millisecondsPerDay = 24 * 60 * 60 * 1000;
+const dormantRetentionPolicyStatus =
+  "founder_authorized_18_month_maximum_source_deletion_runtime_dormant";
+const dormantDeletionImplementationStatus =
+  "source_complete_dormant_not_deployed";
+const retentionDeletionStates = new Set([
+  "DELETION_STARTED",
+  "DELETION_IN_PROGRESS",
+  "DELETION_COMPLETED"
+]);
 const administrativeDispositionExcludedDomains = Object.freeze([
   "learning",
   "readiness",
@@ -214,9 +223,11 @@ export function validateReadOnlyFieldSessionLearningContract(contract, dataContr
   fail(JSON.stringify(contract?.administrativeDispositionAdmission?.auditProjectionAllowedFields) === JSON.stringify(["sourceRawSha256", "dispositionRecordSha256"]), "administrative_disposition_audit_projection_not_hash_only");
   fail(contract?.administrativeDispositionAdmission?.auditProjectionRawPayloadAllowed === false, "administrative_disposition_raw_audit_payload_allowed");
   fail(contract?.prospectiveRetentionAdmission?.batchId === "BATCH-20260714-004", "prospective_retention_batch_mismatch");
+  fail(contract?.prospectiveRetentionAdmission?.sourceDeletionSuccessorBatchId === "BATCH-20260809-001", "prospective_retention_deletion_successor_batch_mismatch");
   fail(contract?.prospectiveRetentionAdmission?.dataFoundationCommit === "a5bd1d431e778cec045d1e8412efb396674ea321", "prospective_retention_foundation_commit_mismatch");
   fail(contract?.prospectiveRetentionAdmission?.dataExactKeySuccessorCommit === "c73118ddb262d3010bbc94a900f8506fb2f56192", "prospective_retention_exact_key_commit_mismatch");
-  for (const key of ["prospectiveEvidencePromotionByArchivedLearningAllowed", "missingExpiredUnknownOrMalformedBoundaryAdmissionAllowed", "noncanonicalOriginAdmissionAllowed", "unknownOrActiveLegalHoldAdmissionAllowed", "derivedProjectionMayOutliveSource", "automaticZeroVisitExclusionAllowed", "productionActivationEligible"]) {
+  fail(contract?.prospectiveRetentionAdmission?.dataDeletionRuntimeFinalCommit === "a8fedf7c0b88f0611b4f721b08641e55413c591a", "prospective_retention_deletion_runtime_commit_mismatch");
+  for (const key of ["prospectiveEvidencePromotionByArchivedLearningAllowed", "missingExpiredUnknownOrMalformedBoundaryAdmissionAllowed", "noncanonicalOriginAdmissionAllowed", "unknownOrActiveLegalHoldAdmissionAllowed", "deletionStartedOrCompletedAdmissionAllowed", "derivedProjectionMayOutliveSource", "automaticZeroVisitExclusionAllowed", "productionActivationEligible"]) {
     fail(contract?.prospectiveRetentionAdmission?.[key] === false, `prospective_retention_boundary_enabled:${key}`);
   }
   for (const [key, value] of Object.entries({
@@ -231,11 +242,23 @@ export function validateReadOnlyFieldSessionLearningContract(contract, dataContr
     recommendationInfluenceAllowed: false,
   })) fail(contract?.prospectiveRetentionAdmission?.[key] === value, `prospective_retention_final_contract_invalid:${key}`);
   const retention = dataContract?.prospectiveShadowEvidenceLifecycleContract?.retentionAndCollection;
+  const activation = dataContract?.prospectiveShadowEvidenceLifecycleContract?.activation;
   fail(retention?.retentionPolicyProvided === true, "data_retention_policy_missing");
-  fail(retention?.retentionPolicyStatus === "founder_authorized_18_month_maximum_runtime_deletion_inactive", "data_retention_policy_status_invalid");
+  fail(retention?.retentionPolicyStatus === dormantRetentionPolicyStatus, "data_retention_policy_status_invalid");
+  fail(retention?.physicalDeletionImplementationVerified === true, "data_retention_deletion_implementation_unverified");
+  fail(retention?.physicalDeletionImplementationAvailable === true, "data_retention_deletion_implementation_unavailable");
+  fail(retention?.physicalDeletionImplementationStatus === dormantDeletionImplementationStatus, "data_retention_deletion_implementation_status_invalid");
+  fail(retention?.physicalDeletionDeployed === false, "data_retention_deletion_deployed");
+  fail(retention?.physicalDeletionActivated === false, "data_retention_deletion_active");
+  fail(retention?.authenticatedMaintenanceMutationPathRequired === true, "data_retention_maintenance_boundary_missing");
+  fail(retention?.activeOrUnknownLegalHoldBlocksAnalyticsAndEvaluation === true, "data_retention_legal_hold_consumer_block_missing");
   fail(retention?.activationEligibleUnderRetentionPolicy === false, "data_retention_policy_activation_enabled");
   fail(retention?.productionCollectionActivated === false, "data_prospective_collection_active");
   fail(retention?.productionEvidenceRecords === 0, "data_prospective_records_nonzero");
+  fail(activation?.productionConsumerActivated === false, "data_prospective_consumer_active");
+  fail(activation?.intelligenceProductionConsumerAuthorized === false, "data_intelligence_consumer_authorized");
+  fail(activation?.recommendationInfluenceActivated === false, "data_recommendation_influence_active");
+  fail(activation?.recommendationInfluenceState === "OFF", "data_recommendation_influence_state_invalid");
   fail(contract?.productionSafety?.readOnlyArchivedSessionLearningActive === true, "read_only_learning_not_active");
   fail(contract?.productionSafety?.productionRecommendationInfluenceActive === false, "recommendation_influence_active");
   fail(contract?.productionSafety?.routeScoringWeightsChanged === false, "route_scoring_weights_changed");
@@ -256,12 +279,14 @@ export function validateArchivedFieldSessionPackage(archivePackage, context = {}
   const history = archivePackage?.historyUpdates;
   const administrativeDisposition = archivePackage?.administrativeDisposition ?? null;
   const consumptionEligibility = archivePackage?.consumptionEligibility ?? null;
+  const retentionDeletionState = consumptionEligibility?.state ?? null;
   const sessionId = cleanText(manifest?.sessionId, 240);
   const scopedRecords = [manifest, verified, metrics, history];
 
   fail(Boolean(manifest && verified && metrics && history), "archive_package_incomplete");
   fail(administrativeDisposition === null, "administratively_disposed_session_excluded");
   fail(consumptionEligibility?.eligible !== false, "administratively_ineligible_session_excluded");
+  fail(!retentionDeletionStates.has(retentionDeletionState), "retention_deletion_subject_excluded");
   fail(policy?.admission?.authorizedSessionIds?.includes(sessionId), `session_not_authorized:${sessionId || "missing"}`);
   fail(manifest?.status === policy?.admission?.requiredManifestStatus, "session_not_archived");
   fail(policy?.admission?.requiredSourceFinality?.includes(manifest?.sourceFinality), "session_source_finality_unapproved");
