@@ -22,6 +22,12 @@
     "subject": "fix(intelligence): compose retention data successor",
     "ownerSubsystem": "Prometheus Intelligence Engine"
   },
+  "negativeFixtureImplementation": {
+    "commit": "61418a67b6df3e482b52a1fa6f7fc6757147dda0",
+    "tree": "4ef07a81196fa1ff6aedcbd309cc34298610d575",
+    "subject": "test(intelligence): retain successor drift rejection",
+    "ownerSubsystem": "Prometheus Intelligence Engine"
+  },
   "protectedSourceTransitions": [
     {
       "path": "intelligence/read-only-field-session-learning.mjs",
@@ -68,6 +74,15 @@
     "subject": "fix(intelligence): compose retention data successor",
     "previousSha256": "b634c99b52aa355422cb9b37a63ce742293057303a06e548b4121c80cb522876",
     "currentSha256": "bda4488c6015751fe24ddd36dd5dec38a8106a0a2a061a56e3232785b325c911"
+  },
+  "negativeFixtureSourceTransition": {
+    "path": "tests/read-only-field-session-learning.test.mjs",
+    "ownerSubsystem": "Prometheus Intelligence Engine",
+    "commit": "61418a67b6df3e482b52a1fa6f7fc6757147dda0",
+    "tree": "4ef07a81196fa1ff6aedcbd309cc34298610d575",
+    "subject": "test(intelligence): retain successor drift rejection",
+    "previousSha256": "4ca183de17f9d870d2ca448b6cf6dadf7f5c58a56132ba38ffde38edce14e20b",
+    "currentSha256": "733435dd04c9343642d01bf6fbbc1e8ab5e942bcb0580963614f768a53fb4c84"
   },
   "upstreamDataTransitions": [
     {

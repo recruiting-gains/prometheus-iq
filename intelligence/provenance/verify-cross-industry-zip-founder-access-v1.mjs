@@ -621,6 +621,12 @@ function verifyRetentionDeletionConsumerAdmissionSuccessorAgainst(
     subject: "fix(intelligence): compose retention data successor",
     ownerSubsystem: "Prometheus Intelligence Engine"
   });
+  assert.deepEqual(successor.negativeFixtureImplementation, {
+    commit: "61418a67b6df3e482b52a1fa6f7fc6757147dda0",
+    tree: "4ef07a81196fa1ff6aedcbd309cc34298610d575",
+    subject: "test(intelligence): retain successor drift rejection",
+    ownerSubsystem: "Prometheus Intelligence Engine"
+  });
 
   const expectedPaths = [
     "intelligence/read-only-field-session-learning.mjs",
@@ -680,6 +686,41 @@ function verifyRetentionDeletionConsumerAdmissionSuccessorAgainst(
   successorTransitionsByPath.set(coherenceTransition.path, [
     ...shadowVerifierTransitions,
     coherenceTransition
+  ]);
+  assert.deepEqual(
+    git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      successor.negativeFixtureImplementation.commit
+    ]).trim().split("\n").filter(Boolean),
+    ["tests/read-only-field-session-learning.test.mjs"],
+    "Retention-deletion Intelligence negative-fixture commit scope changed."
+  );
+  const negativeFixtureTransition = successor.negativeFixtureSourceTransition;
+  assert.equal(
+    negativeFixtureTransition.path,
+    "tests/read-only-field-session-learning.test.mjs"
+  );
+  assert.deepEqual(
+    {
+      commit: negativeFixtureTransition.commit,
+      tree: negativeFixtureTransition.tree,
+      subject: negativeFixtureTransition.subject,
+      ownerSubsystem: negativeFixtureTransition.ownerSubsystem
+    },
+    successor.negativeFixtureImplementation
+  );
+  const readOnlyTestTransitions = successorTransitionsByPath.get(
+    negativeFixtureTransition.path
+  );
+  assert.equal(
+    negativeFixtureTransition.previousSha256,
+    readOnlyTestTransitions.at(-1).currentSha256,
+    "Broken retention consumer negative-fixture transition chain."
+  );
+  verifyTransition(negativeFixtureTransition.path, negativeFixtureTransition);
+  successorTransitionsByPath.set(negativeFixtureTransition.path, [
+    ...readOnlyTestTransitions,
+    negativeFixtureTransition
   ]);
 
   const transitionsByPath = new Map();
