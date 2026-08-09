@@ -18,6 +18,8 @@ export const liveCanonicalIdentityProtectedSuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-live-canonical-identity-v1.json";
 export const fieldSessionReportTypeContractProtectedSuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json";
+export const retentionDeletionRuntimeProtectedSuccessorProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json";
 const crossIndustryDashboardRetentionProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json";
 
@@ -421,13 +423,6 @@ function verifyFieldSessionReportTypeContractProtectedSuccessorAgainst(
   for (const [path, transitions] of successorTransitionsByPath) {
     if (!transitionsByPath.has(path)) transitionsByPath.set(path, transitions);
   }
-  for (const [path, transitions] of transitionsByPath) {
-    assert.equal(
-      sha256(path),
-      transitions.at(-1).currentSha256,
-      `Current field-session report-type protected source changed: ${path}`
-    );
-  }
   assert.equal(
     sha256("index.html"),
     sha256("deploy/cloudflare-pages/index.html"),
@@ -481,6 +476,86 @@ function verifyFieldSessionReportTypeContractProtectedSuccessorAgainst(
     productionAccessPerformed: false,
     productionMutationPerformed: false
   });
+  return Object.freeze({
+    successor,
+    successorTransitionsByPath,
+    transitionsByPath
+  });
+}
+
+function verifyRetentionDeletionRuntimeProtectedSuccessorAgainst(
+  fieldSessionReportTypeSuccessor
+) {
+  const successor = JSON.parse(
+    read(retentionDeletionRuntimeProtectedSuccessorProvenancePath)
+  );
+  assert.equal(
+    successor.version,
+    "route-iq-intelligence-retention-deletion-runtime-successor-v1"
+  );
+  assert.equal(successor.status, "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(
+    successor.predecessor.path,
+    fieldSessionReportTypeContractProtectedSuccessorProvenancePath
+  );
+  assert.equal(
+    sha256(successor.predecessor.path),
+    successor.predecessor.sha256,
+    "Historical field-session report-type Intelligence provenance changed."
+  );
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(successor.protectedSourceTransitions.length, 1);
+
+  const transition = successor.protectedSourceTransitions[0];
+  assert.equal(
+    transition.path,
+    "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs"
+  );
+  assert.equal(
+    transition.previousSha256,
+    fieldSessionReportTypeSuccessor.transitionsByPath.get(transition.path).at(-1).currentSha256,
+    `Broken retention-deletion transition chain: ${transition.path}`
+  );
+  verifyTransition(transition.path, transition);
+
+  const successorTransitionsByPath = new Map([[transition.path, [transition]]]);
+  const transitionsByPath = new Map();
+  for (const [path, transitions] of fieldSessionReportTypeSuccessor.transitionsByPath) {
+    transitionsByPath.set(path, [
+      ...transitions,
+      ...(successorTransitionsByPath.get(path) || [])
+    ]);
+  }
+  for (const [path, transitions] of transitionsByPath) {
+    assert.equal(
+      sha256(path),
+      transitions.at(-1).currentSha256,
+      `Current retention-deletion protected source changed: ${path}`
+    );
+  }
+  assert.deepEqual(
+    successor.reportTypeContract,
+    fieldSessionReportTypeSuccessor.successor.reportTypeContract
+  );
+  assert.deepEqual(successor.coherence, {
+    historicalFieldSessionReportTypeEvidenceRewritten: false,
+    successorCommitAndTreeVerified: true,
+    successorOwnerIdentityVerified: true,
+    archiveReportTypeContractChanged: false,
+    rawEvidenceRewritten: false,
+    deletionTombstoneBehaviorAdded: true,
+    retentionSemanticsImplemented: true,
+    intelligenceRuntimeChanged: false,
+    routeOrderingChanged: false,
+    routeScoringChanged: false,
+    businessHoursEligibilityChanged: false
+  });
+  assert.deepEqual(
+    successor.boundaries,
+    fieldSessionReportTypeSuccessor.successor.boundaries
+  );
   return Object.freeze({
     successor,
     successorTransitionsByPath,
@@ -585,9 +660,13 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     verifyFieldSessionReportTypeContractProtectedSuccessorAgainst(
       liveCanonicalIdentityProtectedSuccessor
     );
+  const retentionDeletionRuntimeProtectedSuccessor =
+    verifyRetentionDeletionRuntimeProtectedSuccessorAgainst(
+      fieldSessionReportTypeContractProtectedSuccessor
+    );
   for (const protectedTransition of transitionByPath.values()) {
     const revenueTransitions =
-      fieldSessionReportTypeContractProtectedSuccessor.transitionsByPath
+      retentionDeletionRuntimeProtectedSuccessor.transitionsByPath
         .get(protectedTransition.path);
     const expectedSha256 = revenueTransitions
       ? revenueTransitions.at(-1).currentSha256
@@ -604,7 +683,8 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     revenueReadinessSuccessor,
     fullSystemHarmonySuccessor,
     liveCanonicalIdentityProtectedSuccessor,
-    fieldSessionReportTypeContractProtectedSuccessor
+    fieldSessionReportTypeContractProtectedSuccessor,
+    retentionDeletionRuntimeProtectedSuccessor
   });
 }
 
@@ -626,6 +706,11 @@ export function verifyLiveCanonicalIdentityProtectedSuccessor() {
 export function verifyFieldSessionReportTypeContractProtectedSuccessor() {
   return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
     .fieldSessionReportTypeContractProtectedSuccessor;
+}
+
+export function verifyRetentionDeletionRuntimeProtectedSuccessor() {
+  return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .retentionDeletionRuntimeProtectedSuccessor;
 }
 
 export function verifyCrossIndustryZipFounderAccessAdoption() {

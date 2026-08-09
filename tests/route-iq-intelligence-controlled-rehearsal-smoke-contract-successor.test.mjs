@@ -12,6 +12,7 @@ import {
   verifyControlledOnboardingRehearsalSmokeContractSuccessor,
   verifyCrossIndustryZipFounderAccessAdoption,
   verifyFieldSessionReportTypeContractProtectedSuccessor,
+  verifyRetentionDeletionRuntimeProtectedSuccessor,
   verifyFullSystemHarmonyProtectedSuccessor,
   verifyLiveCanonicalIdentityProtectedSuccessor,
   verifyPaidCustomerRevenueReadinessWorkerSuccessor
@@ -219,6 +220,24 @@ test("field-session report-type successor composes exact Data and Dashboard owne
   assert.equal(successor.archiveEvidencePreservation.length, 6);
   assert.equal(verified.successor.coherence.rawEvidenceRewritten, false);
   assert.equal(verified.successor.coherence.routeScoringChanged, false);
+  assert.equal(verified.successor.boundaries.prospectiveCollection, "OFF");
+  assert.equal(verified.successor.boundaries.recommendationInfluence, "OFF");
+});
+
+test("retention deletion successor advances only the Data-owned archive source", () => {
+  const verified = verifyRetentionDeletionRuntimeProtectedSuccessor();
+  const transition = verified.successorTransitionsByPath
+    .get("data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs")[0];
+
+  assert.equal(verified.successor.predecessor.rewritten, false);
+  assert.equal(transition.ownerSubsystem, "Prometheus Data");
+  assert.equal(transition.commit, "8845846632801ccf29e52a36139a43c1063fcc2e");
+  assert.equal(transition.previousSha256,
+    "5b4bc3d49596b3b4fa3c348ece30344f852f92056b0ceb8db8007cacbdfe2d2a");
+  assert.equal(transition.currentSha256,
+    "2d54c4525f1f240b0b7d46baf2899f537375397e6016c55bc770fd6d3686cc20");
+  assert.equal(verified.successor.coherence.archiveReportTypeContractChanged, false);
+  assert.equal(verified.successor.coherence.rawEvidenceRewritten, false);
   assert.equal(verified.successor.boundaries.prospectiveCollection, "OFF");
   assert.equal(verified.successor.boundaries.recommendationInfluence, "OFF");
 });

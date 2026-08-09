@@ -1,0 +1,64 @@
+{
+  "version": "route-iq-intelligence-retention-deletion-runtime-successor-v1",
+  "directive": "Route IQ Retention Expiry and Deletion Runtime v1",
+  "status": "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Compose the Data-owned archive tombstone and anti-resurrection behavior with the accepted field-session report-type chain without rewriting historical evidence or changing Route Intelligence behavior.",
+  "predecessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json",
+    "sha256": "77c88bc9a18d852c4b937303918be47a17b2423eba46c142cf5d2d4e9d5a0198",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "protectedSourceTransitions": [
+    {
+      "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "8845846632801ccf29e52a36139a43c1063fcc2e",
+      "tree": "cba3e5b257a11265974c29ec8454d743b98465ba",
+      "subject": "feat(data): add dormant retention deletion runtime",
+      "previousSha256": "5b4bc3d49596b3b4fa3c348ece30344f852f92056b0ceb8db8007cacbdfe2d2a",
+      "currentSha256": "2d54c4525f1f240b0b7d46baf2899f537375397e6016c55bc770fd6d3686cc20"
+    }
+  ],
+  "reportTypeContract": {
+    "canonical": "route-iq-daily-representative-report-v1",
+    "legacy": "beta-daily-rep-report",
+    "exactAllowlist": [
+      "route-iq-daily-representative-report-v1",
+      "beta-daily-rep-report"
+    ],
+    "preserveReceivedSourceReportType": true,
+    "normalizeLegacyIdentifier": false,
+    "unknownTypesFailClosed": true
+  },
+  "coherence": {
+    "historicalFieldSessionReportTypeEvidenceRewritten": false,
+    "successorCommitAndTreeVerified": true,
+    "successorOwnerIdentityVerified": true,
+    "archiveReportTypeContractChanged": false,
+    "rawEvidenceRewritten": false,
+    "deletionTombstoneBehaviorAdded": true,
+    "retentionSemanticsImplemented": true,
+    "intelligenceRuntimeChanged": false,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "businessHoursEligibilityChanged": false
+  },
+  "boundaries": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "canonicalProspectiveRecords": 0,
+    "canonicalProspectiveEvaluations": 0,
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "companion": "DORMANT",
+    "anthonyMapped": false,
+    "stripeMode": "NON_LIVE",
+    "dashboardBehaviorChanged": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}
