@@ -471,7 +471,10 @@ assert.equal(dataRetentionPolicy.administrativeDispositionConsumerBoundary.rawSh
 assert.equal(retention.maximumRetentionCalendarMonths, 18);
 assert.equal(retention.customerContractMayShortenOnly, true);
 assert.equal(retention.callerAssertedLegalHoldStateAccepted, false);
-assert.equal(retention.physicalDeletionImplementationAvailable, false);
+assert.equal(retention.physicalDeletionImplementationAvailable, true);
+assert.equal(retention.physicalDeletionImplementationStatus, "source_complete_dormant_not_deployed");
+assert.equal(retention.physicalDeletionDeployed, false);
+assert.equal(retention.physicalDeletionActivated, false);
 assert.equal(retention.july14AccidentalArchiveBytePreservationRequired, true);
 assert.equal(retention.july14AccidentalArchiveDispositionOnlyExclusion, true);
 assert.equal(retention.productionCollectionActivated, false);
