@@ -125,6 +125,67 @@ const ownerCommits = Object.freeze({
       "scripts/verify-production-release.mjs",
       "tests/production-release-current-dashboard-contract.test.mjs"
     ])
+  }),
+  "61e0c186af29e076797f817d0c834ec42531dbbe": Object.freeze({
+    name: "Prometheus Infrastructure",
+    email: "infrastructure@prometheus.local",
+    files: Object.freeze([
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ])
+  }),
+  "1f347ba74bfa2eab0415b3778dcbfdc0f80dd9ee": Object.freeze({
+    name: "Prometheus Infrastructure",
+    email: "infrastructure@prometheus.local",
+    files: Object.freeze([
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ])
+  }),
+  "e0a5fb7a9089cae62081295875793f9c635c498c": Object.freeze({
+    name: "Prometheus Data",
+    email: "data@prometheus.local",
+    files: Object.freeze([
+      "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs"
+    ])
+  }),
+  "d2ed353722b8c99f786306d7bbb37f21349ec3a5": Object.freeze({
+    name: "Prometheus Intelligence Engine",
+    email: "intelligence@prometheus.local",
+    files: Object.freeze([
+      "intelligence/read-only-field-session-learning.mjs",
+      "scripts/verify-shadow-decision-readiness.mjs",
+      "tests/read-only-field-session-learning.test.mjs",
+      "tests/shadow-decision-readiness.test.mjs"
+    ])
+  }),
+  "f37a1e16a73d89c57fb988c53c472a570fdbc15f": Object.freeze({
+    name: "Prometheus Intelligence Engine",
+    email: "intelligence@prometheus.local",
+    files: Object.freeze(["scripts/verify-shadow-decision-readiness.mjs"])
+  }),
+  "605c52e3076504159ac22c84b36b3d441cc30b66": Object.freeze({
+    name: "Prometheus Intelligence Engine",
+    email: "intelligence@prometheus.local",
+    files: Object.freeze([
+      "intelligence/provenance/protected-baseline-synchronization-retention-deletion-consumer-admission-v1.json",
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
+    ])
+  }),
+  "61418a67b6df3e482b52a1fa6f7fc6757147dda0": Object.freeze({
+    name: "Prometheus Intelligence Engine",
+    email: "intelligence@prometheus.local",
+    files: Object.freeze(["tests/read-only-field-session-learning.test.mjs"])
+  }),
+  "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b": Object.freeze({
+    name: "Prometheus Intelligence Engine",
+    email: "intelligence@prometheus.local",
+    files: Object.freeze([
+      "intelligence/provenance/protected-baseline-synchronization-retention-deletion-consumer-admission-v1.json",
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
+    ])
   })
 });
 
@@ -157,6 +218,8 @@ function verifyOwnerChain(governance) {
     execFileSync("git", ["merge-base", "--is-ancestor", commit, "HEAD"]);
     assert.equal(git("show", "-s", "--format=%an", commit), expected.name);
     assert.equal(git("show", "-s", "--format=%ae", commit), expected.email);
+    assert.equal(git("show", "-s", "--format=%cn", commit), expected.name);
+    assert.equal(git("show", "-s", "--format=%ce", commit), expected.email);
     assert.deepEqual(changedPaths(commit), [...expected.files].sort());
   }
 }
@@ -167,8 +230,11 @@ function verifyPinnedFiles(governance) {
     { path: governance.intelligenceBoundary.path, sha256: governance.intelligenceBoundary.sha256 },
     governance.intelligenceBoundary.specification,
     ...governance.intelligenceBoundary.consumerContracts,
+    governance.intelligenceBoundary.consumerAdmissionProvenance,
+    ...governance.intelligenceBoundary.consumerRuntimeFiles,
     { path: governance.infrastructureBoundary.runtimePath, sha256: governance.infrastructureBoundary.runtimeSha256 },
     { path: governance.infrastructureBoundary.contractPath, sha256: governance.infrastructureBoundary.contractSha256 },
+    ...governance.infrastructureBoundary.privateWorkflowQualification.files,
     governance.qualificationRepair.productionReleaseVerifier,
     governance.qualificationRepair.regressionTest,
     governance.qualificationRepair.liveCanonicalIdentity.protectedSuccessor,
@@ -252,6 +318,21 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(governance.qualificationRepair.founderAttendedPackageWiring.runtimeBehaviorChanged, false);
   assert.equal(governance.qualificationRepair.founderAttendedPackageWiring.credentialBehaviorChanged, false);
   assert.equal(governance.qualificationRepair.founderAttendedPackageWiring.orderedPackageChainRequired, true);
+  assert.equal(governance.qualificationRepair.privateWorkflowPayload.failedRun, 31337831024);
+  assert.equal(governance.qualificationRepair.privateWorkflowPayload.runtimeBehaviorChanged, false);
+  assert.equal(governance.qualificationRepair.privateWorkflowPayload.deploymentPerformed, false);
+  assert.equal(
+    governance.infrastructureBoundary.privateWorkflowQualification.forwardPayloadSha256,
+    "aaa8b360d5851bec21637d4c639a485555c367d1d5c9defb1b12163160c035c7"
+  );
+  assert.equal(
+    governance.infrastructureBoundary.privateWorkflowQualification.deployParitySha256,
+    "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9"
+  );
+  assert.equal(
+    governance.infrastructureBoundary.privateWorkflowQualification.rollbackBundleSha256,
+    "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
+  );
 
   const runtimeSource = read(governance.dataRuntime.deletionRuntime.path).toString("utf8");
   const infrastructureSource = read(governance.infrastructureBoundary.runtimePath).toString("utf8");
@@ -329,6 +410,14 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.qualification.fourthHostedQualificationRun, 31337349444);
   assert.equal(report.qualification.fourthHostedQualificationResult,
     "FAILED_CLOSED_STALE_FOUNDER_ATTENDED_PACKAGE_SUCCESSOR");
+  assert.equal(report.qualification.fifthHostedQualificationRun, 31337831024);
+  assert.equal(report.qualification.fifthHostedQualificationResult,
+    "FAILED_CLOSED_PRIVATE_WORKFLOW_PACKAGE_TEST_PATH");
+  assert.equal(report.qualification.focusedSuccessorVerification.dataCoordinatorTests, "121/121 PASS");
+  assert.equal(report.qualification.focusedSuccessorVerification.intelligenceConsumerTests, "86/86 PASS");
+  assert.equal(report.qualification.focusedSuccessorVerification.privateWorkflowV2Tests, "33/33 PASS");
+  assert.equal(report.qualification.exactFinalCommitHostedQualification,
+    "EXACT_COMMIT_BOUND_WORKFLOW_REQUIRED_AND_FAIL_CLOSED");
   assert.equal(report.releaseBoundary.deploymentAuthorized, false);
   assert.equal(report.releaseBoundary.productionDeletionAuthorized, false);
   assert.equal(report.releaseBoundary.collectionActivationAuthorized, false);

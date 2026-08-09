@@ -25,19 +25,27 @@
         "8845846632801ccf29e52a36139a43c1063fcc2e",
         "28c8a51b4aafef777e407c324ea15c57f4f12454",
         "82b2edd12f15978d97f0950657c5c123a01a54a7",
-        "a8fedf7c0b88f0611b4f721b08641e55413c591a"
+        "a8fedf7c0b88f0611b4f721b08641e55413c591a",
+        "e0a5fb7a9089cae62081295875793f9c635c498c"
       ],
       "Prometheus Intelligence Engine": [
         "f5a473a4fbab7d0f876be36c65b603d9b13bcc0a",
         "17bef15930ded364a55aadd47d0f96722cc8e9c6",
         "b359d8e701e13d2f9911dcd0cb917eecce8aa7ac",
-        "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0"
+        "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0",
+        "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
+        "f37a1e16a73d89c57fb988c53c472a570fdbc15f",
+        "605c52e3076504159ac22c84b36b3d441cc30b66",
+        "61418a67b6df3e482b52a1fa6f7fc6757147dda0",
+        "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b"
       ],
       "Prometheus Infrastructure": [
         "7280f2b505e244f187755990d55bcfa701d1ef46",
         "70c57f3d94eabfc019cbb5dae1cbd276e6e92be0",
         "8156bc78dca7cc15006207f09c53a89828e67750",
-        "a445bf4bdb068eb597b11e60ff10cdd2d1f4e023"
+        "a445bf4bdb068eb597b11e60ff10cdd2d1f4e023",
+        "61e0c186af29e076797f817d0c834ec42531dbbe",
+        "1f347ba74bfa2eab0415b3778dcbfdc0f80dd9ee"
       ]
     }
   },
@@ -59,6 +67,10 @@
     "archiveRuntime": {
       "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
       "sha256": "2d54c4525f1f240b0b7d46baf2899f537375397e6016c55bc770fd6d3686cc20"
+    },
+    "coordinatorRuntime": {
+      "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
+      "sha256": "586d19dbf65c4c740ecea6a7e0b4e1d01d733471a2604f8a92b946af092ee282"
     },
     "deletionRuntime": {
       "path": "data/route-iq-field-sessions-v1/route-iq-retention-deletion-runtime.mjs",
@@ -155,6 +167,28 @@
         "sha256": "15995f73e9e8b1b28099f921d2a2f9ac6f3fc93390c17c960cd58e748c9c81d5"
       }
     ],
+    "consumerAdmissionProvenance": {
+      "path": "intelligence/provenance/protected-baseline-synchronization-retention-deletion-consumer-admission-v1.json",
+      "sha256": "aa1b5e78df0bb0b84acdb22bcadda38c7891a908d58ae2dd42cb8238499ed93d"
+    },
+    "consumerRuntimeFiles": [
+      {
+        "path": "intelligence/read-only-field-session-learning.mjs",
+        "sha256": "1eb8084ca8470533ac34b445bb7404865e00bf7f1ae02d01cc40b466c3e3e2ee"
+      },
+      {
+        "path": "scripts/verify-shadow-decision-readiness.mjs",
+        "sha256": "bda4488c6015751fe24ddd36dd5dec38a8106a0a2a061a56e3232785b325c911"
+      },
+      {
+        "path": "tests/read-only-field-session-learning.test.mjs",
+        "sha256": "733435dd04c9343642d01bf6fbbc1e8ab5e942bcb0580963614f768a53fb4c84"
+      },
+      {
+        "path": "tests/shadow-decision-readiness.test.mjs",
+        "sha256": "90bf943f8296d8c7e5ab14e57b5a2f02801260ebf2968f5bbbd4ce8b42af9d88"
+      }
+    ],
     "startedOrCompletedSubjectAdmissionAllowed": false,
     "evaluationAllowed": false,
     "readinessAllowed": false,
@@ -173,7 +207,28 @@
     "cronConfigured": false,
     "alarmConfigured": false,
     "queueConsumerConfigured": false,
-    "deploymentAuthorized": false
+    "deploymentAuthorized": false,
+    "privateWorkflowQualification": {
+      "predecessorOwnerCommit": "61e0c186af29e076797f817d0c834ec42531dbbe",
+      "ownerCommit": "1f347ba74bfa2eab0415b3778dcbfdc0f80dd9ee",
+      "forwardPayloadSha256": "aaa8b360d5851bec21637d4c639a485555c367d1d5c9defb1b12163160c035c7",
+      "deployParitySha256": "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9",
+      "rollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+      "files": [
+        {
+          "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+          "sha256": "957f5eeb0db61ea76cb45a69af3d4bcdab78f6642adbbd70e89f7b2f03cea46a"
+        },
+        {
+          "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+          "sha256": "b7d657c86d71a989b2b927692961a9d3402daec170723f0887655ff09a29633b"
+        },
+        {
+          "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+          "sha256": "7aa1d90727da67866e3c98ca3cc543499d2326698d652f610eacb7706254c8a7"
+        }
+      ]
+    }
   },
   "qualificationRepair": {
     "reason": "The clean hosted runner exposed a historical release verifier that still required the retired static runtime-pool selector after the accepted configuration-driven Dashboard migration.",
@@ -196,7 +251,7 @@
       },
       "verifier": {
         "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
-        "sha256": "d709cfea9765ee13cb43f86fe5084f6cdc3521fcb08d28f5deeed580189a2284"
+        "sha256": "7e1920f2c5c13ef6ff948241d0ad0100eb271867ee4fcedd62067234b1827fed"
       },
       "intelligenceRegressionTest": {
         "path": "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
@@ -208,7 +263,7 @@
       },
       "controlledRehearsalVerifier": {
         "path": "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
-        "sha256": "fe75962ad7c9b9e710bd09cb979a39915b165da5f020051994d06c976b8e65d3"
+        "sha256": "e890b5d7059aac5bab551ad3b02b4473030ab02e39eac319f90cca469287e187"
       },
       "overwatchRegressionTest": {
         "path": "tests/live-canonical-identity-migration-v1.test.mjs",
@@ -225,7 +280,7 @@
       "wrongBranchRefTypeShaOrOriginFailsClosed": true,
       "regressionTest": {
         "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
-        "sha256": "b9896608b9e979a9de415e95af7bbbea04fa6c475115662788e89de9c9fe27a6"
+        "sha256": "ae5e2769f6d5a59ccca04837ff482cf2eceedb732c31f94579f7c6937db2a834"
       }
     },
     "founderAttendedPackageWiring": {
@@ -245,7 +300,7 @@
       },
       "regressionTest": {
         "path": "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",
-        "sha256": "4fd7994c5de49da135263d7b4db39ca3b13e528610a9be70e90827a4d54483dd"
+        "sha256": "a9c096355a82850d0231494737d85b58c5ef8ed86f318e0901fa75655c1d076d"
       },
       "ttyRegressionTest": {
         "path": "tests/overwatch-cloudflare-founder-attended-tty-compatibility.test.mjs",
@@ -253,6 +308,17 @@
       },
       "orderedPackageChainRequired": true,
       "missingReorderedCyclicOrTerminalDriftFailsClosed": true
+    },
+    "privateWorkflowPayload": {
+      "failedRun": 31337831024,
+      "failure": "PRIVATE_WORKFLOW_PACKAGE_TEST_REFERENCED_NONEXISTENT_TEST_PATH",
+      "predecessorOwnerRepairCommit": "61e0c186af29e076797f817d0c834ec42531dbbe",
+      "ownerRepairCommit": "1f347ba74bfa2eab0415b3778dcbfdc0f80dd9ee",
+      "runtimeBehaviorChanged": false,
+      "deploymentPerformed": false,
+      "deployPayloadChanged": false,
+      "rollbackPayloadChanged": false,
+      "forwardPayloadAdvancedOnlyForGovernedRetentionSource": true
     }
   },
   "historicalEvidence": {

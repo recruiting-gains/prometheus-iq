@@ -12,7 +12,8 @@
         "8845846632801ccf29e52a36139a43c1063fcc2e",
         "28c8a51b4aafef777e407c324ea15c57f4f12454",
         "82b2edd12f15978d97f0950657c5c123a01a54a7",
-        "a8fedf7c0b88f0611b4f721b08641e55413c591a"
+        "a8fedf7c0b88f0611b4f721b08641e55413c591a",
+        "e0a5fb7a9089cae62081295875793f9c635c498c"
       ],
       "scope": "canonical plan, expiry, legal hold, authorization, archive and coordinator deletion, receipts, consumer tombstone"
     },
@@ -22,7 +23,12 @@
         "f5a473a4fbab7d0f876be36c65b603d9b13bcc0a",
         "17bef15930ded364a55aadd47d0f96722cc8e9c6",
         "b359d8e701e13d2f9911dcd0cb917eecce8aa7ac",
-        "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0"
+        "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0",
+        "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
+        "f37a1e16a73d89c57fb988c53c472a570fdbc15f",
+        "605c52e3076504159ac22c84b36b3d441cc30b66",
+        "61418a67b6df3e482b52a1fa6f7fc6757147dda0",
+        "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b"
       ],
       "scope": "started/completed subject exclusion from learning, evaluation, readiness and recommendation input, plus protected live-identity source succession"
     },
@@ -32,7 +38,9 @@
         "7280f2b505e244f187755990d55bcfa701d1ef46",
         "70c57f3d94eabfc019cbb5dae1cbd276e6e92be0",
         "8156bc78dca7cc15006207f09c53a89828e67750",
-        "a445bf4bdb068eb597b11e60ff10cdd2d1f4e023"
+        "a445bf4bdb068eb597b11e60ff10cdd2d1f4e023",
+        "61e0c186af29e076797f817d0c834ec42531dbbe",
+        "1f347ba74bfa2eab0415b3778dcbfdc0f80dd9ee"
       ],
       "scope": "isolated maintenance capability, dormant activation contract, forward revert, and current configuration-driven Dashboard release verification"
     }
@@ -52,6 +60,20 @@
       "hostedCheckoutBranchRegressionTests": "4/4 PASS",
       "founderAttendedPackageWiringRegressionTests": "20/20 PASS"
     },
+    "focusedSuccessorVerification": {
+      "retentionDeletionRuntimeTests": "9/9 PASS",
+      "prospectiveRetentionPolicyTests": "9/9 PASS",
+      "fieldSessionArchiveTests": "36/36 PASS",
+      "dataCoordinatorTests": "121/121 PASS",
+      "infrastructureRetentionMaintenanceTests": "5/5 PASS",
+      "privateWorkflowV2Tests": "33/33 PASS",
+      "intelligenceConsumerTests": "86/86 PASS",
+      "security": "PASS",
+      "aegis": "PASS",
+      "lint": "PASS",
+      "typecheck": "PASS",
+      "build": "PASS"
+    },
     "initialHostedQualificationRun": 31336094147,
     "initialHostedQualificationResult": "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN",
     "secondHostedQualificationRun": 31336503689,
@@ -60,7 +82,9 @@
     "thirdHostedQualificationResult": "FAILED_CLOSED_DETACHED_EXACT_MAIN_CHECKOUT",
     "fourthHostedQualificationRun": 31337349444,
     "fourthHostedQualificationResult": "FAILED_CLOSED_STALE_FOUNDER_ATTENDED_PACKAGE_SUCCESSOR",
-    "exactFinalCommitHostedQualification": "REQUIRED_BEFORE_RELEASE_ACCEPTANCE"
+    "fifthHostedQualificationRun": 31337831024,
+    "fifthHostedQualificationResult": "FAILED_CLOSED_PRIVATE_WORKFLOW_PACKAGE_TEST_PATH",
+    "exactFinalCommitHostedQualification": "EXACT_COMMIT_BOUND_WORKFLOW_REQUIRED_AND_FAIL_CLOSED"
   },
   "deletionGraph": {
     "manifestAuthoritative": true,
