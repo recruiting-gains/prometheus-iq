@@ -193,16 +193,33 @@ export function hasCurrentCanonicalPackageWiringSuccessor({
   predecessorSha256,
   currentPackageSha256
 }) {
-  return hasFullSystemHarmonyPackageWiringSuccessor({
+  const canonicalTransition =
+    liveCanonicalIdentityGovernance?.releasePreparation?.packageReleaseWiringSuccessor;
+  if (!hasFullSystemHarmonyPackageWiringSuccessor({
     governance: fullSystemHarmonyGovernance,
     predecessorSha256,
     successorSha256: fullSystemHarmonyPackageSuccessorSha256
-  }) && hasLiveCanonicalIdentityPackageWiringSuccessor({
+  }) || !hasLiveCanonicalIdentityPackageWiringSuccessor({
     governance: liveCanonicalIdentityGovernance,
     readinessGovernance: currentReadinessSuccessors,
     predecessorSha256: fullSystemHarmonyPackageSuccessorSha256,
-    successorSha256: currentPackageSha256
-  });
+    successorSha256: canonicalTransition?.currentSha256
+  })) return false;
+
+  const transitions = currentReadinessSuccessors?.overwatchCurrentEvidence?.filter(
+    item => item.path === "package.json"
+  ) ?? [];
+  let cursor = fullSystemHarmonyPackageSuccessorSha256;
+  const seen = new Set([cursor]);
+  for (const transition of transitions) {
+    if (!/^[0-9a-f]{64}$/u.test(transition?.previousSha256 ?? "")
+      || !/^[0-9a-f]{64}$/u.test(transition?.successorSha256 ?? "")
+      || transition.previousSha256 !== cursor
+      || seen.has(transition.successorSha256)) return false;
+    cursor = transition.successorSha256;
+    seen.add(cursor);
+  }
+  return cursor === currentPackageSha256;
 }
 
 export function hasLiveCanonicalIdentityVerifierSuccessor({
@@ -755,20 +772,16 @@ function verifyPackageReleaseWiring() {
       predecessorSha256: controlledRehearsalPackageTransition?.previousSha256,
       successorSha256: fullSystemHarmonyPackagePredecessorSha256
     })
-    || !hasFullSystemHarmonyPackageWiringSuccessor({
-      governance: fullSystemHarmonyGovernance,
+    || !hasCurrentCanonicalPackageWiringSuccessor({
+      fullSystemHarmonyGovernance,
+      liveCanonicalIdentityGovernance,
+      currentReadinessSuccessors: currentCanonicalReadinessSuccessors,
       predecessorSha256: fullSystemHarmonyPackagePredecessorSha256,
-      successorSha256: fullSystemHarmonyPackageSuccessorSha256
+      currentPackageSha256: sha256(read("package.json"))
     })
-    || fullSystemHarmonyPackageSuccessorSha256 !==
-      liveCanonicalIdentityPackagePredecessorSha256
-    || !hasLiveCanonicalIdentityPackageWiringSuccessor({
-      governance: liveCanonicalIdentityGovernance,
-      readinessGovernance: currentCanonicalReadinessSuccessors,
-      predecessorSha256: liveCanonicalIdentityPackagePredecessorSha256,
-      successorSha256: liveCanonicalIdentityPackageSuccessorSha256
-    })
-    || liveCanonicalIdentityPackageSuccessorSha256 !== sha256(read("package.json"))
+    || fullSystemHarmonyPackageSuccessorSha256 !== liveCanonicalIdentityPackagePredecessorSha256
+    || liveCanonicalIdentityPackageSuccessorSha256 !==
+      liveCanonicalIdentityGovernance.releasePreparation.packageReleaseWiringSuccessor.currentSha256
     || packageTransition?.owner !== "Prometheus Overwatch"
     || keychainTransition?.owner !== "Prometheus Overwatch"
     || githubDeploymentTransition?.owner !== "Prometheus Overwatch"

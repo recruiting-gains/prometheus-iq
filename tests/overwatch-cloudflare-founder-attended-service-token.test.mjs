@@ -176,20 +176,21 @@ test("Founder-attended governance accepts only the exact canonical identity pack
 test("Founder-attended governance composes the exact historical and current package chain", () => {
   const transition =
     liveCanonicalIdentityGovernance.releasePreparation.packageReleaseWiringSuccessor;
+  const currentPackageSha256 = sha256(readFileSync(resolve(root, "package.json")));
   assert.equal(hasCurrentCanonicalPackageWiringSuccessor({
     fullSystemHarmonyGovernance,
     liveCanonicalIdentityGovernance,
     currentReadinessSuccessors: currentCanonicalReadinessSuccessors,
     predecessorSha256:
       "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a",
-    currentPackageSha256: transition.currentSha256
+    currentPackageSha256
   }), true);
   assert.equal(hasCurrentCanonicalPackageWiringSuccessor({
     fullSystemHarmonyGovernance,
     liveCanonicalIdentityGovernance,
     currentReadinessSuccessors: currentCanonicalReadinessSuccessors,
     predecessorSha256: "0".repeat(64),
-    currentPackageSha256: transition.currentSha256
+    currentPackageSha256
   }), false);
   assert.equal(hasCurrentCanonicalPackageWiringSuccessor({
     fullSystemHarmonyGovernance,
@@ -199,6 +200,31 @@ test("Founder-attended governance composes the exact historical and current pack
       "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a",
     currentPackageSha256: "0".repeat(64)
   }), false);
+  assert.equal(hasCurrentCanonicalPackageWiringSuccessor({
+    fullSystemHarmonyGovernance,
+    liveCanonicalIdentityGovernance,
+    currentReadinessSuccessors: currentCanonicalReadinessSuccessors,
+    predecessorSha256:
+      "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a",
+    currentPackageSha256: transition.currentSha256
+  }), false);
+
+  for (const mutate of [
+    value => { value.overwatchCurrentEvidence.at(-2).previousSha256 = "0".repeat(64); },
+    value => { value.overwatchCurrentEvidence.at(-2).successorSha256 = transition.currentSha256; },
+    value => { value.overwatchCurrentEvidence.splice(-2, 1); }
+  ]) {
+    const changed = clone(currentCanonicalReadinessSuccessors);
+    mutate(changed);
+    assert.equal(hasCurrentCanonicalPackageWiringSuccessor({
+      fullSystemHarmonyGovernance,
+      liveCanonicalIdentityGovernance,
+      currentReadinessSuccessors: changed,
+      predecessorSha256:
+        "8a2d68b09248fc561ade94744b4fd5a6b11dfdd3b49e7fd4895ee8b1ee1e547a",
+      currentPackageSha256
+    }), false);
+  }
 });
 
 test("Founder-attended governance accepts only commit-bound canonical verifier successors", () => {
