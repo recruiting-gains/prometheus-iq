@@ -212,7 +212,7 @@
       },
       "overwatchRegressionTest": {
         "path": "tests/live-canonical-identity-migration-v1.test.mjs",
-        "sha256": "4c5f21f7c242ba5eb9ed720d541d04a7cdd97fd32b570859c8180bf95ce2c053"
+        "sha256": "1167203ecf545035ee7111b2ebdd18c838ea92bc219da9a2388f69a061bccb3c"
       },
       "historicalBaselineObjectsRemainExact": true,
       "newGovernedReportsClassifiedAsHistoricalRewrites": false
@@ -227,6 +227,28 @@
         "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
         "sha256": "b9896608b9e979a9de415e95af7bbbea04fa6c475115662788e89de9c9fe27a6"
       }
+    },
+    "founderAttendedPackageWiring": {
+      "failedRun": 31337349444,
+      "failure": "CURRENT_GOVERNED_PACKAGE_SUCCESSOR_WAS_NOT_COMPOSED",
+      "ownerRepairCommit": "768e21552b93b27ee2c8e3a1b8528c2996ca41c1",
+      "runtimeBehaviorChanged": false,
+      "credentialBehaviorChanged": false,
+      "productionMutationAuthorized": false,
+      "canonicalLedger": {
+        "path": "overwatch/governance/live-canonical-identity-migration-v1.json",
+        "sha256": "9626722723bf2efc19000f310843f49ada2f1e7a7d259c828a5ab74baedf20b5"
+      },
+      "verifier": {
+        "path": "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+        "sha256": "8de06f542546f3b241b5b7fbbbdd3ef9d457d9cdd36ab4ccb223bad3bf3d4ed4"
+      },
+      "regressionTest": {
+        "path": "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs",
+        "sha256": "4fd7994c5de49da135263d7b4db39ca3b13e528610a9be70e90827a4d54483dd"
+      },
+      "orderedPackageChainRequired": true,
+      "missingReorderedCyclicOrTerminalDriftFailsClosed": true
     }
   },
   "historicalEvidence": {

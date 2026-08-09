@@ -375,7 +375,7 @@
     "founderAttendedPackageVerifiers": {
       "classification": "LIVE_CANONICAL_IDENTITY_VERIFIER_SUCCESSORS",
       "ownerSubsystem": "Prometheus Overwatch",
-      "expectedCommitCount": 5,
+      "expectedCommitCount": 6,
       "runtimeBehaviorChanged": false,
       "credentialAccessChanged": false,
       "productionMutationAuthorized": false,
@@ -494,6 +494,24 @@
               "path": "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
               "previousSha256": "2c797d34313a6e585a9ebe3fa47612da2fef0d560eec55e983a6ea9f59e0d615",
               "currentSha256": "0c73339a3e87b3f89ddcdd003f53c68307168d3c3516c730b781314f0013e51b"
+            }
+          ]
+        },
+        {
+          "commit": "768e21552b93b27ee2c8e3a1b8528c2996ca41c1",
+          "parent": "ea3377559320e9e4cc38d9e99e6ee82f733b6ea9",
+          "tree": "a5c13c4bf893389039c055acf97bfb5bf54b4d9f",
+          "owner": "Prometheus Overwatch <overwatch@prometheus.local>",
+          "subject": "overwatch: compose current package successor",
+          "paths": [
+            "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+            "tests/overwatch-cloudflare-founder-attended-service-token.test.mjs"
+          ],
+          "transitions": [
+            {
+              "path": "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+              "previousSha256": "0c73339a3e87b3f89ddcdd003f53c68307168d3c3516c730b781314f0013e51b",
+              "currentSha256": "8de06f542546f3b241b5b7fbbbdd3ef9d457d9cdd36ab4ccb223bad3bf3d4ed4"
             }
           ]
         }

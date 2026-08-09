@@ -178,6 +178,9 @@ function verifyPinnedFiles(governance) {
     governance.qualificationRepair.liveCanonicalIdentity.controlledRehearsalVerifier,
     governance.qualificationRepair.liveCanonicalIdentity.overwatchRegressionTest,
     governance.qualificationRepair.hostedCheckoutBranch.regressionTest,
+    governance.qualificationRepair.founderAttendedPackageWiring.canonicalLedger,
+    governance.qualificationRepair.founderAttendedPackageWiring.verifier,
+    governance.qualificationRepair.founderAttendedPackageWiring.regressionTest,
     governance.forwardRevert
   ];
   for (const pin of pins) assert.equal(sha256(read(pin.path)), pin.sha256, `${pin.path} hash drifted.`);
@@ -244,6 +247,10 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(governance.qualificationRepair.hostedCheckoutBranch.failedRun, 31337142274);
   assert.equal(governance.qualificationRepair.hostedCheckoutBranch.detachedHeadAcceptedOnlyForExactGithubMain, true);
   assert.equal(governance.qualificationRepair.hostedCheckoutBranch.originMainMustEqualHead, true);
+  assert.equal(governance.qualificationRepair.founderAttendedPackageWiring.failedRun, 31337349444);
+  assert.equal(governance.qualificationRepair.founderAttendedPackageWiring.runtimeBehaviorChanged, false);
+  assert.equal(governance.qualificationRepair.founderAttendedPackageWiring.credentialBehaviorChanged, false);
+  assert.equal(governance.qualificationRepair.founderAttendedPackageWiring.orderedPackageChainRequired, true);
 
   const runtimeSource = read(governance.dataRuntime.deletionRuntime.path).toString("utf8");
   const infrastructureSource = read(governance.infrastructureBoundary.runtimePath).toString("utf8");
@@ -309,6 +316,8 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.qualification.focusedPreflight.intelligenceArchitectureRegressionTests, "15/15 PASS");
   assert.equal(report.qualification.focusedPreflight.controlledRehearsalRegressionTests, "13/13 PASS");
   assert.equal(report.qualification.focusedPreflight.hostedCheckoutBranchRegressionTests, "4/4 PASS");
+  assert.equal(report.qualification.focusedPreflight.founderAttendedPackageWiringRegressionTests,
+    "14/14 PASS");
   assert.equal(report.qualification.initialHostedQualificationRun, 31336094147);
   assert.equal(report.qualification.initialHostedQualificationResult, "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN");
   assert.equal(report.qualification.secondHostedQualificationRun, 31336503689);
@@ -316,6 +325,9 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
     "FAILED_CLOSED_LIVE_IDENTITY_SUCCESSOR_AND_HISTORICAL_SCOPE");
   assert.equal(report.qualification.thirdHostedQualificationRun, 31337142274);
   assert.equal(report.qualification.thirdHostedQualificationResult, "FAILED_CLOSED_DETACHED_EXACT_MAIN_CHECKOUT");
+  assert.equal(report.qualification.fourthHostedQualificationRun, 31337349444);
+  assert.equal(report.qualification.fourthHostedQualificationResult,
+    "FAILED_CLOSED_STALE_FOUNDER_ATTENDED_PACKAGE_SUCCESSOR");
   assert.equal(report.releaseBoundary.deploymentAuthorized, false);
   assert.equal(report.releaseBoundary.productionDeletionAuthorized, false);
   assert.equal(report.releaseBoundary.collectionActivationAuthorized, false);

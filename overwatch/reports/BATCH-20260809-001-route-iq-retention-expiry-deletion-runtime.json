@@ -49,7 +49,8 @@
       "liveCanonicalIdentityRegressionTests": "18/18 PASS",
       "intelligenceArchitectureRegressionTests": "15/15 PASS",
       "controlledRehearsalRegressionTests": "13/13 PASS",
-      "hostedCheckoutBranchRegressionTests": "4/4 PASS"
+      "hostedCheckoutBranchRegressionTests": "4/4 PASS",
+      "founderAttendedPackageWiringRegressionTests": "14/14 PASS"
     },
     "initialHostedQualificationRun": 31336094147,
     "initialHostedQualificationResult": "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN",
@@ -57,6 +58,8 @@
     "secondHostedQualificationResult": "FAILED_CLOSED_LIVE_IDENTITY_SUCCESSOR_AND_HISTORICAL_SCOPE",
     "thirdHostedQualificationRun": 31337142274,
     "thirdHostedQualificationResult": "FAILED_CLOSED_DETACHED_EXACT_MAIN_CHECKOUT",
+    "fourthHostedQualificationRun": 31337349444,
+    "fourthHostedQualificationResult": "FAILED_CLOSED_STALE_FOUNDER_ATTENDED_PACKAGE_SUCCESSOR",
     "exactFinalCommitHostedQualification": "REQUIRED_BEFORE_RELEASE_ACCEPTANCE"
   },
   "deletionGraph": {
