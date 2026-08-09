@@ -1186,6 +1186,12 @@ test("private Workflow v2 composes only the governed retention-deletion Intellig
     value => { value.ownership.commits["Prometheus Intelligence Engine"][2] = "0".repeat(40); },
     value => { value.qualificationRepair.liveCanonicalIdentity.verifier.sha256 = "0".repeat(64); },
     value => { value.qualificationRepair.liveCanonicalIdentity.protectedSuccessor.sha256 = "0".repeat(64); },
+    value => { value.qualificationRepair.offRouteRetentionContractComposition
+      .ownerRepairCommit = "0".repeat(40); },
+    value => { value.qualificationRepair.offRouteRetentionContractComposition
+      .files[0].sha256 = "0".repeat(64); },
+    value => { value.qualificationRepair.offRouteRetentionContractComposition
+      .protectedStateRequired.prospectiveCollection = "ON"; },
     value => { value.protectedState.collection = "ON"; },
     value => { value.infrastructureBoundary.deploymentAuthorized = true; }
   ]) {

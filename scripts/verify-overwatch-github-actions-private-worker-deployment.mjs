@@ -242,6 +242,12 @@ const v2RetentionDeletionIntelligenceSynchronizationParent =
   "c9cc1d85315f0f577bb6e2b457965af3bb75ee9c";
 const v2RetentionDeletionIntelligenceSynchronizationTree =
   "b4e8cda1d34f7e3fad199066335f94ac86108664";
+const v2RetentionDeletionOffRouteSuccessorCommit =
+  "1dcccdafaaff1183e5f7de15624ede547ac11c94";
+const v2RetentionDeletionOffRouteSuccessorParent =
+  "a8668c749d0bee93c2a338cfa45091717532f1d9";
+const v2RetentionDeletionOffRouteSuccessorTree =
+  "da0ff119d08d0f1ba7cd813f7848cfacd4c43c7d";
 const v2RetentionDeletionIntelligenceOwnerCommits = Object.freeze([
   "f5a473a4fbab7d0f876be36c65b603d9b13bcc0a",
   "17bef15930ded364a55aadd47d0f96722cc8e9c6",
@@ -251,7 +257,8 @@ const v2RetentionDeletionIntelligenceOwnerCommits = Object.freeze([
   "f37a1e16a73d89c57fb988c53c472a570fdbc15f",
   "605c52e3076504159ac22c84b36b3d441cc30b66",
   "61418a67b6df3e482b52a1fa6f7fc6757147dda0",
-  "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b"
+  "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b",
+  v2RetentionDeletionOffRouteSuccessorCommit
 ]);
 const v2FullSystemHarmonyShadowReadinessSuccessorCommit =
   "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8";
@@ -947,6 +954,12 @@ const v2RetentionDeletionIntelligenceSynchronizationHashes = Object.freeze({
     "36c866c04ddde38fa0018a843c8d3ac7e49f4e3c3c537eb82f2b7bc2a0364f96",
   "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs":
     "84f124dc1137926c86687ab61274392c16dae53dc11f723300c5982557fd4118"
+});
+const v2RetentionDeletionOffRouteSuccessorHashes = Object.freeze({
+  "scripts/verify-off-route-learning-intelligence.mjs":
+    "fc8e0d95851654d7cfb67c0eedea3102f230653d7373ee5cabd515d1a81d5253",
+  "tests/off-route-learning-intelligence.test.mjs":
+    "48b97995ccb0dba35afcd70182c1ad0477c23552bc83382fa948ccb079bf8122"
 });
 const v2RetentionDeletionConsumerSuccessors = Object.freeze([
   Object.freeze({
@@ -1792,6 +1805,8 @@ export function evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors
     "Prometheus Intelligence Engine"
   ] ?? [];
   const pins = governance?.qualificationRepair?.liveCanonicalIdentity;
+  const offRouteSuccessor = governance?.qualificationRepair
+    ?.offRouteRetentionContractComposition;
   require(governance?.governanceId ===
       "route-iq-retention-expiry-deletion-runtime-v1"
     && governance?.owningSubsystem === "Prometheus Overwatch"
@@ -1799,6 +1814,62 @@ export function evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors
   "Private Workflow v2 retention governance identity drifted.");
   require(equal(intelligenceCommits, v2RetentionDeletionIntelligenceOwnerCommits),
     "Private Workflow v2 retention Intelligence commit chain drifted.");
+  require(offRouteSuccessor?.failedRun === 31341364276
+    && offRouteSuccessor?.failure ===
+      "OFF_ROUTE_VERIFIER_DID_NOT_COMPOSE_RETENTION_DELETION_UPSTREAM_SUCCESSOR"
+    && offRouteSuccessor?.ownerRepairCommit ===
+      v2RetentionDeletionOffRouteSuccessorCommit
+    && offRouteSuccessor?.runtimeBehaviorChanged === false
+    && offRouteSuccessor?.productionMutationPerformed === false
+    && offRouteSuccessor?.deploymentPerformed === false
+    && offRouteSuccessor?.historicalContractSha256 ===
+      "7d69761a0fb4049c282077cc20c3d55dcbaa4c281a848996c4738f62bd515201"
+    && offRouteSuccessor?.currentContractSha256 ===
+      "9605d400315a478c27c0f779bebf2b96cdd0d3674d2969ec786ec302fea9b69a"
+    && equal(offRouteSuccessor?.protectedStateRequired, {
+      prospectiveCollection: "OFF",
+      activeCohorts: 0,
+      recommendationInfluence: "OFF"
+    })
+    && equal(offRouteSuccessor?.files, Object.entries(
+      v2RetentionDeletionOffRouteSuccessorHashes
+    ).map(([path, fileSha256]) => ({path, sha256: fileSha256}))),
+  "Private Workflow v2 retention off-route successor evidence drifted.");
+  let offRouteProvenanceMatches = false;
+  try {
+    const metadata = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      v2RetentionDeletionOffRouteSuccessorCommit
+    ]).split("\n");
+    const changedPaths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      v2RetentionDeletionOffRouteSuccessorCommit
+    ]).split("\n").filter(Boolean).sort();
+    offRouteProvenanceMatches = equal(metadata, [
+      v2RetentionDeletionOffRouteSuccessorCommit,
+      v2RetentionDeletionOffRouteSuccessorParent,
+      v2RetentionDeletionOffRouteSuccessorTree,
+      intelligenceIdentity,
+      intelligenceIdentity,
+      "intelligence: compose retention off-route successor"
+    ]) && equal(changedPaths, Object.keys(
+      v2RetentionDeletionOffRouteSuccessorHashes
+    ).sort()) && Object.entries(v2RetentionDeletionOffRouteSuccessorHashes)
+      .every(([path, fileSha256]) => (
+        sha256(read(path)) === fileSha256
+        && sha256(execFileSync("/usr/bin/git", [
+          "show", `${v2RetentionDeletionOffRouteSuccessorCommit}:${path}`
+        ], {
+          cwd: root,
+          encoding: null,
+          stdio: ["ignore", "pipe", "ignore"]
+        })) === fileSha256
+      ));
+  } catch {
+    offRouteProvenanceMatches = false;
+  }
+  require(offRouteProvenanceMatches,
+    "Private Workflow v2 retention off-route successor provenance drifted.");
   require(pins?.protectedSuccessor?.path ===
       "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json"
     && pins?.protectedSuccessor?.sha256 ===

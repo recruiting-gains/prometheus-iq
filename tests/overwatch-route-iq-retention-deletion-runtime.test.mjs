@@ -81,6 +81,14 @@ test("governance pins every post-hosted owner successor without changing runtime
     .runtimeBehaviorChanged, false);
   assert.equal(record.qualificationRepair.offRouteRetentionContractComposition
     .productionMutationPerformed, false);
+  assert.equal(record.qualificationRepair.controlledRehearsalOffRouteComposition.failedRun,
+    31341877824);
+  assert.equal(record.qualificationRepair.controlledRehearsalOffRouteComposition
+    .ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(record.qualificationRepair.controlledRehearsalOffRouteComposition
+    .runtimeBehaviorChanged, false);
+  assert.equal(record.qualificationRepair.controlledRehearsalOffRouteComposition
+    .productionMutationPerformed, false);
 });
 
 test("the governed deletion graph is manifest-derived and fail closed", () => {

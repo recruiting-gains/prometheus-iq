@@ -259,6 +259,7 @@ function verifyPinnedFiles(governance) {
     ...governance.qualificationRepair.finalPayloadSuccessorComposition.files,
     ...governance.qualificationRepair.historicalRetentionCoordinatorComposition.files,
     ...governance.qualificationRepair.offRouteRetentionContractComposition.files,
+    ...governance.qualificationRepair.controlledRehearsalOffRouteComposition.files,
     governance.forwardRevert
   ];
   for (const pin of pins) assert.equal(sha256(read(pin.path)), pin.sha256, `${pin.path} hash drifted.`);
@@ -378,6 +379,16 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
       activeCohorts: 0,
       recommendationInfluence: "OFF"
     });
+  assert.equal(governance.qualificationRepair.controlledRehearsalOffRouteComposition
+    .failedRun, 31341877824);
+  assert.equal(governance.qualificationRepair.controlledRehearsalOffRouteComposition
+    .ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(governance.qualificationRepair.controlledRehearsalOffRouteComposition
+    .runtimeBehaviorChanged, false);
+  assert.equal(governance.qualificationRepair.controlledRehearsalOffRouteComposition
+    .productionMutationPerformed, false);
+  assert.equal(governance.qualificationRepair.controlledRehearsalOffRouteComposition
+    .exactOwnerChainRequired, true);
   assert.equal(
     governance.infrastructureBoundary.privateWorkflowQualification.forwardPayloadSha256,
     "aaa8b360d5851bec21637d4c639a485555c367d1d5c9defb1b12163160c035c7"
@@ -479,6 +490,9 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.qualification.eighthHostedQualificationRun, 31341364276);
   assert.equal(report.qualification.eighthHostedQualificationResult,
     "FAILED_CLOSED_OFF_ROUTE_RETENTION_CONTRACT_SUCCESSOR_UNCOMPOSED");
+  assert.equal(report.qualification.ninthHostedQualificationRun, 31341877824);
+  assert.equal(report.qualification.ninthHostedQualificationResult,
+    "FAILED_CLOSED_CONTROLLED_REHEARSAL_OFF_ROUTE_SUCCESSOR_UNCOMPOSED");
   assert.equal(report.qualification.focusedSuccessorVerification.dataCoordinatorTests, "121/121 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.intelligenceConsumerTests, "86/86 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.privateWorkflowV2Tests, "33/33 PASS");

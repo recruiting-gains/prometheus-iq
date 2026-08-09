@@ -281,7 +281,7 @@
       "wrongBranchRefTypeShaOrOriginFailsClosed": true,
       "regressionTest": {
         "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
-        "sha256": "f6ef365d979aeec1ad89e769c30aef46d11c41e5dd608ae4dafd39d80ec21486"
+        "sha256": "3f45713c2d58d859154bb369f296a74fd243fa17bd61d942a5373c849ab3b4b6"
       }
     },
     "founderAttendedPackageWiring": {
@@ -338,7 +338,7 @@
         },
         {
           "path": "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
-          "sha256": "d6a7b829e083f54ac271f5c5fc786bf1fca15154e88cc37aa3ee62edbaf790ca"
+          "sha256": "970fcbf72ae018671d7b445ec6124d2eee47d3ed8cd7dcfb8efac1be3a67c325"
         },
         {
           "path": "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
@@ -346,7 +346,7 @@
         },
         {
           "path": "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
-          "sha256": "7209d3313ed46604b0941e8e463b2038f0b91a06bc1c76d344d7f98e8c2be2a4"
+          "sha256": "01a676895d87adca806b7f9543f7b2ea9dd0e21d8262c93f1ee2e0fd88d05351"
         },
         {
           "path": "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
@@ -395,6 +395,25 @@
         {
           "path": "tests/off-route-learning-intelligence.test.mjs",
           "sha256": "48b97995ccb0dba35afcd70182c1ad0477c23552bc83382fa948ccb079bf8122"
+        }
+      ]
+    },
+    "controlledRehearsalOffRouteComposition": {
+      "failedRun": 31341877824,
+      "failure": "CONTROLLED_REHEARSAL_PRIVATE_WORKFLOW_EVALUATOR_DID_NOT_COMPOSE_OFF_ROUTE_SUCCESSOR",
+      "ownerSubsystem": "Prometheus Overwatch",
+      "runtimeBehaviorChanged": false,
+      "productionMutationPerformed": false,
+      "deploymentPerformed": false,
+      "exactOwnerChainRequired": true,
+      "files": [
+        {
+          "path": "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
+          "sha256": "970fcbf72ae018671d7b445ec6124d2eee47d3ed8cd7dcfb8efac1be3a67c325"
+        },
+        {
+          "path": "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
+          "sha256": "01a676895d87adca806b7f9543f7b2ea9dd0e21d8262c93f1ee2e0fd88d05351"
         }
       ]
     }
