@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { Script } from "node:vm";
 
-const root = resolve(import.meta.dirname, "..");
+const defaultRoot = resolve(import.meta.dirname, "..");
 const productionUrlDefault = "https://prometheus-iq.prometheusrouteiq.workers.dev";
 const workerNameDefault = "prometheus-iq";
 const activePoolPath = "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -14,9 +14,12 @@ const operatingProfileRegistryPath = "/intelligence/profiles/operating-profiles.
 const operatingProfileContractsPath = "/intelligence/contracts/operating-profile-contracts.json";
 const routeReplenishmentModulePath = "/intelligence/continuous-adaptive-route-replenishment.mjs";
 const routeReplenishmentContractsPath = "/intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json";
-const blockedRuntimePlaceIds = new Set(["ChIJw_j5DXK9QIYRfEFiOYffXt0", "ChIJ9TRCKYubQIYR8psjkD8AVl8", "ChIJJR7e8XCbQIYRN_WV8sQpn5E"]);
 
 const args = parseArgs(process.argv.slice(2));
+if (args.fixtureRoot && process.env.NODE_ENV !== "test") {
+  throw new Error("--fixture-root is available only to the isolated verifier regression suite.");
+}
+const root = args.fixtureRoot ? resolve(args.fixtureRoot) : defaultRoot;
 const productionUrl = normalizeOrigin(args.productionUrl || process.env.PROMETHEUS_PRODUCTION_URL || productionUrlDefault);
 const workerName = args.workerName || process.env.PROMETHEUS_WORKER_NAME || workerNameDefault;
 const expectedWorkerVersion = args.expectedWorkerVersion || process.env.PROMETHEUS_EXPECTED_WORKER_VERSION || "";
@@ -48,6 +51,8 @@ function parseArgs(argv) {
     else if (token === "--expected-worker-version") parsed.expectedWorkerVersion = argv[++index];
     else if (token.startsWith("--cdp=")) parsed.cdp = token.slice("--cdp=".length);
     else if (token === "--cdp") parsed.cdp = argv[++index];
+    else if (token.startsWith("--fixture-root=")) parsed.fixtureRoot = token.slice("--fixture-root=".length);
+    else if (token === "--fixture-root") parsed.fixtureRoot = argv[++index];
     else if (token.startsWith("--auth-cookie=")) parsed.authCookie = token.slice("--auth-cookie=".length);
     else if (token === "--auth-cookie") parsed.authCookie = argv[++index];
     else if (token === "--help") parsed.help = true;
@@ -151,12 +156,6 @@ function assertLocalArtifacts() {
   const deployRouteReplenishmentModule = read(`deploy/cloudflare-pages${routeReplenishmentModulePath}`);
   const sourceRouteReplenishmentContracts = read(`.${routeReplenishmentContractsPath}`);
   const deployRouteReplenishmentContracts = read(`deploy/cloudflare-pages${routeReplenishmentContractsPath}`);
-  const sourceFullPayload = JSON.parse(fullPool);
-  const expectedDeployFullPool = JSON.stringify({
-    ...sourceFullPayload,
-    cruz: (sourceFullPayload.cruz || []).filter(record => !blockedRuntimePlaceIds.has(record.googlePlaceId)),
-    anthony: (sourceFullPayload.anthony || []).filter(record => !blockedRuntimePlaceIds.has(record.googlePlaceId))
-  }, null, 2) + "\n";
   const manifest = JSON.parse(read("deploy/cloudflare-pages/manifest.webmanifest"));
   const { scripts, script } = getInlineScript(index);
   const deployScript = getInlineScript(deployIndex).script;
@@ -168,6 +167,14 @@ function assertLocalArtifacts() {
   const runtimeDatasetQuarantinePath = getConst(script, "runtimeDatasetQuarantinePath");
   const routeReplenishmentModuleAssetPath = getConst(script, "routeReplenishmentModulePath");
   const runtimeDatasetExpectedVersion = getConst(script, "runtimeDatasetExpectedVersion");
+  const dashboardPlatformModuleAssetPath = getConst(script, "dashboardPlatformModulePath");
+  const legacyRuntimeDatasetConstantsPresent = [
+    runtimeDatasetActivePath,
+    runtimeDatasetQuarantinePath,
+    runtimeDatasetExpectedVersion,
+    getConst(script, "runtimeDatasetFullPath")
+  ].some(Boolean);
+  const legacyRuntimePoolReferencePresent = /runtime-pools\.json|runtime-pool-segmentation-v1\/active-pool\.json|requestedRuntimePool|selectedRuntimePool/u.test(script);
   const headersMap = parseHeaderFile(headers);
   const deployHeadersMap = parseHeaderFile(deployHeaders);
   const failures = [];
@@ -177,7 +184,7 @@ function assertLocalArtifacts() {
   if (headers !== deployHeaders) failures.push("_headers and deploy/cloudflare-pages/_headers differ.");
   if (activePool !== deployActivePool) failures.push("Active pool source and deploy asset differ.");
   if (quarantinePool !== deployQuarantinePool) failures.push("Quarantine pool source and deploy asset differ.");
-  if (expectedDeployFullPool !== deployFullPool) failures.push("Full runtime pool deploy asset does not match the quarantined-record sanitized source full pool.");
+  if (fullPool !== deployFullPool) failures.push("Dormant legacy full-pool source and deploy evidence differ.");
   if (sourceOperatingProfiles !== deployOperatingProfiles) failures.push("Operating profile registry source and deploy asset differ.");
   if (sourceOperatingProfileContracts !== deployOperatingProfileContracts) failures.push("Operating profile contracts source and deploy asset differ.");
   if (sourceRouteReplenishmentModule !== deployRouteReplenishmentModule) failures.push("Route replenishment module source and deploy asset differ.");
@@ -195,10 +202,11 @@ function assertLocalArtifacts() {
   if (!buildMarker) failures.push("Build marker is missing.");
   if (!serviceWorkerCacheVersion) failures.push("Service worker cache marker is missing.");
   if (serviceWorkerCacheVersion !== swCacheName) failures.push("Service worker cache marker does not match sw.js CACHE_NAME.");
-  if (runtimeDatasetActivePath !== `.${activePoolPath}`) failures.push("Runtime active dataset path does not point at the active pool asset.");
-  if (runtimeDatasetQuarantinePath !== `.${quarantinePoolPath}`) failures.push("Runtime quarantine dataset path does not point at the quarantine pool asset.");
+  if (legacyRuntimeDatasetConstantsPresent) failures.push("Generic Dashboard source must not declare legacy runtime-pool selection constants.");
+  if (legacyRuntimePoolReferencePresent) failures.push("Generic Dashboard source must not reference legacy runtime-pool catalogs.");
+  if (dashboardPlatformModuleAssetPath !== "./dashboard/route-iq-dashboard-platform.mjs?paid-customer-preview-v1") failures.push("Dashboard platform path does not point at the governed configuration runtime.");
+  if (!script.includes('const businessHoursArtifactPath = routeIqCustomerPwaSession?.runtimeAssets.businessHours || "";')) failures.push("Business-hours evidence is not derived from the authenticated session runtime assets.");
   if (routeReplenishmentModuleAssetPath !== `.${routeReplenishmentModulePath}`) failures.push("Route replenishment module path does not point at the deployed Intelligence asset.");
-  if (runtimeDatasetExpectedVersion !== "google-qualified-businesses-v2") failures.push("Runtime dataset expected version is not google-qualified-businesses-v2.");
   if (!manifest.display || manifest.display !== "standalone") failures.push("PWA manifest display must remain standalone.");
   if (!index.includes('name="mobile-web-app-capable"')) failures.push("PWA mobile-web-app-capable meta is missing.");
   if (/<meta[^>]+Content-Security-Policy[^>]+frame-ancestors/i.test(index)) failures.push("Meta CSP must not include frame-ancestors; keep frame-ancestors in HTTP headers.");
@@ -219,10 +227,13 @@ function assertLocalArtifacts() {
     runtimeDatasetQuarantinePath,
     routeReplenishmentModuleAssetPath,
     runtimeDatasetExpectedVersion,
+    dashboardPlatformModuleAssetPath,
+    legacyRuntimeDatasetConstantsPresent,
+    legacyRuntimePoolReferencePresent,
     failures
   });
 
-  return { index, deployIndex, serviceWorker, deployServiceWorker, headers, deployHeaders, script, hash, buildMarker, serviceWorkerCacheVersion, runtimeDatasetActivePath, runtimeDatasetQuarantinePath, routeReplenishmentModuleAssetPath };
+  return { index, deployIndex, serviceWorker, deployServiceWorker, headers, deployHeaders, script, hash, buildMarker, serviceWorkerCacheVersion, runtimeDatasetActivePath, runtimeDatasetQuarantinePath, routeReplenishmentModuleAssetPath, dashboardPlatformModuleAssetPath };
 }
 
 function parseLatestDeployment(output) {
