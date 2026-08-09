@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  currentFieldSessionReportTypeDriftRejectionSuccessor,
+  currentFieldSessionReportTypeIntelligenceSuccessor,
   currentFullSystemHarmonyIntelligenceSuccessor,
   currentFullSystemHarmonyShadowReadinessSuccessor,
   currentLiveCanonicalIdentityIntelligenceSuccessor,
@@ -10,7 +12,9 @@ import {
   currentLiveCanonicalIdentityShadowReadinessRepair,
   currentProtectedDriftFixtureIntelligenceSuccessor,
   currentRevenueReadinessIntelligenceSuccessor,
+  validateFieldSessionReportTypeDriftRejectionSuccessor,
   validateFullSystemHarmonyIntelligenceSuccessor,
+  validateFieldSessionReportTypeIntelligenceSuccessor,
   validateFullSystemHarmonyShadowReadinessSuccessor,
   validateLiveCanonicalIdentityIntelligenceSuccessor,
   validateLiveCanonicalIdentityOffRouteBaselineRepair,
@@ -51,6 +55,10 @@ test("release provenance composes only exact current Intelligence successors", (
       validateFullSystemHarmonyShadowReadinessSuccessor],
     [currentLiveCanonicalIdentityIntelligenceSuccessor,
       validateLiveCanonicalIdentityIntelligenceSuccessor],
+    [currentFieldSessionReportTypeIntelligenceSuccessor,
+      validateFieldSessionReportTypeIntelligenceSuccessor],
+    [currentFieldSessionReportTypeDriftRejectionSuccessor,
+      validateFieldSessionReportTypeDriftRejectionSuccessor],
     [currentLiveCanonicalIdentityShadowReadinessRepair,
       validateLiveCanonicalIdentityShadowReadinessRepair],
     [currentLiveCanonicalIdentityProtectedConsumerCompositionRepair,
@@ -108,6 +116,10 @@ test("Overwatch verifies Route IQ release provenance repair", () => {
       "2f8992476ca37276b0ee388fe2e33a2158f9d906",
     currentLiveCanonicalIdentityIntelligenceSuccessorCommit:
       "56f67124c1beba2f9289538d65e782cd808eacb2",
+    currentFieldSessionReportTypeIntelligenceSuccessorCommit:
+      "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18",
+    currentFieldSessionReportTypeDriftRejectionSuccessorCommit:
+      "655224332c65ec28d5c45b1accd2eae3d12555c2",
     currentFullSystemHarmonyShadowReadinessSuccessorCommit:
       "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8",
     currentLiveCanonicalIdentityShadowReadinessRepairCommit:

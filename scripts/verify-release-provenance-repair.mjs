@@ -10,6 +10,8 @@ const liveCanonicalIdentityGovernancePath =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
 const privateWorkflowGovernancePath =
   "overwatch/governance/github-actions-private-worker-deployment-v2.json";
+const fieldSessionReportTypeGovernancePath =
+  "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json";
 const legacyCommit = "049cf583b04900b2cbf38bbffc5f6293252365d0";
 const intelligenceRepairCommit = "1bb7d09dff254503d56027a87efe0d526228f35a";
 const dashboardRepairCommit = "a665b1b26db02716240b622d0b4d451d019c2896";
@@ -221,6 +223,52 @@ export const currentLiveCanonicalIdentityIntelligenceSuccessor = Object.freeze({
 });
 const currentLiveCanonicalIdentityIntelligenceSuccessorHashes = new Map(
   currentLiveCanonicalIdentityIntelligenceSuccessor.evidence.map(item => [
+    item.path,
+    item.sha256
+  ])
+);
+export const currentFieldSessionReportTypeIntelligenceSuccessor = Object.freeze({
+  commit: "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18",
+  parent: "bbed83c62e6c8d2c73ce287161df282005f99187",
+  tree: "38ce2be37f66f49202967a285a003755ebc21dcc",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: compose field-session report contract repair",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json",
+      sha256: "77c88bc9a18d852c4b937303918be47a17b2423eba46c142cf5d2d4e9d5a0198"
+    }),
+    Object.freeze({
+      path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      sha256: "9ecd9ca37e8d42209aaf7b53cb0bcae06f431bee29059a81fd5b1333863118c1"
+    }),
+    Object.freeze({
+      path: "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+      sha256: "04014936bb2bebbb1b17c22048449b325e8667c8809f9ba382e7532ee6a4ff4b"
+    })
+  ])
+});
+const currentFieldSessionReportTypeIntelligenceSuccessorHashes = new Map(
+  currentFieldSessionReportTypeIntelligenceSuccessor.evidence.map(item => [
+    item.path,
+    item.sha256
+  ])
+);
+export const currentFieldSessionReportTypeDriftRejectionSuccessor = Object.freeze({
+  commit: "655224332c65ec28d5c45b1accd2eae3d12555c2",
+  parent: "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18",
+  tree: "5eeb4224f913faafcd3114e713092a8d6e668ec0",
+  identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+  subject: "intelligence: bind drift rejection to report successor",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "tests/read-only-field-session-learning.test.mjs",
+      sha256: "0fe879e56ff462e8b18b0fcee0515d082edbdfb16b1ae90fc3137a48d85fa41d"
+    })
+  ])
+});
+const currentFieldSessionReportTypeDriftRejectionSuccessorHashes = new Map(
+  currentFieldSessionReportTypeDriftRejectionSuccessor.evidence.map(item => [
     item.path,
     item.sha256
   ])
@@ -819,6 +867,102 @@ export function validateLiveCanonicalIdentityIntelligenceSuccessor(
   return record;
 }
 
+export function validateFieldSessionReportTypeIntelligenceSuccessor(
+  record = currentFieldSessionReportTypeIntelligenceSuccessor
+) {
+  assert.deepEqual(
+    record,
+    currentFieldSessionReportTypeIntelligenceSuccessor,
+    "Field-session report-type Intelligence successor mapping drifted."
+  );
+  assert.deepEqual(git(
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ).split("\n"), [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Field-session report-type Intelligence successor provenance drifted.");
+  assert.deepEqual(
+    changedPaths(record.commit),
+    record.evidence.map(item => item.path).sort(),
+    "Field-session report-type Intelligence successor path set drifted."
+  );
+  const governance = readJson(fieldSessionReportTypeGovernancePath);
+  const ownerMatches = governance.ownerCommits.filter(item => (
+    item.commit === record.commit
+    && item.parent === record.parent
+    && item.tree === record.tree
+    && item.identity === record.identity
+    && item.subject === record.subject
+    && JSON.stringify([...item.paths].sort()) ===
+      JSON.stringify(record.evidence.map(evidence => evidence.path).sort())
+  ));
+  assert.equal(ownerMatches.length, 1,
+    "Field-session report-type Intelligence owner evidence drifted.");
+  for (const item of record.evidence) {
+    assert.equal(
+      sha256(gitBytes("show", `${record.commit}:${item.path}`)),
+      item.sha256,
+      `${item.path} field-session report-type owner hash drifted.`
+    );
+  }
+  return record;
+}
+
+export function validateFieldSessionReportTypeDriftRejectionSuccessor(
+  record = currentFieldSessionReportTypeDriftRejectionSuccessor
+) {
+  assert.deepEqual(
+    record,
+    currentFieldSessionReportTypeDriftRejectionSuccessor,
+    "Field-session report-type drift-rejection successor mapping drifted."
+  );
+  assert.deepEqual(git(
+    "show",
+    "-s",
+    "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ).split("\n"), [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "Field-session report-type drift-rejection provenance drifted.");
+  assert.deepEqual(
+    changedPaths(record.commit),
+    record.evidence.map(item => item.path).sort(),
+    "Field-session report-type drift-rejection path set drifted."
+  );
+  const governance = readJson(fieldSessionReportTypeGovernancePath);
+  const ownerMatches = governance.ownerCommits.filter(item => (
+    item.commit === record.commit
+    && item.parent === record.parent
+    && item.tree === record.tree
+    && item.identity === record.identity
+    && item.subject === record.subject
+    && JSON.stringify([...item.paths].sort()) ===
+      JSON.stringify(record.evidence.map(evidence => evidence.path).sort())
+  ));
+  assert.equal(ownerMatches.length, 1,
+    "Field-session report-type drift-rejection owner evidence drifted.");
+  for (const item of record.evidence) {
+    assert.equal(
+      sha256(gitBytes("show", `${record.commit}:${item.path}`)),
+      item.sha256,
+      `${item.path} field-session report-type drift-rejection hash drifted.`
+    );
+  }
+  return record;
+}
+
 export function validateProtectedDriftFixtureIntelligenceSuccessor(
   record = currentProtectedDriftFixtureIntelligenceSuccessor
 ) {
@@ -1008,6 +1152,16 @@ function composeCurrentIntelligenceSha256(path, previousSha256) {
       currentLiveCanonicalIdentityOffRouteBaselineRepair,
       currentLiveCanonicalIdentityOffRouteBaselineRepairHashes,
       "live canonical identity off-route baseline"
+    ],
+    [
+      currentFieldSessionReportTypeIntelligenceSuccessor,
+      currentFieldSessionReportTypeIntelligenceSuccessorHashes,
+      "field-session report type"
+    ],
+    [
+      currentFieldSessionReportTypeDriftRejectionSuccessor,
+      currentFieldSessionReportTypeDriftRejectionSuccessorHashes,
+      "field-session report type drift rejection"
     ]
   ]) {
     const successorSha256 = hashes.get(path);
@@ -1025,6 +1179,8 @@ function composeCurrentIntelligenceSha256(path, previousSha256) {
 export function validateRevenueReadinessIntelligenceSuccessor(record) {
   validateFullSystemHarmonyIntelligenceSuccessor();
   validateLiveCanonicalIdentityIntelligenceSuccessor();
+  validateFieldSessionReportTypeIntelligenceSuccessor();
+  validateFieldSessionReportTypeDriftRejectionSuccessor();
   validateFullSystemHarmonyShadowReadinessSuccessor();
   validateLiveCanonicalIdentityShadowReadinessRepair();
   validateLiveCanonicalIdentityProtectedConsumerCompositionRepair();
@@ -2036,6 +2192,10 @@ export function verifyReleaseProvenanceRepair() {
       currentFullSystemHarmonyIntelligenceSuccessor.commit,
     currentLiveCanonicalIdentityIntelligenceSuccessorCommit:
       currentLiveCanonicalIdentityIntelligenceSuccessor.commit,
+    currentFieldSessionReportTypeIntelligenceSuccessorCommit:
+      currentFieldSessionReportTypeIntelligenceSuccessor.commit,
+    currentFieldSessionReportTypeDriftRejectionSuccessorCommit:
+      currentFieldSessionReportTypeDriftRejectionSuccessor.commit,
     currentFullSystemHarmonyShadowReadinessSuccessorCommit:
       currentFullSystemHarmonyShadowReadinessSuccessor.commit,
     currentLiveCanonicalIdentityShadowReadinessRepairCommit:
