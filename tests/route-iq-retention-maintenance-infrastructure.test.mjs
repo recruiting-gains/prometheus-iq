@@ -117,3 +117,22 @@ test("the dormant Infrastructure boundary exposes no route, scheduler, alarm, qu
     scheduler: "off"
   });
 });
+
+test("the forward-revert package is source-only and preserves historical evidence", () => {
+  const contract = JSON.parse(readFileSync(
+    "workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json",
+    "utf8"
+  ));
+  assert.equal(contract.contractVersion, "route-iq-retention-maintenance-forward-revert-v1");
+  assert.equal(contract.owningSubsystem, "Prometheus Infrastructure");
+  assert.equal(contract.forwardOnly, true);
+  assert.equal(contract.historyRewriteAllowed, false);
+  assert.equal(contract.deploymentPerformed, false);
+  assert.equal(contract.productionRollbackRequired, false);
+  assert.equal(contract.productionStorageMutationPerformed, false);
+  assert.equal(contract.historicalEvidence.sessionSubtreeGitObject, "07485b3c4a14d56779e8b321e6c3410b970db2de");
+  assert.equal(contract.historicalEvidence.sourceEvidenceSubtreeGitObject, "1f05b8a7b22ee28592959fd1ef8276861897cef2");
+  assert.equal(contract.protectedState.collection, "OFF");
+  assert.equal(contract.protectedState.activeCohorts, 0);
+  assert.equal(contract.protectedState.recommendationInfluence, "OFF");
+});

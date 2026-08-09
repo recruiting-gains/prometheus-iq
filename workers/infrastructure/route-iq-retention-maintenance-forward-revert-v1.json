@@ -1,0 +1,42 @@
+{
+  "contractVersion": "route-iq-retention-maintenance-forward-revert-v1",
+  "owningSubsystem": "Prometheus Infrastructure",
+  "status": "verified_source_forward_revert_not_executed",
+  "startingCommit": "0ae9b3752476bc782b067a2a47fd388e4c3791ef",
+  "startingTree": "3b6778b25c731e75c489b738dc00256868522d22",
+  "deploymentPerformed": false,
+  "productionRollbackRequired": false,
+  "productionStorageMutationPerformed": false,
+  "forwardOnly": true,
+  "historyRewriteAllowed": false,
+  "nativeWorkerRollbackAllowed": false,
+  "sourceRevertOrder": [
+    "a8fedf7c0b88f0611b4f721b08641e55413c591a",
+    "70c57f3d94eabfc019cbb5dae1cbd276e6e92be0",
+    "82b2edd12f15978d97f0950657c5c123a01a54a7",
+    "7280f2b505e244f187755990d55bcfa701d1ef46",
+    "f5a473a4fbab7d0f876be36c65b603d9b13bcc0a",
+    "28c8a51b4aafef777e407c324ea15c57f4f12454",
+    "8845846632801ccf29e52a36139a43c1063fcc2e"
+  ],
+  "procedure": [
+    "Create new owner-authored forward-revert commits in the listed reverse order.",
+    "Preserve all historical field-session evidence and append-only governance records.",
+    "Remove only the dormant maintenance capability, its source contracts, and its consumer guards.",
+    "Run the focused retention, archive, Intelligence, Infrastructure, security, build, and Git-integrity gates.",
+    "Push only through a normal fast-forward after independent Overwatch verification."
+  ],
+  "historicalEvidence": {
+    "sessionSubtreeGitObject": "07485b3c4a14d56779e8b321e6c3410b970db2de",
+    "sourceEvidenceSubtreeGitObject": "1f05b8a7b22ee28592959fd1ef8276861897cef2",
+    "rewriteAllowed": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "productionDeployment": "UNCHANGED"
+  }
+}
