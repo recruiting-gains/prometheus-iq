@@ -186,6 +186,14 @@ const ownerCommits = Object.freeze({
       "intelligence/provenance/protected-baseline-synchronization-retention-deletion-consumer-admission-v1.json",
       "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
     ])
+  }),
+  "1dcccdafaaff1183e5f7de15624ede547ac11c94": Object.freeze({
+    name: "Prometheus Intelligence Engine",
+    email: "intelligence@prometheus.local",
+    files: Object.freeze([
+      "scripts/verify-off-route-learning-intelligence.mjs",
+      "tests/off-route-learning-intelligence.test.mjs"
+    ])
   })
 });
 
@@ -250,6 +258,7 @@ function verifyPinnedFiles(governance) {
     governance.qualificationRepair.founderAttendedPackageWiring.ttyRegressionTest,
     ...governance.qualificationRepair.finalPayloadSuccessorComposition.files,
     ...governance.qualificationRepair.historicalRetentionCoordinatorComposition.files,
+    ...governance.qualificationRepair.offRouteRetentionContractComposition.files,
     governance.forwardRevert
   ];
   for (const pin of pins) assert.equal(sha256(read(pin.path)), pin.sha256, `${pin.path} hash drifted.`);
@@ -349,6 +358,26 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(governance.qualificationRepair.historicalRetentionCoordinatorComposition
     .currentCoordinatorSha256,
     "586d19dbf65c4c740ecea6a7e0b4e1d01d733471a2604f8a92b946af092ee282");
+  assert.equal(governance.qualificationRepair.offRouteRetentionContractComposition.failedRun,
+    31341364276);
+  assert.equal(governance.qualificationRepair.offRouteRetentionContractComposition
+    .ownerRepairCommit, "1dcccdafaaff1183e5f7de15624ede547ac11c94");
+  assert.equal(governance.qualificationRepair.offRouteRetentionContractComposition
+    .runtimeBehaviorChanged, false);
+  assert.equal(governance.qualificationRepair.offRouteRetentionContractComposition
+    .productionMutationPerformed, false);
+  assert.equal(governance.qualificationRepair.offRouteRetentionContractComposition
+    .historicalContractSha256,
+    "7d69761a0fb4049c282077cc20c3d55dcbaa4c281a848996c4738f62bd515201");
+  assert.equal(governance.qualificationRepair.offRouteRetentionContractComposition
+    .currentContractSha256,
+    "9605d400315a478c27c0f779bebf2b96cdd0d3674d2969ec786ec302fea9b69a");
+  assert.deepEqual(governance.qualificationRepair.offRouteRetentionContractComposition
+    .protectedStateRequired, {
+      prospectiveCollection: "OFF",
+      activeCohorts: 0,
+      recommendationInfluence: "OFF"
+    });
   assert.equal(
     governance.infrastructureBoundary.privateWorkflowQualification.forwardPayloadSha256,
     "aaa8b360d5851bec21637d4c639a485555c367d1d5c9defb1b12163160c035c7"
@@ -447,6 +476,9 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.qualification.seventhHostedQualificationRun, 31341204771);
   assert.equal(report.qualification.seventhHostedQualificationResult,
     "FAILED_CLOSED_HISTORICAL_RETENTION_COORDINATOR_SUCCESSOR_UNCOMPOSED");
+  assert.equal(report.qualification.eighthHostedQualificationRun, 31341364276);
+  assert.equal(report.qualification.eighthHostedQualificationResult,
+    "FAILED_CLOSED_OFF_ROUTE_RETENTION_CONTRACT_SUCCESSOR_UNCOMPOSED");
   assert.equal(report.qualification.focusedSuccessorVerification.dataCoordinatorTests, "121/121 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.intelligenceConsumerTests, "86/86 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.privateWorkflowV2Tests, "33/33 PASS");
@@ -454,6 +486,8 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
     "20/20 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification
     .controlledRehearsalGovernanceTests, "14/14 PASS");
+  assert.equal(report.qualification.focusedSuccessorVerification.offRouteLearningTests,
+    "17/17 PASS");
   assert.equal(report.qualification.exactFinalCommitHostedQualification,
     "EXACT_COMMIT_BOUND_WORKFLOW_REQUIRED_AND_FAIL_CLOSED");
   assert.equal(report.releaseBoundary.deploymentAuthorized, false);

@@ -37,7 +37,8 @@
         "f37a1e16a73d89c57fb988c53c472a570fdbc15f",
         "605c52e3076504159ac22c84b36b3d441cc30b66",
         "61418a67b6df3e482b52a1fa6f7fc6757147dda0",
-        "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b"
+        "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b",
+        "1dcccdafaaff1183e5f7de15624ede547ac11c94"
       ],
       "Prometheus Infrastructure": [
         "7280f2b505e244f187755990d55bcfa701d1ef46",
@@ -280,7 +281,7 @@
       "wrongBranchRefTypeShaOrOriginFailsClosed": true,
       "regressionTest": {
         "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
-        "sha256": "302ed3d6fc570d4aa16da6db616aaf8dc83b0f10ec369de93ae6970fa571b72f"
+        "sha256": "f6ef365d979aeec1ad89e769c30aef46d11c41e5dd608ae4dafd39d80ec21486"
       }
     },
     "founderAttendedPackageWiring": {
@@ -369,6 +370,31 @@
         {
           "path": "tests/overwatch-route-iq-prospective-evidence-retention.test.mjs",
           "sha256": "4cc1ca3cbcda5e159e7bfc4e126f89b9f29de8067b4d318b595869fb9d52f5b7"
+        }
+      ]
+    },
+    "offRouteRetentionContractComposition": {
+      "failedRun": 31341364276,
+      "failure": "OFF_ROUTE_VERIFIER_DID_NOT_COMPOSE_RETENTION_DELETION_UPSTREAM_SUCCESSOR",
+      "ownerRepairCommit": "1dcccdafaaff1183e5f7de15624ede547ac11c94",
+      "runtimeBehaviorChanged": false,
+      "productionMutationPerformed": false,
+      "deploymentPerformed": false,
+      "historicalContractSha256": "7d69761a0fb4049c282077cc20c3d55dcbaa4c281a848996c4738f62bd515201",
+      "currentContractSha256": "9605d400315a478c27c0f779bebf2b96cdd0d3674d2969ec786ec302fea9b69a",
+      "protectedStateRequired": {
+        "prospectiveCollection": "OFF",
+        "activeCohorts": 0,
+        "recommendationInfluence": "OFF"
+      },
+      "files": [
+        {
+          "path": "scripts/verify-off-route-learning-intelligence.mjs",
+          "sha256": "fc8e0d95851654d7cfb67c0eedea3102f230653d7373ee5cabd515d1a81d5253"
+        },
+        {
+          "path": "tests/off-route-learning-intelligence.test.mjs",
+          "sha256": "48b97995ccb0dba35afcd70182c1ad0477c23552bc83382fa948ccb079bf8122"
         }
       ]
     }

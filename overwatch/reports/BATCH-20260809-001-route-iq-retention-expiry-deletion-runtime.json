@@ -28,9 +28,10 @@
         "f37a1e16a73d89c57fb988c53c472a570fdbc15f",
         "605c52e3076504159ac22c84b36b3d441cc30b66",
         "61418a67b6df3e482b52a1fa6f7fc6757147dda0",
-        "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b"
+        "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b",
+        "1dcccdafaaff1183e5f7de15624ede547ac11c94"
       ],
-      "scope": "started/completed subject exclusion from learning, evaluation, readiness and recommendation input, plus protected live-identity source succession"
+      "scope": "started/completed subject exclusion from learning, evaluation, readiness and recommendation input, plus exact retention successor composition across protected consumers"
     },
     {
       "subsystem": "Prometheus Infrastructure",
@@ -70,6 +71,7 @@
       "privateWorkflowGovernanceTests": "20/20 PASS",
       "controlledRehearsalGovernanceTests": "14/14 PASS",
       "intelligenceConsumerTests": "86/86 PASS",
+      "offRouteLearningTests": "17/17 PASS",
       "security": "PASS",
       "aegis": "PASS",
       "lint": "PASS",
@@ -90,6 +92,8 @@
     "sixthHostedQualificationResult": "FAILED_CLOSED_FINAL_RETENTION_SUCCESSORS_UNCOMPOSED",
     "seventhHostedQualificationRun": 31341204771,
     "seventhHostedQualificationResult": "FAILED_CLOSED_HISTORICAL_RETENTION_COORDINATOR_SUCCESSOR_UNCOMPOSED",
+    "eighthHostedQualificationRun": 31341364276,
+    "eighthHostedQualificationResult": "FAILED_CLOSED_OFF_ROUTE_RETENTION_CONTRACT_SUCCESSOR_UNCOMPOSED",
     "exactFinalCommitHostedQualification": "EXACT_COMMIT_BOUND_WORKFLOW_REQUIRED_AND_FAIL_CLOSED"
   },
   "deletionGraph": {
