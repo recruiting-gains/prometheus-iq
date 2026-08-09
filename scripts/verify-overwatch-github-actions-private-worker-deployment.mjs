@@ -40,6 +40,8 @@ const currentReadinessSuccessorsPath =
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 const fieldSessionReportTypeGovernancePath =
   "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json";
+const retentionDeletionGovernancePath =
+  "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json";
 
 const historicalOwnerCommit = "7f67855145104034b32551e25d2ebf407ce2369c";
 const historicalOwnerRepairCommit = "335f75fa1d7e32160624e9ebe197d11a03e77b4e";
@@ -228,6 +230,18 @@ const v2FieldSessionReportTypeIntelligenceSuccessorParent =
   "bbed83c62e6c8d2c73ce287161df282005f99187";
 const v2FieldSessionReportTypeIntelligenceSuccessorTree =
   "38ce2be37f66f49202967a285a003755ebc21dcc";
+const v2RetentionDeletionIntelligenceSuccessorCommit =
+  "b359d8e701e13d2f9911dcd0cb917eecce8aa7ac";
+const v2RetentionDeletionIntelligenceSuccessorParent =
+  "c8cba2467436f8c5326532a19afbf00cc7bfadef";
+const v2RetentionDeletionIntelligenceSuccessorTree =
+  "579b793cfefb4063115a8d6b19dcf0e3df3582eb";
+const v2RetentionDeletionIntelligenceSynchronizationCommit =
+  "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0";
+const v2RetentionDeletionIntelligenceSynchronizationParent =
+  "c9cc1d85315f0f577bb6e2b457965af3bb75ee9c";
+const v2RetentionDeletionIntelligenceSynchronizationTree =
+  "b4e8cda1d34f7e3fad199066335f94ac86108664";
 const v2FullSystemHarmonyShadowReadinessSuccessorCommit =
   "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8";
 const v2FullSystemHarmonyShadowReadinessSuccessorParent =
@@ -864,6 +878,26 @@ const v2FieldSessionReportTypeIntelligenceSuccessorHashes = Object.freeze({
     "04014936bb2bebbb1b17c22048449b325e8667c8809f9ba382e7532ee6a4ff4b"
 });
 
+const v2RetentionDeletionIntelligenceSuccessorHashes = Object.freeze({
+  "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json":
+    "de278f6f10eed3c3a6cf72eb2d041374158bbc86f6317dfb43e4001159e7e9da",
+  "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs":
+    "7f798b82e68699fb71413ae4d72e03ee864aa9e1a9a46573869a1559205823d8",
+  "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs":
+    "9c8f7ae2f72beb4463fe53f0b710b7c54702e1dccb5607faf58dc1e66c48adec"
+});
+
+const v2RetentionDeletionIntelligenceSynchronizationHashes = Object.freeze({
+  "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json":
+    "441451263c1517ca87d993c571798874a85bc5241c2e9c92444ca7abc017647a",
+  "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs":
+    "d709cfea9765ee13cb43f86fe5084f6cdc3521fcb08d28f5deeed580189a2284",
+  "tests/intelligence-architecture.test.mjs":
+    "36c866c04ddde38fa0018a843c8d3ac7e49f4e3c3c537eb82f2b7bc2a0364f96",
+  "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs":
+    "84f124dc1137926c86687ab61274392c16dae53dc11f723300c5982557fd4118"
+});
+
 const v2FullSystemHarmonyShadowReadinessSuccessorHashes = Object.freeze({
   "scripts/verify-shadow-decision-readiness.mjs":
     "856b7f43150cc4eba0a9fee6d2df2f4254f32026dd64d92829cd4df74f17e364"
@@ -1442,6 +1476,62 @@ export function evaluatePrivateWorkflowV2FieldSessionReportTypeSuccessor({
     && governance?.releaseBoundary?.deploymentAuthorized === false
     && governance?.releaseBoundary?.productionMutationAuthorized === false,
   "Private Workflow v2 field-session protected boundary drifted.");
+  return Object.freeze({
+    ok: failures.length === 0,
+    failures: Object.freeze(failures)
+  });
+}
+
+export function evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors({
+  governance
+}) {
+  const failures = [];
+  const require = (condition, message) => {
+    if (!condition) failures.push(message);
+  };
+  const intelligenceCommits = governance?.ownership?.commits?.[
+    "Prometheus Intelligence Engine"
+  ] ?? [];
+  const pins = governance?.qualificationRepair?.liveCanonicalIdentity;
+  require(governance?.governanceId ===
+      "route-iq-retention-expiry-deletion-runtime-v1"
+    && governance?.owningSubsystem === "Prometheus Overwatch"
+    && governance?.status === "SOURCE_COMPLETE_DORMANT_DEPLOYMENT_HELD",
+  "Private Workflow v2 retention governance identity drifted.");
+  require(equal(intelligenceCommits.slice(-2), [
+    v2RetentionDeletionIntelligenceSuccessorCommit,
+    v2RetentionDeletionIntelligenceSynchronizationCommit
+  ]), "Private Workflow v2 retention Intelligence commit chain drifted.");
+  require(pins?.protectedSuccessor?.path ===
+      "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json"
+    && pins?.protectedSuccessor?.sha256 ===
+      v2RetentionDeletionIntelligenceSynchronizationHashes[
+        "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json"
+      ]
+    && pins?.verifier?.path ===
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
+    && pins?.verifier?.sha256 ===
+      v2RetentionDeletionIntelligenceSynchronizationHashes[
+        "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
+      ]
+    && pins?.intelligenceRegressionTest?.path ===
+      "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+    && pins?.intelligenceRegressionTest?.sha256 ===
+      v2RetentionDeletionIntelligenceSynchronizationHashes[
+        "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+      ]
+    && pins?.architectureRegressionTest?.path === "tests/intelligence-architecture.test.mjs"
+    && pins?.architectureRegressionTest?.sha256 ===
+      v2RetentionDeletionIntelligenceSynchronizationHashes[
+        "tests/intelligence-architecture.test.mjs"
+      ], "Private Workflow v2 retention Intelligence evidence drifted.");
+  require(governance?.protectedState?.collection === "OFF"
+    && governance?.protectedState?.activeCohorts === 0
+    && governance?.protectedState?.recommendationInfluence === "OFF"
+    && governance?.infrastructureBoundary?.deploymentAuthorized === false
+    && governance?.protectedState?.productionDeletionPerformed === false
+    && governance?.activationDecision?.prospectiveCollectionMayActivate === false,
+  "Private Workflow v2 retention protected boundary drifted.");
   return Object.freeze({
     ok: failures.length === 0,
     failures: Object.freeze(failures)
@@ -3299,6 +3389,7 @@ function verifyV2OwnerAndGovernance() {
   const fieldSessionReportTypeGovernance = readJson(
     fieldSessionReportTypeGovernancePath
   );
+  const retentionDeletionGovernance = readJson(retentionDeletionGovernancePath);
   const rehearsalGovernance = readJson(
     "overwatch/governance/controlled-paid-customer-onboarding-rehearsal-v1.json"
   );
@@ -3317,6 +3408,13 @@ function verifyV2OwnerAndGovernance() {
     });
   if (!fieldSessionEvaluation.ok) {
     throw new Error(fieldSessionEvaluation.failures.join("\n"));
+  }
+  const retentionDeletionEvaluation =
+    evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors({
+      governance: retentionDeletionGovernance
+    });
+  if (!retentionDeletionEvaluation.ok) {
+    throw new Error(retentionDeletionEvaluation.failures.join("\n"));
   }
 
   const metadata = git([
@@ -3915,6 +4013,40 @@ function verifyV2OwnerAndGovernance() {
       }
       acceptedCurrentSha256 = fieldSessionReportTypeSuccessorSha256;
     }
+    const retentionDeletionSuccessorSha256 =
+      v2RetentionDeletionIntelligenceSuccessorHashes[path];
+    if (retentionDeletionSuccessorSha256) {
+      const predecessorSha256 = sha256(execFileSync("/usr/bin/git", [
+        "show", `${v2RetentionDeletionIntelligenceSuccessorParent}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }));
+      if (predecessorSha256 !== acceptedCurrentSha256) {
+        throw new Error(
+          `Private Workflow v2 retention-deletion Intelligence chain drifted: ${path}`
+        );
+      }
+      acceptedCurrentSha256 = retentionDeletionSuccessorSha256;
+    }
+    const retentionDeletionSynchronizationSha256 =
+      v2RetentionDeletionIntelligenceSynchronizationHashes[path];
+    if (retentionDeletionSynchronizationSha256) {
+      const predecessorSha256 = sha256(execFileSync("/usr/bin/git", [
+        "show", `${v2RetentionDeletionIntelligenceSynchronizationParent}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }));
+      if (predecessorSha256 !== acceptedCurrentSha256) {
+        throw new Error(
+          `Private Workflow v2 retention-deletion Intelligence synchronization drifted: ${path}`
+        );
+      }
+      acceptedCurrentSha256 = retentionDeletionSynchronizationSha256;
+    }
     const shadowReadinessSuccessorSha256 =
       v2FullSystemHarmonyShadowReadinessSuccessorHashes[path];
     if (shadowReadinessSuccessorSha256) {
@@ -3955,6 +4087,61 @@ function verifyV2OwnerAndGovernance() {
       throw new Error(
         `Private Workflow v2 Intelligence synchronization evidence drifted: ${path}`
       );
+    }
+  }
+
+  for (const successor of [
+    {
+      label: "retention-deletion Intelligence successor",
+      commit: v2RetentionDeletionIntelligenceSuccessorCommit,
+      parent: v2RetentionDeletionIntelligenceSuccessorParent,
+      tree: v2RetentionDeletionIntelligenceSuccessorTree,
+      subject: "intelligence: compose retention deletion successor",
+      hashes: v2RetentionDeletionIntelligenceSuccessorHashes
+    },
+    {
+      label: "retention-deletion Intelligence synchronization",
+      commit: v2RetentionDeletionIntelligenceSynchronizationCommit,
+      parent: v2RetentionDeletionIntelligenceSynchronizationParent,
+      tree: v2RetentionDeletionIntelligenceSynchronizationTree,
+      subject: "intelligence: synchronize deletion consumer provenance",
+      hashes: v2RetentionDeletionIntelligenceSynchronizationHashes
+    }
+  ]) {
+    const metadata = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      successor.commit
+    ]).split("\n");
+    if (!equal(metadata, [
+      successor.commit,
+      successor.parent,
+      successor.tree,
+      intelligenceIdentity,
+      intelligenceIdentity,
+      successor.subject
+    ])) {
+      throw new Error(`Private Workflow v2 ${successor.label} provenance drifted.`);
+    }
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r", successor.commit
+    ]).split("\n").filter(Boolean);
+    if (!equal(paths, Object.keys(successor.hashes))
+      || paths.some(path => path.startsWith("workers/infrastructure/")
+        || path.startsWith("overwatch/")
+        || path === "package.json")) {
+      throw new Error(`Private Workflow v2 ${successor.label} path set drifted.`);
+    }
+    for (const [path, expected] of Object.entries(successor.hashes)) {
+      const committed = execFileSync("/usr/bin/git", [
+        "show", `${successor.commit}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      });
+      if (sha256(committed) !== expected) {
+        throw new Error(`Private Workflow v2 ${successor.label} evidence drifted: ${path}`);
+      }
     }
   }
 
@@ -4079,6 +4266,40 @@ function verifyV2OwnerAndGovernance() {
         );
       }
       acceptedCurrentSha256 = fieldSessionReportTypeSuccessorSha256;
+    }
+    const retentionDeletionSuccessorSha256 =
+      v2RetentionDeletionIntelligenceSuccessorHashes[path];
+    if (retentionDeletionSuccessorSha256) {
+      const predecessorSha256 = sha256(execFileSync("/usr/bin/git", [
+        "show", `${v2RetentionDeletionIntelligenceSuccessorParent}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }));
+      if (predecessorSha256 !== acceptedCurrentSha256) {
+        throw new Error(
+          `Private Workflow v2 retention-deletion successor chain drifted: ${path}`
+        );
+      }
+      acceptedCurrentSha256 = retentionDeletionSuccessorSha256;
+    }
+    const retentionDeletionSynchronizationSha256 =
+      v2RetentionDeletionIntelligenceSynchronizationHashes[path];
+    if (retentionDeletionSynchronizationSha256) {
+      const predecessorSha256 = sha256(execFileSync("/usr/bin/git", [
+        "show", `${v2RetentionDeletionIntelligenceSynchronizationParent}:${path}`
+      ], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }));
+      if (predecessorSha256 !== acceptedCurrentSha256) {
+        throw new Error(
+          `Private Workflow v2 retention-deletion synchronization chain drifted: ${path}`
+        );
+      }
+      acceptedCurrentSha256 = retentionDeletionSynchronizationSha256;
     }
     const shadowReadinessSuccessorSha256 =
       v2FullSystemHarmonyShadowReadinessSuccessorHashes[path];
@@ -5028,6 +5249,10 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2RevenueReadinessIntelligenceSuccessorCommit,
     immutableWorkflowV2LiveCanonicalIdentityIntelligenceSuccessorCommit:
       v2LiveCanonicalIdentityIntelligenceSuccessorCommit,
+    immutableWorkflowV2RetentionDeletionIntelligenceSuccessorCommit:
+      v2RetentionDeletionIntelligenceSuccessorCommit,
+    immutableWorkflowV2RetentionDeletionIntelligenceSynchronizationCommit:
+      v2RetentionDeletionIntelligenceSynchronizationCommit,
     immutableWorkflowV2LiveCanonicalIdentityShadowReadinessRepairCommit:
       v2LiveCanonicalIdentityShadowReadinessRepairCommit,
     immutableWorkflowV2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit:

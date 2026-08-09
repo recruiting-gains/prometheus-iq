@@ -11,6 +11,7 @@ import {
   evaluateGithubActionsPrivateWorkerSuccessorOwnership,
   evaluateGithubActionsPrivateWorkerV2Governance,
   evaluatePrivateWorkflowV2FieldSessionReportTypeSuccessor,
+  evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors,
   evaluateGithubActionsPrivateWorkerWorkflow,
   hasFieldSessionReportTypeInfrastructureSuccessor,
   hasLiveCanonicalIdentityOwnerEvidenceSuccessor,
@@ -46,6 +47,9 @@ const currentReadinessSuccessors = readJson(
 );
 const fieldSessionReportTypeGovernance = readJson(
   "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json"
+);
+const retentionDeletionGovernance = readJson(
+  "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json"
 );
 
 function evaluate(nextGovernance = governance, nextReport = report, nextContract = contract) {
@@ -142,6 +146,14 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
   assert.equal(
     result.immutableWorkflowV2LiveCanonicalIdentityIntelligenceSuccessorCommit,
     "56f67124c1beba2f9289538d65e782cd808eacb2"
+  );
+  assert.equal(
+    result.immutableWorkflowV2RetentionDeletionIntelligenceSuccessorCommit,
+    "b359d8e701e13d2f9911dcd0cb917eecce8aa7ac"
+  );
+  assert.equal(
+    result.immutableWorkflowV2RetentionDeletionIntelligenceSynchronizationCommit,
+    "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0"
   );
   assert.equal(
     result.immutableWorkflowV2LiveCanonicalIdentityShadowReadinessRepairCommit,
@@ -1059,6 +1071,26 @@ test("private Workflow v2 admits only the exact field-session Intelligence succe
     const candidate = clone(fieldSessionReportTypeGovernance);
     mutate(candidate);
     assert.equal(evaluatePrivateWorkflowV2FieldSessionReportTypeSuccessor({
+      governance: candidate
+    }).ok, false);
+  }
+});
+
+test("private Workflow v2 composes only the governed retention-deletion Intelligence successors", () => {
+  assert.equal(evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors({
+    governance: retentionDeletionGovernance
+  }).ok, true);
+
+  for (const mutate of [
+    value => { value.ownership.commits["Prometheus Intelligence Engine"][2] = "0".repeat(40); },
+    value => { value.qualificationRepair.liveCanonicalIdentity.verifier.sha256 = "0".repeat(64); },
+    value => { value.qualificationRepair.liveCanonicalIdentity.protectedSuccessor.sha256 = "0".repeat(64); },
+    value => { value.protectedState.collection = "ON"; },
+    value => { value.infrastructureBoundary.deploymentAuthorized = true; }
+  ]) {
+    const candidate = clone(retentionDeletionGovernance);
+    mutate(candidate);
+    assert.equal(evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors({
       governance: candidate
     }).ok, false);
   }
