@@ -19,6 +19,69 @@
       "subject": "feat(data): add dormant retention deletion runtime",
       "previousSha256": "5b4bc3d49596b3b4fa3c348ece30344f852f92056b0ceb8db8007cacbdfe2d2a",
       "currentSha256": "2d54c4525f1f240b0b7d46baf2899f537375397e6016c55bc770fd6d3686cc20"
+    },
+    {
+      "path": "intelligence/route-iq-prospective-retention-admission.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "f5a473a4fbab7d0f876be36c65b603d9b13bcc0a",
+      "tree": "1e35a6fa511c762a2c59930fe8781f7773828916",
+      "subject": "fix(intelligence): exclude retention deletion subjects",
+      "previousSha256": "9d2ef3b3ff4a440432ab31af041aa3c19e55c384ac788c2a4e0c7db7452bfcda",
+      "currentSha256": "3f2b0d5447f0f62937eabe01b6031d915efeec0829b79211618ebb941086d3ef"
+    },
+    {
+      "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "17bef15930ded364a55aadd47d0f96722cc8e9c6",
+      "tree": "0c27964d7b23df338ed83261cd2204ef662c7859",
+      "subject": "docs(intelligence): pin retention deletion successor",
+      "previousSha256": "3f9a5044e62a9c8691676fadfe176bc9d41cce3bfa88cbbaa8d8b9927922350f",
+      "currentSha256": "3bb4da9da2ee99380c6c3d7e51e308e02b174936e3239ef48bb97f36fbc9f44a"
+    },
+    {
+      "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "17bef15930ded364a55aadd47d0f96722cc8e9c6",
+      "tree": "0c27964d7b23df338ed83261cd2204ef662c7859",
+      "subject": "docs(intelligence): pin retention deletion successor",
+      "previousSha256": "7d69761a0fb4049c282077cc20c3d55dcbaa4c281a848996c4738f62bd515201",
+      "currentSha256": "9605d400315a478c27c0f779bebf2b96cdd0d3674d2969ec786ec302fea9b69a"
+    },
+    {
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "17bef15930ded364a55aadd47d0f96722cc8e9c6",
+      "tree": "0c27964d7b23df338ed83261cd2204ef662c7859",
+      "subject": "docs(intelligence): pin retention deletion successor",
+      "previousSha256": "c814acf7d0d1c08dbc42c24ca1231135b7123397c0c5b2698d3898ca0b3e9ab6",
+      "currentSha256": "15995f73e9e8b1b28099f921d2a2f9ac6f3fc93390c17c960cd58e748c9c81d5"
+    },
+    {
+      "path": "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "17bef15930ded364a55aadd47d0f96722cc8e9c6",
+      "tree": "0c27964d7b23df338ed83261cd2204ef662c7859",
+      "subject": "docs(intelligence): pin retention deletion successor",
+      "previousSha256": "02e224ca961c5b36a3a31df75d02f749b3935c6e8379c7a4b3b7940d3ea3caf5",
+      "currentSha256": "4acda2819c35194de0a20c11079fc7c94efcc8ecddbcbf92647f1bdebbae424c"
+    },
+    {
+      "path": "scripts/validate-intelligence-architecture.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "17bef15930ded364a55aadd47d0f96722cc8e9c6",
+      "tree": "0c27964d7b23df338ed83261cd2204ef662c7859",
+      "subject": "docs(intelligence): pin retention deletion successor",
+      "previousSha256": "ed6b6f3f32d4f389e5eba1df26dac98517b74f86b47cd84f4bc389b08c21d32d",
+      "currentSha256": "a297643bb2956de137ec1aaeabe1e5a3850b701d3c977ec4c229ea72b3e952cc"
+    },
+    {
+      "path": "scripts/verify-route-iq-prospective-retention-intelligence.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "17bef15930ded364a55aadd47d0f96722cc8e9c6",
+      "tree": "0c27964d7b23df338ed83261cd2204ef662c7859",
+      "subject": "docs(intelligence): pin retention deletion successor",
+      "previousSha256": "01fc234bb30064459b67e0777df39bb3980e199b50b967d641dc8eeaec8557dc",
+      "currentSha256": "c72a0c420b07cc7497f299f0ba45a34e4fd3f889427c1e47221a6ba481f5d5b5"
     }
   ],
   "reportTypeContract": {

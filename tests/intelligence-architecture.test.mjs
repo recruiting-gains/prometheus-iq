@@ -12,6 +12,9 @@ import {
 import {
   verifyPaidCustomerRevenueReadinessProtectedConsumers
 } from "../intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs";
+import {
+  verifyRetentionDeletionRuntimeProtectedSuccessor
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -423,6 +426,8 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   const fieldSessionReportTypeSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json",
   );
+  const retentionDeletionRuntimeSuccessor =
+    verifyRetentionDeletionRuntimeProtectedSuccessor();
   const revenueReadinessConsumers =
     verifyPaidCustomerRevenueReadinessProtectedConsumers();
   assert.equal(
@@ -750,6 +755,10 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
       (transition) => transition.path ===
         crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.path,
     );
+  const retentionDeletionArchiveTransition = retentionDeletionRuntimeSuccessor
+    .successorTransitionsByPath.get(
+      crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.path,
+    )?.[0];
   assert.equal(
     fieldSessionArchiveTransition.previousSha256,
     liveCanonicalArchiveTransitions?.at(-1).currentSha256
@@ -757,6 +766,10 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   );
   assert.equal(
     sha256(crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.path),
+    retentionDeletionArchiveTransition.currentSha256,
+  );
+  assert.equal(
+    retentionDeletionArchiveTransition.previousSha256,
     fieldSessionArchiveTransition.currentSha256,
   );
   assert.notEqual(
@@ -780,6 +793,8 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
         revenueReadinessConsumers.consumerByPath.get(transition.path);
       const fieldSessionTransition = fieldSessionReportTypeSuccessor
         .protectedSourceTransitions.find((candidate) => candidate.path === transition.path);
+      const retentionDeletionTransition = retentionDeletionRuntimeSuccessor
+        .successorTransitionsByPath.get(transition.path)?.[0];
       if (revenueReadinessConsumer) {
         assert.equal(
           revenueReadinessConsumer.previousSha256,
@@ -792,9 +807,16 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
             revenueReadinessConsumer.currentSha256,
             transition.path,
           );
+          if (retentionDeletionTransition) {
+            assert.equal(
+              retentionDeletionTransition.previousSha256,
+              fieldSessionTransition.currentSha256,
+              transition.path,
+            );
+          }
           assert.equal(
             sha256(transition.path),
-            fieldSessionTransition.currentSha256,
+            (retentionDeletionTransition || fieldSessionTransition).currentSha256,
             transition.path,
           );
         } else {
@@ -819,15 +841,25 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   for (const artifact of crossIndustryRetentionSuccessor.intelligenceOwnerRuntimeTransition.artifacts) {
     const fullSystemHarmonyTransitions =
       revenueReadinessConsumers.fullSystemHarmonySuccessor.transitionsByPath.get(artifact.path);
+    const retentionDeletionTransitions =
+      retentionDeletionRuntimeSuccessor.transitionsByPath.get(artifact.path);
     assert.equal(
       sha256(artifact.path),
-      fullSystemHarmonyTransitions?.at(-1).currentSha256 || artifact.currentSha256,
+      retentionDeletionTransitions?.at(-1).currentSha256
+        || fullSystemHarmonyTransitions?.at(-1).currentSha256
+        || artifact.currentSha256,
       artifact.path,
     );
     assert.notEqual(artifact.previousSha256, artifact.currentSha256, artifact.path);
   }
   for (const consumer of crossIndustryRetentionSuccessor.intelligenceConsumerTransitions) {
-    assert.equal(sha256(consumer.path), consumer.currentSha256, consumer.path);
+    const retentionDeletionTransitions =
+      retentionDeletionRuntimeSuccessor.transitionsByPath.get(consumer.path);
+    assert.equal(
+      sha256(consumer.path),
+      retentionDeletionTransitions?.at(-1).currentSha256 || consumer.currentSha256,
+      consumer.path,
+    );
     assert.notEqual(consumer.previousSha256, consumer.currentSha256, consumer.path);
   }
   assert.equal(crossIndustryRetentionSuccessor.governedEmptyState.activeBusinessCount, 0);

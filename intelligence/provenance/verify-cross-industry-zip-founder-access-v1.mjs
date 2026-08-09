@@ -506,27 +506,48 @@ function verifyRetentionDeletionRuntimeProtectedSuccessorAgainst(
   );
   assert.equal(successor.predecessor.remainsHistorical, true);
   assert.equal(successor.predecessor.rewritten, false);
-  assert.equal(successor.protectedSourceTransitions.length, 1);
+  assert.equal(successor.protectedSourceTransitions.length, 8);
 
-  const transition = successor.protectedSourceTransitions[0];
-  assert.equal(
-    transition.path,
-    "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs"
+  const successorTransitionsByPath = new Map();
+  for (const transition of successor.protectedSourceTransitions) {
+    assert.ok(
+      !successorTransitionsByPath.has(transition.path),
+      `Duplicate retention-deletion protected path: ${transition.path}`
+    );
+    const predecessorTransitions = fieldSessionReportTypeSuccessor.transitionsByPath
+      .get(transition.path);
+    if (predecessorTransitions) {
+      assert.equal(
+        transition.previousSha256,
+        predecessorTransitions.at(-1).currentSha256,
+        `Broken retention-deletion transition chain: ${transition.path}`
+      );
+    }
+    verifyTransition(transition.path, transition);
+    successorTransitionsByPath.set(transition.path, [transition]);
+  }
+  assert.deepEqual(
+    [...successorTransitionsByPath.keys()].sort(),
+    [
+      "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+      "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+      "intelligence/contracts/read-only-field-session-learning-contracts.json",
+      "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
+      "intelligence/route-iq-prospective-retention-admission.mjs",
+      "scripts/validate-intelligence-architecture.mjs",
+      "scripts/verify-route-iq-prospective-retention-intelligence.mjs"
+    ]
   );
-  assert.equal(
-    transition.previousSha256,
-    fieldSessionReportTypeSuccessor.transitionsByPath.get(transition.path).at(-1).currentSha256,
-    `Broken retention-deletion transition chain: ${transition.path}`
-  );
-  verifyTransition(transition.path, transition);
-
-  const successorTransitionsByPath = new Map([[transition.path, [transition]]]);
   const transitionsByPath = new Map();
   for (const [path, transitions] of fieldSessionReportTypeSuccessor.transitionsByPath) {
     transitionsByPath.set(path, [
       ...transitions,
       ...(successorTransitionsByPath.get(path) || [])
     ]);
+  }
+  for (const [path, transitions] of successorTransitionsByPath) {
+    if (!transitionsByPath.has(path)) transitionsByPath.set(path, transitions);
   }
   for (const [path, transitions] of transitionsByPath) {
     assert.equal(
