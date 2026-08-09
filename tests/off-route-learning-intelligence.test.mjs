@@ -20,6 +20,7 @@ import {
 } from "../intelligence/read-only-field-session-learning.mjs";
 import { verifyOffRouteLearningIntelligence } from "../scripts/verify-off-route-learning-intelligence.mjs";
 import {
+  verifyFieldSessionReportTypeContractProtectedSuccessor,
   verifyLiveCanonicalIdentityProtectedSuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
@@ -323,14 +324,20 @@ test("protected Dashboard and route-generation successors are governed while Dat
   const result = verifyOffRouteLearningIntelligence();
   const canonicalIdentitySuccessor =
     verifyLiveCanonicalIdentityProtectedSuccessor();
+  const fieldSessionReportTypeSuccessor =
+    verifyFieldSessionReportTypeContractProtectedSuccessor();
 
   assert.equal(result.protectedBehaviorSuccessors, 3);
   for (const name of ["dataArchiveRuntime", "dataRuntimeContract", "routeScoring"]) {
     const baseline = contract.protectedBehaviorBaselines[name];
     const transitions = canonicalIdentitySuccessor.transitionsByPath.get(baseline.path);
+    const reportTypeTransitions =
+      fieldSessionReportTypeSuccessor.transitionsByPath.get(baseline.path);
     assert.equal(
       sha256(baseline.path),
-      transitions?.at(-1).currentSha256 || baseline.sha256,
+      reportTypeTransitions?.at(-1).currentSha256
+        || transitions?.at(-1).currentSha256
+        || baseline.sha256,
       name
     );
   }
