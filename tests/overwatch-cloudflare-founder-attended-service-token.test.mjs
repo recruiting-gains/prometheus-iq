@@ -210,9 +210,20 @@ test("Founder-attended governance composes the exact historical and current pack
   }), false);
 
   for (const mutate of [
-    value => { value.overwatchCurrentEvidence.at(-2).previousSha256 = "0".repeat(64); },
-    value => { value.overwatchCurrentEvidence.at(-2).successorSha256 = transition.currentSha256; },
-    value => { value.overwatchCurrentEvidence.splice(-2, 1); }
+    value => {
+      value.overwatchCurrentEvidence.findLast(item => item.path === "package.json")
+        .previousSha256 = "0".repeat(64);
+    },
+    value => {
+      value.overwatchCurrentEvidence.findLast(item => item.path === "package.json")
+        .successorSha256 = transition.currentSha256;
+    },
+    value => {
+      const index = value.overwatchCurrentEvidence.findLastIndex(
+        item => item.path === "package.json"
+      );
+      value.overwatchCurrentEvidence.splice(index, 1);
+    }
   ]) {
     const changed = clone(currentCanonicalReadinessSuccessors);
     mutate(changed);
