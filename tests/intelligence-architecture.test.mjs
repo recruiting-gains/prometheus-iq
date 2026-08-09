@@ -420,6 +420,9 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   const zipFounderAccessSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json",
   );
+  const fieldSessionReportTypeSuccessor = readJson(
+    "intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json",
+  );
   const revenueReadinessConsumers =
     verifyPaidCustomerRevenueReadinessProtectedConsumers();
   assert.equal(
@@ -742,10 +745,19 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
       .transitionsByPath.get(
         crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.path,
       );
+  const fieldSessionArchiveTransition = fieldSessionReportTypeSuccessor
+    .protectedSourceTransitions.find(
+      (transition) => transition.path ===
+        crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.path,
+    );
   assert.equal(
-    sha256(crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.path),
+    fieldSessionArchiveTransition.previousSha256,
     liveCanonicalArchiveTransitions?.at(-1).currentSha256
       || crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.currentSha256,
+  );
+  assert.equal(
+    sha256(crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.path),
+    fieldSessionArchiveTransition.currentSha256,
   );
   assert.notEqual(
     crossIndustryRetentionSuccessor.dataOwnerTransition.archiveRuntime.previousSha256,
@@ -766,19 +778,38 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
       assert.equal(latestTransition.previousSha256, transition.currentSha256, transition.path);
       const revenueReadinessConsumer =
         revenueReadinessConsumers.consumerByPath.get(transition.path);
+      const fieldSessionTransition = fieldSessionReportTypeSuccessor
+        .protectedSourceTransitions.find((candidate) => candidate.path === transition.path);
       if (revenueReadinessConsumer) {
         assert.equal(
           revenueReadinessConsumer.previousSha256,
           latestTransition.currentSha256,
           transition.path,
         );
+        if (fieldSessionTransition) {
+          assert.equal(
+            fieldSessionTransition.previousSha256,
+            revenueReadinessConsumer.currentSha256,
+            transition.path,
+          );
+          assert.equal(
+            sha256(transition.path),
+            fieldSessionTransition.currentSha256,
+            transition.path,
+          );
+        } else {
+          assert.equal(
+            sha256(transition.path),
+            revenueReadinessConsumer.currentSha256,
+            transition.path,
+          );
+        }
+      } else {
         assert.equal(
           sha256(transition.path),
-          revenueReadinessConsumer.currentSha256,
+          fieldSessionTransition?.currentSha256 || latestTransition.currentSha256,
           transition.path,
         );
-      } else {
-        assert.equal(sha256(transition.path), latestTransition.currentSha256, transition.path);
       }
     } else {
       assert.equal(sha256(transition.path), transition.currentSha256, transition.path);
