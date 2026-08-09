@@ -248,18 +248,26 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
   const workflowPreviousSha256 =
     "30810573fc0926c03a6bbc5337db4ce7030c419a4b08c64b219db7c3abeb371b";
   const workflowCurrentSha256 = sha256(readFileSync(resolve(root, workflowPath)));
-  const workflowCanonicalSha256 = fieldSessionReportTypeGovernance
-    .privateWorkflowContinuity.evidence.find(item => item.path === workflowPath)
-    .previousSha256;
+  const workflowFieldSessionEvidence = fieldSessionReportTypeGovernance
+    .privateWorkflowContinuity.evidence.find(item => item.path === workflowPath);
   assert.equal(hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
     governance: liveCanonicalIdentityGovernance,
     readinessSuccessors: currentReadinessSuccessors,
     path: workflowPath,
     previousSha256: workflowPreviousSha256,
-    currentSha256: workflowCanonicalSha256
+    currentSha256: workflowFieldSessionEvidence.previousSha256
   }), true);
   assert.equal(hasFieldSessionReportTypeInfrastructureSuccessor({
     governance: fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: workflowPath,
+    previousSha256: workflowPreviousSha256,
+    currentSha256: workflowFieldSessionEvidence.currentSha256
+  }), true);
+  assert.equal(hasRetentionDeletionPayloadInfrastructureSuccessor({
+    governance: governanceV2,
+    fieldSessionReportTypeGovernance,
     liveCanonicalIdentityGovernance,
     readinessSuccessors: currentReadinessSuccessors,
     path: workflowPath,
@@ -270,8 +278,9 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
   const changedGovernance = clone(fieldSessionReportTypeGovernance);
   changedGovernance.privateWorkflowContinuity.ownerCommit =
     "0".repeat(40);
-  assert.equal(hasFieldSessionReportTypeInfrastructureSuccessor({
-    governance: changedGovernance,
+  assert.equal(hasRetentionDeletionPayloadInfrastructureSuccessor({
+    governance: governanceV2,
+    fieldSessionReportTypeGovernance: changedGovernance,
     liveCanonicalIdentityGovernance,
     readinessSuccessors: currentReadinessSuccessors,
     path: workflowPath,
