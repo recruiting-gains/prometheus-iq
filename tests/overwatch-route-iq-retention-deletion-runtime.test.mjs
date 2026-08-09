@@ -67,6 +67,12 @@ test("governance pins every post-hosted owner successor without changing runtime
     .orderedOwnerChainRequired, true);
   assert.equal(record.qualificationRepair.finalPayloadSuccessorComposition
     .productionMutationPerformed, false);
+  assert.equal(record.qualificationRepair.historicalRetentionCoordinatorComposition.failedRun,
+    31341204771);
+  assert.equal(record.qualificationRepair.historicalRetentionCoordinatorComposition
+    .runtimeBehaviorChanged, false);
+  assert.equal(record.qualificationRepair.historicalRetentionCoordinatorComposition
+    .productionMutationPerformed, false);
 });
 
 test("the governed deletion graph is manifest-derived and fail closed", () => {

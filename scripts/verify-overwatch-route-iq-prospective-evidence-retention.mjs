@@ -517,7 +517,9 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
       [retentionDeletion.dataRuntime.policy.path, retentionDeletion.dataRuntime.policy.sha256],
       [retentionDeletion.dataRuntime.retentionEvaluator.path, retentionDeletion.dataRuntime.retentionEvaluator.sha256],
       [retentionDeletion.dataRuntime.governanceLedger.path, retentionDeletion.dataRuntime.governanceLedger.sha256],
-      [retentionDeletion.dataRuntime.artifactContract.path, retentionDeletion.dataRuntime.artifactContract.sha256]
+      [retentionDeletion.dataRuntime.artifactContract.path, retentionDeletion.dataRuntime.artifactContract.sha256],
+      [retentionDeletion.dataRuntime.coordinatorRuntime.path,
+        retentionDeletion.dataRuntime.coordinatorRuntime.sha256]
     ]);
     if (pathKey === "archiveRuntimePath") {
       assert.equal(

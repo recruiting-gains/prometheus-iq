@@ -88,6 +88,8 @@
     "fifthHostedQualificationResult": "FAILED_CLOSED_PRIVATE_WORKFLOW_PACKAGE_TEST_PATH",
     "sixthHostedQualificationRun": 31340617780,
     "sixthHostedQualificationResult": "FAILED_CLOSED_FINAL_RETENTION_SUCCESSORS_UNCOMPOSED",
+    "seventhHostedQualificationRun": 31341204771,
+    "seventhHostedQualificationResult": "FAILED_CLOSED_HISTORICAL_RETENTION_COORDINATOR_SUCCESSOR_UNCOMPOSED",
     "exactFinalCommitHostedQualification": "EXACT_COMMIT_BOUND_WORKFLOW_REQUIRED_AND_FAIL_CLOSED"
   },
   "deletionGraph": {

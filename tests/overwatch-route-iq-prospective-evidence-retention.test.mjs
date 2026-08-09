@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
@@ -19,6 +20,12 @@ const reportTypeRepair = () => JSON.parse(readFileSync(
   new URL("../overwatch/governance/field-session-report-type-contract-drift-repair-v1.json", import.meta.url),
   "utf8"
 ));
+const deletionGovernance = () => JSON.parse(readFileSync(
+  new URL("../overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json",
+    import.meta.url),
+  "utf8"
+));
+const sha256 = value => createHash("sha256").update(value).digest("hex");
 
 test("Overwatch independently verifies the Founder retention boundary and held activation state", async () => {
   assert.deepEqual(await verifyOverwatchRouteIqProspectiveEvidenceRetention(), {
@@ -53,6 +60,19 @@ test("retention governance admits only the exact Intelligence Worker-safe succes
     admission.runtimeSuccessorClassification,
     "WORKER_SAFE_STATIC_POLICY_IMPORT_WITH_UNCHANGED_GOVERNED_POLICY_HASH"
   );
+});
+
+test("historical retention governance composes the exact deletion coordinator successor", () => {
+  const historical = retentionGovernance().dataContract;
+  const successor = deletionGovernance().dataRuntime.coordinatorRuntime;
+  assert.equal(historical.coordinatorPath, successor.path);
+  assert.equal(historical.coordinatorSha256,
+    "30727656084c774d48a2d80b79f7dcad66a864fd6bd5c489905d9247fd953e85");
+  assert.equal(successor.sha256,
+    "586d19dbf65c4c740ecea6a7e0b4e1d01d733471a2604f8a92b946af092ee282");
+  assert.notEqual(historical.coordinatorSha256, successor.sha256);
+  assert.equal(sha256(readFileSync(new URL(`../${successor.path}`, import.meta.url))),
+    successor.sha256);
 });
 
 test("retention preserves its historical archive checkpoint through the exact identity successor", () => {

@@ -249,6 +249,7 @@ function verifyPinnedFiles(governance) {
     governance.qualificationRepair.founderAttendedPackageWiring.regressionTest,
     governance.qualificationRepair.founderAttendedPackageWiring.ttyRegressionTest,
     ...governance.qualificationRepair.finalPayloadSuccessorComposition.files,
+    ...governance.qualificationRepair.historicalRetentionCoordinatorComposition.files,
     governance.forwardRevert
   ];
   for (const pin of pins) assert.equal(sha256(read(pin.path)), pin.sha256, `${pin.path} hash drifted.`);
@@ -336,6 +337,18 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
     .terminalIntelligenceOwnerCommit, "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b");
   assert.equal(governance.qualificationRepair.finalPayloadSuccessorComposition
     .orderedOwnerChainRequired, true);
+  assert.equal(governance.qualificationRepair.historicalRetentionCoordinatorComposition.failedRun,
+    31341204771);
+  assert.equal(governance.qualificationRepair.historicalRetentionCoordinatorComposition
+    .runtimeBehaviorChanged, false);
+  assert.equal(governance.qualificationRepair.historicalRetentionCoordinatorComposition
+    .productionMutationPerformed, false);
+  assert.equal(governance.qualificationRepair.historicalRetentionCoordinatorComposition
+    .historicalCoordinatorSha256,
+    "30727656084c774d48a2d80b79f7dcad66a864fd6bd5c489905d9247fd953e85");
+  assert.equal(governance.qualificationRepair.historicalRetentionCoordinatorComposition
+    .currentCoordinatorSha256,
+    "586d19dbf65c4c740ecea6a7e0b4e1d01d733471a2604f8a92b946af092ee282");
   assert.equal(
     governance.infrastructureBoundary.privateWorkflowQualification.forwardPayloadSha256,
     "aaa8b360d5851bec21637d4c639a485555c367d1d5c9defb1b12163160c035c7"
@@ -431,6 +444,9 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.qualification.sixthHostedQualificationRun, 31340617780);
   assert.equal(report.qualification.sixthHostedQualificationResult,
     "FAILED_CLOSED_FINAL_RETENTION_SUCCESSORS_UNCOMPOSED");
+  assert.equal(report.qualification.seventhHostedQualificationRun, 31341204771);
+  assert.equal(report.qualification.seventhHostedQualificationResult,
+    "FAILED_CLOSED_HISTORICAL_RETENTION_COORDINATOR_SUCCESSOR_UNCOMPOSED");
   assert.equal(report.qualification.focusedSuccessorVerification.dataCoordinatorTests, "121/121 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.intelligenceConsumerTests, "86/86 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.privateWorkflowV2Tests, "33/33 PASS");

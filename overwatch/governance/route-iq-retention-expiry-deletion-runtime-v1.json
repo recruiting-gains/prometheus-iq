@@ -280,7 +280,7 @@
       "wrongBranchRefTypeShaOrOriginFailsClosed": true,
       "regressionTest": {
         "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
-        "sha256": "7faf63d08e6df5ea0c092075762d212ca4ea17c2bb3a06510ffffaf835562b09"
+        "sha256": "302ed3d6fc570d4aa16da6db616aaf8dc83b0f10ec369de93ae6970fa571b72f"
       }
     },
     "founderAttendedPackageWiring": {
@@ -350,6 +350,25 @@
         {
           "path": "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
           "sha256": "3d81614004cbf4b098ddeee66b516f9b76ed961c5062f06dc4b446962bc7d03b"
+        }
+      ]
+    },
+    "historicalRetentionCoordinatorComposition": {
+      "failedRun": 31341204771,
+      "failure": "HISTORICAL_RETENTION_VERIFIER_DID_NOT_COMPOSE_CURRENT_COORDINATOR_SUCCESSOR",
+      "runtimeBehaviorChanged": false,
+      "productionMutationPerformed": false,
+      "deploymentPerformed": false,
+      "historicalCoordinatorSha256": "30727656084c774d48a2d80b79f7dcad66a864fd6bd5c489905d9247fd953e85",
+      "currentCoordinatorSha256": "586d19dbf65c4c740ecea6a7e0b4e1d01d733471a2604f8a92b946af092ee282",
+      "files": [
+        {
+          "path": "scripts/verify-overwatch-route-iq-prospective-evidence-retention.mjs",
+          "sha256": "61082f924220eb575b728e160f936f4fcf81b625c803b0b60ff5b6673fe7d801"
+        },
+        {
+          "path": "tests/overwatch-route-iq-prospective-evidence-retention.test.mjs",
+          "sha256": "4cc1ca3cbcda5e159e7bfc4e126f89b9f29de8067b4d318b595869fb9d52f5b7"
         }
       ]
     }
