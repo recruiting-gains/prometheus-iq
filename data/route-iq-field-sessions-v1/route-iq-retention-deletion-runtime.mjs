@@ -152,6 +152,28 @@ function repositoryOne(repository, sql, bindings = []) {
   return repositoryRows(repository, sql, bindings)[0] || null;
 }
 
+function coordinatorRepositoryIdentitySha256(repository) {
+  const meta = repositoryOne(repository, "SELECT * FROM coordinator_meta WHERE singleton = 1");
+  if (!meta || [
+    "schema_version",
+    "coordinator_id",
+    "workspace_id",
+    "operating_profile_id",
+    "representative_id",
+    "registry_version"
+  ].some(key => typeof meta[key] !== "string" || meta[key].length === 0)) {
+    fail("route_iq_retention_coordinator_identity_invalid", "Coordinator repository identity is unavailable.", {}, 500);
+  }
+  return sha256({
+    schemaVersion: meta.schema_version,
+    coordinatorId: meta.coordinator_id,
+    workspaceId: meta.workspace_id,
+    operatingProfileId: meta.operating_profile_id,
+    representativeId: meta.representative_id,
+    registryVersion: meta.registry_version
+  });
+}
+
 async function listAllKeys(store, prefix) {
   const keys = [];
   let cursor;
@@ -279,6 +301,19 @@ function collectCoordinatorArtifacts(repositoryInput, source, representativeId) 
     const opportunity = repositoryOne(repository, "SELECT * FROM opportunities WHERE opportunity_id = ?", [opportunityId]);
     if (!opportunity) {
       fail("route_iq_retention_coordinator_orphan_invalid", "Source-bound coordinator evidence is orphaned.", {}, 500);
+    }
+    const opportunityLinks = coordinatorRowsForOpportunity(
+      repository,
+      "field_session_outcome_links",
+      opportunityId
+    );
+    if (opportunityLinks.some(row => row.source_archive_raw_sha256 !== source.sourceRecordSha256)) {
+      fail(
+        "route_iq_retention_coordinator_cross_source_graph",
+        "A source-bound opportunity graph is shared with another retention subject.",
+        {},
+        409
+      );
     }
     for (const definition of COORDINATOR_TABLES) {
       if (new Set([
@@ -412,7 +447,17 @@ async function authoritativeLegalHoldIdentity(ledger, subject, asOf) {
       409
     );
   }
-  return legalHoldIdentity(readRouteIqRetentionLedgerRecords(ledger), snapshot, asOf);
+  const records = readRouteIqRetentionLedgerRecords(ledger);
+  if (records.some(record => record.recordKind === "route_iq_retention_legal_hold_event"
+    && Date.parse(record.recordedAt) > Date.parse(asOf))) {
+    fail(
+      "route_iq_retention_legal_hold_changed",
+      "A legal-hold event newer than the authoritative evaluation time blocks deletion.",
+      {},
+      409
+    );
+  }
+  return legalHoldIdentity(records, snapshot, asOf);
 }
 
 function planBody(plan) {
@@ -435,6 +480,7 @@ export function validateRouteIqRetentionDeletionPlan(plan) {
     "retentionBoundary",
     "authoritativeEvaluationTime",
     "legalHoldSnapshotIdentitySha256",
+    "coordinatorRepositoryIdentitySha256s",
     "artifacts",
     "totalArtifactCount",
     "totalByteLength",
@@ -459,6 +505,12 @@ export function validateRouteIqRetentionDeletionPlan(plan) {
   requireSha(plan.sourceRecordSha256, "Source record hash");
   requireSha(plan.legalHoldSnapshotIdentitySha256, "Legal-hold snapshot identity hash");
   requireSha(plan.planSha256, "Deletion plan hash");
+  if (!Array.isArray(plan.coordinatorRepositoryIdentitySha256s)
+    || plan.coordinatorRepositoryIdentitySha256s.some(value => !SHA256_PATTERN.test(value))
+    || stableJson(plan.coordinatorRepositoryIdentitySha256s)
+      !== stableJson([...new Set(plan.coordinatorRepositoryIdentitySha256s)].sort())) {
+    fail("route_iq_retention_coordinator_identity_invalid", "Deletion plan coordinator identities are invalid.");
+  }
   const identities = new Set();
   plan.artifacts.forEach((artifact, index) => {
     const artifactKeys = new Set([
@@ -512,6 +564,7 @@ export function validateRouteIqRetentionDeletionPlan(plan) {
     schemaVersion: plan.schemaVersion,
     sourceRecordSha256: plan.sourceRecordSha256,
     mode: plan.mode,
+    coordinatorRepositoryIdentitySha256s: plan.coordinatorRepositoryIdentitySha256s,
     artifactIdentitySha256s: plan.artifacts.map(item => item.artifactIdentitySha256)
   })}`;
   if (plan.planId !== expectedPlanId || sha256(planBody(plan)) !== plan.planSha256) {
@@ -565,8 +618,17 @@ export async function createRouteIqRetentionDeletionPlan(input = {}, options = {
   );
   const archive = await collectArchiveArtifacts(input, archiveStore);
   const coordinatorDescriptors = [];
+  const coordinatorRepositoryIdentitySha256s = [];
   for (const repository of options.coordinatorRepositories || []) {
-    coordinatorDescriptors.push(...collectCoordinatorArtifacts(repository, subject, archive.representativeId));
+    const descriptors = collectCoordinatorArtifacts(repository, subject, archive.representativeId);
+    if (descriptors.length > 0) {
+      coordinatorDescriptors.push(...descriptors);
+      coordinatorRepositoryIdentitySha256s.push(coordinatorRepositoryIdentitySha256(repository));
+    }
+  }
+  coordinatorRepositoryIdentitySha256s.sort();
+  if (new Set(coordinatorRepositoryIdentitySha256s).size !== coordinatorRepositoryIdentitySha256s.length) {
+    fail("route_iq_retention_coordinator_identity_ambiguous", "A coordinator repository identity was provided more than once.", {}, 409);
   }
   const artifacts = [
     ...coordinatorDescriptors.sort((left, right) => left._order - right._order
@@ -595,6 +657,7 @@ export async function createRouteIqRetentionDeletionPlan(input = {}, options = {
     retentionBoundary,
     authoritativeEvaluationTime: evaluatedAt.iso,
     legalHoldSnapshotIdentitySha256,
+    coordinatorRepositoryIdentitySha256s,
     artifacts,
     totalArtifactCount: artifacts.length,
     totalByteLength: artifacts.reduce((sum, artifact) => sum + artifact.byteLength, 0)
@@ -603,6 +666,7 @@ export async function createRouteIqRetentionDeletionPlan(input = {}, options = {
     schemaVersion: bodyWithoutId.schemaVersion,
     sourceRecordSha256: bodyWithoutId.sourceRecordSha256,
     mode: bodyWithoutId.mode,
+    coordinatorRepositoryIdentitySha256s,
     artifactIdentitySha256s: artifacts.map(item => item.artifactIdentitySha256)
   })}`;
   const withId = { ...bodyWithoutId, planId };
@@ -782,6 +846,15 @@ export async function executeRouteIqRetentionDeletion(input = {}, options = {}) 
   }
   const archiveStore = validateArchiveStore(options.archiveMaintenanceStore, true);
   const repositories = (options.coordinatorRepositories || []).map(validateRepository);
+  const repositoryIdentitySha256s = repositories.map(coordinatorRepositoryIdentitySha256).sort();
+  if (stableJson(repositoryIdentitySha256s) !== stableJson(plan.coordinatorRepositoryIdentitySha256s)) {
+    fail(
+      "route_iq_retention_coordinator_repository_set_mismatch",
+      "Execution requires the exact coordinator repository set bound to the deletion plan.",
+      {},
+      409
+    );
+  }
   const subject = {
     workspaceId: plan.workspaceId,
     operatingProfileId: plan.operatingProfileId,
@@ -827,6 +900,16 @@ export async function executeRouteIqRetentionDeletion(input = {}, options = {}) 
   const completed = events.find(event => event.eventType === "DELETION_COMPLETED");
   const stateKey = fieldSessionRetentionDeletionStateStorageKey(plan.workspaceId, plan.sessionId);
   if (completed) {
+    for (const artifact of plan.artifacts) {
+      if (!(await artifactIsAbsent(artifact, archiveStore, repositories))) {
+        fail(
+          "route_iq_retention_deleted_artifact_reappeared",
+          "A completed deletion artifact reappeared after governed deletion.",
+          { artifactIdentitySha256: artifact.artifactIdentitySha256 },
+          409
+        );
+      }
+    }
     await archiveStore.put(stateKey, deletionState(
       plan,
       "DELETION_COMPLETED",
@@ -876,8 +959,10 @@ export async function executeRouteIqRetentionDeletion(input = {}, options = {}) 
   let completedArtifactCount = events.at(-1).completedArtifactCount;
   let remainingBudget = maximumOperationCount;
   const pending = plan.artifacts.slice(completedArtifactCount);
-  const pendingSqlite = pending.filter(artifact => artifact.storageClass === "prospective_coordinator_sqlite");
-  if (pendingSqlite.length > 0 && remainingBudget >= pendingSqlite.length) {
+  const pendingSqlite = pending
+    .slice(0, remainingBudget)
+    .filter(artifact => artifact.storageClass === "prospective_coordinator_sqlite");
+  if (pendingSqlite.length > 0) {
     const byRepository = new Map();
     for (const artifact of pendingSqlite) {
       const repository = coordinatorRepositoryForArtifact(repositories, artifact);
@@ -898,7 +983,6 @@ export async function executeRouteIqRetentionDeletion(input = {}, options = {}) 
   while (completedArtifactCount < plan.totalArtifactCount && remainingBudget > 0) {
     const artifact = plan.artifacts[completedArtifactCount];
     if (artifact.storageClass === "prospective_coordinator_sqlite") {
-      if (pendingSqlite.length > maximumOperationCount) break;
       if (!(await artifactIsAbsent(artifact, archiveStore, repositories))) {
         break;
       }

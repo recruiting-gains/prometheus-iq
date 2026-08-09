@@ -18,6 +18,7 @@
     "retentionBoundary",
     "authoritativeEvaluationTime",
     "legalHoldSnapshotIdentitySha256",
+    "coordinatorRepositoryIdentitySha256s",
     "artifacts",
     "totalArtifactCount",
     "totalByteLength",
@@ -37,6 +38,11 @@
     "retentionBoundary": { "type": "object" },
     "authoritativeEvaluationTime": { "type": "string", "format": "date-time" },
     "legalHoldSnapshotIdentitySha256": { "$ref": "#/$defs/sha256" },
+    "coordinatorRepositoryIdentitySha256s": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/sha256" }
+    },
     "artifacts": {
       "type": "array",
       "minItems": 1,

@@ -394,6 +394,7 @@ test("deletion plan is deterministic, content-minimal, and dry run performs zero
   const plan = await createPlan(context, store, { mode: "dry_run" });
   assert.equal(plan.schemaVersion, routeIqRetentionDeletionPlanVersion);
   assert.deepEqual(validateRouteIqRetentionDeletionPlan(plan), plan);
+  assert.deepEqual(plan.coordinatorRepositoryIdentitySha256s, []);
   assert.equal(plan.totalArtifactCount, 8);
   assert.equal(plan.artifacts.every(artifact => !Object.hasOwn(artifact, "value")), true);
   assert.equal(stableJson(plan).includes("retention-runtime-raw-source"), false);
@@ -468,6 +469,11 @@ test("expiry is exclusive and an authorized exact-boundary fixture deletion remo
   const retry = await execute(context, store, plan, EXPIRES_AT, { seed: "exact-expiry" });
   assert.equal(retry.idempotent, true);
   assert.equal(retry.completionReceiptSha256, result.completionReceiptSha256);
+  await store.put(seeded.keys.raw, "resurrected");
+  await assert.rejects(
+    () => execute(context, store, plan, EXPIRES_AT, { seed: "exact-expiry" }),
+    error => error.code === "route_iq_retention_deleted_artifact_reappeared"
+  );
 });
 
 test("customer shortening, active holds, missing authority, and released holds enforce exact deletion eligibility", async () => {
@@ -533,6 +539,19 @@ test("changed legal hold, cross-representative scope, changed hashes, and unmani
   );
   assert.equal(changedHoldStore.deleteCount, 0);
 
+  const futureHoldStore = new MaintenanceKvStore();
+  await seedArchive(futureHoldStore);
+  const futureHoldContext = await retentionContext();
+  const futureHoldPlan = await createPlan(futureHoldContext, futureHoldStore);
+  await appendHold(futureHoldContext, "LEGAL_HOLD_APPLIED", "2027-07-01T00:00:00.001Z", "future-hold");
+  await assert.rejects(
+    () => execute(futureHoldContext, futureHoldStore, futureHoldPlan, EXPIRES_AT, {
+      seed: "future-hold-execute"
+    }),
+    error => error.code === "route_iq_retention_legal_hold_changed"
+  );
+  assert.equal(futureHoldStore.deleteCount, 0);
+
   const store = new MaintenanceKvStore();
   const seeded = await seedArchive(store);
   const context = await retentionContext();
@@ -571,6 +590,7 @@ test("changed legal hold, cross-representative scope, changed hashes, and unmani
       "route_iq_retention_unmanifested_artifact_blocked"
     ]).has(error.code)
   );
+
 });
 
 test("partial non-atomic deletion stays unavailable, resumes deterministically, and emits content-free receipts", async () => {
@@ -683,8 +703,23 @@ test("transaction-scoped coordinator purge removes derived rows while ordinary a
   const context = await retentionContext();
   const plan = await createPlan(context, store, {}, { coordinatorRepositories: [repository] });
   assert.equal(plan.artifacts.some(artifact => artifact.storageClass === "prospective_coordinator_sqlite"), true);
+  assert.equal(plan.coordinatorRepositoryIdentitySha256s.length, 1);
+  await assert.rejects(
+    () => execute(context, store, plan, EXPIRES_AT, {
+      seed: "sqlite-maintenance",
+      maximumOperationCount: 2
+    }),
+    error => error.code === "route_iq_retention_coordinator_repository_set_mismatch"
+  );
+  const partial = await execute(context, store, plan, EXPIRES_AT, {
+    seed: "sqlite-maintenance",
+    maximumOperationCount: 2
+  }, { coordinatorRepositories: [repository] });
+  assert.equal(partial.state, "DELETION_IN_PROGRESS");
+  assert.equal(partial.completedArtifactCount, 2);
   const result = await execute(context, store, plan, EXPIRES_AT, {
-    seed: "sqlite-maintenance"
+    seed: "sqlite-maintenance",
+    maximumOperationCount: 100
   }, { coordinatorRepositories: [repository] });
   assert.equal(result.state, "DELETION_COMPLETED");
   assert.equal(repository.one("SELECT COUNT(*) AS count FROM opportunities").count, 0);
