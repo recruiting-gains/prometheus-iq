@@ -216,6 +216,17 @@
       },
       "historicalBaselineObjectsRemainExact": true,
       "newGovernedReportsClassifiedAsHistoricalRewrites": false
+    },
+    "hostedCheckoutBranch": {
+      "failedRun": 31337142274,
+      "failure": "DETACHED_EXACT_SHA_WAS_NOT_RECOGNIZED_AS_GITHUB_MAIN",
+      "detachedHeadAcceptedOnlyForExactGithubMain": true,
+      "originMainMustEqualHead": true,
+      "wrongBranchRefTypeShaOrOriginFailsClosed": true,
+      "regressionTest": {
+        "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
+        "sha256": "b9896608b9e979a9de415e95af7bbbea04fa6c475115662788e89de9c9fe27a6"
+      }
     }
   },
   "historicalEvidence": {

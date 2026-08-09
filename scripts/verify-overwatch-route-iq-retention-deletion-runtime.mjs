@@ -133,6 +133,17 @@ const readJson = path => JSON.parse(read(path));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
 
+export function isExactMainCheckout({ branch, head, originMain, environment = {} }) {
+  if (head !== originMain) return false;
+  if (branch === "main") return true;
+  return branch === ""
+    && environment.GITHUB_ACTIONS === "true"
+    && environment.GITHUB_REF === "refs/heads/main"
+    && environment.GITHUB_REF_NAME === "main"
+    && environment.GITHUB_REF_TYPE === "branch"
+    && environment.GITHUB_SHA === head;
+}
+
 function changedPaths(commit) {
   const value = git("diff-tree", "--no-commit-id", "--name-only", "-r", commit);
   return value ? value.split("\n").sort() : [];
@@ -166,6 +177,7 @@ function verifyPinnedFiles(governance) {
     governance.qualificationRepair.liveCanonicalIdentity.architectureRegressionTest,
     governance.qualificationRepair.liveCanonicalIdentity.controlledRehearsalVerifier,
     governance.qualificationRepair.liveCanonicalIdentity.overwatchRegressionTest,
+    governance.qualificationRepair.hostedCheckoutBranch.regressionTest,
     governance.forwardRevert
   ];
   for (const pin of pins) assert.equal(sha256(read(pin.path)), pin.sha256, `${pin.path} hash drifted.`);
@@ -179,9 +191,16 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   const artifactContract = readJson(governance.dataRuntime.artifactContract.path);
   const maintenance = readJson(governance.infrastructureBoundary.contractPath);
   const forwardRevert = readJson(governance.forwardRevert.path);
+  const head = git("rev-parse", "HEAD");
+  const originMain = git("rev-parse", "refs/remotes/origin/main");
 
   assert.equal(git("rev-parse", `${startCommit}^{tree}`), startTree);
-  assert.equal(git("branch", "--show-current"), "main");
+  assert.equal(isExactMainCheckout({
+    branch: git("branch", "--show-current"),
+    head,
+    originMain,
+    environment: process.env
+  }), true);
   assert.equal(governance.batchId, "BATCH-20260809-001");
   assert.equal(governance.status, "SOURCE_COMPLETE_DORMANT_DEPLOYMENT_HELD");
   assert.equal(governance.owningSubsystem, "Prometheus Overwatch");
@@ -222,6 +241,9 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(governance.qualificationRepair.localProductionReleaseVerification, "PASS");
   assert.equal(governance.qualificationRepair.liveCanonicalIdentity.historicalBaselineObjectsRemainExact, true);
   assert.equal(governance.qualificationRepair.liveCanonicalIdentity.newGovernedReportsClassifiedAsHistoricalRewrites, false);
+  assert.equal(governance.qualificationRepair.hostedCheckoutBranch.failedRun, 31337142274);
+  assert.equal(governance.qualificationRepair.hostedCheckoutBranch.detachedHeadAcceptedOnlyForExactGithubMain, true);
+  assert.equal(governance.qualificationRepair.hostedCheckoutBranch.originMainMustEqualHead, true);
 
   const runtimeSource = read(governance.dataRuntime.deletionRuntime.path).toString("utf8");
   const infrastructureSource = read(governance.infrastructureBoundary.runtimePath).toString("utf8");
@@ -286,11 +308,14 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.qualification.focusedPreflight.liveCanonicalIdentityRegressionTests, "18/18 PASS");
   assert.equal(report.qualification.focusedPreflight.intelligenceArchitectureRegressionTests, "15/15 PASS");
   assert.equal(report.qualification.focusedPreflight.controlledRehearsalRegressionTests, "13/13 PASS");
+  assert.equal(report.qualification.focusedPreflight.hostedCheckoutBranchRegressionTests, "4/4 PASS");
   assert.equal(report.qualification.initialHostedQualificationRun, 31336094147);
   assert.equal(report.qualification.initialHostedQualificationResult, "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN");
   assert.equal(report.qualification.secondHostedQualificationRun, 31336503689);
   assert.equal(report.qualification.secondHostedQualificationResult,
     "FAILED_CLOSED_LIVE_IDENTITY_SUCCESSOR_AND_HISTORICAL_SCOPE");
+  assert.equal(report.qualification.thirdHostedQualificationRun, 31337142274);
+  assert.equal(report.qualification.thirdHostedQualificationResult, "FAILED_CLOSED_DETACHED_EXACT_MAIN_CHECKOUT");
   assert.equal(report.releaseBoundary.deploymentAuthorized, false);
   assert.equal(report.releaseBoundary.productionDeletionAuthorized, false);
   assert.equal(report.releaseBoundary.collectionActivationAuthorized, false);
