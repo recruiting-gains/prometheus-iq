@@ -51,6 +51,7 @@ function createPackageFixture(t) {
     AUGUST_1_READINESS_MATRIX_PATH,
     AUGUST_1_GOVERNANCE_REPORT_PATH,
     AUGUST_1_SUCCESSORS_PATH,
+    "tests/overwatch-public-deployment-workflow-v2.test.mjs",
     ...contract.artifactPins.map(artifact => artifact.path)
   ]);
   for (const path of paths) {
@@ -129,7 +130,18 @@ test("August 1 successor evidence preserves historical pins and rejects drift", 
       "Prometheus Overwatch <overwatch@prometheus.local>"; },
     value => { value.successors[12].evidence[0].previousSha256 = "0".repeat(64); },
     value => { value.successors[12].evidence[0].successorSha256 = "0".repeat(64); },
-    value => { value.overwatchCurrentEvidence.pop(); }
+    value => {
+      const index = value.overwatchCurrentEvidence.findLastIndex(
+        item => item.path === "package.json"
+      );
+      value.overwatchCurrentEvidence.splice(index, 1);
+    },
+    value => {
+      const packageEvidence = value.overwatchCurrentEvidence.filter(
+        item => item.path === "package.json"
+      );
+      packageEvidence.at(-1).previousSha256 = packageEvidence[0].previousSha256;
+    }
   ]) {
     const candidate = clone(successors);
     mutate(candidate);

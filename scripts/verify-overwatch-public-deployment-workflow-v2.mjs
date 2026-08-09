@@ -20,6 +20,8 @@ const FULL_SYSTEM_HARMONY_GOVERNANCE_PATH =
   "overwatch/governance/full-system-harmony-audit-v1.json";
 const LIVE_CANONICAL_IDENTITY_GOVERNANCE_PATH =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
+const CURRENT_READINESS_SUCCESSORS_PATH =
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 const HISTORICAL_READINESS_GOVERNANCE_PATH =
   "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json";
 const DOCUMENTATION_PATH = "overwatch/governance/public-deployment-workflow-v2.md";
@@ -854,6 +856,16 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
   )) ?? [];
   if (matches.length !== 1) return false;
   if (matches[0].successorSha256 === successorSha256) return true;
+  const currentPackageSha256 = sha256(read(PACKAGE_PATH));
+  if (successorSha256 === currentPackageSha256
+    && currentPackageSha256 !== ACTIVE_PACKAGE_SHA256) {
+    return hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+      governance,
+      predecessorGovernanceId,
+      historicalSha256,
+      successorSha256: ACTIVE_PACKAGE_SHA256
+    }) && validateCurrentCanonicalPackageSuccessor().currentSha256 === successorSha256;
+  }
   if (successorSha256 === ACTIVE_PACKAGE_SHA256) {
     const liveCanonicalIdentityGovernance = readJson(
       LIVE_CANONICAL_IDENTITY_GOVERNANCE_PATH
@@ -1114,6 +1126,67 @@ export function validateLiveCanonicalIdentityPackageSuccessor(
   assert.equal(governed?.ownerSubsystem, "Prometheus Overwatch",
     "Live canonical identity package owner subsystem drifted");
   return record;
+}
+
+export function validateCurrentCanonicalPackageSuccessor(
+  readinessGovernance = readJson(CURRENT_READINESS_SUCCESSORS_PATH),
+  liveGovernance = readJson(LIVE_CANONICAL_IDENTITY_GOVERNANCE_PATH)
+) {
+  const live = validateLiveCanonicalIdentityPackageSuccessor(
+    liveCanonicalIdentityPackageSuccessor,
+    liveGovernance
+  );
+  assert.equal(readinessGovernance.governanceId,
+    "route-iq-august-1-readiness-successors-v1",
+  "Current package successor governance identity drifted");
+  assert.equal(readinessGovernance.ownerSubsystem, "Prometheus Overwatch",
+    "Current package successor owner drifted");
+  assert.equal(readinessGovernance.historicalCloseoutEvidenceRewritten, false,
+    "Current package successor rewrote historical evidence");
+  const transitions = readinessGovernance.overwatchCurrentEvidence?.filter(
+    item => item.path === PACKAGE_PATH
+  ) ?? [];
+  assert.ok(transitions.length >= 2, "Current package successor chain is incomplete");
+  for (const transition of transitions) {
+    assert.match(transition.previousSha256, /^[a-f0-9]{64}$/u,
+      "Current package predecessor hash drifted");
+    assert.match(transition.successorSha256, /^[a-f0-9]{64}$/u,
+      "Current package successor hash drifted");
+    assert.notEqual(transition.previousSha256, transition.successorSha256,
+      "Current package successor is a no-op");
+  }
+  const byPrevious = new Map(transitions.map(item => [item.previousSha256, item]));
+  const successorHashes = new Set(transitions.map(item => item.successorSha256));
+  assert.equal(byPrevious.size, transitions.length,
+    "Current package successor chain branches");
+  assert.equal(successorHashes.size, transitions.length,
+    "Current package successor chain merges");
+  const starts = [...byPrevious.keys()].filter(hash => !successorHashes.has(hash));
+  const ends = [...successorHashes].filter(hash => !byPrevious.has(hash));
+  assert.deepEqual(starts, [FULL_SYSTEM_HARMONY_PACKAGE_SHA256],
+    "Current package successor chain start drifted");
+  const currentSha256 = sha256(read(PACKAGE_PATH));
+  assert.deepEqual(ends, [currentSha256],
+    "Current package successor chain end drifted");
+  let current = starts[0];
+  const visited = new Set();
+  while (byPrevious.has(current)) {
+    assert.equal(visited.has(current), false, "Current package successor chain cycles");
+    visited.add(current);
+    current = byPrevious.get(current).successorSha256;
+  }
+  assert.equal(current, currentSha256, "Current package successor chain terminates incorrectly");
+  assert.equal(visited.size, transitions.length,
+    "Current package successor chain is disconnected");
+  assert.equal(transitions.some(item =>
+    item.previousSha256 === FULL_SYSTEM_HARMONY_PACKAGE_SHA256
+      && item.successorSha256 === live.currentSha256), true,
+  "Live canonical package successor is absent from the current chain");
+  return Object.freeze({
+    previousSha256: live.currentSha256,
+    currentSha256,
+    transitionCount: transitions.length
+  });
 }
 
 export function isGovernedPublicDeploymentWorkflowV2VerifierCommit({
@@ -1552,7 +1625,10 @@ export function verifyOverwatchPublicDeploymentWorkflowV2() {
     assert.equal(sha256(committedEvidence), evidence.sha256, `Historical provenance repair evidence drifted: ${evidence.path}`);
   }
   assert.equal(repairPaths.every(path => /^(?:docs\/|scripts\/verify-|tests\/|workers\/infrastructure\/)/u.test(path)), true);
-  assert.equal(sha256(read(PACKAGE_PATH)), ACTIVE_PACKAGE_SHA256);
+  assert.equal(
+    validateCurrentCanonicalPackageSuccessor().currentSha256,
+    sha256(read(PACKAGE_PATH))
+  );
 
   for (const path of [GOVERNANCE_PATH, DOCUMENTATION_PATH]) {
     assert.equal(git(["log", "-1", "--format=%an <%ae>", "--", path]), OVERWATCH_IDENTITY);

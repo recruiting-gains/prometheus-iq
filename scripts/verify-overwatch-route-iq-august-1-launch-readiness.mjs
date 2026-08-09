@@ -581,7 +581,7 @@ export function validateAugust1GovernanceReport(contract, matrix) {
   return contract;
 }
 
-export function validateAugust1ReadinessSuccessors(successors) {
+export function validateAugust1ReadinessSuccessors(successors, { root = ROOT } = {}) {
   assertExactObjectKeys(successors, [
     "governanceId",
     "historicalCloseoutEvidenceRewritten",
@@ -749,22 +749,36 @@ export function validateAugust1ReadinessSuccessors(successors) {
     successorSha256: "6f676f95c2f56bde6457c197b1fe917fa4d3b594c0bae971fb0faf51f9122477"
   }]);
   assert.ok(Array.isArray(successors.overwatchCurrentEvidence));
-  assert.deepEqual(
-    sorted(successors.overwatchCurrentEvidence.map(item => item.path)),
-    sorted([
-      "package.json",
-      "package.json",
-      "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
-      "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
-      "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
-      "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
-      "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
-    ])
-  );
+  const currentEvidenceByPath = new Map();
+  const allowedCurrentEvidencePaths = new Set([
+    "package.json",
+    "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+    "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+    "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+    "tests/overwatch-public-deployment-workflow-v2.test.mjs"
+  ]);
   for (const item of successors.overwatchCurrentEvidence) {
+    assert.equal(allowedCurrentEvidencePaths.has(item.path), true,
+      `Unexpected current successor evidence path: ${item.path}`);
     assert.match(item.previousSha256, /^[a-f0-9]{64}$/u);
     assert.match(item.successorSha256, /^[a-f0-9]{64}$/u);
     assert.notEqual(item.previousSha256, item.successorSha256);
+    const entries = currentEvidenceByPath.get(item.path) ?? [];
+    entries.push(item);
+    currentEvidenceByPath.set(item.path, entries);
+  }
+  assert.deepEqual(
+    sorted([...currentEvidenceByPath.keys()]),
+    sorted([...allowedCurrentEvidencePaths])
+  );
+  for (const [path, evidence] of currentEvidenceByPath) {
+    const terminalSha256 = assertLinearSuccessorChain(evidence, path);
+    assertRegularFile(root, path);
+    assert.equal(
+      terminalSha256,
+      sha256(read(root, path)),
+      `Current successor terminal drifted: ${path}`
+    );
   }
   return successors;
 }
@@ -797,6 +811,28 @@ function successorChainReaches(evidence, historicalSha256, currentSha256) {
     }
   }
   return false;
+}
+
+function assertLinearSuccessorChain(evidence, path) {
+  assert.ok(evidence.length > 0, `Successor evidence is empty: ${path}`);
+  const byPrevious = new Map(evidence.map(item => [item.previousSha256, item]));
+  const successors = new Set(evidence.map(item => item.successorSha256));
+  assert.equal(byPrevious.size, evidence.length, `Successor evidence branches: ${path}`);
+  assert.equal(successors.size, evidence.length, `Successor evidence merges: ${path}`);
+  const starts = [...byPrevious.keys()].filter(hash => !successors.has(hash));
+  const ends = [...successors].filter(hash => !byPrevious.has(hash));
+  assert.equal(starts.length, 1, `Successor evidence has no unique start: ${path}`);
+  assert.equal(ends.length, 1, `Successor evidence has no unique end: ${path}`);
+  const visited = new Set();
+  let current = starts[0];
+  while (byPrevious.has(current)) {
+    assert.equal(visited.has(current), false, `Successor evidence cycles: ${path}`);
+    visited.add(current);
+    current = byPrevious.get(current).successorSha256;
+  }
+  assert.equal(current, ends[0], `Successor evidence terminates incorrectly: ${path}`);
+  assert.equal(visited.size, evidence.length, `Successor evidence is disconnected: ${path}`);
+  return ends[0];
 }
 
 function verifySuccessorOwnerChain(root, successors) {
@@ -1146,7 +1182,8 @@ export function verifyOverwatchRouteIqAugust1LaunchReadiness({
     matrix
   );
   const successors = validateAugust1ReadinessSuccessors(
-    readJson(root, AUGUST_1_SUCCESSORS_PATH)
+    readJson(root, AUGUST_1_SUCCESSORS_PATH),
+    { root }
   );
   assert.equal(sha256(matrixBytes), contract.matrix.sha256, "Readiness matrix hash drifted.");
   if (verifyGit) verifySuccessorOwnerChain(root, successors);

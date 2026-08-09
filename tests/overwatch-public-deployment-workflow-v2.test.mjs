@@ -11,6 +11,7 @@ import {
   hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor,
   isGovernedPublicDeploymentWorkflowV2VerifierCommit,
   liveCanonicalIdentityPackageSuccessor,
+  validateCurrentCanonicalPackageSuccessor,
   validateFullSystemHarmonyPackageSuccessor,
   validateLiveCanonicalIdentityPackageSuccessor,
   verifyOverwatchPublicDeploymentWorkflowV2
@@ -25,6 +26,9 @@ const sources = Object.freeze({
   deployment: read(".github/workflows/deploy-prometheus-public-worker.yml"),
   documentation: read("overwatch/governance/public-deployment-workflow-v2.md")
 });
+const currentReadinessSuccessors = JSON.parse(read(
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
+));
 
 function evaluate(changes = {}) {
   return evaluatePublicDeploymentWorkflowV2Governance({ ...sources, ...changes });
@@ -38,6 +42,10 @@ test("canonical Public Deployment Workflow v2 governance verifies", () => {
 test("current package composes the exact Full-System Harmony and canonical identity successors", () => {
   assert.equal(
     validateLiveCanonicalIdentityPackageSuccessor().currentSha256,
+    liveCanonicalIdentityPackageSuccessor.currentSha256
+  );
+  assert.equal(
+    validateCurrentCanonicalPackageSuccessor().currentSha256,
     sha256(read("package.json"))
   );
   assert.equal(
@@ -71,6 +79,26 @@ test("current package composes the exact Full-System Harmony and canonical ident
     const candidate = structuredClone(liveCanonicalIdentityPackageSuccessor);
     mutate(candidate);
     assert.throws(() => validateLiveCanonicalIdentityPackageSuccessor(candidate));
+  }
+  for (const mutate of [
+    value => {
+      value.overwatchCurrentEvidence.findLast(item => item.path === "package.json")
+        .previousSha256 = "0".repeat(64);
+    },
+    value => {
+      value.overwatchCurrentEvidence.findLast(item => item.path === "package.json")
+        .successorSha256 = "f".repeat(64);
+    },
+    value => {
+      const index = value.overwatchCurrentEvidence.findLastIndex(
+        item => item.path === "package.json"
+      );
+      value.overwatchCurrentEvidence.splice(index, 1);
+    }
+  ]) {
+    const candidate = structuredClone(currentReadinessSuccessors);
+    mutate(candidate);
+    assert.throws(() => validateCurrentCanonicalPackageSuccessor(candidate));
   }
 });
 

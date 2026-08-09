@@ -42,6 +42,26 @@
       "path": "package.json",
       "previousSha256": "9731036e6b33283416e15acd6d76ae0eaf33966a276864bf18ad321456a4463a",
       "successorSha256": "d2b549f30a95d4f91b932ff87b9da84a30aee7a84b259a5ad0d6df68f37cc1d9"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "1f8f8f976a5a234a471635d1c2b25a67537aa7d7222c3f96f9c5dcc9611987d9",
+      "successorSha256": "addd87265b3bae1281fc6409adeb92d6e50894f93cc3fac4c04e36e8778a6403"
+    },
+    {
+      "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+      "previousSha256": "18420dba8bb3187c4f129a82e54b9eb5ad28733de3cd3866395e2d4cf9951f7a",
+      "successorSha256": "29a96b9b31290c862b745d349a2c7ec2f34e5e265bcbd100425612c5879eb6f8"
+    },
+    {
+      "path": "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+      "previousSha256": "9f9d684c4b8c01f824fe784d70364c0b72b3f2fc00343a001827d692247f11f4",
+      "successorSha256": "38a1ba1c23c2e4d8d34263bbdce5e56633182174fb9c13cabba89c551f2fab00"
+    },
+    {
+      "path": "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+      "previousSha256": "b2fe3c47929454c0e863a4592d8278352bdf791c963cdd07a88b47cc7d540b58",
+      "successorSha256": "b2d20e95fb7baec1b0ec1acf3f12aaf914503af59fc26a2b298ee8effc991db4"
     }
   ],
   "successors": [
