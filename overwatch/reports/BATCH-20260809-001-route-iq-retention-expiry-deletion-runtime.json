@@ -1,0 +1,83 @@
+{
+  "reportVersion": "route-iq-retention-expiry-deletion-engineering-batch-report-v1",
+  "batchId": "BATCH-20260809-001",
+  "owningSubsystem": "Prometheus Overwatch",
+  "verdict": "SOURCE_COMPLETE_DORMANT_DEPLOYMENT_HELD",
+  "startingCommit": "0ae9b3752476bc782b067a2a47fd388e4c3791ef",
+  "startingTree": "3b6778b25c731e75c489b738dc00256868522d22",
+  "dispatch": [
+    {
+      "subsystem": "Prometheus Data",
+      "commits": [
+        "8845846632801ccf29e52a36139a43c1063fcc2e",
+        "28c8a51b4aafef777e407c324ea15c57f4f12454",
+        "82b2edd12f15978d97f0950657c5c123a01a54a7",
+        "a8fedf7c0b88f0611b4f721b08641e55413c591a"
+      ],
+      "scope": "canonical plan, expiry, legal hold, authorization, archive and coordinator deletion, receipts, consumer tombstone"
+    },
+    {
+      "subsystem": "Prometheus Intelligence Engine",
+      "commits": [
+        "f5a473a4fbab7d0f876be36c65b603d9b13bcc0a",
+        "17bef15930ded364a55aadd47d0f96722cc8e9c6"
+      ],
+      "scope": "started/completed subject exclusion from learning, evaluation, readiness and recommendation input"
+    },
+    {
+      "subsystem": "Prometheus Infrastructure",
+      "commits": [
+        "7280f2b505e244f187755990d55bcfa701d1ef46",
+        "70c57f3d94eabfc019cbb5dae1cbd276e6e92be0",
+        "8156bc78dca7cc15006207f09c53a89828e67750"
+      ],
+      "scope": "isolated maintenance capability, dormant activation contract and forward revert"
+    }
+  ],
+  "qualification": {
+    "focusedPreflight": {
+      "tests": 64,
+      "passed": 64,
+      "failed": 0,
+      "realSqliteMaintenance": "PASS",
+      "historicalArchiveSuite": "PASS"
+    },
+    "exactFinalCommitHostedQualification": "REQUIRED_BEFORE_RELEASE_ACCEPTANCE"
+  },
+  "deletionGraph": {
+    "manifestAuthoritative": true,
+    "prefixScanAuthoritative": false,
+    "fieldSessionArtifactsComplete": true,
+    "sessionHistoryEntriesComplete": true,
+    "administrativeDispositionIncludedWhenPresent": true,
+    "coordinatorRelationshipGraphIncluded": true,
+    "unknownOrCrossScopeFailsClosed": true
+  },
+  "fixtureExecution": {
+    "dryRunMutationCount": 0,
+    "exactBoundaryExpiredFixture": "COMPLETELY_DELETED",
+    "allSessionHistoryEntriesRemoved": true,
+    "derivedCoordinatorRowsRemoved": true,
+    "partialFailureState": "BLOCKED_RESUMABLE",
+    "identicalRetry": "IDEMPOTENT",
+    "ordinaryCoordinatorDelete": "REJECTED",
+    "ordinaryArchiveDeleteBindingRequired": false,
+    "receiptPayload": "HASHES_IDENTITIES_COUNTS_TIMESTAMPS_ONLY"
+  },
+  "historicalEvidence": {
+    "sessionSubtreeUnchanged": true,
+    "sourceEvidenceSubtreeUnchanged": true,
+    "productionStorageAccessed": false,
+    "productionRecordCreated": false,
+    "productionRecordDeleted": false
+  },
+  "releaseBoundary": {
+    "sourceComplete": true,
+    "runtimeDormant": true,
+    "deploymentAuthorized": false,
+    "productionDeletionAuthorized": false,
+    "collectionActivationAuthorized": false,
+    "nextTaskStarted": false
+  },
+  "remainingBlockerBeforeDormantDeployment": "A separate Founder-authorized private retention-maintenance deployment must provision the isolated maintenance binding and authoritative production legal-hold ledger, while preserving collection OFF; production deletion requires a later exact plan-bound authorization."
+}

@@ -667,6 +667,43 @@
           "failClosedIfMissing": true
         },
         {
+          "artifactId": "fitness_connection_route_iq_retention_deletion_runtime_governance",
+          "artifactType": "overwatch_retention_deletion_runtime_governance",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json",
+          "schema": "RouteIqRetentionExpiryDeletionRuntimeGovernanceV1",
+          "writeAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "readAllowed": [
+            "Prometheus Data",
+            "Prometheus Infrastructure",
+            "Prometheus Intelligence Engine",
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_route_iq_retention_deletion_runtime_batch_record",
+          "artifactType": "overwatch_retention_deletion_runtime_batch_record",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/reports/BATCH-20260809-001-route-iq-retention-expiry-deletion-runtime.json",
+          "schema": "RouteIqRetentionExpiryDeletionEngineeringBatchReportV1",
+          "writeAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "readAllowed": [
+            "Prometheus Overwatch"
+          ],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
           "artifactId": "fitness_connection_release_provenance_repair_mapping",
           "artifactType": "overwatch_release_provenance_mapping",
           "ownerSubsystem": "Prometheus Overwatch",

@@ -28,7 +28,7 @@ test("Overwatch independently verifies the Founder retention boundary and held a
     maximumRetentionCalendarMonths: 18,
     customerOverride: "SHORTEN_ONLY",
     legalHold: "LOCAL_AUTHENTICATED_APPEND_ONLY_RUNTIME_NOT_DEPLOYED",
-    physicalDeletion: "NOT_IMPLEMENTED_NOT_ACTIVATED",
+    physicalDeletion: "SOURCE_COMPLETE_DORMANT_NOT_DEPLOYED",
     aggregateRetention: "DATA_ATTESTED_DEIDENTIFIED_ONLY",
     accidentalArchiveRecords: 7,
     dispositionReceiptVerified: true,

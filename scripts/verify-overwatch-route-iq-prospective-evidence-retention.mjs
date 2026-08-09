@@ -46,6 +46,8 @@ const liveIdentityGovernancePath =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
 const fieldSessionReportTypeGovernancePath =
   "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json";
+const retentionDeletionGovernancePath =
+  "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json";
 
 const ownerCommits = Object.freeze({
   "Prometheus Data": Object.freeze([
@@ -340,16 +342,18 @@ async function verifyDataSemantics() {
     requestedAt: "2028-01-14T12:00:00.001Z",
     subject,
     retentionBoundary: fullBoundary,
-    administrativeDispositionTarget: null
+    administrativeDispositionTarget: null,
+    deletionPlanSha256: "d".repeat(64)
   };
   const deletionReceipt = await deletion.ledger.appendOperationReceipt({
     ...unsignedDeletion,
     authorization: deletion.authority.sign(retentionOperationAuthorityClaims(unsignedDeletion), {
-      seed: "overwatch-blocked-deletion"
+      seed: "overwatch-source-deletion"
     })
   });
-  assert.equal(deletionReceipt.decision.allowed, false);
-  assert.equal(deletionReceipt.decision.reasons.includes("physical_deletion_not_implemented_or_activated"), true);
+  assert.equal(deletionReceipt.decision.allowed, true);
+  assert.equal(deletionReceipt.physicalMutationPerformed, false);
+  assert.equal(deletionReceipt.productionMutationAuthorized, false);
   assert.equal(typeof deletion.ledger.delete, "undefined");
 
   return { dispositionReceiptId: receipt.receiptId };
@@ -454,12 +458,17 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
   const protectedBaseline = readJson(governance.intelligenceAdmission.protectedBaselinePath);
   const liveIdentity = readJson(liveIdentityGovernancePath);
   const reportTypeRepair = readJson(fieldSessionReportTypeGovernancePath);
+  const retentionDeletion = readJson(retentionDeletionGovernancePath);
   const currentArchiveSha256 = sha256(read(governance.dataContract.archiveRuntimePath));
+  const reportTypeArchiveSha256 = sha256(execFileSync("git", [
+    "show",
+    `${reportTypeRepair.retentionCompatibility.ownerCommit}:${governance.dataContract.archiveRuntimePath}`
+  ]));
   const archiveIdentitySuccessor = validateFieldSessionArchiveIdentitySuccessor({
     liveIdentity,
     reportTypeRepair,
     historicalArchiveSha256: governance.dataContract.archiveRuntimeSha256,
-    currentArchiveSha256
+    currentArchiveSha256: reportTypeArchiveSha256
   });
 
   assert.equal(git("rev-parse", `${baseCommit}^{tree}`), baseTree);
@@ -503,6 +512,13 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
     ["archiveRuntimePath", "archiveRuntimeSha256"],
     ["runtimeContractPath", "runtimeContractSha256"]
   ]) {
+    const path = governance.dataContract[pathKey];
+    const successorPins = new Map([
+      [retentionDeletion.dataRuntime.policy.path, retentionDeletion.dataRuntime.policy.sha256],
+      [retentionDeletion.dataRuntime.retentionEvaluator.path, retentionDeletion.dataRuntime.retentionEvaluator.sha256],
+      [retentionDeletion.dataRuntime.governanceLedger.path, retentionDeletion.dataRuntime.governanceLedger.sha256],
+      [retentionDeletion.dataRuntime.artifactContract.path, retentionDeletion.dataRuntime.artifactContract.sha256]
+    ]);
     if (pathKey === "archiveRuntimePath") {
       assert.equal(
         governance.dataContract[hashKey],
@@ -510,10 +526,16 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
       );
       assert.equal(
         currentArchiveSha256,
-        archiveIdentitySuccessor.reportTypeSuccessor.currentSha256
+        retentionDeletion.dataRuntime.archiveRuntime.sha256
       );
+    } else if (successorPins.has(path)) {
+      assert.equal(
+        sha256(execFileSync("git", ["show", `${retentionDeletion.startingRepository.commit}:${path}`])),
+        governance.dataContract[hashKey]
+      );
+      assert.equal(sha256(read(path)), successorPins.get(path));
     } else {
-      assert.equal(sha256(read(governance.dataContract[pathKey])), governance.dataContract[hashKey]);
+      assert.equal(sha256(read(path)), governance.dataContract[hashKey]);
     }
   }
   for (const [pathKey, hashKey] of [
@@ -530,7 +552,22 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
     ["architectureSuccessorPath", "architectureSuccessorSha256"],
     ["crossIndustryAdoptionPath", "crossIndustryAdoptionSha256"]
   ]) {
-    assert.equal(sha256(read(governance.intelligenceAdmission[pathKey])), governance.intelligenceAdmission[hashKey]);
+    const path = governance.intelligenceAdmission[pathKey];
+    if (path === retentionDeletion.intelligenceBoundary.path) {
+      assert.equal(
+        sha256(execFileSync("git", ["show", `${retentionDeletion.startingRepository.commit}:${path}`])),
+        governance.intelligenceAdmission[hashKey]
+      );
+      assert.equal(sha256(read(path)), retentionDeletion.intelligenceBoundary.sha256);
+    } else if (path === retentionDeletion.intelligenceBoundary.specification.path) {
+      assert.equal(
+        sha256(execFileSync("git", ["show", `${retentionDeletion.startingRepository.commit}:${path}`])),
+        governance.intelligenceAdmission[hashKey]
+      );
+      assert.equal(sha256(read(path)), retentionDeletion.intelligenceBoundary.specification.sha256);
+    } else {
+      assert.equal(sha256(read(path)), governance.intelligenceAdmission[hashKey]);
+    }
   }
   assert.equal(
     governance.intelligenceAdmission.previousRuntimeSha256,
@@ -551,7 +588,8 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
   assert.equal(policy.retentionDecision.customerContractMayShorten, true);
   assert.equal(policy.retentionDecision.customerContractMayExpand, false);
   assert.equal(policy.expiryAndDeletion.physicalDeletionActivated, false);
-  assert.equal(policy.expiryAndDeletion.physicalDeletionEvaluatorCanPerformMutation, false);
+  assert.equal(policy.expiryAndDeletion.physicalDeletionEvaluatorCanPerformMutation, true);
+  assert.equal(policy.expiryAndDeletion.physicalDeletionImplementationStatus, "source_complete_dormant_not_deployed");
   assert.equal(policy.legalHold.callerAssertedStateAccepted, false);
   assert.equal(policy.aggregateRetention.indefiniteRetentionAllowed, true);
   assert.equal(policy.aggregateRetention.rawEvidenceAllowed, false);
@@ -643,7 +681,7 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
     governance.intelligenceAdmission.currentArchiveRuntimeSha256
   );
   assert.equal(
-    sha256(read(crossIndustryAdoption.dataOwnerTransition.archiveRuntime.path)),
+    reportTypeArchiveSha256,
     archiveIdentitySuccessor.reportTypeSuccessor.currentSha256
   );
   assert.equal(
@@ -707,7 +745,7 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
     maximumRetentionCalendarMonths: 18,
     customerOverride: "SHORTEN_ONLY",
     legalHold: "LOCAL_AUTHENTICATED_APPEND_ONLY_RUNTIME_NOT_DEPLOYED",
-    physicalDeletion: "NOT_IMPLEMENTED_NOT_ACTIVATED",
+    physicalDeletion: "SOURCE_COMPLETE_DORMANT_NOT_DEPLOYED",
     aggregateRetention: "DATA_ATTESTED_DEIDENTIFIED_ONLY",
     accidentalArchiveRecords: 7,
     dispositionReceiptVerified: Boolean(dataEvidence.dispositionReceiptId),

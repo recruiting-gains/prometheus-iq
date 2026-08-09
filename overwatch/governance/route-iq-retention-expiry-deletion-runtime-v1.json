@@ -1,0 +1,215 @@
+{
+  "governanceId": "route-iq-retention-expiry-deletion-runtime-v1",
+  "batchId": "BATCH-20260809-001",
+  "owningSubsystem": "Prometheus Overwatch",
+  "status": "SOURCE_COMPLETE_DORMANT_DEPLOYMENT_HELD",
+  "startingRepository": {
+    "branch": "main",
+    "commit": "0ae9b3752476bc782b067a2a47fd388e4c3791ef",
+    "tree": "3b6778b25c731e75c489b738dc00256868522d22",
+    "divergence": "+0/-0",
+    "clean": true
+  },
+  "predecessorGovernance": {
+    "path": "overwatch/governance/route-iq-prospective-evidence-retention-v1.json",
+    "sha256": "624fe46fc543ba4619334b2db1d8e41c08463846e078c5decdcb8c7438f90135",
+    "historicalBatchRecordPath": "overwatch/reports/BATCH-20260714-004-route-iq-prospective-evidence-retention.json",
+    "historicalBatchRecordSha256": "02791666c566ff2c66ec6bc6955a47a4ff40238f8f0edc540862564dc83b0e20",
+    "rewritten": false
+  },
+  "ownership": {
+    "implementationOriginatedFromSubsystemOwners": true,
+    "overwatchModifiedSubsystemImplementation": false,
+    "commits": {
+      "Prometheus Data": [
+        "8845846632801ccf29e52a36139a43c1063fcc2e",
+        "28c8a51b4aafef777e407c324ea15c57f4f12454",
+        "82b2edd12f15978d97f0950657c5c123a01a54a7",
+        "a8fedf7c0b88f0611b4f721b08641e55413c591a"
+      ],
+      "Prometheus Intelligence Engine": [
+        "f5a473a4fbab7d0f876be36c65b603d9b13bcc0a",
+        "17bef15930ded364a55aadd47d0f96722cc8e9c6"
+      ],
+      "Prometheus Infrastructure": [
+        "7280f2b505e244f187755990d55bcfa701d1ef46",
+        "70c57f3d94eabfc019cbb5dae1cbd276e6e92be0",
+        "8156bc78dca7cc15006207f09c53a89828e67750"
+      ]
+    }
+  },
+  "dataRuntime": {
+    "version": "route-iq-retention-deletion-runtime-v1",
+    "status": "source_complete_dormant_not_deployed",
+    "policy": {
+      "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
+      "sha256": "a0a60f3ffb693d9fadd2b1637d22fc6f6f035f8fa2533af96dc3a0c1644e1a9f"
+    },
+    "retentionEvaluator": {
+      "path": "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
+      "sha256": "1299d480d5e8d9418a143eb4817572a0362dd4a9649eb6f337e783c519e3bd20"
+    },
+    "governanceLedger": {
+      "path": "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs",
+      "sha256": "0bd6519d40ea76f5ad771e19dd0ffe4fe840c7c3aeb0ad2ce1987e681985dabb"
+    },
+    "archiveRuntime": {
+      "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+      "sha256": "2d54c4525f1f240b0b7d46baf2899f537375397e6016c55bc770fd6d3686cc20"
+    },
+    "deletionRuntime": {
+      "path": "data/route-iq-field-sessions-v1/route-iq-retention-deletion-runtime.mjs",
+      "sha256": "1ee36eb278646e8179fa092a2b4e32ae92cdaeba55f5a89ad9c7de24febbdc43"
+    },
+    "planSchema": {
+      "path": "data/route-iq-field-sessions-v1/route-iq-retention-deletion-plan-v1.schema.json",
+      "sha256": "aeca89c31a7a6323255d70aa8801e164c8191e357dc8d1b0c4bc5ea46e5a484b"
+    },
+    "eventSchema": {
+      "path": "data/route-iq-field-sessions-v1/route-iq-retention-deletion-event-v1.schema.json",
+      "sha256": "4a12d01e8feb74d472cc5907c5234209fafb6007243b9f79df0fdb011865bdab"
+    },
+    "operationReceiptSchema": {
+      "path": "data/route-iq-field-sessions-v1/route-iq-retention-operation-receipt-v1.schema.json",
+      "sha256": "8f71c246ab952e96d87c7d752e88f1d0cf15dbe54c2b7bea4580a52747fd2f2a"
+    },
+    "artifactContract": {
+      "path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+      "sha256": "c87a2769f6571e3efb221fe9f5948d4bcbe0c5c6b25a30ae72e9dbfbb32da288"
+    }
+  },
+  "canonicalDeletionGraph": {
+    "authority": "field_session_commit_manifest_plus_stored_relationships",
+    "prefixScanIsDeletionAuthority": false,
+    "prefixScanUsedOnlyForUnknownArtifactDetection": true,
+    "fieldSessionArtifacts": [
+      "raw_report",
+      "normalized_field_session",
+      "calculated_metrics",
+      "stress_test_evidence",
+      "history_update_manifest",
+      "every_commit_named_session_history_entry",
+      "optional_administrative_disposition",
+      "source_commit_marker"
+    ],
+    "coordinatorTables": [
+      "field_session_evaluation_contexts",
+      "field_session_outcome_links",
+      "field_session_reconciliation_conflicts",
+      "field_session_reconciliation_receipts",
+      "projection_commits",
+      "projection_artifacts",
+      "projection_outbox",
+      "candidate_manifests",
+      "operation_receipts",
+      "operation_attempts",
+      "lifecycle_events",
+      "artifact_registry",
+      "opportunities"
+    ],
+    "unknownOrphanedCrossScopeCorruptOrUnmanifestedFailsClosed": true,
+    "coordinatorRepositorySetHashBound": true,
+    "sourceAndDerivedArtifactsShareOnePlan": true
+  },
+  "executionSafety": {
+    "exclusiveExpiryBoundary": true,
+    "customerShorteningOnly": true,
+    "founderMaximumCalendarMonths": 18,
+    "legalHoldNoneRequired": true,
+    "legalHoldRecheckedImmediatelyBeforeMutation": true,
+    "changedOrFutureLegalHoldEventBlocks": true,
+    "authorizationBoundToExactPlanAndScope": true,
+    "dryRunMutationAllowed": false,
+    "deletionStartedBeforePayloadMutation": true,
+    "consumersExcludeStartedAndCompletedSubjects": true,
+    "artifactHashAndScopeReverified": true,
+    "nonAtomicExecutionResumable": true,
+    "identicalRetryIdempotent": true,
+    "completedArtifactResurrectionFailsClosed": true,
+    "boundedArtifactCount": 1000,
+    "boundedOperationCount": 100,
+    "deterministicContinuationCursor": true,
+    "receiptsContainRawEvidence": false
+  },
+  "intelligenceBoundary": {
+    "path": "intelligence/route-iq-prospective-retention-admission.mjs",
+    "sha256": "3f2b0d5447f0f62937eabe01b6031d915efeec0829b79211618ebb941086d3ef",
+    "specification": {
+      "path": "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
+      "sha256": "4acda2819c35194de0a20c11079fc7c94efcc8ecddbcbf92647f1bdebbae424c"
+    },
+    "consumerContracts": [
+      {
+        "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+        "sha256": "9605d400315a478c27c0f779bebf2b96cdd0d3674d2969ec786ec302fea9b69a"
+      },
+      {
+        "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+        "sha256": "3bb4da9da2ee99380c6c3d7e51e308e02b174936e3239ef48bb97f36fbc9f44a"
+      },
+      {
+        "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+        "sha256": "15995f73e9e8b1b28099f921d2a2f9ac6f3fc93390c17c960cd58e748c9c81d5"
+      }
+    ],
+    "startedOrCompletedSubjectAdmissionAllowed": false,
+    "evaluationAllowed": false,
+    "readinessAllowed": false,
+    "recommendationInputAllowed": false
+  },
+  "infrastructureBoundary": {
+    "runtimePath": "workers/infrastructure/route-iq-retention-maintenance-runtime.js",
+    "runtimeSha256": "a2d718af687f63d1542c5386634646f6ae6bd8035960f296a102c29c67fd6207",
+    "contractPath": "workers/infrastructure/route-iq-retention-maintenance-runtime-v1.json",
+    "contractSha256": "2bd36447ae9939c01f344a36a3023fb14b85bcca5577f03293112a058c47d9e9",
+    "ordinaryArchiveDeleteCapability": false,
+    "separateAuthenticatedMaintenanceBindingRequired": true,
+    "productionBindingConfigured": false,
+    "routeConfigured": false,
+    "schedulerConfigured": false,
+    "cronConfigured": false,
+    "alarmConfigured": false,
+    "queueConsumerConfigured": false,
+    "deploymentAuthorized": false
+  },
+  "historicalEvidence": {
+    "sessionSubtreeGitObjectBefore": "07485b3c4a14d56779e8b321e6c3410b970db2de",
+    "sessionSubtreeGitObjectAfter": "07485b3c4a14d56779e8b321e6c3410b970db2de",
+    "sourceEvidenceSubtreeGitObjectBefore": "1f05b8a7b22ee28592959fd1ef8276861897cef2",
+    "sourceEvidenceSubtreeGitObjectAfter": "1f05b8a7b22ee28592959fd1ef8276861897cef2",
+    "july11ManifestSha256": "e0bc2cc65e1c67fb39784c3a1fe87732875b64b6f5f2365df1924da5083265ba",
+    "rewritten": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "canonicalProspectiveRecords": 0,
+    "canonicalEvaluations": 0,
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "companion": "DORMANT",
+    "anthony": "UNMAPPED",
+    "stripe": "NON_LIVE",
+    "productionDeployment": "UNCHANGED",
+    "productionStorageAccessPerformed": false,
+    "productionDeletionPerformed": false
+  },
+  "forwardRevert": {
+    "path": "workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json",
+    "sha256": "121eec7f2f3bacaeb50d71dcab30cf6d1a6cc9deaa710a7a09e88d7a4838962a",
+    "status": "VERIFIED_NOT_EXECUTED"
+  },
+  "remainingBlockers": [
+    "dormant_retention_runtime_not_deployed",
+    "production_retention_maintenance_binding_not_configured",
+    "production_legal_hold_ledger_runtime_not_deployed",
+    "production_admission_producer_unavailable",
+    "separate_founder_deployment_authorization_required",
+    "separate_exact_production_deletion_authorization_required"
+  ],
+  "activationDecision": {
+    "prospectiveCollectionMayActivate": false,
+    "reason": "expiry enforcement remains dormant and no production admission producer is available"
+  }
+}

@@ -8385,17 +8385,44 @@ Canonical governance:
 - `intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json`
 - `overwatch/governance/field-session-report-type-contract-drift-repair-v1.json`
 
+### 2026-08-09: Route IQ Retention Expiry and Deletion Runtime v1
+
+Status:
+
+Source complete and dormant. Exact-final-commit hosted qualification is required before release acceptance. Production deployment, production storage access, production deletion, scheduler activation, collection activation, cohort creation, and recommendation influence remain unauthorized.
+
+Owner chain:
+
+- Prometheus Data owns the canonical manifest-derived deletion graph, deterministic plans, exact expiry and legal-hold enforcement, plan-bound Founder authority, resumable non-atomic execution, transaction-scoped coordinator maintenance, content-free receipts, archive tombstones, and anti-resurrection behavior.
+- Prometheus Intelligence Engine excludes deletion-started and deletion-completed subjects from learning, evaluation, readiness, reporting, and recommendation input.
+- Prometheus Infrastructure owns the isolated delete-capable maintenance binding contract, keeps ordinary archive ingestion non-delete-capable, exposes no route or scheduler, and provides the forward-only source revert package.
+- Prometheus Overwatch owns successor governance, ownership verification, duplicate prevention, protected-state reconciliation, exact qualification, and release reporting.
+
+Duplicate prevention:
+
+- `route-iq-retention-deletion-runtime-v1` is the only physical deletion engine.
+- The existing retention governance ledger, legal-hold ledger, field-session commit manifest, archive runtime, prospective coordinator, Intelligence admission, and Infrastructure admission remain authoritative; no parallel evidence model or retention contract exists.
+- Prefix scans may detect unknown artifacts but cannot authorize deletion.
+- Ordinary archive ingestion and coordinator operations retain append-only protections.
+- Production collection remains blocked until the dormant runtime, isolated maintenance binding, production legal-hold ledger, and admission producer are separately deployed and verified.
+
+Canonical governance:
+
+- `overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json`
+- `overwatch/reports/BATCH-20260809-001-route-iq-retention-expiry-deletion-runtime.json`
+- `workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json`
+
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:
 
-Obtain first-real-prospect and conversion evidence through the governed Prometheus Route IQ intake and onboarding path without activating live billing prematurely.
+After exact hosted qualification, prepare a separate Founder-reviewed dormant retention-maintenance deployment package. Keep collection OFF and do not authorize a production deletion in that package.
 
-Primary owner: Founder, with CRM, Sales, Administration, and Security support as separately authorized.
+Primary owners: Prometheus Infrastructure and Prometheus Data, with independent Prometheus Overwatch and Security/Aegis verification.
 
 Reason:
 
-The durable Website intake, Founder CRM visibility, verified notification destination, and one-shot inbox delivery path are production-proven. The next highest-value learning is whether a real prospect enters and advances through the governed conversion path. Pricing, contracts, business banking, tax configuration, and Stripe Live authorization remain external decisions; LLC formation and EIN acquisition are not current launch blockers.
+Prospective collection cannot be considered for activation until expiry can be enforced through a separately deployed, authenticated maintenance boundary and authoritative production legal-hold ledger. The source runtime is deliberately dormant, the production admission producer remains unavailable, and actual production deletion must remain a later exact-plan Founder authorization.
 
 Current priority order after notification delivery acceptance:
 
