@@ -27,6 +27,16 @@
       "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
       "previousSha256": "efc91b85cb331e7617a33c31cd0695d0ccad5e921ca78b1f664713bb8b5cbe68",
       "successorSha256": "18420dba8bb3187c4f129a82e54b9eb5ad28733de3cd3866395e2d4cf9951f7a"
+    },
+    {
+      "path": "package.json",
+      "previousSha256": "3c7c9a50ffed874d711085ec95c04eb525f2caee88975eca20385f243aafda87",
+      "successorSha256": "9731036e6b33283416e15acd6d76ae0eaf33966a276864bf18ad321456a4463a"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "bcae2bb35b860ce4e940159f7fdcbb874b8c4f26be7ba942f952042a5565f881",
+      "successorSha256": "1f8f8f976a5a234a471635d1c2b25a67537aa7d7222c3f96f9c5dcc9611987d9"
     }
   ],
   "successors": [

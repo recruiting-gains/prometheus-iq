@@ -753,6 +753,8 @@ export function validateAugust1ReadinessSuccessors(successors) {
     sorted(successors.overwatchCurrentEvidence.map(item => item.path)),
     sorted([
       "package.json",
+      "package.json",
+      "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
