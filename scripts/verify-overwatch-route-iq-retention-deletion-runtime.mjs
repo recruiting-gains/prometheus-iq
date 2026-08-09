@@ -98,6 +98,14 @@ const ownerCommits = Object.freeze({
       "tests/route-iq-retention-maintenance-infrastructure.test.mjs",
       "workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json"
     ])
+  }),
+  "a445bf4bdb068eb597b11e60ff10cdd2d1f4e023": Object.freeze({
+    name: "Prometheus Infrastructure",
+    email: "infrastructure@prometheus.local",
+    files: Object.freeze([
+      "scripts/verify-production-release.mjs",
+      "tests/production-release-current-dashboard-contract.test.mjs"
+    ])
   })
 });
 
@@ -131,6 +139,8 @@ function verifyPinnedFiles(governance) {
     ...governance.intelligenceBoundary.consumerContracts,
     { path: governance.infrastructureBoundary.runtimePath, sha256: governance.infrastructureBoundary.runtimeSha256 },
     { path: governance.infrastructureBoundary.contractPath, sha256: governance.infrastructureBoundary.contractSha256 },
+    governance.qualificationRepair.productionReleaseVerifier,
+    governance.qualificationRepair.regressionTest,
     governance.forwardRevert
   ];
   for (const pin of pins) assert.equal(sha256(read(pin.path)), pin.sha256, `${pin.path} hash drifted.`);
@@ -181,6 +191,10 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(maintenance.activation.productionBindingConfigured, false);
   assert.equal(maintenance.activation.productionDeploymentAuthorized, false);
   assert.equal(maintenance.activation.productionDeletionAuthorized, false);
+  assert.equal(governance.qualificationRepair.runtimeBehaviorChanged, false);
+  assert.equal(governance.qualificationRepair.legacyRuntimePoolSelectionAccepted, false);
+  assert.equal(governance.qualificationRepair.sessionBoundBusinessHoursRequired, true);
+  assert.equal(governance.qualificationRepair.localProductionReleaseVerification, "PASS");
 
   const runtimeSource = read(governance.dataRuntime.deletionRuntime.path).toString("utf8");
   const infrastructureSource = read(governance.infrastructureBoundary.runtimePath).toString("utf8");
@@ -240,6 +254,10 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.fixtureExecution.exactBoundaryExpiredFixture, "COMPLETELY_DELETED");
   assert.equal(report.fixtureExecution.partialFailureState, "BLOCKED_RESUMABLE");
   assert.equal(report.fixtureExecution.identicalRetry, "IDEMPOTENT");
+  assert.equal(report.qualification.focusedPreflight.productionReleaseCurrentDashboardRegressionTests, "3/3 PASS");
+  assert.equal(report.qualification.focusedPreflight.localProductionReleaseVerification, "PASS");
+  assert.equal(report.qualification.initialHostedQualificationRun, 31336094147);
+  assert.equal(report.qualification.initialHostedQualificationResult, "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN");
   assert.equal(report.releaseBoundary.deploymentAuthorized, false);
   assert.equal(report.releaseBoundary.productionDeletionAuthorized, false);
   assert.equal(report.releaseBoundary.collectionActivationAuthorized, false);

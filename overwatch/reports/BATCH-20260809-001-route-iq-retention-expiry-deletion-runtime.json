@@ -29,9 +29,10 @@
       "commits": [
         "7280f2b505e244f187755990d55bcfa701d1ef46",
         "70c57f3d94eabfc019cbb5dae1cbd276e6e92be0",
-        "8156bc78dca7cc15006207f09c53a89828e67750"
+        "8156bc78dca7cc15006207f09c53a89828e67750",
+        "a445bf4bdb068eb597b11e60ff10cdd2d1f4e023"
       ],
-      "scope": "isolated maintenance capability, dormant activation contract and forward revert"
+      "scope": "isolated maintenance capability, dormant activation contract, forward revert, and current configuration-driven Dashboard release verification"
     }
   ],
   "qualification": {
@@ -40,8 +41,12 @@
       "passed": 64,
       "failed": 0,
       "realSqliteMaintenance": "PASS",
-      "historicalArchiveSuite": "PASS"
+      "historicalArchiveSuite": "PASS",
+      "productionReleaseCurrentDashboardRegressionTests": "3/3 PASS",
+      "localProductionReleaseVerification": "PASS"
     },
+    "initialHostedQualificationRun": 31336094147,
+    "initialHostedQualificationResult": "FAILED_CLOSED_STALE_SUCCESSOR_CHAIN",
     "exactFinalCommitHostedQualification": "REQUIRED_BEFORE_RELEASE_ACCEPTANCE"
   },
   "deletionGraph": {

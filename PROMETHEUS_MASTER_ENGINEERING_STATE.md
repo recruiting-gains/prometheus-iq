@@ -8396,6 +8396,7 @@ Owner chain:
 - Prometheus Data owns the canonical manifest-derived deletion graph, deterministic plans, exact expiry and legal-hold enforcement, plan-bound Founder authority, resumable non-atomic execution, transaction-scoped coordinator maintenance, content-free receipts, archive tombstones, and anti-resurrection behavior.
 - Prometheus Intelligence Engine excludes deletion-started and deletion-completed subjects from learning, evaluation, readiness, reporting, and recommendation input.
 - Prometheus Infrastructure owns the isolated delete-capable maintenance binding contract, keeps ordinary archive ingestion non-delete-capable, exposes no route or scheduler, and provides the forward-only source revert package.
+- Prometheus Infrastructure also reconciles local production-release verification with the accepted configuration-driven Dashboard: legacy runtime-pool selectors are rejected and business-hours evidence must remain bound to authenticated session assets.
 - Prometheus Overwatch owns successor governance, ownership verification, duplicate prevention, protected-state reconciliation, exact qualification, and release reporting.
 
 Duplicate prevention:

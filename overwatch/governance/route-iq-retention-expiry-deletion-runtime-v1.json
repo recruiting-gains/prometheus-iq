@@ -34,7 +34,8 @@
       "Prometheus Infrastructure": [
         "7280f2b505e244f187755990d55bcfa701d1ef46",
         "70c57f3d94eabfc019cbb5dae1cbd276e6e92be0",
-        "8156bc78dca7cc15006207f09c53a89828e67750"
+        "8156bc78dca7cc15006207f09c53a89828e67750",
+        "a445bf4bdb068eb597b11e60ff10cdd2d1f4e023"
       ]
     }
   },
@@ -171,6 +172,21 @@
     "alarmConfigured": false,
     "queueConsumerConfigured": false,
     "deploymentAuthorized": false
+  },
+  "qualificationRepair": {
+    "reason": "The clean hosted runner exposed a historical release verifier that still required the retired static runtime-pool selector after the accepted configuration-driven Dashboard migration.",
+    "runtimeBehaviorChanged": false,
+    "productionReleaseVerifier": {
+      "path": "scripts/verify-production-release.mjs",
+      "sha256": "3cadad597d22e875b34b0cf005ce3aa084e78c1331470d3607e9b88e6b67ab33"
+    },
+    "regressionTest": {
+      "path": "tests/production-release-current-dashboard-contract.test.mjs",
+      "sha256": "a868785a0a0c50fb6fe6a14251444cc7a7c796df649e37455671842e5a047c27"
+    },
+    "legacyRuntimePoolSelectionAccepted": false,
+    "sessionBoundBusinessHoursRequired": true,
+    "localProductionReleaseVerification": "PASS"
   },
   "historicalEvidence": {
     "sessionSubtreeGitObjectBefore": "07485b3c4a14d56779e8b321e6c3410b970db2de",

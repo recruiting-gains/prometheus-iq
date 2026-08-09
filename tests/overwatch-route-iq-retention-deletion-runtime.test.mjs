@@ -13,7 +13,7 @@ test("Overwatch verifies the exact owner chain and dormant deletion release boun
   assert.deepEqual(verifyOverwatchRouteIqRetentionDeletionRuntime(), {
     status: "PASS",
     batchId: "BATCH-20260809-001",
-    ownerCommitCount: 9,
+    ownerCommitCount: 10,
     sourceRuntime: "COMPLETE_DORMANT",
     physicalDeletionActivated: false,
     productionStorageAccessed: false,
