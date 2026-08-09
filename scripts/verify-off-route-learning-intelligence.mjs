@@ -22,6 +22,9 @@ import {
 import {
   verifyAugust1ProtectedBehaviorBaselines
 } from "./verify-read-only-field-session-learning.mjs";
+import {
+  verifyRetentionDeletionRuntimeProtectedSuccessor
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const writeSnapshot = process.argv.includes("--write");
@@ -42,6 +45,70 @@ function canonicalSourceHashes(upstreamContract) {
   return Object.fromEntries(Object.entries(upstreamContract.canonicalSourceArtifacts).map(([name, path]) => [name, sha256(path)]));
 }
 
+export function verifyOffRouteUpstreamReadOnlyLearningSuccessor({
+  contractPath,
+  historicalSha256,
+  currentSha256,
+  retentionDeletionSuccessor
+}) {
+  assert.equal(
+    contractPath,
+    "intelligence/contracts/read-only-field-session-learning-contracts.json",
+    "Off-route upstream contract path changed."
+  );
+  assert.match(historicalSha256, /^[a-f0-9]{64}$/u);
+  assert.match(currentSha256, /^[a-f0-9]{64}$/u);
+  assert.equal(
+    retentionDeletionSuccessor.successor.version,
+    "route-iq-intelligence-retention-deletion-runtime-successor-v1"
+  );
+  assert.equal(
+    retentionDeletionSuccessor.successor.status,
+    "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR"
+  );
+  assert.equal(
+    retentionDeletionSuccessor.successor.ownerSubsystem,
+    "Prometheus Intelligence Engine"
+  );
+  assert.deepEqual(retentionDeletionSuccessor.successor.boundaries, {
+    prospectiveCollection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    canonicalProspectiveRecords: 0,
+    canonicalProspectiveEvaluations: 0,
+    providers: "OFF",
+    scheduler: "OFF",
+    companion: "DORMANT",
+    anthonyMapped: false,
+    stripeMode: "NON_LIVE",
+    dashboardBehaviorChanged: false,
+    deploymentPerformed: false,
+    productionAccessPerformed: false,
+    productionMutationPerformed: false
+  });
+  const transition = retentionDeletionSuccessor.successorTransitionsByPath
+    .get(contractPath);
+  assert.ok(transition, "Retention-deletion upstream contract successor is missing.");
+  assert.equal(transition.length, 1);
+  assert.equal(transition[0].path, contractPath);
+  assert.equal(transition[0].ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(
+    transition[0].previousSha256,
+    historicalSha256,
+    "Retention-deletion upstream contract predecessor changed."
+  );
+  assert.equal(
+    transition[0].currentSha256,
+    currentSha256,
+    "Retention-deletion upstream contract successor changed."
+  );
+  return Object.freeze({
+    path: contractPath,
+    historicalSha256,
+    currentSha256
+  });
+}
+
 export function verifyOffRouteLearningIntelligence(options = {}) {
   const contract = options.contract || loadOffRouteLearningContract();
   const policy = options.policy || loadOffRouteLearningPolicy();
@@ -54,7 +121,14 @@ export function verifyOffRouteLearningIntelligence(options = {}) {
   assert.deepEqual(validateOffRouteLearningContract(contract, upstreamContract), []);
   assert.deepEqual(validateReadOnlyFieldSessionLearningPolicy(upstreamPolicy), []);
   assert.deepEqual(validateReadOnlyFieldSessionLearningContract(upstreamContract, dataContract), []);
-  assert.equal(sha256(contract.upstreamReadOnlyLearning.contractPath), contract.upstreamReadOnlyLearning.contractSha256, "Upstream read-only learning contract changed.");
+  const upstreamReadOnlyLearningSuccessor =
+    verifyOffRouteUpstreamReadOnlyLearningSuccessor({
+      contractPath: contract.upstreamReadOnlyLearning.contractPath,
+      historicalSha256: contract.upstreamReadOnlyLearning.contractSha256,
+      currentSha256: sha256(contract.upstreamReadOnlyLearning.contractPath),
+      retentionDeletionSuccessor:
+        verifyRetentionDeletionRuntimeProtectedSuccessor()
+    });
   assert.equal(sha256(contract.upstreamReadOnlyLearning.policyPath), contract.upstreamReadOnlyLearning.policySha256, "Upstream read-only learning policy changed.");
   const protectedBehaviorSuccessors = verifyAugust1ProtectedBehaviorBaselines({
     protectedBehaviorBaselines: Object.fromEntries(
@@ -128,6 +202,7 @@ export function verifyOffRouteLearningIntelligence(options = {}) {
     recommendationInfluenceActive: snapshot.safety.recommendationInfluenceActive,
     recommendationScoringChanged: snapshot.safety.recommendationScoringChanged,
     routeGenerationChanged: snapshot.safety.routeGenerationChanged,
+    upstreamReadOnlyLearningSuccessor,
     protectedBehaviorSuccessors,
     dataMutation: snapshot.safety.dataChanged,
     sourceHashes: afterSourceHashes

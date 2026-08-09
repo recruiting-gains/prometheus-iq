@@ -18,10 +18,15 @@ import {
   loadCanonicalArchivedFieldSessionPackages,
   loadReadOnlyFieldSessionLearningContract
 } from "../intelligence/read-only-field-session-learning.mjs";
-import { verifyOffRouteLearningIntelligence } from "../scripts/verify-off-route-learning-intelligence.mjs";
+import {
+  verifyOffRouteLearningIntelligence,
+  verifyOffRouteUpstreamReadOnlyLearningSuccessor
+} from "../scripts/verify-off-route-learning-intelligence.mjs";
 import {
   verifyFieldSessionReportTypeContractProtectedSuccessor,
-  verifyLiveCanonicalIdentityProtectedSuccessor
+  verifyLiveCanonicalIdentityProtectedSuccessor,
+  verifyRetentionDeletionConsumerAdmissionSuccessor,
+  verifyRetentionDeletionRuntimeProtectedSuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = new URL("../", import.meta.url);
@@ -68,6 +73,82 @@ test("off-route learning verifier passes against canonical read-only evidence", 
   assert.equal(result.routeGenerationChanged, false);
   assert.equal(result.protectedBehaviorSuccessors, 3);
   assert.equal(result.dataMutation, false);
+});
+
+test("off-route learning composes only the exact governed retention-deletion upstream successor", () => {
+  const { contract } = fixtures();
+  const contractPath = contract.upstreamReadOnlyLearning.contractPath;
+  const historicalSha256 = contract.upstreamReadOnlyLearning.contractSha256;
+  const currentSha256 = sha256(contractPath);
+  const verified = verifyRetentionDeletionRuntimeProtectedSuccessor();
+  const result = verifyOffRouteUpstreamReadOnlyLearningSuccessor({
+    contractPath,
+    historicalSha256,
+    currentSha256,
+    retentionDeletionSuccessor: verified
+  });
+
+  assert.deepEqual(result, {
+    path: contractPath,
+    historicalSha256,
+    currentSha256
+  });
+
+  const transition = verified.successorTransitionsByPath.get(contractPath)[0];
+  const changedTransition = overrides => ({
+    successor: clone(verified.successor),
+    successorTransitionsByPath: new Map([[
+      contractPath,
+      [{...transition, ...overrides}]
+    ]])
+  });
+  assert.throws(
+    () => verifyOffRouteUpstreamReadOnlyLearningSuccessor({
+      contractPath,
+      historicalSha256,
+      currentSha256: "0".repeat(64),
+      retentionDeletionSuccessor: verified
+    }),
+    /successor changed/
+  );
+  assert.throws(
+    () => verifyOffRouteUpstreamReadOnlyLearningSuccessor({
+      contractPath: `${contractPath}.alternate`,
+      historicalSha256,
+      currentSha256,
+      retentionDeletionSuccessor: verified
+    }),
+    /contract path changed/
+  );
+  assert.throws(
+    () => verifyOffRouteUpstreamReadOnlyLearningSuccessor({
+      contractPath,
+      historicalSha256,
+      currentSha256,
+      retentionDeletionSuccessor: changedTransition({
+        previousSha256: "0".repeat(64)
+      })
+    }),
+    /predecessor changed/
+  );
+  assert.throws(
+    () => verifyOffRouteUpstreamReadOnlyLearningSuccessor({
+      contractPath,
+      historicalSha256,
+      currentSha256,
+      retentionDeletionSuccessor: {
+        ...verified,
+        successor: {
+          ...clone(verified.successor),
+          boundaries: {
+            ...clone(verified.successor.boundaries),
+            prospectiveCollection: "ON"
+          }
+        }
+      }
+    }),
+    /Expected values to be strictly deep-equal/
+  );
 });
 
 test("source taxonomy covers every governed visit decision source", () => {
@@ -326,6 +407,10 @@ test("protected Dashboard and route-generation successors are governed while Dat
     verifyLiveCanonicalIdentityProtectedSuccessor();
   const fieldSessionReportTypeSuccessor =
     verifyFieldSessionReportTypeContractProtectedSuccessor();
+  const retentionDeletionSuccessor =
+    verifyRetentionDeletionRuntimeProtectedSuccessor();
+  const retentionConsumerSuccessor =
+    verifyRetentionDeletionConsumerAdmissionSuccessor();
 
   assert.equal(result.protectedBehaviorSuccessors, 3);
   for (const name of ["dataArchiveRuntime", "dataRuntimeContract", "routeScoring"]) {
@@ -333,9 +418,15 @@ test("protected Dashboard and route-generation successors are governed while Dat
     const transitions = canonicalIdentitySuccessor.transitionsByPath.get(baseline.path);
     const reportTypeTransitions =
       fieldSessionReportTypeSuccessor.transitionsByPath.get(baseline.path);
+    const retentionDeletionTransitions =
+      retentionDeletionSuccessor.transitionsByPath.get(baseline.path);
+    const retentionConsumerTransitions =
+      retentionConsumerSuccessor.transitionsByPath.get(baseline.path);
     assert.equal(
       sha256(baseline.path),
-      reportTypeTransitions?.at(-1).currentSha256
+      retentionConsumerTransitions?.at(-1).currentSha256
+        || retentionDeletionTransitions?.at(-1).currentSha256
+        || reportTypeTransitions?.at(-1).currentSha256
         || transitions?.at(-1).currentSha256
         || baseline.sha256,
       name
