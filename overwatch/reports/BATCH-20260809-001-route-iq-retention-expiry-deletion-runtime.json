@@ -13,7 +13,8 @@
         "28c8a51b4aafef777e407c324ea15c57f4f12454",
         "82b2edd12f15978d97f0950657c5c123a01a54a7",
         "a8fedf7c0b88f0611b4f721b08641e55413c591a",
-        "e0a5fb7a9089cae62081295875793f9c635c498c"
+        "e0a5fb7a9089cae62081295875793f9c635c498c",
+        "052a547ed092c1dd0f606bd72dca93a5f17b7291"
       ],
       "scope": "canonical plan, expiry, legal hold, authorization, archive and coordinator deletion, receipts, consumer tombstone"
     },
@@ -72,6 +73,7 @@
       "controlledRehearsalGovernanceTests": "14/14 PASS",
       "intelligenceConsumerTests": "86/86 PASS",
       "offRouteLearningTests": "17/17 PASS",
+      "prospectiveRetentionCombinedTests": "56/56 PASS",
       "security": "PASS",
       "aegis": "PASS",
       "lint": "PASS",
@@ -96,6 +98,8 @@
     "eighthHostedQualificationResult": "FAILED_CLOSED_OFF_ROUTE_RETENTION_CONTRACT_SUCCESSOR_UNCOMPOSED",
     "ninthHostedQualificationRun": 31341877824,
     "ninthHostedQualificationResult": "FAILED_CLOSED_CONTROLLED_REHEARSAL_OFF_ROUTE_SUCCESSOR_UNCOMPOSED",
+    "tenthHostedQualificationRun": 31342100553,
+    "tenthHostedQualificationResult": "FAILED_CLOSED_PROSPECTIVE_SHADOW_DORMANT_STATUS_UNCOMPOSED",
     "exactFinalCommitHostedQualification": "EXACT_COMMIT_BOUND_WORKFLOW_REQUIRED_AND_FAIL_CLOSED"
   },
   "deletionGraph": {

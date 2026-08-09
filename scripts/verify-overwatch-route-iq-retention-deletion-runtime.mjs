@@ -40,6 +40,13 @@ const ownerCommits = Object.freeze({
       "tests/route-iq-retention-deletion-runtime.test.mjs"
     ])
   }),
+  "052a547ed092c1dd0f606bd72dca93a5f17b7291": Object.freeze({
+    name: "Prometheus Data",
+    email: "data@prometheus.local",
+    files: Object.freeze([
+      "tests/route-iq-prospective-shadow-evidence.test.mjs"
+    ])
+  }),
   "f5a473a4fbab7d0f876be36c65b603d9b13bcc0a": Object.freeze({
     name: "Prometheus Intelligence Engine",
     email: "intelligence@prometheus.local",
@@ -260,6 +267,7 @@ function verifyPinnedFiles(governance) {
     ...governance.qualificationRepair.historicalRetentionCoordinatorComposition.files,
     ...governance.qualificationRepair.offRouteRetentionContractComposition.files,
     ...governance.qualificationRepair.controlledRehearsalOffRouteComposition.files,
+    ...governance.qualificationRepair.prospectiveShadowDormantStatusComposition.files,
     governance.forwardRevert
   ];
   for (const pin of pins) assert.equal(sha256(read(pin.path)), pin.sha256, `${pin.path} hash drifted.`);
@@ -389,6 +397,17 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
     .productionMutationPerformed, false);
   assert.equal(governance.qualificationRepair.controlledRehearsalOffRouteComposition
     .exactOwnerChainRequired, true);
+  assert.equal(governance.qualificationRepair.prospectiveShadowDormantStatusComposition
+    .failedRun, 31342100553);
+  assert.equal(governance.qualificationRepair.prospectiveShadowDormantStatusComposition
+    .ownerRepairCommit, "052a547ed092c1dd0f606bd72dca93a5f17b7291");
+  assert.equal(governance.qualificationRepair.prospectiveShadowDormantStatusComposition
+    .runtimeBehaviorChanged, false);
+  assert.equal(governance.qualificationRepair.prospectiveShadowDormantStatusComposition
+    .productionMutationPerformed, false);
+  assert.equal(governance.qualificationRepair.prospectiveShadowDormantStatusComposition
+    .currentStatus,
+    "founder_authorized_18_month_maximum_source_deletion_runtime_dormant");
   assert.equal(
     governance.infrastructureBoundary.privateWorkflowQualification.forwardPayloadSha256,
     "aaa8b360d5851bec21637d4c639a485555c367d1d5c9defb1b12163160c035c7"
@@ -493,6 +512,9 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.qualification.ninthHostedQualificationRun, 31341877824);
   assert.equal(report.qualification.ninthHostedQualificationResult,
     "FAILED_CLOSED_CONTROLLED_REHEARSAL_OFF_ROUTE_SUCCESSOR_UNCOMPOSED");
+  assert.equal(report.qualification.tenthHostedQualificationRun, 31342100553);
+  assert.equal(report.qualification.tenthHostedQualificationResult,
+    "FAILED_CLOSED_PROSPECTIVE_SHADOW_DORMANT_STATUS_UNCOMPOSED");
   assert.equal(report.qualification.focusedSuccessorVerification.dataCoordinatorTests, "121/121 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.intelligenceConsumerTests, "86/86 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.privateWorkflowV2Tests, "33/33 PASS");
@@ -502,6 +524,8 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
     .controlledRehearsalGovernanceTests, "14/14 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.offRouteLearningTests,
     "17/17 PASS");
+  assert.equal(report.qualification.focusedSuccessorVerification
+    .prospectiveRetentionCombinedTests, "56/56 PASS");
   assert.equal(report.qualification.exactFinalCommitHostedQualification,
     "EXACT_COMMIT_BOUND_WORKFLOW_REQUIRED_AND_FAIL_CLOSED");
   assert.equal(report.releaseBoundary.deploymentAuthorized, false);

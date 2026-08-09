@@ -26,7 +26,8 @@
         "28c8a51b4aafef777e407c324ea15c57f4f12454",
         "82b2edd12f15978d97f0950657c5c123a01a54a7",
         "a8fedf7c0b88f0611b4f721b08641e55413c591a",
-        "e0a5fb7a9089cae62081295875793f9c635c498c"
+        "e0a5fb7a9089cae62081295875793f9c635c498c",
+        "052a547ed092c1dd0f606bd72dca93a5f17b7291"
       ],
       "Prometheus Intelligence Engine": [
         "f5a473a4fbab7d0f876be36c65b603d9b13bcc0a",
@@ -281,7 +282,7 @@
       "wrongBranchRefTypeShaOrOriginFailsClosed": true,
       "regressionTest": {
         "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
-        "sha256": "3f45713c2d58d859154bb369f296a74fd243fa17bd61d942a5373c849ab3b4b6"
+        "sha256": "caaa055b8b80208ba816b2b38216796d4ebaf4d92d86823984d2adacd9c36075"
       }
     },
     "founderAttendedPackageWiring": {
@@ -414,6 +415,22 @@
         {
           "path": "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
           "sha256": "01a676895d87adca806b7f9543f7b2ea9dd0e21d8262c93f1ee2e0fd88d05351"
+        }
+      ]
+    },
+    "prospectiveShadowDormantStatusComposition": {
+      "failedRun": 31342100553,
+      "failure": "PROSPECTIVE_SHADOW_TEST_EXPECTED_SUPERSEDED_RETENTION_STATUS",
+      "ownerRepairCommit": "052a547ed092c1dd0f606bd72dca93a5f17b7291",
+      "runtimeBehaviorChanged": false,
+      "productionMutationPerformed": false,
+      "deploymentPerformed": false,
+      "supersededStatus": "founder_authorized_18_month_maximum_runtime_deletion_inactive",
+      "currentStatus": "founder_authorized_18_month_maximum_source_deletion_runtime_dormant",
+      "files": [
+        {
+          "path": "tests/route-iq-prospective-shadow-evidence.test.mjs",
+          "sha256": "a9dbb40ae7e068fdedf23408583503577fc3efc639b51f0324bb4b1d799c757b"
         }
       ]
     }

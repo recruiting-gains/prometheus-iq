@@ -16,7 +16,7 @@ test("Overwatch verifies the exact owner chain and dormant deletion release boun
   assert.deepEqual(verifyOverwatchRouteIqRetentionDeletionRuntime(), {
     status: "PASS",
     batchId: "BATCH-20260809-001",
-    ownerCommitCount: 21,
+    ownerCommitCount: 22,
     sourceRuntime: "COMPLETE_DORMANT",
     physicalDeletionActivated: false,
     productionStorageAccessed: false,
@@ -43,7 +43,7 @@ test("governance keeps production activation and deletion behind separate Founde
 
 test("governance pins every post-hosted owner successor without changing runtime activation", () => {
   const record = governance();
-  assert.equal(record.ownership.commits["Prometheus Data"].length, 5);
+  assert.equal(record.ownership.commits["Prometheus Data"].length, 6);
   assert.equal(record.ownership.commits["Prometheus Intelligence Engine"].length, 10);
   assert.equal(record.ownership.commits["Prometheus Infrastructure"].length, 6);
   assert.equal(
@@ -88,6 +88,14 @@ test("governance pins every post-hosted owner successor without changing runtime
   assert.equal(record.qualificationRepair.controlledRehearsalOffRouteComposition
     .runtimeBehaviorChanged, false);
   assert.equal(record.qualificationRepair.controlledRehearsalOffRouteComposition
+    .productionMutationPerformed, false);
+  assert.equal(record.qualificationRepair.prospectiveShadowDormantStatusComposition.failedRun,
+    31342100553);
+  assert.equal(record.qualificationRepair.prospectiveShadowDormantStatusComposition
+    .ownerRepairCommit, "052a547ed092c1dd0f606bd72dca93a5f17b7291");
+  assert.equal(record.qualificationRepair.prospectiveShadowDormantStatusComposition
+    .runtimeBehaviorChanged, false);
+  assert.equal(record.qualificationRepair.prospectiveShadowDormantStatusComposition
     .productionMutationPerformed, false);
 });
 
