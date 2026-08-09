@@ -7,8 +7,10 @@ import {
 export const routeIqRetentionMaximumCalendarMonths = 18;
 export const routeIqRetentionGovernanceEventVersion = "route-iq-retention-governance-event-v1";
 export const routeIqRetentionOperationAuthorizationVersion = "route-iq-retention-operation-authorization-v2";
+export const routeIqRetentionDeletionAuthorizationVersion = "route-iq-retention-deletion-authorization-v1";
 export const routeIqRetentionAuthorityAssertionVersion = "route-iq-retention-authority-assertion-v1";
 export const routeIqRetentionOperationReceiptVersion = "route-iq-retention-operation-receipt-v1";
+export const routeIqRetentionDeletionEventVersion = "route-iq-retention-deletion-event-v1";
 export const routeIqCustomerRetentionOverrideAuthorityVersion = "route-iq-customer-retention-override-authority-v1";
 export const routeIqDeidentifiedAggregateVersion = "route-iq-deidentified-aggregate-v1";
 export const routeIqDeidentifiedAggregateAttestationVersion = "route-iq-deidentified-aggregate-attestation-v1";
@@ -26,6 +28,11 @@ export const routeIqRetentionEmptyLegalHoldLedgerSha256 = sha256(stableJson([]))
 
 const RETENTION_RECORD_CLASSES = new Set(["field_session_raw_evidence", "prospective_shadow_evidence"]);
 const RETENTION_OPERATIONS = new Set(["administrative_disposition", "physical_deletion"]);
+const RETENTION_DELETION_EVENT_TYPES = new Set([
+  "DELETION_STARTED",
+  "ARTIFACT_DELETED",
+  "DELETION_COMPLETED"
+]);
 const LEGAL_HOLD_EVENT_TYPES = new Set(["LEGAL_HOLD_APPLIED", "LEGAL_HOLD_RELEASED"]);
 const LEGAL_HOLD_AUTHORITIES = new Set(["prometheus_founder", "authorized_counsel"]);
 const OPERATION_AUTHORITIES = new Set(["prometheus_founder"]);
@@ -33,6 +40,7 @@ const RETENTION_AUDIT_OWNER = "prometheus_data";
 const AUTHORIZATION_PATTERN = /^riq_retention_auth_[a-f0-9]{64}$/;
 const KEY_VERSION_PATTERN = /^riq_retention_key_[a-f0-9]{64}$/;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
+const CONTINUATION_CURSOR_PATTERN = /^riq_retention_cursor_[a-f0-9]{64}$/;
 const VERIFIER_STATE = new WeakMap();
 const LEDGER_STATE = new WeakMap();
 
@@ -533,15 +541,21 @@ function snapshotFromRecords(records, asOf) {
 }
 
 function operationInputClaims(input, boundary, subject) {
-  return {
+  const claims = {
     purpose: "retention_operation",
-    authorizationVersion: routeIqRetentionOperationAuthorizationVersion,
+    authorizationVersion: input.operation === "physical_deletion"
+      ? routeIqRetentionDeletionAuthorizationVersion
+      : routeIqRetentionOperationAuthorizationVersion,
     operation: input.operation,
     requestedAt: input.requestedAt,
     subject,
     administrativeDispositionTarget: input.administrativeDispositionTarget,
     retentionBoundarySha256: sha256(stableJson(boundary))
   };
+  if (input.operation === "physical_deletion") {
+    claims.deletionPlanSha256 = input.deletionPlanSha256;
+  }
+  return claims;
 }
 
 function normalizeAdministrativeDispositionTarget(value, operation, subject) {
@@ -575,6 +589,7 @@ function evaluateOperationAgainstRecords(input, { subject: expectedSubject, reco
     "administrativeDispositionTarget",
     "authorization"
   ]);
+  if (input?.operation === "physical_deletion") keys.add("deletionPlanSha256");
   assertExactRequiredKeys(input, keys, "retention_operation");
   if (!RETENTION_OPERATIONS.has(input.operation)) {
     fail("route_iq_retention_operation_invalid", "Retention operation is not governed.");
@@ -584,6 +599,9 @@ function evaluateOperationAgainstRecords(input, { subject: expectedSubject, reco
     fail("route_iq_retention_ledger_subject_mismatch", "Retention operation does not match the authoritative ledger subject.");
   }
   const requestedAt = canonicalIso(input.requestedAt, "Retention operation time");
+  if (input.operation === "physical_deletion") {
+    requireSha256(input.deletionPlanSha256, "Retention deletion plan hash");
+  }
   const boundary = normalizeBoundaryRecord(input.retentionBoundary, authorityVerifier);
   if (!sameCanonical(boundary.subject, subject)) {
     fail("route_iq_retention_boundary_subject_mismatch", "Retention boundary does not match the operation subject.");
@@ -621,7 +639,6 @@ function evaluateOperationAgainstRecords(input, { subject: expectedSubject, reco
   }
   if (input.operation === "physical_deletion") {
     if (requestedAt.milliseconds < Date.parse(boundary.expiresAt)) reasons.push("retention_not_expired");
-    reasons.push("physical_deletion_not_implemented_or_activated");
   }
   const uniqueReasons = [...new Set(reasons)];
   return deepFreeze({
@@ -688,12 +705,16 @@ export function evaluateRouteIqRetentionOperation(input = {}, options = {}) {
       "administrativeDispositionTarget",
       "authorization"
     ]);
+    if (input?.operation === "physical_deletion") keys.add("deletionPlanSha256");
     assertExactRequiredKeys(input, keys, "retention_operation");
     if (!RETENTION_OPERATIONS.has(input.operation)) {
       fail("route_iq_retention_operation_invalid", "Retention operation is not governed.");
     }
     const subject = normalizeSubject(input.subject);
     const requestedAt = canonicalIso(input.requestedAt, "Retention operation time");
+    if (input.operation === "physical_deletion") {
+      requireSha256(input.deletionPlanSha256, "Retention deletion plan hash");
+    }
     const boundary = normalizeBoundaryRecord(input.retentionBoundary, null);
     const authority = normalizeAuthorityAssertion(input.authorization, "retention_operation.authorization");
     if (boundary.customerOverrideState !== "none") {
@@ -716,7 +737,6 @@ export function evaluateRouteIqRetentionOperation(input = {}, options = {}) {
     }
     if (input.operation === "physical_deletion") {
       if (requestedAt.milliseconds < Date.parse(boundary.expiresAt)) reasons.push("retention_not_expired");
-      reasons.push("physical_deletion_not_implemented_or_activated");
     }
     return deepFreeze({
       operation: input.operation,
@@ -905,10 +925,151 @@ function validateOperationReceiptRecord(record, context, priorRecords) {
   return record;
 }
 
+function normalizeDeletionArtifact(value, scope) {
+  if (value === null) return null;
+  const keys = new Set([
+    "ordinal",
+    "storageClass",
+    "artifactIdentitySha256",
+    "artifactSha256",
+    "byteLength"
+  ]);
+  assertExactRequiredKeys(value, keys, scope);
+  if (!Number.isSafeInteger(value.ordinal) || value.ordinal < 1
+    || !new Set(["field_session_kv", "prospective_coordinator_sqlite"]).has(value.storageClass)
+    || !Number.isSafeInteger(value.byteLength) || value.byteLength < 0) {
+    fail("route_iq_retention_deletion_artifact_invalid", "Retention deletion artifact progress is invalid.");
+  }
+  requireSha256(value.artifactIdentitySha256, "Retention deletion artifact identity hash");
+  requireSha256(value.artifactSha256, "Retention deletion artifact hash");
+  return clone(value);
+}
+
+function validateDeletionEventRecord(record, context, priorRecords) {
+  const keys = new Set([
+    "schemaVersion",
+    "recordKind",
+    "eventId",
+    "eventType",
+    "ledgerSequence",
+    "recordedAt",
+    "subject",
+    "deletionPlanSha256",
+    "operationReceiptSha256",
+    "legalHoldSnapshotIdentitySha256",
+    "artifact",
+    "totalArtifactCount",
+    "completedArtifactCount",
+    "continuationCursor",
+    "stateAfter",
+    "auditOwner",
+    "payloadRetained",
+    "appendOnly",
+    "historicalArchiveRewriteAllowed",
+    "physicalMutationPerformed",
+    "productionMutationAuthorized",
+    "previousRecordSha256",
+    "recordSha256"
+  ]);
+  assertExactRequiredKeys(record, keys, "retention_deletion_event");
+  const subject = normalizeSubject(record.subject);
+  if (!sameCanonical(subject, context.subject)) {
+    fail("route_iq_retention_ledger_subject_mismatch", "Retention deletion event has a different subject.");
+  }
+  if (!RETENTION_DELETION_EVENT_TYPES.has(record.eventType)) {
+    fail("route_iq_retention_deletion_event_type_invalid", "Retention deletion event type is invalid.");
+  }
+  requireSha256(record.deletionPlanSha256, "Retention deletion plan hash");
+  requireSha256(record.operationReceiptSha256, "Retention operation receipt hash");
+  requireSha256(record.legalHoldSnapshotIdentitySha256, "Retention legal-hold snapshot identity hash");
+  if (!Number.isSafeInteger(record.totalArtifactCount) || record.totalArtifactCount < 1
+    || !Number.isSafeInteger(record.completedArtifactCount)
+    || record.completedArtifactCount < 0
+    || record.completedArtifactCount > record.totalArtifactCount
+    || (record.continuationCursor !== null
+      && (typeof record.continuationCursor !== "string"
+        || !CONTINUATION_CURSOR_PATTERN.test(record.continuationCursor)))) {
+    fail("route_iq_retention_deletion_progress_invalid", "Retention deletion progress is invalid.");
+  }
+  const artifact = normalizeDeletionArtifact(record.artifact, "retention_deletion_event.artifact");
+  const previous = priorRecords.at(-1) || null;
+  canonicalIso(record.recordedAt, "Retention deletion event time");
+  assertGlobalChronology(record, previous);
+  const operationReceipt = priorRecords.find(candidate => candidate.recordKind === "route_iq_retention_operation_receipt"
+    && candidate.recordSha256 === record.operationReceiptSha256);
+  if (!operationReceipt
+    || operationReceipt.operationInput.operation !== "physical_deletion"
+    || operationReceipt.operationInput.deletionPlanSha256 !== record.deletionPlanSha256
+    || operationReceipt.decision.allowed !== true) {
+    fail("route_iq_retention_deletion_authorization_receipt_invalid", "Retention deletion event is not bound to an allowed operation receipt.");
+  }
+  const planEvents = priorRecords.filter(candidate => candidate.recordKind === "route_iq_retention_deletion_event"
+    && candidate.deletionPlanSha256 === record.deletionPlanSha256);
+  const priorEvent = planEvents.at(-1) || null;
+  const expectedPreviousHash = previous?.recordSha256 || null;
+  let expectedState;
+  let expectedPhysicalMutation;
+  if (record.eventType === "DELETION_STARTED") {
+    if (priorEvent || artifact !== null || record.completedArtifactCount !== 0
+      || record.continuationCursor === null) {
+      fail("route_iq_retention_deletion_transition_invalid", "Retention deletion start transition is invalid.");
+    }
+    expectedState = "DELETION_IN_PROGRESS";
+    expectedPhysicalMutation = false;
+  } else if (record.eventType === "ARTIFACT_DELETED") {
+    const priorCompleted = priorEvent?.completedArtifactCount;
+    if (!priorEvent || priorEvent.stateAfter !== "DELETION_IN_PROGRESS" || artifact === null
+      || artifact.ordinal !== priorCompleted + 1
+      || record.completedArtifactCount !== artifact.ordinal
+      || record.totalArtifactCount !== priorEvent.totalArtifactCount
+      || record.legalHoldSnapshotIdentitySha256 !== priorEvent.legalHoldSnapshotIdentitySha256
+      || (record.completedArtifactCount < record.totalArtifactCount && record.continuationCursor === null)
+      || (record.completedArtifactCount === record.totalArtifactCount && record.continuationCursor !== null)) {
+      fail("route_iq_retention_deletion_transition_invalid", "Retention artifact deletion transition is invalid.");
+    }
+    expectedState = "DELETION_IN_PROGRESS";
+    expectedPhysicalMutation = true;
+  } else {
+    if (!priorEvent || priorEvent.stateAfter !== "DELETION_IN_PROGRESS" || artifact !== null
+      || priorEvent.completedArtifactCount !== priorEvent.totalArtifactCount
+      || record.completedArtifactCount !== record.totalArtifactCount
+      || record.totalArtifactCount !== priorEvent.totalArtifactCount
+      || record.legalHoldSnapshotIdentitySha256 !== priorEvent.legalHoldSnapshotIdentitySha256
+      || record.continuationCursor !== null) {
+      fail("route_iq_retention_deletion_transition_invalid", "Retention deletion completion transition is invalid.");
+    }
+    expectedState = "DELETION_COMPLETED";
+    expectedPhysicalMutation = true;
+  }
+  if (record.schemaVersion !== routeIqRetentionDeletionEventVersion
+    || record.recordKind !== "route_iq_retention_deletion_event"
+    || record.ledgerSequence !== priorRecords.length + 1
+    || record.stateAfter !== expectedState
+    || record.auditOwner !== RETENTION_AUDIT_OWNER
+    || record.payloadRetained !== false
+    || record.appendOnly !== true
+    || record.historicalArchiveRewriteAllowed !== false
+    || record.physicalMutationPerformed !== expectedPhysicalMutation
+    || record.productionMutationAuthorized !== false
+    || record.previousRecordSha256 !== expectedPreviousHash) {
+    fail("route_iq_retention_deletion_event_semantics_invalid", "Retention deletion event failed canonical validation.");
+  }
+  requireSha256(record.recordSha256, "Retention deletion event hash");
+  const expectedEventId = `riq_retention_deletion_event_${sha256(stableJson(identityBody(record, "eventId")))}`;
+  if (record.eventId !== expectedEventId || sha256(stableJson(recordBody(record))) !== record.recordSha256) {
+    fail("route_iq_retention_deletion_event_integrity_invalid", "Retention deletion event integrity verification failed.");
+  }
+  return record;
+}
+
 function recordAuthorizationReference(record) {
-  return record.recordKind === "route_iq_retention_legal_hold_event"
-    ? record.authority.authorizationReference
-    : record.operationInput.authorization.authorizationReference;
+  if (record.recordKind === "route_iq_retention_legal_hold_event") {
+    return record.authority.authorizationReference;
+  }
+  if (record.recordKind === "route_iq_retention_operation_receipt") {
+    return record.operationInput.authorization.authorizationReference;
+  }
+  return null;
 }
 
 function validateLedgerRecords(records, context) {
@@ -922,14 +1083,16 @@ function validateLedgerRecords(records, context) {
       validateLegalHoldRecord(record, context, priorRecords);
     } else if (record?.recordKind === "route_iq_retention_operation_receipt") {
       validateOperationReceiptRecord(record, context, priorRecords);
+    } else if (record?.recordKind === "route_iq_retention_deletion_event") {
+      validateDeletionEventRecord(record, context, priorRecords);
     } else {
       fail("route_iq_retention_ledger_record_kind_invalid", "Retention ledger record kind is invalid.");
     }
     const authorizationReference = recordAuthorizationReference(record);
-    if (authorizationReferences.has(authorizationReference)) {
+    if (authorizationReference && authorizationReferences.has(authorizationReference)) {
       fail("route_iq_retention_ledger_authorization_reused", "Retention ledger authority reference was reused.");
     }
-    authorizationReferences.add(authorizationReference);
+    if (authorizationReference) authorizationReferences.add(authorizationReference);
     priorRecords.push(record);
   }
   return records;
@@ -1085,6 +1248,76 @@ async function appendOperationReceipt(ledger, input = {}) {
   return persistAndVerifyRecord(ledger, record);
 }
 
+async function appendDeletionEvent(ledger, input = {}) {
+  const state = requireLedger(ledger);
+  await refreshAuthoritativeState(state);
+  const keys = new Set([
+    "eventType",
+    "recordedAt",
+    "deletionPlanSha256",
+    "operationReceiptSha256",
+    "legalHoldSnapshotIdentitySha256",
+    "artifact",
+    "totalArtifactCount",
+    "completedArtifactCount",
+    "continuationCursor"
+  ]);
+  assertExactRequiredKeys(input, keys, "retention_deletion_event_append");
+  if (!RETENTION_DELETION_EVENT_TYPES.has(input.eventType)) {
+    fail("route_iq_retention_deletion_event_type_invalid", "Retention deletion event type is invalid.");
+  }
+  const recordedAt = canonicalIso(input.recordedAt, "Retention deletion event time");
+  const artifact = normalizeDeletionArtifact(input.artifact, "retention_deletion_event_append.artifact");
+  const existing = state.records.find(record => record.recordKind === "route_iq_retention_deletion_event"
+    && record.deletionPlanSha256 === input.deletionPlanSha256
+    && record.eventType === input.eventType
+    && record.recordedAt === input.recordedAt
+    && record.operationReceiptSha256 === input.operationReceiptSha256
+    && record.legalHoldSnapshotIdentitySha256 === input.legalHoldSnapshotIdentitySha256
+    && record.totalArtifactCount === input.totalArtifactCount
+    && record.completedArtifactCount === input.completedArtifactCount
+    && record.continuationCursor === input.continuationCursor
+    && sameCanonical(record.artifact, artifact));
+  if (existing) return deepFreeze(clone(existing));
+  const previous = state.records.at(-1) || null;
+  if (previous && recordedAt.milliseconds <= Date.parse(previous.recordedAt)) {
+    fail("route_iq_retention_ledger_chronology_invalid", "Retention ledger records must be strictly chronological.");
+  }
+  const body = {
+    schemaVersion: routeIqRetentionDeletionEventVersion,
+    recordKind: "route_iq_retention_deletion_event",
+    eventType: input.eventType,
+    ledgerSequence: state.records.length + 1,
+    recordedAt: recordedAt.iso,
+    subject: state.subject,
+    deletionPlanSha256: requireSha256(input.deletionPlanSha256, "Retention deletion plan hash"),
+    operationReceiptSha256: requireSha256(input.operationReceiptSha256, "Retention operation receipt hash"),
+    legalHoldSnapshotIdentitySha256: requireSha256(
+      input.legalHoldSnapshotIdentitySha256,
+      "Retention legal-hold snapshot identity hash"
+    ),
+    artifact,
+    totalArtifactCount: input.totalArtifactCount,
+    completedArtifactCount: input.completedArtifactCount,
+    continuationCursor: input.continuationCursor,
+    stateAfter: input.eventType === "DELETION_COMPLETED" ? "DELETION_COMPLETED" : "DELETION_IN_PROGRESS",
+    auditOwner: RETENTION_AUDIT_OWNER,
+    payloadRetained: false,
+    appendOnly: true,
+    historicalArchiveRewriteAllowed: false,
+    physicalMutationPerformed: input.eventType !== "DELETION_STARTED",
+    productionMutationAuthorized: false,
+    previousRecordSha256: previous?.recordSha256 || null
+  };
+  const event = {
+    ...body,
+    eventId: `riq_retention_deletion_event_${sha256(stableJson(body))}`
+  };
+  const record = deepFreeze({ ...event, recordSha256: sha256(stableJson(event)) });
+  validateDeletionEventRecord(record, state, state.records);
+  return persistAndVerifyRecord(ledger, record);
+}
+
 export async function openRouteIqRetentionGovernanceLedger(input = {}) {
   const keys = new Set(["store", "subject", "authorityVerifier"]);
   assertExactRequiredKeys(input, keys, "retention_ledger_open");
@@ -1112,7 +1345,8 @@ export async function openRouteIqRetentionGovernanceLedger(input = {}) {
     subjectKey: { value: state.subjectKey, enumerable: true },
     persistenceMode: { value: "durable_append_only", enumerable: true },
     appendLegalHold: { value: inputValue => appendLegalHold(ledger, inputValue), enumerable: true },
-    appendOperationReceipt: { value: inputValue => appendOperationReceipt(ledger, inputValue), enumerable: true }
+    appendOperationReceipt: { value: inputValue => appendOperationReceipt(ledger, inputValue), enumerable: true },
+    appendDeletionEvent: { value: inputValue => appendDeletionEvent(ledger, inputValue), enumerable: true }
   });
   return deepFreeze(ledger);
 }
@@ -1124,4 +1358,13 @@ export function validateRouteIqRetentionOperationReceipt(receipt, ledger) {
     fail("route_iq_retention_receipt_not_persisted", "Retention receipt is not the exact durable ledger record.");
   }
   return deepFreeze(clone(validateOperationReceiptRecord(receipt, state, state.records.slice(0, index))));
+}
+
+export function validateRouteIqRetentionDeletionEvent(event, ledger) {
+  const state = requireLedger(ledger);
+  const index = state.records.findIndex(record => record.recordSha256 === event?.recordSha256);
+  if (index < 0 || !sameCanonical(state.records[index], event)) {
+    fail("route_iq_retention_deletion_event_not_persisted", "Retention deletion event is not the exact durable ledger record.");
+  }
+  return deepFreeze(clone(validateDeletionEventRecord(event, state, state.records.slice(0, index))));
 }

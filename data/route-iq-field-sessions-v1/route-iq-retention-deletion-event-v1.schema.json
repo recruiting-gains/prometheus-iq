@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "route-iq-retention-deletion-event-v1.schema.json",
+  "title": "Route IQ Retention Deletion Event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordKind",
+    "eventId",
+    "eventType",
+    "ledgerSequence",
+    "recordedAt",
+    "subject",
+    "deletionPlanSha256",
+    "operationReceiptSha256",
+    "legalHoldSnapshotIdentitySha256",
+    "artifact",
+    "totalArtifactCount",
+    "completedArtifactCount",
+    "continuationCursor",
+    "stateAfter",
+    "auditOwner",
+    "payloadRetained",
+    "appendOnly",
+    "historicalArchiveRewriteAllowed",
+    "physicalMutationPerformed",
+    "productionMutationAuthorized",
+    "previousRecordSha256",
+    "recordSha256"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "route-iq-retention-deletion-event-v1" },
+    "recordKind": { "const": "route_iq_retention_deletion_event" },
+    "eventId": { "type": "string", "pattern": "^riq_retention_deletion_event_[a-f0-9]{64}$" },
+    "eventType": { "enum": ["DELETION_STARTED", "ARTIFACT_DELETED", "DELETION_COMPLETED"] },
+    "ledgerSequence": { "type": "integer", "minimum": 1 },
+    "recordedAt": { "type": "string", "format": "date-time" },
+    "subject": { "$ref": "route-iq-retention-operation-receipt-v1.schema.json#/$defs/subject" },
+    "deletionPlanSha256": { "$ref": "#/$defs/sha256" },
+    "operationReceiptSha256": { "$ref": "#/$defs/sha256" },
+    "legalHoldSnapshotIdentitySha256": { "$ref": "#/$defs/sha256" },
+    "artifact": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/artifact" }
+      ]
+    },
+    "totalArtifactCount": { "type": "integer", "minimum": 1 },
+    "completedArtifactCount": { "type": "integer", "minimum": 0 },
+    "continuationCursor": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^riq_retention_cursor_[a-f0-9]{64}$" }
+      ]
+    },
+    "stateAfter": { "enum": ["DELETION_IN_PROGRESS", "DELETION_COMPLETED"] },
+    "auditOwner": { "const": "prometheus_data" },
+    "payloadRetained": { "const": false },
+    "appendOnly": { "const": true },
+    "historicalArchiveRewriteAllowed": { "const": false },
+    "physicalMutationPerformed": { "type": "boolean" },
+    "productionMutationAuthorized": { "const": false },
+    "previousRecordSha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/sha256" }
+      ]
+    },
+    "recordSha256": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ordinal", "storageClass", "artifactIdentitySha256", "artifactSha256", "byteLength"],
+      "properties": {
+        "ordinal": { "type": "integer", "minimum": 1 },
+        "storageClass": { "enum": ["field_session_kv", "prospective_coordinator_sqlite"] },
+        "artifactIdentitySha256": { "$ref": "#/$defs/sha256" },
+        "artifactSha256": { "$ref": "#/$defs/sha256" },
+        "byteLength": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

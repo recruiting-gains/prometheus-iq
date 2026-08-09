@@ -11,7 +11,7 @@ import {
 
 export const routeIqProspectiveRetentionPolicyVersion = "route-iq-prospective-shadow-retention-policy-v1";
 export const routeIqProspectiveRetentionBoundaryContractVersion = "route-iq-field-session-retention-boundary-v3";
-export const routeIqProspectiveRetentionCurrentState = "founder_retention_authorized_runtime_deletion_still_inactive";
+export const routeIqProspectiveRetentionCurrentState = "founder_retention_authorized_source_deletion_runtime_dormant_not_deployed";
 export const routeIqProspectiveRetentionEnvelopeKeys = Object.freeze([
   "policyVersion",
   "collectionState",

@@ -19,6 +19,7 @@ export const routeIqSupportedDailyRepresentativeReportTypes = Object.freeze([
 export const routeIqChronologicalEvidenceProjectionVersion = "route-iq-chronological-evidence-projection-v1";
 export const routeIqFieldSessionOutcomeProjectionVersion = "route-iq-field-session-outcome-projection-v1";
 export const routeIqFieldSessionAdministrativeDispositionVersion = "route-iq-field-session-administrative-disposition-v1";
+export const routeIqFieldSessionRetentionDeletionStateVersion = "route-iq-field-session-retention-deletion-state-v1";
 export const routeIqFieldSessionAdministrativeDispositionReason = routeIqRetentionAdministrativeDispositionTarget.reason;
 export const routeIqFieldSessionAdministrativeDispositionState = routeIqRetentionAdministrativeDispositionTarget.state;
 export const routeIqFieldSessionAdministrativeDispositionAuthorizationBatchId =
@@ -985,6 +986,59 @@ export function fieldSessionAdministrativeDispositionStorageKey(workspaceId, ses
   return `${routeIqFieldSessionStoragePrefix}/workspaces/${workspaceId}/sessions/${sessionId}/administrative-disposition.json`;
 }
 
+export function fieldSessionRetentionDeletionStateStorageKey(workspaceId, sessionId) {
+  const keys = fieldSessionStorageKeys(workspaceId, sessionId);
+  return `${keys.base}/retention-deletion-state.json`;
+}
+
+function validateRetentionDeletionState(record, workspaceId, operatingProfileId, sessionId) {
+  const expectedKeys = [
+    "schemaVersion",
+    "workspaceId",
+    "operatingProfileId",
+    "sessionId",
+    "sourceRecordSha256",
+    "deletionPlanSha256",
+    "state",
+    "startedAt",
+    "updatedAt",
+    "totalArtifactCount",
+    "completedArtifactCount"
+  ];
+  const actualKeys = Object.keys(record || {}).sort();
+  if (stableJson(actualKeys) !== stableJson([...expectedKeys].sort())
+    || record.schemaVersion !== routeIqFieldSessionRetentionDeletionStateVersion
+    || record.workspaceId !== workspaceId
+    || record.operatingProfileId !== operatingProfileId
+    || record.sessionId !== sessionId
+    || typeof record.sourceRecordSha256 !== "string"
+    || !/^[a-f0-9]{64}$/.test(record.sourceRecordSha256)
+    || typeof record.deletionPlanSha256 !== "string"
+    || !/^[a-f0-9]{64}$/.test(record.deletionPlanSha256)
+    || !new Set(["DELETION_IN_PROGRESS", "DELETION_COMPLETED"]).has(record.state)
+    || !Number.isSafeInteger(record.totalArtifactCount)
+    || record.totalArtifactCount < 1
+    || !Number.isSafeInteger(record.completedArtifactCount)
+    || record.completedArtifactCount < 0
+    || record.completedArtifactCount > record.totalArtifactCount) {
+    throw new FieldSessionArchiveError("Field-session retention deletion state is invalid.", {
+      code: "field_session_retention_deletion_state_invalid",
+      status: 500,
+      details: { workspaceId, sessionId }
+    });
+  }
+  requireIso(record.startedAt, "Retention deletion startedAt");
+  requireIso(record.updatedAt, "Retention deletion updatedAt");
+  if ((record.state === "DELETION_COMPLETED") !== (record.completedArtifactCount === record.totalArtifactCount)) {
+    throw new FieldSessionArchiveError("Field-session retention deletion progress is inconsistent.", {
+      code: "field_session_retention_deletion_state_invalid",
+      status: 500,
+      details: { workspaceId, sessionId }
+    });
+  }
+  return deepFreeze(record);
+}
+
 function canonicalAdministrativeDispositionRequest(input = {}) {
   const allowedKeys = new Set([
     "workspaceId",
@@ -1666,6 +1720,24 @@ export async function persistRouteIqFieldSessionArchive(archivePackage, options 
 
   const store = options.store || createCloudflareKvFieldSessionStore(options.env, options);
   const keys = fieldSessionStorageKeys(normalized.workspaceId, archivePackage.sessionId);
+  const deletionStateKey = fieldSessionRetentionDeletionStateStorageKey(
+    normalized.workspaceId,
+    archivePackage.sessionId
+  );
+  const deletionState = parseStoredJson(await store.get(deletionStateKey), deletionStateKey);
+  if (deletionState) {
+    validateRetentionDeletionState(
+      deletionState,
+      normalized.workspaceId,
+      normalized.operatingProfileId,
+      archivePackage.sessionId
+    );
+    throw new FieldSessionArchiveError("Expired field-session evidence cannot be silently resurrected.", {
+      code: "field_session_retention_deletion_lifecycle_required",
+      status: 409,
+      details: { workspaceId: normalized.workspaceId, sessionId: archivePackage.sessionId }
+    });
+  }
   const existingCommit = parseStoredJson(await store.get(keys.commit), keys.commit);
   if (existingCommit) {
     assertSameSessionArtifact(existingCommit, normalized.workspaceId, archivePackage.sessionId, "Commit marker");
@@ -1805,6 +1877,25 @@ export async function readRouteIqFieldSessionArchive(input = {}, options = {}) {
   requireNonEmptyString(input.sessionId, "Field-session id");
   const store = options.store || createCloudflareKvFieldSessionStore(options.env, options);
   const keys = fieldSessionStorageKeys(input.workspaceId, input.sessionId);
+  const deletionStateKey = fieldSessionRetentionDeletionStateStorageKey(input.workspaceId, input.sessionId);
+  const deletionState = parseStoredJson(await store.get(deletionStateKey), deletionStateKey);
+  if (deletionState) {
+    const validatedDeletionState = validateRetentionDeletionState(
+      deletionState,
+      input.workspaceId,
+      input.operatingProfileId || workspace.operatingProfileId,
+      input.sessionId
+    );
+    return {
+      ok: true,
+      found: false,
+      unavailable: true,
+      status: validatedDeletionState.state === "DELETION_COMPLETED"
+        ? "retention_deleted"
+        : "retention_deletion_in_progress",
+      record: null
+    };
+  }
   const commit = parseStoredJson(await store.get(keys.commit), keys.commit);
   if (!commit) return { ok: true, found: false, record: null };
   assertSameSessionArtifact(commit, input.workspaceId, input.sessionId, "Commit marker");

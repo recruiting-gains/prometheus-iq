@@ -145,7 +145,10 @@ test("Data policy records the Founder maximum while collection and physical dele
   assert.equal(policy.policyVersion, routeIqProspectiveRetentionPolicyVersion);
   assert.equal(policy.batchId, "BATCH-20260714-004");
   assert.equal(policy.status, "founder_authorized_18_month_maximum_runtime_deletion_inactive");
-  assert.equal(routeIqProspectiveRetentionCurrentState, "founder_retention_authorized_runtime_deletion_still_inactive");
+  assert.equal(
+    routeIqProspectiveRetentionCurrentState,
+    "founder_retention_authorized_source_deletion_runtime_dormant_not_deployed"
+  );
   assert.equal(policy.retentionDecision.maximumCalendarMonths, 18);
   assert.equal(policy.retentionDecision.durationDays, null);
   assert.equal(policy.retentionDecision.customerContractMayShorten, true);
@@ -534,7 +537,7 @@ test("legal holds and releases require signed authority, durable chronology, and
   );
 });
 
-test("operation receipts derive decisions from a durable ledger and physical deletion has no mutation path", async () => {
+test("operation receipts derive decisions from a durable ledger and bind physical deletion to an exact plan", async () => {
   const disposition = await ledgerFor(DISPOSITION_SUBJECT);
   const input = dispositionOperationInput(disposition);
   const receipt = await disposition.ledger.appendOperationReceipt(input);
@@ -576,7 +579,8 @@ test("operation receipts derive decisions from a durable ledger and physical del
     requestedAt: "2028-01-14T12:00:00.001Z",
     subject: PROSPECTIVE_SUBJECT,
     retentionBoundary,
-    administrativeDispositionTarget: null
+    administrativeDispositionTarget: null,
+    deletionPlanSha256: retentionSha256("exact-deletion-plan")
   };
   const deletionInput = {
     ...deletionUnsigned,
@@ -586,11 +590,8 @@ test("operation receipts derive decisions from a durable ledger and physical del
     )
   };
   const deletionReceipt = await prospective.ledger.appendOperationReceipt(deletionInput);
-  assert.equal(deletionReceipt.decision.allowed, false);
-  assert.equal(
-    deletionReceipt.decision.reasons.includes("physical_deletion_not_implemented_or_activated"),
-    true
-  );
+  assert.equal(deletionReceipt.decision.allowed, true);
+  assert.deepEqual(deletionReceipt.decision.reasons, []);
   assert.equal(deletionReceipt.physicalMutationPerformed, false);
   assert.equal(typeof prospective.ledger.delete, "undefined");
   assert.equal(typeof prospective.ledger.physicallyDelete, "undefined");

@@ -6,6 +6,7 @@ import {
   readRouteIqRetentionLegalHoldSnapshot,
   routeIqCustomerRetentionOverrideAuthorityVersion,
   routeIqRetentionAuthorityAssertionVersion,
+  routeIqRetentionDeletionAuthorizationVersion,
   routeIqRetentionOperationAuthorizationVersion
 } from "../data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs";
 
@@ -103,17 +104,22 @@ export function retentionOperationAuthorityClaims({
   requestedAt,
   subject,
   retentionBoundary,
-  administrativeDispositionTarget
+  administrativeDispositionTarget,
+  deletionPlanSha256
 }) {
-  return {
+  const claims = {
     purpose: "retention_operation",
-    authorizationVersion: routeIqRetentionOperationAuthorizationVersion,
+    authorizationVersion: operation === "physical_deletion"
+      ? routeIqRetentionDeletionAuthorizationVersion
+      : routeIqRetentionOperationAuthorizationVersion,
     operation,
     requestedAt,
     subject,
     administrativeDispositionTarget,
     retentionBoundarySha256: retentionSha256(retentionBoundary)
   };
+  if (operation === "physical_deletion") claims.deletionPlanSha256 = deletionPlanSha256;
+  return claims;
 }
 
 export function customerOverrideAuthorityClaims({
