@@ -1041,6 +1041,20 @@ test("private Workflow v2 governance rejects controlled-rehearsal successor drif
     },
     value => {
       value.liveCanonicalIdentitySuccessor.productionMutationAuthorized = true;
+    },
+    value => {
+      value.retentionDeletionPayloadSuccessor.implementationCommit = "0".repeat(40);
+    },
+    value => {
+      value.retentionDeletionPayloadSuccessor.evidence[0].successorSha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.retentionDeletionPayloadSuccessor.qualifiedForwardPayloadSha256 =
+        value.fieldSessionReportTypeSuccessor.qualifiedForwardPayloadSha256;
+    },
+    value => {
+      value.retentionDeletionPayloadSuccessor.deploymentAuthorized = true;
     }
   ]) {
     const candidate = clone(governanceV2);

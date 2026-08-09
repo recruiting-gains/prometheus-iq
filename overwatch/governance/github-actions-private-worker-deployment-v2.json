@@ -1,6 +1,6 @@
 {
   "governanceId": "github-actions-private-worker-deployment-governance-v2",
-  "version": "1.15.0",
+  "version": "1.16.0",
   "batchId": "BATCH-20260726-006",
   "directive": "Paid-Customer Onboarding Foundation and Multi-Industry Configuration v1",
   "status": "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED",
@@ -1862,6 +1862,38 @@
     "changedPaths": [
       "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
       "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
+    ]
+  },
+  "retentionDeletionPayloadSuccessor": {
+    "authorization": "route-iq-retention-expiry-deletion-runtime-v1",
+    "historicalContinuityRewritten": false,
+    "productionMutationAuthorized": false,
+    "deploymentAuthorized": false,
+    "implementationCommit": "61e0c186af29e076797f817d0c834ec42531dbbe",
+    "implementationParent": "70686ca0385ac6f7eb7793a76e0eb19fe84b8c99",
+    "implementationTree": "3303f512355147592242762a845fe2cf550f5dff",
+    "implementationOwner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "implementationSubject": "infrastructure: refresh retention forward payload pin",
+    "previousQualifiedForwardPayloadSha256": "d9846e24a2d15ee2a5b540cbe6420d1acd1adf83dec32f593d2c4970e511263a",
+    "qualifiedForwardPayloadSha256": "7f2f937286a743bf5f31f42097974fa511fdf29d667d63b49ad911e5072108c3",
+    "deployParitySha256": "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9",
+    "qualifiedRollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+    "evidence": [
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "previousSha256": "559ae2314f0afef2a3314620290ddc5d1e3c4adf9fd9ce0e5cac6931e05449c6",
+        "successorSha256": "241bca226f91f65fb43150108b3e761d32ea825b2690ccb5f3ef3bb4dab16cbb"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "previousSha256": "ebe86706cbf5e9cdac53a3446306df81aa054e5f63df99c7218237284e459b5d",
+        "successorSha256": "f85eb601ffdec508575d8dbd4abe36702c0020b1b818043740da344e2d53fe72"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "previousSha256": "4487cae150550393dc5a2ff56b2f8411a0ef1a532522226d9c9c0e2996713056",
+        "successorSha256": "6367cfd6cbe73de350a42c84c514a38fee22094c1118f6f20cb223336f77de57"
+      }
     ]
   },
   "workflowBoundary": {

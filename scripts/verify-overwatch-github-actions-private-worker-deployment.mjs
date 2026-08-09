@@ -308,6 +308,26 @@ const v2ControlledRehearsalOwnerPreflightRepairParent =
   "3dc74e3a2f783cbed7610e503a89f4c7c59e0239";
 const v2ControlledRehearsalOwnerPreflightRepairTree =
   "cb523b32db075887c0bcac81816d4c47c85b0c66";
+const v2RetentionDeletionPayloadSuccessorCommit =
+  "61e0c186af29e076797f817d0c834ec42531dbbe";
+const v2RetentionDeletionPayloadSuccessorParent =
+  "70686ca0385ac6f7eb7793a76e0eb19fe84b8c99";
+const v2RetentionDeletionPayloadSuccessorTree =
+  "3303f512355147592242762a845fe2cf550f5dff";
+const v2RetentionDeletionPayloadSuccessorEvidence = Object.freeze({
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs": Object.freeze({
+    previousSha256: "559ae2314f0afef2a3314620290ddc5d1e3c4adf9fd9ce0e5cac6931e05449c6",
+    successorSha256: "241bca226f91f65fb43150108b3e761d32ea825b2690ccb5f3ef3bb4dab16cbb"
+  }),
+  "tests/github-actions-private-worker-workflow-v2.test.mjs": Object.freeze({
+    previousSha256: "ebe86706cbf5e9cdac53a3446306df81aa054e5f63df99c7218237284e459b5d",
+    successorSha256: "f85eb601ffdec508575d8dbd4abe36702c0020b1b818043740da344e2d53fe72"
+  }),
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json": Object.freeze({
+    previousSha256: "4487cae150550393dc5a2ff56b2f8411a0ef1a532522226d9c9c0e2996713056",
+    successorSha256: "6367cfd6cbe73de350a42c84c514a38fee22094c1118f6f20cb223336f77de57"
+  })
+});
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -1921,7 +1941,7 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(governance?.governanceId ===
     "github-actions-private-worker-deployment-governance-v2",
   "Private Workflow v2 governance identity drifted.");
-  require(governance?.version === "1.15.0"
+  require(governance?.version === "1.16.0"
     && governance?.status ===
     "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED"
     && governance?.owningSubsystem === "Prometheus Overwatch",
@@ -3244,12 +3264,40 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
       "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
     ])
-    && contract?.continuity?.privateDeployParitySha256 ===
-      governance?.fieldSessionReportTypeSuccessor?.deployParitySha256
-    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+    && governance?.retentionDeletionPayloadSuccessor?.authorization ===
+      "route-iq-retention-expiry-deletion-runtime-v1"
+    && governance?.retentionDeletionPayloadSuccessor?.historicalContinuityRewritten === false
+    && governance?.retentionDeletionPayloadSuccessor?.productionMutationAuthorized === false
+    && governance?.retentionDeletionPayloadSuccessor?.deploymentAuthorized === false
+    && governance?.retentionDeletionPayloadSuccessor?.implementationCommit ===
+      v2RetentionDeletionPayloadSuccessorCommit
+    && governance?.retentionDeletionPayloadSuccessor?.implementationParent ===
+      v2RetentionDeletionPayloadSuccessorParent
+    && governance?.retentionDeletionPayloadSuccessor?.implementationTree ===
+      v2RetentionDeletionPayloadSuccessorTree
+    && governance?.retentionDeletionPayloadSuccessor?.implementationOwner ===
+      infrastructureIdentity
+    && governance?.retentionDeletionPayloadSuccessor?.implementationSubject ===
+      "infrastructure: refresh retention forward payload pin"
+    && governance?.retentionDeletionPayloadSuccessor
+      ?.previousQualifiedForwardPayloadSha256 ===
       governance?.fieldSessionReportTypeSuccessor?.qualifiedForwardPayloadSha256
-    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+    && governance?.retentionDeletionPayloadSuccessor?.qualifiedForwardPayloadSha256 ===
+      "7f2f937286a743bf5f31f42097974fa511fdf29d667d63b49ad911e5072108c3"
+    && governance?.retentionDeletionPayloadSuccessor?.deployParitySha256 ===
+      governance?.fieldSessionReportTypeSuccessor?.deployParitySha256
+    && governance?.retentionDeletionPayloadSuccessor?.qualifiedRollbackBundleSha256 ===
       governance?.fieldSessionReportTypeSuccessor?.qualifiedRollbackBundleSha256
+    && equal(governance?.retentionDeletionPayloadSuccessor?.evidence,
+      Object.entries(v2RetentionDeletionPayloadSuccessorEvidence).map(
+        ([path, evidence]) => ({ path, ...evidence })
+      ))
+    && contract?.continuity?.privateDeployParitySha256 ===
+      governance?.retentionDeletionPayloadSuccessor?.deployParitySha256
+    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+      governance?.retentionDeletionPayloadSuccessor?.qualifiedForwardPayloadSha256
+    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+      governance?.retentionDeletionPayloadSuccessor?.qualifiedRollbackBundleSha256
     && contract?.browserAcceptance?.contract ===
       "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
     && contract?.browserAcceptance?.runner ===
@@ -3415,6 +3463,46 @@ function verifyV2OwnerAndGovernance() {
     });
   if (!retentionDeletionEvaluation.ok) {
     throw new Error(retentionDeletionEvaluation.failures.join("\n"));
+  }
+
+  const retentionPayloadMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    v2RetentionDeletionPayloadSuccessorCommit
+  ]).split("\n");
+  if (!equal(retentionPayloadMetadata, [
+    v2RetentionDeletionPayloadSuccessorCommit,
+    v2RetentionDeletionPayloadSuccessorParent,
+    v2RetentionDeletionPayloadSuccessorTree,
+    infrastructureIdentity,
+    infrastructureIdentity,
+    "infrastructure: refresh retention forward payload pin"
+  ])) throw new Error("Private Workflow v2 retention payload provenance drifted.");
+  const retentionPayloadPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    v2RetentionDeletionPayloadSuccessorCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(retentionPayloadPaths,
+    Object.keys(v2RetentionDeletionPayloadSuccessorEvidence))) {
+    throw new Error("Private Workflow v2 retention payload path set drifted.");
+  }
+  if (retentionPayloadPaths.some(path => path.startsWith("overwatch/")
+    || path === "package.json")) {
+    throw new Error("Private Workflow v2 retention payload crossed the Overwatch boundary.");
+  }
+  for (const [path, evidence] of Object.entries(
+    v2RetentionDeletionPayloadSuccessorEvidence
+  )) {
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${v2RetentionDeletionPayloadSuccessorParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const successor = execFileSync("/usr/bin/git", [
+      "show", `${v2RetentionDeletionPayloadSuccessorCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    if (sha256(previous) !== evidence.previousSha256
+      || sha256(successor) !== evidence.successorSha256
+      || sha256(readFileSync(resolve(root, path))) !== evidence.successorSha256) {
+      throw new Error(`Private Workflow v2 retention payload evidence drifted: ${path}`);
+    }
   }
 
   const metadata = git([
