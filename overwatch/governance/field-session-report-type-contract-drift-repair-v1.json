@@ -76,6 +76,17 @@
         "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
         "workers/infrastructure/github-actions-private-worker-deployment-v2.json"
       ]
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "commit": "d972003a6d92198767e0b626682c24824bf0ca4e",
+      "tree": "5c3dcf85756606a00b1c18fa58c2b91e963ffba0",
+      "parent": "2934770be9389118354423e1dc1f4150948374d4",
+      "subject": "intelligence: bind architecture to field-session successor",
+      "paths": [
+        "tests/intelligence-architecture.test.mjs"
+      ]
     }
   ],
   "overwatchCommits": [
@@ -190,6 +201,22 @@
     "storageSchemaChanged": false,
     "historicalContractsRewritten": false
   },
+  "intelligenceArchitectureConsumer": {
+    "classification": "FIELD_SESSION_REPORT_TYPE_ARCHITECTURE_CONSUMER_SUCCESSOR",
+    "ownerCommit": "d972003a6d92198767e0b626682c24824bf0ca4e",
+    "ownerParent": "2934770be9389118354423e1dc1f4150948374d4",
+    "ownerTree": "5c3dcf85756606a00b1c18fa58c2b91e963ffba0",
+    "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "path": "tests/intelligence-architecture.test.mjs",
+    "previousSha256": "dd7449ad92b8932b9d7dc0fe29d25f7f2e3a4b931726f1400d35156476e0a00c",
+    "currentSha256": "ed6fb924ed0deb7cfc758cbc6cd4f48ef87bd8fd6e7875b63335764bb45cbd82",
+    "protectedSourcePath": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+    "protectedSourcePreviousSha256": "4b682c744aa19fa53813dfac838a638810e55c3067033f1cf711e83df6ee73c3",
+    "protectedSourceCurrentSha256": "5b4bc3d49596b3b4fa3c348ece30344f852f92056b0ceb8db8007cacbdfe2d2a",
+    "historicalCheckpointRewritten": false,
+    "intelligenceRuntimeChanged": false,
+    "recommendationInfluenceChanged": false
+  },
   "privateWorkflowContinuity": {
     "classification": "FIELD_SESSION_REPORT_TYPE_PRIVATE_PAYLOAD_SUCCESSOR",
     "ownerCommit": "a51eb4113fcbb08eb2e4bb797533c5e960ae4e0e",
@@ -234,12 +261,14 @@
     "idempotentRetryAndConflictBehaviorRequired": true,
     "endRouteAndEndDayCoverageRequired": true,
     "exactFinalCommitHostedQualificationRequired": true,
+    "intelligenceArchitectureSuccessorRequired": true,
     "productionVerificationRequired": false
   },
   "rollback": {
     "strategy": "FORWARD_REVERT_EXACT_OWNER_CHAIN",
     "nativeOrDestructiveRollbackAllowed": false,
     "latestFirstOwnerCommits": [
+      "d972003a6d92198767e0b626682c24824bf0ca4e",
       "a51eb4113fcbb08eb2e4bb797533c5e960ae4e0e",
       "655224332c65ec28d5c45b1accd2eae3d12555c2",
       "d9aae1a1da5779f3a59bc5e955a851fef4f5fe18",
