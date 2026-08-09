@@ -264,7 +264,12 @@ test("schema, Data contract, archive bytes, and inactive production state are fi
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.newRetentionPeriodIntroduced, true);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.existingRetentionPeriodExtended, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.retentionPolicyProvided, true);
-  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.retentionPolicyStatus, "founder_authorized_18_month_maximum_runtime_deletion_inactive");
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.retentionPolicyStatus, "founder_authorized_18_month_maximum_source_deletion_runtime_dormant");
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.physicalDeletionImplementationVerified, true);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.physicalDeletionImplementationAvailable, true);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.physicalDeletionImplementationStatus, "source_complete_dormant_not_deployed");
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.physicalDeletionDeployed, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.physicalDeletionActivated, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.numericRetentionDurationSelected, true);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.maximumRetentionCalendarMonths, 18);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.explicitAuthorizedFieldSessionRetentionBoundaryAvailable, true);
