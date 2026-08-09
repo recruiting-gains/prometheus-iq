@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
@@ -19,6 +20,9 @@ import {
   validateControlledRehearsalReport,
   verifyOverwatchControlledPaidCustomerOnboardingRehearsalV1
 } from "../scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs";
+import {
+  hasRetentionDeletionPayloadInfrastructureSuccessor
+} from "../scripts/verify-overwatch-github-actions-private-worker-deployment.mjs";
 
 const root = new URL("../", import.meta.url);
 const readJson = path => JSON.parse(readFileSync(new URL(path, root), "utf8"));
@@ -27,6 +31,18 @@ const governance = readJson(
 );
 const report = readJson(
   "overwatch/reports/BATCH-20260730-002-controlled-paid-customer-onboarding-rehearsal-v1.json"
+);
+const privateWorkflowGovernance = readJson(
+  "overwatch/governance/github-actions-private-worker-deployment-v2.json"
+);
+const fieldSessionReportTypeGovernance = readJson(
+  "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json"
+);
+const liveCanonicalIdentityGovernance = readJson(
+  "overwatch/governance/live-canonical-identity-migration-v1.json"
+);
+const currentReadinessSuccessors = readJson(
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
 );
 const clone = value => structuredClone(value);
 
@@ -155,6 +171,40 @@ test("Overwatch accepts only the exact field-session report-type successors", ()
       assert.throws(() => validate(candidate));
     }
   }
+});
+
+test("Overwatch composes the exact retention deletion private payload successor", () => {
+  for (const [path, previousSha256] of Object.entries({
+    "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
+      "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
+    "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+      "30810573fc0926c03a6bbc5337db4ce7030c419a4b08c64b219db7c3abeb371b"
+  })) {
+    assert.equal(hasRetentionDeletionPayloadInfrastructureSuccessor({
+      governance: privateWorkflowGovernance,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors: currentReadinessSuccessors,
+      path,
+      previousSha256,
+      currentSha256: createHash("sha256").update(readFileSync(new URL(path, root))).digest("hex")
+    }), true);
+  }
+  const changed = clone(privateWorkflowGovernance);
+  changed.retentionDeletionPayloadSuccessor.evidence[0].successorSha256 =
+    "0".repeat(64);
+  assert.equal(hasRetentionDeletionPayloadInfrastructureSuccessor({
+    governance: changed,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+    previousSha256:
+      "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
+    currentSha256: createHash("sha256").update(readFileSync(new URL(
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs", root
+    ))).digest("hex")
+  }), false);
 });
 
 test("Overwatch independently accepts the controlled rehearsal owner chain", async () => {

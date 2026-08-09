@@ -21,7 +21,8 @@ import {
 } from "../workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.js";
 import {
   hasFieldSessionReportTypeInfrastructureSuccessor,
-  hasLiveCanonicalIdentityOwnerEvidenceSuccessor
+  hasLiveCanonicalIdentityOwnerEvidenceSuccessor,
+  hasRetentionDeletionPayloadInfrastructureSuccessor
 } from "./verify-overwatch-github-actions-private-worker-deployment.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -537,6 +538,9 @@ function verifyCurrentOwnerFiles(governance) {
   const fieldSessionReportTypeGovernance = readJson(
     "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json"
   );
+  const privateWorkflowGovernance = readJson(
+    "overwatch/governance/github-actions-private-worker-deployment-v2.json"
+  );
   validateControlledRehearsalIntelligenceSuccessor(
     controlledRehearsalIntelligenceSuccessor
   );
@@ -619,6 +623,17 @@ function verifyCurrentOwnerFiles(governance) {
           ]).split("\n").filter(Boolean);
           assert.ok(changedPaths.includes(item.path),
             `governed successor omitted path: ${item.path}`);
+        } else if (hasRetentionDeletionPayloadInfrastructureSuccessor({
+          governance: privateWorkflowGovernance,
+          fieldSessionReportTypeGovernance,
+          liveCanonicalIdentityGovernance,
+          readinessSuccessors: currentReadinessSuccessors,
+          path: item.path,
+          previousSha256: successor?.sha256 ?? item.sha256,
+          currentSha256: actual
+        })) {
+          assert.notEqual(actual, item.sha256,
+            `retention-deletion successor did not advance owner evidence: ${item.path}`);
         } else if (hasFieldSessionReportTypeInfrastructureSuccessor({
           governance: fieldSessionReportTypeGovernance,
           liveCanonicalIdentityGovernance,
