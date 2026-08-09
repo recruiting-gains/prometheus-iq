@@ -1,0 +1,39 @@
+{
+  "contractVersion": "route-iq-retention-maintenance-runtime-contract-v1",
+  "owningSubsystem": "Prometheus Infrastructure",
+  "status": "source_complete_dormant_not_deployed",
+  "dataRuntimeVersion": "route-iq-retention-deletion-runtime-v1",
+  "ordinaryArchiveBinding": {
+    "name": "DATA_ROUTE_IQ_FIELD_SESSION_STORE",
+    "requiredMethods": ["get", "put", "list"],
+    "deleteCapabilityAllowed": false,
+    "ingestionRequiresMaintenanceBinding": false
+  },
+  "maintenanceBinding": {
+    "name": "DATA_ROUTE_IQ_RETENTION_MAINTENANCE_STORE",
+    "requiredMethods": ["get", "put", "list", "delete"],
+    "mustBeSeparateFromOrdinaryArchiveBinding": true,
+    "capability": "authenticated_retention_maintenance_v1",
+    "genericAdministrationExposureAllowed": false,
+    "publicWorkerExposureAllowed": false,
+    "dashboardExposureAllowed": false,
+    "representativeExposureAllowed": false
+  },
+  "activation": {
+    "workerRouteConfigured": false,
+    "schedulerConfigured": false,
+    "cronConfigured": false,
+    "alarmConfigured": false,
+    "queueConsumerConfigured": false,
+    "productionBindingConfigured": false,
+    "productionDeploymentAuthorized": false,
+    "productionDeletionAuthorized": false
+  },
+  "protectedState": {
+    "collection": "off",
+    "activeCohorts": 0,
+    "recommendationInfluence": "off",
+    "providers": "off",
+    "scheduler": "off"
+  }
+}
