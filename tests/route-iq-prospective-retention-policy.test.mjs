@@ -137,14 +137,14 @@ function dispositionOperationInput(context, {
   };
 }
 
-test("Data policy records the Founder maximum while collection and physical deletion stay inactive", () => {
+test("Data policy records the Founder maximum while source deletion stays dormant and production stays inactive", () => {
   const policy = json(POLICY_PATH);
   const contract = json(CONTRACT_PATH);
   const retention = contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection;
 
   assert.equal(policy.policyVersion, routeIqProspectiveRetentionPolicyVersion);
   assert.equal(policy.batchId, "BATCH-20260714-004");
-  assert.equal(policy.status, "founder_authorized_18_month_maximum_runtime_deletion_inactive");
+  assert.equal(policy.status, "founder_authorized_18_month_maximum_source_deletion_runtime_dormant");
   assert.equal(
     routeIqProspectiveRetentionCurrentState,
     "founder_retention_authorized_source_deletion_runtime_dormant_not_deployed"
@@ -155,7 +155,7 @@ test("Data policy records the Founder maximum while collection and physical dele
   assert.equal(policy.retentionDecision.customerContractMayExpand, false);
   assert.equal(policy.retentionDecision.creationTimeBasis, "canonical_authoritative_source_record_time");
   assert.equal(policy.expiryAndDeletion.physicalDeletionActivated, false);
-  assert.equal(policy.expiryAndDeletion.physicalDeletionEvaluatorCanPerformMutation, false);
+  assert.equal(policy.expiryAndDeletion.physicalDeletionEvaluatorCanPerformMutation, true);
   assert.equal(policy.legalHold.callerAssertedStateAccepted, false);
   assert.equal(policy.legalHold.activeHoldBlocksEvaluationAndAggregateEligibility, true);
   assert.equal(policy.activationBoundary.productionMutationPerformed, false);
@@ -167,7 +167,10 @@ test("Data policy records the Founder maximum while collection and physical dele
   assert.equal(retention.callerAssertedLegalHoldStateAccepted, false);
   assert.equal(retention.retentionOperationReceiptSchemaVersion, routeIqRetentionOperationReceiptVersion);
   assert.equal(retention.retentionOperationReceiptsDeriveAllowedAndReasons, true);
-  assert.equal(retention.physicalDeletionImplementationAvailable, false);
+  assert.equal(retention.physicalDeletionImplementationAvailable, true);
+  assert.equal(retention.physicalDeletionImplementationStatus, "source_complete_dormant_not_deployed");
+  assert.equal(retention.physicalDeletionDeployed, false);
+  assert.equal(retention.physicalDeletionActivated, false);
   assert.equal(retention.activationEligibleUnderRetentionPolicy, false);
   assert.equal(policy.expiryAndDeletion.physicalDeletionImplementationStatus, "source_complete_dormant_not_deployed");
   assert.equal(policy.expiryAndDeletion.authenticatedMaintenanceMutationPathAvailable, true);
