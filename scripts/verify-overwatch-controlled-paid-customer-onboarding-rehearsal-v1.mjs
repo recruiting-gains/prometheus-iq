@@ -22,7 +22,9 @@ import {
 import {
   hasFieldSessionReportTypeInfrastructureSuccessor,
   hasLiveCanonicalIdentityOwnerEvidenceSuccessor,
-  hasRetentionDeletionPayloadInfrastructureSuccessor
+  hasRetentionDeletionPayloadInfrastructureSuccessor,
+  hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
+  evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors
 } from "./verify-overwatch-github-actions-private-worker-deployment.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -541,6 +543,15 @@ function verifyCurrentOwnerFiles(governance) {
   const privateWorkflowGovernance = readJson(
     "overwatch/governance/github-actions-private-worker-deployment-v2.json"
   );
+  const retentionDeletionGovernance = readJson(
+    "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json"
+  );
+  const retentionDeletionEvaluation =
+    evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors({
+      governance: retentionDeletionGovernance
+    });
+  assert.equal(retentionDeletionEvaluation.ok, true,
+    retentionDeletionEvaluation.failures.join("\n"));
   validateControlledRehearsalIntelligenceSuccessor(
     controlledRehearsalIntelligenceSuccessor
   );
@@ -560,12 +571,8 @@ function verifyCurrentOwnerFiles(governance) {
   const fieldSessionDriftFixtureEvidence = new Map(
     fieldSessionDriftFixtureSuccessor.evidence.map(item => [item.path, item])
   );
-  const shadowReadinessSuccessor =
-    validateFullSystemHarmonyShadowReadinessSuccessor(
-      fullSystemHarmonyShadowReadinessSuccessor
-    );
-  const shadowReadinessEvidence = new Map(
-    shadowReadinessSuccessor.evidence.map(item => [item.path, item])
+  validateFullSystemHarmonyShadowReadinessSuccessor(
+    fullSystemHarmonyShadowReadinessSuccessor
   );
   const governedSuccessors = new Map([
     ["workers/prometheus-iq-worker.js", {
@@ -585,8 +592,8 @@ function verifyCurrentOwnerFiles(governance) {
       sha256: "0c38be17c0823b1e247f1781353bbce543d66deb46f775c7a905b4164cb6d951"
     }],
     ["intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs", {
-      commit: "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0",
-      sha256: "d709cfea9765ee13cb43f86fe5084f6cdc3521fcb08d28f5deeed580189a2284"
+      commit: "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b",
+      sha256: "7e1920f2c5c13ef6ff948241d0ad0100eb271867ee4fcedd62067234b1827fed"
     }],
     ["tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs", {
       commit: "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0",
@@ -599,10 +606,12 @@ function verifyCurrentOwnerFiles(governance) {
       ).sha256
     }],
     ["scripts/verify-shadow-decision-readiness.mjs", {
-      commit: shadowReadinessSuccessor.commit,
-      sha256: shadowReadinessEvidence.get(
-        "scripts/verify-shadow-decision-readiness.mjs"
-      ).sha256
+      commit: "f37a1e16a73d89c57fb988c53c472a570fdbc15f",
+      sha256: "bda4488c6015751fe24ddd36dd5dec38a8106a0a2a061a56e3232785b325c911"
+    }],
+    ["tests/shadow-decision-readiness.test.mjs", {
+      commit: "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
+      sha256: "90bf943f8296d8c7e5ab14e57b5a2f02801260ebf2968f5bbbd4ce8b42af9d88"
     }]
   ]);
   for (const record of governance.ownership.ownerCommits.slice(1)) {
@@ -623,6 +632,17 @@ function verifyCurrentOwnerFiles(governance) {
           ]).split("\n").filter(Boolean);
           assert.ok(changedPaths.includes(item.path),
             `governed successor omitted path: ${item.path}`);
+        } else if (hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
+          governance: privateWorkflowGovernance,
+          fieldSessionReportTypeGovernance,
+          liveCanonicalIdentityGovernance,
+          readinessSuccessors: currentReadinessSuccessors,
+          path: item.path,
+          previousSha256: successor?.sha256 ?? item.sha256,
+          currentSha256: actual
+        })) {
+          assert.notEqual(actual, item.sha256,
+            `retention-deletion qualification successor did not advance owner evidence: ${item.path}`);
         } else if (hasRetentionDeletionPayloadInfrastructureSuccessor({
           governance: privateWorkflowGovernance,
           fieldSessionReportTypeGovernance,

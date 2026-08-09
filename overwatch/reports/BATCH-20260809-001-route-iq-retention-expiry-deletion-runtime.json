@@ -67,6 +67,8 @@
       "dataCoordinatorTests": "121/121 PASS",
       "infrastructureRetentionMaintenanceTests": "5/5 PASS",
       "privateWorkflowV2Tests": "33/33 PASS",
+      "privateWorkflowGovernanceTests": "20/20 PASS",
+      "controlledRehearsalGovernanceTests": "14/14 PASS",
       "intelligenceConsumerTests": "86/86 PASS",
       "security": "PASS",
       "aegis": "PASS",
@@ -84,6 +86,8 @@
     "fourthHostedQualificationResult": "FAILED_CLOSED_STALE_FOUNDER_ATTENDED_PACKAGE_SUCCESSOR",
     "fifthHostedQualificationRun": 31337831024,
     "fifthHostedQualificationResult": "FAILED_CLOSED_PRIVATE_WORKFLOW_PACKAGE_TEST_PATH",
+    "sixthHostedQualificationRun": 31340617780,
+    "sixthHostedQualificationResult": "FAILED_CLOSED_FINAL_RETENTION_SUCCESSORS_UNCOMPOSED",
     "exactFinalCommitHostedQualification": "EXACT_COMMIT_BOUND_WORKFLOW_REQUIRED_AND_FAIL_CLOSED"
   },
   "deletionGraph": {

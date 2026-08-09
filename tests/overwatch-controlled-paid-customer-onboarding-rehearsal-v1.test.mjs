@@ -21,7 +21,8 @@ import {
   verifyOverwatchControlledPaidCustomerOnboardingRehearsalV1
 } from "../scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs";
 import {
-  hasRetentionDeletionPayloadInfrastructureSuccessor
+  hasRetentionDeletionPayloadInfrastructureSuccessor,
+  hasRetentionDeletionPayloadQualificationInfrastructureSuccessor
 } from "../scripts/verify-overwatch-github-actions-private-worker-deployment.mjs";
 
 const root = new URL("../", import.meta.url);
@@ -180,7 +181,19 @@ test("Overwatch composes the exact retention deletion private payload successor"
     "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
       "30810573fc0926c03a6bbc5337db4ce7030c419a4b08c64b219db7c3abeb371b"
   })) {
+    const historicalSuccessorSha256 = privateWorkflowGovernance
+      .retentionDeletionPayloadSuccessor.evidence
+      .find(item => item.path === path).successorSha256;
     assert.equal(hasRetentionDeletionPayloadInfrastructureSuccessor({
+      governance: privateWorkflowGovernance,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors: currentReadinessSuccessors,
+      path,
+      previousSha256,
+      currentSha256: historicalSuccessorSha256
+    }), true);
+    assert.equal(hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
       governance: privateWorkflowGovernance,
       fieldSessionReportTypeGovernance,
       liveCanonicalIdentityGovernance,
@@ -191,9 +204,9 @@ test("Overwatch composes the exact retention deletion private payload successor"
     }), true);
   }
   const changed = clone(privateWorkflowGovernance);
-  changed.retentionDeletionPayloadSuccessor.evidence[0].successorSha256 =
+  changed.retentionDeletionPayloadQualificationSuccessor.evidence[0].successorSha256 =
     "0".repeat(64);
-  assert.equal(hasRetentionDeletionPayloadInfrastructureSuccessor({
+  assert.equal(hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
     governance: changed,
     fieldSessionReportTypeGovernance,
     liveCanonicalIdentityGovernance,

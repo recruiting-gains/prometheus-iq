@@ -248,6 +248,7 @@ function verifyPinnedFiles(governance) {
     governance.qualificationRepair.founderAttendedPackageWiring.verifier,
     governance.qualificationRepair.founderAttendedPackageWiring.regressionTest,
     governance.qualificationRepair.founderAttendedPackageWiring.ttyRegressionTest,
+    ...governance.qualificationRepair.finalPayloadSuccessorComposition.files,
     governance.forwardRevert
   ];
   for (const pin of pins) assert.equal(sha256(read(pin.path)), pin.sha256, `${pin.path} hash drifted.`);
@@ -321,6 +322,20 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(governance.qualificationRepair.privateWorkflowPayload.failedRun, 31337831024);
   assert.equal(governance.qualificationRepair.privateWorkflowPayload.runtimeBehaviorChanged, false);
   assert.equal(governance.qualificationRepair.privateWorkflowPayload.deploymentPerformed, false);
+  assert.equal(governance.qualificationRepair.finalPayloadSuccessorComposition.failedRun,
+    31340617780);
+  assert.equal(governance.qualificationRepair.finalPayloadSuccessorComposition.runtimeBehaviorChanged,
+    false);
+  assert.equal(governance.qualificationRepair.finalPayloadSuccessorComposition
+    .productionMutationPerformed, false);
+  assert.equal(governance.qualificationRepair.finalPayloadSuccessorComposition
+    .historicalSuccessorsPreserved, true);
+  assert.equal(governance.qualificationRepair.finalPayloadSuccessorComposition
+    .terminalInfrastructureOwnerCommit, "1f347ba74bfa2eab0415b3778dcbfdc0f80dd9ee");
+  assert.equal(governance.qualificationRepair.finalPayloadSuccessorComposition
+    .terminalIntelligenceOwnerCommit, "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b");
+  assert.equal(governance.qualificationRepair.finalPayloadSuccessorComposition
+    .orderedOwnerChainRequired, true);
   assert.equal(
     governance.infrastructureBoundary.privateWorkflowQualification.forwardPayloadSha256,
     "aaa8b360d5851bec21637d4c639a485555c367d1d5c9defb1b12163160c035c7"
@@ -413,9 +428,16 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.qualification.fifthHostedQualificationRun, 31337831024);
   assert.equal(report.qualification.fifthHostedQualificationResult,
     "FAILED_CLOSED_PRIVATE_WORKFLOW_PACKAGE_TEST_PATH");
+  assert.equal(report.qualification.sixthHostedQualificationRun, 31340617780);
+  assert.equal(report.qualification.sixthHostedQualificationResult,
+    "FAILED_CLOSED_FINAL_RETENTION_SUCCESSORS_UNCOMPOSED");
   assert.equal(report.qualification.focusedSuccessorVerification.dataCoordinatorTests, "121/121 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.intelligenceConsumerTests, "86/86 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.privateWorkflowV2Tests, "33/33 PASS");
+  assert.equal(report.qualification.focusedSuccessorVerification.privateWorkflowGovernanceTests,
+    "20/20 PASS");
+  assert.equal(report.qualification.focusedSuccessorVerification
+    .controlledRehearsalGovernanceTests, "14/14 PASS");
   assert.equal(report.qualification.exactFinalCommitHostedQualification,
     "EXACT_COMMIT_BOUND_WORKFLOW_REQUIRED_AND_FAIL_CLOSED");
   assert.equal(report.releaseBoundary.deploymentAuthorized, false);

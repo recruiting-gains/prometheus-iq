@@ -263,7 +263,7 @@
       },
       "controlledRehearsalVerifier": {
         "path": "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
-        "sha256": "e890b5d7059aac5bab551ad3b02b4473030ab02e39eac319f90cca469287e187"
+        "sha256": "91adc6a924f5da3918447b9099001245e29cd8bcedef846a5aa4a2d782905be6"
       },
       "overwatchRegressionTest": {
         "path": "tests/live-canonical-identity-migration-v1.test.mjs",
@@ -280,7 +280,7 @@
       "wrongBranchRefTypeShaOrOriginFailsClosed": true,
       "regressionTest": {
         "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
-        "sha256": "ae5e2769f6d5a59ccca04837ff482cf2eceedb732c31f94579f7c6937db2a834"
+        "sha256": "7faf63d08e6df5ea0c092075762d212ca4ea17c2bb3a06510ffffaf835562b09"
       }
     },
     "founderAttendedPackageWiring": {
@@ -319,6 +319,39 @@
       "deployPayloadChanged": false,
       "rollbackPayloadChanged": false,
       "forwardPayloadAdvancedOnlyForGovernedRetentionSource": true
+    },
+    "finalPayloadSuccessorComposition": {
+      "failedRun": 31340617780,
+      "failure": "FINAL_RETENTION_PAYLOAD_AND_INTELLIGENCE_SUCCESSORS_WERE_NOT_COMPOSED_BY_CONTROLLED_REHEARSAL_GOVERNANCE",
+      "runtimeBehaviorChanged": false,
+      "productionMutationPerformed": false,
+      "deploymentPerformed": false,
+      "historicalSuccessorsPreserved": true,
+      "terminalInfrastructureOwnerCommit": "1f347ba74bfa2eab0415b3778dcbfdc0f80dd9ee",
+      "terminalIntelligenceOwnerCommit": "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b",
+      "orderedOwnerChainRequired": true,
+      "files": [
+        {
+          "path": "overwatch/governance/github-actions-private-worker-deployment-v2.json",
+          "sha256": "b2bcc4cc41253d98ac08ba9735308766c6bfd020554b09881ec89258aec5e781"
+        },
+        {
+          "path": "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
+          "sha256": "d6a7b829e083f54ac271f5c5fc786bf1fca15154e88cc37aa3ee62edbaf790ca"
+        },
+        {
+          "path": "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+          "sha256": "91adc6a924f5da3918447b9099001245e29cd8bcedef846a5aa4a2d782905be6"
+        },
+        {
+          "path": "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
+          "sha256": "7209d3313ed46604b0941e8e463b2038f0b91a06bc1c76d344d7f98e8c2be2a4"
+        },
+        {
+          "path": "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
+          "sha256": "3d81614004cbf4b098ddeee66b516f9b76ed961c5062f06dc4b446962bc7d03b"
+        }
+      ]
     }
   },
   "historicalEvidence": {
