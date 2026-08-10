@@ -136,7 +136,7 @@ API/config choices follow current Cloudflare guidance for [Durable Object RPC](h
 
 `npm run infrastructure:route-iq-prospective-shadow:check` runs source/config invariants and focused Node/real-Miniflare tests. Coverage includes OFF zero-call behavior, Access signature/issuer/audience/expiry, strict territory provenance, Access-before-DO, authority rejection, opaque responses, production per-stage server clock sampling, signed Data retention admission integrity/freshness/scope/hash/tamper rejection, source failure exclusions, archive projection/reconciliation, production missing-retention fail-closed behavior, hypothetical ON local compatibility without activation authorization, missing/non-scoreable skip, retry/restart, recovery bounds, unchanged field-session acknowledgments, and two-opportunity same-session restart coverage.
 
-Release validation also runs Data coordinator/field-session tests, existing Worker tests, Aegis/security checks, lint/typecheck/build, Wrangler 4.110.0 config validation and dry-run, secret scan, and owned-diff checks.
+Release validation also runs Data coordinator/field-session tests, existing Worker tests, Aegis/security checks, lint/typecheck/build, Wrangler 4.120.1 config validation and dry-run, secret scan, and owned-diff checks.
 
 ## Rollback
 

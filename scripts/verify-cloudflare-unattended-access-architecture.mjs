@@ -109,13 +109,13 @@ export function verifyCloudflareUnattendedAccessArchitecture({ requireReady = fa
   assert.equal(contract.founderDeploymentControl.founderDirectiveStillRequired, true);
   assert.equal(contract.deploymentGates.automaticEngineeringPushIsDeploymentAuthorization, false);
 
-  assert.equal(packageJson.devDependencies.wrangler, "4.110.0");
-  assert.equal(packageLock.packages[""].devDependencies.wrangler, "4.110.0");
-  assert.equal(packageLock.packages["node_modules/wrangler"].version, "4.110.0");
+  assert.equal(packageJson.devDependencies.wrangler, "4.120.1");
+  assert.equal(packageLock.packages[""].devDependencies.wrangler, "4.120.1");
+  assert.equal(packageLock.packages["node_modules/wrangler"].version, "4.120.1");
   assert.equal(packageLock.packages["node_modules/wrangler"].bin.wrangler, "bin/wrangler.js");
-  assert.equal(installedWrangler.version, "4.110.0");
+  assert.equal(installedWrangler.version, "4.120.1");
   assert.equal(installedWrangler.bin.wrangler, "./bin/wrangler.js");
-  assert.equal(contract.auditedKeychainLauncher.pinnedWranglerVersion, "4.110.0");
+  assert.equal(contract.auditedKeychainLauncher.pinnedWranglerVersion, "4.120.1");
   assert.equal(contract.auditedKeychainLauncher.wranglerIsExactDirectDevDependency, true);
 
   assert.equal(contract.servicePrincipalReadOnlyGuard.status, "IMPLEMENTED_SOURCE_NOT_DEPLOYED_NOT_CONFIGURED");

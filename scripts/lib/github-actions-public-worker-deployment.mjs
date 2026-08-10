@@ -50,7 +50,7 @@ export const PUBLIC_WORKER_DEPLOYMENT_POLICY = Object.freeze({
   crmBinding: "ROUTE_IQ_REQUEST_CRM_COORDINATOR",
   crmClass: "RouteIqRequestCrmCoordinator",
   crmMigration: "route-iq-request-crm-sqlite-v1",
-  wranglerVersion: "4.110.0",
+  wranglerVersion: "4.120.1",
   wranglerModule: "node_modules/wrangler/bin/wrangler.js",
   cloudflareApiOrigin: "https://api.cloudflare.com",
   responseByteLimit: 128 * 1024,

@@ -7,7 +7,7 @@ Production status: not executed by this batch
 ## Lifecycle
 
 1. Overwatch closes ordinary engineering failures under the standing autonomous closure policy.
-2. `Qualify Prometheus Public Worker` runs from exact `main` on `ubuntu-24.04` with Node `24.4.1`, `npm ci`, Wrangler `4.110.0`, a deterministic source build needed by clean-checkout verifiers, and the complete no-secret repository suite.
+2. `Qualify Prometheus Public Worker` runs from exact `main` on `ubuntu-24.04` with Node `24.4.1`, `npm ci`, Wrangler `4.120.1`, a deterministic source build needed by clean-checkout verifiers, and the complete no-secret repository suite.
 3. Qualification creates the deployable Worker payload exactly once and emits one content-addressed release directory.
 4. GitHub stores the immutable release under a unique artifact ID. The payload and manifest have independent SHA-256 identities; the upload action also supplies its transport digest.
 5. A Founder authorization names the candidate, production prerequisites, qualification run and artifact IDs, payload and manifest hashes, deployment assets, rollback identities, and Workflow v2 contract.

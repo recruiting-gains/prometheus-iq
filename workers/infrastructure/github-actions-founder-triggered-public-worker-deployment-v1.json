@@ -85,7 +85,7 @@
   },
   "wranglerFailureDiagnostics": {
     "contractVersion": "wrangler-post-asset-failure-classification-v1",
-    "wranglerVersion": "4.110.0",
+    "wranglerVersion": "4.120.1",
     "phases": [
       "DRY_RUN",
       "DEPLOY"

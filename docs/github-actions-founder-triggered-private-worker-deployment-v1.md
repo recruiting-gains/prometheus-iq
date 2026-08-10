@@ -50,7 +50,7 @@ private version must equal the Founder input. Any redirect, timeout, malformed o
 oversized envelope, split traffic, stale version, or concurrent change fails
 closed.
 
-Wrangler is the lockfile-pinned local `4.110.0` module. The workflow first executes
+Wrangler is the lockfile-pinned local `4.120.1` module. The workflow first executes
 the equivalent of:
 
 ```text

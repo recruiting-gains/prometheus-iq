@@ -6,6 +6,10 @@ import test from "node:test";
 import Ajv from "ajv";
 import { parse as parseJsonc, printParseErrorCode } from "jsonc-parser";
 
+import { CLOUDFLARE_UNATTENDED_WRANGLER_VERSION } from "../scripts/lib/cloudflare-unattended-launcher.mjs";
+import { PRIVATE_WORKER_DEPLOYMENT_POLICY } from "../scripts/lib/github-actions-private-worker-deployment.mjs";
+import { PUBLIC_WORKER_DEPLOYMENT_POLICY } from "../scripts/lib/github-actions-public-worker-deployment.mjs";
+
 const root = resolve(import.meta.dirname, "..");
 const readText = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(readText(path));
@@ -67,6 +71,52 @@ test("selected Cloudflare toolchain graph is exact and normally resolved", () =>
     packageLock.packages["node_modules/wrangler"].dependencies.workerd,
     selectedVersions.workerd
   );
+});
+
+test("every active Infrastructure deployment consumer shares the governed Wrangler pin", () => {
+  const expected = selectedVersions.wrangler;
+  assert.equal(CLOUDFLARE_UNATTENDED_WRANGLER_VERSION, expected);
+  assert.equal(PRIVATE_WORKER_DEPLOYMENT_POLICY.wranglerVersion, expected);
+  assert.equal(PUBLIC_WORKER_DEPLOYMENT_POLICY.wranglerVersion, expected);
+
+  const contractPins = [
+    [
+      "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json",
+      contract => contract.auditedKeychainLauncher.pinnedWranglerVersion
+    ],
+    [
+      "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json",
+      contract => contract.wranglerDeployment.version
+    ],
+    [
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+      contract => contract.qualification.wranglerVersion
+    ],
+    [
+      "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+      contract => contract.wranglerFailureDiagnostics.wranglerVersion
+    ],
+    [
+      "workers/infrastructure/github-actions-public-worker-deployment-v2.json",
+      contract => contract.qualification.wranglerVersion
+    ]
+  ];
+  for (const [path, select] of contractPins) {
+    assert.equal(select(readJson(path)), expected, path);
+  }
+
+  for (const path of [
+    "docs/cloudflare-unattended-deployment-access-v1.md",
+    "docs/github-actions-founder-triggered-private-worker-deployment-v1.md",
+    "docs/github-actions-public-worker-deployment-v2.md",
+    "docs/route-iq-prospective-shadow-infrastructure-v1.md",
+    "scripts/verify-cloudflare-unattended-access-architecture.mjs",
+    "scripts/verify-cloudflare-unattended-runtime-guard.mjs"
+  ]) {
+    const source = readText(path);
+    assert.ok(source.includes(expected), path);
+    assert.equal(source.includes("4.110.0"), false, path);
+  }
 });
 
 test("all four governed harnesses bind the official Miniflare v4 compatibility adapter", () => {

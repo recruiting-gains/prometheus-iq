@@ -172,7 +172,7 @@ The smoke client itself defaults to an inert plan and performs no network access
 node scripts/run-cloudflare-unattended-smoke.mjs --dry-run
 ```
 
-The launcher exposes only `presence`, `smoke-dry-run`, `smoke-read-only`, and `deployment-release`. The two launch profiles require a valid one-shot Founder control and fixed child commands. Wrangler is an exact direct dev dependency at `4.110.0` and must resolve to the npm-supplied `node_modules/wrangler/bin/wrangler.js`; arbitrary executables, arguments, shell execution, inherited `NODE_OPTIONS`, and unrelated credentials are unavailable. Do not run launch profiles until credentials, runtime configuration, deployment authorization, and Overwatch release approval are all complete.
+The launcher exposes only `presence`, `smoke-dry-run`, `smoke-read-only`, and `deployment-release`. The two launch profiles require a valid one-shot Founder control and fixed child commands. Wrangler is an exact direct dev dependency at `4.120.1` and must resolve to the npm-supplied `node_modules/wrangler/bin/wrangler.js`; arbitrary executables, arguments, shell execution, inherited `NODE_OPTIONS`, and unrelated credentials are unavailable. Do not run launch profiles until credentials, runtime configuration, deployment authorization, and Overwatch release approval are all complete.
 
 ## Official Cloudflare References
 

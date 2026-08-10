@@ -229,7 +229,7 @@ export function verifyCloudflareUnattendedRuntimeGuard() {
     "marker alone never authorizes",
     "exact mode `0600`",
     "exclusive `0600` consumed marker",
-    "exact direct dev dependency at `4.110.0`",
+    "exact direct dev dependency at `4.120.1`",
     "without extension or size exemptions",
     "no Access policy or production Worker change is authorized"
   ]) {

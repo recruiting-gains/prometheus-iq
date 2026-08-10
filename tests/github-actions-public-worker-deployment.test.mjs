@@ -665,9 +665,9 @@ test("Wrangler process failures distinguish spawn, timeout, overflow, signal, an
   ]);
 });
 
-test("Wrangler classifier follows pinned 4.110.0 messages without materializing raw output strings", () => {
+test("Wrangler classifier follows pinned 4.120.1 messages without materializing raw output strings", () => {
   const wrangler = JSON.parse(readFileSync(join(root, "node_modules", "wrangler", "package.json"), "utf8"));
-  assert.equal(wrangler.version, "4.110.0");
+  assert.equal(wrangler.version, "4.120.1");
   const wranglerSource = readFileSync(join(root, "node_modules", "wrangler", "wrangler-dist", "cli.js"), "utf8");
   for (const message of [
     "An unexpected response has been received from the Cloudflare API for assets upload. Please try again.",

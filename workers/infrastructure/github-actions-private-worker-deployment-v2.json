@@ -29,7 +29,7 @@
     "runner": "ubuntu-24.04",
     "architecture": "X64",
     "nodeVersion": "24.4.1",
-    "wranglerVersion": "4.110.0",
+    "wranglerVersion": "4.120.1",
     "sourceBuilds": 1,
     "cloudflareRequestsAllowed": false,
     "secretAccessAllowed": false,

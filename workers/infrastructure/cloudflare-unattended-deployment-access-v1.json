@@ -263,7 +263,7 @@
     "status": "IMPLEMENTED_LOCAL_NOT_CONFIGURED_NOT_EXECUTED",
     "arbitraryCommandAllowed": false,
     "pinnedWranglerModule": "node_modules/wrangler/bin/wrangler.js",
-    "pinnedWranglerVersion": "4.110.0",
+    "pinnedWranglerVersion": "4.120.1",
     "wranglerIsExactDirectDevDependency": true,
     "nodeOptionsAllowed": false,
     "fixedProfiles": [

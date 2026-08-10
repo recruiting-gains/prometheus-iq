@@ -36,7 +36,7 @@
     "nodeVersion": "24.4.1",
     "dependencyCommand": "npm ci",
     "lockfileVersion": 3,
-    "wranglerVersion": "4.110.0",
+    "wranglerVersion": "4.120.1",
     "browserRuntime": "none",
     "productionSmokeRuntime": "node-fetch-get-head-only",
     "sourceBuildCommand": "npm run build",

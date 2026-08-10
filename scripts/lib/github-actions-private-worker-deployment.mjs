@@ -22,7 +22,7 @@ export const PRIVATE_WORKER_DEPLOYMENT_POLICY = Object.freeze({
   publicConfig: "wrangler.prometheusrouteiq-website.jsonc",
   contractPath: "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json",
   activationTemplatePath: "workers/infrastructure/route-iq-prospective-shadow-activation-template-v1.json",
-  wranglerVersion: "4.110.0",
+  wranglerVersion: "4.120.1",
   wranglerModule: "node_modules/wrangler/bin/wrangler.js",
   cloudflareApiOrigin: "https://api.cloudflare.com",
   responseByteLimit: 65_536,
