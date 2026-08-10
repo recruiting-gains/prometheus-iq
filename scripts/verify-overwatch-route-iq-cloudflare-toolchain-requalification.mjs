@@ -33,6 +33,8 @@ const rollbackQualificationCommit = "3d646bffde28b1ef995ae03af5976a6db1105430";
 const rollbackQualificationTree = "d914cbc195982ac27b6b93e045579b191a52eb7d";
 const activeDeploymentPolicyCommit = "d55a983134be40bf10777df293ca593e7583f138";
 const activeDeploymentPolicyTree = "fcc850958e92d1f75eece476d6047b58972249d0";
+const activePolicyQualificationCommit = "ab081a9e9f56f4db87d20c6b02aecf082b96ac4b";
+const activePolicyQualificationTree = "6b77b299971a860ae40c0207c83c588674f352d2";
 const governancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
 const reportPath =
@@ -46,6 +48,9 @@ const augustReadinessSuccessorsPath =
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
 const sha256 = path => createHash("sha256").update(readFileSync(resolve(root, path))).digest("hex");
+const sha256At = (commit, path) => createHash("sha256").update(execFileSync("git", [
+  "show", `${commit}:${path}`
+], { cwd: root, encoding: null })).digest("hex");
 const git = (...args) => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
 const changedPaths = commit => {
   const output = git("diff-tree", "--no-commit-id", "--name-only", "-r", commit);
@@ -287,10 +292,19 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.equal(git("show", "-s", "--format=%T", activeDeploymentPolicyCommit),
     activeDeploymentPolicyTree);
   verifyOwnerCommit(
-    head,
+    activePolicyQualificationCommit,
     activeDeploymentPolicyCommit,
     "Prometheus Overwatch <overwatch@prometheus.local>",
     "overwatch: compose active Wrangler policy successor",
+    activePolicyQualificationFiles
+  );
+  assert.equal(git("show", "-s", "--format=%T", activePolicyQualificationCommit),
+    activePolicyQualificationTree);
+  verifyOwnerCommit(
+    head,
+    activePolicyQualificationCommit,
+    "Prometheus Overwatch <overwatch@prometheus.local>",
+    "overwatch: repair active Wrangler successor composition",
     activePolicyQualificationFiles
   );
 
@@ -397,6 +411,22 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     activeDeploymentPolicyCommit);
   assert.equal(report.activeDeploymentPolicySuccessor.focusedTests, 269);
   assert.equal(report.activeDeploymentPolicySuccessor.focusedFailures, 0);
+  assert.deepEqual(governance.verificationCompositionRepair, {
+    classification: "HISTORICAL_AND_ACTIVE_SUCCESSOR_STATE_COMPOSED_SEPARATELY",
+    parent: activePolicyQualificationCommit,
+    historicalEvidenceRewritten: false,
+    sharedIntegrationPathOwnershipInferredFromCommit: true,
+    applicationPayloadChanged: false,
+    releaseIdentityChanged: false,
+    deploymentPerformed: false,
+    cloudflareContactCount: 0,
+    productionMutationCount: 0
+  });
+  assert.equal(report.verificationCompositionRepair.classification,
+    governance.verificationCompositionRepair.classification);
+  assert.equal(report.verificationCompositionRepair
+    .sharedIntegrationPathOwnershipInferredFromCommit, true);
+  assert.equal(report.verificationCompositionRepair.focusedFailuresAfterRepair, 0);
 
   assert.equal(release.artifactSha256, predecessor.releasePackage.artifactSha256);
   assert.equal(release.manifestSha256, predecessor.releasePackage.manifestSha256);
@@ -411,17 +441,25 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     predecessor.releasePackage.privateWorkflowContinuity.rollbackBundleSha256);
   assert.equal(release.forwardRevertSha256, predecessor.forwardRollback.sha256);
 
+  const privateDeploymentContractPath = predecessor.releasePackage.privateWorkflowContinuity.path;
+  assert.equal(privateDeploymentContractPath,
+    "workers/infrastructure/github-actions-private-worker-deployment-v2.json");
   const protectedReleasePaths = [
     predecessor.releasePackage.contract.path,
     predecessor.releasePackage.builder.path,
     predecessor.releasePackage.runtimeContract.path,
     predecessor.releasePackage.admissionProducer.path,
-    predecessor.releasePackage.privateWorkflowContinuity.path,
     predecessor.forwardRollback.path,
     "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
     "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
   ];
   assert.equal(git("diff", "--name-only", startCommit, head, "--", ...protectedReleasePaths), "");
+  assert.equal(git("log", "--format=%H", "--reverse", `${startCommit}..${head}`, "--",
+    privateDeploymentContractPath), activeDeploymentPolicyCommit);
+  assert.equal(sha256At(activeDeploymentPolicyCommit, privateDeploymentContractPath),
+    activePolicy.currentEvidence[privateDeploymentContractPath]);
+  assert.equal(sha256At(`${activeDeploymentPolicyCommit}^`, privateDeploymentContractPath),
+    sha256At(startCommit, privateDeploymentContractPath));
   assert.equal(git("diff", "--name-only", startCommit, head, "--", ".github/workflows"), "");
 
   assert.match(packageJson.scripts.pretest, /security:cloudflare-toolchain:check/u);
@@ -446,7 +484,8 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     rollbackLockAttestationCommit,
     rollbackQualificationCommit,
     activeDeploymentPolicyCommit,
-    activePolicyQualificationCommit: head,
+    activePolicyQualificationCommit,
+    verificationCompositionRepairCommit: head,
     compatibility: governance.compatibility.supportedCandidate,
     allDependencyHigh: security.auditDisposition.after.allDependencies.high,
     productionHigh: security.auditDisposition.after.productionOnly.high,

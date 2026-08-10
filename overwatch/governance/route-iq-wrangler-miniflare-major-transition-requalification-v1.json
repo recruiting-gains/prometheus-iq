@@ -209,6 +209,17 @@
       "buildModules": 991
     }
   },
+  "verificationCompositionRepair": {
+    "classification": "HISTORICAL_AND_ACTIVE_SUCCESSOR_STATE_COMPOSED_SEPARATELY",
+    "parent": "ab081a9e9f56f4db87d20c6b02aecf082b96ac4b",
+    "historicalEvidenceRewritten": false,
+    "sharedIntegrationPathOwnershipInferredFromCommit": true,
+    "applicationPayloadChanged": false,
+    "releaseIdentityChanged": false,
+    "deploymentPerformed": false,
+    "cloudflareContactCount": 0,
+    "productionMutationCount": 0
+  },
   "node24ActionWarning": {
     "classification": "VALID_WARNING_DEFERRED_TO_SEPARATE_WORKFLOW_SUCCESSOR",
     "checkoutReplacement": "3d3c42e5aac5ba805825da76410c181273ba90b1",

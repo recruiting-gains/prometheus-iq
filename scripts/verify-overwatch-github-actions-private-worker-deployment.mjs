@@ -46,6 +46,21 @@ const toolchainGovernancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
 const activeToolchainOwnerCommit = "d55a983134be40bf10777df293ca593e7583f138";
 const activeToolchainOwnerTree = "fcc850958e92d1f75eece476d6047b58972249d0";
+const activeToolchainOwnerParent = "3d646bffde28b1ef995ae03af5976a6db1105430";
+const toolchainTransitionOwnerCommit = "da7504352424096869a18b66dc7c4429480393f4";
+const toolchainTransitionOwnerTree = "9ecb94b795d612a34a84c7ba7871296872d9184a";
+const toolchainTransitionOwnerParent = "2d5caafc52de0c1ee42bce5b370e2232e53fd72f";
+const toolchainTransitionOwnerFiles = Object.freeze([
+  "package-lock.json",
+  "package.json",
+  "scripts/lib/cloudflare-unattended-launcher.mjs",
+  "tests/cloudflare-unattended-runtime-guard.test.mjs",
+  "tests/route-iq-business-availability-infrastructure.test.mjs",
+  "tests/route-iq-cloudflare-toolchain-compatibility.test.mjs",
+  "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
+  "tests/route-iq-request-crm-infrastructure.test.mjs",
+  "workers/infrastructure/route-iq-cloudflare-toolchain-compatibility-v1.json"
+]);
 
 const historicalOwnerCommit = "7f67855145104034b32551e25d2ebf407ce2369c";
 const historicalOwnerRepairCommit = "335f75fa1d7e32160624e9ebe197d11a03e77b4e";
@@ -1208,6 +1223,12 @@ const compatibilityOwnerHashes = Object.freeze({
     "95d8d50e7ac4c9abacbac879d49bbaa3799988bb886d8ad92a98c6fe415efd6c"
 });
 
+const compatibilityCommitHashes = Object.freeze({
+  ...compatibilityOwnerHashes,
+  "tests/github-actions-private-worker-deployment.test.mjs":
+    "5e9df6579ef49c334f3a5c822ac7018dfcb7c7f923e371e005ac6608939d9bf7"
+});
+
 const compatibilityChangedPaths = Object.freeze([
   ".github/workflows/deploy-prometheus-private-worker.yml",
   "docs/github-actions-founder-triggered-private-worker-deployment-v1.md",
@@ -1329,8 +1350,10 @@ const overwatchOwnedPaths = new Set([
   ...protectedOverwatchVerifierSuccessors.map(item => item.path),
   ...protectedVerificationAssetSuccessors.map(item => item.path)
 ]);
+const sharedIntegrationPaths = new Set(["package.json"]);
 
 function protectedPathOwner(path) {
+  if (sharedIntegrationPaths.has(path)) return null;
   if (infrastructureOwnedPaths.has(path)) return infrastructureIdentity;
   if (overwatchOwnedPaths.has(path)) return overwatchIdentity;
   if (/^overwatch\/(?:governance|reports)\/.*github-actions-founder-triggered/u.test(path)
@@ -1399,6 +1422,114 @@ const git = args => execFileSync("/usr/bin/git", args, {
   encoding: "utf8",
   stdio: ["ignore", "pipe", "ignore"]
 }).trim();
+
+export function hasActivePrivateDeploymentToolchainInfrastructureSuccessor({
+  governance,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const successor = governance?.activeDeploymentPolicySuccessor;
+  if (successor?.infrastructureCommit !== activeToolchainOwnerCommit
+    || successor?.infrastructureTree !== activeToolchainOwnerTree
+    || successor?.parent !== activeToolchainOwnerParent
+    || successor?.historicalRecordsRewritten !== false
+    || successor?.privateWorkerTargetChanged !== false
+    || successor?.workflowChanged !== false
+    || successor?.deploymentPerformed !== false
+    || successor?.productionMutationCount !== 0
+    || successor?.currentEvidence?.[path] !== currentSha256
+    || !/^[0-9a-f]{64}$/u.test(previousSha256)
+    || !/^[0-9a-f]{64}$/u.test(currentSha256)) {
+    return false;
+  }
+  try {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      successor.infrastructureCommit
+    ]).split("\n");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      successor.infrastructureCommit
+    ]).split("\n").filter(Boolean).sort();
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${successor.parent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${successor.infrastructureCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor", successor.infrastructureCommit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return equal(fields, [
+      successor.infrastructureCommit,
+      successor.parent,
+      successor.infrastructureTree,
+      infrastructureIdentity,
+      infrastructureIdentity,
+      "infrastructure: align active Wrangler deployment policies"
+    ])
+      && equal(paths, Object.keys(successor.currentEvidence).sort())
+      && sha256(previous) === previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
+
+export function hasCloudflareToolchainInfrastructureSuccessor({
+  governance,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const ownerRecord = governance?.ownerChain?.find(
+    item => item.commit === toolchainTransitionOwnerCommit
+  );
+  if (governance?.batchId !== "BATCH-20260810-001"
+    || ownerRecord?.identity !== infrastructureIdentity
+    || ownerRecord?.tree !== toolchainTransitionOwnerTree
+    || ownerRecord?.parent !== toolchainTransitionOwnerParent
+    || ownerRecord?.subject !== "infrastructure: update Cloudflare compatibility toolchain"
+    || ownerRecord?.changedFileCount !== toolchainTransitionOwnerFiles.length
+    || !toolchainTransitionOwnerFiles.includes(path)
+    || !/^[0-9a-f]{64}$/u.test(previousSha256)
+    || !/^[0-9a-f]{64}$/u.test(currentSha256)) {
+    return false;
+  }
+  try {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      toolchainTransitionOwnerCommit
+    ]).split("\n");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      toolchainTransitionOwnerCommit
+    ]).split("\n").filter(Boolean).sort();
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${toolchainTransitionOwnerParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${toolchainTransitionOwnerCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor", toolchainTransitionOwnerCommit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return equal(fields, [
+      toolchainTransitionOwnerCommit,
+      toolchainTransitionOwnerParent,
+      toolchainTransitionOwnerTree,
+      infrastructureIdentity,
+      infrastructureIdentity,
+      "infrastructure: update Cloudflare compatibility toolchain"
+    ])
+      && equal(paths, [...toolchainTransitionOwnerFiles].sort())
+      && sha256(previous) === previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
 
 export function hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
   governance,
@@ -1778,6 +1909,14 @@ export function hasRetentionMaintenancePayloadInfrastructureSuccessor({
 }) {
   const successor = governance?.retentionMaintenancePayloadSuccessor;
   const evidence = successor?.evidence?.filter(item => item.path === path) ?? [];
+  const maintenanceSha256 = evidence[0]?.successorSha256;
+  const currentIsGoverned = maintenanceSha256 === currentSha256
+    || hasActivePrivateDeploymentToolchainInfrastructureSuccessor({
+      governance: readJson(toolchainGovernancePath),
+      path,
+      previousSha256: maintenanceSha256,
+      currentSha256
+    });
   const predecessorIsGoverned = evidence.length === 1
     && hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
       governance,
@@ -1816,7 +1955,7 @@ export function hasRetentionMaintenancePayloadInfrastructureSuccessor({
         ([evidencePath, item]) => ({ path: evidencePath, ...item })
       ))
     || evidence.length !== 1
-    || evidence[0].successorSha256 !== currentSha256
+    || !currentIsGoverned
     || !predecessorIsGoverned) {
     return false;
   }
@@ -1848,7 +1987,7 @@ export function hasRetentionMaintenancePayloadInfrastructureSuccessor({
     ])
       && equal(paths, successor.evidence.map(item => item.path).sort())
       && sha256(previous) === evidence[0].previousSha256
-      && sha256(current) === currentSha256;
+      && sha256(current) === maintenanceSha256;
   } catch {
     return false;
   }
@@ -4021,12 +4160,12 @@ function verifyOwnerHistory(governance) {
   const currentEvidence = new Map(
     governance.compatibilitySuccessor.ownerEvidence.map(item => [item.path, item.sha256])
   );
-  for (const [path, expected] of Object.entries(compatibilityOwnerHashes)) {
+  for (const [path, expected] of Object.entries(compatibilityCommitHashes)) {
     const historical = execFileSync("/usr/bin/git", [
       "show", `${compatibilityOwnerCommit}:${path}`
     ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
     if (sha256(historical) !== expected
-      || currentEvidence.get(path) !== expected) {
+      || currentEvidence.get(path) !== compatibilityOwnerHashes[path]) {
       throw new Error(`Compatibility owner evidence drifted: ${path}`);
     }
   }
@@ -4225,9 +4364,17 @@ function verifyV2OwnerAndGovernance() {
     const successor = execFileSync("/usr/bin/git", [
       "show", `${v2RetentionMaintenancePayloadSuccessorCommit}:${path}`
     ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const currentSha256 = sha256(readFileSync(resolve(root, path)));
+    const currentIsGoverned = currentSha256 === evidence.successorSha256
+      || hasActivePrivateDeploymentToolchainInfrastructureSuccessor({
+        governance: readJson(toolchainGovernancePath),
+        path,
+        previousSha256: evidence.successorSha256,
+        currentSha256
+      });
     if (sha256(previous) !== evidence.previousSha256
       || sha256(successor) !== evidence.successorSha256
-      || sha256(readFileSync(resolve(root, path))) !== evidence.successorSha256) {
+      || !currentIsGoverned) {
       throw new Error(
         `Private Workflow v2 retention maintenance payload evidence drifted: ${path}`
       );
@@ -5544,57 +5691,11 @@ function verifyV2OwnerAndGovernance() {
     "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
       "30810573fc0926c03a6bbc5337db4ce7030c419a4b08c64b219db7c3abeb371b"
   };
+  const toolchainGovernance = readJson(toolchainGovernancePath);
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     const currentSha256 = sha256(readFileSync(resolve(root, path)));
     const liveCanonicalGovernance = readJson(liveCanonicalIdentityGovernancePath);
     const readinessSuccessors = readJson(currentReadinessSuccessorsPath);
-    const fieldSessionReportTypeSuccessor =
-      hasFieldSessionReportTypeInfrastructureSuccessor({
-        governance: fieldSessionReportTypeGovernance,
-        liveCanonicalIdentityGovernance: liveCanonicalGovernance,
-        readinessSuccessors,
-        path,
-        previousSha256: expected,
-        currentSha256
-      });
-    const liveCanonicalIdentitySuccessor =
-      hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
-        governance: liveCanonicalGovernance,
-        readinessSuccessors,
-        path,
-        previousSha256: expected,
-        currentSha256
-      });
-    const retentionDeletionPayloadSuccessor =
-      hasRetentionDeletionPayloadInfrastructureSuccessor({
-        governance,
-        fieldSessionReportTypeGovernance,
-        liveCanonicalIdentityGovernance: liveCanonicalGovernance,
-        readinessSuccessors,
-        path,
-        previousSha256: expected,
-        currentSha256
-      });
-    const retentionDeletionPayloadQualificationSuccessor =
-      hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
-        governance,
-        fieldSessionReportTypeGovernance,
-        liveCanonicalIdentityGovernance: liveCanonicalGovernance,
-        readinessSuccessors,
-        path,
-        previousSha256: expected,
-        currentSha256
-      });
-    const retentionMaintenancePayloadSuccessor =
-      hasRetentionMaintenancePayloadInfrastructureSuccessor({
-        governance,
-        fieldSessionReportTypeGovernance,
-        liveCanonicalIdentityGovernance: liveCanonicalGovernance,
-        readinessSuccessors,
-        path,
-        previousSha256: expected,
-        currentSha256
-      });
     const successor = v2ControlledRehearsalGuardVerifierSuccessorHashes[path]
       ? {
         sha256: v2ControlledRehearsalGuardVerifierSuccessorHashes[path],
@@ -5615,14 +5716,76 @@ function verifyV2OwnerAndGovernance() {
         stdio: ["ignore", "pipe", "ignore"]
       }))
       : null;
-    if (!(currentSha256 === expected
-      || (successor?.sha256 === currentSha256
+    const isGovernedBeforeActivePolicy = candidateSha256 => (
+      candidateSha256 === expected
+      || (successor?.sha256 === candidateSha256
         && successorPredecessorSha256 === expected)
-      || liveCanonicalIdentitySuccessor
-      || fieldSessionReportTypeSuccessor
-      || retentionDeletionPayloadSuccessor
-      || retentionDeletionPayloadQualificationSuccessor
-      || retentionMaintenancePayloadSuccessor)) {
+      || hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
+        governance: liveCanonicalGovernance,
+        readinessSuccessors,
+        path,
+        previousSha256: expected,
+        currentSha256: candidateSha256
+      })
+      || hasFieldSessionReportTypeInfrastructureSuccessor({
+        governance: fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance: liveCanonicalGovernance,
+        readinessSuccessors,
+        path,
+        previousSha256: expected,
+        currentSha256: candidateSha256
+      })
+      || hasRetentionDeletionPayloadInfrastructureSuccessor({
+        governance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance: liveCanonicalGovernance,
+        readinessSuccessors,
+        path,
+        previousSha256: expected,
+        currentSha256: candidateSha256
+      })
+      || hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
+        governance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance: liveCanonicalGovernance,
+        readinessSuccessors,
+        path,
+        previousSha256: expected,
+        currentSha256: candidateSha256
+      })
+      || hasRetentionMaintenancePayloadInfrastructureSuccessor({
+        governance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance: liveCanonicalGovernance,
+        readinessSuccessors,
+        path,
+        previousSha256: expected,
+        currentSha256: candidateSha256
+      })
+      || hasCloudflareToolchainInfrastructureSuccessor({
+        governance: toolchainGovernance,
+        path,
+        previousSha256: successor?.sha256 && successorPredecessorSha256 === expected
+          ? successor.sha256
+          : expected,
+        currentSha256: candidateSha256
+      })
+    );
+    const activePolicy = toolchainGovernance.activeDeploymentPolicySuccessor;
+    const activePolicyPredecessorSha256 = activePolicy.currentEvidence[path]
+      ? sha256(execFileSync("/usr/bin/git", [
+        "show", `${activePolicy.parent}:${path}`
+      ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] }))
+      : null;
+    const activePolicySuccessor = activePolicyPredecessorSha256
+      && isGovernedBeforeActivePolicy(activePolicyPredecessorSha256)
+      && hasActivePrivateDeploymentToolchainInfrastructureSuccessor({
+        governance: toolchainGovernance,
+        path,
+        previousSha256: activePolicyPredecessorSha256,
+        currentSha256
+      });
+    if (!(isGovernedBeforeActivePolicy(currentSha256) || activePolicySuccessor)) {
       throw new Error(`Private Workflow v2 current owner evidence drifted: ${path}`);
     }
   }
@@ -5682,8 +5845,39 @@ function verifyV2OwnerAndGovernance() {
       encoding: null,
       stdio: ["ignore", "pipe", "ignore"]
     });
+    const currentSha256 = sha256(readFileSync(resolve(root, path)));
+    const toolchainGovernance = readJson(toolchainGovernancePath);
+    const cloudflareToolchainSuccessor = hasCloudflareToolchainInfrastructureSuccessor({
+      governance: toolchainGovernance,
+      path,
+      previousSha256: expected,
+      currentSha256
+    });
+    const activePolicy = toolchainGovernance.activeDeploymentPolicySuccessor;
+    const activePolicyPredecessorSha256 = activePolicy.currentEvidence[path]
+      ? sha256(execFileSync("/usr/bin/git", [
+        "show", `${activePolicy.parent}:${path}`
+      ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] }))
+      : null;
+    const activePolicyPredecessorGoverned = activePolicyPredecessorSha256 === expected
+      || hasCloudflareToolchainInfrastructureSuccessor({
+        governance: toolchainGovernance,
+        path,
+        previousSha256: expected,
+        currentSha256: activePolicyPredecessorSha256
+      });
+    const activePolicySuccessor = activePolicyPredecessorSha256
+      && activePolicyPredecessorGoverned
+      && hasActivePrivateDeploymentToolchainInfrastructureSuccessor({
+        governance: toolchainGovernance,
+        path,
+        previousSha256: activePolicyPredecessorSha256,
+        currentSha256
+      });
     if (sha256(committed) !== expected
-      || sha256(readFileSync(resolve(root, path))) !== expected
+      || !(currentSha256 === expected
+        || cloudflareToolchainSuccessor
+        || activePolicySuccessor)
       || guardVerifierEvidence.get(path) !== expected) {
       throw new Error(
         `Private Workflow v2 controlled-rehearsal guard-verifier evidence drifted: ${path}`

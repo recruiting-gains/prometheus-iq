@@ -63,6 +63,19 @@
     "deploymentPerformed": false,
     "productionMutationPerformed": false
   },
+  "verificationCompositionRepair": {
+    "classification": "HISTORICAL_AND_ACTIVE_SUCCESSOR_STATE_COMPOSED_SEPARATELY",
+    "historicalSnapshotSchemaAppliedToCurrentState": false,
+    "activePrivateDeploymentContractSuccessorVerified": true,
+    "historicalCompatibilityCommitVerifiedAtCommit": true,
+    "sharedIntegrationPathOwnershipInferredFromCommit": true,
+    "focusedFailuresBeforeRepair": 5,
+    "focusedFailuresAfterRepair": 0,
+    "applicationPayloadChanged": false,
+    "releaseIdentityChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  },
   "qualification": {
     "focusedInfrastructure": "PASS",
     "security": "PASS",

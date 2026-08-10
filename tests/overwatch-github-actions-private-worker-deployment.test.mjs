@@ -14,6 +14,8 @@ import {
   evaluatePrivateWorkflowV2FieldSessionReportTypeSuccessor,
   evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors,
   evaluateGithubActionsPrivateWorkerWorkflow,
+  hasActivePrivateDeploymentToolchainInfrastructureSuccessor,
+  hasCloudflareToolchainInfrastructureSuccessor,
   hasFieldSessionReportTypeInfrastructureSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
@@ -231,6 +233,37 @@ test("private deployment composes only the exact active Wrangler successor", () 
     mutate(changed);
     assert.equal(evaluateActivePrivateDeploymentToolchainSuccessor(changed).ok, false);
   }
+
+  const path = "workers/infrastructure/github-actions-private-worker-deployment-v2.json";
+  const transition = {
+    governance: toolchainGovernance,
+    path,
+    previousSha256: "157977f192e5b05eacf932c82d64dd6ad51cc7f4860824d0092872f3b8a1890b",
+    currentSha256: sha256(readFileSync(resolve(root, path)))
+  };
+  assert.equal(hasActivePrivateDeploymentToolchainInfrastructureSuccessor(transition), true);
+  const changedGovernance = clone(toolchainGovernance);
+  changedGovernance.activeDeploymentPolicySuccessor.currentEvidence[path] = "0".repeat(64);
+  assert.equal(hasActivePrivateDeploymentToolchainInfrastructureSuccessor({
+    ...transition,
+    governance: changedGovernance
+  }), false);
+
+  const harnessPath = "tests/cloudflare-unattended-runtime-guard.test.mjs";
+  const harnessTransition = {
+    governance: toolchainGovernance,
+    path: harnessPath,
+    previousSha256: "20c926030decb7c6a4bf290f845703c58c33005ec499fc12bf266f7a00e5eef7",
+    currentSha256: sha256(readFileSync(resolve(root, harnessPath)))
+  };
+  assert.equal(hasCloudflareToolchainInfrastructureSuccessor(harnessTransition), true);
+  const changedOwner = clone(toolchainGovernance);
+  changedOwner.ownerChain.find(item => item.commit.startsWith("da750435")).identity =
+    "Prometheus Overwatch <overwatch@prometheus.local>";
+  assert.equal(hasCloudflareToolchainInfrastructureSuccessor({
+    ...harnessTransition,
+    governance: changedOwner
+  }), false);
 });
 
 test("private Workflow v2 accepts only owner-proven canonical identity assets", () => {
@@ -1020,6 +1053,18 @@ test("historical deployment gate ignores unrelated subsystem successors", () => 
     paths: ["scripts/verify-dashboard-runtime-workflows.mjs"]
   }]);
   assert.equal(result.ok, true);
+
+  const infrastructureWithSharedManifest =
+    evaluateGithubActionsPrivateWorkerSuccessorOwnership([{
+      commit: "infrastructure-shared-manifest-successor",
+      author: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      committer: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      paths: [
+        "package.json",
+        "scripts/lib/github-actions-private-worker-deployment.mjs"
+      ]
+    }]);
+  assert.equal(infrastructureWithSharedManifest.ok, true);
 });
 
 test("historical deployment gate rejects protected cross-owner successors", () => {

@@ -206,7 +206,8 @@ const expectedProfiles = Object.freeze([
 export function evaluateCloudflareUnattendedAccessGovernance({
   infrastructure,
   governance,
-  report
+  report,
+  enforceCanonicalPathBoundary = true
 }) {
   const failures = [];
   const require = (condition, message) => {
@@ -273,10 +274,12 @@ export function evaluateCloudflareUnattendedAccessGovernance({
   require(smoke.arbitraryUrlAllowed === false && smoke.arbitraryMethodAllowed === false, "Smoke client must deny arbitrary URLs and methods.");
   require(smoke.requestBodiesAllowed === false && smoke.cookiesAllowed === false, "Smoke client must not send bodies or cookies.");
   require(smoke.redirectMode === "manual" && smoke.credentialsMode === "omit", "Smoke client redirect or credential mode drifted.");
-  require(smoke.canonicalHtmlPath === "/"
-    && smoke.noncanonicalHtmlAliasesAllowed === false
-    && smoke.redirectsFollowed === false,
-  "Smoke client canonical-path boundary drifted.");
+  if (enforceCanonicalPathBoundary) {
+    require(smoke.canonicalHtmlPath === "/"
+      && smoke.noncanonicalHtmlAliasesAllowed === false
+      && smoke.redirectsFollowed === false,
+    "Smoke client canonical-path boundary drifted.");
+  }
   require(smoke.browserOrServiceWorkerUsed === false, "Smoke client must not use a browser or service worker.");
   require(smoke.responseBodiesReadOrPersisted === false, "Smoke client must not read or persist response bodies.");
   require(smoke.productionNetworkAccessPerformedByThisBatch === false, "This batch must not perform production smoke access.");
@@ -430,6 +433,12 @@ export function evaluateActiveCloudflareToolchainSuccessor({
     || packageLock?.packages?.["node_modules/wrangler"]?.version !== version) {
     failures.push("Active Wrangler supply-chain pin drifted.");
   }
+  const smoke = infrastructure?.defaultDenySmokeClient;
+  if (smoke?.canonicalHtmlPath !== "/"
+    || smoke?.noncanonicalHtmlAliasesAllowed !== false
+    || smoke?.redirectsFollowed !== false) {
+    failures.push("Active smoke client canonical-path boundary drifted.");
+  }
   return Object.freeze({ ok: failures.length === 0, failures: Object.freeze(failures) });
 }
 
@@ -447,7 +456,12 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
   const workflow = read(".github/workflows/security-gates.yml");
   const failures = [];
 
-  const evaluated = evaluateCloudflareUnattendedAccessGovernance({ infrastructure, governance, report });
+  const evaluated = evaluateCloudflareUnattendedAccessGovernance({
+    infrastructure,
+    governance,
+    report,
+    enforceCanonicalPathBoundary: false
+  });
   failures.push(...evaluated.failures);
   const activeToolchain = evaluateActiveCloudflareToolchainSuccessor({
     successor: toolchainGovernance.activeDeploymentPolicySuccessor,

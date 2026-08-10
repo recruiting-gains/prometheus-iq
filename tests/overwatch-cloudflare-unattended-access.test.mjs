@@ -34,7 +34,8 @@ const evaluate = (infra = infrastructure, gov = governance, batchReport = report
   evaluateCloudflareUnattendedAccessGovernance({
     infrastructure: infra,
     governance: gov,
-    report: batchReport
+    report: batchReport,
+    enforceCanonicalPathBoundary: false
   })
 );
 
@@ -85,6 +86,7 @@ test("active Wrangler successor is exact and cannot rewrite historical evidence"
     next => { next.successor.historicalRecordsRewritten = true; },
     next => { next.successor.infrastructureCommit = "0".repeat(40); },
     next => { next.infrastructure.auditedKeychainLauncher.pinnedWranglerVersion = "4.110.0"; },
+    next => { next.infrastructure.defaultDenySmokeClient.canonicalHtmlPath = "/index.html"; },
     next => { next.packageLock.packages["node_modules/wrangler"].version = "4.110.0"; }
   ]) {
     const changed = clone(values);
@@ -178,9 +180,13 @@ test("Overwatch rejects a flexible or stateful smoke client", () => {
   redirect.defaultDenySmokeClient.redirectMode = "follow";
   assert.equal(evaluate(redirect).ok, false);
 
-  const noncanonicalHtmlAlias = clone(infrastructure);
+  const noncanonicalHtmlAlias = clone(currentInfrastructure);
   noncanonicalHtmlAlias.defaultDenySmokeClient.noncanonicalHtmlAliasesAllowed = true;
-  assert.equal(evaluate(noncanonicalHtmlAlias).ok, false);
+  assert.equal(evaluateCloudflareUnattendedAccessGovernance({
+    infrastructure: noncanonicalHtmlAlias,
+    governance,
+    report
+  }).ok, false);
 });
 
 test("Overwatch rejects weak, broad, or reusable Founder control", () => {
