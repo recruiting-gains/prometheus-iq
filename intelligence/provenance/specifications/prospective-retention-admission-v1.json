@@ -1,11 +1,18 @@
 {
-  "version": "route-iq-intelligence-prospective-retention-admission-spec-v2",
+  "version": "route-iq-intelligence-prospective-retention-admission-spec-v3",
   "batchId": "BATCH-20260714-004",
   "sourceDeletionSuccessorBatchId": "BATCH-20260809-001",
+  "deploymentReadinessSuccessorBatchId": "BATCH-20260809-002",
   "ownerSubsystem": "Prometheus Intelligence Engine",
-  "purpose": "Consume only the final Data-authenticated and hash-bound prospective retention admission before any Intelligence learning, shadow evaluation, readiness, calibration, baseline, segment, or recommendation-input use.",
+  "purpose": "Consume only the final Data-authenticated and hash-bound prospective retention admission before any Intelligence learning, shadow evaluation, readiness, calibration, baseline, segment, or recommendation-input use, including the exact dormant maintenance release and authoritative production legal-hold readiness successors.",
+  "consumerAdmissionSuccessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json",
+    "version": "route-iq-intelligence-retention-maintenance-consumer-admission-successor-v1",
+    "historicalPredecessorsRewritten": false
+  },
   "dataOwnerLineage": {
     "finalRetentionCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
+    "productionLegalHoldReadinessCommit": "1513b1acec6b303823e26252c5bcf77efa05ad62",
     "sourceDeletionSuccessorCommits": [
       "8845846632801ccf29e52a36139a43c1063fcc2e",
       "28c8a51b4aafef777e407c324ea15c57f4f12454",
@@ -17,15 +24,41 @@
     "retentionEvaluatorPath": "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
     "retentionEvaluatorSha256": "1299d480d5e8d9418a143eb4817572a0362dd4a9649eb6f337e783c519e3bd20",
     "retentionGovernancePath": "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs",
-    "retentionGovernanceSha256": "0bd6519d40ea76f5ad771e19dd0ffe4fe840c7c3aeb0ad2ce1987e681985dabb",
+    "previousRetentionGovernanceSha256": "0bd6519d40ea76f5ad771e19dd0ffe4fe840c7c3aeb0ad2ce1987e681985dabb",
+    "retentionGovernanceSha256": "9d57108065e14528bb0d11e5910cc0b6b313fd310d6e67b30a8d704b1f2c6f4d",
     "retentionDeletionRuntimePath": "data/route-iq-field-sessions-v1/route-iq-retention-deletion-runtime.mjs",
     "retentionDeletionRuntimeSha256": "1ee36eb278646e8179fa092a2b4e32ae92cdaeba55f5a89ad9c7de24febbdc43",
     "coordinatorPath": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
     "coordinatorSha256": "30727656084c774d48a2d80b79f7dcad66a864fd6bd5c489905d9247fd953e85"
   },
+  "maintenanceReleaseReadiness": {
+    "infrastructureCommit": "b71bd0a99ff8d992694df542ec969a071c7b353d",
+    "infrastructureTree": "8b12b3d09f38ff72e5e7c96f8d7732a5c6a41fc4",
+    "releasePackageContract": {
+      "path": "workers/infrastructure/route-iq-retention-maintenance-release-package-v1.json",
+      "sha256": "c92711238a5d3a289b65b67d2142caf667e9dedf0d7445a160f2a1140c8ce9d0"
+    },
+    "releasePackageBuilder": {
+      "path": "workers/infrastructure/route-iq-retention-maintenance-release-package.mjs",
+      "sha256": "98515dfc0d2e554cae987057fe0a181b4e8c3dd8042a696454a3af5d26cca133"
+    },
+    "productionAdmission": {
+      "path": "workers/infrastructure/route-iq-retention-maintenance-production-admission.js",
+      "sha256": "f97f91ec9bf39ca7711da2c41608a4f6d26850260a15719eb9bb058f30905118"
+    },
+    "exactFinalCommitArtifactRequired": true,
+    "authoritativeProductionLegalHoldRequired": true,
+    "signedShortLivedAdmissionRequired": true,
+    "atomicReplayRejectionRequired": true,
+    "deploymentAuthorityGranted": false,
+    "deletionAuthorityGranted": false
+  },
   "dataAdmission": {
     "dataAuthenticatedAndHashBoundRequired": true,
     "authoritativeLegalHoldLedgerRequired": true,
+    "authoritativeProductionLegalHoldRequired": true,
+    "fixtureLegalHoldEvidenceAllowed": false,
+    "immediatePreMutationRevalidationRequired": true,
     "canonicalCreationTimeRequired": true,
     "maximumCalendarMonths": 18,
     "customerMayOnlyShorten": true,
@@ -57,8 +90,11 @@
     "activeCohorts": 0,
     "readiness": "INSUFFICIENT_EVIDENCE",
     "recommendationInfluence": "OFF",
+    "maintenanceRelease": "SOURCE_COMPLETE_DORMANT_NOT_DEPLOYED",
+    "productionLegalHoldAuthority": "UNAVAILABLE_UNTIL_SEPARATELY_PROVISIONED",
     "routeOrUiInfluenceChanged": false,
     "deploymentPerformed": false,
+    "productionContactPerformed": false,
     "productionMutationPerformed": false
   }
 }

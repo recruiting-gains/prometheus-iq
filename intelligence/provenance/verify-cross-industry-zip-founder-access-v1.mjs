@@ -22,6 +22,8 @@ export const retentionDeletionRuntimeProtectedSuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json";
 export const retentionDeletionConsumerAdmissionSuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-retention-deletion-consumer-admission-v1.json";
+export const retentionMaintenanceConsumerAdmissionSuccessorProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json";
 const crossIndustryDashboardRetentionProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json";
 
@@ -793,6 +795,138 @@ function verifyRetentionDeletionConsumerAdmissionSuccessorAgainst(
   });
 }
 
+function verifyRetentionMaintenanceConsumerAdmissionSuccessorAgainst(
+  retentionDeletionConsumerAdmissionSuccessor
+) {
+  const successor = JSON.parse(
+    read(retentionMaintenanceConsumerAdmissionSuccessorProvenancePath)
+  );
+  assert.equal(
+    successor.version,
+    "route-iq-intelligence-retention-maintenance-consumer-admission-successor-v1"
+  );
+  assert.equal(successor.batchId, "BATCH-20260809-002");
+  assert.equal(successor.status, "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(
+    successor.predecessor.path,
+    retentionDeletionConsumerAdmissionSuccessorProvenancePath
+  );
+  assert.equal(sha256(successor.predecessor.path), successor.predecessor.sha256);
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(successor.predecessor.rewritten, false);
+
+  const expectedPaths = [
+    "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
+    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+    "scripts/validate-intelligence-architecture.mjs",
+    "scripts/verify-route-iq-prospective-retention-intelligence.mjs",
+    "tests/route-iq-prospective-retention-intelligence.test.mjs"
+  ];
+  assert.deepEqual(successor.implementation.changedPaths, expectedPaths);
+  assert.deepEqual(
+    git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      successor.implementation.commit
+    ]).trim().split("\n").filter(Boolean).sort(),
+    expectedPaths
+  );
+  assert.deepEqual(
+    git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      successor.implementation.commit
+    ]).trim().split("\n"),
+    [
+      successor.implementation.commit,
+      successor.implementation.parent,
+      successor.implementation.tree,
+      "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      successor.implementation.subject
+    ]
+  );
+
+  const successorTransitionsByPath = new Map();
+  for (const transition of successor.protectedSourceTransitions) {
+    assert.equal(successorTransitionsByPath.has(transition.path), false);
+    const predecessorTransitions =
+      retentionDeletionConsumerAdmissionSuccessor.transitionsByPath.get(
+        transition.path
+      );
+    if (predecessorTransitions) {
+      assert.equal(
+        transition.previousSha256,
+        predecessorTransitions.at(-1).currentSha256,
+        `Broken retention-maintenance consumer chain: ${transition.path}`
+      );
+    }
+    verifyTransition(transition.path, transition);
+    successorTransitionsByPath.set(transition.path, [transition]);
+  }
+  assert.deepEqual(
+    [...successorTransitionsByPath.keys()].sort(),
+    expectedPaths
+  );
+
+  assert.equal(successor.upstreamDataAuthority.commit,
+    "1513b1acec6b303823e26252c5bcf77efa05ad62");
+  assert.equal(successor.upstreamDataAuthority.tree,
+    "fb342e185d33f65522745782cad71c4ee437cea1");
+  assert.equal(
+    sha256(successor.upstreamDataAuthority.retentionGovernance.path),
+    successor.upstreamDataAuthority.retentionGovernance.currentSha256
+  );
+  assert.equal(successor.upstreamDataAuthority.retentionGovernance.currentSha256,
+    "9d57108065e14528bb0d11e5910cc0b6b313fd310d6e67b30a8d704b1f2c6f4d");
+  assert.equal(successor.upstreamInfrastructureRelease.commit,
+    "b71bd0a99ff8d992694df542ec969a071c7b353d");
+  assert.equal(successor.upstreamInfrastructureRelease.tree,
+    "8b12b3d09f38ff72e5e7c96f8d7732a5c6a41fc4");
+  for (const artifact of successor.upstreamInfrastructureRelease.artifacts) {
+    assert.equal(sha256(artifact.path), artifact.sha256,
+      `Retention-maintenance Infrastructure source changed: ${artifact.path}`);
+  }
+  assert.deepEqual(successor.composition, {
+    exactFinalCommitArtifactRequired: true,
+    dataProductionLegalHoldAuthorityRequired: true,
+    fixtureLegalHoldEvidenceAllowed: false,
+    signedShortLivedAdmissionRequired: true,
+    atomicReplayRejectionRequired: true,
+    consumerExclusionSemanticsChanged: false,
+    recommendationBehaviorChanged: false,
+    deploymentAuthorityGranted: false,
+    deletionAuthorityGranted: false,
+    historicalPinsRewritten: false
+  });
+  assert.deepEqual(successor.boundaries, {
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    canonicalProspectiveRecords: 0,
+    canonicalProspectiveEvaluations: 0,
+    maintenanceRelease: "SOURCE_COMPLETE_DORMANT_NOT_DEPLOYED",
+    productionContactPerformed: false,
+    productionMutationPerformed: false,
+    deploymentPerformed: false
+  });
+
+  const transitionsByPath = new Map(
+    retentionDeletionConsumerAdmissionSuccessor.transitionsByPath
+  );
+  for (const [path, transitions] of successorTransitionsByPath) {
+    transitionsByPath.set(path, [
+      ...(transitionsByPath.get(path) || []),
+      ...transitions
+    ]);
+  }
+  return Object.freeze({
+    successor,
+    successorTransitionsByPath,
+    transitionsByPath,
+    retentionDeletionConsumerAdmissionSuccessor
+  });
+}
+
 export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
   const successor = JSON.parse(
     read(controlledOnboardingRehearsalSmokeContractProvenancePath)
@@ -898,9 +1032,13 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     verifyRetentionDeletionConsumerAdmissionSuccessorAgainst(
       retentionDeletionRuntimeProtectedSuccessor
     );
+  const retentionMaintenanceConsumerAdmissionSuccessor =
+    verifyRetentionMaintenanceConsumerAdmissionSuccessorAgainst(
+      retentionDeletionConsumerAdmissionSuccessor
+    );
   for (const protectedTransition of transitionByPath.values()) {
     const revenueTransitions =
-      retentionDeletionConsumerAdmissionSuccessor.transitionsByPath
+      retentionMaintenanceConsumerAdmissionSuccessor.transitionsByPath
         .get(protectedTransition.path);
     const expectedSha256 = revenueTransitions
       ? revenueTransitions.at(-1).currentSha256
@@ -919,7 +1057,8 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     liveCanonicalIdentityProtectedSuccessor,
     fieldSessionReportTypeContractProtectedSuccessor,
     retentionDeletionRuntimeProtectedSuccessor,
-    retentionDeletionConsumerAdmissionSuccessor
+    retentionDeletionConsumerAdmissionSuccessor,
+    retentionMaintenanceConsumerAdmissionSuccessor
   });
 }
 
@@ -951,6 +1090,11 @@ export function verifyRetentionDeletionRuntimeProtectedSuccessor() {
 export function verifyRetentionDeletionConsumerAdmissionSuccessor() {
   return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
     .retentionDeletionConsumerAdmissionSuccessor;
+}
+
+export function verifyRetentionMaintenanceConsumerAdmissionSuccessor() {
+  return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .retentionMaintenanceConsumerAdmissionSuccessor;
 }
 
 export function verifyCrossIndustryZipFounderAccessAdoption() {
@@ -999,6 +1143,10 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       rehearsalSuccessor.retentionDeletionConsumerAdmissionSuccessor
         .successorTransitionsByPath
         .get(successor.path) || [];
+    const retentionMaintenanceTransitions =
+      rehearsalSuccessor.retentionMaintenanceConsumerAdmissionSuccessor
+        .successorTransitionsByPath
+        .get(successor.path) || [];
     if (rehearsalTransition) {
       assert.equal(
         rehearsalTransition.previousSha256,
@@ -1010,7 +1158,8 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       ...successor.transitions,
       ...(rehearsalTransition ? [rehearsalTransition] : []),
       ...revenueReadinessTransitions,
-      ...retentionConsumerTransitions
+      ...retentionConsumerTransitions,
+      ...retentionMaintenanceTransitions
     ];
     const currentSuccessor = {
       ...successor,
@@ -1071,6 +1220,28 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       transitions: [...existing.transitions, ...remainingTransitions]
     });
   }
+  const retentionMaintenanceSuccessor =
+    rehearsalSuccessor.retentionMaintenanceConsumerAdmissionSuccessor;
+  for (const [path, transitions] of
+    retentionMaintenanceSuccessor.successorTransitionsByPath) {
+    const existing = transitionByPath.get(path);
+    if (!existing) {
+      transitionByPath.set(path, {
+        path,
+        previousSha256: transitions[0].previousSha256,
+        currentSha256: transitions.at(-1).currentSha256,
+        transitions
+      });
+      continue;
+    }
+    assert.equal(transitions[0].previousSha256, existing.currentSha256,
+      `Broken retention-maintenance adoption chain: ${path}`);
+    transitionByPath.set(path, {
+      ...existing,
+      currentSha256: transitions.at(-1).currentSha256,
+      transitions: [...existing.transitions, ...transitions]
+    });
+  }
 
   assert.equal(
     transitionByPath.get("index.html")?.currentSha256,
@@ -1126,8 +1297,8 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
   const runtimePaths = adoption.intelligenceRuntimeIntegrity.artifacts.map(({ path }) => path);
   for (const artifact of adoption.intelligenceRuntimeIntegrity.artifacts) {
     const currentRetentionTransitions =
-      rehearsalSuccessor.retentionDeletionConsumerAdmissionSuccessor
-        .successorTransitionsByPath.get(artifact.path);
+      rehearsalSuccessor.retentionMaintenanceConsumerAdmissionSuccessor
+        .transitionsByPath.get(artifact.path);
     const approvedTransitions = currentRetentionTransitions ||
       rehearsalSuccessor.fullSystemHarmonySuccessor.transitionsByPath.get(artifact.path);
     const expectedSha256 = approvedTransitions
@@ -1139,6 +1310,8 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
   const unchangedRuntimePaths = runtimePaths.filter(
     path => !rehearsalSuccessor.fullSystemHarmonySuccessor.transitionsByPath.has(path)
       && !rehearsalSuccessor.retentionDeletionConsumerAdmissionSuccessor
+        .successorTransitionsByPath.has(path)
+      && !rehearsalSuccessor.retentionMaintenanceConsumerAdmissionSuccessor
         .successorTransitionsByPath.has(path)
   );
   execFileSync("/usr/bin/git", [

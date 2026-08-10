@@ -21,6 +21,9 @@ import {
   validateRouteIqProspectiveRetentionPolicy,
 } from "../intelligence/route-iq-prospective-retention-admission.mjs";
 import {
+  validateRouteIqRetentionMaintenanceConsumerAdmissionSuccessor,
+} from "../scripts/verify-route-iq-prospective-retention-intelligence.mjs";
+import {
   createRetentionAuthority,
   createRetentionStore,
   retentionOperationAuthorityClaims,
@@ -216,4 +219,52 @@ test("a deletion-started governance event excludes the subject before any Intell
   assert.equal(result.admitted, false);
   assert.equal(result.canonicalProductionEvaluationAllowed, false);
   assert.equal(result.reasonCodes.includes("retention_deletion_started"), true);
+});
+
+test("dormant maintenance admission composes exact Data and Infrastructure authority without changing consumer influence", () => {
+  const successor = JSON.parse(readFileSync(
+    new URL(
+      "../intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json",
+      import.meta.url,
+    ),
+    "utf8",
+  ));
+  const result = validateRouteIqRetentionMaintenanceConsumerAdmissionSuccessor(
+    successor,
+  );
+  assert.deepEqual(result, {
+    status: "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR",
+    batchId: "BATCH-20260809-002",
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+  });
+
+  const substitutions = [
+    (value) => {
+      value.upstreamDataAuthority.retentionGovernance.currentSha256 = "0".repeat(64);
+    },
+    (value) => {
+      value.upstreamInfrastructureRelease.artifacts[0].sha256 = "0".repeat(64);
+    },
+    (value) => {
+      value.composition.consumerExclusionSemanticsChanged = true;
+    },
+    (value) => {
+      value.boundaries.collection = "ON";
+    },
+    (value) => {
+      value.boundaries.recommendationInfluence = "ON";
+    },
+    (value) => {
+      value.boundaries.deploymentPerformed = true;
+    },
+  ];
+  for (const substitute of substitutions) {
+    const changed = structuredClone(successor);
+    substitute(changed);
+    assert.throws(
+      () => validateRouteIqRetentionMaintenanceConsumerAdmissionSuccessor(changed),
+    );
+  }
 });

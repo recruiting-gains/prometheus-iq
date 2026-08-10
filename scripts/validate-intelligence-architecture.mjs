@@ -1,9 +1,11 @@
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
+const sha256 = path => createHash("sha256").update(read(path)).digest("hex");
 
 const failures = [];
 const assert = (condition, message) => {
@@ -30,6 +32,7 @@ const requiredFiles = [
   "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json",
   "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json",
   "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
+  "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json",
   "intelligence/recommendation-explainability-engine.mjs",
   "intelligence/operating-profile-engine.mjs",
   "intelligence/field-evidence-activation-foundation.md",
@@ -131,6 +134,7 @@ const legacyProvenanceEvidence = readJson("intelligence/provenance/legacy-proven
 const protectedBaselineSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-v1.json");
 const routeQualityBaselineSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json");
 const prospectiveRetentionAdmissionSpec = readJson("intelligence/provenance/specifications/prospective-retention-admission-v1.json");
+const retentionMaintenanceConsumerAdmissionSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json");
 const prospectiveRetentionBaselineSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json");
 const finalProspectiveRetentionBaseline = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-retention-v1.json");
 const prospectiveRetentionCoordinatorSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json");
@@ -848,13 +852,21 @@ assert(routeQualityBaselineSuccessor.boundaryValidation.routeScoringChanged === 
 assert(routeQualityBaselineSuccessor.boundaryValidation.routeGenerationChanged === false, "Route-quality synchronization must not change route generation.");
 assert(prospectiveRetentionAdmissionSpec.batchId === "BATCH-20260714-004", "Prospective retention admission specification must identify the final Data retention batch.");
 assert(prospectiveRetentionAdmissionSpec.sourceDeletionSuccessorBatchId === "BATCH-20260809-001", "Prospective retention admission specification must identify the dormant deletion successor.");
+assert(prospectiveRetentionAdmissionSpec.deploymentReadinessSuccessorBatchId === "BATCH-20260809-002", "Prospective retention admission specification must identify the dormant maintenance readiness successor.");
 assert(prospectiveRetentionAdmissionSpec.ownerSubsystem === "Prometheus Intelligence Engine", "Prospective retention admission specification must remain Intelligence-owned.");
+assert(prospectiveRetentionAdmissionSpec.version === "route-iq-intelligence-prospective-retention-admission-spec-v3", "Prospective retention admission specification version drifted.");
+assert(prospectiveRetentionAdmissionSpec.consumerAdmissionSuccessor.path === "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json", "Prospective retention admission successor path drifted.");
+assert(prospectiveRetentionAdmissionSpec.consumerAdmissionSuccessor.version === retentionMaintenanceConsumerAdmissionSuccessor.version, "Prospective retention admission successor version drifted.");
 assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.finalRetentionCommit === "c73118ddb262d3010bbc94a900f8506fb2f56192", "Prospective retention specification must pin final Data retention.");
+assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.productionLegalHoldReadinessCommit === "1513b1acec6b303823e26252c5bcf77efa05ad62", "Prospective retention specification must pin Data production legal-hold readiness.");
 assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.retentionPolicySha256 === "a0a60f3ffb693d9fadd2b1637d22fc6f6f035f8fa2533af96dc3a0c1644e1a9f", "Prospective retention specification must pin the current Data policy hash.");
-assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.retentionGovernanceSha256 === "0bd6519d40ea76f5ad771e19dd0ffe4fe840c7c3aeb0ad2ce1987e681985dabb", "Prospective retention specification must pin current Data governance.");
+assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.previousRetentionGovernanceSha256 === "0bd6519d40ea76f5ad771e19dd0ffe4fe840c7c3aeb0ad2ce1987e681985dabb", "Prospective retention specification must preserve the previous Data governance identity.");
+assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.retentionGovernanceSha256 === "9d57108065e14528bb0d11e5910cc0b6b313fd310d6e67b30a8d704b1f2c6f4d", "Prospective retention specification must pin current Data legal-hold governance.");
 assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.sourceDeletionSuccessorCommits.at(-1) === "a8fedf7c0b88f0611b4f721b08641e55413c591a", "Prospective retention specification must pin the final Data deletion successor.");
 assert(prospectiveRetentionAdmissionSpec.dataAdmission.dataAuthenticatedAndHashBoundRequired === true, "Prospective retention admission must require Data authentication and hashes.");
 assert(prospectiveRetentionAdmissionSpec.dataAdmission.authoritativeLegalHoldLedgerRequired === true, "Prospective retention admission must require an authoritative hold ledger.");
+assert(prospectiveRetentionAdmissionSpec.dataAdmission.authoritativeProductionLegalHoldRequired === true && prospectiveRetentionAdmissionSpec.dataAdmission.fixtureLegalHoldEvidenceAllowed === false, "Prospective retention admission must require production legal-hold authority and reject fixtures.");
+assert(prospectiveRetentionAdmissionSpec.dataAdmission.immediatePreMutationRevalidationRequired === true, "Prospective retention admission must require immediate legal-hold revalidation.");
 assert(prospectiveRetentionAdmissionSpec.dataAdmission.maximumCalendarMonths === 18, "Prospective retention maximum must be 18 calendar months.");
 assert(prospectiveRetentionAdmissionSpec.dataAdmission.customerMayOnlyShorten === true && prospectiveRetentionAdmissionSpec.dataAdmission.customerMayExpand === false, "Customers may only shorten retention.");
 assert(prospectiveRetentionAdmissionSpec.dataAdmission.deletionStartedOrCompletedSubjectAdmissionAllowed === false, "Deletion-started and completed subjects must remain excluded.");
@@ -864,6 +876,13 @@ assert(prospectiveRetentionAdmissionSpec.administrativeDisposition.admissionAllo
 assert(prospectiveRetentionAdmissionSpec.currentState.readiness === "INSUFFICIENT_EVIDENCE", "Prospective retention readiness must remain insufficient evidence.");
 assert(prospectiveRetentionAdmissionSpec.currentState.collection === "OFF" && prospectiveRetentionAdmissionSpec.currentState.activeCohorts === 0, "Prospective retention collection must remain OFF with zero cohorts.");
 assert(prospectiveRetentionAdmissionSpec.currentState.recommendationInfluence === "OFF", "Prospective retention recommendation influence must remain OFF.");
+assert(prospectiveRetentionAdmissionSpec.maintenanceReleaseReadiness.infrastructureCommit === "b71bd0a99ff8d992694df542ec969a071c7b353d", "Prospective retention specification must pin the Infrastructure maintenance package.");
+assert(prospectiveRetentionAdmissionSpec.maintenanceReleaseReadiness.releasePackageContract.sha256 === sha256(prospectiveRetentionAdmissionSpec.maintenanceReleaseReadiness.releasePackageContract.path), "Maintenance release contract hash drifted.");
+assert(prospectiveRetentionAdmissionSpec.maintenanceReleaseReadiness.releasePackageBuilder.sha256 === sha256(prospectiveRetentionAdmissionSpec.maintenanceReleaseReadiness.releasePackageBuilder.path), "Maintenance release builder hash drifted.");
+assert(prospectiveRetentionAdmissionSpec.maintenanceReleaseReadiness.productionAdmission.sha256 === sha256(prospectiveRetentionAdmissionSpec.maintenanceReleaseReadiness.productionAdmission.path), "Maintenance production admission hash drifted.");
+assert(prospectiveRetentionAdmissionSpec.maintenanceReleaseReadiness.deploymentAuthorityGranted === false && prospectiveRetentionAdmissionSpec.maintenanceReleaseReadiness.deletionAuthorityGranted === false, "Maintenance composition must grant no deployment or deletion authority.");
+assert(retentionMaintenanceConsumerAdmissionSuccessor.predecessor.path === "intelligence/provenance/protected-baseline-synchronization-retention-deletion-consumer-admission-v1.json", "Maintenance consumer successor predecessor drifted.");
+assert(retentionMaintenanceConsumerAdmissionSuccessor.boundaries.collection === "OFF" && retentionMaintenanceConsumerAdmissionSuccessor.boundaries.activeCohorts === 0 && retentionMaintenanceConsumerAdmissionSuccessor.boundaries.recommendationInfluence === "OFF", "Maintenance consumer successor changed protected Intelligence state.");
 assert(finalProspectiveRetentionBaseline.batchId === "BATCH-20260714-004", "Final retention baseline must identify this batch.");
 assert(finalProspectiveRetentionBaseline.dataOwnerLineage.commit === prospectiveRetentionAdmissionSpec.dataOwnerLineage.finalRetentionCommit, "Final retention baseline and specification must pin the same Data commit.");
 assert(finalProspectiveRetentionBaseline.protectedBehavior.collection === "OFF" && finalProspectiveRetentionBaseline.protectedBehavior.activeCohorts === 0, "Final retention baseline must keep collection OFF.");
