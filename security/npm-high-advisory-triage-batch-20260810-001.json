@@ -1,0 +1,359 @@
+{
+  "schemaVersion": "prometheus-security-npm-advisory-successor-v1",
+  "batchId": "BATCH-20260810-001",
+  "owner": "Prometheus Security/Aegis",
+  "ownerIdentity": "Prometheus Security <security@prometheus.local>",
+  "observedAt": "2026-08-10T20:10:52Z",
+  "verdict": "ZERO_HIGH_CLOUDFLARE_TOOLCHAIN_GRAPH_ACCEPTED_BY_SECURITY",
+  "provenance": {
+    "startingBaseline": {
+      "branch": "main",
+      "commit": "2d5caafc52de0c1ee42bce5b370e2232e53fd72f",
+      "tree": "25bd1b7015f018edbf4c8371a33598cafb28ebff"
+    },
+    "infrastructureOwner": {
+      "commit": "4b238db293e630f1dfff9e159b791e8d9a510f74",
+      "tree": "9ecb94b795d612a34a84c7ba7871296872d9184a",
+      "parent": "2d5caafc52de0c1ee42bce5b370e2232e53fd72f",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "infrastructure: update Cloudflare compatibility toolchain",
+      "contractPath": "workers/infrastructure/route-iq-cloudflare-toolchain-compatibility-v1.json",
+      "contractSha256": "cb2da57d2e7fcc59888c1578ef9feadcccd2c601882d22a352a9fac0e2488516",
+      "packageJsonSha256": "fe0ce10cfbba72a7263fadc3395a9e1172cfcf4ab9a28874b58a0b6fb9d2ab6e",
+      "packageLockSha256": "6689435e2070d0f36d97448019348dc776d28cca9f6538d3d632cd5e5c1590ec"
+    },
+    "immutablePredecessor": {
+      "batchId": "BATCH-20260809-002",
+      "ownerCommit": "de7b3fb7ad28c621d10edb40b7225c2a2ce0b4c1",
+      "recordPath": "security/npm-high-advisory-triage-batch-20260809-002.json",
+      "recordSha256": "b0ffe3c540f33e5ce5982c64cbd4cb6c2e4d409e28483caaf548c4270e82412e",
+      "recordGitBlob": "c82e4b81cf61570aaf5ede10556e56bc0de5b5c0",
+      "testPath": "tests/route-iq-npm-high-advisory-triage-batch-20260809-002-security.test.mjs",
+      "testSha256": "efbbfbee3091e3efaf3367f8332f083287e796eb4d47d0e25822ab9f22aef00b",
+      "testGitBlob": "045f03c484648c7eff8c8bcc89fa41298327d2b9",
+      "mutationAuthorized": false,
+      "byteIdentical": true
+    }
+  },
+  "auditModel": "npm-audit-v2-package-level-findings",
+  "auditCommands": {
+    "allDependencies": "npm audit --json",
+    "productionOnly": "npm audit --omit=dev --json"
+  },
+  "auditDisposition": {
+    "before": {
+      "allDependencies": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 4,
+        "critical": 0,
+        "total": 4
+      },
+      "productionOnly": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      }
+    },
+    "after": {
+      "allDependencies": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "productionOnly": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      }
+    },
+    "removedPackageLevelHighFindings": [
+      "miniflare",
+      "sharp",
+      "undici",
+      "wrangler"
+    ],
+    "productionReachableHighFindingsBefore": 0,
+    "productionReachableHighFindingsAfter": 0
+  },
+  "removedPackageFindings": [
+    {
+      "package": "miniflare",
+      "baselineVersion": "4.20260708.1",
+      "resolvedVersion": "5.20260804.0-alpha",
+      "severity": "high",
+      "vulnerableRange": "<=0.0.0-fec45ed61 || 4.20250508.3 - 5.20260801.0-alpha",
+      "dependencyPaths": [
+        ["root", "miniflare"],
+        ["root", "wrangler", "miniflare"]
+      ],
+      "advisoryIds": ["GHSA-f88m-g3jw-g9cj", "GHSA-4cwx-7wf7-3272"]
+    },
+    {
+      "package": "sharp",
+      "baselineVersion": "0.34.5",
+      "resolvedVersion": "0.35.2",
+      "severity": "high",
+      "vulnerableRange": "<0.35.0",
+      "dependencyPaths": [
+        ["root", "miniflare", "sharp"],
+        ["root", "wrangler", "miniflare", "sharp"]
+      ],
+      "advisoryIds": ["GHSA-f88m-g3jw-g9cj"]
+    },
+    {
+      "package": "undici",
+      "baselineVersion": "7.28.0",
+      "resolvedVersion": "7.29.0",
+      "severity": "high",
+      "vulnerableRange": ">=7.0.0 <7.29.0",
+      "dependencyPaths": [
+        ["root", "miniflare", "undici"],
+        ["root", "wrangler", "miniflare", "undici"]
+      ],
+      "advisoryIds": [
+        "GHSA-8xcm-r25x-g524",
+        "GHSA-4cwx-7wf7-3272",
+        "GHSA-m8rv-5g2x-5cg5",
+        "GHSA-jr45-8vmc-qm54",
+        "GHSA-v3r7-h72x-cjcm"
+      ]
+    },
+    {
+      "package": "wrangler",
+      "baselineVersion": "4.110.0",
+      "resolvedVersion": "4.120.1",
+      "severity": "high",
+      "vulnerableRange": "<=0.0.0-7ae5dd357 || 4.16.0 - 4.113.0",
+      "dependencyPaths": [["root", "wrangler"]],
+      "advisoryIds": ["GHSA-f88m-g3jw-g9cj", "GHSA-4cwx-7wf7-3272"]
+    }
+  ],
+  "removedUnderlyingAdvisories": [
+    {
+      "source": 1124066,
+      "id": "GHSA-f88m-g3jw-g9cj",
+      "package": "sharp",
+      "severity": "high",
+      "title": "sharp inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591",
+      "range": "<0.35.0",
+      "patchedVersionFloor": "0.35.0"
+    },
+    {
+      "source": 1130715,
+      "id": "GHSA-8xcm-r25x-g524",
+      "package": "undici",
+      "severity": "moderate",
+      "title": "undici vulnerable to downstream response desynchronization via retry interceptor",
+      "range": ">=7.0.0 <7.29.0",
+      "patchedVersionFloor": "7.29.0"
+    },
+    {
+      "source": 1130718,
+      "id": "GHSA-4cwx-7wf7-3272",
+      "package": "undici",
+      "severity": "high",
+      "title": "undici vulnerable to cross-user information disclosure and parse-time crash via degenerate private cache directives",
+      "range": ">=7.0.0 <7.29.0",
+      "patchedVersionFloor": "7.29.0"
+    },
+    {
+      "source": 1130726,
+      "id": "GHSA-m8rv-5g2x-5cg5",
+      "package": "undici",
+      "severity": "moderate",
+      "title": "undici vulnerable to CRLF Injection via blob-like body 'type' property",
+      "range": ">=7.0.0 <7.29.0",
+      "patchedVersionFloor": "7.29.0"
+    },
+    {
+      "source": 1130729,
+      "id": "GHSA-jr45-8vmc-qm54",
+      "package": "undici",
+      "severity": "moderate",
+      "title": "undici vulnerable to cross-user information disclosure via whitespace around equals in Cache-Control directives",
+      "range": ">=7.0.0 <7.29.0",
+      "patchedVersionFloor": "7.29.0"
+    },
+    {
+      "source": 1130731,
+      "id": "GHSA-v3r7-h72x-cjcm",
+      "package": "undici",
+      "severity": "moderate",
+      "title": "undici vulnerable to cookie attribute injection via unsanitized domain and unparsed setCookie fields",
+      "range": ">=7.0.0 <7.29.0",
+      "patchedVersionFloor": "7.29.0"
+    }
+  ],
+  "selectedGraph": [
+    {
+      "package": "wrangler",
+      "version": "4.120.1",
+      "relationship": "direct",
+      "stability": "stable",
+      "dependencyPaths": [["root", "wrangler"]],
+      "lockfilePath": "node_modules/wrangler",
+      "integrity": "sha512-rQJ38rY02XiVITbSBWHC7oap3M2evcXgsC4CdlIX4WQENUZMMnue9j2vXO4aIi39KR+jDH+UHK8JNqp1+UjkRQ=="
+    },
+    {
+      "package": "miniflare",
+      "version": "5.20260804.0-alpha",
+      "relationship": "direct-and-wrangler-transitive-deduped",
+      "stability": "official-unavoidable-prerelease",
+      "dependencyPaths": [
+        ["root", "miniflare"],
+        ["root", "wrangler", "miniflare"]
+      ],
+      "lockfilePath": "node_modules/miniflare",
+      "integrity": "sha512-UDegnTukIpJCI/lNyQXU7B8kYFLcMZihlxqqOocnc62tV8AO6XofmFmZm3ZLDXTWZpkZnLLJ2sKCSlTIEXO3dQ=="
+    },
+    {
+      "package": "workerd",
+      "version": "1.20260804.1",
+      "relationship": "wrangler-and-miniflare-transitive-deduped",
+      "stability": "stable",
+      "dependencyPaths": [
+        ["root", "miniflare", "workerd"],
+        ["root", "wrangler", "workerd"],
+        ["root", "wrangler", "miniflare", "workerd"]
+      ],
+      "lockfilePath": "node_modules/workerd",
+      "integrity": "sha512-b0P38g5/ssemwWxd/mafNYggEZ0ere7PCiUH6RCHkgqjRhhXTP45nDiL2L3iIvi8uF2IjNrGpVgMXEunCaeY/w=="
+    },
+    {
+      "package": "sharp",
+      "version": "0.35.2",
+      "relationship": "miniflare-transitive",
+      "stability": "stable",
+      "dependencyPaths": [
+        ["root", "miniflare", "sharp"],
+        ["root", "wrangler", "miniflare", "sharp"]
+      ],
+      "lockfilePath": "node_modules/sharp",
+      "integrity": "sha512-FVtFjtBCMiJS6yb5CX7Sop45WFMpeGw6oRKuJnXYgf/f1ms/D7LE/ZUSNxnW7rZ/dbslQWYkoqFHGPaDBtaK4w=="
+    },
+    {
+      "package": "undici",
+      "version": "7.29.0",
+      "relationship": "miniflare-transitive",
+      "stability": "stable",
+      "dependencyPaths": [
+        ["root", "miniflare", "undici"],
+        ["root", "wrangler", "miniflare", "undici"]
+      ],
+      "lockfilePath": "node_modules/undici",
+      "integrity": "sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw=="
+    },
+    {
+      "package": "ajv",
+      "version": "8.20.0",
+      "relationship": "direct-development-schema-validator",
+      "stability": "stable",
+      "dependencyPaths": [["root", "ajv"]],
+      "lockfilePath": "node_modules/ajv",
+      "integrity": "sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA=="
+    },
+    {
+      "package": "jsonc-parser",
+      "version": "3.2.0",
+      "relationship": "direct-development-config-parser-matching-wrangler",
+      "stability": "stable",
+      "dependencyPaths": [["root", "jsonc-parser"]],
+      "lockfilePath": "node_modules/jsonc-parser",
+      "integrity": "sha512-gfFQZrcTc8CnKXp6Y4/CBT3fTc0OVuDofpre4aEeEpSBPV5X5v4+Vmx+8snU7RLPrNHPKSgLxGo9YuQzz20o+w=="
+    }
+  ],
+  "prereleaseDisposition": {
+    "package": "miniflare",
+    "version": "5.20260804.0-alpha",
+    "isPrerelease": true,
+    "classification": "OFFICIAL_UNAVOIDABLE_DEPENDENCY_OF_STABLE_WRANGLER",
+    "wranglerVersion": "4.120.1",
+    "wranglerStability": "stable",
+    "wranglerReleaseChannel": "npm-latest",
+    "exactDependencyRequiredByWrangler": true,
+    "stableMiniflareZeroHighGraphAvailable": false,
+    "acceptedOnlyWithCompatibilityQualification": true
+  },
+  "normalResolution": {
+    "npmAuditFixForceUsed": false,
+    "packageOverridesUsed": false,
+    "packageResolutionsUsed": false,
+    "manualLockfileEditingUsed": false,
+    "transitiveSharpPinUsed": false,
+    "transitiveUndiciPinUsed": false,
+    "unrelatedDependencyUpgradeAccepted": false
+  },
+  "compatibilityEvidence": {
+    "contractPath": "workers/infrastructure/route-iq-cloudflare-toolchain-compatibility-v1.json",
+    "contractSha256": "cb2da57d2e7fcc59888c1578ef9feadcccd2c601882d22a352a9fac0e2488516",
+    "command": "node --test tests/cloudflare-unattended-runtime-guard.test.mjs tests/route-iq-business-availability-infrastructure.test.mjs tests/route-iq-prospective-shadow-infrastructure.test.mjs tests/route-iq-request-crm-infrastructure.test.mjs",
+    "tests": 121,
+    "passed": 121,
+    "failed": 0,
+    "skipped": 0,
+    "priorRejectedCandidate": {
+      "tests": 121,
+      "passed": 112,
+      "failed": 9
+    },
+    "documentedPriorFailureCount": 9,
+    "originalProtectionWeakened": false
+  },
+  "actionWarning": {
+    "classification": "valid-warning-deferred-cross-owner-successor",
+    "currentActionsUseNode20Runtime": true,
+    "githubForcesNode24": true,
+    "availableReplacements": [
+      {
+        "action": "actions/checkout",
+        "version": "7.0.1",
+        "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "runsUsing": "node24"
+      },
+      {
+        "action": "actions/setup-node",
+        "version": "7.0.0",
+        "commit": "820762786026740c76f36085b0efc47a31fe5020",
+        "runsUsing": "node24"
+      }
+    ],
+    "reasonDeferred": "The workflow consumers are coupled to Overwatch-owned exact-SHA verifiers outside the Infrastructure and Security owner scopes.",
+    "permissionsChanged": false,
+    "workflowFilesChanged": false,
+    "securityAcceptanceBlocked": false
+  },
+  "verificationResults": {
+    "npmCi": "PASS_ZERO_VULNERABILITIES",
+    "allDependencyAudit": "PASS_ZERO_FINDINGS",
+    "productionOnlyAudit": "PASS_ZERO_FINDINGS",
+    "infrastructureContractTests": "PASS_7_OF_7",
+    "workerEmulationCompatibility": "PASS_121_OF_121",
+    "security": "PASS",
+    "aegis": "PASS_13_OF_13",
+    "deterministicSuccessorTest": "PASS_7_OF_7"
+  },
+  "productionBoundary": {
+    "cloudflareAuthentication": false,
+    "cloudflareContactCount": 0,
+    "wranglerRemoteCommandCount": 0,
+    "deploymentCount": 0,
+    "productionMutationCount": 0,
+    "productionStorageAccessCount": 0,
+    "secretAccessCount": 0
+  },
+  "securityOwnedFiles": [
+    "security/npm-high-advisory-triage-batch-20260810-001.json",
+    "tests/route-iq-npm-high-advisory-triage-batch-20260810-001-security.test.mjs"
+  ]
+}
