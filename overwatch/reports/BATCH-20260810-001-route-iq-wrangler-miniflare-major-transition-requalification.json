@@ -128,6 +128,21 @@
     "deploymentPerformed": false,
     "productionMutationPerformed": false
   },
+  "augustReadinessPublicVerifierFixtureRepair": {
+    "failedHostedRun": 31437235624,
+    "classification": "AUGUST_READINESS_PUBLIC_VERIFIER_FIXTURE_SUCCESSOR_NOT_COMPOSED",
+    "readinessLedgerPath": "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
+    "exactTestPath": "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+    "previousSha256": "b2d20e95fb7baec1b0ec1acf3f12aaf914503af59fc26a2b298ee8effc991db4",
+    "successorSha256": "2165324ae8773102e3d74f072856373248bc1d67b8dcef8e73d0dcd23bfbea5d",
+    "historicalReadinessEvidencePreserved": true,
+    "focusedFailuresBeforeRepair": 1,
+    "focusedFailuresAfterRepair": 0,
+    "applicationPayloadChanged": false,
+    "workflowChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  },
   "qualification": {
     "focusedInfrastructure": "PASS",
     "security": "PASS",

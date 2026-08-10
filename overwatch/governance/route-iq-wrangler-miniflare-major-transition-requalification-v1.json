@@ -272,6 +272,21 @@
     "cloudflareContactCount": 0,
     "productionMutationCount": 0
   },
+  "augustReadinessPublicVerifierFixtureRepair": {
+    "failedHostedRun": 31437235624,
+    "classification": "AUGUST_READINESS_PUBLIC_VERIFIER_FIXTURE_SUCCESSOR_NOT_COMPOSED",
+    "parent": "da547614ad0968352240dba314e23aa6111341a2",
+    "readinessLedgerPath": "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
+    "exactTestPath": "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+    "previousSha256": "b2d20e95fb7baec1b0ec1acf3f12aaf914503af59fc26a2b298ee8effc991db4",
+    "successorSha256": "2165324ae8773102e3d74f072856373248bc1d67b8dcef8e73d0dcd23bfbea5d",
+    "historicalReadinessEvidencePreserved": true,
+    "applicationPayloadChanged": false,
+    "workflowChanged": false,
+    "deploymentPerformed": false,
+    "cloudflareContactCount": 0,
+    "productionMutationCount": 0
+  },
   "node24ActionWarning": {
     "classification": "VALID_WARNING_DEFERRED_TO_SEPARATE_WORKFLOW_SUCCESSOR",
     "checkoutReplacement": "3d3c42e5aac5ba805825da76410c181273ba90b1",
@@ -294,7 +309,8 @@
       { "run": 31434488496, "classification": "PAID_CUSTOMER_PUBLIC_LANE_MISSING_ACTIVE_TOOLCHAIN_SUCCESSOR" },
       { "run": 31434809725, "classification": "CONTROLLED_REHEARSAL_RUNTIME_GUARD_VERIFIER_SUCCESSOR_NOT_COMPOSED" },
       { "run": 31435309144, "classification": "KEYCHAIN_INTEROPERABILITY_LAUNCHER_SUCCESSOR_NOT_COMPOSED" },
-      { "run": 31436345331, "classification": "HOSTED_MASTER_STATE_AND_PUBLIC_VERIFIER_FIXTURES_STALE" }
+      { "run": 31436345331, "classification": "HOSTED_MASTER_STATE_AND_PUBLIC_VERIFIER_FIXTURES_STALE" },
+      { "run": 31437235624, "classification": "AUGUST_READINESS_PUBLIC_VERIFIER_FIXTURE_SUCCESSOR_NOT_COMPOSED" }
     ],
     "passEquivalentVerdict": "CLOUDFLARE_TOOLCHAIN_REQUALIFIED_ZERO_HIGH_READY_FOR_FOUNDER_REVIEW"
   },
