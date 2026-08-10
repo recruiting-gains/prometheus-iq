@@ -67,6 +67,16 @@
       "path": "tests/overwatch-public-deployment-workflow-v2.test.mjs",
       "previousSha256": "b2fe3c47929454c0e863a4592d8278352bdf791c963cdd07a88b47cc7d540b58",
       "successorSha256": "b2d20e95fb7baec1b0ec1acf3f12aaf914503af59fc26a2b298ee8effc991db4"
+    },
+    {
+      "path": "package.json",
+      "previousSha256": "933e4e3e3cbbe4f63e3826b238b09a3c02330d90a60ee4a8bfcf64dac966fa49",
+      "successorSha256": "f6b097932650a9a504bf81b217e4efe6092d1bebc6b863bc9dd0748192e2d5d8"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "addd87265b3bae1281fc6409adeb92d6e50894f93cc3fac4c04e36e8778a6403",
+      "successorSha256": "338d0029e8229c3b4d08610f46b3b722831648bcbaee4709519a37861e88a3d5"
     }
   ],
   "successors": [
@@ -311,6 +321,19 @@
           "path": "tests/dashboard-route-iq-field-session-producer.test.mjs",
           "previousSha256": "5bd7e5da3f7597034ca684f02d45026c6244025429a2e348ed2395aed59be9dd",
           "successorSha256": "6f676f95c2f56bde6457c197b1fe917fa4d3b594c0bae971fb0faf51f9122477"
+        }
+      ]
+    },
+    {
+      "commit": "da7504352424096869a18b66dc7c4429480393f4",
+      "tree": "9ecb94b795d612a34a84c7ba7871296872d9184a",
+      "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "reason": "The supported Cloudflare toolchain transition preserves the complete Route IQ CRM infrastructure contract while adapting its real Miniflare persistence harness to the official compatibility boundary.",
+      "evidence": [
+        {
+          "path": "tests/route-iq-request-crm-infrastructure.test.mjs",
+          "previousSha256": "08893abf7fa594159ee8e6347258dcb7fd11cee2c014f538fe3f4a80a5eda739",
+          "successorSha256": "1bfa49016643bfb7c81f3e10a3f543f6790a5e9cb6c571716883bca58ea29520"
         }
       ]
     }

@@ -10,6 +10,8 @@ const startCommit = "2d5caafc52de0c1ee42bce5b370e2232e53fd72f";
 const startTree = "25bd1b7015f018edbf4c8371a33598cafb28ebff";
 const infrastructureCommit = "da7504352424096869a18b66dc7c4429480393f4";
 const securityCommit = "efc242a1bcf5728206fd9fae9d8fce75f642cab7";
+const qualificationCommit = "05a167f86c24e935f848dad67dd9df16ee7fac84";
+const qualificationTree = "cc95c63a662448007ffd692803b21965b439f4cc";
 const governancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
 const reportPath =
@@ -17,6 +19,8 @@ const reportPath =
 const infrastructurePath =
   "workers/infrastructure/route-iq-cloudflare-toolchain-compatibility-v1.json";
 const securityPath = "security/npm-high-advisory-triage-batch-20260810-001.json";
+const augustReadinessSuccessorsPath =
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -50,6 +54,12 @@ const overwatchFiles = Object.freeze([
   "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
   "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs"
 ]);
+const overwatchSuccessorFiles = Object.freeze([
+  augustReadinessSuccessorsPath,
+  "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+  "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+  "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs"
+]);
 
 function verifyOwnerCommit(commit, parent, identity, subject, files) {
   assert.equal(git("rev-parse", `${commit}^`), parent);
@@ -70,6 +80,7 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   const report = readJson(reportPath);
   const infrastructure = readJson(infrastructurePath);
   const security = readJson(securityPath);
+  const augustReadinessSuccessors = readJson(augustReadinessSuccessorsPath);
   const predecessor = readJson(
     "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json"
   );
@@ -101,19 +112,37 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     "security: accept zero-high Cloudflare toolchain graph",
     securityFiles
   );
-  assert.equal(git("show", "-s", "--format=%an <%ae>", head),
-    "Prometheus Overwatch <overwatch@prometheus.local>");
-  assert.equal(git("show", "-s", "--format=%cn <%ce>", head),
-    "Prometheus Overwatch <overwatch@prometheus.local>");
-  assert.equal(git("show", "-s", "--format=%s", head),
-    "overwatch: qualify Cloudflare toolchain transition");
-  assert.deepEqual(changedPaths(head), [...overwatchFiles].sort());
+  verifyOwnerCommit(
+    qualificationCommit,
+    securityCommit,
+    "Prometheus Overwatch <overwatch@prometheus.local>",
+    "overwatch: qualify Cloudflare toolchain transition",
+    overwatchFiles
+  );
+  assert.equal(git("show", "-s", "--format=%T", qualificationCommit), qualificationTree);
+  verifyOwnerCommit(
+    head,
+    qualificationCommit,
+    "Prometheus Overwatch <overwatch@prometheus.local>",
+    "overwatch: repair toolchain qualification provenance",
+    overwatchSuccessorFiles
+  );
 
   assert.equal(governance.batchId, "BATCH-20260810-001");
   assert.equal(report.batchId, governance.batchId);
   assert.equal(sha256(infrastructurePath),
     governance.authoritativeRecords.infrastructure.sha256);
   assert.equal(sha256(securityPath), governance.authoritativeRecords.security.sha256);
+  assert.equal(
+    augustReadinessSuccessors.overwatchCurrentEvidence.some(item =>
+      item.path === "package.json"
+      && item.previousSha256 === "933e4e3e3cbbe4f63e3826b238b09a3c02330d90a60ee4a8bfcf64dac966fa49"
+      && item.successorSha256 === "f6b097932650a9a504bf81b217e4efe6092d1bebc6b863bc9dd0748192e2d5d8"
+    ),
+    true
+  );
+  assert.equal(sha256("package.json"),
+    "f6b097932650a9a504bf81b217e4efe6092d1bebc6b863bc9dd0748192e2d5d8");
   assert.equal(sha256(governance.authoritativeRecords.immutablePredecessorGovernance.path),
     governance.authoritativeRecords.immutablePredecessorGovernance.sha256);
   assert.equal(sha256(governance.authoritativeRecords.immutablePredecessorReport.path),
@@ -211,10 +240,12 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     batchId: governance.batchId,
     head,
     tree: git("rev-parse", "HEAD^{tree}"),
+    qualificationCommit,
     compatibility: governance.compatibility.supportedCandidate,
     allDependencyHigh: security.auditDisposition.after.allDependencies.high,
     productionHigh: security.auditDisposition.after.productionOnly.high,
     releaseIdentitiesUnchanged: true,
+    augustReadinessPackageSuccessorCurrent: true,
     cloudflareContactCount: 0,
     deploymentCount: 0,
     productionMutationCount: 0
