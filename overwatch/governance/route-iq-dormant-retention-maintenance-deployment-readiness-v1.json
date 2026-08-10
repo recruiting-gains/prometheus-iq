@@ -1,0 +1,321 @@
+{
+  "recordVersion": "route-iq-dormant-retention-maintenance-deployment-readiness-v1",
+  "batchId": "BATCH-20260809-002",
+  "directive": "Route IQ Dormant Retention-Maintenance Deployment Readiness Package v1",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "candidateStatus": "SOURCE_COMPLETE_DORMANT_HOSTED_QUALIFICATION_REQUIRED",
+  "startingRepository": {
+    "branch": "main",
+    "commit": "78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e",
+    "tree": "387760d6e7182e83ec06364abd4fc74bd5a94c07",
+    "originMainMatched": true,
+    "clean": true
+  },
+  "predecessorAcceptance": {
+    "path": "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1-acceptance.json",
+    "sha256": "553aa0072ff9a1a6602de32545cafb15760322c366c29591e209f91abb761559",
+    "acceptedCommit": "78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e",
+    "acceptedTree": "387760d6e7182e83ec06364abd4fc74bd5a94c07",
+    "hostedRunId": 31343531077,
+    "tests": 1606,
+    "passed": 1602,
+    "failed": 0,
+    "skipped": 4,
+    "buildModules": 991,
+    "immutableBatchReportRewritten": false
+  },
+  "historicalVerifierComposition": {
+    "path": "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
+    "sha256": "7dc09a0e4e79c3f37b96077f627f388acc89b55cd5d39c2ee1fdea75f90cbd63",
+    "historicalPinsRewritten": false,
+    "packageSuccessorPreviousSha256": "d2b549f30a95d4f91b932ff87b9da84a30aee7a84b259a5ad0d6df68f37cc1d9",
+    "packageSuccessorCurrentSha256": "933e4e3e3cbbe4f63e3826b238b09a3c02330d90a60ee4a8bfcf64dac966fa49"
+  },
+  "ownership": {
+    "implementationOriginatedFromSubsystemOwners": true,
+    "overwatchModifiedSubsystemImplementation": false,
+    "commits": [
+      {
+        "commit": "1511fe6778138c4b662381be5e6b03109e21e43d",
+        "subsystem": "Prometheus Overwatch",
+        "email": "overwatch@prometheus.local",
+        "purpose": "predecessor acceptance closure"
+      },
+      {
+        "commit": "b71bd0a99ff8d992694df542ec969a071c7b353d",
+        "subsystem": "Prometheus Infrastructure",
+        "email": "infrastructure@prometheus.local",
+        "purpose": "dormant release package, admission producer, and forward rollback"
+      },
+      {
+        "commit": "de7b3fb7ad28c621d10edb40b7225c2a2ce0b4c1",
+        "subsystem": "Prometheus Security",
+        "email": "security@prometheus.local",
+        "purpose": "dependency advisory triage and safe lockfile patches"
+      },
+      {
+        "commit": "1513b1acec6b303823e26252c5bcf77efa05ad62",
+        "subsystem": "Prometheus Data",
+        "email": "data@prometheus.local",
+        "purpose": "authoritative production legal-hold readiness"
+      },
+      {
+        "commit": "c2bdfa3035383293afeb7e4a16704cb121c01716",
+        "subsystem": "Prometheus Intelligence Engine",
+        "email": "intelligence@prometheus.local",
+        "purpose": "consumer-admission successor composition"
+      },
+      {
+        "commit": "0faca7bb91b3e4ddbe7c1996ca84cc9247cd205a",
+        "subsystem": "Prometheus Intelligence Engine",
+        "email": "intelligence@prometheus.local",
+        "purpose": "historical successor-chain preservation"
+      },
+      {
+        "commit": "04e71df9f1f1c4ddef1a5a13dc46192b057682d4",
+        "subsystem": "Prometheus Intelligence Engine",
+        "email": "intelligence@prometheus.local",
+        "purpose": "immutable maintenance-admission successor"
+      },
+      {
+        "commit": "ae4e8def3e1142d6c9c99b709179f4be91c1acea",
+        "subsystem": "Prometheus Infrastructure",
+        "email": "infrastructure@prometheus.local",
+        "purpose": "exact dormant private forward-payload continuity pin"
+      }
+    ],
+    "finalIntegration": {
+      "ownerSubsystem": "Prometheus Overwatch",
+      "email": "overwatch@prometheus.local",
+      "expectedParent": "ae4e8def3e1142d6c9c99b709179f4be91c1acea",
+      "changedPaths": [
+        "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "overwatch/governance/github-actions-private-worker-deployment-v2.json",
+        "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json",
+        "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
+        "overwatch/reports/BATCH-20260809-002-route-iq-dormant-retention-maintenance-deployment-readiness.json",
+        "package.json",
+        "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+        "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
+        "scripts/verify-overwatch-route-iq-prospective-evidence-retention.mjs",
+        "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
+        "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
+        "tests/overwatch-route-iq-prospective-evidence-retention.test.mjs",
+        "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
+        "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
+      ]
+    }
+  },
+  "releasePackage": {
+    "sourceCommit": "04e71df9f1f1c4ddef1a5a13dc46192b057682d4",
+    "sourceTree": "ebad4033ebab5c37b399387ab4308e93b146cc82",
+    "targetWorker": "prometheus-iq",
+    "environment": "production_private",
+    "publicWorkerIncluded": false,
+    "contract": {
+      "path": "workers/infrastructure/route-iq-retention-maintenance-release-package-v1.json",
+      "sha256": "c92711238a5d3a289b65b67d2142caf667e9dedf0d7445a160f2a1140c8ce9d0"
+    },
+    "builder": {
+      "path": "workers/infrastructure/route-iq-retention-maintenance-release-package.mjs",
+      "sha256": "98515dfc0d2e554cae987057fe0a181b4e8c3dd8042a696454a3af5d26cca133"
+    },
+    "runtimeContract": {
+      "path": "workers/infrastructure/route-iq-retention-maintenance-runtime-v1.json",
+      "sha256": "791ab6707a6d7a206a1fa8da0d5c862fd9e417b9ad96e9122a8ca2b13197a4ab"
+    },
+    "admissionProducer": {
+      "path": "workers/infrastructure/route-iq-retention-maintenance-production-admission.js",
+      "sha256": "f97f91ec9bf39ca7711da2c41608a4f6d26850260a15719eb9bb058f30905118"
+    },
+    "artifactSha256": "3a10928717c21a66d7c7d5610b6449f724fcea2778a4a2a9e224d8a017e075a1",
+    "manifestSha256": "f33747eab0b7d243c03b5cdc28bbbc2ca877cbac6a231aceb597cc578030479e",
+    "configurationSha256": "2a9194ee16322b4b8fa17da9d3096d122e3211ded1cb522f5dea793b939b4083",
+    "contentSha256": "8bc59cdf6d572894b018d443bd6e9a2d3702f63aee22097091750833f1ce40f9",
+    "retentionPolicySha256": "1299d480d5e8d9418a143eb4817572a0362dd4a9649eb6f337e783c519e3bd20",
+    "deletionRuntimeSha256": "1ee36eb278646e8179fa092a2b4e32ae92cdaeba55f5a89ad9c7de24febbdc43",
+    "maintenanceRuntimeSha256": "9a28d07b997b3cadde2854c0b0916e4ad201634ad218e1b5d68813b79d21a717",
+    "privateWorkflowContinuity": {
+      "ownerCommit": "ae4e8def3e1142d6c9c99b709179f4be91c1acea",
+      "ownerTree": "5c557610b05d41e22ef64cfb9bc8e568d8fef2e5",
+      "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+      "sha256": "157977f192e5b05eacf932c82d64dd6ad51cc7f4860824d0092872f3b8a1890b",
+      "previousForwardPayloadSha256": "aaa8b360c1c5343020985863896844723ce30a144956bd41cfcc051ad6e0af6a",
+      "currentForwardPayloadSha256": "bafde531701612f2bf5ca9fd3bb69ee1be60432c78b0a046359c7476e5785e09",
+      "privateDeployParitySha256": "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9",
+      "rollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+      "deployParityChanged": false,
+      "rollbackChanged": false,
+      "applicationReleasePackageChanged": false,
+      "deploymentPerformed": false
+    },
+    "cloudflareContactCount": 0,
+    "productionMutationCount": 0,
+    "deploymentAuthorized": false,
+    "deletionAuthorized": false
+  },
+  "bindingBoundary": {
+    "ordinaryArchiveBinding": "DATA_ROUTE_IQ_FIELD_SESSION_STORE",
+    "maintenanceBinding": "DATA_ROUTE_IQ_RETENTION_MAINTENANCE_STORE",
+    "legalHoldLedgerBinding": "DATA_ROUTE_IQ_RETENTION_LEGAL_HOLD_LEDGER",
+    "admissionProducerBinding": "ROUTE_IQ_RETENTION_MAINTENANCE_ADMISSION_PRODUCER",
+    "ordinaryDeleteCapability": false,
+    "identicalOrdinaryAndMaintenanceBindingsFailClosed": true,
+    "productionBindingsConfigured": false
+  },
+  "legalHoldReadiness": {
+    "runtimePath": "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs",
+    "runtimeSha256": "9d57108065e14528bb0d11e5910cc0b6b313fd310d6e67b30a8d704b1f2c6f4d",
+    "defaultsUnavailable": true,
+    "authoritativeProductionStateRequired": true,
+    "fixtureStateAcceptedInProduction": false,
+    "exactScopeRequired": true,
+    "appendOnlyHistoryRequired": true,
+    "immediateRevalidationRequired": true,
+    "mutationAuthorityGranted": false
+  },
+  "intelligenceSuccessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json",
+    "sha256": "71b1a7ce529784a93bc4454617be15a896cfde0e1af47731ba711c97372bf0a4",
+    "consumerBehaviorChanged": false,
+    "recommendationBehaviorChanged": false
+  },
+  "dependencyAdvisories": {
+    "path": "security/npm-high-advisory-triage-batch-20260809-002.json",
+    "sha256": "b0ffe3c540f33e5ce5982c64cbd4cb6c2e4d409e28483caaf548c4270e82412e",
+    "packageFindingsBefore": 6,
+    "packageFindingsAfter": 4,
+    "productionReachableHighFindings": 0,
+    "safePatchesApplied": ["postcss", "nanoid"],
+    "deferredDevelopmentOnly": ["miniflare", "sharp", "undici", "wrangler"],
+    "auditFixForceUsed": false
+  },
+  "authorizationBoundaries": {
+    "deployment": {
+      "granted": false,
+      "mustBind": [
+        "exact_commit",
+        "exact_tree",
+        "exact_environment",
+        "exact_worker_and_binding_scope",
+        "exact_artifact_hashes",
+        "exact_forward_rollback_package",
+        "collection_off"
+      ]
+    },
+    "deletion": {
+      "granted": false,
+      "interchangeableWithDeploymentAuthority": false,
+      "mustBind": [
+        "exact_deletion_plan_sha256",
+        "exact_customer_workspace_representative_subject_scope",
+        "exact_expiry_boundary",
+        "exact_legal_hold_snapshot",
+        "exact_execution_time",
+        "replay_protection"
+      ]
+    }
+  },
+  "exposure": {
+    "publicRoute": false,
+    "dashboardControl": false,
+    "genericAdministrationControl": false,
+    "customerControl": false,
+    "representativeControl": false,
+    "scheduler": false,
+    "cron": false,
+    "alarm": false,
+    "queueConsumer": false,
+    "automaticDeletion": false
+  },
+  "forwardRollback": {
+    "path": "workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json",
+    "sha256": "1c52f24e6fda40db63d542ffc783e9c9c7ffd0d85a29b41f234aaefbcf312183",
+    "forwardOnly": true,
+    "nativeRollbackAllowed": false,
+    "historicalEvidenceRewriteAllowed": false,
+    "verifiedNotExecuted": true
+  },
+  "inventionReview": {
+    "classification": "OPERATIONAL_COMPOSITION_OF_EXISTING_RETENTION_AND_DEPLOYMENT_ARCHITECTURE",
+    "materiallyNewInvention": false,
+    "patentRecordChangeRequired": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "canonicalProspectiveRecords": 0,
+    "canonicalProspectiveEvaluations": 0,
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "companion": "DORMANT",
+    "anthony": "UNMAPPED",
+    "stripe": "NON_LIVE",
+    "productionContactCount": 0,
+    "productionMutationCount": 0,
+    "productionDeployment": "UNCHANGED"
+  },
+  "remainingFounderActions": [
+    "review_and_separately_authorize_the_exact_dormant_private_maintenance_deployment",
+    "authorize_provisioning_of_the_separate_maintenance_legal_hold_and_admission_bindings",
+    "retain_a_separate_exact_plan_bound_authorization_for_any_future_physical_deletion"
+  ],
+  "exactChangedFileManifest": {
+    "Prometheus Data": [
+      "data/route-iq-field-sessions-v1/README.md",
+      "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs",
+      "tests/route-iq-retention-production-legal-hold-readiness.test.mjs"
+    ],
+    "Prometheus Infrastructure": [
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "tests/route-iq-retention-maintenance-infrastructure.test.mjs",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+      "workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json",
+      "workers/infrastructure/route-iq-retention-maintenance-production-admission.js",
+      "workers/infrastructure/route-iq-retention-maintenance-release-package-v1.json",
+      "workers/infrastructure/route-iq-retention-maintenance-release-package.mjs",
+      "workers/infrastructure/route-iq-retention-maintenance-runtime-v1.json",
+      "workers/infrastructure/route-iq-retention-maintenance-runtime.js"
+    ],
+    "Prometheus Intelligence Engine": [
+      "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json",
+      "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "scripts/validate-intelligence-architecture.mjs",
+      "scripts/verify-route-iq-prospective-retention-intelligence.mjs",
+      "tests/route-iq-prospective-retention-intelligence.test.mjs"
+    ],
+    "Prometheus Security": [
+      "package-lock.json",
+      "security/npm-high-advisory-triage-batch-20260809-002.json",
+      "tests/route-iq-npm-high-advisory-triage-batch-20260809-002-security.test.mjs"
+    ],
+    "Prometheus Overwatch": [
+      "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+      "overwatch/governance/github-actions-private-worker-deployment-v2.json",
+      "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
+      "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json",
+      "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1-acceptance.json",
+      "overwatch/reports/BATCH-20260809-002-route-iq-dormant-retention-maintenance-deployment-readiness.json",
+      "package.json",
+      "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+      "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
+      "scripts/verify-overwatch-route-iq-prospective-evidence-retention.mjs",
+      "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
+      "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
+      "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
+      "tests/overwatch-route-iq-prospective-evidence-retention.test.mjs",
+      "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
+    ]
+  },
+  "deploymentBlockers": [
+    "exact_current_private_worker_identity_not_yet_bound_to_a_deployment_authority",
+    "production_maintenance_binding_not_configured",
+    "production_legal_hold_ledger_binding_not_configured",
+    "production_admission_producer_binding_not_configured",
+    "separate_founder_deployment_authority_not_granted"
+  ],
+  "nextRecommendedEngineeringTask": "Infrastructure-owned Wrangler and Miniflare major-transition requalification to remove the four residual development-only high advisories without weakening Worker restart or persistence tests."
+}

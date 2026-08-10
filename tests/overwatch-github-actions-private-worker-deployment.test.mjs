@@ -16,6 +16,7 @@ import {
   hasFieldSessionReportTypeInfrastructureSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
+  hasRetentionMaintenancePayloadInfrastructureSuccessor,
   hasLiveCanonicalIdentityOwnerEvidenceSuccessor,
   verifyOverwatchGithubActionsPrivateWorkerDeployment
 } from "../scripts/verify-overwatch-github-actions-private-worker-deployment.mjs";
@@ -158,6 +159,10 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0"
   );
   assert.equal(
+    result.immutableWorkflowV2RetentionMaintenancePayloadSuccessorCommit,
+    "ae4e8def3e1142d6c9c99b709179f4be91c1acea"
+  );
+  assert.equal(
     result.immutableWorkflowV2LiveCanonicalIdentityShadowReadinessRepairCommit,
     "0515e5993547e5e1b3a0b5897f12ac53060a8b35"
   );
@@ -273,13 +278,23 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
     readinessSuccessors: currentReadinessSuccessors,
     path: workflowPath,
     previousSha256: workflowPreviousSha256,
+    currentSha256: governanceV2.retentionDeletionPayloadQualificationSuccessor.evidence
+      .find(item => item.path === workflowPath).successorSha256
+  }), true);
+  assert.equal(hasRetentionMaintenancePayloadInfrastructureSuccessor({
+    governance: governanceV2,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: workflowPath,
+    previousSha256: workflowPreviousSha256,
     currentSha256: workflowCurrentSha256
   }), true);
 
   const changedGovernance = clone(fieldSessionReportTypeGovernance);
   changedGovernance.privateWorkflowContinuity.ownerCommit =
     "0".repeat(40);
-  assert.equal(hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
+  assert.equal(hasRetentionMaintenancePayloadInfrastructureSuccessor({
     governance: governanceV2,
     fieldSessionReportTypeGovernance: changedGovernance,
     liveCanonicalIdentityGovernance,
@@ -1082,6 +1097,20 @@ test("private Workflow v2 governance rejects controlled-rehearsal successor drif
     },
     value => {
       value.retentionDeletionPayloadQualificationSuccessor.deploymentAuthorized = true;
+    },
+    value => {
+      value.retentionMaintenancePayloadSuccessor.implementationCommit = "0".repeat(40);
+    },
+    value => {
+      value.retentionMaintenancePayloadSuccessor.evidence[0].successorSha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.retentionMaintenancePayloadSuccessor.qualifiedForwardPayloadSha256 =
+        value.retentionDeletionPayloadQualificationSuccessor.qualifiedForwardPayloadSha256;
+    },
+    value => {
+      value.retentionMaintenancePayloadSuccessor.deploymentAuthorized = true;
     }
   ]) {
     const candidate = clone(governanceV2);
@@ -1117,7 +1146,7 @@ test("private Workflow v2 admits only the exact field-session Intelligence succe
   }
 });
 
-test("private Workflow v2 composes the exact ordered retention deletion payload successors", () => {
+test("private Workflow v2 composes the exact ordered retention payload successors", () => {
   for (const [path, previousSha256] of Object.entries({
     "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
       "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
@@ -1138,6 +1167,16 @@ test("private Workflow v2 composes the exact ordered retention deletion payload 
       currentSha256: historicalSuccessorSha256
     }), true);
     assert.equal(hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
+      governance: governanceV2,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors: currentReadinessSuccessors,
+      path,
+      previousSha256,
+      currentSha256: governanceV2.retentionDeletionPayloadQualificationSuccessor.evidence
+        .find(item => item.path === path).successorSha256
+    }), true);
+    assert.equal(hasRetentionMaintenancePayloadInfrastructureSuccessor({
       governance: governanceV2,
       fieldSessionReportTypeGovernance,
       liveCanonicalIdentityGovernance,
@@ -1165,6 +1204,21 @@ test("private Workflow v2 composes the exact ordered retention deletion payload 
     .evidence[0].previousSha256 = "0".repeat(64);
   assert.equal(hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
     governance: changedQualification,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+    previousSha256:
+      "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
+    currentSha256: sha256(read(
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs"
+    ))
+  }), false);
+  const changedMaintenance = clone(governanceV2);
+  changedMaintenance.retentionMaintenancePayloadSuccessor
+    .evidence[0].previousSha256 = "0".repeat(64);
+  assert.equal(hasRetentionMaintenancePayloadInfrastructureSuccessor({
+    governance: changedMaintenance,
     fieldSessionReportTypeGovernance,
     liveCanonicalIdentityGovernance,
     readinessSuccessors: currentReadinessSuccessors,

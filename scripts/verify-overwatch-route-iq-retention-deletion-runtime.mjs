@@ -11,6 +11,8 @@ const reportPath = "overwatch/reports/BATCH-20260809-001-route-iq-retention-expi
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const startCommit = "0ae9b3752476bc782b067a2a47fd388e4c3791ef";
 const startTree = "3b6778b25c731e75c489b738dc00256868522d22";
+const acceptedCommit = "78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e";
+const acceptedTree = "387760d6e7182e83ec06364abd4fc74bd5a94c07";
 
 const ownerCommits = Object.freeze({
   "8845846632801ccf29e52a36139a43c1063fcc2e": Object.freeze({
@@ -208,6 +210,8 @@ const read = path => readFileSync(path);
 const readJson = path => JSON.parse(read(path));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
+const readAtCommit = (commit, path) => execFileSync("git", ["show", `${commit}:${path}`]);
+const readJsonAtCommit = (commit, path) => JSON.parse(readAtCommit(commit, path));
 
 export function isExactMainCheckout({ branch, head, originMain, environment = {} }) {
   if (head !== originMain) return false;
@@ -239,7 +243,7 @@ function verifyOwnerChain(governance) {
   }
 }
 
-function verifyPinnedFiles(governance) {
+function verifyAcceptedPinnedFiles(governance) {
   const pins = [
     ...Object.values(governance.dataRuntime).filter(value => value?.path),
     { path: governance.intelligenceBoundary.path, sha256: governance.intelligenceBoundary.sha256 },
@@ -271,17 +275,26 @@ function verifyPinnedFiles(governance) {
     ...governance.qualificationRepair.releaseProvenanceRetentionComposition.files,
     governance.forwardRevert
   ];
-  for (const pin of pins) assert.equal(sha256(read(pin.path)), pin.sha256, `${pin.path} hash drifted.`);
+  for (const pin of pins) {
+    assert.equal(
+      sha256(readAtCommit(acceptedCommit, pin.path)),
+      pin.sha256,
+      `${pin.path} drifted from the accepted Batch 001 snapshot.`
+    );
+  }
 }
 
 export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   const governance = readJson(governancePath);
   const report = readJson(reportPath);
   const registry = readJson(registryPath);
-  const policy = readJson(governance.dataRuntime.policy.path);
-  const artifactContract = readJson(governance.dataRuntime.artifactContract.path);
-  const maintenance = readJson(governance.infrastructureBoundary.contractPath);
-  const forwardRevert = readJson(governance.forwardRevert.path);
+  const policy = readJsonAtCommit(acceptedCommit, governance.dataRuntime.policy.path);
+  const artifactContract = readJsonAtCommit(
+    acceptedCommit,
+    governance.dataRuntime.artifactContract.path
+  );
+  const maintenance = readJsonAtCommit(acceptedCommit, governance.infrastructureBoundary.contractPath);
+  const forwardRevert = readJsonAtCommit(acceptedCommit, governance.forwardRevert.path);
   const head = git("rev-parse", "HEAD");
   const originMain = git("rev-parse", "refs/remotes/origin/main");
 
@@ -298,7 +311,8 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(governance.ownership.implementationOriginatedFromSubsystemOwners, true);
   assert.equal(governance.ownership.overwatchModifiedSubsystemImplementation, false);
   verifyOwnerChain(governance);
-  verifyPinnedFiles(governance);
+  assert.equal(git("rev-parse", `${acceptedCommit}^{tree}`), acceptedTree);
+  verifyAcceptedPinnedFiles(governance);
 
   assert.equal(sha256(read(governance.predecessorGovernance.path)), governance.predecessorGovernance.sha256);
   assert.equal(
@@ -436,8 +450,14 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
     "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
   );
 
-  const runtimeSource = read(governance.dataRuntime.deletionRuntime.path).toString("utf8");
-  const infrastructureSource = read(governance.infrastructureBoundary.runtimePath).toString("utf8");
+  const runtimeSource = readAtCommit(
+    acceptedCommit,
+    governance.dataRuntime.deletionRuntime.path
+  ).toString("utf8");
+  const infrastructureSource = readAtCommit(
+    acceptedCommit,
+    governance.infrastructureBoundary.runtimePath
+  ).toString("utf8");
   assert.doesNotMatch(runtimeSource, /scheduled\s*\(|alarm\s*\(|queue\s*\(|\/api\//);
   assert.doesNotMatch(infrastructureSource, /scheduled\s*\(|alarm\s*\(|queue\s*\(|\/api\//);
 

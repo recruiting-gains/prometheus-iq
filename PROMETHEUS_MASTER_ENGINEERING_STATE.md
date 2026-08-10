@@ -8416,17 +8416,45 @@ Canonical governance:
 - `overwatch/reports/BATCH-20260809-001-route-iq-retention-expiry-deletion-runtime.json`
 - `workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json`
 
+### 2026-08-09: Route IQ Dormant Retention-Maintenance Deployment Readiness Package v1
+
+Status:
+
+Owner implementation is source complete and dormant. Exact-final-commit hosted qualification remains the final acceptance gate. No Cloudflare contact, production mutation, production storage access, binding creation, deployment, deletion, or protected-state activation occurred.
+
+Owner composition:
+
+- Prometheus Data added authoritative production legal-hold readiness to the existing retention-governance model. Production defaults to unavailable, fixture authority is rejected, exact scope and append-only history are required, and hold state must be revalidated immediately before any future mutation.
+- Prometheus Infrastructure prepared the deterministic private `prometheus-iq` maintenance package, separate delete-capable maintenance binding contract, signed short-lived admission producer, replay guard, zero-contact dry run, and forward-only rollback. No public, Dashboard, customer, representative, scheduler, cron, alarm, queue, or automatic-deletion surface exists.
+- Prometheus Intelligence Engine composed the Data and Infrastructure transitions into the existing retention consumer-admission chain without changing learning, readiness, evaluation, reporting, route, or recommendation behavior.
+- Prometheus Security classified all six npm high-severity findings, safely patched `postcss` and `nanoid`, verified zero production-reachable high findings, and deferred four development-only Cloudflare tooling findings after the official major-transition candidate failed governed Worker-emulation compatibility tests.
+- Prometheus Overwatch preserved the accepted Batch 001 snapshot, verified subsystem ownership, pinned the deterministic package and rollback identities, and added a release-blocking readiness gate.
+
+Release boundary:
+
+- The package binds the exact owner-complete source commit and tree, deterministic artifact, manifest, configuration, content, retention-policy, deletion-runtime, maintenance-runtime, and rollback hashes.
+- Deployment authority and physical-deletion authority remain separate and non-interchangeable. This batch grants neither.
+- Collection remains OFF, active cohorts remain 0, recommendation influence remains OFF, providers and scheduler remain OFF, canonical prospective records and evaluations remain 0, and production remains unchanged.
+
+Canonical governance:
+
+- `overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json`
+- `overwatch/reports/BATCH-20260809-002-route-iq-dormant-retention-maintenance-deployment-readiness.json`
+- `intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json`
+- `workers/infrastructure/route-iq-retention-maintenance-release-package-v1.json`
+- `workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json`
+
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:
 
-After exact hosted qualification, prepare a separate Founder-reviewed dormant retention-maintenance deployment package. Keep collection OFF and do not authorize a production deletion in that package.
+After exact hosted qualification and Founder review of the dormant maintenance package, perform an Infrastructure-owned Wrangler and Miniflare major-transition requalification. Keep collection OFF and do not combine dormant deployment authority with any physical-deletion authority.
 
 Primary owners: Prometheus Infrastructure and Prometheus Data, with independent Prometheus Overwatch and Security/Aegis verification.
 
 Reason:
 
-Prospective collection cannot be considered for activation until expiry can be enforced through a separately deployed, authenticated maintenance boundary and authoritative production legal-hold ledger. The source runtime is deliberately dormant, the production admission producer remains unavailable, and actual production deletion must remain a later exact-plan Founder authorization.
+The dormant package is designed to remove the source-level deployment-readiness blockers while leaving all production bindings and authority absent. The four remaining high advisories are development-only, but their official fixes require a coordinated Cloudflare tooling transition that previously changed real Worker-emulation restart and persistence behavior and therefore needs its own Infrastructure qualification.
 
 Current priority order after notification delivery acceptance:
 

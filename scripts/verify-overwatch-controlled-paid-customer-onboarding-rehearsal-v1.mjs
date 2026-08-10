@@ -546,6 +546,9 @@ function verifyCurrentOwnerFiles(governance) {
   const retentionDeletionGovernance = readJson(
     "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json"
   );
+  const retentionMaintenanceConsumerSuccessor = readJson(
+    "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json"
+  );
   const retentionDeletionEvaluation =
     evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors({
       governance: retentionDeletionGovernance
@@ -574,6 +577,22 @@ function verifyCurrentOwnerFiles(governance) {
   validateFullSystemHarmonyShadowReadinessSuccessor(
     fullSystemHarmonyShadowReadinessSuccessor
   );
+  const maintenanceCoherence =
+    retentionMaintenanceConsumerSuccessor.coherenceSourceTransition;
+  assert.equal(retentionMaintenanceConsumerSuccessor.batchId, "BATCH-20260809-002");
+  assert.equal(retentionMaintenanceConsumerSuccessor.ownerSubsystem,
+    "Prometheus Intelligence Engine");
+  assert.equal(maintenanceCoherence.path,
+    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs");
+  assert.equal(maintenanceCoherence.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(maintenanceCoherence.commit,
+    "0faca7bb91b3e4ddbe7c1996ca84cc9247cd205a");
+  assert.equal(maintenanceCoherence.previousSha256,
+    "d03c0ffa8d42b671ad447038415ee4ae003514a163c3ffaf3b943f8d37bf5f14");
+  assert.equal(maintenanceCoherence.currentSha256,
+    "ce1ab3876750043b251cb6029d0c0709159a8ff9c58c4266411883e6f9542e2c");
+  assert.equal(retentionMaintenanceConsumerSuccessor.composition.historicalPinsRewritten,
+    false);
   const governedSuccessors = new Map([
     ["workers/prometheus-iq-worker.js", {
       commit: "4b81819c861ca7326b4749c06e69654eab8f3166",
@@ -592,8 +611,8 @@ function verifyCurrentOwnerFiles(governance) {
       sha256: "0c38be17c0823b1e247f1781353bbce543d66deb46f775c7a905b4164cb6d951"
     }],
     ["intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs", {
-      commit: "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b",
-      sha256: "7e1920f2c5c13ef6ff948241d0ad0100eb271867ee4fcedd62067234b1827fed"
+      commit: maintenanceCoherence.commit,
+      sha256: maintenanceCoherence.currentSha256
     }],
     ["tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs", {
       commit: "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0",

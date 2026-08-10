@@ -48,6 +48,9 @@ const fieldSessionReportTypeGovernancePath =
   "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json";
 const retentionDeletionGovernancePath =
   "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json";
+const retentionMaintenanceSuccessorPath =
+  "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json";
+const retentionMaintenanceBaseCommit = "78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e";
 
 const ownerCommits = Object.freeze({
   "Prometheus Data": Object.freeze([
@@ -459,6 +462,21 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
   const liveIdentity = readJson(liveIdentityGovernancePath);
   const reportTypeRepair = readJson(fieldSessionReportTypeGovernancePath);
   const retentionDeletion = readJson(retentionDeletionGovernancePath);
+  const retentionMaintenance = readJson(retentionMaintenanceSuccessorPath);
+  const maintenanceTransitionPins = new Map([
+    [
+      retentionMaintenance.upstreamDataAuthority.retentionGovernance.path,
+      retentionMaintenance.upstreamDataAuthority.retentionGovernance.currentSha256
+    ],
+    ...retentionMaintenance.protectedSourceTransitions.map(transition => [
+      transition.path,
+      transition.currentSha256
+    ]),
+    [
+      retentionMaintenance.coherenceSourceTransition.path,
+      retentionMaintenance.coherenceSourceTransition.currentSha256
+    ]
+  ]);
   const currentArchiveSha256 = sha256(read(governance.dataContract.archiveRuntimePath));
   const reportTypeArchiveSha256 = sha256(execFileSync("git", [
     "show",
@@ -513,7 +531,7 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
     ["runtimeContractPath", "runtimeContractSha256"]
   ]) {
     const path = governance.dataContract[pathKey];
-    const successorPins = new Map([
+    const deletionSuccessorPins = new Map([
       [retentionDeletion.dataRuntime.policy.path, retentionDeletion.dataRuntime.policy.sha256],
       [retentionDeletion.dataRuntime.retentionEvaluator.path, retentionDeletion.dataRuntime.retentionEvaluator.sha256],
       [retentionDeletion.dataRuntime.governanceLedger.path, retentionDeletion.dataRuntime.governanceLedger.sha256],
@@ -530,12 +548,18 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
         currentArchiveSha256,
         retentionDeletion.dataRuntime.archiveRuntime.sha256
       );
-    } else if (successorPins.has(path)) {
+    } else if (deletionSuccessorPins.has(path) || maintenanceTransitionPins.has(path)) {
+      const historicalCommit = deletionSuccessorPins.has(path)
+        ? retentionDeletion.startingRepository.commit
+        : retentionMaintenanceBaseCommit;
       assert.equal(
-        sha256(execFileSync("git", ["show", `${retentionDeletion.startingRepository.commit}:${path}`])),
+        sha256(execFileSync("git", ["show", `${historicalCommit}:${path}`])),
         governance.dataContract[hashKey]
       );
-      assert.equal(sha256(read(path)), successorPins.get(path));
+      assert.equal(
+        sha256(read(path)),
+        maintenanceTransitionPins.get(path) ?? deletionSuccessorPins.get(path)
+      );
     } else {
       assert.equal(sha256(read(path)), governance.dataContract[hashKey]);
     }
@@ -555,18 +579,25 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
     ["crossIndustryAdoptionPath", "crossIndustryAdoptionSha256"]
   ]) {
     const path = governance.intelligenceAdmission[pathKey];
-    if (path === retentionDeletion.intelligenceBoundary.path) {
+    const deletionSuccessorPins = new Map([
+      [retentionDeletion.intelligenceBoundary.path, retentionDeletion.intelligenceBoundary.sha256],
+      [
+        retentionDeletion.intelligenceBoundary.specification.path,
+        retentionDeletion.intelligenceBoundary.specification.sha256
+      ]
+    ]);
+    if (deletionSuccessorPins.has(path) || maintenanceTransitionPins.has(path)) {
+      const historicalCommit = deletionSuccessorPins.has(path)
+        ? retentionDeletion.startingRepository.commit
+        : retentionMaintenanceBaseCommit;
       assert.equal(
-        sha256(execFileSync("git", ["show", `${retentionDeletion.startingRepository.commit}:${path}`])),
+        sha256(execFileSync("git", ["show", `${historicalCommit}:${path}`])),
         governance.intelligenceAdmission[hashKey]
       );
-      assert.equal(sha256(read(path)), retentionDeletion.intelligenceBoundary.sha256);
-    } else if (path === retentionDeletion.intelligenceBoundary.specification.path) {
       assert.equal(
-        sha256(execFileSync("git", ["show", `${retentionDeletion.startingRepository.commit}:${path}`])),
-        governance.intelligenceAdmission[hashKey]
+        sha256(read(path)),
+        maintenanceTransitionPins.get(path) ?? deletionSuccessorPins.get(path)
       );
-      assert.equal(sha256(read(path)), retentionDeletion.intelligenceBoundary.specification.sha256);
     } else {
       assert.equal(sha256(read(path)), governance.intelligenceAdmission[hashKey]);
     }

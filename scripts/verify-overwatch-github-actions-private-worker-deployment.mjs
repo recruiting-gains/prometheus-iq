@@ -366,6 +366,26 @@ const v2RetentionDeletionPayloadQualificationSuccessorEvidence = Object.freeze({
     successorSha256: "7aa1d90727da67866e3c98ca3cc543499d2326698d652f610eacb7706254c8a7"
   })
 });
+const v2RetentionMaintenancePayloadSuccessorCommit =
+  "ae4e8def3e1142d6c9c99b709179f4be91c1acea";
+const v2RetentionMaintenancePayloadSuccessorParent =
+  "04e71df9f1f1c4ddef1a5a13dc46192b057682d4";
+const v2RetentionMaintenancePayloadSuccessorTree =
+  "5c557610b05d41e22ef64cfb9bc8e568d8fef2e5";
+const v2RetentionMaintenancePayloadSuccessorEvidence = Object.freeze({
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs": Object.freeze({
+    previousSha256: "957f5eeb0db61ea76cb45a69af3d4bcdab78f6642adbbd70e89f7b2f03cea46a",
+    successorSha256: "e87e076f6e235e57af77c4ca207e58dbab5961209ece8a94d207f8ea0538d087"
+  }),
+  "tests/github-actions-private-worker-workflow-v2.test.mjs": Object.freeze({
+    previousSha256: "b7d657c86d71a989b2b927692961a9d3402daec170723f0887655ff09a29633b",
+    successorSha256: "4023bc498647f56a89558407191e5442258c911ae90e4d8c0db79e9a234c30b5"
+  }),
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json": Object.freeze({
+    previousSha256: "7aa1d90727da67866e3c98ca3cc543499d2326698d652f610eacb7706254c8a7",
+    successorSha256: "157977f192e5b05eacf932c82d64dd6ad51cc7f4860824d0092872f3b8a1890b"
+  })
+});
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -1026,6 +1046,36 @@ const v2RetentionDeletionConsumerSuccessors = Object.freeze([
       "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs":
         "7e1920f2c5c13ef6ff948241d0ad0100eb271867ee4fcedd62067234b1827fed"
     })
+  }),
+  Object.freeze({
+    label: "retention-maintenance consumer admission",
+    commit: "c2bdfa3035383293afeb7e4a16704cb121c01716",
+    parent: "1513b1acec6b303823e26252c5bcf77efa05ad62",
+    tree: "b28950baec8bbee30e3916e74dd63db011e5d041",
+    subject: "intelligence: compose dormant maintenance admission",
+    hashes: Object.freeze({
+      "intelligence/provenance/specifications/prospective-retention-admission-v1.json":
+        "a85ea2405f9fe2aa520501a7ff2dd2e96e0c8a033a52fb0476bd14c80438bf00",
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs":
+        "d03c0ffa8d42b671ad447038415ee4ae003514a163c3ffaf3b943f8d37bf5f14",
+      "scripts/validate-intelligence-architecture.mjs":
+        "961c93168077de2cb861d8ce49195fa82fc58f04d289cfcba986f7706360c49b",
+      "scripts/verify-route-iq-prospective-retention-intelligence.mjs":
+        "2695d661a0e08a383e7429e4c4a800158f9d56df82b3761be70e594188d7a6af",
+      "tests/route-iq-prospective-retention-intelligence.test.mjs":
+        "eadf87ce0ff2073926f44c22f8932e5482a996a0562389ff3c2e97984e480875"
+    })
+  }),
+  Object.freeze({
+    label: "retention-maintenance successor-chain preservation",
+    commit: "0faca7bb91b3e4ddbe7c1996ca84cc9247cd205a",
+    parent: "c2bdfa3035383293afeb7e4a16704cb121c01716",
+    tree: "36ecc74ad3f6a606baaea6f13a57be12b5d909e3",
+    subject: "intelligence: preserve retention successor chain",
+    hashes: Object.freeze({
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs":
+        "ce1ab3876750043b251cb6029d0c0709159a8ff9c58c4266411883e6f9542e2c"
+    })
   })
 ]);
 
@@ -1649,6 +1699,93 @@ export function hasRetentionDeletionPayloadQualificationInfrastructureSuccessor(
       governance?.retentionDeletionPayloadSuccessor?.qualifiedRollbackBundleSha256
     || !equal(successor?.evidence,
       Object.entries(v2RetentionDeletionPayloadQualificationSuccessorEvidence).map(
+        ([evidencePath, item]) => ({ path: evidencePath, ...item })
+      ))
+    || evidence.length !== 1
+    || evidence[0].successorSha256 !== currentSha256
+    || !predecessorIsGoverned) {
+    return false;
+  }
+  try {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      successor.implementationCommit
+    ]).split("\n");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      successor.implementationCommit
+    ]).split("\n").filter(Boolean);
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${successor.implementationParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${successor.implementationCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor", successor.implementationCommit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return equal(fields, [
+      successor.implementationCommit,
+      successor.implementationParent,
+      successor.implementationTree,
+      infrastructureIdentity,
+      infrastructureIdentity,
+      successor.implementationSubject
+    ])
+      && equal(paths, successor.evidence.map(item => item.path).sort())
+      && sha256(previous) === evidence[0].previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
+
+export function hasRetentionMaintenancePayloadInfrastructureSuccessor({
+  governance,
+  fieldSessionReportTypeGovernance,
+  liveCanonicalIdentityGovernance,
+  readinessSuccessors,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const successor = governance?.retentionMaintenancePayloadSuccessor;
+  const evidence = successor?.evidence?.filter(item => item.path === path) ?? [];
+  const predecessorIsGoverned = evidence.length === 1
+    && hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
+      governance,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors,
+      path,
+      previousSha256,
+      currentSha256: evidence[0].previousSha256
+    });
+  if (governance?.governanceId !==
+      "github-actions-private-worker-deployment-governance-v2"
+    || governance?.owningSubsystem !== "Prometheus Overwatch"
+    || successor?.authorization !== "BATCH-20260809-002"
+    || successor?.predecessorImplementationCommit !==
+      v2RetentionDeletionPayloadQualificationSuccessorCommit
+    || successor?.implementationCommit !== v2RetentionMaintenancePayloadSuccessorCommit
+    || successor?.implementationParent !== v2RetentionMaintenancePayloadSuccessorParent
+    || successor?.implementationTree !== v2RetentionMaintenancePayloadSuccessorTree
+    || successor?.implementationOwner !== infrastructureIdentity
+    || successor?.implementationSubject !==
+      "infrastructure: pin retention maintenance forward payload"
+    || successor?.historicalContinuityRewritten !== false
+    || successor?.productionMutationAuthorized !== false
+    || successor?.deploymentAuthorized !== false
+    || successor?.previousQualifiedForwardPayloadSha256 !==
+      governance?.retentionDeletionPayloadQualificationSuccessor?.qualifiedForwardPayloadSha256
+    || successor?.qualifiedForwardPayloadSha256 !==
+      "bafde531701612f2bf5ca9fd3bb69ee1be60432c78b0a046359c7476e5785e09"
+    || successor?.deployParitySha256 !==
+      governance?.retentionDeletionPayloadQualificationSuccessor?.deployParitySha256
+    || successor?.qualifiedRollbackBundleSha256 !==
+      governance?.retentionDeletionPayloadQualificationSuccessor?.qualifiedRollbackBundleSha256
+    || !equal(successor?.evidence,
+      Object.entries(v2RetentionMaintenancePayloadSuccessorEvidence).map(
         ([evidencePath, item]) => ({ path: evidencePath, ...item })
       ))
     || evidence.length !== 1
@@ -3695,12 +3832,42 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       Object.entries(v2RetentionDeletionPayloadQualificationSuccessorEvidence).map(
         ([path, evidence]) => ({ path, ...evidence })
       ))
-    && contract?.continuity?.privateDeployParitySha256 ===
-      governance?.retentionDeletionPayloadQualificationSuccessor?.deployParitySha256
-    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+    && governance?.retentionMaintenancePayloadSuccessor?.authorization ===
+      "BATCH-20260809-002"
+    && governance?.retentionMaintenancePayloadSuccessor?.historicalContinuityRewritten === false
+    && governance?.retentionMaintenancePayloadSuccessor?.productionMutationAuthorized === false
+    && governance?.retentionMaintenancePayloadSuccessor?.deploymentAuthorized === false
+    && governance?.retentionMaintenancePayloadSuccessor?.predecessorImplementationCommit ===
+      v2RetentionDeletionPayloadQualificationSuccessorCommit
+    && governance?.retentionMaintenancePayloadSuccessor?.implementationCommit ===
+      v2RetentionMaintenancePayloadSuccessorCommit
+    && governance?.retentionMaintenancePayloadSuccessor?.implementationParent ===
+      v2RetentionMaintenancePayloadSuccessorParent
+    && governance?.retentionMaintenancePayloadSuccessor?.implementationTree ===
+      v2RetentionMaintenancePayloadSuccessorTree
+    && governance?.retentionMaintenancePayloadSuccessor?.implementationOwner ===
+      infrastructureIdentity
+    && governance?.retentionMaintenancePayloadSuccessor?.implementationSubject ===
+      "infrastructure: pin retention maintenance forward payload"
+    && governance?.retentionMaintenancePayloadSuccessor
+      ?.previousQualifiedForwardPayloadSha256 ===
       governance?.retentionDeletionPayloadQualificationSuccessor?.qualifiedForwardPayloadSha256
-    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+    && governance?.retentionMaintenancePayloadSuccessor?.qualifiedForwardPayloadSha256 ===
+      "bafde531701612f2bf5ca9fd3bb69ee1be60432c78b0a046359c7476e5785e09"
+    && governance?.retentionMaintenancePayloadSuccessor?.deployParitySha256 ===
+      governance?.retentionDeletionPayloadQualificationSuccessor?.deployParitySha256
+    && governance?.retentionMaintenancePayloadSuccessor?.qualifiedRollbackBundleSha256 ===
       governance?.retentionDeletionPayloadQualificationSuccessor?.qualifiedRollbackBundleSha256
+    && equal(governance?.retentionMaintenancePayloadSuccessor?.evidence,
+      Object.entries(v2RetentionMaintenancePayloadSuccessorEvidence).map(
+        ([path, evidence]) => ({ path, ...evidence })
+      ))
+    && contract?.continuity?.privateDeployParitySha256 ===
+      governance?.retentionMaintenancePayloadSuccessor?.deployParitySha256
+    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+      governance?.retentionMaintenancePayloadSuccessor?.qualifiedForwardPayloadSha256
+    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+      governance?.retentionMaintenancePayloadSuccessor?.qualifiedRollbackBundleSha256
     && contract?.browserAcceptance?.contract ===
       "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
     && contract?.browserAcceptance?.runner ===
@@ -3950,10 +4117,55 @@ function verifyV2OwnerAndGovernance() {
       "show", `${v2RetentionDeletionPayloadQualificationSuccessorCommit}:${path}`
     ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
     if (sha256(previous) !== evidence.previousSha256
+      || sha256(successor) !== evidence.successorSha256) {
+      throw new Error(
+        `Private Workflow v2 retention qualification payload evidence drifted: ${path}`
+      );
+    }
+  }
+
+  const retentionMaintenancePayloadMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    v2RetentionMaintenancePayloadSuccessorCommit
+  ]).split("\n");
+  if (!equal(retentionMaintenancePayloadMetadata, [
+    v2RetentionMaintenancePayloadSuccessorCommit,
+    v2RetentionMaintenancePayloadSuccessorParent,
+    v2RetentionMaintenancePayloadSuccessorTree,
+    infrastructureIdentity,
+    infrastructureIdentity,
+    "infrastructure: pin retention maintenance forward payload"
+  ])) {
+    throw new Error("Private Workflow v2 retention maintenance payload provenance drifted.");
+  }
+  const retentionMaintenancePayloadPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    v2RetentionMaintenancePayloadSuccessorCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(retentionMaintenancePayloadPaths,
+    Object.keys(v2RetentionMaintenancePayloadSuccessorEvidence))) {
+    throw new Error("Private Workflow v2 retention maintenance payload path set drifted.");
+  }
+  if (retentionMaintenancePayloadPaths.some(path => path.startsWith("overwatch/")
+    || path === "package.json")) {
+    throw new Error(
+      "Private Workflow v2 retention maintenance payload crossed the Overwatch boundary."
+    );
+  }
+  for (const [path, evidence] of Object.entries(
+    v2RetentionMaintenancePayloadSuccessorEvidence
+  )) {
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${v2RetentionMaintenancePayloadSuccessorParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const successor = execFileSync("/usr/bin/git", [
+      "show", `${v2RetentionMaintenancePayloadSuccessorCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    if (sha256(previous) !== evidence.previousSha256
       || sha256(successor) !== evidence.successorSha256
       || sha256(readFileSync(resolve(root, path))) !== evidence.successorSha256) {
       throw new Error(
-        `Private Workflow v2 retention qualification payload evidence drifted: ${path}`
+        `Private Workflow v2 retention maintenance payload evidence drifted: ${path}`
       );
     }
   }
@@ -5309,6 +5521,16 @@ function verifyV2OwnerAndGovernance() {
         previousSha256: expected,
         currentSha256
       });
+    const retentionMaintenancePayloadSuccessor =
+      hasRetentionMaintenancePayloadInfrastructureSuccessor({
+        governance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance: liveCanonicalGovernance,
+        readinessSuccessors,
+        path,
+        previousSha256: expected,
+        currentSha256
+      });
     const successor = v2ControlledRehearsalGuardVerifierSuccessorHashes[path]
       ? {
         sha256: v2ControlledRehearsalGuardVerifierSuccessorHashes[path],
@@ -5335,7 +5557,8 @@ function verifyV2OwnerAndGovernance() {
       || liveCanonicalIdentitySuccessor
       || fieldSessionReportTypeSuccessor
       || retentionDeletionPayloadSuccessor
-      || retentionDeletionPayloadQualificationSuccessor)) {
+      || retentionDeletionPayloadQualificationSuccessor
+      || retentionMaintenancePayloadSuccessor)) {
       throw new Error(`Private Workflow v2 current owner evidence drifted: ${path}`);
     }
   }
@@ -5827,6 +6050,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2RetentionDeletionIntelligenceSuccessorCommit,
     immutableWorkflowV2RetentionDeletionIntelligenceSynchronizationCommit:
       v2RetentionDeletionIntelligenceSynchronizationCommit,
+    immutableWorkflowV2RetentionMaintenancePayloadSuccessorCommit:
+      v2RetentionMaintenancePayloadSuccessorCommit,
     immutableWorkflowV2LiveCanonicalIdentityShadowReadinessRepairCommit:
       v2LiveCanonicalIdentityShadowReadinessRepairCommit,
     immutableWorkflowV2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit:

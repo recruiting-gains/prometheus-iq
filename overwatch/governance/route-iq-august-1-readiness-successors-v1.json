@@ -44,6 +44,11 @@
       "successorSha256": "d2b549f30a95d4f91b932ff87b9da84a30aee7a84b259a5ad0d6df68f37cc1d9"
     },
     {
+      "path": "package.json",
+      "previousSha256": "d2b549f30a95d4f91b932ff87b9da84a30aee7a84b259a5ad0d6df68f37cc1d9",
+      "successorSha256": "933e4e3e3cbbe4f63e3826b238b09a3c02330d90a60ee4a8bfcf64dac966fa49"
+    },
+    {
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "previousSha256": "1f8f8f976a5a234a471635d1c2b25a67537aa7d7222c3f96f9c5dcc9611987d9",
       "successorSha256": "addd87265b3bae1281fc6409adeb92d6e50894f93cc3fac4c04e36e8778a6403"

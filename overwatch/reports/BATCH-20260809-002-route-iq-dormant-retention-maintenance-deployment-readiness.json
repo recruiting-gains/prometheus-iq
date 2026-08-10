@@ -1,0 +1,63 @@
+{
+  "reportVersion": "route-iq-dormant-retention-maintenance-deployment-readiness-engineering-batch-v1",
+  "batchId": "BATCH-20260809-002",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "verdictBeforeHostedQualification": "SOURCE_COMPLETE_DORMANT_HOSTED_QUALIFICATION_REQUIRED",
+  "passEquivalentVerdictAfterExactHostedSuccess": "SOURCE_COMPLETE_DORMANT_DEPLOYMENT_PACKAGE_READY_FOR_FOUNDER_REVIEW",
+  "startingCommit": "78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e",
+  "startingTree": "387760d6e7182e83ec06364abd4fc74bd5a94c07",
+  "ownerCompleteReleaseCommit": "04e71df9f1f1c4ddef1a5a13dc46192b057682d4",
+  "ownerCompleteReleaseTree": "ebad4033ebab5c37b399387ab4308e93b146cc82",
+  "privateWorkflowPayloadCommit": "ae4e8def3e1142d6c9c99b709179f4be91c1acea",
+  "governance": "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json",
+  "releaseIdentities": {
+    "artifactSha256": "3a10928717c21a66d7c7d5610b6449f724fcea2778a4a2a9e224d8a017e075a1",
+    "manifestSha256": "f33747eab0b7d243c03b5cdc28bbbc2ca877cbac6a231aceb597cc578030479e",
+    "configurationSha256": "2a9194ee16322b4b8fa17da9d3096d122e3211ded1cb522f5dea793b939b4083",
+    "contentSha256": "8bc59cdf6d572894b018d443bd6e9a2d3702f63aee22097091750833f1ce40f9",
+    "forwardRollbackSha256": "1c52f24e6fda40db63d542ffc783e9c9c7ffd0d85a29b41f234aaefbcf312183",
+    "privateWorkflowForwardPayloadSha256": "bafde531701612f2bf5ca9fd3bb69ee1be60432c78b0a046359c7476e5785e09",
+    "privateWorkflowPrivateDeployParitySha256": "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9",
+    "privateWorkflowRollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
+  },
+  "dependencyDisposition": {
+    "safeTransitivePatches": ["postcss@8.5.26", "nanoid@3.3.18"],
+    "residualDevelopmentOnlyHighFindings": 4,
+    "productionReachableHighFindings": 0,
+    "forcedOrBreakingFixAccepted": false
+  },
+  "sourceVerification": {
+    "cloudflareContactCount": 0,
+    "productionMutationCount": 0,
+    "deploymentPerformed": false,
+    "physicalDeletionPerformed": false,
+    "historicalEvidenceChanged": false,
+    "ordinaryAppendOnlyProtectionActive": true,
+    "exactFinalCommitHostedQualification": "REQUIRED_EXTERNAL_GITHUB_EVIDENCE"
+  },
+  "ownership": {
+    "implementationOwnerCommits": 8,
+    "overwatchIntegrationCommitRequired": true,
+    "mixedOwnershipDetected": false,
+    "exactChangedFileManifest": "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json#exactChangedFileManifest"
+  },
+  "focusedVerification": {
+    "predecessorHosted": "1602/1606 PASS; 4 SKIP; 0 FAIL; 991 BUILD MODULES",
+    "dataLegalHold": "100/100 PASS",
+    "infrastructureMaintenance": "12/12 PASS",
+    "intelligenceConsumers": "100/100 PASS",
+    "privateWorkflowPayloadContinuity": "2/2 PASS",
+    "overwatchPrivateWorkflowGovernance": "20/20 PASS",
+    "securityAdvisoryContract": "5/5 PASS",
+    "aegis": "13/13 PASS",
+    "workerEmulationCompatibility": "121/121 PASS"
+  },
+  "releaseBoundary": {
+    "deploymentAuthorized": false,
+    "productionBindingCreationAuthorized": false,
+    "productionStorageAccessAuthorized": false,
+    "deletionAuthorized": false,
+    "collectionActivationAuthorized": false,
+    "nextTaskStarted": false
+  }
+}
