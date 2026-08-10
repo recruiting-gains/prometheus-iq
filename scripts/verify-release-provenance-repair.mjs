@@ -12,6 +12,12 @@ const privateWorkflowGovernancePath =
   "overwatch/governance/github-actions-private-worker-deployment-v2.json";
 const fieldSessionReportTypeGovernancePath =
   "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json";
+const retentionDeletionGovernancePath =
+  "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json";
+const retentionDeletionRuntimeProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json";
+const retentionDeletionConsumerAdmissionProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-retention-deletion-consumer-admission-v1.json";
 const legacyCommit = "049cf583b04900b2cbf38bbffc5f6293252365d0";
 const intelligenceRepairCommit = "1bb7d09dff254503d56027a87efe0d526228f35a";
 const dashboardRepairCommit = "a665b1b26db02716240b622d0b4d451d019c2896";
@@ -273,6 +279,128 @@ const currentFieldSessionReportTypeDriftRejectionSuccessorHashes = new Map(
     item.sha256
   ])
 );
+const retentionDeletionIntelligenceVerifierPath =
+  "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
+const retentionDeletionControlledRehearsalTestPath =
+  "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs";
+const retentionDeletionShadowReadinessVerifierPath =
+  "scripts/verify-shadow-decision-readiness.mjs";
+const retentionDeletionReadOnlyLearningTestPath =
+  "tests/read-only-field-session-learning.test.mjs";
+const retentionDeletionShadowReadinessTestPath =
+  "tests/shadow-decision-readiness.test.mjs";
+export const currentRetentionDeletionIntelligenceSuccessorChain = Object.freeze([
+  Object.freeze({
+    path: retentionDeletionIntelligenceVerifierPath,
+    commit: "b359d8e701e13d2f9911dcd0cb917eecce8aa7ac",
+    parent: "c8cba2467436f8c5326532a19afbf00cc7bfadef",
+    tree: "579b793cfefb4063115a8d6b19dcf0e3df3582eb",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: compose retention deletion successor",
+    previousSha256: "9ecd9ca37e8d42209aaf7b53cb0bcae06f431bee29059a81fd5b1333863118c1",
+    sha256: "7f798b82e68699fb71413ae4d72e03ee864aa9e1a9a46573869a1559205823d8"
+  }),
+  Object.freeze({
+    path: retentionDeletionIntelligenceVerifierPath,
+    commit: "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0",
+    parent: "c9cc1d85315f0f577bb6e2b457965af3bb75ee9c",
+    tree: "b4e8cda1d34f7e3fad199066335f94ac86108664",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: synchronize deletion consumer provenance",
+    previousSha256: "7f798b82e68699fb71413ae4d72e03ee864aa9e1a9a46573869a1559205823d8",
+    sha256: "d709cfea9765ee13cb43f86fe5084f6cdc3521fcb08d28f5deeed580189a2284"
+  }),
+  Object.freeze({
+    path: retentionDeletionIntelligenceVerifierPath,
+    commit: "605c52e3076504159ac22c84b36b3d441cc30b66",
+    parent: "f37a1e16a73d89c57fb988c53c472a570fdbc15f",
+    tree: "4c38870645d139999b647943e920873ef7cfc7f1",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: compose retention consumer provenance",
+    previousSha256: "d709cfea9765ee13cb43f86fe5084f6cdc3521fcb08d28f5deeed580189a2284",
+    sha256: "b45277e74f70c808bb1ea1e8b7dc1b8338ab085ba447c12a50d5b6421aed56b1"
+  }),
+  Object.freeze({
+    path: retentionDeletionIntelligenceVerifierPath,
+    commit: "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b",
+    parent: "61418a67b6df3e482b52a1fa6f7fc6757147dda0",
+    tree: "0b4e8ef7cf7a29063f9c22896b5d8698dc96c0a4",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: finalize retention successor chain",
+    previousSha256: "b45277e74f70c808bb1ea1e8b7dc1b8338ab085ba447c12a50d5b6421aed56b1",
+    sha256: "7e1920f2c5c13ef6ff948241d0ad0100eb271867ee4fcedd62067234b1827fed"
+  }),
+  Object.freeze({
+    path: retentionDeletionControlledRehearsalTestPath,
+    commit: "b359d8e701e13d2f9911dcd0cb917eecce8aa7ac",
+    parent: "c8cba2467436f8c5326532a19afbf00cc7bfadef",
+    tree: "579b793cfefb4063115a8d6b19dcf0e3df3582eb",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: compose retention deletion successor",
+    previousSha256: "04014936bb2bebbb1b17c22048449b325e8667c8809f9ba382e7532ee6a4ff4b",
+    sha256: "9c8f7ae2f72beb4463fe53f0b710b7c54702e1dccb5607faf58dc1e66c48adec"
+  }),
+  Object.freeze({
+    path: retentionDeletionControlledRehearsalTestPath,
+    commit: "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0",
+    parent: "c9cc1d85315f0f577bb6e2b457965af3bb75ee9c",
+    tree: "b4e8cda1d34f7e3fad199066335f94ac86108664",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: synchronize deletion consumer provenance",
+    previousSha256: "9c8f7ae2f72beb4463fe53f0b710b7c54702e1dccb5607faf58dc1e66c48adec",
+    sha256: "84f124dc1137926c86687ab61274392c16dae53dc11f723300c5982557fd4118"
+  }),
+  Object.freeze({
+    path: retentionDeletionShadowReadinessVerifierPath,
+    commit: "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
+    parent: "a20e2b8be677278a8e325492eed198c4f56d5536",
+    tree: "ad140ba5e4e7b1b1131d33afc9ba0618fa059d12",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "fix(intelligence): admit dormant retention deletion state",
+    previousSha256: "0ef3dff897cb9ed90dd90a81b55e09e7a8649153192c943fd595a8a1f144b12b",
+    sha256: "b634c99b52aa355422cb9b37a63ce742293057303a06e548b4121c80cb522876"
+  }),
+  Object.freeze({
+    path: retentionDeletionShadowReadinessVerifierPath,
+    commit: "f37a1e16a73d89c57fb988c53c472a570fdbc15f",
+    parent: "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
+    tree: "d734e6e235174d870d3c82c5c78e1edcdc1cc74b",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "fix(intelligence): compose retention data successor",
+    previousSha256: "b634c99b52aa355422cb9b37a63ce742293057303a06e548b4121c80cb522876",
+    sha256: "bda4488c6015751fe24ddd36dd5dec38a8106a0a2a061a56e3232785b325c911"
+  }),
+  Object.freeze({
+    path: retentionDeletionReadOnlyLearningTestPath,
+    commit: "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
+    parent: "a20e2b8be677278a8e325492eed198c4f56d5536",
+    tree: "ad140ba5e4e7b1b1131d33afc9ba0618fa059d12",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "fix(intelligence): admit dormant retention deletion state",
+    previousSha256: "0fe879e56ff462e8b18b0fcee0515d082edbdfb16b1ae90fc3137a48d85fa41d",
+    sha256: "4ca183de17f9d870d2ca448b6cf6dadf7f5c58a56132ba38ffde38edce14e20b"
+  }),
+  Object.freeze({
+    path: retentionDeletionReadOnlyLearningTestPath,
+    commit: "61418a67b6df3e482b52a1fa6f7fc6757147dda0",
+    parent: "605c52e3076504159ac22c84b36b3d441cc30b66",
+    tree: "4ef07a81196fa1ff6aedcbd309cc34298610d575",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "test(intelligence): retain successor drift rejection",
+    previousSha256: "4ca183de17f9d870d2ca448b6cf6dadf7f5c58a56132ba38ffde38edce14e20b",
+    sha256: "733435dd04c9343642d01bf6fbbc1e8ab5e942bcb0580963614f768a53fb4c84"
+  }),
+  Object.freeze({
+    path: retentionDeletionShadowReadinessTestPath,
+    commit: "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
+    parent: "a20e2b8be677278a8e325492eed198c4f56d5536",
+    tree: "ad140ba5e4e7b1b1131d33afc9ba0618fa059d12",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "fix(intelligence): admit dormant retention deletion state",
+    previousSha256: "726510bdd55114d81ae0cc1290b884d851f6b1b5dc0b7107e0bd9f78e9e1b4b6",
+    sha256: "90bf943f8296d8c7e5ab14e57b5a2f02801260ebf2968f5bbbd4ce8b42af9d88"
+  })
+]);
 export const currentFullSystemHarmonyShadowReadinessSuccessor = Object.freeze({
   commit: "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8",
   parent: "0e312cbef36af838dd9f8ba434f2370605f384d4",
@@ -1115,6 +1243,130 @@ export function validateLiveCanonicalIdentityOffRouteBaselineRepair(
   return record;
 }
 
+export function validateRetentionDeletionIntelligenceSuccessorChain(
+  records = currentRetentionDeletionIntelligenceSuccessorChain
+) {
+  assert.deepEqual(
+    records,
+    currentRetentionDeletionIntelligenceSuccessorChain,
+    "Retention-deletion Intelligence successor chain drifted."
+  );
+  const governance = readJson(retentionDeletionGovernancePath);
+  const runtimeProvenance = readJson(retentionDeletionRuntimeProvenancePath);
+  const consumerProvenance = readJson(
+    retentionDeletionConsumerAdmissionProvenancePath
+  );
+  const ownerCommits = governance.ownership.commits[
+    "Prometheus Intelligence Engine"
+  ];
+  assert.deepEqual(
+    governance.qualificationRepair.liveCanonicalIdentity.protectedSuccessor,
+    {
+      path: retentionDeletionRuntimeProvenancePath,
+      sha256: sha256(read(retentionDeletionRuntimeProvenancePath))
+    }
+  );
+  assert.deepEqual(governance.intelligenceBoundary.consumerAdmissionProvenance, {
+    path: retentionDeletionConsumerAdmissionProvenancePath,
+    sha256: sha256(read(retentionDeletionConsumerAdmissionProvenancePath))
+  });
+
+  const provenanceTransitions = [
+    ...runtimeProvenance.protectedSourceTransitions.filter(
+      transition => transition.ownerSubsystem === "Prometheus Intelligence Engine"
+    ),
+    ...consumerProvenance.protectedSourceTransitions,
+    consumerProvenance.coherenceSourceTransition,
+    consumerProvenance.negativeFixtureSourceTransition
+  ].map(transition => Object.freeze({
+    ...transition,
+    parent: git("show", "-s", "--format=%P", transition.commit),
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    sha256: transition.currentSha256
+  }));
+  const uniqueTransitions = new Map();
+  for (const record of [...records, ...provenanceTransitions]) {
+    const key = `${record.path}:${record.commit}`;
+    const existing = uniqueTransitions.get(key);
+    if (existing) {
+      assert.equal(record.tree, existing.tree);
+      assert.equal(record.subject, existing.subject);
+      assert.equal(record.previousSha256, existing.previousSha256);
+      assert.equal(record.sha256, existing.sha256);
+      continue;
+    }
+    uniqueTransitions.set(key, record);
+  }
+  const transitionsByPath = new Map();
+
+  for (const record of uniqueTransitions.values()) {
+    const pathTransitions = transitionsByPath.get(record.path) || [];
+    const previousTransition = pathTransitions.at(-1);
+    if (previousTransition) {
+      assert.equal(record.previousSha256, previousTransition.sha256,
+        "Retention-deletion Intelligence predecessor chain drifted.");
+    }
+    assert.deepEqual(git(
+      "show",
+      "-s",
+      "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      record.commit
+    ).split("\n"), [
+      record.commit,
+      record.parent,
+      record.tree,
+      record.identity,
+      record.identity,
+      record.subject
+    ], "Retention-deletion Intelligence owner provenance drifted.");
+    assert.doesNotThrow(() => git(
+      "merge-base",
+      "--is-ancestor",
+      record.commit,
+      "HEAD"
+    ));
+    assert.equal(ownerCommits.includes(record.commit), true,
+      "Retention-deletion Intelligence owner commit is absent from governance.");
+    assert.equal(
+      sha256(gitBytes(
+        "show",
+        `${record.parent}:${record.path}`
+      )),
+      record.previousSha256,
+      "Retention-deletion Intelligence predecessor bytes drifted."
+    );
+    assert.equal(
+      sha256(gitBytes(
+        "show",
+        `${record.commit}:${record.path}`
+      )),
+      record.sha256,
+      "Retention-deletion Intelligence successor bytes drifted."
+    );
+    pathTransitions.push(record);
+    transitionsByPath.set(record.path, pathTransitions);
+  }
+
+  const verifierTransition = transitionsByPath.get(
+    retentionDeletionIntelligenceVerifierPath
+  ).at(-1);
+  assert.deepEqual(governance.qualificationRepair.liveCanonicalIdentity.verifier, {
+    path: retentionDeletionIntelligenceVerifierPath,
+    sha256: verifierTransition.sha256
+  });
+  for (const [path, transitions] of transitionsByPath) {
+    assert.equal(sha256(read(path)), transitions.at(-1).sha256,
+      `Current retention-deletion Intelligence successor drifted: ${path}`);
+  }
+  return Object.freeze({
+    terminalCommit: verifierTransition.commit,
+    terminalVerifierSha256: verifierTransition.sha256,
+    transitionCount: uniqueTransitions.size,
+    protectedPathCount: transitionsByPath.size,
+    transitionsByPath
+  });
+}
+
 function composeCurrentIntelligenceSha256(path, previousSha256) {
   let expectedSha256 = previousSha256;
   for (const [record, hashes, label] of [
@@ -1173,7 +1425,72 @@ function composeCurrentIntelligenceSha256(path, previousSha256) {
     );
     expectedSha256 = successorSha256;
   }
+  const retentionSuccessor = validateRetentionDeletionIntelligenceSuccessorChain();
+  const retentionTransitions = retentionSuccessor.transitionsByPath.get(path);
+  if (retentionTransitions) {
+    assert.equal(
+      expectedSha256,
+      retentionTransitions[0].previousSha256,
+      "Retention-deletion Intelligence composition predecessor drifted."
+    );
+    expectedSha256 = retentionTransitions.at(-1).sha256;
+  }
   return expectedSha256;
+}
+
+function isComposedCurrentIntelligenceTransition(
+  path,
+  previousSha256,
+  currentSha256
+) {
+  try {
+    return composeCurrentIntelligenceSha256(path, previousSha256)
+      === currentSha256;
+  } catch {
+    return false;
+  }
+}
+
+function isCurrentRetentionDeletionIntelligenceTransition(
+  hardenedSmokeGuardTransitions,
+  path,
+  previousSha256,
+  currentSha256
+) {
+  const retentionSuccessor = validateRetentionDeletionIntelligenceSuccessorChain();
+  const retentionTransitions = retentionSuccessor.transitionsByPath.get(path);
+  if (!retentionTransitions) return false;
+  const predecessorSha256 = retentionTransitions[0].previousSha256;
+  const historicalAnchorIsGoverned = previousSha256 === sha256(gitBytes(
+    "show",
+    `${restored3dRouteQualitySuccessorCommit}:${path}`
+  )) && git(
+    "merge-base",
+    "--is-ancestor",
+    restored3dRouteQualitySuccessorCommit,
+    retentionTransitions[0].commit
+  ) === "";
+  const predecessorIsGoverned = historicalAnchorIsGoverned
+    || previousSha256 === predecessorSha256
+    || isCurrentAugust1IntelligenceTransition(
+      path,
+      previousSha256,
+      predecessorSha256
+    )
+    || isCurrentCrossIndustryIntelligenceTransition(path, predecessorSha256)
+    || isCurrentZipFounderAccessIntelligenceTransition(path, predecessorSha256)
+    || isCurrentHardenedSmokeGuardIntelligenceTransition(
+      hardenedSmokeGuardTransitions,
+      path,
+      predecessorSha256
+    )
+    || isComposedCurrentIntelligenceTransition(
+      path,
+      previousSha256,
+      predecessorSha256
+    );
+  return predecessorIsGoverned
+    && currentSha256 === retentionTransitions.at(-1).sha256;
 }
 
 export function validateRevenueReadinessIntelligenceSuccessor(record) {
@@ -2027,6 +2344,17 @@ export function verifyReleaseProvenanceRepair() {
           hardenedSmokeGuardIntelligenceTransitions,
           reference.consumerPath,
           currentConsumerSha256
+        )
+        || isComposedCurrentIntelligenceTransition(
+          reference.consumerPath,
+          reference.currentConsumerSha256,
+          currentConsumerSha256
+        )
+        || isCurrentRetentionDeletionIntelligenceTransition(
+          hardenedSmokeGuardIntelligenceTransitions,
+          reference.consumerPath,
+          reference.currentConsumerSha256,
+          currentConsumerSha256
         ),
       true,
       `${reference.consumerPath} current Intelligence successor drifted.`
@@ -2052,6 +2380,17 @@ export function verifyReleaseProvenanceRepair() {
         || isCurrentHardenedSmokeGuardIntelligenceTransition(
           hardenedSmokeGuardIntelligenceTransitions,
           mirror.path,
+          currentMirrorSha256
+        )
+        || isComposedCurrentIntelligenceTransition(
+          mirror.path,
+          mirror.currentSha256,
+          currentMirrorSha256
+        )
+        || isCurrentRetentionDeletionIntelligenceTransition(
+          hardenedSmokeGuardIntelligenceTransitions,
+          mirror.path,
+          mirror.currentSha256,
           currentMirrorSha256
         ),
       true,
@@ -2204,6 +2543,10 @@ export function verifyReleaseProvenanceRepair() {
       currentLiveCanonicalIdentityProtectedConsumerCompositionRepair.commit,
     currentLiveCanonicalIdentityOffRouteBaselineRepairCommit:
       currentLiveCanonicalIdentityOffRouteBaselineRepair.commit,
+    currentRetentionDeletionIntelligenceSuccessorCommit:
+      currentRetentionDeletionIntelligenceSuccessorChain
+        .filter(record => record.path === retentionDeletionIntelligenceVerifierPath)
+        .at(-1).commit,
     currentProtectedDriftFixtureIntelligenceSuccessorCommit:
       currentProtectedDriftFixtureIntelligenceSuccessor.commit
   };

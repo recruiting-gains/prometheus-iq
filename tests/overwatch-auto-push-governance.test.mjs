@@ -184,9 +184,10 @@ test("master engineering state preserves intake history while current CRM truth 
   assert.match(duplicateRegister, /production-proven through the verified Cloudflare Email destination/u);
   assert.match(duplicateRegister, /preserve both earlier terminal failure records as immutable evidence/u);
   assert.doesNotMatch(duplicateRegister, /current production flow is browser-local `localStorage` plus `mailto:` only/u);
-  assert.match(nextTask, /Pricing, contracts, business banking, tax configuration, and Stripe Live authorization remain external decisions/u);
-  assert.match(nextTask, /LLC formation and EIN acquisition are not current launch blockers/u);
-  assert.match(nextTask, /one-shot inbox delivery path are production-proven/u);
+  assert.match(nextTask, /Complete external Founder decisions for pricing, contracts, business banking, tax configuration, and Stripe Live eligibility/u);
+  assert.match(nextTask, /prepare a separate Founder-reviewed dormant retention-maintenance deployment package/u);
+  assert.match(nextTask, /source runtime is deliberately dormant/u);
+  assert.match(nextTask, /notification path and first-customer evidence boundary are controlled/u);
   assert.doesNotMatch(nextTask, /email-routing engineering is (?:the )?current constraint/u);
   assert.match(nextTask, /first-customer evidence/u);
   assert.doesNotMatch(nextTask, /Current active highest-priority task:\s+Operation Aegis Phase II/u);

@@ -11,6 +11,7 @@ import {
   currentLiveCanonicalIdentityProtectedConsumerCompositionRepair,
   currentLiveCanonicalIdentityShadowReadinessRepair,
   currentProtectedDriftFixtureIntelligenceSuccessor,
+  currentRetentionDeletionIntelligenceSuccessorChain,
   currentRevenueReadinessIntelligenceSuccessor,
   validateFieldSessionReportTypeDriftRejectionSuccessor,
   validateFullSystemHarmonyIntelligenceSuccessor,
@@ -21,6 +22,7 @@ import {
   validateLiveCanonicalIdentityProtectedConsumerCompositionRepair,
   validateLiveCanonicalIdentityShadowReadinessRepair,
   validateProtectedDriftFixtureIntelligenceSuccessor,
+  validateRetentionDeletionIntelligenceSuccessorChain,
   validateRevenueReadinessIntelligenceSuccessor,
   verifyReleaseProvenanceRepair
 } from "../scripts/verify-release-provenance-repair.mjs";
@@ -86,6 +88,30 @@ test("release provenance composes only exact current Intelligence successors", (
   }
 });
 
+test("release provenance composes the exact dormant-retention Intelligence chain", () => {
+  const result = validateRetentionDeletionIntelligenceSuccessorChain();
+  assert.equal(result.terminalCommit,
+    "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b");
+  assert.equal(result.terminalVerifierSha256,
+    "7e1920f2c5c13ef6ff948241d0ad0100eb271867ee4fcedd62067234b1827fed");
+  assert.equal(result.transitionCount, 19);
+  assert.equal(result.protectedPathCount, 13);
+  for (const mutate of [
+    value => { value[0].commit = "0".repeat(40); },
+    value => { value[1].parent = "0".repeat(40); },
+    value => { value[2].tree = "0".repeat(40); },
+    value => { value[3].identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value[0].subject = "intelligence: substituted retention successor"; },
+    value => { value[1].previousSha256 = "0".repeat(64); },
+    value => { value[2].sha256 = "0".repeat(64); },
+    value => { value.pop(); }
+  ]) {
+    const candidate = clone(currentRetentionDeletionIntelligenceSuccessorChain);
+    mutate(candidate);
+    assert.throws(() => validateRetentionDeletionIntelligenceSuccessorChain(candidate));
+  }
+});
+
 test("Overwatch verifies Route IQ release provenance repair", () => {
   assert.deepEqual(verifyReleaseProvenanceRepair(), {
     status: "PASS",
@@ -128,6 +154,8 @@ test("Overwatch verifies Route IQ release provenance repair", () => {
       "a6e85f05fe57a5bff8b2fc6bc168f541272ac0b8",
     currentLiveCanonicalIdentityOffRouteBaselineRepairCommit:
       "db74fd379f0624f3abfaf1ddee1827c3fe4f1e60",
+    currentRetentionDeletionIntelligenceSuccessorCommit:
+      "39cb2b9c9dea7766b420ce8d1ad959c4b35a2d4b",
     currentProtectedDriftFixtureIntelligenceSuccessorCommit:
       "ff63d927c121a0030a0cbb1f041a626ffe7968bc"
   });
