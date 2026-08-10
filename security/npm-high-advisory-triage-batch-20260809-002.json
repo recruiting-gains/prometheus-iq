@@ -1,0 +1,262 @@
+{
+  "schemaVersion": "prometheus-security-npm-advisory-triage-v1",
+  "batchId": "BATCH-20260809-002",
+  "owner": "Prometheus Security",
+  "ownerIdentity": "Prometheus Security <security@prometheus.local>",
+  "observedAt": "2026-08-10T00:56:58Z",
+  "baseline": {
+    "branch": "main",
+    "commit": "78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e",
+    "tree": "387760d6e7182e83ec06364abd4fc74bd5a94c07"
+  },
+  "auditModel": "npm-audit-v2-package-level-findings",
+  "auditCommands": {
+    "allDependencies": "npm audit --json",
+    "productionOnly": "npm audit --omit=dev --json"
+  },
+  "before": {
+    "allDependencies": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 6,
+      "critical": 0,
+      "total": 6
+    },
+    "productionOnly": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    }
+  },
+  "after": {
+    "allDependencies": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 4,
+      "critical": 0,
+      "total": 4
+    },
+    "productionOnly": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    }
+  },
+  "remediation": {
+    "packageManagerOperations": [
+      "npm audit fix"
+    ],
+    "auditFixForceUsed": false,
+    "overridesUsed": false,
+    "unrelatedDirectDependenciesChanged": [],
+    "productionDependenciesChanged": [],
+    "result": "TWO_SAFE_TRANSITIVE_PATCHES_FOUR_DEVELOPMENT_ONLY_HIGHS_DEFERRED"
+  },
+  "compatibilityTrial": {
+    "candidateWrangler": "4.120.0",
+    "candidateMiniflare": "5.20260801.1-alpha",
+    "candidateSharp": "0.35.2",
+    "candidateUndici": "7.29.0",
+    "status": "REJECTED_NOT_COMMITTED",
+    "reason": "The official audit candidate caused governed version-pin failures and changed Miniflare restart and persistence behavior in real Worker-emulation tests.",
+    "testCommand": "node --test tests/cloudflare-unattended-runtime-guard.test.mjs tests/route-iq-business-availability-infrastructure.test.mjs tests/route-iq-prospective-shadow-infrastructure.test.mjs tests/route-iq-request-crm-infrastructure.test.mjs",
+    "testTotals": {
+      "tests": 121,
+      "passed": 112,
+      "failed": 9
+    },
+    "forceOrOverrideAccepted": false
+  },
+  "findings": [
+    {
+      "package": "miniflare",
+      "severity": "high",
+      "directOrTransitive": "DIRECT_AND_TRANSITIVE_DEDUPED",
+      "dependencyClass": "development",
+      "dependencyPaths": [
+        ["root", "miniflare"],
+        ["root", "wrangler", "miniflare"]
+      ],
+      "runtimeReachability": "NOT_PRESENT_IN_PRODUCTION_DEPENDENCY_TREE",
+      "affectedSurface": [
+        "local-worker-emulation",
+        "worker-integration-test-harnesses",
+        "wrangler-development-runtime"
+      ],
+      "installedVersionBefore": "4.20260708.1",
+      "installedVersionAfter": "4.20260708.1",
+      "patchedVersionFloor": "5.20260801.1-alpha",
+      "vulnerableRange": "<=0.0.0-fec45ed61 || 4.20250508.3 - 5.20260801.0-alpha",
+      "nonBreakingAssessment": "NOT_SEMVER_GUARANTEED_COORDINATED_MAJOR_PRERELEASE",
+      "semverRisk": "HIGHER_THAN_PATCH_REQUIRES_ALL_MINIFLARE_HARNESSES",
+      "exploitability": "CONDITIONAL_LOCAL_OR_CI_ONLY_REQUIRES_UNTRUSTED_EMULATION_INPUT",
+      "advisories": [
+        "GHSA-f88m-g3jw-g9cj",
+        "GHSA-4cwx-7wf7-3272"
+      ],
+      "resolutionStatus": "DEFERRED_DEVELOPMENT_ONLY",
+      "disposition": "DEFERRED_OFFICIAL_FIX_FAILED_REAL_MINIFLARE_RESTART_AND_PERSISTENCE_TESTS"
+    },
+    {
+      "package": "nanoid",
+      "severity": "high",
+      "directOrTransitive": "TRANSITIVE",
+      "dependencyClass": "development",
+      "dependencyPaths": [
+        ["root", "vite", "postcss", "nanoid"]
+      ],
+      "runtimeReachability": "NOT_PRESENT_IN_PRODUCTION_DEPENDENCY_TREE",
+      "affectedSurface": ["vite-css-build-tooling"],
+      "installedVersionBefore": "3.3.14",
+      "installedVersionAfter": "3.3.18",
+      "patchedVersionFloor": "3.3.17",
+      "vulnerableRange": "<=3.3.16",
+      "nonBreakingAssessment": "EXPECTED_NON_BREAKING_PATCH_WITHIN_POSTCSS_RANGE",
+      "semverRisk": "LOW_PATCH",
+      "exploitability": "NOT_OBSERVED_IN_PROMETHEUS_CALL_SITES_AND_REQUIRES_INVALID_GENERATOR_SIZE",
+      "advisories": [
+        "GHSA-28wg-ghj8-5hjv",
+        "GHSA-2v37-7h3g-55p8"
+      ],
+      "resolutionStatus": "REMEDIATED",
+      "disposition": "REMEDIATED_BY_TRANSITIVE_PATCH"
+    },
+    {
+      "package": "postcss",
+      "severity": "high",
+      "directOrTransitive": "TRANSITIVE",
+      "dependencyClass": "development",
+      "dependencyPaths": [
+        ["root", "vite", "postcss"]
+      ],
+      "runtimeReachability": "NOT_PRESENT_IN_PRODUCTION_DEPENDENCY_TREE",
+      "affectedSurface": ["vite-css-build-tooling"],
+      "installedVersionBefore": "8.5.15",
+      "installedVersionAfter": "8.5.26",
+      "patchedVersionFloor": "8.5.23",
+      "vulnerableRange": "<=8.5.22",
+      "nonBreakingAssessment": "EXPECTED_NON_BREAKING_PATCH_WITHIN_VITE_RANGE",
+      "semverRisk": "LOW_PATCH",
+      "exploitability": "CONDITIONAL_BUILD_TIME_ONLY_REQUIRES_ATTACKER_CONTROLLED_CSS_SOURCEMAP_REFERENCE",
+      "advisories": [
+        "GHSA-r28c-9q8g-f849",
+        "GHSA-fxqj-rqcc-2cmp"
+      ],
+      "resolutionStatus": "REMEDIATED",
+      "disposition": "REMEDIATED_BY_TRANSITIVE_PATCH"
+    },
+    {
+      "package": "sharp",
+      "severity": "high",
+      "directOrTransitive": "TRANSITIVE",
+      "dependencyClass": "development",
+      "dependencyPaths": [
+        ["root", "miniflare", "sharp"],
+        ["root", "wrangler", "miniflare", "sharp"]
+      ],
+      "runtimeReachability": "NOT_PRESENT_IN_PRODUCTION_DEPENDENCY_TREE",
+      "affectedSurface": ["miniflare-local-asset-processing"],
+      "installedVersionBefore": "0.34.5",
+      "installedVersionAfter": "0.34.5",
+      "patchedVersionFloor": "0.35.0",
+      "vulnerableRange": "<0.35.0",
+      "nonBreakingAssessment": "NOT_SEMVER_GUARANTEED_ZERO_MAJOR_MINOR_TRANSITION",
+      "semverRisk": "MEDIUM_COORDINATED_TRANSITIVE_UPDATE_REQUIRES_HARNESS_TESTS",
+      "exploitability": "CONDITIONAL_LOCAL_OR_CI_ONLY_REQUIRES_CRAFTED_ASSET_PROCESSED_BY_MINIFLARE",
+      "advisories": ["GHSA-f88m-g3jw-g9cj"],
+      "resolutionStatus": "DEFERRED_DEVELOPMENT_ONLY",
+      "disposition": "DEFERRED_PATCH_REQUIRES_REJECTED_MINIFLARE_MAJOR_TRANSITION_OR_UNSUPPORTED_OVERRIDE"
+    },
+    {
+      "package": "undici",
+      "severity": "high",
+      "directOrTransitive": "TRANSITIVE",
+      "dependencyClass": "development",
+      "dependencyPaths": [
+        ["root", "miniflare", "undici"],
+        ["root", "wrangler", "miniflare", "undici"]
+      ],
+      "runtimeReachability": "NOT_PRESENT_IN_PRODUCTION_DEPENDENCY_TREE",
+      "affectedSurface": ["miniflare-local-http-emulation"],
+      "installedVersionBefore": "7.28.0",
+      "installedVersionAfter": "7.28.0",
+      "patchedVersionFloor": "7.29.0",
+      "vulnerableRange": ">=7.0.0 <7.29.0",
+      "nonBreakingAssessment": "EXPECTED_NON_BREAKING_SAME_MAJOR_MINOR_UPDATE",
+      "semverRisk": "LOW_MINOR",
+      "exploitability": "CONDITIONAL_LOCAL_OR_CI_ONLY_REQUIRES_ATTACKER_CONTROLLED_EMULATED_HTTP_INPUT",
+      "advisories": [
+        "GHSA-8xcm-r25x-g524",
+        "GHSA-4cwx-7wf7-3272",
+        "GHSA-m8rv-5g2x-5cg5",
+        "GHSA-jr45-8vmc-qm54",
+        "GHSA-v3r7-h72x-cjcm"
+      ],
+      "resolutionStatus": "DEFERRED_DEVELOPMENT_ONLY",
+      "disposition": "DEFERRED_PATCH_REQUIRES_REJECTED_MINIFLARE_MAJOR_TRANSITION_OR_UNSUPPORTED_OVERRIDE"
+    },
+    {
+      "package": "wrangler",
+      "severity": "high",
+      "directOrTransitive": "DIRECT",
+      "dependencyClass": "development",
+      "dependencyPaths": [
+        ["root", "wrangler"]
+      ],
+      "runtimeReachability": "NOT_PRESENT_IN_PRODUCTION_DEPENDENCY_TREE",
+      "affectedSurface": [
+        "local-worker-tooling",
+        "ci-qualification-tooling",
+        "governed-deployment-client"
+      ],
+      "installedVersionBefore": "4.110.0",
+      "installedVersionAfter": "4.110.0",
+      "patchedVersionFloor": "4.114.0",
+      "vulnerableRange": "<=0.0.0-7ae5dd357 || 4.16.0 - 4.113.0",
+      "nonBreakingAssessment": "EXPECTED_NON_BREAKING_SAME_MAJOR_MINOR_UPDATE",
+      "semverRisk": "MEDIUM_TOOLING_MINOR_REQUIRES_DEPLOYMENT_CONTRACT_REQUALIFICATION",
+      "exploitability": "INHERITED_FROM_LOCAL_MINIFLARE_DEPENDENCIES_AND_NOT_DEPLOYED_IN_WORKER_RUNTIME",
+      "advisories": [
+        "GHSA-f88m-g3jw-g9cj",
+        "GHSA-4cwx-7wf7-3272"
+      ],
+      "resolutionStatus": "DEFERRED_DEVELOPMENT_ONLY",
+      "disposition": "DEFERRED_WRANGLER_UPDATE_REQUIRES_REJECTED_MINIFLARE_MAJOR_TRANSITION_AND_INFRASTRUCTURE_REQUALIFICATION"
+    }
+  ],
+  "runtimeCallSites": {
+    "miniflare": [
+      "tests/cloudflare-unattended-runtime-guard.test.mjs",
+      "tests/route-iq-business-availability-infrastructure.test.mjs",
+      "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
+      "tests/route-iq-request-crm-infrastructure.test.mjs"
+    ],
+    "wrangler": [],
+    "sharp": [],
+    "undici": [],
+    "postcss": [],
+    "nanoid": []
+  },
+  "verification": {
+    "deterministicSecurityTest": "tests/route-iq-npm-high-advisory-triage-batch-20260809-002-security.test.mjs",
+    "requiredCommands": [
+      "npm audit --audit-level=high",
+      "npm audit --omit=dev --audit-level=high",
+      "npm run security:check",
+      "npm run security:aegis:verify",
+      "node --test tests/route-iq-npm-high-advisory-triage-batch-20260809-002-security.test.mjs",
+      "node --test tests/cloudflare-unattended-runtime-guard.test.mjs tests/route-iq-business-availability-infrastructure.test.mjs tests/route-iq-prospective-shadow-infrastructure.test.mjs tests/route-iq-request-crm-infrastructure.test.mjs"
+    ],
+    "productionReachableHighFindings": 0,
+    "unresolvedHighFindings": 4,
+    "residualRiskDisposition": "DEVELOPMENT_ONLY_AND_DEFERRED_TO_A_SEPARATE_INFRASTRUCTURE_OWNED_CLOUDFLARE_TOOLCHAIN_QUALIFICATION"
+  }
+}
