@@ -1,0 +1,62 @@
+{
+  "reportVersion": "route-iq-wrangler-miniflare-major-transition-requalification-engineering-batch-v1",
+  "batchId": "BATCH-20260810-001",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "startingCommit": "2d5caafc52de0c1ee42bce5b370e2232e53fd72f",
+  "startingTree": "25bd1b7015f018edbf4c8371a33598cafb28ebff",
+  "infrastructureCommit": "da7504352424096869a18b66dc7c4429480393f4",
+  "securityCommit": "efc242a1bcf5728206fd9fae9d8fce75f642cab7",
+  "finalCommitMode": "COMMIT_CONTAINING_THIS_REPORT",
+  "verdictBeforeHostedQualification": "EXACT_FINAL_HOSTED_QUALIFICATION_REQUIRED",
+  "passEquivalentVerdict": "CLOUDFLARE_TOOLCHAIN_REQUALIFIED_ZERO_HIGH_READY_FOR_FOUNDER_REVIEW",
+  "dependencyTransition": {
+    "wrangler": "4.110.0 -> 4.120.1",
+    "miniflare": "4.20260708.1 -> 5.20260804.0-alpha",
+    "sharp": "0.34.5 -> 0.35.2",
+    "undici": "7.28.0 -> 7.29.0",
+    "allDependencyHigh": "4 -> 0",
+    "productionHigh": "0 -> 0"
+  },
+  "compatibility": {
+    "rejectedTrial": "112/121 PASS; 9 FAIL",
+    "supportedCandidate": "121/121 PASS",
+    "repeat": "121/121 PASS",
+    "node24": "121/121 PASS",
+    "failures": 0,
+    "skips": 0,
+    "restartPersistenceIsolationPreserved": true
+  },
+  "releaseIdentityComparison": {
+    "dormantMaintenanceArtifact": "UNCHANGED",
+    "manifest": "UNCHANGED",
+    "configuration": "UNCHANGED",
+    "content": "UNCHANGED",
+    "retentionPolicy": "UNCHANGED",
+    "deletionRuntime": "UNCHANGED",
+    "maintenanceRuntime": "UNCHANGED",
+    "privateForwardPayload": "UNCHANGED",
+    "privateRollbackBundle": "UNCHANGED",
+    "publicRollbackArtifact": "UNCHANGED"
+  },
+  "qualification": {
+    "focusedInfrastructure": "PASS",
+    "security": "PASS",
+    "aegis": "PASS",
+    "npmAudit": "PASS_ZERO_FINDINGS",
+    "npmAuditProduction": "PASS_ZERO_FINDINGS",
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "build": "PASS_991_MODULES",
+    "hosted": "PENDING_EXACT_FINAL_COMMIT"
+  },
+  "boundary": {
+    "cloudflareContactCount": 0,
+    "deploymentCount": 0,
+    "productionMutationCount": 0,
+    "productionStorageAccessCount": 0,
+    "collectionActivationCount": 0,
+    "cohortCreationCount": 0,
+    "recommendationInfluenceChanges": 0
+  },
+  "remainingRoadmapTask": "Qualify the official Node 24 actions pins as a separate Infrastructure and Overwatch workflow successor without changing application or rollback scope."
+}

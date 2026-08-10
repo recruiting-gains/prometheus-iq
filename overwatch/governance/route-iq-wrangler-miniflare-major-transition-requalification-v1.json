@@ -1,0 +1,173 @@
+{
+  "schemaVersion": "route-iq-wrangler-miniflare-major-transition-requalification-v1",
+  "batchId": "BATCH-20260810-001",
+  "owner": "Prometheus Overwatch",
+  "ownerIdentity": "Prometheus Overwatch <overwatch@prometheus.local>",
+  "recordedAt": "2026-08-10T20:17:16Z",
+  "startingRepository": {
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "branch": "main",
+    "commit": "2d5caafc52de0c1ee42bce5b370e2232e53fd72f",
+    "tree": "25bd1b7015f018edbf4c8371a33598cafb28ebff",
+    "expectedDivergence": "0/0"
+  },
+  "predecessorQualification": {
+    "runId": 31351565854,
+    "workflow": "Prometheus Early GitHub Handoff Qualification",
+    "commit": "2d5caafc52de0c1ee42bce5b370e2232e53fd72f",
+    "tree": "25bd1b7015f018edbf4c8371a33598cafb28ebff",
+    "tests": 1634,
+    "passed": 1630,
+    "failed": 0,
+    "governedSkips": 4,
+    "buildModules": 991,
+    "hostedCheckoutUnchanged": true
+  },
+  "ownerChain": [
+    {
+      "owner": "Prometheus Infrastructure",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "commit": "da7504352424096869a18b66dc7c4429480393f4",
+      "tree": "9ecb94b795d612a34a84c7ba7871296872d9184a",
+      "parent": "2d5caafc52de0c1ee42bce5b370e2232e53fd72f",
+      "subject": "infrastructure: update Cloudflare compatibility toolchain",
+      "changedFileCount": 9
+    },
+    {
+      "owner": "Prometheus Security/Aegis",
+      "identity": "Prometheus Security <security@prometheus.local>",
+      "commit": "efc242a1bcf5728206fd9fae9d8fce75f642cab7",
+      "tree": "a8264cc14eddcf3c573556680778fff6b0e3c3b4",
+      "parent": "da7504352424096869a18b66dc7c4429480393f4",
+      "subject": "security: accept zero-high Cloudflare toolchain graph",
+      "changedFileCount": 2
+    }
+  ],
+  "authoritativeRecords": {
+    "infrastructure": {
+      "path": "workers/infrastructure/route-iq-cloudflare-toolchain-compatibility-v1.json",
+      "sha256": "cb2da57d2e7fcc59888c1578ef9feadcccd2c601882d22a352a9fac0e2488516"
+    },
+    "security": {
+      "path": "security/npm-high-advisory-triage-batch-20260810-001.json",
+      "sha256": "94b0cbcefde0ca7235291f543260dcadb772ee4b27ed48b1a0cdef2480008f03"
+    },
+    "immutablePredecessorGovernance": {
+      "path": "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json",
+      "sha256": "4e4f434b95e16e3c86d1d9b70e22667ff57e4536ce14ea3ca72aa9cf194034c8"
+    },
+    "immutablePredecessorReport": {
+      "path": "overwatch/reports/BATCH-20260809-002-route-iq-dormant-retention-maintenance-deployment-readiness.json",
+      "sha256": "4a121c8662b78fe033bc646bf020a18e016bd54d022655e8f4466b9a3276954e"
+    }
+  },
+  "selectedToolchain": {
+    "direct": {
+      "wrangler": "4.120.1",
+      "miniflare": "5.20260804.0-alpha",
+      "ajv": "8.20.0",
+      "jsonc-parser": "3.2.0"
+    },
+    "wranglerImmediateDependencies": {
+      "@cloudflare/kv-asset-handler": "0.5.0",
+      "@cloudflare/unenv-preset": "2.16.1",
+      "blake3-wasm": "2.1.5",
+      "esbuild": "0.28.1",
+      "miniflare": "5.20260804.0-alpha",
+      "path-to-regexp": "6.3.0",
+      "unenv": "2.0.0-rc.24",
+      "workerd": "1.20260804.1"
+    },
+    "miniflareImmediateDependencies": {
+      "@cspotcode/source-map-support": "0.8.1",
+      "sharp": "0.35.2",
+      "undici": "7.29.0",
+      "workerd": "1.20260804.1",
+      "ws": "8.21.0",
+      "youch": "4.1.0-beta.10"
+    },
+    "normalNpmResolution": true,
+    "forceUsed": false,
+    "overridesUsed": false,
+    "manualLockfileEditingUsed": false,
+    "transitiveSharpOrUndiciPinUsed": false
+  },
+  "compatibility": {
+    "priorCandidate": "112/121 PASS; 9 FAIL",
+    "supportedCandidate": "121/121 PASS",
+    "repeat": "121/121 PASS",
+    "node24": "121/121 PASS",
+    "contractRegression": "7/7 PASS",
+    "securityRegression": "7/7 PASS",
+    "adapter": "convertV4MiniflareOptions",
+    "persistence": "resourcePersistencePath",
+    "originalAssertionsWeakened": false,
+    "remoteBindingEnabled": false,
+    "cloudflareContactCount": 0
+  },
+  "securityDisposition": {
+    "allDependencyHighBefore": 4,
+    "allDependencyHighAfter": 0,
+    "productionHighBefore": 0,
+    "productionHighAfter": 0,
+    "removedPackageFindings": [
+      "miniflare",
+      "sharp",
+      "undici",
+      "wrangler"
+    ]
+  },
+  "releaseIdentityContinuity": {
+    "artifactSha256": "3a10928717c21a66d7c7d5610b6449f724fcea2778a4a2a9e224d8a017e075a1",
+    "manifestSha256": "f33747eab0b7d243c03b5cdc28bbbc2ca877cbac6a231aceb597cc578030479e",
+    "configurationSha256": "2a9194ee16322b4b8fa17da9d3096d122e3211ded1cb522f5dea793b939b4083",
+    "contentSha256": "8bc59cdf6d572894b018d443bd6e9a2d3702f63aee22097091750833f1ce40f9",
+    "retentionPolicySha256": "1299d480d5e8d9418a143eb4817572a0362dd4a9649eb6f337e783c519e3bd20",
+    "deletionRuntimeSha256": "1ee36eb278646e8179fa092a2b4e32ae92cdaeba55f5a89ad9c7de24febbdc43",
+    "maintenanceRuntimeSha256": "9a28d07b997b3cadde2854c0b0916e4ad201634ad218e1b5d68813b79d21a717",
+    "privateForwardPayloadSha256": "bafde531701612f2bf5ca9fd3bb69ee1be60432c78b0a046359c7476e5785e09",
+    "privateRollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+    "publicRollbackArtifactSha256": "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6",
+    "forwardRevertSha256": "1c52f24e6fda40db63d542ffc783e9c9c7ffd0d85a29b41f234aaefbcf312183",
+    "applicationOrRollbackSourceChanged": false
+  },
+  "node24ActionWarning": {
+    "classification": "VALID_WARNING_DEFERRED_TO_SEPARATE_WORKFLOW_SUCCESSOR",
+    "checkoutReplacement": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "setupNodeReplacement": "820762786026740c76f36085b0efc47a31fe5020",
+    "reason": "The workflow pins are coupled to Overwatch verifiers and release workflow identities. Updating them here would violate exact release-artifact continuity.",
+    "workflowChanged": false,
+    "permissionsChanged": false
+  },
+  "hostedQualification": {
+    "workflow": "early-github-handoff-v1.yml",
+    "exactFinalCommitRequired": true,
+    "exactFinalTreeRequired": true,
+    "stateBeforeDispatch": "PENDING",
+    "passEquivalentVerdict": "CLOUDFLARE_TOOLCHAIN_REQUALIFIED_ZERO_HIGH_READY_FOR_FOUNDER_REVIEW"
+  },
+  "productionBoundary": {
+    "cloudflareAuthentication": false,
+    "cloudflareContactCount": 0,
+    "wranglerRemoteCommandCount": 0,
+    "deploymentCount": 0,
+    "productionStorageAccessCount": 0,
+    "productionMutationCount": 0,
+    "secretAccessCount": 0,
+    "physicalDeletionAuthorized": false,
+    "dormantMaintenanceDeploymentAuthorized": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "canonicalProspectiveRecords": 0,
+    "canonicalProspectiveEvaluations": 0,
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "companion": "DORMANT",
+    "anthony": "UNMAPPED",
+    "stripe": "NON_LIVE",
+    "productionDeployment": "UNCHANGED"
+  }
+}

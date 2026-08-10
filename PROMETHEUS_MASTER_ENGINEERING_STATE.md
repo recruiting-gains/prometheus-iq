@@ -8444,17 +8444,42 @@ Canonical governance:
 - `workers/infrastructure/route-iq-retention-maintenance-release-package-v1.json`
 - `workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json`
 
+### 2026-08-10: Route IQ Wrangler/Miniflare Major-Transition Requalification v1
+
+Status:
+
+Owner implementation and independent Security/Aegis acceptance are complete. Exact-final-commit hosted qualification is the remaining acceptance gate. No Cloudflare authentication, production contact, deployment, storage access, secret access, deletion, or protected-state activation occurred.
+
+Owner composition:
+
+- Prometheus Infrastructure advanced Wrangler to `4.120.1` and its official required Miniflare `5.20260804.0-alpha` graph through normal npm resolution, adapted the four real Worker-emulation harnesses with the official compatibility converter and supported resource-persistence root, preserved every restart and isolation assertion, and added installed-schema validation for both Wrangler configurations.
+- Prometheus Security/Aegis recorded the exact graph and dependency paths, preserved Batch 002 byte-for-byte, and accepted the transition only after complete and production-only audits both reached zero findings.
+- Prometheus Overwatch independently binds the owner chain, all nine reproduced failure causes, `121/121` compatibility, exact release and rollback continuity, zero-contact boundary, hosted execution, and final report.
+
+Protected boundaries:
+
+- Dormant retention-maintenance artifact, manifest, configuration, content, retention policy, deletion runtime, maintenance runtime, private forward payload, private rollback bundle, public rollback artifact, and forward revert remain unchanged.
+- Collection remains OFF, cohorts remain 0, recommendation influence remains OFF, providers and scheduler remain OFF, Companion remains dormant, Anthony remains unmapped, and production remains unchanged.
+- The GitHub Node 20 action warning is valid. Official Node 24 replacements exist, but their coupled workflow and release identities require a separate Infrastructure and Overwatch successor; no workflow or permission changed here.
+
+Canonical governance:
+
+- `workers/infrastructure/route-iq-cloudflare-toolchain-compatibility-v1.json`
+- `security/npm-high-advisory-triage-batch-20260810-001.json`
+- `overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json`
+- `overwatch/reports/BATCH-20260810-001-route-iq-wrangler-miniflare-major-transition-requalification.json`
+
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:
 
-After exact hosted qualification and Founder review of the dormant maintenance package, perform an Infrastructure-owned Wrangler and Miniflare major-transition requalification. Keep collection OFF and do not combine dormant deployment authority with any physical-deletion authority.
+After this exact hosted qualification and Founder review, qualify the official Node 24-compatible checkout and setup-node action pins as a separate Infrastructure and Overwatch workflow successor. Keep application, rollback, permissions, collection, deletion, cohort, and recommendation boundaries unchanged.
 
-Primary owners: Prometheus Infrastructure and Prometheus Data, with independent Prometheus Overwatch and Security/Aegis verification.
+Primary owners: Prometheus Infrastructure and Prometheus Overwatch, with independent Prometheus Security/Aegis verification.
 
 Reason:
 
-The dormant package is designed to remove the source-level deployment-readiness blockers while leaving all production bindings and authority absent. The four remaining high advisories are development-only, but their official fixes require a coordinated Cloudflare tooling transition that previously changed real Worker-emulation restart and persistence behavior and therefore needs its own Infrastructure qualification.
+The Cloudflare toolchain transition removes the four development-only high findings while preserving the dormant release. GitHub currently forces the pinned Node 20 JavaScript actions onto Node 24; official Node 24-compatible replacements exist, but their coupled workflow identities require a separately governed successor.
 
 Current priority order after notification delivery acceptance:
 
