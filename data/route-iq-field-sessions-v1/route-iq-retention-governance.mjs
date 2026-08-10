@@ -14,6 +14,10 @@ export const routeIqRetentionDeletionEventVersion = "route-iq-retention-deletion
 export const routeIqCustomerRetentionOverrideAuthorityVersion = "route-iq-customer-retention-override-authority-v1";
 export const routeIqDeidentifiedAggregateVersion = "route-iq-deidentified-aggregate-v1";
 export const routeIqDeidentifiedAggregateAttestationVersion = "route-iq-deidentified-aggregate-attestation-v1";
+export const routeIqRetentionProductionLegalHoldAuthorityVersion = "route-iq-retention-production-legal-hold-authority-v1";
+export const routeIqRetentionProductionLegalHoldReadinessVersion = "route-iq-retention-production-legal-hold-readiness-v1";
+export const routeIqRetentionProductionLegalHoldRevalidationVersion = "route-iq-retention-production-legal-hold-revalidation-v1";
+export const routeIqRetentionProductionLegalHoldMaximumAgeMilliseconds = 60_000;
 export const routeIqRetentionAdministrativeDispositionTarget = deepFreeze({
   workspaceId: "fitness_connection",
   operatingProfileId: "fitness",
@@ -35,6 +39,8 @@ const RETENTION_DELETION_EVENT_TYPES = new Set([
 ]);
 const LEGAL_HOLD_EVENT_TYPES = new Set(["LEGAL_HOLD_APPLIED", "LEGAL_HOLD_RELEASED"]);
 const LEGAL_HOLD_AUTHORITIES = new Set(["prometheus_founder", "authorized_counsel"]);
+const PRODUCTION_LEGAL_HOLD_ATTESTATION_AUTHORITIES = new Set(["prometheus_data_legal_hold_authority"]);
+const LEGAL_HOLD_SOURCE_CLASSIFICATIONS = new Set(["authoritative_production", "source_only_fixture"]);
 const OPERATION_AUTHORITIES = new Set(["prometheus_founder"]);
 const RETENTION_AUDIT_OWNER = "prometheus_data";
 const AUTHORIZATION_PATTERN = /^riq_retention_auth_[a-f0-9]{64}$/;
@@ -144,6 +150,54 @@ function normalizeSubject(subject) {
     operatingProfileId: subject.operatingProfileId,
     recordClass: subject.recordClass,
     sourceRecordSha256: subject.sourceRecordSha256
+  });
+}
+
+function requireRetentionScopeIdentifier(value, label) {
+  if (typeof value !== "string"
+    || value.length < 1
+    || value.length > 128
+    || !/^[a-z0-9](?:[a-z0-9._:-]*[a-z0-9])?$/.test(value)) {
+    fail("route_iq_retention_scope_identifier_invalid", `${label} is invalid.`);
+  }
+  return value;
+}
+
+function normalizeProductionLegalHoldScope(scope) {
+  const keys = new Set([
+    "workspaceId",
+    "operatingProfileId",
+    "representativeId",
+    "recordClass",
+    "sourceRecordSha256",
+    "evidenceIdentitySha256"
+  ]);
+  assertExactRequiredKeys(scope, keys, "production_legal_hold_scope");
+  const subject = normalizeSubject({
+    workspaceId: scope.workspaceId,
+    operatingProfileId: scope.operatingProfileId,
+    recordClass: scope.recordClass,
+    sourceRecordSha256: scope.sourceRecordSha256
+  });
+  return deepFreeze({
+    ...subject,
+    representativeId: requireRetentionScopeIdentifier(
+      scope.representativeId,
+      "Retention legal-hold representative identity"
+    ),
+    evidenceIdentitySha256: requireSha256(
+      scope.evidenceIdentitySha256,
+      "Retention legal-hold evidence identity hash"
+    )
+  });
+}
+
+function retentionSubjectFromProductionScope(scope) {
+  return deepFreeze({
+    workspaceId: scope.workspaceId,
+    operatingProfileId: scope.operatingProfileId,
+    recordClass: scope.recordClass,
+    sourceRecordSha256: scope.sourceRecordSha256
   });
 }
 
@@ -692,6 +746,451 @@ export async function readAuthoritativeRouteIqRetentionLegalHoldSnapshot(ledger,
 
 export function readRouteIqRetentionLedgerRecords(ledger) {
   return deepFreeze(clone(requireLedger(ledger).records));
+}
+
+function legalHoldEnvironmentForClassification(sourceClassification) {
+  if (sourceClassification === "authoritative_production") return "production";
+  if (sourceClassification === "source_only_fixture") return "source_fixture";
+  fail("route_iq_retention_production_legal_hold_source_invalid", "Legal-hold authority source is invalid.");
+}
+
+function normalizeLegalHoldAuthoritySource(source, expectedClassification) {
+  if (!source) {
+    fail(
+      "route_iq_retention_production_legal_hold_unavailable",
+      "Authoritative production legal-hold authority is unavailable."
+    );
+  }
+  const keys = new Set([
+    "version",
+    "sourceClassification",
+    "environment",
+    "bindingIdentitySha256",
+    "readAuthorityAssertions"
+  ]);
+  assertExactRequiredKeys(source, keys, "production_legal_hold_authority_source");
+  if (source.version !== routeIqRetentionProductionLegalHoldAuthorityVersion
+    || !LEGAL_HOLD_SOURCE_CLASSIFICATIONS.has(source.sourceClassification)
+    || source.environment !== legalHoldEnvironmentForClassification(source.sourceClassification)
+    || typeof source.readAuthorityAssertions !== "function") {
+    fail("route_iq_retention_production_legal_hold_source_invalid", "Legal-hold authority source is invalid.");
+  }
+  requireSha256(source.bindingIdentitySha256, "Legal-hold authority binding identity hash");
+  if (source.sourceClassification !== expectedClassification) {
+    fail(
+      expectedClassification === "authoritative_production"
+        ? "route_iq_retention_production_legal_hold_source_not_production"
+        : "route_iq_retention_fixture_legal_hold_source_invalid",
+      "Legal-hold authority source classification does not match the requested execution boundary."
+    );
+  }
+  return source;
+}
+
+export function createRouteIqRetentionProductionLegalHoldAuthorityClaims(input = {}) {
+  const keys = new Set([
+    "sourceClassification",
+    "environment",
+    "bindingIdentitySha256",
+    "evaluatedAt",
+    "observedAt",
+    "validUntil",
+    "scope",
+    "subjectSha256",
+    "legalHoldState",
+    "ledgerRecordCount",
+    "ledgerLastRecordSha256",
+    "ledgerSha256"
+  ]);
+  assertExactRequiredKeys(input, keys, "production_legal_hold_authority_claims");
+  if (!LEGAL_HOLD_SOURCE_CLASSIFICATIONS.has(input.sourceClassification)
+    || input.environment !== legalHoldEnvironmentForClassification(input.sourceClassification)) {
+    fail("route_iq_retention_production_legal_hold_source_invalid", "Legal-hold authority source is invalid.");
+  }
+  const scope = normalizeProductionLegalHoldScope(input.scope);
+  const subject = retentionSubjectFromProductionScope(scope);
+  const evaluatedAt = canonicalIso(input.evaluatedAt, "Legal-hold evaluation time");
+  const observedAt = canonicalIso(input.observedAt, "Legal-hold observation time");
+  const validUntil = canonicalIso(input.validUntil, "Legal-hold authority validity time");
+  requireSha256(input.bindingIdentitySha256, "Legal-hold authority binding identity hash");
+  requireSha256(input.subjectSha256, "Legal-hold subject identity hash");
+  requireSha256(input.ledgerSha256, "Legal-hold ledger hash");
+  if (input.ledgerLastRecordSha256 !== null) {
+    requireSha256(input.ledgerLastRecordSha256, "Legal-hold ledger head hash");
+  }
+  if (!Number.isSafeInteger(input.ledgerRecordCount)
+    || input.ledgerRecordCount < 0
+    || !new Set(["none", "active"]).has(input.legalHoldState)
+    || input.subjectSha256 !== sha256(stableJson(subject))
+    || validUntil.milliseconds <= observedAt.milliseconds
+    || validUntil.milliseconds - observedAt.milliseconds
+      > routeIqRetentionProductionLegalHoldMaximumAgeMilliseconds) {
+    fail(
+      "route_iq_retention_production_legal_hold_attestation_invalid",
+      "Production legal-hold attestation is invalid."
+    );
+  }
+  return deepFreeze({
+    purpose: "production_legal_hold_snapshot",
+    authorityVersion: routeIqRetentionProductionLegalHoldAuthorityVersion,
+    sourceClassification: input.sourceClassification,
+    environment: input.environment,
+    bindingIdentitySha256: input.bindingIdentitySha256,
+    evaluatedAt: evaluatedAt.iso,
+    observedAt: observedAt.iso,
+    validUntil: validUntil.iso,
+    scope,
+    subjectSha256: input.subjectSha256,
+    legalHoldState: input.legalHoldState,
+    ledgerRecordCount: input.ledgerRecordCount,
+    ledgerLastRecordSha256: input.ledgerLastRecordSha256,
+    ledgerSha256: input.ledgerSha256
+  });
+}
+
+function legalHoldSnapshotIdentity(input) {
+  return sha256(stableJson({
+    authorityVersion: routeIqRetentionProductionLegalHoldAuthorityVersion,
+    sourceClassification: input.sourceClassification,
+    environment: input.environment,
+    bindingIdentitySha256: input.bindingIdentitySha256,
+    scope: input.scope,
+    subjectSha256: input.subjectSha256,
+    legalHoldState: input.legalHoldState,
+    ledgerRecordCount: input.ledgerRecordCount,
+    ledgerLastRecordSha256: input.ledgerLastRecordSha256,
+    ledgerSha256: input.ledgerSha256
+  }));
+}
+
+function validateLegalHoldAuthorityAssertion(assertion, expected, source, authorityVerifier) {
+  const keys = new Set([
+    "version",
+    "sourceClassification",
+    "environment",
+    "bindingIdentitySha256",
+    "evaluatedAt",
+    "observedAt",
+    "validUntil",
+    "scope",
+    "subjectSha256",
+    "legalHoldState",
+    "ledgerRecordCount",
+    "ledgerLastRecordSha256",
+    "ledgerSha256",
+    "authority"
+  ]);
+  assertExactRequiredKeys(assertion, keys, "production_legal_hold_authority_assertion");
+  if (assertion.version !== routeIqRetentionProductionLegalHoldAuthorityVersion) {
+    fail(
+      "route_iq_retention_production_legal_hold_attestation_invalid",
+      "Production legal-hold attestation is invalid."
+    );
+  }
+  const claims = createRouteIqRetentionProductionLegalHoldAuthorityClaims({
+    sourceClassification: assertion.sourceClassification,
+    environment: assertion.environment,
+    bindingIdentitySha256: assertion.bindingIdentitySha256,
+    evaluatedAt: assertion.evaluatedAt,
+    observedAt: assertion.observedAt,
+    validUntil: assertion.validUntil,
+    scope: assertion.scope,
+    subjectSha256: assertion.subjectSha256,
+    legalHoldState: assertion.legalHoldState,
+    ledgerRecordCount: assertion.ledgerRecordCount,
+    ledgerLastRecordSha256: assertion.ledgerLastRecordSha256,
+    ledgerSha256: assertion.ledgerSha256
+  });
+  if (assertion.sourceClassification !== source.sourceClassification
+    || assertion.environment !== source.environment
+    || assertion.bindingIdentitySha256 !== source.bindingIdentitySha256
+    || !sameCanonical(assertion.scope, expected.scope)
+    || assertion.subjectSha256 !== expected.subjectSha256
+    || assertion.evaluatedAt !== expected.evaluatedAt
+    || assertion.legalHoldState !== expected.legalHoldState
+    || assertion.ledgerRecordCount !== expected.ledgerRecordCount
+    || assertion.ledgerLastRecordSha256 !== expected.ledgerLastRecordSha256
+    || assertion.ledgerSha256 !== expected.ledgerSha256) {
+    fail(
+      "route_iq_retention_production_legal_hold_scope_mismatch",
+      "Production legal-hold authority does not match the exact governed scope and ledger."
+    );
+  }
+  const evaluatedAt = Date.parse(assertion.evaluatedAt);
+  const observedAt = Date.parse(assertion.observedAt);
+  const validUntil = Date.parse(assertion.validUntil);
+  if (observedAt > evaluatedAt) {
+    fail("route_iq_retention_production_legal_hold_future", "Future legal-hold authority is invalid.");
+  }
+  if (evaluatedAt - observedAt > routeIqRetentionProductionLegalHoldMaximumAgeMilliseconds
+    || validUntil < evaluatedAt) {
+    fail("route_iq_retention_production_legal_hold_stale", "Stale legal-hold authority is invalid.");
+  }
+  const authority = verifyAuthorityAssertion(
+    authorityVerifier,
+    assertion.authority,
+    claims,
+    PRODUCTION_LEGAL_HOLD_ATTESTATION_AUTHORITIES,
+    "production_legal_hold_authority_assertion.authority"
+  );
+  return { claims, authority };
+}
+
+async function readLegalHoldReadiness(input, options, expectedClassification) {
+  assertExactRequiredKeys(input, new Set(["scope", "evaluatedAt"]), "production_legal_hold_readiness");
+  assertExactKeys(
+    options,
+    new Set(["retentionGovernanceLedger", "legalHoldAuthoritySource"]),
+    "production_legal_hold_readiness_options"
+  );
+  if (!options.retentionGovernanceLedger) {
+    fail("route_iq_retention_authoritative_ledger_missing", "An authoritative Data retention ledger is required.");
+  }
+  const scope = normalizeProductionLegalHoldScope(input.scope);
+  const subject = retentionSubjectFromProductionScope(scope);
+  const evaluatedAt = canonicalIso(input.evaluatedAt, "Legal-hold evaluation time");
+  const state = requireLedger(options.retentionGovernanceLedger, subject);
+  const source = normalizeLegalHoldAuthoritySource(options.legalHoldAuthoritySource, expectedClassification);
+  await refreshAuthoritativeState(state);
+  if (state.records.some(record => Date.parse(record.recordedAt) > evaluatedAt.milliseconds)) {
+    fail("route_iq_retention_production_legal_hold_future", "Future legal-hold ledger state is invalid.");
+  }
+  const snapshot = snapshotFromRecords(state.records, evaluatedAt.iso);
+  const expected = deepFreeze({
+    sourceClassification: source.sourceClassification,
+    environment: source.environment,
+    bindingIdentitySha256: source.bindingIdentitySha256,
+    evaluatedAt: evaluatedAt.iso,
+    scope,
+    subjectSha256: sha256(stableJson(subject)),
+    legalHoldState: snapshot.state,
+    ledgerRecordCount: snapshot.recordCount,
+    ledgerLastRecordSha256: snapshot.lastRecordSha256,
+    ledgerSha256: snapshot.ledgerSha256
+  });
+  let result;
+  try {
+    result = await source.readAuthorityAssertions(deepFreeze(clone(expected)));
+  } catch {
+    fail(
+      "route_iq_retention_production_legal_hold_unavailable",
+      "Authoritative production legal-hold authority is unavailable."
+    );
+  }
+  assertExactRequiredKeys(result, new Set(["assertions"]), "production_legal_hold_authority_result");
+  if (!Array.isArray(result.assertions)) {
+    fail(
+      "route_iq_retention_production_legal_hold_attestation_invalid",
+      "Production legal-hold authority result is invalid."
+    );
+  }
+  if (result.assertions.length === 0) {
+    fail("route_iq_retention_production_legal_hold_missing", "Production legal-hold state is missing.");
+  }
+  if (result.assertions.length !== 1) {
+    fail("route_iq_retention_production_legal_hold_ambiguous", "Production legal-hold state is ambiguous.");
+  }
+  const assertion = result.assertions[0];
+  const { authority } = validateLegalHoldAuthorityAssertion(
+    assertion,
+    expected,
+    source,
+    state.authorityVerifier
+  );
+  const legalHoldSnapshotIdentitySha256 = legalHoldSnapshotIdentity(expected);
+  const production = expectedClassification === "authoritative_production";
+  return deepFreeze({
+    schemaVersion: routeIqRetentionProductionLegalHoldReadinessVersion,
+    sourceClassification: source.sourceClassification,
+    environment: source.environment,
+    bindingIdentitySha256: source.bindingIdentitySha256,
+    scope,
+    subjectSha256: expected.subjectSha256,
+    evaluatedAt: evaluatedAt.iso,
+    observedAt: assertion.observedAt,
+    validUntil: assertion.validUntil,
+    legalHoldState: snapshot.state,
+    recordCount: snapshot.recordCount,
+    lastRecordSha256: snapshot.lastRecordSha256,
+    ledgerSha256: snapshot.ledgerSha256,
+    legalHoldSnapshotIdentitySha256,
+    attestationSha256: sha256(stableJson(assertion)),
+    authorityAuditEventSha256: authority.auditEventSha256,
+    authority: deepFreeze(clone(assertion.authority)),
+    authoritative: true,
+    productionReady: production && snapshot.state === "none",
+    sourceOnly: !production,
+    deletionEligibleByLegalHold: snapshot.state === "none",
+    revalidationRequiredImmediatelyBeforeMutation: true,
+    physicalMutationAuthorized: false,
+    overrideAllowed: false
+  });
+}
+
+export async function readRouteIqRetentionProductionLegalHoldReadiness(input = {}, options = {}) {
+  return readLegalHoldReadiness(input, options, "authoritative_production");
+}
+
+export async function readRouteIqRetentionSourceFixtureLegalHoldReadiness(input = {}, options = {}) {
+  return readLegalHoldReadiness(input, options, "source_only_fixture");
+}
+
+function validateProductionLegalHoldReadiness(readiness, authorityVerifier) {
+  const keys = new Set([
+    "schemaVersion",
+    "sourceClassification",
+    "environment",
+    "bindingIdentitySha256",
+    "scope",
+    "subjectSha256",
+    "evaluatedAt",
+    "observedAt",
+    "validUntil",
+    "legalHoldState",
+    "recordCount",
+    "lastRecordSha256",
+    "ledgerSha256",
+    "legalHoldSnapshotIdentitySha256",
+    "attestationSha256",
+    "authorityAuditEventSha256",
+    "authority",
+    "authoritative",
+    "productionReady",
+    "sourceOnly",
+    "deletionEligibleByLegalHold",
+    "revalidationRequiredImmediatelyBeforeMutation",
+    "physicalMutationAuthorized",
+    "overrideAllowed"
+  ]);
+  assertExactRequiredKeys(readiness, keys, "production_legal_hold_readiness_record");
+  const scope = normalizeProductionLegalHoldScope(readiness.scope);
+  const subject = retentionSubjectFromProductionScope(scope);
+  canonicalIso(readiness.evaluatedAt, "Legal-hold readiness evaluation time");
+  canonicalIso(readiness.observedAt, "Legal-hold readiness observation time");
+  canonicalIso(readiness.validUntil, "Legal-hold readiness validity time");
+  for (const [value, label] of [
+    [readiness.bindingIdentitySha256, "Legal-hold authority binding identity hash"],
+    [readiness.subjectSha256, "Legal-hold subject identity hash"],
+    [readiness.ledgerSha256, "Legal-hold ledger hash"],
+    [readiness.legalHoldSnapshotIdentitySha256, "Legal-hold snapshot identity hash"],
+    [readiness.attestationSha256, "Legal-hold attestation hash"],
+    [readiness.authorityAuditEventSha256, "Legal-hold authority audit event hash"]
+  ]) requireSha256(value, label);
+  if (readiness.lastRecordSha256 !== null) {
+    requireSha256(readiness.lastRecordSha256, "Legal-hold ledger head hash");
+  }
+  const authorityClaimInput = {
+    sourceClassification: readiness.sourceClassification,
+    environment: readiness.environment,
+    bindingIdentitySha256: readiness.bindingIdentitySha256,
+    evaluatedAt: readiness.evaluatedAt,
+    observedAt: readiness.observedAt,
+    validUntil: readiness.validUntil,
+    scope,
+    subjectSha256: readiness.subjectSha256,
+    legalHoldState: readiness.legalHoldState,
+    ledgerRecordCount: readiness.recordCount,
+    ledgerLastRecordSha256: readiness.lastRecordSha256,
+    ledgerSha256: readiness.ledgerSha256
+  };
+  const claims = createRouteIqRetentionProductionLegalHoldAuthorityClaims(authorityClaimInput);
+  const verifiedAuthority = verifyAuthorityAssertion(
+    authorityVerifier,
+    readiness.authority,
+    claims,
+    PRODUCTION_LEGAL_HOLD_ATTESTATION_AUTHORITIES,
+    "production_legal_hold_readiness_record.authority"
+  );
+  const assertion = {
+    version: routeIqRetentionProductionLegalHoldAuthorityVersion,
+    ...authorityClaimInput,
+    authority: readiness.authority
+  };
+  const expectedSnapshotIdentitySha256 = legalHoldSnapshotIdentity({
+    ...authorityClaimInput,
+    ledgerRecordCount: readiness.recordCount,
+    ledgerLastRecordSha256: readiness.lastRecordSha256
+  });
+  if (readiness.schemaVersion !== routeIqRetentionProductionLegalHoldReadinessVersion
+    || readiness.sourceClassification !== "authoritative_production"
+    || readiness.environment !== "production"
+    || readiness.subjectSha256 !== sha256(stableJson(subject))
+    || readiness.attestationSha256 !== sha256(stableJson(assertion))
+    || readiness.authorityAuditEventSha256 !== verifiedAuthority.auditEventSha256
+    || readiness.legalHoldSnapshotIdentitySha256 !== expectedSnapshotIdentitySha256
+    || readiness.legalHoldState !== "none"
+    || !Number.isSafeInteger(readiness.recordCount)
+    || readiness.recordCount < 0
+    || readiness.authoritative !== true
+    || readiness.productionReady !== true
+    || readiness.sourceOnly !== false
+    || readiness.deletionEligibleByLegalHold !== true
+    || readiness.revalidationRequiredImmediatelyBeforeMutation !== true
+    || readiness.physicalMutationAuthorized !== false
+    || readiness.overrideAllowed !== false) {
+    fail(
+      "route_iq_retention_production_legal_hold_readiness_invalid",
+      "Production legal-hold readiness record is invalid."
+    );
+  }
+  return deepFreeze(clone(readiness));
+}
+
+export async function revalidateRouteIqRetentionProductionLegalHoldImmediatelyBeforeMutation(
+  input = {},
+  options = {}
+) {
+  assertExactRequiredKeys(
+    input,
+    new Set(["priorReadiness", "revalidatedAt"]),
+    "production_legal_hold_immediate_revalidation"
+  );
+  assertExactKeys(
+    options,
+    new Set(["retentionGovernanceLedger", "legalHoldAuthoritySource"]),
+    "production_legal_hold_readiness_options"
+  );
+  const priorScope = normalizeProductionLegalHoldScope(input.priorReadiness?.scope);
+  const priorState = requireLedger(
+    options.retentionGovernanceLedger,
+    retentionSubjectFromProductionScope(priorScope)
+  );
+  const priorReadiness = validateProductionLegalHoldReadiness(
+    input.priorReadiness,
+    priorState.authorityVerifier
+  );
+  const revalidatedAt = canonicalIso(input.revalidatedAt, "Legal-hold immediate revalidation time");
+  if (revalidatedAt.milliseconds < Date.parse(priorReadiness.evaluatedAt)) {
+    fail(
+      "route_iq_retention_production_legal_hold_revalidation_time_invalid",
+      "Legal-hold revalidation cannot precede the prior readiness evaluation."
+    );
+  }
+  const current = await readRouteIqRetentionProductionLegalHoldReadiness({
+    scope: priorReadiness.scope,
+    evaluatedAt: revalidatedAt.iso
+  }, options);
+  if (current.legalHoldSnapshotIdentitySha256 !== priorReadiness.legalHoldSnapshotIdentitySha256) {
+    fail("route_iq_retention_legal_hold_changed", "Legal-hold state changed before mutation.");
+  }
+  if (current.legalHoldState !== "none") {
+    fail("route_iq_retention_legal_hold_active", "An active legal hold blocks physical mutation.");
+  }
+  return deepFreeze({
+    schemaVersion: routeIqRetentionProductionLegalHoldRevalidationVersion,
+    state: "PRODUCTION_LEGAL_HOLD_REVALIDATED_NONE",
+    revalidatedAt: revalidatedAt.iso,
+    scope: current.scope,
+    priorLegalHoldSnapshotIdentitySha256: priorReadiness.legalHoldSnapshotIdentitySha256,
+    currentLegalHoldSnapshotIdentitySha256: current.legalHoldSnapshotIdentitySha256,
+    currentAttestationSha256: current.attestationSha256,
+    validUntil: current.validUntil,
+    authoritative: true,
+    revalidatedImmediatelyBeforeMutation: true,
+    exactPlanBoundFounderDeletionAuthorityRequired: true,
+    physicalMutationAuthorized: false,
+    overrideAllowed: false
+  });
 }
 
 export function evaluateRouteIqRetentionOperation(input = {}, options = {}) {
@@ -1344,6 +1843,8 @@ export async function openRouteIqRetentionGovernanceLedger(input = {}) {
   Object.defineProperties(ledger, {
     subjectKey: { value: state.subjectKey, enumerable: true },
     persistenceMode: { value: "durable_append_only", enumerable: true },
+    authorityClassification: { value: "source_fixture_or_local", enumerable: true },
+    productionAuthorityAvailable: { value: false, enumerable: true },
     appendLegalHold: { value: inputValue => appendLegalHold(ledger, inputValue), enumerable: true },
     appendOperationReceipt: { value: inputValue => appendOperationReceipt(ledger, inputValue), enumerable: true },
     appendDeletionEvent: { value: inputValue => appendDeletionEvent(ledger, inputValue), enumerable: true }
