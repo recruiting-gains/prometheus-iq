@@ -32,7 +32,7 @@ export const PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE = Object.freeze({
   tree: "6fe395423d6b907c967e0ce588b53f7307cbba2b",
   owner: "Prometheus Infrastructure <infrastructure@prometheus.local>",
   rollbackContractSha256: "4477ddff8777d95e74023a09f2e9a7895060e1d290eeb5d9b2557ca620d827c7",
-  packageLockSha256: "aa398a24dec737ccfbf49c83ccafdc9a284ebe639cb065dafb48358de7be0782",
+  packageLockSha256: "6689435e2070d0f36d97448019348dc776d28cca9f6538d3d632cd5e5c1590ec",
   artifactSha256: "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6"
 });
 const GENERATED_OUTPUT_FILES = Object.freeze([
