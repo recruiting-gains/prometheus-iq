@@ -1,7 +1,7 @@
 {
   "contractVersion": "route-iq-retention-maintenance-runtime-contract-v1",
   "owningSubsystem": "Prometheus Infrastructure",
-  "status": "source_complete_dormant_not_deployed",
+  "status": "source_complete_dormant_deployment_package_prepared_not_deployed",
   "dataRuntimeVersion": "route-iq-retention-deletion-runtime-v1",
   "ordinaryArchiveBinding": {
     "name": "DATA_ROUTE_IQ_FIELD_SESSION_STORE",
@@ -19,6 +19,35 @@
     "dashboardExposureAllowed": false,
     "representativeExposureAllowed": false
   },
+  "legalHoldLedgerBinding": {
+    "name": "DATA_ROUTE_IQ_RETENTION_LEGAL_HOLD_LEDGER",
+    "capability": "authoritative_production_legal_hold_read_v1",
+    "defaultsToUnavailable": true,
+    "fixtureStateAllowedInProduction": false,
+    "exactIdentityRequiredAtAdmission": true,
+    "productionBindingConfigured": false
+  },
+  "admissionProducerBinding": {
+    "name": "ROUTE_IQ_RETENTION_MAINTENANCE_ADMISSION_PRODUCER",
+    "method": "produceRetentionMaintenanceAdmission",
+    "signedEvidenceRequired": true,
+    "atomicReplayConsumptionRequired": true,
+    "exactCommitAndTreeRequired": true,
+    "exactPrivateWorkerIdentityRequired": true,
+    "exactBindingIdentitiesRequired": true,
+    "deletionAuthorityAvailable": false,
+    "productionBindingConfigured": false
+  },
+  "releasePackage": {
+    "contract": "workers/infrastructure/route-iq-retention-maintenance-release-package-v1.json",
+    "builder": "workers/infrastructure/route-iq-retention-maintenance-release-package.mjs",
+    "artifactHashAlgorithm": "sha256",
+    "manifestHashAlgorithm": "sha256",
+    "configurationHashAlgorithm": "sha256",
+    "contentHashAlgorithm": "sha256",
+    "localDryRunCloudflareContactCount": 0,
+    "hostedDryRunCloudflareContactCount": 0
+  },
   "activation": {
     "workerRouteConfigured": false,
     "schedulerConfigured": false,
@@ -28,6 +57,14 @@
     "productionBindingConfigured": false,
     "productionDeploymentAuthorized": false,
     "productionDeletionAuthorized": false
+  },
+  "surfaceExclusion": {
+    "publicRouteConfigured": false,
+    "dashboardControlConfigured": false,
+    "genericAdministrationControlConfigured": false,
+    "customerControlConfigured": false,
+    "representativeControlConfigured": false,
+    "automaticDeletionConfigured": false
   },
   "protectedState": {
     "collection": "off",

@@ -1,0 +1,85 @@
+{
+  "contractVersion": "route-iq-retention-maintenance-release-package-v1",
+  "owningSubsystem": "Prometheus Infrastructure",
+  "status": "source_complete_dormant_not_deployed",
+  "target": {
+    "worker": "prometheus-iq",
+    "environment": "production_private",
+    "publicWorkerIncluded": false
+  },
+  "builder": "workers/infrastructure/route-iq-retention-maintenance-release-package.mjs",
+  "sourceFiles": [
+    "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs",
+    "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
+    "data/route-iq-field-sessions-v1/route-iq-retention-deletion-runtime.mjs",
+    "workers/infrastructure/route-iq-retention-maintenance-runtime.js",
+    "workers/infrastructure/route-iq-retention-maintenance-runtime-v1.json",
+    "workers/infrastructure/route-iq-retention-maintenance-production-admission.js",
+    "workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json",
+    "workers/infrastructure/route-iq-retention-maintenance-release-package-v1.json"
+  ],
+  "deterministicIdentities": {
+    "algorithm": "sha256",
+    "artifact": true,
+    "manifest": true,
+    "configuration": true,
+    "content": true,
+    "sourceCommitAndTree": true,
+    "timestampsIncluded": false,
+    "outputPathIncluded": false
+  },
+  "bindingBoundary": {
+    "ordinaryArchiveBinding": "DATA_ROUTE_IQ_FIELD_SESSION_STORE",
+    "ordinaryDeleteCapabilityExposed": false,
+    "maintenanceBinding": "DATA_ROUTE_IQ_RETENTION_MAINTENANCE_STORE",
+    "maintenanceDeleteCapabilityExposed": true,
+    "separateCapabilityIdentityRequired": true,
+    "sharedGovernedStorageLineageRequired": true,
+    "identicalBindingInstancesAllowed": false,
+    "legalHoldLedgerBinding": "DATA_ROUTE_IQ_RETENTION_LEGAL_HOLD_LEDGER",
+    "admissionProducerBinding": "ROUTE_IQ_RETENTION_MAINTENANCE_ADMISSION_PRODUCER",
+    "productionBindingCreationAuthorized": false
+  },
+  "admission": {
+    "contract": "route-iq-retention-maintenance-production-admission-v1",
+    "signedProducerEvidenceRequired": true,
+    "atomicReplayConsumptionRequired": true,
+    "maximumLifetimeSeconds": 300,
+    "exactCommitAndTreeRequired": true,
+    "exactPrivateWorkerIdentityRequired": true,
+    "exactBindingIdentitiesRequired": true,
+    "authoritativeProductionLegalHoldAvailabilityRequired": true,
+    "fixtureLegalHoldEvidenceAllowed": false,
+    "deploymentAuthorityGranted": false,
+    "deletionAuthorityGranted": false
+  },
+  "exposure": {
+    "publicRoute": false,
+    "dashboardRoute": false,
+    "genericAdministrationRoute": false,
+    "representativeControl": false,
+    "customerControl": false
+  },
+  "automaticExecution": {
+    "scheduler": false,
+    "cron": false,
+    "alarm": false,
+    "queueConsumer": false,
+    "automaticDeletion": false
+  },
+  "dryRun": {
+    "localSupported": true,
+    "hostedSupported": true,
+    "cloudflareContactCount": 0,
+    "productionMutationCount": 0,
+    "grantsDeploymentAuthority": false,
+    "grantsDeletionAuthority": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF"
+  }
+}

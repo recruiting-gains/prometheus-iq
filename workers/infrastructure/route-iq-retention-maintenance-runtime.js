@@ -10,6 +10,10 @@ export const routeIqRetentionMaintenanceRuntimeContractVersion =
   "route-iq-retention-maintenance-runtime-contract-v1";
 export const routeIqRetentionMaintenanceStoreBinding =
   "DATA_ROUTE_IQ_RETENTION_MAINTENANCE_STORE";
+export const routeIqRetentionLegalHoldLedgerBinding =
+  "DATA_ROUTE_IQ_RETENTION_LEGAL_HOLD_LEDGER";
+export const routeIqRetentionMaintenanceAdmissionProducerBinding =
+  "ROUTE_IQ_RETENTION_MAINTENANCE_ADMISSION_PRODUCER";
 
 export class RouteIqRetentionMaintenanceInfrastructureError extends Error {
   constructor(message, {
@@ -48,6 +52,8 @@ export function validateRouteIqRetentionMaintenanceBindings(env = {}) {
     ordinaryMissingMethods: Object.freeze(ordinaryMissingMethods),
     maintenanceMissingMethods: Object.freeze(maintenanceMissingMethods),
     isolated,
+    ordinaryDeleteCapabilityExposed: false,
+    maintenanceDeleteCapabilityExposed: maintenanceMissingMethods.length === 0,
     schedulerConfigured: false,
     routeConfigured: false,
     productionDeploymentAuthorized: false
