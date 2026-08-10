@@ -22,7 +22,8 @@ import {
 } from "../scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs";
 import {
   hasRetentionDeletionPayloadInfrastructureSuccessor,
-  hasRetentionDeletionPayloadQualificationInfrastructureSuccessor
+  hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
+  hasRetentionMaintenancePayloadInfrastructureSuccessor
 } from "../scripts/verify-overwatch-github-actions-private-worker-deployment.mjs";
 
 const root = new URL("../", import.meta.url);
@@ -174,7 +175,7 @@ test("Overwatch accepts only the exact field-session report-type successors", ()
   }
 });
 
-test("Overwatch composes the exact retention deletion private payload successor", () => {
+test("Overwatch composes the exact retention deletion and maintenance payload successors", () => {
   for (const [path, previousSha256] of Object.entries({
     "scripts/lib/github-actions-private-worker-workflow-v2.mjs":
       "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
@@ -193,7 +194,19 @@ test("Overwatch composes the exact retention deletion private payload successor"
       previousSha256,
       currentSha256: historicalSuccessorSha256
     }), true);
+    const qualificationSuccessorSha256 = privateWorkflowGovernance
+      .retentionMaintenancePayloadSuccessor.evidence
+      .find(item => item.path === path).previousSha256;
     assert.equal(hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
+      governance: privateWorkflowGovernance,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors: currentReadinessSuccessors,
+      path,
+      previousSha256,
+      currentSha256: qualificationSuccessorSha256
+    }), true);
+    assert.equal(hasRetentionMaintenancePayloadInfrastructureSuccessor({
       governance: privateWorkflowGovernance,
       fieldSessionReportTypeGovernance,
       liveCanonicalIdentityGovernance,
@@ -207,6 +220,18 @@ test("Overwatch composes the exact retention deletion private payload successor"
   changed.retentionDeletionPayloadQualificationSuccessor.evidence[0].successorSha256 =
     "0".repeat(64);
   assert.equal(hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
+    governance: changed,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+    previousSha256:
+      "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
+    currentSha256: createHash("sha256").update(readFileSync(new URL(
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs", root
+    ))).digest("hex")
+  }), false);
+  assert.equal(hasRetentionMaintenancePayloadInfrastructureSuccessor({
     governance: changed,
     fieldSessionReportTypeGovernance,
     liveCanonicalIdentityGovernance,

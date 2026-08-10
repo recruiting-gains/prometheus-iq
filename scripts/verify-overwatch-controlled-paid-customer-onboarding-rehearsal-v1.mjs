@@ -24,6 +24,7 @@ import {
   hasLiveCanonicalIdentityOwnerEvidenceSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
+  hasRetentionMaintenancePayloadInfrastructureSuccessor,
   evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors
 } from "./verify-overwatch-github-actions-private-worker-deployment.mjs";
 
@@ -651,6 +652,17 @@ function verifyCurrentOwnerFiles(governance) {
           ]).split("\n").filter(Boolean);
           assert.ok(changedPaths.includes(item.path),
             `governed successor omitted path: ${item.path}`);
+        } else if (hasRetentionMaintenancePayloadInfrastructureSuccessor({
+          governance: privateWorkflowGovernance,
+          fieldSessionReportTypeGovernance,
+          liveCanonicalIdentityGovernance,
+          readinessSuccessors: currentReadinessSuccessors,
+          path: item.path,
+          previousSha256: successor?.sha256 ?? item.sha256,
+          currentSha256: actual
+        })) {
+          assert.notEqual(actual, item.sha256,
+            `retention-maintenance successor did not advance owner evidence: ${item.path}`);
         } else if (hasRetentionDeletionPayloadQualificationInfrastructureSuccessor({
           governance: privateWorkflowGovernance,
           fieldSessionReportTypeGovernance,

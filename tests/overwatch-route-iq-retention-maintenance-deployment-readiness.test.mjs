@@ -45,6 +45,9 @@ test("Overwatch verifies the exact dormant maintenance release and owner chain",
   assert.equal(result.status, "PASS");
   assert.equal(result.batchId, "BATCH-20260809-002");
   assert.equal(result.ownerCommitCount, 8);
+  assert.equal(result.integrationCommit, "432eefb987afb06bf5c49241911953aaab559331");
+  assert.equal(result.integrationTree, "931d02b13e023797cf5a70e658bbf1c2a461ac16");
+  assert.match(result.qualificationRepairTree, /^[a-f0-9]{40}$/u);
   assert.equal(
     result.privateWorkflowForwardPayloadSha256,
     "bafde531701612f2bf5ca9fd3bb69ee1be60432c78b0a046359c7476e5785e09"

@@ -152,6 +152,27 @@ export function validateDormantRetentionMaintenanceReadiness({
   assert.equal(governance.predecessorAcceptance.buildModules, 991);
   assert.equal(governance.predecessorAcceptance.immutableBatchReportRewritten, false);
   assert.equal(governance.historicalVerifierComposition.historicalPinsRewritten, false);
+  assert.deepEqual(governance.ownership.hostedQualificationRepair, {
+    ownerSubsystem: "Prometheus Overwatch",
+    email: "overwatch@prometheus.local",
+    subject: "overwatch: repair retention maintenance qualification",
+    expectedParent: "432eefb987afb06bf5c49241911953aaab559331",
+    failedRunId: 31348734489,
+    failureClassification:
+      "HISTORICAL_VERIFIER_OMITTED_GOVERNED_RETENTION_MAINTENANCE_PAYLOAD_SUCCESSOR",
+    runtimeChanged: false,
+    releasePayloadChanged: false,
+    productionContactCount: 0,
+    productionMutationCount: 0,
+    changedPaths: [
+      "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json",
+      "overwatch/reports/BATCH-20260809-002-route-iq-dormant-retention-maintenance-deployment-readiness.json",
+      "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+      "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
+      "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
+      "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
+    ]
+  });
   assert.equal(
     governance.historicalVerifierComposition.packageSuccessorCurrentSha256,
     sha256(readFileSync("package.json"))
@@ -287,6 +308,15 @@ export function validateDormantRetentionMaintenanceReadiness({
   assert.equal(governance.inventionReview.materiallyNewInvention, false);
 
   assert.equal(report.batchId, governance.batchId);
+  assert.deepEqual(report.hostedQualificationRepair, {
+    failedRunId: governance.ownership.hostedQualificationRepair.failedRunId,
+    failureClassification:
+      governance.ownership.hostedQualificationRepair.failureClassification,
+    runtimeChanged: false,
+    releasePayloadChanged: false,
+    productionContactCount: 0,
+    productionMutationCount: 0
+  });
   assert.equal(report.ownerCompleteReleaseCommit, governance.releasePackage.sourceCommit);
   assert.equal(report.ownerCompleteReleaseTree, governance.releasePackage.sourceTree);
   assert.equal(
@@ -374,12 +404,26 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
 
   const terminalOwnerCommit = verifyOwnerChain(governance);
   assert.equal(terminalOwnerCommit, governance.ownership.finalIntegration.expectedParent);
-  assert.equal(git("rev-parse", `${head}^`), terminalOwnerCommit);
-  assert.equal(git("show", "-s", "--format=%an", head), "Prometheus Overwatch");
-  assert.equal(git("show", "-s", "--format=%ae", head), "overwatch@prometheus.local");
-  assert.equal(git("show", "-s", "--format=%cn", head), "Prometheus Overwatch");
-  assert.equal(git("show", "-s", "--format=%ce", head), "overwatch@prometheus.local");
-  assert.deepEqual(changedPaths(head), governance.ownership.finalIntegration.changedPaths.slice().sort());
+  const integrationCommit = governance.ownership.finalIntegration.commit;
+  assert.equal(git("rev-parse", `${integrationCommit}^`), terminalOwnerCommit);
+  assert.equal(git("rev-parse", `${integrationCommit}^{tree}`),
+    governance.ownership.finalIntegration.tree);
+  assert.equal(git("show", "-s", "--format=%an", integrationCommit), "Prometheus Overwatch");
+  assert.equal(git("show", "-s", "--format=%ae", integrationCommit), "overwatch@prometheus.local");
+  assert.equal(git("show", "-s", "--format=%s", integrationCommit),
+    governance.ownership.finalIntegration.subject);
+  assert.deepEqual(changedPaths(integrationCommit),
+    governance.ownership.finalIntegration.changedPaths.slice().sort());
+
+  const repair = governance.ownership.hostedQualificationRepair;
+  assert.equal(repair.expectedParent, integrationCommit);
+  assert.equal(git("rev-parse", `${head}^`), repair.expectedParent);
+  assert.equal(git("show", "-s", "--format=%an", head), repair.ownerSubsystem);
+  assert.equal(git("show", "-s", "--format=%ae", head), repair.email);
+  assert.equal(git("show", "-s", "--format=%cn", head), repair.ownerSubsystem);
+  assert.equal(git("show", "-s", "--format=%ce", head), repair.email);
+  assert.equal(git("show", "-s", "--format=%s", head), repair.subject);
+  assert.deepEqual(changedPaths(head), repair.changedPaths.slice().sort());
 
   const manifestedPaths = [...new Set(Object.values(governance.exactChangedFileManifest).flat())].sort();
   const actualPaths = git("diff", "--name-only", `${startCommit}..HEAD`).split("\n").filter(Boolean).sort();
@@ -425,8 +469,10 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
     status: "PASS",
     batchId: governance.batchId,
     ownerCommitCount: Object.keys(ownerCommits).length,
-    integrationCommit: head,
-    integrationTree: git("rev-parse", `${head}^{tree}`),
+    integrationCommit,
+    qualificationRepairCommit: head,
+    integrationTree: governance.ownership.finalIntegration.tree,
+    qualificationRepairTree: git("rev-parse", `${head}^{tree}`),
     releaseSourceCommit: governance.releasePackage.sourceCommit,
     releaseSourceTree: governance.releasePackage.sourceTree,
     artifactSha256: dryRun.identities.artifactSha256,

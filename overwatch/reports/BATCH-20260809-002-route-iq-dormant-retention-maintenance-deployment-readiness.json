@@ -10,6 +10,14 @@
   "ownerCompleteReleaseTree": "ebad4033ebab5c37b399387ab4308e93b146cc82",
   "privateWorkflowPayloadCommit": "ae4e8def3e1142d6c9c99b709179f4be91c1acea",
   "governance": "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json",
+  "hostedQualificationRepair": {
+    "failedRunId": 31348734489,
+    "failureClassification": "HISTORICAL_VERIFIER_OMITTED_GOVERNED_RETENTION_MAINTENANCE_PAYLOAD_SUCCESSOR",
+    "runtimeChanged": false,
+    "releasePayloadChanged": false,
+    "productionContactCount": 0,
+    "productionMutationCount": 0
+  },
   "releaseIdentities": {
     "artifactSha256": "3a10928717c21a66d7c7d5610b6449f724fcea2778a4a2a9e224d8a017e075a1",
     "manifestSha256": "f33747eab0b7d243c03b5cdc28bbbc2ca877cbac6a231aceb597cc578030479e",
@@ -48,6 +56,7 @@
     "intelligenceConsumers": "100/100 PASS",
     "privateWorkflowPayloadContinuity": "2/2 PASS",
     "overwatchPrivateWorkflowGovernance": "20/20 PASS",
+    "controlledRehearsalPayloadSuccessor": "14/14 PASS",
     "securityAdvisoryContract": "5/5 PASS",
     "aegis": "13/13 PASS",
     "workerEmulationCompatibility": "121/121 PASS"

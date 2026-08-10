@@ -87,6 +87,9 @@
     "finalIntegration": {
       "ownerSubsystem": "Prometheus Overwatch",
       "email": "overwatch@prometheus.local",
+      "commit": "432eefb987afb06bf5c49241911953aaab559331",
+      "tree": "931d02b13e023797cf5a70e658bbf1c2a461ac16",
+      "subject": "overwatch: qualify dormant retention maintenance package",
       "expectedParent": "ae4e8def3e1142d6c9c99b709179f4be91c1acea",
       "changedPaths": [
         "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
@@ -102,6 +105,26 @@
         "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
         "tests/overwatch-route-iq-prospective-evidence-retention.test.mjs",
         "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
+        "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
+      ]
+    },
+    "hostedQualificationRepair": {
+      "ownerSubsystem": "Prometheus Overwatch",
+      "email": "overwatch@prometheus.local",
+      "subject": "overwatch: repair retention maintenance qualification",
+      "expectedParent": "432eefb987afb06bf5c49241911953aaab559331",
+      "failedRunId": 31348734489,
+      "failureClassification": "HISTORICAL_VERIFIER_OMITTED_GOVERNED_RETENTION_MAINTENANCE_PAYLOAD_SUCCESSOR",
+      "runtimeChanged": false,
+      "releasePayloadChanged": false,
+      "productionContactCount": 0,
+      "productionMutationCount": 0,
+      "changedPaths": [
+        "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json",
+        "overwatch/reports/BATCH-20260809-002-route-iq-dormant-retention-maintenance-deployment-readiness.json",
+        "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+        "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
+        "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
         "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
       ]
     }
@@ -306,6 +329,7 @@
       "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
       "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
       "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
+      "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
       "tests/overwatch-route-iq-prospective-evidence-retention.test.mjs",
       "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
     ]
