@@ -1,0 +1,41 @@
+{
+  "recordVersion": "route-iq-retention-expiry-deletion-runtime-acceptance-v1",
+  "batchId": "BATCH-20260809-001",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "acceptance": "ACCEPTED_SOURCE_COMPLETE_DORMANT",
+  "candidate": {
+    "branch": "main",
+    "commit": "78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e",
+    "tree": "387760d6e7182e83ec06364abd4fc74bd5a94c07",
+    "originMainMatched": true,
+    "workingTreeClean": true
+  },
+  "externalHostedEvidence": {
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "workflow": "Prometheus Early GitHub Handoff Qualification",
+    "runId": 31343531077,
+    "jobId": 93321121768,
+    "event": "workflow_dispatch",
+    "headBranch": "main",
+    "headSha": "78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e",
+    "createdAt": "2026-08-10T00:06:06Z",
+    "completedAt": "2026-08-10T00:15:24Z",
+    "conclusion": "success",
+    "tests": 1606,
+    "passed": 1602,
+    "failed": 0,
+    "skipped": 4,
+    "buildModules": 991,
+    "unchangedCheckoutVerified": true,
+    "url": "https://github.com/PrometheusRouteIQ/prometheus-iq/actions/runs/31343531077"
+  },
+  "releaseBoundary": {
+    "productionDeploymentAuthorized": false,
+    "productionStorageAccessAuthorized": false,
+    "productionDeletionAuthorized": false,
+    "collectionActivationAuthorized": false,
+    "cohortCreationAuthorized": false,
+    "recommendationInfluenceAuthorized": false
+  },
+  "immutablePredecessorReport": "overwatch/reports/BATCH-20260809-001-route-iq-retention-expiry-deletion-runtime.json"
+}

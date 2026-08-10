@@ -8389,7 +8389,7 @@ Canonical governance:
 
 Status:
 
-Source complete and dormant. Exact-final-commit hosted qualification is required before release acceptance. Production deployment, production storage access, production deletion, scheduler activation, collection activation, cohort creation, and recommendation influence remain unauthorized.
+Source complete, dormant, and accepted through exact-final-commit hosted qualification run `31343531077`. The clean hosted runner checked out commit `78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e` and tree `387760d6e7182e83ec06364abd4fc74bd5a94c07`, passed 1,602 of 1,606 tests with four governed skips and zero failures, built 991 modules, and verified the checkout remained unchanged. Production deployment, production storage access, production deletion, scheduler activation, collection activation, cohort creation, and recommendation influence remain unauthorized.
 
 Owner chain:
 
@@ -8412,6 +8412,7 @@ Duplicate prevention:
 Canonical governance:
 
 - `overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json`
+- `overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1-acceptance.json`
 - `overwatch/reports/BATCH-20260809-001-route-iq-retention-expiry-deletion-runtime.json`
 - `workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json`
 
