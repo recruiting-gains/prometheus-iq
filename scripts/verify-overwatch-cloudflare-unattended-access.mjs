@@ -18,6 +18,10 @@ const commercialReadinessSuccessorPath =
   "overwatch/governance/route-iq-commercial-readiness-v1.json";
 const routeIq3dSuccessorPath =
   "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
+const toolchainGovernancePath =
+  "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
+const activeToolchainOwnerCommit = "d55a983134be40bf10777df293ca593e7583f138";
+const activeToolchainOwnerTree = "fcc850958e92d1f75eece476d6047b58972249d0";
 
 const CURRENT_OWNER_SUCCESSORS = Object.freeze([
   Object.freeze({
@@ -404,13 +408,40 @@ function verifyHistoricalProtectedRuntimeHashes(governance, failures) {
   }
 }
 
+export function evaluateActiveCloudflareToolchainSuccessor({
+  successor,
+  infrastructure,
+  packageJson,
+  packageLock
+}) {
+  const failures = [];
+  const version = successor?.wranglerVersion;
+  if (successor?.infrastructureCommit !== activeToolchainOwnerCommit
+    || successor?.infrastructureTree !== activeToolchainOwnerTree
+    || successor?.historicalRecordsRewritten !== false
+    || successor?.deploymentPerformed !== false
+    || successor?.productionMutationCount !== 0) {
+    failures.push("Active Cloudflare toolchain successor provenance drifted.");
+  }
+  if (version !== "4.120.1"
+    || infrastructure?.auditedKeychainLauncher?.pinnedWranglerVersion !== version
+    || packageJson?.devDependencies?.wrangler !== version
+    || packageLock?.packages?.[""]?.devDependencies?.wrangler !== version
+    || packageLock?.packages?.["node_modules/wrangler"]?.version !== version) {
+    failures.push("Active Wrangler supply-chain pin drifted.");
+  }
+  return Object.freeze({ ok: failures.length === 0, failures: Object.freeze(failures) });
+}
+
 export function verifyOverwatchCloudflareUnattendedAccess() {
-  const infrastructure = readJson(infrastructurePath);
+  const currentInfrastructure = readJson(infrastructurePath);
+  const infrastructure = JSON.parse(historicalRead(infrastructurePath));
   const governance = readJson(governancePath);
   const report = readJson(reportPath);
   const registry = readJson(registryPath);
   const commercialReadinessSuccessor = readJson(commercialReadinessSuccessorPath);
   const routeIq3dSuccessor = readJson(routeIq3dSuccessorPath);
+  const toolchainGovernance = readJson(toolchainGovernancePath);
   const packageJson = readJson("package.json");
   const packageLock = readJson("package-lock.json");
   const workflow = read(".github/workflows/security-gates.yml");
@@ -418,6 +449,33 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
 
   const evaluated = evaluateCloudflareUnattendedAccessGovernance({ infrastructure, governance, report });
   failures.push(...evaluated.failures);
+  const activeToolchain = evaluateActiveCloudflareToolchainSuccessor({
+    successor: toolchainGovernance.activeDeploymentPolicySuccessor,
+    infrastructure: currentInfrastructure,
+    packageJson,
+    packageLock
+  });
+  failures.push(...activeToolchain.failures);
+  const activeSuccessor = toolchainGovernance.activeDeploymentPolicySuccessor;
+  const activeMetadata = git("show", "-s", "--format=%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+    activeToolchainOwnerCommit).split("\n");
+  if (!equalJson(activeMetadata, [
+    activeToolchainOwnerTree,
+    activeSuccessor.parent,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "infrastructure: align active Wrangler deployment policies"
+  ])) failures.push("Active Cloudflare toolchain owner commit drifted.");
+  const activePaths = git("diff-tree", "--no-commit-id", "--name-only", "-r",
+    activeToolchainOwnerCommit).split("\n").filter(Boolean).sort();
+  if (!equalJson(activePaths, Object.keys(activeSuccessor.currentEvidence).sort())) {
+    failures.push("Active Cloudflare toolchain owner file set drifted.");
+  }
+  for (const [path, expected] of Object.entries(activeSuccessor.currentEvidence)) {
+    if (sha256(read(path)) !== expected) {
+      failures.push(`Active Cloudflare toolchain evidence drifted: ${path}`);
+    }
+  }
   verifyCurrentOwnerSuccessors(commercialReadinessSuccessor, routeIq3dSuccessor, failures);
   verifyHistoricalHashes(
     governance.infrastructureEvidence,
@@ -451,11 +509,6 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     failures.push("Cloudflare unattended governance registration drifted.");
   }
 
-  if (packageJson.devDependencies?.wrangler !== "4.110.0"
-    || packageLock.packages?.[""]?.devDependencies?.wrangler !== "4.110.0"
-    || packageLock.packages?.["node_modules/wrangler"]?.version !== "4.110.0") {
-    failures.push("Wrangler is not exactly pinned in the manifest and lockfile.");
-  }
   if (!packageJson.scripts["infrastructure:cloudflare-unattended-runtime-guard:check"]
     || !packageJson.scripts.test.includes("infrastructure:cloudflare-unattended-runtime-guard:check")
     || !packageJson.scripts["overwatch:cloudflare-unattended-access:check"]
@@ -484,6 +537,8 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     currentOwnerSuccessorCommits: CURRENT_OWNER_COMMITS.map(entry => entry.commit),
     currentOwnerSuccessorMappings: CURRENT_OWNER_SUCCESSORS.length,
     historicalEvidenceCommit,
+    activeToolchainOwnerCommit,
+    activeWranglerVersion: activeSuccessor.wranglerVersion,
     repositorySecretFindings: secretFindings.length,
     unattendedDeploymentReady: false,
     unattendedSmokeReady: false,

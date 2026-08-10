@@ -7,6 +7,7 @@ import test from "node:test";
 import { fixedCloudflareUnattendedSmokePlan } from
   "../scripts/run-cloudflare-unattended-smoke.mjs";
 import {
+  evaluateActivePrivateDeploymentToolchainSuccessor,
   evaluateGithubActionsPrivateWorkerDeploymentGovernance,
   evaluateGithubActionsPrivateWorkerSuccessorOwnership,
   evaluateGithubActionsPrivateWorkerV2Governance,
@@ -54,6 +55,9 @@ const fieldSessionReportTypeGovernance = readJson(
 const retentionDeletionGovernance = readJson(
   "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json"
 );
+const toolchainGovernance = readJson(
+  "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json"
+);
 
 function evaluate(nextGovernance = governance, nextReport = report, nextContract = contract) {
   return evaluateGithubActionsPrivateWorkerDeploymentGovernance({
@@ -71,6 +75,9 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
   assert.equal(result.verificationOwner, "Prometheus Overwatch");
   assert.equal(result.implementationCommit,
     "38e983b6d0a121d8aadf443938ab5985771eddac");
+  assert.equal(result.activeToolchainOwnerCommit,
+    "d55a983134be40bf10777df293ca593e7583f138");
+  assert.equal(result.activeWranglerVersion, "4.120.1");
   assert.equal(result.founderActor, "PrometheusRouteIQ");
   assert.equal(result.founderTriggeringActor, "PrometheusRouteIQ");
   assert.equal(result.workflowBranch, "main");
@@ -205,6 +212,25 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
   assert.equal(result.failedDeploymentRunRollbackVerified, true);
   assert.equal(result.runnerWorkspaceFailureReachedProductionMutation, false);
   assert.equal(result.wranglerScratchFailureReachedProductionMutation, false);
+});
+
+test("private deployment composes only the exact active Wrangler successor", () => {
+  const values = {
+    successor: toolchainGovernance.activeDeploymentPolicySuccessor,
+    contract,
+    contractV2
+  };
+  assert.equal(evaluateActivePrivateDeploymentToolchainSuccessor(values).ok, true);
+  for (const mutate of [
+    next => { next.successor.infrastructureCommit = "0".repeat(40); },
+    next => { next.successor.privateWorkerTargetChanged = true; },
+    next => { next.contract.wranglerDeployment.version = "4.110.0"; },
+    next => { next.contractV2.qualification.wranglerVersion = "4.110.0"; }
+  ]) {
+    const changed = clone(values);
+    mutate(changed);
+    assert.equal(evaluateActivePrivateDeploymentToolchainSuccessor(changed).ok, false);
+  }
 });
 
 test("private Workflow v2 accepts only owner-proven canonical identity assets", () => {

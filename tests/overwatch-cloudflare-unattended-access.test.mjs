@@ -1,19 +1,34 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
 import {
+  evaluateActiveCloudflareToolchainSuccessor,
   evaluateCloudflareUnattendedAccessGovernance,
   verifyOverwatchCloudflareUnattendedAccess
 } from "../scripts/verify-overwatch-cloudflare-unattended-access.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const readJson = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
-const infrastructure = readJson("workers/infrastructure/cloudflare-unattended-deployment-access-v1.json");
+const infrastructurePath = "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json";
+const governancePath = "overwatch/governance/cloudflare-unattended-deployment-access-v1.json";
+const historicalEvidenceCommit = execFileSync("git", [
+  "log", "-1", "--format=%H", "--", governancePath
+], { cwd: root, encoding: "utf8" }).trim();
+const infrastructure = JSON.parse(execFileSync("git", [
+  "show", `${historicalEvidenceCommit}:${infrastructurePath}`
+], { cwd: root, encoding: "utf8" }));
+const currentInfrastructure = readJson(infrastructurePath);
 const governance = readJson("overwatch/governance/cloudflare-unattended-deployment-access-v1.json");
 const report = readJson("overwatch/reports/BATCH-20260714-006-cloudflare-unattended-runtime-guard.json");
 const commercialReadiness = readJson("overwatch/governance/route-iq-commercial-readiness-v1.json");
+const toolchainGovernance = readJson(
+  "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json"
+);
+const packageJson = readJson("package.json");
+const packageLock = readJson("package-lock.json");
 const clone = value => structuredClone(value);
 const evaluate = (infra = infrastructure, gov = governance, batchReport = report) => (
   evaluateCloudflareUnattendedAccessGovernance({
@@ -42,6 +57,9 @@ test("Overwatch independently verifies the source runtime guard and held deploym
   ]);
   assert.equal(result.currentOwnerSuccessorMappings, 5);
   assert.match(result.historicalEvidenceCommit, /^[a-f0-9]{40}$/u);
+  assert.equal(result.activeToolchainOwnerCommit,
+    "d55a983134be40bf10777df293ca593e7583f138");
+  assert.equal(result.activeWranglerVersion, "4.120.1");
   assert.equal(result.setupStatus, "NOT_CONFIGURED");
   assert.equal(result.repositorySecretFindings, 0);
   assert.equal(result.unattendedDeploymentReady, false);
@@ -53,6 +71,26 @@ test("Overwatch independently verifies the source runtime guard and held deploym
   assert.equal(result.prospectiveCollection, "OFF");
   assert.equal(result.recommendationInfluence, "OFF");
   assert.equal(result.deploymentRecommendation, "DO_NOT_DEPLOY");
+});
+
+test("active Wrangler successor is exact and cannot rewrite historical evidence", () => {
+  const values = {
+    successor: toolchainGovernance.activeDeploymentPolicySuccessor,
+    infrastructure: currentInfrastructure,
+    packageJson,
+    packageLock
+  };
+  assert.equal(evaluateActiveCloudflareToolchainSuccessor(values).ok, true);
+  for (const mutate of [
+    next => { next.successor.historicalRecordsRewritten = true; },
+    next => { next.successor.infrastructureCommit = "0".repeat(40); },
+    next => { next.infrastructure.auditedKeychainLauncher.pinnedWranglerVersion = "4.110.0"; },
+    next => { next.packageLock.packages["node_modules/wrangler"].version = "4.110.0"; }
+  ]) {
+    const changed = clone(values);
+    mutate(changed);
+    assert.equal(evaluateActiveCloudflareToolchainSuccessor(changed).ok, false);
+  }
 });
 
 test("paused unattended access accepts only explicit owner-authored commercial successors", () => {

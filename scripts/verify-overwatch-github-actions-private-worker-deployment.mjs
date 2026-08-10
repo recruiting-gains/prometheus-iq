@@ -42,6 +42,10 @@ const fieldSessionReportTypeGovernancePath =
   "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json";
 const retentionDeletionGovernancePath =
   "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json";
+const toolchainGovernancePath =
+  "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
+const activeToolchainOwnerCommit = "d55a983134be40bf10777df293ca593e7583f138";
+const activeToolchainOwnerTree = "fcc850958e92d1f75eece476d6047b58972249d0";
 
 const historicalOwnerCommit = "7f67855145104034b32551e25d2ebf407ce2369c";
 const historicalOwnerRepairCommit = "335f75fa1d7e32160624e9ebe197d11a03e77b4e";
@@ -1361,6 +1365,29 @@ export function evaluateGithubActionsPrivateWorkerSuccessorOwnership(commits) {
     ok: failures.length === 0,
     failures: Object.freeze(failures)
   });
+}
+
+export function evaluateActivePrivateDeploymentToolchainSuccessor({
+  successor,
+  contract,
+  contractV2
+}) {
+  const failures = [];
+  const version = successor?.wranglerVersion;
+  if (successor?.infrastructureCommit !== activeToolchainOwnerCommit
+    || successor?.infrastructureTree !== activeToolchainOwnerTree
+    || successor?.historicalRecordsRewritten !== false
+    || successor?.privateWorkerTargetChanged !== false
+    || successor?.deploymentPerformed !== false
+    || successor?.productionMutationCount !== 0) {
+    failures.push("Active private deployment toolchain successor provenance drifted.");
+  }
+  if (version !== "4.120.1"
+    || contract?.wranglerDeployment?.version !== version
+    || contractV2?.qualification?.wranglerVersion !== version) {
+    failures.push("Active private deployment Wrangler policy drifted.");
+  }
+  return Object.freeze({ ok: failures.length === 0, failures: Object.freeze(failures) });
 }
 
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -3995,11 +4022,48 @@ function verifyOwnerHistory(governance) {
     governance.compatibilitySuccessor.ownerEvidence.map(item => [item.path, item.sha256])
   );
   for (const [path, expected] of Object.entries(compatibilityOwnerHashes)) {
-    if (sha256(readFileSync(resolve(root, path))) !== expected
+    const historical = execFileSync("/usr/bin/git", [
+      "show", `${compatibilityOwnerCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    if (sha256(historical) !== expected
       || currentEvidence.get(path) !== expected) {
       throw new Error(`Compatibility owner evidence drifted: ${path}`);
     }
   }
+}
+
+function verifyActivePrivateDeploymentToolchainSuccessor() {
+  const governance = readJson(toolchainGovernancePath);
+  const successor = governance.activeDeploymentPolicySuccessor;
+  const evaluation = evaluateActivePrivateDeploymentToolchainSuccessor({
+    successor,
+    contract: readJson(contractPath),
+    contractV2: readJson(contractV2Path)
+  });
+  if (!evaluation.ok) throw new Error(evaluation.failures.join("\n"));
+  const metadata = git([
+    "show", "-s", "--format=%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+    activeToolchainOwnerCommit
+  ]).split("\n");
+  if (!equal(metadata, [
+    activeToolchainOwnerTree,
+    successor.parent,
+    infrastructureIdentity,
+    infrastructureIdentity,
+    "infrastructure: align active Wrangler deployment policies"
+  ])) throw new Error("Active private deployment toolchain owner commit drifted.");
+  const paths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", activeToolchainOwnerCommit
+  ]).split("\n").filter(Boolean).sort();
+  if (!equal(paths, Object.keys(successor.currentEvidence).sort())) {
+    throw new Error("Active private deployment toolchain owner file set drifted.");
+  }
+  for (const [path, expected] of Object.entries(successor.currentEvidence)) {
+    if (sha256(readFileSync(resolve(root, path))) !== expected) {
+      throw new Error(`Active private deployment toolchain evidence drifted: ${path}`);
+    }
+  }
+  return successor;
 }
 
 function verifyV2OwnerAndGovernance() {
@@ -5925,6 +5989,7 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
   const workflowEvaluation = evaluateGithubActionsPrivateWorkerWorkflow(read(workflowPath));
   if (!workflowEvaluation.ok) throw new Error(workflowEvaluation.failures.join("\n"));
 
+  const activeToolchainSuccessor = verifyActivePrivateDeploymentToolchainSuccessor();
   verifyOwnerHistory(governance);
   verifyOverwatchOwnership();
   verifyRegistryAndReleaseWiring();
@@ -5965,6 +6030,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
     implementationOwner: "Prometheus Infrastructure",
     verificationOwner: "Prometheus Overwatch",
     implementationCommit: compatibilityOwnerCommit,
+    activeToolchainOwnerCommit,
+    activeWranglerVersion: activeToolchainSuccessor.wranglerVersion,
     founderActor,
     founderTriggeringActor: founderActor,
     workflowBranch: "main",

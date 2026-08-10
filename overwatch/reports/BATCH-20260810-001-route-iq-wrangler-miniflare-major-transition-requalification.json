@@ -50,6 +50,19 @@
     "deploymentPerformed": false,
     "productionMutationPerformed": false
   },
+  "activeDeploymentPolicySuccessor": {
+    "infrastructureCommit": "d55a983134be40bf10777df293ca593e7583f138",
+    "infrastructureTree": "fcc850958e92d1f75eece476d6047b58972249d0",
+    "wranglerVersion": "4.120.1",
+    "activeFiles": 15,
+    "focusedTests": 269,
+    "focusedFailures": 0,
+    "publicRollbackArtifactSha256": "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6",
+    "historicalEvidenceRewritten": false,
+    "workflowChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  },
   "qualification": {
     "focusedInfrastructure": "PASS",
     "security": "PASS",

@@ -29,6 +29,10 @@ const retentionMaintenanceCommit = "d104cd10eec5d093c95cc87ff60e6644b8759bb7";
 const retentionMaintenanceTree = "9f670fa1a9435ed553a91aaaf191f3004585d21b";
 const rollbackLockAttestationCommit = "014fd82e2106734bdcf7df14fa01ca284c21f847";
 const rollbackLockAttestationTree = "d81aae8ad9a2f26f2435d43696b644fc97dc6988";
+const rollbackQualificationCommit = "3d646bffde28b1ef995ae03af5976a6db1105430";
+const rollbackQualificationTree = "d914cbc195982ac27b6b93e045579b191a52eb7d";
+const activeDeploymentPolicyCommit = "d55a983134be40bf10777df293ca593e7583f138";
+const activeDeploymentPolicyTree = "fcc850958e92d1f75eece476d6047b58972249d0";
 const governancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
 const reportPath =
@@ -105,6 +109,33 @@ const rollbackQualificationSuccessorFiles = Object.freeze([
   governancePath,
   reportPath,
   "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+  "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs"
+]);
+const activeDeploymentPolicyFiles = Object.freeze([
+  "docs/cloudflare-unattended-deployment-access-v1.md",
+  "docs/github-actions-founder-triggered-private-worker-deployment-v1.md",
+  "docs/github-actions-public-worker-deployment-v2.md",
+  "docs/route-iq-prospective-shadow-infrastructure-v1.md",
+  "scripts/lib/github-actions-private-worker-deployment.mjs",
+  "scripts/lib/github-actions-public-worker-deployment.mjs",
+  "scripts/verify-cloudflare-unattended-access-architecture.mjs",
+  "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+  "tests/github-actions-public-worker-deployment.test.mjs",
+  "tests/route-iq-cloudflare-toolchain-compatibility.test.mjs",
+  "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json",
+  "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json",
+  "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+  "workers/infrastructure/github-actions-public-worker-deployment-v2.json"
+]);
+const activePolicyQualificationFiles = Object.freeze([
+  governancePath,
+  reportPath,
+  "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+  "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
+  "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+  "tests/overwatch-cloudflare-unattended-access.test.mjs",
+  "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
   "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs"
 ]);
 
@@ -238,11 +269,29 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.equal(git("show", "-s", "--format=%T", rollbackLockAttestationCommit),
     rollbackLockAttestationTree);
   verifyOwnerCommit(
-    head,
+    rollbackQualificationCommit,
     rollbackLockAttestationCommit,
     "Prometheus Overwatch <overwatch@prometheus.local>",
     "overwatch: qualify rollback lock attestation successor",
     rollbackQualificationSuccessorFiles
+  );
+  assert.equal(git("show", "-s", "--format=%T", rollbackQualificationCommit),
+    rollbackQualificationTree);
+  verifyOwnerCommit(
+    activeDeploymentPolicyCommit,
+    rollbackQualificationCommit,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "infrastructure: align active Wrangler deployment policies",
+    activeDeploymentPolicyFiles
+  );
+  assert.equal(git("show", "-s", "--format=%T", activeDeploymentPolicyCommit),
+    activeDeploymentPolicyTree);
+  verifyOwnerCommit(
+    head,
+    activeDeploymentPolicyCommit,
+    "Prometheus Overwatch <overwatch@prometheus.local>",
+    "overwatch: compose active Wrangler policy successor",
+    activePolicyQualificationFiles
   );
 
   assert.equal(governance.batchId, "BATCH-20260810-001");
@@ -331,6 +380,23 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.equal(report.publicRollbackReproducibilityRepair.infrastructureCommit,
     rollbackLockAttestationCommit);
   assert.equal(report.publicRollbackReproducibilityRepair.byteIdentical, true);
+  const activePolicy = governance.activeDeploymentPolicySuccessor;
+  assert.equal(activePolicy.infrastructureCommit, activeDeploymentPolicyCommit);
+  assert.equal(activePolicy.infrastructureTree, activeDeploymentPolicyTree);
+  assert.equal(activePolicy.wranglerVersion, "4.120.1");
+  assert.deepEqual(Object.keys(activePolicy.currentEvidence).sort(),
+    [...activeDeploymentPolicyFiles].sort());
+  for (const [path, expected] of Object.entries(activePolicy.currentEvidence)) {
+    assert.equal(sha256(path), expected, path);
+  }
+  assert.equal(activePolicy.historicalRecordsRewritten, false);
+  assert.equal(activePolicy.workflowChanged, false);
+  assert.equal(activePolicy.deploymentPerformed, false);
+  assert.equal(activePolicy.productionMutationCount, 0);
+  assert.equal(report.activeDeploymentPolicySuccessor.infrastructureCommit,
+    activeDeploymentPolicyCommit);
+  assert.equal(report.activeDeploymentPolicySuccessor.focusedTests, 269);
+  assert.equal(report.activeDeploymentPolicySuccessor.focusedFailures, 0);
 
   assert.equal(release.artifactSha256, predecessor.releasePackage.artifactSha256);
   assert.equal(release.manifestSha256, predecessor.releasePackage.manifestSha256);
@@ -378,7 +444,9 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     retentionRuntimeGuardCommit,
     retentionMaintenanceCommit,
     rollbackLockAttestationCommit,
-    rollbackQualificationSuccessorCommit: head,
+    rollbackQualificationCommit,
+    activeDeploymentPolicyCommit,
+    activePolicyQualificationCommit: head,
     compatibility: governance.compatibility.supportedCandidate,
     allDependencyHigh: security.auditDisposition.after.allDependencies.high,
     productionHigh: security.auditDisposition.after.productionOnly.high,

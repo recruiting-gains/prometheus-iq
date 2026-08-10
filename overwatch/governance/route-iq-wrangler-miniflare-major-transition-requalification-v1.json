@@ -50,6 +50,15 @@
       "parent": "d104cd10eec5d093c95cc87ff60e6644b8759bb7",
       "subject": "infrastructure: advance public rollback lock attestation",
       "changedFileCount": 1
+    },
+    {
+      "owner": "Prometheus Infrastructure",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "commit": "d55a983134be40bf10777df293ca593e7583f138",
+      "tree": "fcc850958e92d1f75eece476d6047b58972249d0",
+      "parent": "3d646bffde28b1ef995ae03af5976a6db1105430",
+      "subject": "infrastructure: align active Wrangler deployment policies",
+      "changedFileCount": 15
     }
   ],
   "authoritativeRecords": {
@@ -157,6 +166,48 @@
     "runtimeBehaviorChanged": false,
     "deploymentPerformed": false,
     "productionMutationPerformed": false
+  },
+  "activeDeploymentPolicySuccessor": {
+    "infrastructureCommit": "d55a983134be40bf10777df293ca593e7583f138",
+    "infrastructureTree": "fcc850958e92d1f75eece476d6047b58972249d0",
+    "parent": "3d646bffde28b1ef995ae03af5976a6db1105430",
+    "wranglerVersion": "4.120.1",
+    "historicalRecordsRewritten": false,
+    "publicWorkerTargetChanged": false,
+    "privateWorkerTargetChanged": false,
+    "workflowChanged": false,
+    "deploymentPerformed": false,
+    "cloudflareContactCount": 0,
+    "productionMutationCount": 0,
+    "currentEvidence": {
+      "docs/cloudflare-unattended-deployment-access-v1.md": "571f64bbc638c88ee333dd28e421a4126f18db00f79395fe5b276538032ae069",
+      "docs/github-actions-founder-triggered-private-worker-deployment-v1.md": "0bf07431a71803ecad68efa64b4603e27b1b55e50cf13bde4722f51cb2f9b270",
+      "docs/github-actions-public-worker-deployment-v2.md": "8df02da3f9d4d0ea731b4b63c3674a99986d576c03f6bc862f495d7d6d40adc2",
+      "docs/route-iq-prospective-shadow-infrastructure-v1.md": "930e2ef351b5ac4cf5f6d8d3452195f02a8495322e32d1497f63f7df40410fd4",
+      "scripts/lib/github-actions-private-worker-deployment.mjs": "afb1471715df2f614022297f2ba0358a2da421937b007558bd5842f1bdadced9",
+      "scripts/lib/github-actions-public-worker-deployment.mjs": "f4865ecb755ae5bccf176380f23f42655a96a66f07a0bc174a6027fb83cded2a",
+      "scripts/verify-cloudflare-unattended-access-architecture.mjs": "d4a34c5dd73fe74e86f9456118533eec3be8cdcc98c1d8e9cd61b533f979f642",
+      "scripts/verify-cloudflare-unattended-runtime-guard.mjs": "1125d91b4a624ece8e594ecf4e8d2d0bb8a7aa8765a22b8b2806e05cbcafcf49",
+      "tests/github-actions-public-worker-deployment.test.mjs": "13bbe882a8b3b3708d536cab26fbd5f99d8706b74f0a70df05af9608609091ee",
+      "tests/route-iq-cloudflare-toolchain-compatibility.test.mjs": "ca8db19907d5fc9ae7a553a42688b5e0d5f077be3e6fb361d1f702f4f4e157c6",
+      "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json": "a3ff6c815e7ecc553ac4b91214f543b24fc309ba238ba142a8d9b34d11b6d01d",
+      "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json": "57abe94b36325e7a5fdaf385c004971600b5ca38a03e68719a8e496e799ffa92",
+      "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json": "23e33282404a85c1c09436c67b305418a0fe756b9e4318de2028a6dc2c3a09f7",
+      "workers/infrastructure/github-actions-private-worker-deployment-v2.json": "f63583e9b596cc12569124350b0899eed60f9db6290e064b3fa5ae574b31f5f8",
+      "workers/infrastructure/github-actions-public-worker-deployment-v2.json": "acbd5fc17c38cee8f79c0039449c6a2d81050f5e384a27a4237609dca2a3e078"
+    },
+    "focusedResults": {
+      "toolchainContract": "8/8 PASS",
+      "compatibilityHarness": "121/121 PASS",
+      "unattendedArchitecture": "16/16 PASS",
+      "unattendedRuntimeGuard": "40/40 PASS",
+      "privateDeploymentV1": "25/25 PASS",
+      "privateWorkflowV2": "33/33 PASS",
+      "publicWorkflowV2": "18/18 PASS",
+      "publicRollback": "5/5 PASS",
+      "privateRollback": "4/4 PASS",
+      "buildModules": 991
+    }
   },
   "node24ActionWarning": {
     "classification": "VALID_WARNING_DEFERRED_TO_SEPARATE_WORKFLOW_SUCCESSOR",
