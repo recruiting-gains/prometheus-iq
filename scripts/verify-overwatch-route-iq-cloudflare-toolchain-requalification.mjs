@@ -5,6 +5,11 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE,
+  verifyPublicForwardRollbackBuildSource
+} from "./lib/route-iq-public-forward-rollback.mjs";
+
 const root = resolve(import.meta.dirname, "..");
 const startCommit = "2d5caafc52de0c1ee42bce5b370e2232e53fd72f";
 const startTree = "25bd1b7015f018edbf4c8371a33598cafb28ebff";
@@ -20,6 +25,10 @@ const hostedCheckoutCommit = "26cc9712bf1f303ae6971a17639b56968c3d9006";
 const hostedCheckoutTree = "4a31533e398c58f0aafb74f06f9a20679183f364";
 const retentionRuntimeGuardCommit = "e4c88b4f449aac021ea9f95e24fc4a062c37c055";
 const retentionRuntimeGuardTree = "a518425006cf1065eab90bfcb6dd53980ec95a2e";
+const retentionMaintenanceCommit = "d104cd10eec5d093c95cc87ff60e6644b8759bb7";
+const retentionMaintenanceTree = "9f670fa1a9435ed553a91aaaf191f3004585d21b";
+const rollbackLockAttestationCommit = "014fd82e2106734bdcf7df14fa01ca284c21f847";
+const rollbackLockAttestationTree = "d81aae8ad9a2f26f2435d43696b644fc97dc6988";
 const governancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
 const reportPath =
@@ -88,6 +97,15 @@ const retentionMaintenanceSuccessorFiles = Object.freeze([
   "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
   "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs",
   "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
+]);
+const rollbackLockAttestationFiles = Object.freeze([
+  "scripts/lib/route-iq-public-forward-rollback.mjs"
+]);
+const rollbackQualificationSuccessorFiles = Object.freeze([
+  governancePath,
+  reportPath,
+  "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+  "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs"
 ]);
 
 function verifyOwnerCommit(commit, parent, identity, subject, files) {
@@ -202,11 +220,29 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.equal(git("show", "-s", "--format=%T", retentionRuntimeGuardCommit),
     retentionRuntimeGuardTree);
   verifyOwnerCommit(
-    head,
+    retentionMaintenanceCommit,
     retentionRuntimeGuardCommit,
     "Prometheus Overwatch <overwatch@prometheus.local>",
     "overwatch: compose toolchain lock successor into retention readiness",
     retentionMaintenanceSuccessorFiles
+  );
+  assert.equal(git("show", "-s", "--format=%T", retentionMaintenanceCommit),
+    retentionMaintenanceTree);
+  verifyOwnerCommit(
+    rollbackLockAttestationCommit,
+    retentionMaintenanceCommit,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "infrastructure: advance public rollback lock attestation",
+    rollbackLockAttestationFiles
+  );
+  assert.equal(git("show", "-s", "--format=%T", rollbackLockAttestationCommit),
+    rollbackLockAttestationTree);
+  verifyOwnerCommit(
+    head,
+    rollbackLockAttestationCommit,
+    "Prometheus Overwatch <overwatch@prometheus.local>",
+    "overwatch: qualify rollback lock attestation successor",
+    rollbackQualificationSuccessorFiles
   );
 
   assert.equal(governance.batchId, "BATCH-20260810-001");
@@ -280,8 +316,22 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.equal(security.auditDisposition.after.productionOnly.total, 0);
   assert.deepEqual(security.auditDisposition.removedPackageLevelHighFindings,
     ["miniflare", "sharp", "undici", "wrangler"]);
-
   const release = governance.releaseIdentityContinuity;
+  assert.deepEqual(verifyPublicForwardRollbackBuildSource(root),
+    PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE);
+  assert.equal(governance.releaseReproducibilityRepair.infrastructureCommit,
+    rollbackLockAttestationCommit);
+  assert.equal(governance.releaseReproducibilityRepair.changedPathSha256,
+    sha256("scripts/lib/route-iq-public-forward-rollback.mjs"));
+  assert.equal(governance.releaseReproducibilityRepair.currentPackageLockSha256,
+    sha256("package-lock.json"));
+  assert.equal(governance.releaseReproducibilityRepair.publicRollbackArtifactSha256,
+    release.publicRollbackArtifactSha256);
+  assert.equal(governance.releaseReproducibilityRepair.artifactByteIdentical, true);
+  assert.equal(report.publicRollbackReproducibilityRepair.infrastructureCommit,
+    rollbackLockAttestationCommit);
+  assert.equal(report.publicRollbackReproducibilityRepair.byteIdentical, true);
+
   assert.equal(release.artifactSha256, predecessor.releasePackage.artifactSha256);
   assert.equal(release.manifestSha256, predecessor.releasePackage.manifestSha256);
   assert.equal(release.configurationSha256, predecessor.releasePackage.configurationSha256);
@@ -326,11 +376,14 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     controlledRehearsalProvenanceCommit,
     hostedCheckoutCommit,
     retentionRuntimeGuardCommit,
-    retentionMaintenanceSuccessorCommit: head,
+    retentionMaintenanceCommit,
+    rollbackLockAttestationCommit,
+    rollbackQualificationSuccessorCommit: head,
     compatibility: governance.compatibility.supportedCandidate,
     allDependencyHigh: security.auditDisposition.after.allDependencies.high,
     productionHigh: security.auditDisposition.after.productionOnly.high,
     releaseIdentitiesUnchanged: true,
+    publicRollbackArtifactSha256: release.publicRollbackArtifactSha256,
     augustReadinessPackageSuccessorCurrent: true,
     cloudflareContactCount: 0,
     deploymentCount: 0,

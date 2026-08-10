@@ -41,6 +41,15 @@
       "parent": "da7504352424096869a18b66dc7c4429480393f4",
       "subject": "security: accept zero-high Cloudflare toolchain graph",
       "changedFileCount": 2
+    },
+    {
+      "owner": "Prometheus Infrastructure",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "commit": "014fd82e2106734bdcf7df14fa01ca284c21f847",
+      "tree": "d81aae8ad9a2f26f2435d43696b644fc97dc6988",
+      "parent": "d104cd10eec5d093c95cc87ff60e6644b8759bb7",
+      "subject": "infrastructure: advance public rollback lock attestation",
+      "changedFileCount": 1
     }
   ],
   "authoritativeRecords": {
@@ -131,6 +140,24 @@
     "forwardRevertSha256": "1c52f24e6fda40db63d542ffc783e9c9c7ffd0d85a29b41f234aaefbcf312183",
     "applicationOrRollbackSourceChanged": false
   },
+  "releaseReproducibilityRepair": {
+    "failedHostedRun": 31430713962,
+    "failureClassification": "HISTORICAL_PUBLIC_ROLLBACK_BUILD_SOURCE_LOCK_ATTESTATION_LAGGED_GOVERNED_TOOLCHAIN_SUCCESSOR",
+    "infrastructureCommit": "014fd82e2106734bdcf7df14fa01ca284c21f847",
+    "infrastructureTree": "d81aae8ad9a2f26f2435d43696b644fc97dc6988",
+    "changedPath": "scripts/lib/route-iq-public-forward-rollback.mjs",
+    "changedPathSha256": "27c5ebbfa48f218f07805c56e3721e4c48e33b2b27a27179033ea231dfa2b194",
+    "previousPackageLockSha256": "aa398a24dec737ccfbf49c83ccafdc9a284ebe639cb065dafb48358de7be0782",
+    "currentPackageLockSha256": "6689435e2070d0f36d97448019348dc776d28cca9f6538d3d632cd5e5c1590ec",
+    "publicRollbackContractSha256": "4477ddff8777d95e74023a09f2e9a7895060e1d290eeb5d9b2557ca620d827c7",
+    "publicRollbackArtifactSha256": "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6",
+    "independentBuildCount": 2,
+    "artifactFileCount": 26,
+    "artifactByteIdentical": true,
+    "runtimeBehaviorChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  },
   "node24ActionWarning": {
     "classification": "VALID_WARNING_DEFERRED_TO_SEPARATE_WORKFLOW_SUCCESSOR",
     "checkoutReplacement": "3d3c42e5aac5ba805825da76410c181273ba90b1",
@@ -144,6 +171,13 @@
     "exactFinalCommitRequired": true,
     "exactFinalTreeRequired": true,
     "stateBeforeDispatch": "PENDING",
+    "failedRunClassifications": [
+      { "run": 31429225378, "classification": "AUGUST_READINESS_PACKAGE_SUCCESSOR_NOT_COMPOSED" },
+      { "run": 31429613366, "classification": "CONTROLLED_REHEARSAL_RUNTIME_GUARD_SUCCESSOR_NOT_COMPOSED" },
+      { "run": 31430070562, "classification": "EXACT_HOSTED_DETACHED_CHECKOUT_NOT_RECOGNIZED" },
+      { "run": 31430282010, "classification": "RETENTION_PROTECTED_PATH_MATCHER_FALSE_POSITIVE" },
+      { "run": 31430713962, "classification": "PUBLIC_ROLLBACK_LOCK_ATTESTATION_LAGGED_TOOLCHAIN_SUCCESSOR" }
+    ],
     "passEquivalentVerdict": "CLOUDFLARE_TOOLCHAIN_REQUALIFIED_ZERO_HIGH_READY_FOR_FOUNDER_REVIEW"
   },
   "productionBoundary": {
