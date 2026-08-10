@@ -49,7 +49,9 @@ test("Overwatch binds the exact zero-high toolchain owner chain and release cont
     "43b8564b515e9aca02c23cf370aaf7626ad3e617");
   assert.equal(result.hostedCheckoutCommit,
     "26cc9712bf1f303ae6971a17639b56968c3d9006");
-  assert.equal(result.retentionRuntimeGuardSuccessorCommit, result.head);
+  assert.equal(result.retentionRuntimeGuardCommit,
+    "e4c88b4f449aac021ea9f95e24fc4a062c37c055");
+  assert.equal(result.retentionMaintenanceSuccessorCommit, result.head);
   assert.equal(result.compatibility, "121/121 PASS");
   assert.equal(result.allDependencyHigh, 0);
   assert.equal(result.productionHigh, 0);

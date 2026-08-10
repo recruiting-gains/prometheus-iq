@@ -29,6 +29,10 @@ const intelligenceSuccessorPath =
   "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json";
 const startCommit = "78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e";
 const startTree = "387760d6e7182e83ec06364abd4fc74bd5a94c07";
+const acceptedFinalRepairCommit = "2d5caafc52de0c1ee42bce5b370e2232e53fd72f";
+const acceptedFinalRepairTree = "25bd1b7015f018edbf4c8371a33598cafb28ebff";
+const toolchainInfrastructureCommit = "da7504352424096869a18b66dc7c4429480393f4";
+const toolchainSecurityPath = "security/npm-high-advisory-triage-batch-20260810-001.json";
 
 const ownerCommits = Object.freeze({
   "1511fe6778138c4b662381be5e6b03109e21e43d": Object.freeze({
@@ -110,6 +114,7 @@ const read = path => readFileSync(path);
 const readJson = path => JSON.parse(read(path));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
+const readAtCommit = (commit, path) => execFileSync("git", ["show", `${commit}:${path}`]);
 
 function changedPaths(commit) {
   const value = git("diff-tree", "--no-commit-id", "--name-only", "-r", commit);
@@ -227,7 +232,7 @@ export function validateDormantRetentionMaintenanceReadiness({
   });
   assert.equal(
     governance.historicalVerifierComposition.packageSuccessorCurrentSha256,
-    sha256(readFileSync("package.json"))
+    sha256(readAtCommit(acceptedFinalRepairCommit, "package.json"))
   );
 
   assert.equal(releaseContract.status, "source_complete_dormant_not_deployed");
@@ -437,7 +442,7 @@ function verifyOwnerChain(governance) {
   return parent;
 }
 
-function verifyPinnedFiles(governance) {
+function verifyPinnedFiles(governance, commit) {
   for (const pin of [
     governance.predecessorAcceptance,
     governance.historicalVerifierComposition,
@@ -451,7 +456,9 @@ function verifyPinnedFiles(governance) {
     governance.dependencyAdvisories,
     governance.forwardRollback
   ]) {
-    assert.equal(sha256(read(pin.path ?? pin.runtimePath)), pin.sha256 ?? pin.runtimeSha256,
+    assert.equal(
+      sha256(readAtCommit(commit, pin.path ?? pin.runtimePath)),
+      pin.sha256 ?? pin.runtimeSha256,
       `${pin.path ?? pin.runtimePath} hash drifted.`);
   }
 }
@@ -463,6 +470,7 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
   const runtimeContract = readJson(runtimeContractPath);
   const forwardRollback = readJson(forwardRollbackPath);
   const securityTriage = readJson(securityTriagePath);
+  const toolchainSecurity = readJson(toolchainSecurityPath);
   const intelligenceSuccessor = readJson(intelligenceSuccessorPath);
   const head = git("rev-parse", "HEAD");
   const originMain = git("rev-parse", "refs/remotes/origin/main");
@@ -520,8 +528,18 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
   assert.deepEqual(changedPaths(infrastructureRepair.commit),
     infrastructureRepair.changedPaths.slice().sort());
   assert.equal(
-    sha256(read("package-lock.json")),
+    sha256(readAtCommit(infrastructureRepair.commit, "package-lock.json")),
     infrastructureRepair.currentPackageLockSha256
+  );
+  assert.equal(toolchainSecurity.provenance.startingBaseline.commit, acceptedFinalRepairCommit);
+  assert.equal(toolchainSecurity.provenance.startingBaseline.tree, acceptedFinalRepairTree);
+  assert.equal(toolchainSecurity.provenance.infrastructureOwner.commit,
+    toolchainInfrastructureCommit);
+  assert.equal(git("rev-parse", `${toolchainInfrastructureCommit}^`),
+    acceptedFinalRepairCommit);
+  assert.equal(
+    sha256(read("package-lock.json")),
+    toolchainSecurity.provenance.infrastructureOwner.packageLockSha256
   );
   assert.deepEqual(
     verifyPublicForwardRollbackBuildSource(process.cwd()),
@@ -534,18 +552,22 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
 
   const finalRepair = fullSuiteRepair.finalOverwatchRepair;
   assert.equal(finalRepair.expectedParent, infrastructureRepair.commit);
-  assert.equal(git("rev-parse", `${head}^`), finalRepair.expectedParent);
-  assert.equal(git("show", "-s", "--format=%an", head), finalRepair.ownerSubsystem);
-  assert.equal(git("show", "-s", "--format=%ae", head), finalRepair.email);
-  assert.equal(git("show", "-s", "--format=%cn", head), finalRepair.ownerSubsystem);
-  assert.equal(git("show", "-s", "--format=%ce", head), finalRepair.email);
-  assert.equal(git("show", "-s", "--format=%s", head), finalRepair.subject);
-  assert.deepEqual(changedPaths(head), finalRepair.changedPaths.slice().sort());
+  assert.equal(git("rev-parse", `${acceptedFinalRepairCommit}^`), finalRepair.expectedParent);
+  assert.equal(git("rev-parse", `${acceptedFinalRepairCommit}^{tree}`), acceptedFinalRepairTree);
+  assert.equal(git("show", "-s", "--format=%an", acceptedFinalRepairCommit),
+    finalRepair.ownerSubsystem);
+  assert.equal(git("show", "-s", "--format=%ae", acceptedFinalRepairCommit), finalRepair.email);
+  assert.equal(git("show", "-s", "--format=%cn", acceptedFinalRepairCommit),
+    finalRepair.ownerSubsystem);
+  assert.equal(git("show", "-s", "--format=%ce", acceptedFinalRepairCommit), finalRepair.email);
+  assert.equal(git("show", "-s", "--format=%s", acceptedFinalRepairCommit), finalRepair.subject);
+  assert.deepEqual(changedPaths(acceptedFinalRepairCommit), finalRepair.changedPaths.slice().sort());
 
   const manifestedPaths = [...new Set(Object.values(governance.exactChangedFileManifest).flat())].sort();
-  const actualPaths = git("diff", "--name-only", `${startCommit}..HEAD`).split("\n").filter(Boolean).sort();
+  const actualPaths = git("diff", "--name-only", `${startCommit}..${acceptedFinalRepairCommit}`)
+    .split("\n").filter(Boolean).sort();
   assert.deepEqual(actualPaths, manifestedPaths);
-  verifyPinnedFiles(governance);
+  verifyPinnedFiles(governance, acceptedFinalRepairCommit);
 
   const dryRun = dryRunRouteIqRetentionMaintenanceReleasePackage({
     sourceRef: governance.releasePackage.sourceCommit
@@ -589,11 +611,14 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
     integrationCommit,
     firstQualificationRepairCommit: repair.commit,
     infrastructureQualificationRepairCommit: infrastructureRepair.commit,
-    qualificationRepairCommit: head,
+    qualificationRepairCommit: acceptedFinalRepairCommit,
     integrationTree: governance.ownership.finalIntegration.tree,
     firstQualificationRepairTree: repair.tree,
     infrastructureQualificationRepairTree: infrastructureRepair.tree,
-    qualificationRepairTree: git("rev-parse", `${head}^{tree}`),
+    qualificationRepairTree: acceptedFinalRepairTree,
+    currentPackageLockSuccessorCommit: toolchainInfrastructureCommit,
+    currentPackageLockSha256:
+      toolchainSecurity.provenance.infrastructureOwner.packageLockSha256,
     releaseSourceCommit: governance.releasePackage.sourceCommit,
     releaseSourceTree: governance.releasePackage.sourceTree,
     artifactSha256: dryRun.identities.artifactSha256,

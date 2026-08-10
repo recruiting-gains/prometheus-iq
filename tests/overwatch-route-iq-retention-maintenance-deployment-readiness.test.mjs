@@ -63,7 +63,14 @@ test("Overwatch verifies the exact dormant maintenance release and owner chain",
     result.infrastructureQualificationRepairTree,
     "8879320360a1b5b908cf0727028a7ed5570bc048"
   );
-  assert.match(result.qualificationRepairTree, /^[a-f0-9]{40}$/u);
+  assert.equal(result.qualificationRepairCommit,
+    "2d5caafc52de0c1ee42bce5b370e2232e53fd72f");
+  assert.equal(result.qualificationRepairTree,
+    "25bd1b7015f018edbf4c8371a33598cafb28ebff");
+  assert.equal(result.currentPackageLockSuccessorCommit,
+    "da7504352424096869a18b66dc7c4429480393f4");
+  assert.equal(result.currentPackageLockSha256,
+    "6689435e2070d0f36d97448019348dc776d28cca9f6538d3d632cd5e5c1590ec");
   assert.equal(
     result.privateWorkflowForwardPayloadSha256,
     "bafde531701612f2bf5ca9fd3bb69ee1be60432c78b0a046359c7476e5785e09"
