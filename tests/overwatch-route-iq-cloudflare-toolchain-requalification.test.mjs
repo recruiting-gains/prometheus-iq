@@ -8,6 +8,8 @@ import {
 test("Overwatch binds the exact zero-high toolchain owner chain and release continuity", () => {
   const result = verifyOverwatchRouteIqCloudflareToolchainRequalification();
   assert.equal(result.batchId, "BATCH-20260810-001");
+  assert.equal(result.qualificationProvenanceCommit,
+    "cbeb848ef571cca913fcc7191350756129d65522");
   assert.equal(result.compatibility, "121/121 PASS");
   assert.equal(result.allDependencyHigh, 0);
   assert.equal(result.productionHigh, 0);

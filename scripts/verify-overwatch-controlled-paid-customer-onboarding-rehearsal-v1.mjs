@@ -632,6 +632,10 @@ function verifyCurrentOwnerFiles(governance) {
     ["tests/shadow-decision-readiness.test.mjs", {
       commit: "d2ed353722b8c99f786306d7bbb37f21349ec3a5",
       sha256: "90bf943f8296d8c7e5ab14e57b5a2f02801260ebf2968f5bbbd4ce8b42af9d88"
+    }],
+    ["tests/cloudflare-unattended-runtime-guard.test.mjs", {
+      commit: "da7504352424096869a18b66dc7c4429480393f4",
+      sha256: "2ffbba84b6761492362ff52149916c8a560c006c2b1527911c4821c0d97fe992"
     }]
   ]);
   for (const record of governance.ownership.ownerCommits.slice(1)) {
