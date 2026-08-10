@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { SignJWT, createLocalJWKSet, exportJWK } from "jose";
-import { Miniflare } from "miniflare";
+import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 
 import { routeIqRequestFounderAuthorization } from "../crm/route-iq-request-crm.mjs";
 import { runRouteIqCommercialCapacityHarness } from "../workers/infrastructure/route-iq-commercial-capacity-harness.mjs";
@@ -252,7 +252,7 @@ function bundlePublicWorkerForJwksFixture() {
 
 async function dispatchBundledFounderJwt({ fixture, script, token, outboundService }) {
   const root = resolve(import.meta.dirname, "..");
-  const miniflare = new Miniflare({
+  const miniflare = new Miniflare(convertV4MiniflareOptions({
     modules: true,
     modulesRoot: root,
     script,
@@ -267,7 +267,7 @@ async function dispatchBundledFounderJwt({ fixture, script, token, outboundServi
       }
     },
     outboundService
-  });
+  }));
   try {
     const response = await miniflare.dispatchFetch(
       `https://prometheusrouteiq.com${ROUTE_IQ_REQUEST_CRM_FOUNDER_PATH}`,
