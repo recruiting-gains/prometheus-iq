@@ -43,6 +43,10 @@ const controlledRehearsalRuntimeGuardRepairCommit =
   "f55b3b78d805f2d59b18fa0fb08817c95a3ea2ea";
 const controlledRehearsalRuntimeGuardRepairTree =
   "93e42d7d24a5eb373d369a177ba76e5223d7af44";
+const keychainInteroperabilityLauncherRepairCommit =
+  "0a4e7aae6e1c86de1750159b073cbc40955f5773";
+const keychainInteroperabilityLauncherRepairTree =
+  "ffec971b2c66d0b049c2872fcd8ce0c36cb2cab1";
 const governancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
 const reportPath =
@@ -173,6 +177,14 @@ const keychainInteroperabilityLauncherRepairFiles = Object.freeze([
   "scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs",
   "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
   "tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs",
+  "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs"
+]);
+const hostedRegressionFixtureRepairFiles = Object.freeze([
+  governancePath,
+  reportPath,
+  "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+  "tests/overwatch-auto-push-governance.test.mjs",
+  "tests/overwatch-public-deployment-workflow-v2.test.mjs",
   "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs"
 ]);
 
@@ -361,11 +373,20 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     controlledRehearsalRuntimeGuardRepairCommit),
   controlledRehearsalRuntimeGuardRepairTree);
   verifyOwnerCommit(
-    head,
+    keychainInteroperabilityLauncherRepairCommit,
     controlledRehearsalRuntimeGuardRepairCommit,
     "Prometheus Overwatch <overwatch@prometheus.local>",
     "overwatch: compose launcher successor into keychain gate",
     keychainInteroperabilityLauncherRepairFiles
+  );
+  assert.equal(git("show", "-s", "--format=%T", keychainInteroperabilityLauncherRepairCommit),
+    keychainInteroperabilityLauncherRepairTree);
+  verifyOwnerCommit(
+    head,
+    keychainInteroperabilityLauncherRepairCommit,
+    "Prometheus Overwatch <overwatch@prometheus.local>",
+    "overwatch: align hosted regression fixtures",
+    hostedRegressionFixtureRepairFiles
   );
 
   assert.equal(governance.batchId, "BATCH-20260810-001");
@@ -523,7 +544,7 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.equal(report.controlledRehearsalRuntimeGuardRepair.infrastructureSuccessorCommit,
     activeDeploymentPolicyCommit);
   assert.equal(report.controlledRehearsalRuntimeGuardRepair.focusedFailuresAfterRepair, 0);
-  assert.deepEqual(governance.hostedQualification.failedRunClassifications.at(-1), {
+  assert.deepEqual(governance.hostedQualification.failedRunClassifications.at(-2), {
     run: 31435309144,
     classification: "KEYCHAIN_INTEROPERABILITY_LAUNCHER_SUCCESSOR_NOT_COMPOSED"
   });
@@ -543,6 +564,28 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.equal(report.keychainInteroperabilityLauncherRepair.failedHostedRun,
     governance.keychainInteroperabilityLauncherRepair.failedHostedRun);
   assert.equal(report.keychainInteroperabilityLauncherRepair.focusedFailuresAfterRepair, 0);
+  assert.deepEqual(governance.hostedQualification.failedRunClassifications.at(-1), {
+    run: 31436345331,
+    classification: "HOSTED_MASTER_STATE_AND_PUBLIC_VERIFIER_FIXTURES_STALE"
+  });
+  assert.deepEqual(governance.hostedRegressionFixtureRepair, {
+    failedHostedRun: 31436345331,
+    classification: "HOSTED_MASTER_STATE_AND_PUBLIC_VERIFIER_FIXTURES_STALE",
+    parent: keychainInteroperabilityLauncherRepairCommit,
+    currentNextTask: "OFFICIAL_NODE24_ACTION_PIN_SUCCESSOR",
+    currentPublicVerifierSha256:
+      "57554fbe63092130df5df1f305c1f9e7eff93d97141b593ffbdd9c40c0bae9c3",
+    staleNextTaskRejected: true,
+    staleVerifierSha256Rejected: true,
+    applicationPayloadChanged: false,
+    workflowChanged: false,
+    deploymentPerformed: false,
+    cloudflareContactCount: 0,
+    productionMutationCount: 0
+  });
+  assert.equal(report.hostedRegressionFixtureRepair.failedHostedRun,
+    governance.hostedRegressionFixtureRepair.failedHostedRun);
+  assert.equal(report.hostedRegressionFixtureRepair.focusedFailuresAfterRepair, 0);
 
   assert.equal(release.artifactSha256, predecessor.releasePackage.artifactSha256);
   assert.equal(release.manifestSha256, predecessor.releasePackage.manifestSha256);
@@ -604,7 +647,8 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     verificationCompositionRepairCommit,
     publicLaneQualificationRepairCommit,
     controlledRehearsalRuntimeGuardRepairCommit,
-    keychainInteroperabilityLauncherRepairCommit: head,
+    keychainInteroperabilityLauncherRepairCommit,
+    hostedRegressionFixtureRepairCommit: head,
     compatibility: governance.compatibility.supportedCandidate,
     allDependencyHigh: security.auditDisposition.after.allDependencies.high,
     productionHigh: security.auditDisposition.after.productionOnly.high,

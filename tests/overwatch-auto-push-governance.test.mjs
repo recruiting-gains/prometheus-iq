@@ -185,9 +185,9 @@ test("master engineering state preserves intake history while current CRM truth 
   assert.match(duplicateRegister, /preserve both earlier terminal failure records as immutable evidence/u);
   assert.doesNotMatch(duplicateRegister, /current production flow is browser-local `localStorage` plus `mailto:` only/u);
   assert.match(nextTask, /Complete external Founder decisions for pricing, contracts, business banking, tax configuration, and Stripe Live eligibility/u);
-  assert.match(nextTask, /perform an Infrastructure-owned Wrangler and Miniflare major-transition requalification/u);
-  assert.match(nextTask, /source-level deployment-readiness blockers while leaving all production bindings and authority absent/u);
-  assert.match(nextTask, /Keep collection OFF and do not combine dormant deployment authority with any physical-deletion authority/u);
+  assert.match(nextTask, /qualify the official Node 24-compatible checkout and setup-node action pins/u);
+  assert.match(nextTask, /separate Infrastructure and Overwatch workflow successor/u);
+  assert.match(nextTask, /Keep application, rollback, permissions, collection, deletion, cohort, and recommendation boundaries unchanged/u);
   assert.doesNotMatch(nextTask, /prepare a separate Founder-reviewed dormant retention-maintenance deployment package/u);
   assert.match(nextTask, /notification path and first-customer evidence boundary are controlled/u);
   assert.doesNotMatch(nextTask, /email-routing engineering is (?:the )?current constraint/u);

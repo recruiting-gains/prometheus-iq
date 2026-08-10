@@ -258,6 +258,20 @@
     "cloudflareContactCount": 0,
     "productionMutationCount": 0
   },
+  "hostedRegressionFixtureRepair": {
+    "failedHostedRun": 31436345331,
+    "classification": "HOSTED_MASTER_STATE_AND_PUBLIC_VERIFIER_FIXTURES_STALE",
+    "parent": "0a4e7aae6e1c86de1750159b073cbc40955f5773",
+    "currentNextTask": "OFFICIAL_NODE24_ACTION_PIN_SUCCESSOR",
+    "currentPublicVerifierSha256": "57554fbe63092130df5df1f305c1f9e7eff93d97141b593ffbdd9c40c0bae9c3",
+    "staleNextTaskRejected": true,
+    "staleVerifierSha256Rejected": true,
+    "applicationPayloadChanged": false,
+    "workflowChanged": false,
+    "deploymentPerformed": false,
+    "cloudflareContactCount": 0,
+    "productionMutationCount": 0
+  },
   "node24ActionWarning": {
     "classification": "VALID_WARNING_DEFERRED_TO_SEPARATE_WORKFLOW_SUCCESSOR",
     "checkoutReplacement": "3d3c42e5aac5ba805825da76410c181273ba90b1",
@@ -279,7 +293,8 @@
       { "run": 31430713962, "classification": "PUBLIC_ROLLBACK_LOCK_ATTESTATION_LAGGED_TOOLCHAIN_SUCCESSOR" },
       { "run": 31434488496, "classification": "PAID_CUSTOMER_PUBLIC_LANE_MISSING_ACTIVE_TOOLCHAIN_SUCCESSOR" },
       { "run": 31434809725, "classification": "CONTROLLED_REHEARSAL_RUNTIME_GUARD_VERIFIER_SUCCESSOR_NOT_COMPOSED" },
-      { "run": 31435309144, "classification": "KEYCHAIN_INTEROPERABILITY_LAUNCHER_SUCCESSOR_NOT_COMPOSED" }
+      { "run": 31435309144, "classification": "KEYCHAIN_INTEROPERABILITY_LAUNCHER_SUCCESSOR_NOT_COMPOSED" },
+      { "run": 31436345331, "classification": "HOSTED_MASTER_STATE_AND_PUBLIC_VERIFIER_FIXTURES_STALE" }
     ],
     "passEquivalentVerdict": "CLOUDFLARE_TOOLCHAIN_REQUALIFIED_ZERO_HIGH_READY_FOR_FOUNDER_REVIEW"
   },

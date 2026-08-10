@@ -114,6 +114,20 @@
     "deploymentPerformed": false,
     "productionMutationPerformed": false
   },
+  "hostedRegressionFixtureRepair": {
+    "failedHostedRun": 31436345331,
+    "classification": "HOSTED_MASTER_STATE_AND_PUBLIC_VERIFIER_FIXTURES_STALE",
+    "currentNextTask": "OFFICIAL_NODE24_ACTION_PIN_SUCCESSOR",
+    "currentPublicVerifierSha256": "57554fbe63092130df5df1f305c1f9e7eff93d97141b593ffbdd9c40c0bae9c3",
+    "focusedFailuresBeforeRepair": 2,
+    "focusedFailuresAfterRepair": 0,
+    "staleNextTaskRejected": true,
+    "staleVerifierSha256Rejected": true,
+    "applicationPayloadChanged": false,
+    "workflowChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  },
   "qualification": {
     "focusedInfrastructure": "PASS",
     "security": "PASS",

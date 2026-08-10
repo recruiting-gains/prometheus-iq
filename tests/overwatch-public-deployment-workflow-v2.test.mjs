@@ -380,17 +380,18 @@ test("historical verifier successors preserve path ownership across unrelated ow
   assert.equal(hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
     path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
     historicalSha256: "766abafe2ef2d8d30b862b8b635424d622faad526732eb4893f1645b3186bf94",
-    successorSha256: "2df9f107770e36aa77faf9e26b98325c97e6c5b3edd24c04956d72f0710ef6d5"
+    successorSha256: "57554fbe63092130df5df1f305c1f9e7eff93d97141b593ffbdd9c40c0bae9c3"
   }), true);
   for (const patch of [
     { path: "src/App.jsx" },
     { historicalSha256: "0".repeat(64) },
+    { successorSha256: "2df9f107770e36aa77faf9e26b98325c97e6c5b3edd24c04956d72f0710ef6d5" },
     { successorSha256: "f".repeat(64) }
   ]) {
     assert.equal(hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
       path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
       historicalSha256: "766abafe2ef2d8d30b862b8b635424d622faad526732eb4893f1645b3186bf94",
-      successorSha256: "2df9f107770e36aa77faf9e26b98325c97e6c5b3edd24c04956d72f0710ef6d5",
+      successorSha256: "57554fbe63092130df5df1f305c1f9e7eff93d97141b593ffbdd9c40c0bae9c3",
       ...patch
     }), false);
   }
