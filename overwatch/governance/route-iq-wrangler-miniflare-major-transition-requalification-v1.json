@@ -232,6 +232,19 @@
     "cloudflareContactCount": 0,
     "productionMutationCount": 0
   },
+  "controlledRehearsalRuntimeGuardRepair": {
+    "failedHostedRun": 31434809725,
+    "classification": "CONTROLLED_REHEARSAL_RUNTIME_GUARD_VERIFIER_SUCCESSOR_NOT_COMPOSED",
+    "parent": "6555c88543534fb330b22cb321a88b1ab43c89fb",
+    "exactRuntimeGuardVerifierPath": "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+    "infrastructureSuccessorCommit": "d55a983134be40bf10777df293ca593e7583f138",
+    "historicalRehearsalEvidencePreserved": true,
+    "applicationPayloadChanged": false,
+    "workflowChanged": false,
+    "deploymentPerformed": false,
+    "cloudflareContactCount": 0,
+    "productionMutationCount": 0
+  },
   "node24ActionWarning": {
     "classification": "VALID_WARNING_DEFERRED_TO_SEPARATE_WORKFLOW_SUCCESSOR",
     "checkoutReplacement": "3d3c42e5aac5ba805825da76410c181273ba90b1",
@@ -251,7 +264,8 @@
       { "run": 31430070562, "classification": "EXACT_HOSTED_DETACHED_CHECKOUT_NOT_RECOGNIZED" },
       { "run": 31430282010, "classification": "RETENTION_PROTECTED_PATH_MATCHER_FALSE_POSITIVE" },
       { "run": 31430713962, "classification": "PUBLIC_ROLLBACK_LOCK_ATTESTATION_LAGGED_TOOLCHAIN_SUCCESSOR" },
-      { "run": 31434488496, "classification": "PAID_CUSTOMER_PUBLIC_LANE_MISSING_ACTIVE_TOOLCHAIN_SUCCESSOR" }
+      { "run": 31434488496, "classification": "PAID_CUSTOMER_PUBLIC_LANE_MISSING_ACTIVE_TOOLCHAIN_SUCCESSOR" },
+      { "run": 31434809725, "classification": "CONTROLLED_REHEARSAL_RUNTIME_GUARD_VERIFIER_SUCCESSOR_NOT_COMPOSED" }
     ],
     "passEquivalentVerdict": "CLOUDFLARE_TOOLCHAIN_REQUALIFIED_ZERO_HIGH_READY_FOR_FOUNDER_REVIEW"
   },

@@ -11,6 +11,7 @@ import {
   fullSystemHarmonyShadowReadinessSuccessor,
   liveCanonicalIdentityIntelligenceSuccessor,
   validateControlledRehearsalIntelligenceSuccessor,
+  validateControlledRehearsalRuntimeGuardToolchainSuccessor,
   validateFieldSessionReportTypeContractIntelligenceSuccessor,
   validateFieldSessionReportTypeDriftFixtureSuccessor,
   validateFullSystemHarmonyIntelligenceSuccessor,
@@ -45,6 +46,9 @@ const liveCanonicalIdentityGovernance = readJson(
 );
 const currentReadinessSuccessors = readJson(
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
+);
+const toolchainGovernance = readJson(
+  "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json"
 );
 const clone = value => structuredClone(value);
 
@@ -243,6 +247,38 @@ test("Overwatch composes the exact retention deletion and maintenance payload su
       "scripts/lib/github-actions-private-worker-workflow-v2.mjs", root
     ))).digest("hex")
   }), false);
+});
+
+test("Overwatch composes only the exact Infrastructure runtime-guard toolchain successor", () => {
+  const input = {
+    governance: toolchainGovernance,
+    path: "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+    previousSha256:
+      "40abe1f2947706ad510a7468018b950fd32ee874a9bad58a3acc8bd70543ddc7",
+    currentSha256:
+      "1125d91b4a624ece8e594ecf4e8d2d0bb8a7aa8765a22b8b2806e05cbcafcf49"
+  };
+  assert.equal(
+    validateControlledRehearsalRuntimeGuardToolchainSuccessor(input).commit,
+    "d55a983134be40bf10777df293ca593e7583f138"
+  );
+  for (const mutate of [
+    value => { value.governance.activeDeploymentPolicySuccessor.infrastructureCommit = "0".repeat(40); },
+    value => { value.governance.activeDeploymentPolicySuccessor.infrastructureTree = "0".repeat(40); },
+    value => { value.governance.activeDeploymentPolicySuccessor.parent = "0".repeat(40); },
+    value => { value.governance.activeDeploymentPolicySuccessor.currentEvidence[value.path] = "0".repeat(64); },
+    value => { delete value.governance.activeDeploymentPolicySuccessor.currentEvidence[
+      "docs/cloudflare-unattended-deployment-access-v1.md"
+    ]; },
+    value => { value.path = "scripts/verify-cloudflare-unattended-access-architecture.mjs"; },
+    value => { value.previousSha256 = "0".repeat(64); },
+    value => { value.currentSha256 = "0".repeat(64); }
+  ]) {
+    const candidate = clone(input);
+    mutate(candidate);
+    assert.throws(() =>
+      validateControlledRehearsalRuntimeGuardToolchainSuccessor(candidate));
+  }
 });
 
 test("Overwatch independently accepts the controlled rehearsal owner chain", async () => {

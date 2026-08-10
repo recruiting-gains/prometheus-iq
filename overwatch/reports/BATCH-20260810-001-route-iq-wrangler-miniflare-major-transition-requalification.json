@@ -88,6 +88,19 @@
     "deploymentPerformed": false,
     "productionMutationPerformed": false
   },
+  "controlledRehearsalRuntimeGuardRepair": {
+    "failedHostedRun": 31434809725,
+    "classification": "CONTROLLED_REHEARSAL_RUNTIME_GUARD_VERIFIER_SUCCESSOR_NOT_COMPOSED",
+    "exactRuntimeGuardVerifierPath": "scripts/verify-cloudflare-unattended-runtime-guard.mjs",
+    "infrastructureSuccessorCommit": "d55a983134be40bf10777df293ca593e7583f138",
+    "historicalRehearsalEvidencePreserved": true,
+    "focusedFailuresBeforeRepair": 1,
+    "focusedFailuresAfterRepair": 0,
+    "applicationPayloadChanged": false,
+    "workflowChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  },
   "qualification": {
     "focusedInfrastructure": "PASS",
     "security": "PASS",

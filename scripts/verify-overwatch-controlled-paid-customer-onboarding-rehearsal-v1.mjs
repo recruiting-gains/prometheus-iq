@@ -39,6 +39,10 @@ const workflowPath =
   ".github/workflows/controlled-paid-customer-onboarding-rehearsal-v1.yml";
 const infrastructureContractPath =
   "workers/infrastructure/controlled-paid-customer-onboarding-rehearsal-v1.json";
+const toolchainGovernancePath =
+  "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
+const activeToolchainRuntimeGuardPath =
+  "scripts/verify-cloudflare-unattended-runtime-guard.mjs";
 
 const expectedCommits = Object.freeze([
   Object.freeze({
@@ -406,6 +410,68 @@ export function validateFullSystemHarmonyShadowReadinessSuccessor(record) {
   return record;
 }
 
+export function validateControlledRehearsalRuntimeGuardToolchainSuccessor({
+  governance,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const successor = governance?.activeDeploymentPolicySuccessor;
+  assert.equal(governance?.batchId, "BATCH-20260810-001");
+  assert.equal(path, activeToolchainRuntimeGuardPath);
+  assert.equal(previousSha256,
+    "40abe1f2947706ad510a7468018b950fd32ee874a9bad58a3acc8bd70543ddc7");
+  assert.equal(currentSha256,
+    "1125d91b4a624ece8e594ecf4e8d2d0bb8a7aa8765a22b8b2806e05cbcafcf49");
+  assert.equal(successor?.infrastructureCommit,
+    "d55a983134be40bf10777df293ca593e7583f138");
+  assert.equal(successor?.infrastructureTree,
+    "fcc850958e92d1f75eece476d6047b58972249d0");
+  assert.equal(successor?.parent,
+    "3d646bffde28b1ef995ae03af5976a6db1105430");
+  assert.equal(successor?.wranglerVersion, "4.120.1");
+  assert.equal(successor?.historicalRecordsRewritten, false);
+  assert.equal(successor?.workflowChanged, false);
+  assert.equal(successor?.deploymentPerformed, false);
+  assert.equal(successor?.cloudflareContactCount, 0);
+  assert.equal(successor?.productionMutationCount, 0);
+  assert.equal(successor?.currentEvidence?.[path], currentSha256);
+
+  const metadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    successor.infrastructureCommit
+  ]).split("\n");
+  assert.deepEqual(metadata, [
+    successor.infrastructureCommit,
+    successor.parent,
+    successor.infrastructureTree,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "infrastructure: align active Wrangler deployment policies"
+  ]);
+  const changedPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    successor.infrastructureCommit
+  ]).split("\n").filter(Boolean).sort();
+  assert.deepEqual(changedPaths, Object.keys(successor.currentEvidence).sort());
+  const currentBytes = execFileSync("/usr/bin/git", [
+    "show", `${successor.infrastructureCommit}:${path}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+  const previousBytes = execFileSync("/usr/bin/git", [
+    "show", `${successor.parent}:${path}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+  assert.equal(sha256(currentBytes), currentSha256);
+  assert.equal(sha256(previousBytes), previousSha256);
+  assert.equal(git([
+    "merge-base", "--is-ancestor", successor.infrastructureCommit, "HEAD"
+  ]), "");
+  return Object.freeze({
+    commit: successor.infrastructureCommit,
+    path,
+    sha256: currentSha256
+  });
+}
+
 export function validateControlledRehearsalGovernance(governance) {
   assertExactKeys(governance, [
     "acceptedBaseline",
@@ -547,6 +613,7 @@ function verifyCurrentOwnerFiles(governance) {
   const retentionDeletionGovernance = readJson(
     "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json"
   );
+  const toolchainGovernance = readJson(toolchainGovernancePath);
   const retentionMaintenanceConsumerSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json"
   );
@@ -578,6 +645,15 @@ function verifyCurrentOwnerFiles(governance) {
   validateFullSystemHarmonyShadowReadinessSuccessor(
     fullSystemHarmonyShadowReadinessSuccessor
   );
+  const runtimeGuardToolchainSuccessor =
+    validateControlledRehearsalRuntimeGuardToolchainSuccessor({
+      governance: toolchainGovernance,
+      path: activeToolchainRuntimeGuardPath,
+      previousSha256:
+        "40abe1f2947706ad510a7468018b950fd32ee874a9bad58a3acc8bd70543ddc7",
+      currentSha256:
+        "1125d91b4a624ece8e594ecf4e8d2d0bb8a7aa8765a22b8b2806e05cbcafcf49"
+    });
   const maintenanceCoherence =
     retentionMaintenanceConsumerSuccessor.coherenceSourceTransition;
   assert.equal(retentionMaintenanceConsumerSuccessor.batchId, "BATCH-20260809-002");
@@ -636,6 +712,10 @@ function verifyCurrentOwnerFiles(governance) {
     ["tests/cloudflare-unattended-runtime-guard.test.mjs", {
       commit: "da7504352424096869a18b66dc7c4429480393f4",
       sha256: "2ffbba84b6761492362ff52149916c8a560c006c2b1527911c4821c0d97fe992"
+    }],
+    [runtimeGuardToolchainSuccessor.path, {
+      commit: runtimeGuardToolchainSuccessor.commit,
+      sha256: runtimeGuardToolchainSuccessor.sha256
     }]
   ]);
   for (const record of governance.ownership.ownerCommits.slice(1)) {
