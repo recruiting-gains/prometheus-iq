@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -20,6 +21,13 @@ const privateWorkflowPath =
   "workers/infrastructure/github-actions-private-worker-deployment-v2.json";
 const liveIdentityGovernancePath =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
+const toolchainGovernancePath =
+  "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
+const activeToolchainOwnerCommit = "d55a983134be40bf10777df293ca593e7583f138";
+const activeToolchainOwnerTree = "fcc850958e92d1f75eece476d6047b58972249d0";
+const activeToolchainOwnerParent = "3d646bffde28b1ef995ae03af5976a6db1105430";
+const activeToolchainPublicPath =
+  "workers/infrastructure/github-actions-public-worker-deployment-v2.json";
 
 const expectedGateIds = Object.freeze([
   "private_dashboard_production",
@@ -111,6 +119,10 @@ const ownerPathRules = Object.freeze({
 function git(args) {
   return execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
 }
+
+const sha256At = (commit, path) => createHash("sha256").update(execFileSync("git", [
+  "show", `${commit}:${path}`
+], { cwd: root, encoding: null })).digest("hex");
 
 function assertExactKeys(value, expected, label) {
   assert.deepEqual(Object.keys(value).sort(), [...expected].sort(), `${label} keys drifted`);
@@ -257,6 +269,27 @@ export function validateGovernedPublicLaneSuccessor({
   return reconciliation;
 }
 
+export function validateActiveToolchainPublicLaneSuccessor({
+  governance,
+  additionalChangedPaths
+}) {
+  const successor = governance?.activeDeploymentPolicySuccessor;
+  assert.equal(governance?.batchId, "BATCH-20260810-001");
+  assert.equal(successor?.infrastructureCommit, activeToolchainOwnerCommit);
+  assert.equal(successor?.infrastructureTree, activeToolchainOwnerTree);
+  assert.equal(successor?.parent, activeToolchainOwnerParent);
+  assert.equal(successor?.wranglerVersion, "4.120.1");
+  assert.equal(successor?.historicalRecordsRewritten, false);
+  assert.equal(successor?.publicWorkerTargetChanged, false);
+  assert.equal(successor?.workflowChanged, false);
+  assert.equal(successor?.deploymentPerformed, false);
+  assert.equal(successor?.productionMutationCount, 0);
+  assert.match(successor?.currentEvidence?.[activeToolchainPublicPath] ?? "",
+    /^[0-9a-f]{64}$/u);
+  assert.deepEqual(additionalChangedPaths, [activeToolchainPublicPath]);
+  return successor;
+}
+
 function verifyPublicLaneCompatibility(baselineCommit) {
   const changedPaths = git([
     "diff",
@@ -268,10 +301,22 @@ function verifyPublicLaneCompatibility(baselineCommit) {
   if (changedPaths.length === 0) return;
 
   const governance = readJson(liveIdentityGovernancePath);
+  const toolchainGovernance = readJson(toolchainGovernancePath);
+  const historicalChangedPaths = changedPaths.filter(path => (
+    governance.historicalVerifierReconciliations.paidCustomerOnboardingFoundation
+      .changedPaths.includes(path)
+  ));
+  const additionalChangedPaths = changedPaths.filter(path => (
+    !historicalChangedPaths.includes(path)
+  ));
   const reconciliation = validateGovernedPublicLaneSuccessor({
     governance,
     baselineCommit,
-    changedPaths
+    changedPaths: historicalChangedPaths
+  });
+  const toolchainSuccessor = validateActiveToolchainPublicLaneSuccessor({
+    governance: toolchainGovernance,
+    additionalChangedPaths
   });
   assert.equal(git([
     "merge-base",
@@ -282,7 +327,7 @@ function verifyPublicLaneCompatibility(baselineCommit) {
   for (const commit of reconciliation.ownerCommits) {
     assert.equal(git(["merge-base", "--is-ancestor", commit, "HEAD"]), "");
   }
-  for (const path of changedPaths) {
+  for (const path of historicalChangedPaths) {
     const touchingCommits = git([
       "log",
       "--format=%H",
@@ -294,6 +339,24 @@ function verifyPublicLaneCompatibility(baselineCommit) {
     assert.ok(touchingCommits.every(commit => reconciliation.ownerCommits.includes(commit)),
       `ungoverned public successor commit touched ${path}`);
   }
+  assert.deepEqual(git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    activeToolchainOwnerCommit
+  ]).split("\n"), [
+    activeToolchainOwnerCommit,
+    activeToolchainOwnerParent,
+    activeToolchainOwnerTree,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "infrastructure: align active Wrangler deployment policies"
+  ]);
+  assert.deepEqual(git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", activeToolchainOwnerCommit
+  ]).split("\n").filter(Boolean).sort(), Object.keys(toolchainSuccessor.currentEvidence).sort());
+  assert.equal(sha256At(activeToolchainOwnerCommit, activeToolchainPublicPath),
+    toolchainSuccessor.currentEvidence[activeToolchainPublicPath]);
+  assert.equal(sha256At(activeToolchainOwnerParent, activeToolchainPublicPath),
+    sha256At(baselineCommit, activeToolchainPublicPath));
 }
 
 function verifyPaidCustomerRuntimeBoundaries() {

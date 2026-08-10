@@ -3,6 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 
 import {
+  validateActiveToolchainPublicLaneSuccessor,
   validateGovernedPublicLaneSuccessor,
   validatePaidCustomerProductionGateLedger,
   validatePrivateWorkerLineage,
@@ -52,6 +53,28 @@ test("historical public-lane guard admits only the exact governed identity succe
     governance: weakened,
     baselineCommit: reconciliation.baselineCommit,
     changedPaths: reconciliation.changedPaths
+  }));
+});
+
+test("paid-customer public-lane guard composes only the exact active Wrangler successor", () => {
+  const governance = readJson(
+    "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json"
+  );
+  const path = "workers/infrastructure/github-actions-public-worker-deployment-v2.json";
+  assert.equal(validateActiveToolchainPublicLaneSuccessor({
+    governance,
+    additionalChangedPaths: [path]
+  }), governance.activeDeploymentPolicySuccessor);
+
+  const wrongCommit = clone(governance);
+  wrongCommit.activeDeploymentPolicySuccessor.infrastructureCommit = "0".repeat(40);
+  assert.throws(() => validateActiveToolchainPublicLaneSuccessor({
+    governance: wrongCommit,
+    additionalChangedPaths: [path]
+  }));
+  assert.throws(() => validateActiveToolchainPublicLaneSuccessor({
+    governance,
+    additionalChangedPaths: [path, "src/unapproved-public-change.js"]
   }));
 });
 

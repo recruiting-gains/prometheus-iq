@@ -76,6 +76,18 @@
     "deploymentPerformed": false,
     "productionMutationPerformed": false
   },
+  "publicLaneQualificationRepair": {
+    "failedHostedRun": 31434488496,
+    "classification": "PAID_CUSTOMER_PUBLIC_LANE_MISSING_ACTIVE_TOOLCHAIN_SUCCESSOR",
+    "exactPublicContractPath": "workers/infrastructure/github-actions-public-worker-deployment-v2.json",
+    "historicalPublicSuccessorPreserved": true,
+    "focusedTestsAfterRepair": 6,
+    "focusedFailuresAfterRepair": 0,
+    "applicationPayloadChanged": false,
+    "publicWorkflowChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  },
   "qualification": {
     "focusedInfrastructure": "PASS",
     "security": "PASS",

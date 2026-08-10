@@ -35,6 +35,8 @@ const activeDeploymentPolicyCommit = "d55a983134be40bf10777df293ca593e7583f138";
 const activeDeploymentPolicyTree = "fcc850958e92d1f75eece476d6047b58972249d0";
 const activePolicyQualificationCommit = "ab081a9e9f56f4db87d20c6b02aecf082b96ac4b";
 const activePolicyQualificationTree = "6b77b299971a860ae40c0207c83c588674f352d2";
+const verificationCompositionRepairCommit = "057ae93b538fb26f95193530914830d3633852d8";
+const verificationCompositionRepairTree = "f22e12258129023de1e620fd9074234b1295bbec";
 const governancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
 const reportPath =
@@ -142,6 +144,14 @@ const activePolicyQualificationFiles = Object.freeze([
   "tests/overwatch-cloudflare-unattended-access.test.mjs",
   "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
   "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs"
+]);
+const publicLaneQualificationRepairFiles = Object.freeze([
+  governancePath,
+  reportPath,
+  "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+  "scripts/verify-overwatch-route-iq-paid-customer-onboarding-foundation.mjs",
+  "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs",
+  "tests/overwatch-route-iq-paid-customer-onboarding-foundation.test.mjs"
 ]);
 
 function verifyOwnerCommit(commit, parent, identity, subject, files) {
@@ -301,11 +311,20 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.equal(git("show", "-s", "--format=%T", activePolicyQualificationCommit),
     activePolicyQualificationTree);
   verifyOwnerCommit(
-    head,
+    verificationCompositionRepairCommit,
     activePolicyQualificationCommit,
     "Prometheus Overwatch <overwatch@prometheus.local>",
     "overwatch: repair active Wrangler successor composition",
     activePolicyQualificationFiles
+  );
+  assert.equal(git("show", "-s", "--format=%T", verificationCompositionRepairCommit),
+    verificationCompositionRepairTree);
+  verifyOwnerCommit(
+    head,
+    verificationCompositionRepairCommit,
+    "Prometheus Overwatch <overwatch@prometheus.local>",
+    "overwatch: compose public policy successor into paid-customer gate",
+    publicLaneQualificationRepairFiles
   );
 
   assert.equal(governance.batchId, "BATCH-20260810-001");
@@ -427,6 +446,22 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.equal(report.verificationCompositionRepair
     .sharedIntegrationPathOwnershipInferredFromCommit, true);
   assert.equal(report.verificationCompositionRepair.focusedFailuresAfterRepair, 0);
+  assert.deepEqual(governance.publicLaneQualificationRepair, {
+    failedHostedRun: 31434488496,
+    classification: "PAID_CUSTOMER_PUBLIC_LANE_MISSING_ACTIVE_TOOLCHAIN_SUCCESSOR",
+    parent: verificationCompositionRepairCommit,
+    exactPublicContractPath:
+      "workers/infrastructure/github-actions-public-worker-deployment-v2.json",
+    historicalPublicSuccessorPreserved: true,
+    applicationPayloadChanged: false,
+    publicWorkflowChanged: false,
+    deploymentPerformed: false,
+    cloudflareContactCount: 0,
+    productionMutationCount: 0
+  });
+  assert.equal(report.publicLaneQualificationRepair.failedHostedRun,
+    governance.publicLaneQualificationRepair.failedHostedRun);
+  assert.equal(report.publicLaneQualificationRepair.focusedFailuresAfterRepair, 0);
 
   assert.equal(release.artifactSha256, predecessor.releasePackage.artifactSha256);
   assert.equal(release.manifestSha256, predecessor.releasePackage.manifestSha256);
@@ -485,7 +520,8 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     rollbackQualificationCommit,
     activeDeploymentPolicyCommit,
     activePolicyQualificationCommit,
-    verificationCompositionRepairCommit: head,
+    verificationCompositionRepairCommit,
+    publicLaneQualificationRepairCommit: head,
     compatibility: governance.compatibility.supportedCandidate,
     allDependencyHigh: security.auditDisposition.after.allDependencies.high,
     productionHigh: security.auditDisposition.after.productionOnly.high,
