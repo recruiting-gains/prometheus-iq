@@ -11,6 +11,7 @@ import {
 import {
   evaluateCloudflareUnattendedKeychainInteroperabilityGovernance,
   evaluateCloudflareUnattendedKeychainSuccessorOwnership,
+  validateCloudflareUnattendedKeychainToolchainSuccessor,
   verifyOverwatchCloudflareUnattendedKeychainInteroperability
 } from "../scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs";
 
@@ -21,6 +22,9 @@ const governance = readJson(
 );
 const report = readJson(
   "overwatch/reports/BATCH-20260715-008-cloudflare-unattended-keychain-interoperability.json"
+);
+const toolchainGovernance = readJson(
+  "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json"
 );
 const clone = value => structuredClone(value);
 const evaluate = (nextGovernance = governance, nextReport = report) =>
@@ -44,6 +48,8 @@ test("Overwatch independently verifies owner provenance and release boundaries",
     verified.implementationCiPortabilityCommit,
     "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b"
   );
+  assert.equal(verified.implementationToolchainSuccessorCommit,
+    "da7504352424096869a18b66dc7c4429480393f4");
   assert.deepEqual(verified.implementationHistoricalFixtureRepairCommits, [
     "a69dd6ac8785f0906d1ad91e9ca156f5250dc22e",
     "0165ffc56a18408be5c2e970223944fa1dd02593"
@@ -52,6 +58,26 @@ test("Overwatch independently verifies owner provenance and release boundaries",
   assert.equal(verified.keychainAclModified, false);
   assert.equal(verified.deploymentPerformed, false);
   assert.equal(verified.recommendationInfluence, "OFF");
+});
+
+test("Overwatch accepts only the exact Infrastructure launcher toolchain successor", () => {
+  assert.equal(
+    validateCloudflareUnattendedKeychainToolchainSuccessor(toolchainGovernance)
+      .successorSha256,
+    "724979adc576f4a01abc5b153b010a2a3cc0c82b79fc238704b2a373eb12a4f1"
+  );
+  for (const mutate of [
+    value => { value.ownerChain[0].commit = "0".repeat(40); },
+    value => { value.ownerChain[0].tree = "0".repeat(40); },
+    value => { value.ownerChain[0].identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.ownerChain[0].changedFileCount = 8; },
+    value => { value.productionBoundary.cloudflareContactCount = 1; },
+    value => { value.productionBoundary.deploymentCount = 1; }
+  ]) {
+    const changed = clone(toolchainGovernance);
+    mutate(changed);
+    assert.throws(() => validateCloudflareUnattendedKeychainToolchainSuccessor(changed));
+  }
 });
 
 test("Overwatch rejects ownership, classification, remediation, and release weakening", () => {
@@ -154,6 +180,17 @@ test("Historical ownership gate ignores unrelated subsystem successors", () => {
     paths: ["scripts/verify-dashboard-runtime-workflows.mjs"]
   }]);
   assert.equal(result.ok, true);
+
+  const governedToolchain = evaluateCloudflareUnattendedKeychainSuccessorOwnership([{
+    commit: "da7504352424096869a18b66dc7c4429480393f4",
+    author: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    committer: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    paths: [
+      "package.json",
+      "scripts/lib/cloudflare-unattended-launcher.mjs"
+    ]
+  }]);
+  assert.equal(governedToolchain.ok, true);
 });
 
 test("Historical ownership gate rejects protected cross-owner successors", () => {
@@ -176,4 +213,16 @@ test("Historical ownership gate rejects protected cross-owner successors", () =>
       paths: ["scripts/lib/cloudflare-unattended-keychain.mjs"]
     }]);
   assert.equal(overwatchTouchesInfrastructure.ok, false);
+
+  const ungovernedSharedPackageCommit =
+    evaluateCloudflareUnattendedKeychainSuccessorOwnership([{
+      commit: "not-the-governed-toolchain-commit",
+      author: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      committer: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      paths: [
+        "package.json",
+        "scripts/lib/cloudflare-unattended-launcher.mjs"
+      ]
+    }]);
+  assert.equal(ungovernedSharedPackageCommit.ok, false);
 });

@@ -101,6 +101,19 @@
     "deploymentPerformed": false,
     "productionMutationPerformed": false
   },
+  "keychainInteroperabilityLauncherRepair": {
+    "failedHostedRun": 31435309144,
+    "classification": "KEYCHAIN_INTEROPERABILITY_LAUNCHER_SUCCESSOR_NOT_COMPOSED",
+    "exactLauncherPath": "scripts/lib/cloudflare-unattended-launcher.mjs",
+    "infrastructureSuccessorCommit": "da7504352424096869a18b66dc7c4429480393f4",
+    "historicalKeychainEvidencePreserved": true,
+    "focusedFailuresBeforeRepair": 1,
+    "focusedFailuresAfterRepair": 0,
+    "applicationPayloadChanged": false,
+    "workflowChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  },
   "qualification": {
     "focusedInfrastructure": "PASS",
     "security": "PASS",

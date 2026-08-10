@@ -17,6 +17,8 @@ const governanceDocumentationPath =
 const reportPath =
   "overwatch/reports/BATCH-20260715-008-cloudflare-unattended-keychain-interoperability.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
+const toolchainGovernancePath =
+  "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
 const ownerCommit = "8fa8d6943431c68b9f5a556499243e9838378440";
 const ownerParent = "845973727b3e5fe3923c45b6b90c41134355c60f";
 const ownerTree = "e1cc6516c568d28e0d7f3078f41590ba8f6a994d";
@@ -187,6 +189,26 @@ const ownerCiPortabilitySuccessors = Object.freeze([
   }
 ]);
 
+const toolchainInfrastructurePaths = Object.freeze([
+  "package-lock.json",
+  "package.json",
+  "scripts/lib/cloudflare-unattended-launcher.mjs",
+  "tests/cloudflare-unattended-runtime-guard.test.mjs",
+  "tests/route-iq-business-availability-infrastructure.test.mjs",
+  "tests/route-iq-cloudflare-toolchain-compatibility.test.mjs",
+  "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
+  "tests/route-iq-request-crm-infrastructure.test.mjs",
+  "workers/infrastructure/route-iq-cloudflare-toolchain-compatibility-v1.json"
+]);
+
+const activeToolchainLauncherSuccessor = Object.freeze({
+  path: "scripts/lib/cloudflare-unattended-launcher.mjs",
+  previousSha256: "82f1afb5e29310f73a411458c24942bdeb9c21ef0017e8a8f764d6c714a44fa4",
+  successorSha256: "724979adc576f4a01abc5b153b010a2a3cc0c82b79fc238704b2a373eb12a4f1",
+  ownerCommit: "da7504352424096869a18b66dc7c4429480393f4",
+  owner: "Prometheus Infrastructure"
+});
+
 const githubDeploymentOwnerPaths = new Set([
   ".github/workflows/deploy-prometheus-private-worker.yml",
   "docs/github-actions-founder-triggered-private-worker-deployment-v1.md",
@@ -259,7 +281,12 @@ export function evaluateCloudflareUnattendedKeychainSuccessorOwnership(commits) 
   const failures = [];
   for (const commit of commits) {
     const protectedOwners = new Set(
-      commit.paths.map(protectedPathOwner).filter(Boolean)
+      commit.paths.map(path => (
+        commit.commit === activeToolchainLauncherSuccessor.ownerCommit
+        && toolchainInfrastructurePaths.includes(path)
+          ? infrastructureIdentity
+          : protectedPathOwner(path)
+      )).filter(Boolean)
     );
     if (protectedOwners.size === 0) continue;
     if (protectedOwners.size !== 1) {
@@ -286,6 +313,57 @@ const git = args => execFileSync("/usr/bin/git", args, {
   encoding: "utf8",
   stdio: ["ignore", "pipe", "ignore"]
 }).trim();
+
+export function validateCloudflareUnattendedKeychainToolchainSuccessor(governance) {
+  const record = governance?.ownerChain?.find(item =>
+    item.commit === activeToolchainLauncherSuccessor.ownerCommit);
+  if (!equal(record, {
+    owner: "Prometheus Infrastructure",
+    identity: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    commit: activeToolchainLauncherSuccessor.ownerCommit,
+    tree: "9ecb94b795d612a34a84c7ba7871296872d9184a",
+    parent: "2d5caafc52de0c1ee42bce5b370e2232e53fd72f",
+    subject: "infrastructure: update Cloudflare compatibility toolchain",
+    changedFileCount: 9
+  })) throw new Error("Keychain toolchain successor governance drifted.");
+  const metadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n");
+  if (!equal(metadata, [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ])) throw new Error("Keychain toolchain successor provenance drifted.");
+  const paths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", record.commit
+  ]).split("\n").filter(Boolean).sort();
+  if (!equal(paths, [...toolchainInfrastructurePaths].sort())) {
+    throw new Error("Keychain toolchain successor file set drifted.");
+  }
+  const previous = execFileSync("/usr/bin/git", [
+    "show", `${record.parent}:${activeToolchainLauncherSuccessor.path}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+  const successor = execFileSync("/usr/bin/git", [
+    "show", `${record.commit}:${activeToolchainLauncherSuccessor.path}`
+  ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+  if (sha256(previous) !== activeToolchainLauncherSuccessor.previousSha256
+    || sha256(successor) !== activeToolchainLauncherSuccessor.successorSha256
+    || sha256(readFileSync(resolve(root, activeToolchainLauncherSuccessor.path)))
+      !== activeToolchainLauncherSuccessor.successorSha256
+    || governance?.productionBoundary?.cloudflareContactCount !== 0
+    || governance?.productionBoundary?.deploymentCount !== 0
+    || governance?.productionBoundary?.productionMutationCount !== 0) {
+    throw new Error("Keychain toolchain successor boundary drifted.");
+  }
+  execFileSync("/usr/bin/git", [
+    "merge-base", "--is-ancestor", record.commit, "HEAD"
+  ], { cwd: root, stdio: "ignore" });
+  return activeToolchainLauncherSuccessor;
+}
 
 export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
   governance,
@@ -501,7 +579,7 @@ export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
   return Object.freeze({ ok: failures.length === 0, failures: Object.freeze(failures) });
 }
 
-function verifyOwnerCommit(governance) {
+function verifyOwnerCommit(governance, toolchainSuccessor) {
   const fields = git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", ownerCommit
   ]).split("\n");
@@ -552,7 +630,13 @@ function verifyOwnerCommit(governance) {
       || (ciPortabilitySuccessor?.previousSha256 === acceptedPredecessorHash
         && ciPortabilitySuccessor?.successorSha256 === currentHash
         && ciPortabilitySuccessor?.ownerCommit === ownerCiPortabilityCommit
-        && ciPortabilitySuccessor?.owner === "Prometheus Infrastructure");
+        && ciPortabilitySuccessor?.owner === "Prometheus Infrastructure")
+      || (toolchainSuccessor?.path === path
+        && toolchainSuccessor?.previousSha256 === acceptedPredecessorHash
+        && toolchainSuccessor?.successorSha256 === currentHash
+        && toolchainSuccessor?.ownerCommit ===
+          "da7504352424096869a18b66dc7c4429480393f4"
+        && toolchainSuccessor?.owner === "Prometheus Infrastructure");
     if (sha256(ownerBytes) !== expectedHash
       || !currentAccepted
       || evidence.get(path)?.sha256AtOwnerCommit !== expectedHash) {
@@ -865,13 +949,16 @@ function verifyOwnerVerifier() {
 export function verifyOverwatchCloudflareUnattendedKeychainInteroperability() {
   const governance = readJson(governancePath);
   const report = readJson(reportPath);
+  const toolchainGovernance = readJson(toolchainGovernancePath);
   const evaluation = evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
     governance,
     report
   });
   if (!evaluation.ok) throw new Error(evaluation.failures.join("\n"));
 
-  verifyOwnerCommit(governance);
+  const toolchainSuccessor =
+    validateCloudflareUnattendedKeychainToolchainSuccessor(toolchainGovernance);
+  verifyOwnerCommit(governance, toolchainSuccessor);
   verifyOverwatchOwnership();
   verifyRegistry();
   verifyOwnerVerifier();
@@ -900,6 +987,7 @@ export function verifyOverwatchCloudflareUnattendedKeychainInteroperability() {
     implementationRepairCommit: ownerRepairCommit,
     implementationVerifierRepairCommit: ownerVerifierRepairCommit,
     implementationCiPortabilityCommit: ownerCiPortabilityCommit,
+    implementationToolchainSuccessorCommit: toolchainSuccessor.ownerCommit,
     implementationHistoricalFixtureRepairCommits: Object.freeze(
       ownerHistoricalFixtureRepairCommits.map(item => item.commit)
     ),
