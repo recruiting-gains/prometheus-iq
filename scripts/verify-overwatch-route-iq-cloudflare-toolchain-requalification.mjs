@@ -16,6 +16,8 @@ const qualificationProvenanceCommit = "cbeb848ef571cca913fcc7191350756129d65522"
 const qualificationProvenanceTree = "6265cc9b262548ebeabac910c2ec894c22c73a09";
 const controlledRehearsalProvenanceCommit = "43b8564b515e9aca02c23cf370aaf7626ad3e617";
 const controlledRehearsalProvenanceTree = "0ce7b70b9a56a37505924aca9ba6d5337d8dfc68";
+const hostedCheckoutCommit = "26cc9712bf1f303ae6971a17639b56968c3d9006";
+const hostedCheckoutTree = "4a31533e398c58f0aafb74f06f9a20679183f364";
 const governancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
 const reportPath =
@@ -72,6 +74,12 @@ const controlledRehearsalSuccessorFiles = Object.freeze([
 const hostedCheckoutSuccessorFiles = Object.freeze([
   "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
   "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs"
+]);
+const retentionRuntimeGuardSuccessorFiles = Object.freeze([
+  "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+  "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
+  "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs",
+  "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs"
 ]);
 
 function verifyOwnerCommit(commit, parent, identity, subject, files) {
@@ -169,11 +177,19 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.equal(git("show", "-s", "--format=%T", controlledRehearsalProvenanceCommit),
     controlledRehearsalProvenanceTree);
   verifyOwnerCommit(
-    head,
+    hostedCheckoutCommit,
     controlledRehearsalProvenanceCommit,
     "Prometheus Overwatch <overwatch@prometheus.local>",
     "overwatch: support exact hosted detached checkout",
     hostedCheckoutSuccessorFiles
+  );
+  assert.equal(git("show", "-s", "--format=%T", hostedCheckoutCommit), hostedCheckoutTree);
+  verifyOwnerCommit(
+    head,
+    hostedCheckoutCommit,
+    "Prometheus Overwatch <overwatch@prometheus.local>",
+    "overwatch: narrow retention protected-path guard",
+    retentionRuntimeGuardSuccessorFiles
   );
 
   assert.equal(governance.batchId, "BATCH-20260810-001");
@@ -291,6 +307,8 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     qualificationCommit,
     qualificationProvenanceCommit,
     controlledRehearsalProvenanceCommit,
+    hostedCheckoutCommit,
+    retentionRuntimeGuardSuccessorCommit: head,
     compatibility: governance.compatibility.supportedCandidate,
     allDependencyHigh: security.auditDisposition.after.allDependencies.high,
     productionHigh: security.auditDisposition.after.productionOnly.high,

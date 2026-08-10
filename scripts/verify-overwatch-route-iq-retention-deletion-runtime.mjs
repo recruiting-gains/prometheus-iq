@@ -224,6 +224,18 @@ export function isExactMainCheckout({ branch, head, originMain, environment = {}
     && environment.GITHUB_SHA === head;
 }
 
+export function isProtectedRuntimePath(path) {
+  const segments = path.split("/");
+  const basename = segments.at(-1) || "";
+  if (/^wrangler(?:\.[^/]+)*\.(?:jsonc|toml)$/u.test(basename)) {
+    return true;
+  }
+  if (path === ".github/workflows" || path.startsWith(".github/workflows/")) {
+    return true;
+  }
+  return segments.some(segment => ["deploy", "website", "crm", "dashboard"].includes(segment));
+}
+
 function changedPaths(commit) {
   const value = git("diff-tree", "--no-commit-id", "--name-only", "-r", commit);
   return value ? value.split("\n").sort() : [];
@@ -462,9 +474,12 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.doesNotMatch(infrastructureSource, /scheduled\s*\(|alarm\s*\(|queue\s*\(|\/api\//);
 
   const changed = git("diff", "--name-only", `${startCommit}..HEAD`).split("\n").filter(Boolean);
-  for (const forbidden of ["wrangler", ".github/workflows/", "deploy/", "website/", "crm/", "dashboard/"]) {
-    assert.equal(changed.some(path => path.includes(forbidden)), false, `Protected runtime path changed: ${forbidden}`);
-  }
+  const protectedRuntimeChanges = changed.filter(isProtectedRuntimePath);
+  assert.deepEqual(
+    protectedRuntimeChanges,
+    [],
+    `Protected runtime paths changed: ${protectedRuntimeChanges.join(", ")}`
+  );
   assert.equal(
     git("rev-parse", `${startCommit}:data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions`),
     governance.historicalEvidence.sessionSubtreeGitObjectBefore

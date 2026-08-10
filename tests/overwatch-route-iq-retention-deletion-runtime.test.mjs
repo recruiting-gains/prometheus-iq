@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   isExactMainCheckout,
+  isProtectedRuntimePath,
   verifyOverwatchRouteIqRetentionDeletionRuntime
 } from "../scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs";
 
@@ -158,4 +159,27 @@ test("hosted detached checkout is accepted only for the exact synchronized main 
     environment: hostedMain
   }), false);
   assert.equal(isExactMainCheckout({ branch: "release", head, originMain: head }), false);
+});
+
+test("protected runtime matching rejects deployable paths without rejecting governance names", () => {
+  for (const path of [
+    "wrangler.jsonc",
+    "wrangler.prometheusrouteiq-website.jsonc",
+    "workers/private/wrangler.production.toml",
+    ".github/workflows/deploy.yml",
+    "deploy/private-worker.mjs",
+    "website/src/index.ts",
+    "crm/runtime.ts",
+    "dashboard/app.tsx"
+  ]) {
+    assert.equal(isProtectedRuntimePath(path), true, `${path} must remain protected.`);
+  }
+  for (const path of [
+    "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json",
+    "overwatch/reports/BATCH-20260810-001-route-iq-wrangler-miniflare-major-transition-requalification.json",
+    "tests/route-iq-request-crm-infrastructure.test.mjs",
+    "tests/dashboard-runtime-contract.test.mjs"
+  ]) {
+    assert.equal(isProtectedRuntimePath(path), false, `${path} is evidence, not runtime configuration.`);
+  }
 });
