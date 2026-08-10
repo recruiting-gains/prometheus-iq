@@ -44,9 +44,25 @@ test("Overwatch verifies the exact dormant maintenance release and owner chain",
   const result = verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness();
   assert.equal(result.status, "PASS");
   assert.equal(result.batchId, "BATCH-20260809-002");
-  assert.equal(result.ownerCommitCount, 8);
+  assert.equal(result.ownerCommitCount, 9);
   assert.equal(result.integrationCommit, "432eefb987afb06bf5c49241911953aaab559331");
   assert.equal(result.integrationTree, "931d02b13e023797cf5a70e658bbf1c2a461ac16");
+  assert.equal(
+    result.firstQualificationRepairCommit,
+    "43be570ea4140960ce7d946a0b0191eb99a0ad88"
+  );
+  assert.equal(
+    result.firstQualificationRepairTree,
+    "bb8337bd03021af2183eb56c9e19574e95db16cd"
+  );
+  assert.equal(
+    result.infrastructureQualificationRepairCommit,
+    "929856fcf7377be0aa08888d04ca68c801ad6002"
+  );
+  assert.equal(
+    result.infrastructureQualificationRepairTree,
+    "8879320360a1b5b908cf0727028a7ed5570bc048"
+  );
   assert.match(result.qualificationRepairTree, /^[a-f0-9]{40}$/u);
   assert.equal(
     result.privateWorkflowForwardPayloadSha256,

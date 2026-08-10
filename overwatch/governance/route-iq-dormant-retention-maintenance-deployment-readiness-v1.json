@@ -111,6 +111,8 @@
     "hostedQualificationRepair": {
       "ownerSubsystem": "Prometheus Overwatch",
       "email": "overwatch@prometheus.local",
+      "commit": "43be570ea4140960ce7d946a0b0191eb99a0ad88",
+      "tree": "bb8337bd03021af2183eb56c9e19574e95db16cd",
       "subject": "overwatch: repair retention maintenance qualification",
       "expectedParent": "432eefb987afb06bf5c49241911953aaab559331",
       "failedRunId": 31348734489,
@@ -127,6 +129,49 @@
         "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
         "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
       ]
+    },
+    "hostedFullSuiteRepair": {
+      "failedRunId": 31349044214,
+      "failureClassifications": [
+        "MASTER_STATE_ASSERTION_LAGGED_CURRENT_DORMANT_PACKAGE_BOUNDARY",
+        "RELEASE_PROVENANCE_VERIFIER_OMITTED_OWNER_AUTHORED_RETENTION_MAINTENANCE_SUCCESSOR",
+        "PUBLIC_FORWARD_ROLLBACK_LOCK_PIN_LAGGED_SAFE_SECURITY_PATCH"
+      ],
+      "runtimeChanged": false,
+      "releasePayloadChanged": false,
+      "publicForwardRollbackArtifactChanged": false,
+      "productionContactCount": 0,
+      "productionMutationCount": 0,
+      "infrastructureRepair": {
+        "ownerSubsystem": "Prometheus Infrastructure",
+        "email": "infrastructure@prometheus.local",
+        "commit": "929856fcf7377be0aa08888d04ca68c801ad6002",
+        "parent": "43be570ea4140960ce7d946a0b0191eb99a0ad88",
+        "tree": "8879320360a1b5b908cf0727028a7ed5570bc048",
+        "subject": "infrastructure: preserve public rollback after lock patch",
+        "changedPaths": [
+          "scripts/lib/route-iq-public-forward-rollback.mjs",
+          "tests/route-iq-public-forward-rollback-pinned-source.test.mjs"
+        ],
+        "previousPackageLockSha256": "70bb4bb8a4ed855307ca98c0efd295e23825504bf225609d16be474640134a0c",
+        "currentPackageLockSha256": "aa398a24dec737ccfbf49c83ccafdc9a284ebe639cb065dafb48358de7be0782",
+        "publicForwardRollbackArtifactSha256": "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6"
+      },
+      "finalOverwatchRepair": {
+        "ownerSubsystem": "Prometheus Overwatch",
+        "email": "overwatch@prometheus.local",
+        "subject": "overwatch: repair retention maintenance full qualification",
+        "expectedParent": "929856fcf7377be0aa08888d04ca68c801ad6002",
+        "changedPaths": [
+          "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json",
+          "overwatch/reports/BATCH-20260809-002-route-iq-dormant-retention-maintenance-deployment-readiness.json",
+          "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
+          "scripts/verify-release-provenance-repair.mjs",
+          "tests/overwatch-auto-push-governance.test.mjs",
+          "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs",
+          "tests/release-provenance-repair.test.mjs"
+        ]
+      }
     }
   },
   "releasePackage": {
@@ -291,8 +336,10 @@
       "tests/route-iq-retention-production-legal-hold-readiness.test.mjs"
     ],
     "Prometheus Infrastructure": [
+      "scripts/lib/route-iq-public-forward-rollback.mjs",
       "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
       "tests/github-actions-private-worker-workflow-v2.test.mjs",
+      "tests/route-iq-public-forward-rollback-pinned-source.test.mjs",
       "tests/route-iq-retention-maintenance-infrastructure.test.mjs",
       "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
       "workers/infrastructure/route-iq-retention-maintenance-forward-revert-v1.json",
@@ -328,10 +375,13 @@
       "scripts/verify-overwatch-route-iq-prospective-evidence-retention.mjs",
       "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
       "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
+      "scripts/verify-release-provenance-repair.mjs",
+      "tests/overwatch-auto-push-governance.test.mjs",
       "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
       "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
       "tests/overwatch-route-iq-prospective-evidence-retention.test.mjs",
-      "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
+      "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs",
+      "tests/release-provenance-repair.test.mjs"
     ]
   },
   "deploymentBlockers": [

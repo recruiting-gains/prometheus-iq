@@ -12,9 +12,27 @@
   "governance": "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json",
   "hostedQualificationRepair": {
     "failedRunId": 31348734489,
+    "commit": "43be570ea4140960ce7d946a0b0191eb99a0ad88",
+    "tree": "bb8337bd03021af2183eb56c9e19574e95db16cd",
     "failureClassification": "HISTORICAL_VERIFIER_OMITTED_GOVERNED_RETENTION_MAINTENANCE_PAYLOAD_SUCCESSOR",
     "runtimeChanged": false,
     "releasePayloadChanged": false,
+    "productionContactCount": 0,
+    "productionMutationCount": 0
+  },
+  "hostedFullSuiteRepair": {
+    "failedRunId": 31349044214,
+    "failureClassifications": [
+      "MASTER_STATE_ASSERTION_LAGGED_CURRENT_DORMANT_PACKAGE_BOUNDARY",
+      "RELEASE_PROVENANCE_VERIFIER_OMITTED_OWNER_AUTHORED_RETENTION_MAINTENANCE_SUCCESSOR",
+      "PUBLIC_FORWARD_ROLLBACK_LOCK_PIN_LAGGED_SAFE_SECURITY_PATCH"
+    ],
+    "infrastructureCommit": "929856fcf7377be0aa08888d04ca68c801ad6002",
+    "infrastructureTree": "8879320360a1b5b908cf0727028a7ed5570bc048",
+    "publicForwardRollbackArtifactSha256": "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6",
+    "runtimeChanged": false,
+    "releasePayloadChanged": false,
+    "publicForwardRollbackArtifactChanged": false,
     "productionContactCount": 0,
     "productionMutationCount": 0
   },
@@ -44,7 +62,7 @@
     "exactFinalCommitHostedQualification": "REQUIRED_EXTERNAL_GITHUB_EVIDENCE"
   },
   "ownership": {
-    "implementationOwnerCommits": 8,
+    "implementationOwnerCommits": 9,
     "overwatchIntegrationCommitRequired": true,
     "mixedOwnershipDetected": false,
     "exactChangedFileManifest": "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json#exactChangedFileManifest"
@@ -57,6 +75,9 @@
     "privateWorkflowPayloadContinuity": "2/2 PASS",
     "overwatchPrivateWorkflowGovernance": "20/20 PASS",
     "controlledRehearsalPayloadSuccessor": "14/14 PASS",
+    "releaseProvenanceAndMasterState": "20/20 PASS",
+    "publicForwardRollbackPinnedSource": "5/5 PASS",
+    "publicDeploymentWorkflowV2": "11/11 PASS",
     "securityAdvisoryContract": "5/5 PASS",
     "aegis": "13/13 PASS",
     "workerEmulationCompatibility": "121/121 PASS"

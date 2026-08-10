@@ -18,6 +18,10 @@ const retentionDeletionRuntimeProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json";
 const retentionDeletionConsumerAdmissionProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-retention-deletion-consumer-admission-v1.json";
+const retentionMaintenanceGovernancePath =
+  "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json";
+const retentionMaintenanceConsumerAdmissionProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json";
 const legacyCommit = "049cf583b04900b2cbf38bbffc5f6293252365d0";
 const intelligenceRepairCommit = "1bb7d09dff254503d56027a87efe0d526228f35a";
 const dashboardRepairCommit = "a665b1b26db02716240b622d0b4d451d019c2896";
@@ -401,6 +405,12 @@ export const currentRetentionDeletionIntelligenceSuccessorChain = Object.freeze(
     sha256: "90bf943f8296d8c7e5ab14e57b5a2f02801260ebf2968f5bbbd4ce8b42af9d88"
   })
 ]);
+export const currentRetentionMaintenanceIntelligenceSuccessor = Object.freeze({
+  path: retentionMaintenanceConsumerAdmissionProvenancePath,
+  sha256: "71b1a7ce529784a93bc4454617be15a896cfde0e1af47731ba711c97372bf0a4",
+  implementationCommit: "c2bdfa3035383293afeb7e4a16704cb121c01716",
+  coherenceCommit: "0faca7bb91b3e4ddbe7c1996ca84cc9247cd205a"
+});
 export const currentFullSystemHarmonyShadowReadinessSuccessor = Object.freeze({
   commit: "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8",
   parent: "0e312cbef36af838dd9f8ba434f2370605f384d4",
@@ -1244,21 +1254,32 @@ export function validateLiveCanonicalIdentityOffRouteBaselineRepair(
 }
 
 export function validateRetentionDeletionIntelligenceSuccessorChain(
-  records = currentRetentionDeletionIntelligenceSuccessorChain
+  records = currentRetentionDeletionIntelligenceSuccessorChain,
+  maintenanceRecord = currentRetentionMaintenanceIntelligenceSuccessor
 ) {
   assert.deepEqual(
     records,
     currentRetentionDeletionIntelligenceSuccessorChain,
     "Retention-deletion Intelligence successor chain drifted."
   );
+  assert.deepEqual(
+    maintenanceRecord,
+    currentRetentionMaintenanceIntelligenceSuccessor,
+    "Retention-maintenance Intelligence successor record drifted."
+  );
   const governance = readJson(retentionDeletionGovernancePath);
+  const maintenanceGovernance = readJson(retentionMaintenanceGovernancePath);
   const runtimeProvenance = readJson(retentionDeletionRuntimeProvenancePath);
   const consumerProvenance = readJson(
     retentionDeletionConsumerAdmissionProvenancePath
   );
-  const ownerCommits = governance.ownership.commits[
-    "Prometheus Intelligence Engine"
-  ];
+  const maintenanceProvenance = readJson(maintenanceRecord.path);
+  const ownerCommits = new Set([
+    ...governance.ownership.commits["Prometheus Intelligence Engine"],
+    ...maintenanceGovernance.ownership.commits
+      .filter(record => record.subsystem === "Prometheus Intelligence Engine")
+      .map(record => record.commit)
+  ]);
   assert.deepEqual(
     governance.qualificationRepair.liveCanonicalIdentity.protectedSuccessor,
     {
@@ -1270,6 +1291,31 @@ export function validateRetentionDeletionIntelligenceSuccessorChain(
     path: retentionDeletionConsumerAdmissionProvenancePath,
     sha256: sha256(read(retentionDeletionConsumerAdmissionProvenancePath))
   });
+  assert.deepEqual(maintenanceGovernance.intelligenceSuccessor, {
+    path: maintenanceRecord.path,
+    sha256: maintenanceRecord.sha256,
+    consumerBehaviorChanged: false,
+    recommendationBehaviorChanged: false
+  });
+  assert.equal(sha256(read(maintenanceRecord.path)), maintenanceRecord.sha256,
+    "Retention-maintenance Intelligence successor bytes drifted.");
+  assert.equal(
+    maintenanceProvenance.implementation.commit,
+    maintenanceRecord.implementationCommit,
+    "Retention-maintenance Intelligence implementation commit drifted."
+  );
+  assert.equal(
+    maintenanceProvenance.coherenceImplementation.commit,
+    maintenanceRecord.coherenceCommit,
+    "Retention-maintenance Intelligence coherence commit drifted."
+  );
+  assert.equal(maintenanceProvenance.composition.consumerExclusionSemanticsChanged, false);
+  assert.equal(maintenanceProvenance.composition.recommendationBehaviorChanged, false);
+  assert.equal(maintenanceProvenance.composition.deploymentAuthorityGranted, false);
+  assert.equal(maintenanceProvenance.composition.deletionAuthorityGranted, false);
+  assert.equal(maintenanceProvenance.boundaries.collection, "OFF");
+  assert.equal(maintenanceProvenance.boundaries.activeCohorts, 0);
+  assert.equal(maintenanceProvenance.boundaries.recommendationInfluence, "OFF");
 
   const provenanceTransitions = [
     ...runtimeProvenance.protectedSourceTransitions.filter(
@@ -1277,7 +1323,9 @@ export function validateRetentionDeletionIntelligenceSuccessorChain(
     ),
     ...consumerProvenance.protectedSourceTransitions,
     consumerProvenance.coherenceSourceTransition,
-    consumerProvenance.negativeFixtureSourceTransition
+    consumerProvenance.negativeFixtureSourceTransition,
+    ...maintenanceProvenance.protectedSourceTransitions,
+    maintenanceProvenance.coherenceSourceTransition
   ].map(transition => Object.freeze({
     ...transition,
     parent: git("show", "-s", "--format=%P", transition.commit),
@@ -1325,7 +1373,7 @@ export function validateRetentionDeletionIntelligenceSuccessorChain(
       record.commit,
       "HEAD"
     ));
-    assert.equal(ownerCommits.includes(record.commit), true,
+    assert.equal(ownerCommits.has(record.commit), true,
       "Retention-deletion Intelligence owner commit is absent from governance.");
     assert.equal(
       sha256(gitBytes(
@@ -1347,13 +1395,16 @@ export function validateRetentionDeletionIntelligenceSuccessorChain(
     transitionsByPath.set(record.path, pathTransitions);
   }
 
+  const historicalVerifierTransition = records
+    .filter(record => record.path === retentionDeletionIntelligenceVerifierPath)
+    .at(-1);
+  assert.deepEqual(governance.qualificationRepair.liveCanonicalIdentity.verifier, {
+    path: retentionDeletionIntelligenceVerifierPath,
+    sha256: historicalVerifierTransition.sha256
+  });
   const verifierTransition = transitionsByPath.get(
     retentionDeletionIntelligenceVerifierPath
   ).at(-1);
-  assert.deepEqual(governance.qualificationRepair.liveCanonicalIdentity.verifier, {
-    path: retentionDeletionIntelligenceVerifierPath,
-    sha256: verifierTransition.sha256
-  });
   for (const [path, transitions] of transitionsByPath) {
     assert.equal(sha256(read(path)), transitions.at(-1).sha256,
       `Current retention-deletion Intelligence successor drifted: ${path}`);
@@ -2544,9 +2595,7 @@ export function verifyReleaseProvenanceRepair() {
     currentLiveCanonicalIdentityOffRouteBaselineRepairCommit:
       currentLiveCanonicalIdentityOffRouteBaselineRepair.commit,
     currentRetentionDeletionIntelligenceSuccessorCommit:
-      currentRetentionDeletionIntelligenceSuccessorChain
-        .filter(record => record.path === retentionDeletionIntelligenceVerifierPath)
-        .at(-1).commit,
+      currentRetentionMaintenanceIntelligenceSuccessor.coherenceCommit,
     currentProtectedDriftFixtureIntelligenceSuccessorCommit:
       currentProtectedDriftFixtureIntelligenceSuccessor.commit
   };

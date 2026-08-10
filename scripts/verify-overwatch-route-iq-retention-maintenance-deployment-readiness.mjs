@@ -8,6 +8,10 @@ import { fileURLToPath } from "node:url";
 import {
   dryRunRouteIqRetentionMaintenanceReleasePackage
 } from "../workers/infrastructure/route-iq-retention-maintenance-release-package.mjs";
+import {
+  PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE,
+  verifyPublicForwardRollbackBuildSource
+} from "./lib/route-iq-public-forward-rollback.mjs";
 
 const governancePath =
   "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json";
@@ -155,6 +159,8 @@ export function validateDormantRetentionMaintenanceReadiness({
   assert.deepEqual(governance.ownership.hostedQualificationRepair, {
     ownerSubsystem: "Prometheus Overwatch",
     email: "overwatch@prometheus.local",
+    commit: "43be570ea4140960ce7d946a0b0191eb99a0ad88",
+    tree: "bb8337bd03021af2183eb56c9e19574e95db16cd",
     subject: "overwatch: repair retention maintenance qualification",
     expectedParent: "432eefb987afb06bf5c49241911953aaab559331",
     failedRunId: 31348734489,
@@ -172,6 +178,52 @@ export function validateDormantRetentionMaintenanceReadiness({
       "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
       "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
     ]
+  });
+  assert.deepEqual(governance.ownership.hostedFullSuiteRepair, {
+    failedRunId: 31349044214,
+    failureClassifications: [
+      "MASTER_STATE_ASSERTION_LAGGED_CURRENT_DORMANT_PACKAGE_BOUNDARY",
+      "RELEASE_PROVENANCE_VERIFIER_OMITTED_OWNER_AUTHORED_RETENTION_MAINTENANCE_SUCCESSOR",
+      "PUBLIC_FORWARD_ROLLBACK_LOCK_PIN_LAGGED_SAFE_SECURITY_PATCH"
+    ],
+    runtimeChanged: false,
+    releasePayloadChanged: false,
+    publicForwardRollbackArtifactChanged: false,
+    productionContactCount: 0,
+    productionMutationCount: 0,
+    infrastructureRepair: {
+      ownerSubsystem: "Prometheus Infrastructure",
+      email: "infrastructure@prometheus.local",
+      commit: "929856fcf7377be0aa08888d04ca68c801ad6002",
+      parent: "43be570ea4140960ce7d946a0b0191eb99a0ad88",
+      tree: "8879320360a1b5b908cf0727028a7ed5570bc048",
+      subject: "infrastructure: preserve public rollback after lock patch",
+      changedPaths: [
+        "scripts/lib/route-iq-public-forward-rollback.mjs",
+        "tests/route-iq-public-forward-rollback-pinned-source.test.mjs"
+      ],
+      previousPackageLockSha256:
+        "70bb4bb8a4ed855307ca98c0efd295e23825504bf225609d16be474640134a0c",
+      currentPackageLockSha256:
+        "aa398a24dec737ccfbf49c83ccafdc9a284ebe639cb065dafb48358de7be0782",
+      publicForwardRollbackArtifactSha256:
+        "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6"
+    },
+    finalOverwatchRepair: {
+      ownerSubsystem: "Prometheus Overwatch",
+      email: "overwatch@prometheus.local",
+      subject: "overwatch: repair retention maintenance full qualification",
+      expectedParent: "929856fcf7377be0aa08888d04ca68c801ad6002",
+      changedPaths: [
+        "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json",
+        "overwatch/reports/BATCH-20260809-002-route-iq-dormant-retention-maintenance-deployment-readiness.json",
+        "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
+        "scripts/verify-release-provenance-repair.mjs",
+        "tests/overwatch-auto-push-governance.test.mjs",
+        "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs",
+        "tests/release-provenance-repair.test.mjs"
+      ]
+    }
   });
   assert.equal(
     governance.historicalVerifierComposition.packageSuccessorCurrentSha256,
@@ -310,10 +362,29 @@ export function validateDormantRetentionMaintenanceReadiness({
   assert.equal(report.batchId, governance.batchId);
   assert.deepEqual(report.hostedQualificationRepair, {
     failedRunId: governance.ownership.hostedQualificationRepair.failedRunId,
+    commit: governance.ownership.hostedQualificationRepair.commit,
+    tree: governance.ownership.hostedQualificationRepair.tree,
     failureClassification:
       governance.ownership.hostedQualificationRepair.failureClassification,
     runtimeChanged: false,
     releasePayloadChanged: false,
+    productionContactCount: 0,
+    productionMutationCount: 0
+  });
+  assert.deepEqual(report.hostedFullSuiteRepair, {
+    failedRunId: governance.ownership.hostedFullSuiteRepair.failedRunId,
+    failureClassifications:
+      governance.ownership.hostedFullSuiteRepair.failureClassifications,
+    infrastructureCommit:
+      governance.ownership.hostedFullSuiteRepair.infrastructureRepair.commit,
+    infrastructureTree:
+      governance.ownership.hostedFullSuiteRepair.infrastructureRepair.tree,
+    publicForwardRollbackArtifactSha256:
+      governance.ownership.hostedFullSuiteRepair.infrastructureRepair
+        .publicForwardRollbackArtifactSha256,
+    runtimeChanged: false,
+    releasePayloadChanged: false,
+    publicForwardRollbackArtifactChanged: false,
     productionContactCount: 0,
     productionMutationCount: 0
   });
@@ -335,7 +406,10 @@ export function validateDormantRetentionMaintenanceReadiness({
     report.releaseIdentities.privateWorkflowRollbackBundleSha256,
     governance.releasePackage.privateWorkflowContinuity.rollbackBundleSha256
   );
-  assert.equal(report.ownership.implementationOwnerCommits, Object.keys(ownerCommits).length);
+  assert.equal(
+    report.ownership.implementationOwnerCommits,
+    Object.keys(ownerCommits).length + 1
+  );
   assert.equal(report.sourceVerification.cloudflareContactCount, 0);
   assert.equal(report.sourceVerification.productionMutationCount, 0);
   assert.equal(report.sourceVerification.deploymentPerformed, false);
@@ -417,13 +491,56 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
 
   const repair = governance.ownership.hostedQualificationRepair;
   assert.equal(repair.expectedParent, integrationCommit);
-  assert.equal(git("rev-parse", `${head}^`), repair.expectedParent);
-  assert.equal(git("show", "-s", "--format=%an", head), repair.ownerSubsystem);
-  assert.equal(git("show", "-s", "--format=%ae", head), repair.email);
-  assert.equal(git("show", "-s", "--format=%cn", head), repair.ownerSubsystem);
-  assert.equal(git("show", "-s", "--format=%ce", head), repair.email);
-  assert.equal(git("show", "-s", "--format=%s", head), repair.subject);
-  assert.deepEqual(changedPaths(head), repair.changedPaths.slice().sort());
+  assert.equal(git("rev-parse", `${repair.commit}^`), repair.expectedParent);
+  assert.equal(git("rev-parse", `${repair.commit}^{tree}`), repair.tree);
+  assert.equal(git("show", "-s", "--format=%an", repair.commit), repair.ownerSubsystem);
+  assert.equal(git("show", "-s", "--format=%ae", repair.commit), repair.email);
+  assert.equal(git("show", "-s", "--format=%cn", repair.commit), repair.ownerSubsystem);
+  assert.equal(git("show", "-s", "--format=%ce", repair.commit), repair.email);
+  assert.equal(git("show", "-s", "--format=%s", repair.commit), repair.subject);
+  assert.deepEqual(changedPaths(repair.commit), repair.changedPaths.slice().sort());
+
+  const fullSuiteRepair = governance.ownership.hostedFullSuiteRepair;
+  const infrastructureRepair = fullSuiteRepair.infrastructureRepair;
+  assert.equal(infrastructureRepair.parent, repair.commit);
+  assert.equal(git("rev-parse", `${infrastructureRepair.commit}^`),
+    infrastructureRepair.parent);
+  assert.equal(git("rev-parse", `${infrastructureRepair.commit}^{tree}`),
+    infrastructureRepair.tree);
+  assert.equal(git("show", "-s", "--format=%an", infrastructureRepair.commit),
+    infrastructureRepair.ownerSubsystem);
+  assert.equal(git("show", "-s", "--format=%ae", infrastructureRepair.commit),
+    infrastructureRepair.email);
+  assert.equal(git("show", "-s", "--format=%cn", infrastructureRepair.commit),
+    infrastructureRepair.ownerSubsystem);
+  assert.equal(git("show", "-s", "--format=%ce", infrastructureRepair.commit),
+    infrastructureRepair.email);
+  assert.equal(git("show", "-s", "--format=%s", infrastructureRepair.commit),
+    infrastructureRepair.subject);
+  assert.deepEqual(changedPaths(infrastructureRepair.commit),
+    infrastructureRepair.changedPaths.slice().sort());
+  assert.equal(
+    sha256(read("package-lock.json")),
+    infrastructureRepair.currentPackageLockSha256
+  );
+  assert.deepEqual(
+    verifyPublicForwardRollbackBuildSource(process.cwd()),
+    PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE
+  );
+  assert.equal(
+    PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE.artifactSha256,
+    infrastructureRepair.publicForwardRollbackArtifactSha256
+  );
+
+  const finalRepair = fullSuiteRepair.finalOverwatchRepair;
+  assert.equal(finalRepair.expectedParent, infrastructureRepair.commit);
+  assert.equal(git("rev-parse", `${head}^`), finalRepair.expectedParent);
+  assert.equal(git("show", "-s", "--format=%an", head), finalRepair.ownerSubsystem);
+  assert.equal(git("show", "-s", "--format=%ae", head), finalRepair.email);
+  assert.equal(git("show", "-s", "--format=%cn", head), finalRepair.ownerSubsystem);
+  assert.equal(git("show", "-s", "--format=%ce", head), finalRepair.email);
+  assert.equal(git("show", "-s", "--format=%s", head), finalRepair.subject);
+  assert.deepEqual(changedPaths(head), finalRepair.changedPaths.slice().sort());
 
   const manifestedPaths = [...new Set(Object.values(governance.exactChangedFileManifest).flat())].sort();
   const actualPaths = git("diff", "--name-only", `${startCommit}..HEAD`).split("\n").filter(Boolean).sort();
@@ -468,10 +585,14 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
   return Object.freeze({
     status: "PASS",
     batchId: governance.batchId,
-    ownerCommitCount: Object.keys(ownerCommits).length,
+    ownerCommitCount: Object.keys(ownerCommits).length + 1,
     integrationCommit,
+    firstQualificationRepairCommit: repair.commit,
+    infrastructureQualificationRepairCommit: infrastructureRepair.commit,
     qualificationRepairCommit: head,
     integrationTree: governance.ownership.finalIntegration.tree,
+    firstQualificationRepairTree: repair.tree,
+    infrastructureQualificationRepairTree: infrastructureRepair.tree,
     qualificationRepairTree: git("rev-parse", `${head}^{tree}`),
     releaseSourceCommit: governance.releasePackage.sourceCommit,
     releaseSourceTree: governance.releasePackage.sourceTree,
