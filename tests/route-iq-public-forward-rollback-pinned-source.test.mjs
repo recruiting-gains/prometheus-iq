@@ -68,6 +68,10 @@ test("public rollback build is pinned to the governed Infrastructure source snap
   const source = verifyPublicForwardRollbackBuildSource(root);
   assert.deepEqual(source, PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE);
   assert.equal(source.artifactSha256, expectedArtifactSha256);
+  assert.equal(
+    source.packageLockSha256,
+    sha256(readFileSync(join(root, "package-lock.json")))
+  );
 
   const currentWorker = git(root, ["show", "HEAD:workers/prometheus-iq-worker.js"]);
   const sourceWorker = git(root, [
