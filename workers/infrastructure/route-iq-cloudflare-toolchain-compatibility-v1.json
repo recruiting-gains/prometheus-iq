@@ -1,0 +1,232 @@
+{
+  "schemaVersion": "route-iq-cloudflare-toolchain-compatibility-v1",
+  "batchId": "BATCH-20260810-001",
+  "owner": "Prometheus Infrastructure",
+  "startingCommit": "2d5caafc52de0c1ee42bce5b370e2232e53fd72f",
+  "startingTree": "25bd1b7015f018edbf4c8371a33598cafb28ebff",
+  "selectedGraph": [
+    {
+      "package": "wrangler",
+      "version": "4.120.1",
+      "relationship": "direct",
+      "stability": "stable",
+      "releaseChannel": "npm-latest",
+      "nodeEngine": ">=22.0.0"
+    },
+    {
+      "package": "miniflare",
+      "version": "5.20260804.0-alpha",
+      "relationship": "direct-and-wrangler-transitive-deduped",
+      "stability": "official-unavoidable-prerelease",
+      "releaseChannel": "npm-latest",
+      "reason": "Wrangler 4.120.1 requires this exact Miniflare release."
+    },
+    {
+      "package": "workerd",
+      "version": "1.20260804.1",
+      "relationship": "wrangler-and-miniflare-transitive-deduped",
+      "stability": "stable"
+    },
+    {
+      "package": "sharp",
+      "version": "0.35.2",
+      "relationship": "miniflare-transitive",
+      "stability": "stable"
+    },
+    {
+      "package": "undici",
+      "version": "7.29.0",
+      "relationship": "miniflare-transitive",
+      "stability": "stable"
+    },
+    {
+      "package": "ajv",
+      "version": "8.20.0",
+      "relationship": "direct-development-schema-validator",
+      "stability": "stable"
+    },
+    {
+      "package": "jsonc-parser",
+      "version": "3.2.0",
+      "relationship": "direct-development-config-parser-matching-wrangler",
+      "stability": "stable"
+    }
+  ],
+  "normalResolution": {
+    "forceUsed": false,
+    "overridesUsed": false,
+    "manualLockfileEditingUsed": false,
+    "transitiveSharpPinUsed": false,
+    "transitiveUndiciPinUsed": false,
+    "packageLockIsCompleteVersionAuthority": true
+  },
+  "compatibilityCommand": "node --test tests/cloudflare-unattended-runtime-guard.test.mjs tests/route-iq-business-availability-infrastructure.test.mjs tests/route-iq-prospective-shadow-infrastructure.test.mjs tests/route-iq-request-crm-infrastructure.test.mjs",
+  "compatibilityGroup": {
+    "governedExistingTests": 121,
+    "requiredPasses": 121,
+    "requiredFailures": 0,
+    "requiredSkips": 0,
+    "adapter": "convertV4MiniflareOptions",
+    "persistenceOption": "resourcePersistencePath"
+  },
+  "harnessFiles": [
+    "tests/cloudflare-unattended-runtime-guard.test.mjs",
+    "tests/route-iq-business-availability-infrastructure.test.mjs",
+    "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
+    "tests/route-iq-request-crm-infrastructure.test.mjs"
+  ],
+  "wranglerConfigs": [
+    "wrangler.jsonc",
+    "wrangler.prometheusrouteiq-website.jsonc"
+  ],
+  "priorRejectedCandidate": {
+    "wrangler": "4.120.0",
+    "miniflare": "5.20260801.1-alpha",
+    "workerd": "1.20260801.1",
+    "sharp": "0.35.2",
+    "undici": "7.29.0",
+    "tests": 121,
+    "passed": 112,
+    "failed": 9
+  },
+  "priorFailureRootCauses": [
+    {
+      "id": "prior-failure-01",
+      "file": "tests/cloudflare-unattended-runtime-guard.test.mjs",
+      "test": "launcher pins the npm-supplied Wrangler version and executable path",
+      "previousBehavior": "Wrangler 4.110.0 matched the launcher, package, lock, installed package, and executable pins.",
+      "candidateBehavior": "The package and lock resolved Wrangler 4.120.0 while the launcher still required 4.110.0.",
+      "rootCause": "The fail-closed launcher version contract was not advanced with the coordinated Wrangler transition.",
+      "upstreamChange": "Wrangler advanced from 4.110.0 to the supported 4.120 line.",
+      "affectedSemantics": ["request-behavior", "deployment-preflight"],
+      "repair": "Advance the Infrastructure-owned exact launcher pin to 4.120.1 and retain every executable-path assertion.",
+      "protectionPreserved": "The launcher still rejects any package, lock, installed-version, binary-link, or realpath mismatch."
+    },
+    {
+      "id": "prior-failure-02",
+      "file": "tests/cloudflare-unattended-runtime-guard.test.mjs",
+      "test": "launcher consumes before fixed children and isolates deployment from smoke credentials",
+      "previousBehavior": "The exact launcher pin admitted the fixed child sequence and exercised credential isolation.",
+      "candidateBehavior": "The stale pin raised pinned_wrangler_executable_invalid before any fixed child could run.",
+      "rootCause": "The same stale exact Wrangler pin blocked the governed child-sequence security test.",
+      "upstreamChange": "Wrangler advanced from 4.110.0 to the supported 4.120 line.",
+      "affectedSemantics": ["request-behavior", "cleanup"],
+      "repair": "Advance only the exact launcher pin; retain child order, environment allowlists, and credential-separation assertions.",
+      "protectionPreserved": "Authorization consumption and per-child credential isolation execute unchanged."
+    },
+    {
+      "id": "prior-failure-03",
+      "file": "tests/cloudflare-unattended-runtime-guard.test.mjs",
+      "test": "a failed fixed child burns the authorization and cannot be retried",
+      "previousBehavior": "A fixed-child failure consumed the one-shot authorization and a replay was denied.",
+      "candidateBehavior": "The stale pin failed earlier than the fixed child and masked the burn-on-failure assertion.",
+      "rootCause": "The same stale exact Wrangler pin prevented the intended one-shot failure path.",
+      "upstreamChange": "Wrangler advanced from 4.110.0 to the supported 4.120 line.",
+      "affectedSemantics": ["retry", "idempotency", "cleanup"],
+      "repair": "Advance only the exact launcher pin and leave one-shot authorization assertions unchanged.",
+      "protectionPreserved": "A failed fixed child still burns authorization and replay still fails closed."
+    },
+    {
+      "id": "prior-failure-04",
+      "file": "tests/route-iq-business-availability-infrastructure.test.mjs",
+      "test": "after_canonical_before_projection_commit",
+      "previousBehavior": "The committed canonical availability snapshot survived dispose and recreate at the governed interruption boundary.",
+      "candidateBehavior": "The restarted Miniflare instance opened a fresh temporary Durable Object store and reported zero accepted snapshots.",
+      "rootCause": "Miniflare v5 removed the legacy durableObjectsPersist option; the harness no longer supplied the supported shared persistence root.",
+      "upstreamChange": "Persistence moved to resourcePersistencePath and v5 construction requires the official v4 conversion boundary.",
+      "affectedSemantics": ["restart", "persistence", "storage-isolation"],
+      "repair": "Use convertV4MiniflareOptions, an explicit real-module manifest, and the same unique path through resourcePersistencePath.",
+      "protectionPreserved": "The expected accepted count remains one after the exact dispose/recreate boundary."
+    },
+    {
+      "id": "prior-failure-05",
+      "file": "tests/route-iq-business-availability-infrastructure.test.mjs",
+      "test": "after_projection_commit_before_response",
+      "previousBehavior": "Canonical and projected availability state survived dispose and recreate after projection commit.",
+      "candidateBehavior": "The restarted instance opened a fresh temporary store and reported zero accepted snapshots.",
+      "rootCause": "The removed durableObjectsPersist option no longer bound the recreated instance to the original v5 resource store.",
+      "upstreamChange": "Persistence moved to resourcePersistencePath and v5 construction requires the official v4 conversion boundary.",
+      "affectedSemantics": ["restart", "persistence", "storage-isolation"],
+      "repair": "Use the supported v5 persistence root while retaining the same interruption and restart sequence.",
+      "protectionPreserved": "The expected accepted count remains one and the recovered snapshot assertions are unchanged."
+    },
+    {
+      "id": "prior-failure-06",
+      "file": "tests/route-iq-business-availability-infrastructure.test.mjs",
+      "test": "every persistence boundary survives interruption and restart without partial canonical state",
+      "previousBehavior": "All three governed interruption subtests completed with deterministic restart state.",
+      "candidateBehavior": "Two committed-boundary subtests failed, causing the aggregate test to fail.",
+      "rootCause": "The aggregate exposed the same missing v5 resource persistence root in both committed-boundary cases.",
+      "upstreamChange": "Persistence moved to resourcePersistencePath and v5 construction requires the official v4 conversion boundary.",
+      "affectedSemantics": ["restart", "persistence", "recovery"],
+      "repair": "Bind all subtests to their existing unique path through resourcePersistencePath.",
+      "protectionPreserved": "All original zero-or-one accepted-state expectations remain unchanged."
+    },
+    {
+      "id": "prior-failure-07",
+      "file": "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
+      "test": "real Miniflare seals the complete Intelligence lifecycle, links action, and persists restart state",
+      "previousBehavior": "The sealed canonical session and linked action survived dispose and recreate.",
+      "candidateBehavior": "The recreated instance could not find the active canonical session.",
+      "rootCause": "The removed durableObjectsPersist option left the recreated v5 instance on a fresh temporary store.",
+      "upstreamChange": "Persistence moved to resourcePersistencePath and v5 construction requires explicit converted worker modules.",
+      "affectedSemantics": ["restart", "persistence", "storage-isolation"],
+      "repair": "Use the official adapter, explicit real module graph, and resourcePersistencePath.",
+      "protectionPreserved": "The lifecycle, action-link, seal, and post-restart assertions are unchanged."
+    },
+    {
+      "id": "prior-failure-08",
+      "file": "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
+      "test": "real Miniflare restart processes two same-session reconciliation links against their own exact projections",
+      "previousBehavior": "Both source-bound outcomes were admitted from their exact persisted projections after restart.",
+      "candidateBehavior": "Both source lookups failed after restart, producing zero admitted outcomes and two failed links.",
+      "rootCause": "The recreated v5 instance used a fresh temporary store because the legacy persistence option no longer applied.",
+      "upstreamChange": "Persistence moved to resourcePersistencePath and v5 construction requires explicit converted worker modules.",
+      "affectedSemantics": ["restart", "persistence", "isolation", "idempotency"],
+      "repair": "Bind both lifecycle phases to the same unique v5 resource persistence root.",
+      "protectionPreserved": "Both exact-projection admissions and failure-accounting assertions remain unchanged."
+    },
+    {
+      "id": "prior-failure-09",
+      "file": "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
+      "test": "real Miniflare SQLite allocator converges, closes, isolates scope, and survives restart",
+      "previousBehavior": "The post-restart allocator returned the latest exact persisted record for the isolated scope.",
+      "candidateBehavior": "The recreated instance returned a newly initialized trigger with different sequence, time, and hashes.",
+      "rootCause": "The recreated v5 instance was not bound to the first instance's store after durableObjectsPersist was removed.",
+      "upstreamChange": "Persistence moved to resourcePersistencePath and v5 construction requires explicit converted worker modules.",
+      "affectedSemantics": ["restart", "persistence", "storage-isolation", "idempotency"],
+      "repair": "Use the supported shared persistence root and retain the complete deep-equality assertion.",
+      "protectionPreserved": "The exact record, sequence, timestamps, scope hashes, and isolation assertion remain unchanged."
+    }
+  ],
+  "node24ActionMigration": {
+    "classification": "valid-warning-deferred-cross-owner-successor",
+    "currentActionsUseNode20Runtime": true,
+    "githubForcesNode24": true,
+    "availableReplacements": [
+      {
+        "action": "actions/checkout",
+        "version": "7.0.1",
+        "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+        "runsUsing": "node24"
+      },
+      {
+        "action": "actions/setup-node",
+        "version": "7.0.0",
+        "commit": "820762786026740c76f36085b0efc47a31fe5020",
+        "runsUsing": "node24"
+      }
+    ],
+    "reasonDeferred": "The workflow consumers are coupled to Overwatch-owned exact-SHA verifiers outside this Infrastructure-only write scope. Updating only consumers would fail governance; updating coupled Overwatch files would violate ownership.",
+    "permissionsChanged": false,
+    "workflowFilesChanged": false
+  },
+  "productionBoundary": {
+    "cloudflareAuthentication": false,
+    "cloudflareContactCount": 0,
+    "wranglerRemoteCommandCount": 0,
+    "deploymentCount": 0,
+    "productionMutationCount": 0,
+    "productionStorageAccessCount": 0
+  }
+}

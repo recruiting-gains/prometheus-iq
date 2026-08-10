@@ -26,7 +26,7 @@ export const CLOUDFLARE_UNATTENDED_LAUNCH_PROFILES = Object.freeze([
   "smoke-read-only",
   "deployment-release"
 ]);
-export const CLOUDFLARE_UNATTENDED_WRANGLER_VERSION = "4.110.0";
+export const CLOUDFLARE_UNATTENDED_WRANGLER_VERSION = "4.120.1";
 export const CLOUDFLARE_UNATTENDED_WRANGLER_MODULE =
   "node_modules/wrangler/bin/wrangler.js";
 

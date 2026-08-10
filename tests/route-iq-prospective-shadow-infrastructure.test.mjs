@@ -5,7 +5,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-import { Miniflare } from "miniflare";
+import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 import { SignJWT, createLocalJWKSet, exportJWK } from "jose";
 
 import worker, {
@@ -3025,12 +3025,24 @@ export default {
 `;
 
 function createMiniflare(bindings, persistencePath) {
-  return new Miniflare({
-    modules: true,
-    modulesRules: [{ type: "ESModule", include: ["**/*.js", "**/*.mjs"] }],
+  return new Miniflare(convertV4MiniflareOptions({
+    modules: [
+      {
+        type: "ESModule",
+        path: join(root, "route-iq-prospective-shadow-noncanonical-test-harness.mjs"),
+        contents: miniflareHarnessScript
+      },
+      ...[
+        "workers/infrastructure/route-iq-prospective-shadow-durable-object.js",
+        "workers/infrastructure/route-iq-prospective-shadow-authority.js",
+        "workers/infrastructure/route-iq-prospective-shadow-contract.js",
+        "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+        "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
+        "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
+        "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs"
+      ].map(path => ({ type: "ESModule", path: join(root, path) }))
+    ],
     modulesRoot: root,
-    script: miniflareHarnessScript,
-    scriptPath: join(root, "route-iq-prospective-shadow-noncanonical-test-harness.mjs"),
     compatibilityDate: "2026-07-13",
     compatibilityFlags: ["nodejs_compat"],
     durableObjects: {
@@ -3039,9 +3051,9 @@ function createMiniflare(bindings, persistencePath) {
         useSQLite: true
       }
     },
-    durableObjectsPersist: persistencePath,
+    resourcePersistencePath: persistencePath,
     bindings
-  });
+  }));
 }
 
 async function doRpc(miniflare, instanceName, method, command) {
