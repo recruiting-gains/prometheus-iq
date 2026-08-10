@@ -282,7 +282,7 @@
       "wrongBranchRefTypeShaOrOriginFailsClosed": true,
       "regressionTest": {
         "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
-        "sha256": "caaa055b8b80208ba816b2b38216796d4ebaf4d92d86823984d2adacd9c36075"
+        "sha256": "1c7ecc2026791eedbe85a9dbfe8daf6405788ce44a00997308599a101d586d71"
       }
     },
     "founderAttendedPackageWiring": {
@@ -431,6 +431,38 @@
         {
           "path": "tests/route-iq-prospective-shadow-evidence.test.mjs",
           "sha256": "a9dbb40ae7e068fdedf23408583503577fc3efc639b51f0324bb4b1d799c757b"
+        }
+      ]
+    },
+    "releaseProvenanceRetentionComposition": {
+      "failedRun": 31342472100,
+      "failure": "LEGACY_RELEASE_PROVENANCE_AND_READINESS_TESTS_DID_NOT_COMPOSE_RETENTION_SUCCESSORS",
+      "ownerSubsystem": "Prometheus Overwatch",
+      "ownerRepairCommit": "687d842e3bf925d00244b666f091e277d3dc710a",
+      "ownerRepairParent": "0262045638c4f708613f05ea2e68bbb8d9c7bea7",
+      "ownerRepairTree": "73e5659da06763957db2e7b83007fa40fa045808",
+      "runtimeBehaviorChanged": false,
+      "productionMutationPerformed": false,
+      "deploymentPerformed": false,
+      "protectedIntelligencePathsComposed": 13,
+      "protectedIntelligenceTransitionsComposed": 19,
+      "shadowReadinessArtifactCount": 26,
+      "files": [
+        {
+          "path": "scripts/verify-release-provenance-repair.mjs",
+          "sha256": "6709623725ff2f9b0cb0fe8f85885976d33f9974279214a2d36cc4af902c112e"
+        },
+        {
+          "path": "tests/release-provenance-repair.test.mjs",
+          "sha256": "64e06594025477d8b81c91362cca73a1df99796f5540a746dae6c5961df5d672"
+        },
+        {
+          "path": "tests/overwatch-shadow-decision-readiness-gate.test.mjs",
+          "sha256": "37b00d720eacb672dcbfdf7f81eee52619a370f852a701c84597197c1f37a5b6"
+        },
+        {
+          "path": "tests/overwatch-auto-push-governance.test.mjs",
+          "sha256": "3300dd4f8bfdf6fc8b8ca36c309ee05a1e6e2b4eefb671a26d8782e040936a47"
         }
       ]
     }

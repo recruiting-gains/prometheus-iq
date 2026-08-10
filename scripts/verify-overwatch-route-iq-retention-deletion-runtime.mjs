@@ -268,6 +268,7 @@ function verifyPinnedFiles(governance) {
     ...governance.qualificationRepair.offRouteRetentionContractComposition.files,
     ...governance.qualificationRepair.controlledRehearsalOffRouteComposition.files,
     ...governance.qualificationRepair.prospectiveShadowDormantStatusComposition.files,
+    ...governance.qualificationRepair.releaseProvenanceRetentionComposition.files,
     governance.forwardRevert
   ];
   for (const pin of pins) assert.equal(sha256(read(pin.path)), pin.sha256, `${pin.path} hash drifted.`);
@@ -408,6 +409,20 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(governance.qualificationRepair.prospectiveShadowDormantStatusComposition
     .currentStatus,
     "founder_authorized_18_month_maximum_source_deletion_runtime_dormant");
+  assert.equal(governance.qualificationRepair.releaseProvenanceRetentionComposition
+    .failedRun, 31342472100);
+  assert.equal(governance.qualificationRepair.releaseProvenanceRetentionComposition
+    .ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(governance.qualificationRepair.releaseProvenanceRetentionComposition
+    .ownerRepairCommit, "687d842e3bf925d00244b666f091e277d3dc710a");
+  assert.equal(governance.qualificationRepair.releaseProvenanceRetentionComposition
+    .runtimeBehaviorChanged, false);
+  assert.equal(governance.qualificationRepair.releaseProvenanceRetentionComposition
+    .productionMutationPerformed, false);
+  assert.equal(governance.qualificationRepair.releaseProvenanceRetentionComposition
+    .protectedIntelligencePathsComposed, 13);
+  assert.equal(governance.qualificationRepair.releaseProvenanceRetentionComposition
+    .protectedIntelligenceTransitionsComposed, 19);
   assert.equal(
     governance.infrastructureBoundary.privateWorkflowQualification.forwardPayloadSha256,
     "aaa8b360d5851bec21637d4c639a485555c367d1d5c9defb1b12163160c035c7"
@@ -515,6 +530,11 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   assert.equal(report.qualification.tenthHostedQualificationRun, 31342100553);
   assert.equal(report.qualification.tenthHostedQualificationResult,
     "FAILED_CLOSED_PROSPECTIVE_SHADOW_DORMANT_STATUS_UNCOMPOSED");
+  assert.equal(report.qualification.eleventhHostedQualificationRun, 31342472100);
+  assert.equal(report.qualification.eleventhHostedQualificationResult,
+    "FAILED_CLOSED_LEGACY_RELEASE_PROVENANCE_RETENTION_SUCCESSORS_UNCOMPOSED");
+  assert.equal(report.qualification.releaseProvenanceRetentionCompositionTests,
+    "21/21 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.dataCoordinatorTests, "121/121 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.intelligenceConsumerTests, "86/86 PASS");
   assert.equal(report.qualification.focusedSuccessorVerification.privateWorkflowV2Tests, "33/33 PASS");

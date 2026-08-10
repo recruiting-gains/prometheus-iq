@@ -100,6 +100,9 @@
     "ninthHostedQualificationResult": "FAILED_CLOSED_CONTROLLED_REHEARSAL_OFF_ROUTE_SUCCESSOR_UNCOMPOSED",
     "tenthHostedQualificationRun": 31342100553,
     "tenthHostedQualificationResult": "FAILED_CLOSED_PROSPECTIVE_SHADOW_DORMANT_STATUS_UNCOMPOSED",
+    "eleventhHostedQualificationRun": 31342472100,
+    "eleventhHostedQualificationResult": "FAILED_CLOSED_LEGACY_RELEASE_PROVENANCE_RETENTION_SUCCESSORS_UNCOMPOSED",
+    "releaseProvenanceRetentionCompositionTests": "21/21 PASS",
     "exactFinalCommitHostedQualification": "EXACT_COMMIT_BOUND_WORKFLOW_REQUIRED_AND_FAIL_CLOSED"
   },
   "deletionGraph": {
