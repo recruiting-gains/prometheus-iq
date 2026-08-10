@@ -19,7 +19,7 @@ import { pathToFileURL } from "node:url";
 import test from "node:test";
 
 import { SignJWT, createLocalJWKSet, exportJWK } from "jose";
-import { Miniflare } from "miniflare";
+import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 
 import {
   handlePrometheusIqWorkerRequest
@@ -477,7 +477,7 @@ test("smoke uses the canonical root asset and never requests Cloudflare's redire
 });
 
 test("real Miniflare assets runtime proves the canonical root and redirecting index alias", async t => {
-  const miniflare = new Miniflare({
+  const miniflare = new Miniflare(convertV4MiniflareOptions({
     modules: true,
     script: `export default {
       async fetch(request, env) {
@@ -496,7 +496,7 @@ test("real Miniflare assets runtime proves the canonical root and redirecting in
         not_found_handling: "single-page-application"
       }
     }
-  });
+  }));
   t.after(() => miniflare.dispose());
 
   const dispatch = path => miniflare.dispatchFetch(

@@ -5,7 +5,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-import { Miniflare } from "miniflare";
+import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 
 import {
   ROUTE_IQ_BUSINESS_AVAILABILITY_BINDING,
@@ -608,12 +608,23 @@ export default {
 `;
 
 function createMiniflare(persistencePath) {
-  return new Miniflare({
-    modules: true,
-    modulesRules: [{ type: "ESModule", include: ["**/*.js", "**/*.mjs"] }],
+  return new Miniflare(convertV4MiniflareOptions({
+    modules: [
+      {
+        type: "ESModule",
+        path: join(root, "route-iq-business-availability-noncanonical-test-harness.mjs"),
+        contents: miniflareHarness
+      },
+      {
+        type: "ESModule",
+        path: join(root, "workers/infrastructure/route-iq-business-availability-durable-object.js")
+      },
+      {
+        type: "ESModule",
+        path: join(root, "workers/infrastructure/route-iq-business-availability-contract.js")
+      }
+    ],
     modulesRoot: root,
-    script: miniflareHarness,
-    scriptPath: join(root, "route-iq-business-availability-noncanonical-test-harness.mjs"),
     compatibilityDate: "2026-07-15",
     compatibilityFlags: ["nodejs_compat"],
     durableObjects: {
@@ -622,11 +633,11 @@ function createMiniflare(persistencePath) {
         useSQLite: true
       }
     },
-    durableObjectsPersist: persistencePath,
+    resourcePersistencePath: persistencePath,
     bindings: {
       [NONCANONICAL_TEST_MODE]: "ON"
     }
-  });
+  }));
 }
 
 async function rpc(miniflare, instanceName, method, command) {
