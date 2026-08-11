@@ -438,7 +438,7 @@ jobs:
 
       - name: Download only this run's immutable private release
         # actions/download-artifact v4.3.0
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           artifact-ids: ${{ needs.qualify.outputs.qualification_artifact_id }}
           github-token: ${{ github.token }}
@@ -537,7 +537,7 @@ jobs:
 
       - name: Redownload the immutable private release
         # actions/download-artifact v4.3.0
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           artifact-ids: ${{ needs.qualify.outputs.qualification_artifact_id }}
           github-token: ${{ github.token }}
@@ -547,7 +547,7 @@ jobs:
 
       - name: Redownload only the controlled-rollback evidence
         # actions/download-artifact v4.3.0
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           artifact-ids: ${{ needs.reverify-and-demonstrate.outputs.rollback_evidence_artifact_id }}
           github-token: ${{ github.token }}
@@ -705,7 +705,7 @@ jobs:
 
       - name: Download only this run's immutable private release
         # actions/download-artifact v4.3.0
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           artifact-ids: ${{ needs.qualify.outputs.qualification_artifact_id }}
           github-token: ${{ github.token }}
@@ -841,7 +841,7 @@ jobs:
 
       - name: Download only this run's production evidence
         # actions/download-artifact v4.3.0
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           artifact-ids: ${{ needs.deploy.outputs.production_evidence_artifact_id }}
           github-token: ${{ github.token }}
@@ -851,7 +851,7 @@ jobs:
 
       - name: Download only this run's rollback demonstration evidence
         # actions/download-artifact v4.3.0
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           artifact-ids: ${{ needs.reverify-and-demonstrate.outputs.rollback_evidence_artifact_id }}
           github-token: ${{ github.token }}
@@ -861,7 +861,7 @@ jobs:
 
       - name: Download only this run's recovery verification evidence
         # actions/download-artifact v4.3.0
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           artifact-ids: ${{ needs.verify-recovery.outputs.recovery_evidence_artifact_id }}
           github-token: ${{ github.token }}

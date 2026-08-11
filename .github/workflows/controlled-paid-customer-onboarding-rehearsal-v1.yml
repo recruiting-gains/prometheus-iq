@@ -297,7 +297,7 @@ jobs:
 
       - name: Download only this run's immutable private release
         # actions/download-artifact v4.3.0
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           artifact-ids: ${{ needs.qualify.outputs.qualification_artifact_id }}
           github-token: ${{ github.token }}
@@ -392,7 +392,7 @@ jobs:
 
       - name: Download only this run's qualified private release
         # actions/download-artifact v4.3.0
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           artifact-ids: ${{ needs.qualify.outputs.qualification_artifact_id }}
           github-token: ${{ github.token }}
@@ -513,7 +513,7 @@ jobs:
 
       - name: Download this run's immutable private release
         # actions/download-artifact v4.3.0
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           artifact-ids: ${{ needs.qualify.outputs.qualification_artifact_id }}
           github-token: ${{ github.token }}
@@ -523,7 +523,7 @@ jobs:
 
       - name: Download bounded deployment evidence
         # actions/download-artifact v4.3.0
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           artifact-ids: ${{ needs.deploy.outputs.deployment_evidence_artifact_id }}
           github-token: ${{ github.token }}
