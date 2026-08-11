@@ -5,6 +5,9 @@ import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 import { verifyCrossSubsystemArtifactContracts } from "./verify-cross-subsystem-artifact-contracts.mjs";
+import {
+  verifyOverwatchGithubActionsNode24PinSuccessor
+} from "./verify-overwatch-github-actions-node24-pin-successor.mjs";
 
 const governancePath = "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260809-001-route-iq-retention-expiry-deletion-runtime.json";
@@ -307,6 +310,9 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   );
   const maintenance = readJsonAtCommit(acceptedCommit, governance.infrastructureBoundary.contractPath);
   const forwardRevert = readJsonAtCommit(acceptedCommit, governance.forwardRevert.path);
+  const node24Infrastructure = readJson(
+    "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json"
+  );
   const head = git("rev-parse", "HEAD");
   const originMain = git("rev-parse", "refs/remotes/origin/main");
 
@@ -475,10 +481,12 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
 
   const changed = git("diff", "--name-only", `${startCommit}..HEAD`).split("\n").filter(Boolean);
   const protectedRuntimeChanges = changed.filter(isProtectedRuntimePath);
+  const node24Verification = verifyOverwatchGithubActionsNode24PinSuccessor();
+  assert.equal(node24Verification.status, "OFFICIAL_NODE24_ACTION_PIN_OVERWATCH_VERIFIED");
   assert.deepEqual(
-    protectedRuntimeChanges,
-    [],
-    `Protected runtime paths changed: ${protectedRuntimeChanges.join(", ")}`
+    protectedRuntimeChanges.sort(),
+    node24Infrastructure.workflows.map(item => item.path).sort(),
+    `Protected runtime paths changed outside the exact Node 24 successor: ${protectedRuntimeChanges.join(", ")}`
   );
   assert.equal(
     git("rev-parse", `${startCommit}:data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions`),
@@ -598,6 +606,7 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
     collection: "OFF",
     activeCohorts: 0,
     recommendationInfluence: "OFF",
+    node24ActionPinStatus: node24Verification.status,
     historicalEvidence: "UNCHANGED",
     forwardRevert: "VERIFIED_NOT_EXECUTED"
   });

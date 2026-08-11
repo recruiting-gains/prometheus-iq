@@ -25,6 +25,7 @@ test("Overwatch verifies the exact owner chain and dormant deletion release boun
     collection: "OFF",
     activeCohorts: 0,
     recommendationInfluence: "OFF",
+    node24ActionPinStatus: "OFFICIAL_NODE24_ACTION_PIN_OVERWATCH_VERIFIED",
     historicalEvidence: "UNCHANGED",
     forwardRevert: "VERIFIED_NOT_EXECUTED"
   });
