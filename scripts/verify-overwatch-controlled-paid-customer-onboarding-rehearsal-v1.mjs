@@ -223,6 +223,26 @@ export const fullSystemHarmonyShadowReadinessSuccessor = Object.freeze({
   ])
 });
 
+export const controlledRehearsalNode24InfrastructureSuccessor = Object.freeze({
+  commit: "b4bfaf8af58c4d914393954358296b13d83940e5",
+  parent: "a6faabf49bf947f35cb42590f74f46fee6bcd275",
+  tree: "1733f8bd215911be1e3f4c0669984e3bcd60f8de",
+  identity: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+  subject: "infrastructure: compose rehearsal Node 24 workflow evidence",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "scripts/verify-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+      previousSha256: "26c000b13b79debd15337debdbf097512d2da7df2370a2e60227d5ecfabe9635",
+      currentSha256: "a49ebd0395c784301554800c19fdd72d2fe6793783796d5e205c5622c399917b"
+    }),
+    Object.freeze({
+      path: "tests/controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
+      previousSha256: "2db3ce593d0e00c07546754317dc0634bb04a4632447fcd088b37b010d1ec85c",
+      currentSha256: "1781071bf64f6e8e948c1280790c95ae014887b2d6d51d5f910e0d66f5833a2e"
+    })
+  ])
+});
+
 const protectedState = Object.freeze({
   collection: "OFF",
   activeCohorts: 0,
@@ -410,6 +430,41 @@ export function validateFullSystemHarmonyShadowReadinessSuccessor(record) {
   assert.equal(git([
     "merge-base", "--is-ancestor", record.commit, "HEAD"
   ]), "");
+  return record;
+}
+
+export function validateControlledRehearsalNode24InfrastructureSuccessor(record) {
+  assert.deepEqual(record, controlledRehearsalNode24InfrastructureSuccessor,
+    "controlled rehearsal Node 24 Infrastructure successor drifted");
+  const metadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    record.commit
+  ]).split("\n");
+  assert.deepEqual(metadata, [
+    record.commit,
+    record.parent,
+    record.tree,
+    record.identity,
+    record.identity,
+    record.subject
+  ], "controlled rehearsal Node 24 Infrastructure provenance drifted");
+  const changedPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", record.commit
+  ]).split("\n").filter(Boolean);
+  assert.deepEqual(changedPaths, record.evidence.map(item => item.path));
+  for (const item of record.evidence) {
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${record.parent}:${item.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${record.commit}:${item.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "pipe"] });
+    assert.equal(sha256(previous), item.previousSha256,
+      `controlled rehearsal Node 24 predecessor drifted: ${item.path}`);
+    assert.equal(sha256(current), item.currentSha256,
+      `controlled rehearsal Node 24 successor drifted: ${item.path}`);
+  }
+  assert.equal(git(["merge-base", "--is-ancestor", record.commit, "HEAD"]), "");
   return record;
 }
 
@@ -654,6 +709,13 @@ function verifyCurrentOwnerFiles(governance) {
   validateFullSystemHarmonyShadowReadinessSuccessor(
     fullSystemHarmonyShadowReadinessSuccessor
   );
+  const controlledRehearsalNode24Successor =
+    validateControlledRehearsalNode24InfrastructureSuccessor(
+      controlledRehearsalNode24InfrastructureSuccessor
+    );
+  const controlledRehearsalNode24Evidence = new Map(
+    controlledRehearsalNode24Successor.evidence.map(item => [item.path, item])
+  );
   const runtimeGuardToolchainSuccessor =
     validateControlledRehearsalRuntimeGuardToolchainSuccessor({
       governance: toolchainGovernance,
@@ -745,6 +807,11 @@ function verifyCurrentOwnerFiles(governance) {
           ]).split("\n").filter(Boolean);
           assert.ok(changedPaths.includes(item.path),
             `governed successor omitted path: ${item.path}`);
+        } else if (controlledRehearsalNode24Evidence.get(item.path)?.previousSha256 ===
+          (successor?.sha256 ?? item.sha256)
+          && controlledRehearsalNode24Evidence.get(item.path)?.currentSha256 === actual) {
+          assert.notEqual(actual, item.sha256,
+            `controlled rehearsal Node 24 successor did not advance owner evidence: ${item.path}`);
         } else if (hasGithubActionsNode24InfrastructureSuccessor({
           governance: node24ActionPinGovernance,
           infrastructure: node24ActionPinInfrastructure,

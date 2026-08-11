@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  controlledRehearsalNode24InfrastructureSuccessor,
   controlledRehearsalIntelligenceSuccessor,
   fieldSessionReportTypeContractIntelligenceSuccessor,
   fieldSessionReportTypeDriftFixtureSuccessor,
@@ -11,6 +12,7 @@ import {
   fullSystemHarmonyShadowReadinessSuccessor,
   liveCanonicalIdentityIntelligenceSuccessor,
   validateControlledRehearsalIntelligenceSuccessor,
+  validateControlledRehearsalNode24InfrastructureSuccessor,
   validateControlledRehearsalRuntimeGuardToolchainSuccessor,
   validateFieldSessionReportTypeContractIntelligenceSuccessor,
   validateFieldSessionReportTypeDriftFixtureSuccessor,
@@ -312,6 +314,28 @@ test("Overwatch composes only the exact controlled-rehearsal Node 24 workflow su
     const candidate = clone(input);
     mutate(candidate);
     assert.equal(hasGithubActionsNode24InfrastructureSuccessor(candidate), false);
+  }
+});
+
+test("Overwatch accepts only the exact controlled-rehearsal Node 24 Infrastructure successor", () => {
+  assert.equal(validateControlledRehearsalNode24InfrastructureSuccessor(
+    controlledRehearsalNode24InfrastructureSuccessor
+  ).commit, "b4bfaf8af58c4d914393954358296b13d83940e5");
+  for (const mutate of [
+    value => { value.commit = "0".repeat(40); },
+    value => { value.parent = "0".repeat(40); },
+    value => { value.tree = "0".repeat(40); },
+    value => { value.identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.subject = "infrastructure: substitute rehearsal successor"; },
+    value => { value.evidence[0].path = "package.json"; },
+    value => { value.evidence[0].previousSha256 = "0".repeat(64); },
+    value => { value.evidence[1].currentSha256 = "0".repeat(64); },
+    value => { value.evidence.pop(); }
+  ]) {
+    const candidate = clone(controlledRehearsalNode24InfrastructureSuccessor);
+    mutate(candidate);
+    assert.throws(() =>
+      validateControlledRehearsalNode24InfrastructureSuccessor(candidate));
   }
 });
 
