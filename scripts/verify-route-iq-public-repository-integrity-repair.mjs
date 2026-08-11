@@ -1359,8 +1359,8 @@ export function verifySafeNoSecretPredeploymentWorkflow(source = read(
     .map(line => line.trim())
     .filter(line => line.startsWith("uses: "));
   assert.deepEqual(actions, [
-    "uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5",
-    "uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020"
+    "uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020"
   ]);
   for (const required of [
     "repository: PrometheusRouteIQ/prometheus-iq",
@@ -2660,8 +2660,8 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   });
 
   const safeWorkflow = read(PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityWorkflowPath);
-  const checkout = safeWorkflow.indexOf("uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5");
-  const setupNode = safeWorkflow.indexOf("uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020");
+  const checkout = safeWorkflow.indexOf("uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1");
+  const setupNode = safeWorkflow.indexOf("uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020");
   const firstRepositoryNodeScript = safeWorkflow.indexOf("run: node scripts/");
   const diagnostic = safeWorkflow.indexOf("run: node scripts/run-public-worker-repository-integrity-diagnostic.mjs");
   const npmInstall = safeWorkflow.indexOf("run: npm ci");

@@ -10,6 +10,8 @@ import {
   verifyWranglerPin
 } from "./lib/github-actions-private-worker-deployment.mjs";
 import { fixedCloudflareUnattendedSmokePlan } from "./run-cloudflare-unattended-smoke.mjs";
+import { verifyGithubActionsOfficialNode24PinSuccessor } from
+  "./verify-github-actions-official-node24-pin-successor.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const paths = Object.freeze({
@@ -40,7 +42,7 @@ function count(source, pattern) {
 
 export function assertSetupNodeCachingDisabled(workflow) {
   assert.equal(
-    count(workflow, /^\s*uses: actions\/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020$/gmu),
+    count(workflow, /^\s*uses: actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020$/gmu),
     2
   );
   assert.doesNotMatch(
@@ -100,6 +102,7 @@ export function assertFounderDispatchAuthorization(workflow) {
 }
 
 export function verifyGithubActionsPrivateWorkerDeployment() {
+  const node24PinSuccessor = verifyGithubActionsOfficialNode24PinSuccessor();
   for (const path of Object.values(paths)) {
     assert.equal(existsSync(resolve(root, path)), true, `${path} must exist`);
   }
@@ -120,10 +123,10 @@ export function verifyGithubActionsPrivateWorkerDeployment() {
 
   const actionReferences = [...workflow.matchAll(/^\s*uses:\s*(\S+)$/gmu)].map(match => match[1]);
   assert.deepEqual(actionReferences, [
-    "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5",
-    "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
-    "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5",
-    "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020"
+    "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+    "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020"
   ]);
   assert.equal(count(workflow, /^          repository: PrometheusRouteIQ\/prometheus-iq$/gmu), 2);
   assert.equal(count(workflow, /^          ref: main$/gmu), 2);
@@ -290,6 +293,7 @@ export function verifyGithubActionsPrivateWorkerDeployment() {
     workflow: contract.workflow.name,
     privateWorker: contract.target.privateWorker,
     publicWorkerDeploymentAllowed: contract.target.publicWorkerDeploymentAllowed,
+    node24PinSuccessor,
     networkRequestsPerformed: 0,
     productionMutationPerformed: false
   });

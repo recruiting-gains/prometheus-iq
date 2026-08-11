@@ -250,6 +250,12 @@ test("owner verifier proves the source-only workflow contract without network ac
   assert.equal(result.networkRequestsPerformed, 0);
   assert.equal(result.productionMutationPerformed, false);
   assert.equal(result.publicWorkerDeploymentAllowed, false);
+  assert.equal(result.node24PinSuccessor.status,
+    "OFFICIAL_NODE24_ACTION_PIN_SOURCE_VERIFIED");
+  assert.equal(result.node24PinSuccessor.workflowFiles, 15);
+  assert.equal(result.node24PinSuccessor.checkoutOccurrences, 39);
+  assert.equal(result.node24PinSuccessor.setupNodeOccurrences, 39);
+  assert.equal(result.node24PinSuccessor.movingTags, 0);
 });
 
 test("setup-node caching is disabled by omitting both supported inputs", () => {

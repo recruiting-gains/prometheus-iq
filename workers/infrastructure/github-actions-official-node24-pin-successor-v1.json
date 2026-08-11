@@ -1,0 +1,280 @@
+{
+  "contractVersion": "github-actions-official-node24-pin-successor-v1",
+  "batchId": "BATCH-20260810-002",
+  "owner": "Prometheus Infrastructure",
+  "ownerIdentity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+  "status": "SOURCE_ONLY_SUCCESSOR_IMPLEMENTED_NOT_DEPLOYED",
+  "startingRepository": {
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "branch": "main",
+    "commit": "f49692d9bb6a18b1fdb5d8038e13df902d96d8a5",
+    "tree": "e7a1a31af6a52b1564ac0ee65e295f8c65ce9275",
+    "synchronization": "+0/-0",
+    "clean": true
+  },
+  "predecessorQualification": {
+    "runId": 31437455764,
+    "jobId": 93614660986,
+    "commit": "f49692d9bb6a18b1fdb5d8038e13df902d96d8a5",
+    "tree": "e7a1a31af6a52b1564ac0ee65e295f8c65ce9275",
+    "testInvocations": 75,
+    "tests": 1786,
+    "passed": 1782,
+    "failed": 0,
+    "governedSkips": 4,
+    "buildModules": 991,
+    "hostedCheckoutUnchanged": true,
+    "historicalBatch": "BATCH-20260810-001",
+    "historicalEvidencePreserved": true
+  },
+  "actions": {
+    "checkout": {
+      "repository": "actions/checkout",
+      "owner": "actions",
+      "ownerType": "Organization",
+      "previousVersion": "4.3.1",
+      "previousCommit": "34e114876b0b11c390a56381ad16ebd13914f8d5",
+      "previousRuntime": "node20",
+      "version": "7.0.1",
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "runtime": "node24",
+      "tagResolvedDirectlyToCommit": true,
+      "commitSignatureVerified": true,
+      "commitSignatureReason": "valid",
+      "actionYamlGitBlob": "5b0524f730db83f9513c18ab31a6c086c7239076",
+      "actionYamlSha256": "d59219cb79590abdb877deaa14e3b65a00c05318bf5a6f3b989b9162b5d08c35",
+      "behaviorDisposition": {
+        "repositoryInputPreserved": true,
+        "refInputPreserved": true,
+        "tokenInputPreserved": true,
+        "persistCredentialsInputPreserved": true,
+        "cleanInputPreserved": true,
+        "fetchDepthInputPreserved": true,
+        "unsafePullRequestCheckoutDefault": false,
+        "unexpectedPrivilegeExpansion": false
+      }
+    },
+    "setupNode": {
+      "repository": "actions/setup-node",
+      "owner": "actions",
+      "ownerType": "Organization",
+      "previousVersion": "4.4.0",
+      "previousCommit": "49933ea5288caeca8642d1e84afbd3f7d6820020",
+      "previousRuntime": "node20",
+      "version": "7.0.0",
+      "commit": "820762786026740c76f36085b0efc47a31fe5020",
+      "runtime": "node24",
+      "tagResolvedDirectlyToCommit": true,
+      "commitSignatureVerified": true,
+      "commitSignatureReason": "valid",
+      "actionYamlGitBlob": "dc1cefd59528621f6952ef3309bb6c551925b330",
+      "actionYamlSha256": "5d765941ab5d8bef27f08e81b0b041cdb2df2050ea0261dc925d157a2bafbd2b",
+      "behaviorDisposition": {
+        "nodeVersionInputPreserved": true,
+        "tokenInputPreserved": true,
+        "cacheInputPreserved": true,
+        "packageManagerCacheDefaultIntroducedUpstream": true,
+        "repositoryPackageManagerFieldPresent": false,
+        "newAutomaticCacheBehaviorActivated": false,
+        "newCacheInputsAddedByThisBatch": false,
+        "unexpectedPrivilegeExpansion": false
+      }
+    }
+  },
+  "occurrenceInventory": {
+    "predecessorExactPins": {
+      "activeExecutableWorkflowOccurrences": 74,
+      "activeVerifierOccurrences": 15,
+      "currentGovernanceEvidenceOccurrences": 5,
+      "testFixtureOccurrences": 3,
+      "immutableHistoricalDocumentationOccurrences": 1
+    },
+    "activeWorkflowActionReferences": {
+      "workflowFiles": 15,
+      "checkout": 39,
+      "setupNode": 39,
+      "total": 78,
+      "movingTagsBefore": 2,
+      "movingTagsAfter": 0,
+      "alternateNode24CheckoutPinsBefore": 2,
+      "alternateNode24CheckoutPinsAfter": 0
+    },
+    "immutableHistoricalEvidencePreserved": [
+      "docs/route-iq-public-repository-integrity-repair-v1.md",
+      "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json",
+      "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
+      "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json"
+    ]
+  },
+  "workflowBehavior": {
+    "pinOnlyMutationRequired": true,
+    "permissions": { "contents": "read" },
+    "artifactUploadActionsWriteWorkflowCountBefore": 3,
+    "artifactUploadActionsWriteWorkflowCountAfter": 3,
+    "pullRequestTargetAllowed": false,
+    "workflowRunTriggerAllowed": false,
+    "checkoutCredentialsPersisted": false,
+    "newCacheBehaviorAdded": false,
+    "existingCacheInputOccurrencesBefore": 1,
+    "existingCacheInputOccurrencesAfter": 1,
+    "packageManagerFieldAllowed": false,
+    "unsecureNodeEscapeVariableAllowed": false,
+    "thirdPartyActionAdded": false,
+    "deploymentWorkflowExecuted": false
+  },
+  "workflows": [
+    {
+      "path": ".github/workflows/controlled-paid-customer-onboarding-rehearsal-v1.yml",
+      "predecessorSha256": "73e5a53181f6da5f3ae274adce6aee286f3f6a07a7cc612830e67d18dbef892d",
+      "successorSha256": "bf9a1b75d7d41b4c73fc2ec540eeb7e19fdf0eb0b3829d423505b0f7fec16a26",
+      "pinNeutralSha256": "ec3bfff11553059e3e6c75020c20b96458f6f30c990ffe467c1e5a49a58c7048",
+      "checkoutOccurrences": 5,
+      "setupNodeOccurrences": 5
+    },
+    {
+      "path": ".github/workflows/deploy-prometheus-private-worker-v2.yml",
+      "predecessorSha256": "8288903bee7e628c84217d4a08a8c9f9035be65a0ed0f17f249454be4dd0a4e1",
+      "successorSha256": "2f4c255e4440a1eae8a6724e254f38cc1871e57c25176e57df62aa1a5bb4f07a",
+      "pinNeutralSha256": "4f503091e20e1a378fa7591b871876211643d3384233bd0a3e9f5b60bca9d767",
+      "checkoutOccurrences": 2,
+      "setupNodeOccurrences": 2
+    },
+    {
+      "path": ".github/workflows/deploy-prometheus-private-worker.yml",
+      "predecessorSha256": "0b9a8afd7d34b5d28aeec563e35ece4b5516cf154e5e01aa70e740183745b46a",
+      "successorSha256": "71a061459e08f348e56b10d3343e5c2e892fc2e4d48f4799165870b21770dae6",
+      "pinNeutralSha256": "e1b3cd179e6966ae451ccc29070150094b23d92301bda2b797488e283b3e6ee7",
+      "checkoutOccurrences": 2,
+      "setupNodeOccurrences": 2
+    },
+    {
+      "path": ".github/workflows/deploy-prometheus-public-worker.yml",
+      "predecessorSha256": "d48738a7cf4c61cae13cba28be95f51da86497a3ae8328d72aec1bdf6465262b",
+      "successorSha256": "8f300d77edaa0c2260a7ae219d86aee1f221083316d0694f4469e8ac89b7f83b",
+      "pinNeutralSha256": "1e3a767b34e24af7a11b5e207f52c037a3999e9dd841b037dab58b0b03b1aa50",
+      "checkoutOccurrences": 2,
+      "setupNodeOccurrences": 2
+    },
+    {
+      "path": ".github/workflows/early-github-handoff-v1.yml",
+      "predecessorSha256": "0f356bc4c0dfc157e6e1a21942de8deae6678fae585190e51a4526ed6f0a75b9",
+      "successorSha256": "4571647ad0708ce75724ccb7aba4ff8321cb0a33545ff95052e867d0e15969ac",
+      "pinNeutralSha256": "a5803bdf73b572226d7c34c30eebdc45aba55f343224fc72e0499b84b02c7dde",
+      "checkoutOccurrences": 1,
+      "setupNodeOccurrences": 1
+    },
+    {
+      "path": ".github/workflows/first-customer-activation-dress-rehearsal-v1.yml",
+      "predecessorSha256": "8c67604c585cb22857308ada3639a5cf3b77770ff2ef7d9ea0a0a8b241735a25",
+      "successorSha256": "aad064e3ee58fe37b562542c5649f64a5cca5d2587ce7f3badabcf7222b69f9d",
+      "pinNeutralSha256": "92d364f690f79cd98a3bf8f0c726113ffd6d3e463c71ca8377a00346ade36bb8",
+      "checkoutOccurrences": 1,
+      "setupNodeOccurrences": 1
+    },
+    {
+      "path": ".github/workflows/full-system-harmony-audit-v1.yml",
+      "predecessorSha256": "9383aeb5e6ac0c0cfae2480b0f3054aa17d4ec6017ed99e38b32b43d6bbb10f5",
+      "successorSha256": "a2893eab4c039b678bc405393070ad1ae5cdb635cf2761ee7db49727dae2466c",
+      "pinNeutralSha256": "4e4f45616e6a291d80e0cb441212cdbbfa3d247a23d2944ca99f804dcd79304a",
+      "checkoutOccurrences": 5,
+      "setupNodeOccurrences": 5
+    },
+    {
+      "path": ".github/workflows/github-hosted-autonomous-engineering-v1.yml",
+      "predecessorSha256": "d52f0154cca930a35a9b8423dcd1fa770c07dac2caf3118b527c9274a490f043",
+      "successorSha256": "af74d3cd24e162f37c4424f2b80350d96fb7b52d32fc9560f390a95b96da2df1",
+      "pinNeutralSha256": "2ea0ad24163470a78b3716b8e0704860580a32deed0512e25fe8d9960665919c",
+      "checkoutOccurrences": 9,
+      "setupNodeOccurrences": 9
+    },
+    {
+      "path": ".github/workflows/inspect-prometheus-worker-production-identity.yml",
+      "predecessorSha256": "1cc78718ebe83a8707b2b14239d479ae12c6146b5b3deff4c7282b7eec869b37",
+      "successorSha256": "53f410f5267f871e25b028c66fd167d4636a900b23d71b9b8610520be325aa47",
+      "pinNeutralSha256": "dea6909a8c6ed238a372218c6d4e866e0f012cc584d79bac47041eee5ea2d668",
+      "checkoutOccurrences": 2,
+      "setupNodeOccurrences": 2
+    },
+    {
+      "path": ".github/workflows/paid-customer-revenue-readiness-v1.yml",
+      "predecessorSha256": "b73996a143e91264f061e51ecf415183c2bd2bb9547590f0f6954d76825fcc8d",
+      "successorSha256": "235438a46be766a8500d5d08938ef3ced40692868562c4f186a118964c2210a6",
+      "pinNeutralSha256": "fe4ac1630b970ed147d93388ee63f7a0f2edab7794918735d3c62505aa9ab26c",
+      "checkoutOccurrences": 5,
+      "setupNodeOccurrences": 5
+    },
+    {
+      "path": ".github/workflows/qualify-prometheus-private-worker-v2.yml",
+      "predecessorSha256": "b542c1a254caaea2b73501accfa410ac31f1829c6f7e9b67a0d5f02c4b745f47",
+      "successorSha256": "db7258aa7782277444b345d8bd3500f623ba1236c5eef078b1f2fae3a34293d2",
+      "pinNeutralSha256": "a8725e5e0bdb14d0aae2fcc41f2b64c3ccec9ab34827007be42dbd85484713f0",
+      "checkoutOccurrences": 1,
+      "setupNodeOccurrences": 1
+    },
+    {
+      "path": ".github/workflows/qualify-prometheus-public-worker.yml",
+      "predecessorSha256": "50abf4fc40dc3f5ceed6ef92bb4c1ccb4be2733ae35579b26d09e7413ceeee2f",
+      "successorSha256": "0af9fc6b2d2bd09db3e6f1edd4cfbe4a7a098f08489bb220423b2e009f6b88c4",
+      "pinNeutralSha256": "d21e0d90f659cfaba0fa929b6a3a890abc15adfbc31903ae2538827c6fc1eb86",
+      "checkoutOccurrences": 1,
+      "setupNodeOccurrences": 1
+    },
+    {
+      "path": ".github/workflows/qualify-route-iq-private-dashboard-release.yml",
+      "predecessorSha256": "e1b11e05b15899f4cc729ac1424a5908bae697f8425b2d5053b65f4458c616bd",
+      "successorSha256": "d040444d919ffca285e1bdecad4c75745af4af92cc4b5244024d81eb5750a3c0",
+      "pinNeutralSha256": "15841f5c22fe1f6cdd9e800eb2e01c632bfc5ccc2a5bf7ac11294359956672cd",
+      "checkoutOccurrences": 1,
+      "setupNodeOccurrences": 1
+    },
+    {
+      "path": ".github/workflows/security-gates.yml",
+      "predecessorSha256": "e600543cbe10d3cf61cba7c2f9392f8468f9e66b7409c4b8e9a4a8c2e5e7657f",
+      "successorSha256": "4451e3ae25021b5dc1229530cb21a38fc0f44cd838d9ce1387493d332e2c1188",
+      "pinNeutralSha256": "51f0f39778b00a89773391438eb4a7b4dafa30438960422e8f1b85c061bc1336",
+      "checkoutOccurrences": 1,
+      "setupNodeOccurrences": 1
+    },
+    {
+      "path": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+      "predecessorSha256": "025bbc2fa4802a737d85d40d1ab3c38334c9458fa29b19a78f9b151da8bcb4b9",
+      "successorSha256": "8f05650f4af12cbdd7e7dde6e2786b04473e5dd9dba726793d725d0b38945b84",
+      "pinNeutralSha256": "c0c2bca1f093d6600e172093c791d9bb2a88515a3e4b54a557be273cd75bddef",
+      "checkoutOccurrences": 1,
+      "setupNodeOccurrences": 1
+    }
+  ],
+  "releaseIdentityContinuity": {
+    "artifactSha256": "3a10928717c21a66d7c7d5610b6449f724fcea2778a4a2a9e224d8a017e075a1",
+    "manifestSha256": "f33747eab0b7d243c03b5cdc28bbbc2ca877cbac6a231aceb597cc578030479e",
+    "configurationSha256": "2a9194ee16322b4b8fa17da9d3096d122e3211ded1cb522f5dea793b939b4083",
+    "contentSha256": "8bc59cdf6d572894b018d443bd6e9a2d3702f63aee22097091750833f1ce40f9",
+    "retentionPolicySha256": "1299d480d5e8d9418a143eb4817572a0362dd4a9649eb6f337e783c519e3bd20",
+    "deletionRuntimeSha256": "1ee36eb278646e8179fa092a2b4e32ae92cdaeba55f5a89ad9c7de24febbdc43",
+    "maintenanceRuntimeSha256": "9a28d07b997b3cadde2854c0b0916e4ad201634ad218e1b5d68813b79d21a717",
+    "privateForwardPayloadSha256": "bafde531701612f2bf5ca9fd3bb69ee1be60432c78b0a046359c7476e5785e09",
+    "privateRollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+    "publicRollbackArtifactSha256": "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6",
+    "forwardRevertSha256": "1c52f24e6fda40db63d542ffc783e9c9c7ffd0d85a29b41f234aaefbcf312183",
+    "applicationOrRollbackSourceChanged": false
+  },
+  "productionBoundary": {
+    "cloudflareAuthentication": false,
+    "cloudflareContactCount": 0,
+    "deploymentWorkflowDispatchCount": 0,
+    "deploymentCount": 0,
+    "productionMutationCount": 0,
+    "secretAccessCount": 0
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "companion": "DORMANT",
+    "anthonyMapped": false,
+    "stripe": "NON_LIVE",
+    "productionDeployment": "UNCHANGED"
+  }
+}

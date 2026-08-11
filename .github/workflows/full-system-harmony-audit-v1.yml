@@ -64,14 +64,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: PrometheusRouteIQ/prometheus-iq
           ref: ${{ inputs.candidate_commit }}
           fetch-depth: 0
           persist-credentials: false
           clean: true
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: "24.4.1"
       - name: Gate exact commit and tree before repository code
@@ -116,13 +116,13 @@ jobs:
       public_version: ${{ steps.identity.outputs.public_version }}
       private_version: ${{ steps.identity.outputs.private_version }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: PrometheusRouteIQ/prometheus-iq
           ref: ${{ inputs.candidate_commit }}
           persist-credentials: false
           clean: true
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: "24.4.1"
       - run: npm ci
@@ -155,14 +155,14 @@ jobs:
       rollback_contract_sha256: ${{ steps.freeze.outputs.rollback_contract_sha256 }}
       rollback_bundle_sha256: ${{ steps.freeze.outputs.rollback_bundle_sha256 }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: PrometheusRouteIQ/prometheus-iq
           ref: main
           fetch-depth: 0
           persist-credentials: false
           clean: true
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: "24.4.1"
       - run: npm ci
@@ -204,13 +204,13 @@ jobs:
       PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ needs.qualify.outputs.rollback_contract_sha256 }}
       PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ needs.qualify.outputs.rollback_bundle_sha256 }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: PrometheusRouteIQ/prometheus-iq
           ref: main
           persist-credentials: false
           clean: true
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: "24.4.1"
       - run: npm ci
@@ -252,14 +252,14 @@ jobs:
       PROMETHEUS_ROLLBACK_CONTRACT_SHA256: ${{ needs.qualify.outputs.rollback_contract_sha256 }}
       PROMETHEUS_ROLLBACK_BUNDLE_SHA256: ${{ needs.qualify.outputs.rollback_bundle_sha256 }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: PrometheusRouteIQ/prometheus-iq
           ref: main
           fetch-depth: 0
           persist-credentials: false
           clean: true
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: "24.4.1"
       - run: npm ci
