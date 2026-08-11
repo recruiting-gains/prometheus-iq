@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "github-actions-official-node24-pin-successor-security-v1",
+  "batchId": "BATCH-20260810-002",
+  "owner": "Prometheus Security/Aegis",
+  "ownerIdentity": "Prometheus Security <security@prometheus.local>",
+  "verdict": "OFFICIAL_NODE24_ACTION_SUPPLY_CHAIN_ACCEPTED",
+  "infrastructureProvenance": {
+    "commit": "8782ccb1ad918740473d39ba1b17d3cb443c9ad9",
+    "tree": "c83ffc9ef209b38c1e20764317d96be991fa8ecc",
+    "parent": "f49692d9bb6a18b1fdb5d8038e13df902d96d8a5",
+    "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "subject": "infrastructure: migrate official actions to Node 24",
+    "contractPath": "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json",
+    "contractSha256": "75e30efac9a71800a8a6767a2b5a2707eebc9aeb2ccfc8b65a25542981b87777",
+    "verifierPath": "scripts/verify-github-actions-official-node24-pin-successor.mjs",
+    "verifierSha256": "35186908a33e16b306e4926e76fd2b6c766220b809a34c6b6557635fd61577ab",
+    "changedFileCount": 21,
+    "workflowFileCount": 15,
+    "ownershipAccepted": true
+  },
+  "upstreamVerification": {
+    "owner": {
+      "login": "actions",
+      "type": "Organization",
+      "repositoriesArchived": false
+    },
+    "checkout": {
+      "repository": "actions/checkout",
+      "tag": "v7.0.1",
+      "tagTargetType": "commit",
+      "tagTarget": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "signatureVerified": true,
+      "signatureReason": "valid",
+      "runtime": "node24",
+      "actionYamlSha256": "d59219cb79590abdb877deaa14e3b65a00c05318bf5a6f3b989b9162b5d08c35",
+      "predecessorActionYamlSha256": "5349b6eea0a1797a9a993c48db9d95b33d27ee1b6227ceced0c9cbf8e655c939"
+    },
+    "setupNode": {
+      "repository": "actions/setup-node",
+      "tag": "v7.0.0",
+      "tagTargetType": "commit",
+      "tagTarget": "820762786026740c76f36085b0efc47a31fe5020",
+      "signatureVerified": true,
+      "signatureReason": "valid",
+      "runtime": "node24",
+      "actionYamlSha256": "5d765941ab5d8bef27f08e81b0b041cdb2df2050ea0261dc925d157a2bafbd2b",
+      "predecessorActionYamlSha256": "8aee59063ebc272d850507febb30930de2684be1b1240cf5f3dff13179fcff0b"
+    }
+  },
+  "behaviorAssessment": {
+    "checkout": {
+      "repositorySelectionChanged": false,
+      "refSelectionChanged": false,
+      "tokenSourceChanged": false,
+      "checkoutScopeChanged": false,
+      "persistCredentialsChanged": false,
+      "cleanBehaviorChanged": false,
+      "fetchDepthChanged": false,
+      "newUnsafePullRequestInput": true,
+      "newUnsafePullRequestInputDefault": false,
+      "unsafePullRequestCheckoutEnabled": false
+    },
+    "setupNode": {
+      "nodeVersionSelectionChanged": false,
+      "tokenSourceChanged": false,
+      "registryAuthenticationChanged": false,
+      "cacheInputChangedByRepository": false,
+      "automaticPackageManagerCacheAvailableUpstream": true,
+      "repositoryPackageManagerFieldPresent": false,
+      "repositoryDevEnginesPackageManagerPresent": false,
+      "automaticPackageManagerCacheActivated": false,
+      "cacheOutputsAddedUpstream": true,
+      "unusedAlwaysAuthInputRemovedUpstream": true
+    },
+    "runnerCompatibility": {
+      "minimumActionsRunner": "2.327.1",
+      "githubHostedUbuntuOnly": true,
+      "containerJobsUsingTheseActions": 0,
+      "accepted": true
+    }
+  },
+  "securityProperties": {
+    "fullImmutableShaPins": true,
+    "movingTags": 0,
+    "thirdPartyActionsAdded": 0,
+    "node20CompatibilityEscapeVariablePresent": false,
+    "repositoryContentsPermission": "read",
+    "artifactUploadActionsWriteWorkflowsBefore": 3,
+    "artifactUploadActionsWriteWorkflowsAfter": 3,
+    "newPermissionGranted": false,
+    "checkoutCredentialsPersisted": false,
+    "newSecretSources": 0,
+    "untrustedPrivilegedPullRequestTrigger": false,
+    "newCacheBehavior": false,
+    "packageManagerFieldAdded": false,
+    "packageDependenciesChanged": false,
+    "packageLockChanged": false
+  },
+  "occurrenceDisposition": {
+    "activeWorkflowReferencesMigrated": 78,
+    "activeWorkflowFilesMigrated": 15,
+    "activeInfrastructureVerifiersMigrated": true,
+    "overwatchSuccessorStillRequiredAtThisCommit": true,
+    "historicalNode20EvidenceRewritten": false,
+    "historicalNode20EvidenceRemainsExplicitlyClassified": true
+  },
+  "auditExpectation": {
+    "allDependencyVulnerabilities": 0,
+    "productionDependencyVulnerabilities": 0,
+    "secretScan": "PASS_REQUIRED",
+    "aegis": "PASS_REQUIRED",
+    "hostedNode20DeprecationWarning": "MUST_BE_ABSENT"
+  },
+  "productionBoundary": {
+    "cloudflareContactCount": 0,
+    "deploymentWorkflowDispatchCount": 0,
+    "deploymentCount": 0,
+    "productionMutationCount": 0,
+    "secretAccessCount": 0
+  }
+}

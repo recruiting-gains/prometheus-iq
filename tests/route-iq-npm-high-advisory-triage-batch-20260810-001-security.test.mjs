@@ -14,6 +14,10 @@ const predecessorTestPath =
   "tests/route-iq-npm-high-advisory-triage-batch-20260809-002-security.test.mjs";
 const infrastructureContractPath =
   "workers/infrastructure/route-iq-cloudflare-toolchain-compatibility-v1.json";
+const actionPinSecurityRecordPath =
+  "security/github-actions-official-node24-pin-successor-v1.json";
+const actionPinInfrastructureContractPath =
+  "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json";
 const infrastructureCommit = "da7504352424096869a18b66dc7c4429480393f4";
 const infrastructureTree = "9ecb94b795d612a34a84c7ba7871296872d9184a";
 const startingCommit = "2d5caafc52de0c1ee42bce5b370e2232e53fd72f";
@@ -32,6 +36,8 @@ const predecessor = readJson(predecessorRecordPath);
 const contract = readJson(infrastructureContractPath);
 const packageJson = readJson("package.json");
 const packageLock = readJson("package-lock.json");
+const actionPinSecurityRecord = readJson(actionPinSecurityRecordPath);
+const actionPinInfrastructureContract = readJson(actionPinInfrastructureContractPath);
 
 const expectedGraph = Object.freeze([
   {
@@ -450,4 +456,100 @@ test("the Security owner commit has the exact Infrastructure parent and only two
   ]).split("\n").filter(Boolean).sort();
   assert.deepEqual(changedFiles, [recordPath, testPath].sort());
   assert.equal(git(["merge-base", "--is-ancestor", ownerCommit, "HEAD"]), "");
+});
+
+test("official Node 24 action identities are independently accepted by Security/Aegis", () => {
+  assert.equal(actionPinSecurityRecord.schemaVersion,
+    "github-actions-official-node24-pin-successor-security-v1");
+  assert.equal(actionPinSecurityRecord.batchId, "BATCH-20260810-002");
+  assert.equal(actionPinSecurityRecord.owner, "Prometheus Security/Aegis");
+  assert.equal(actionPinSecurityRecord.verdict,
+    "OFFICIAL_NODE24_ACTION_SUPPLY_CHAIN_ACCEPTED");
+  assert.deepEqual(actionPinSecurityRecord.upstreamVerification.checkout, {
+    repository: "actions/checkout",
+    tag: "v7.0.1",
+    tagTargetType: "commit",
+    tagTarget: "3d3c42e5aac5ba805825da76410c181273ba90b1",
+    signatureVerified: true,
+    signatureReason: "valid",
+    runtime: "node24",
+    actionYamlSha256: "d59219cb79590abdb877deaa14e3b65a00c05318bf5a6f3b989b9162b5d08c35",
+    predecessorActionYamlSha256: "5349b6eea0a1797a9a993c48db9d95b33d27ee1b6227ceced0c9cbf8e655c939"
+  });
+  assert.deepEqual(actionPinSecurityRecord.upstreamVerification.setupNode, {
+    repository: "actions/setup-node",
+    tag: "v7.0.0",
+    tagTargetType: "commit",
+    tagTarget: "820762786026740c76f36085b0efc47a31fe5020",
+    signatureVerified: true,
+    signatureReason: "valid",
+    runtime: "node24",
+    actionYamlSha256: "5d765941ab5d8bef27f08e81b0b041cdb2df2050ea0261dc925d157a2bafbd2b",
+    predecessorActionYamlSha256: "8aee59063ebc272d850507febb30930de2684be1b1240cf5f3dff13179fcff0b"
+  });
+  assert.equal(actionPinSecurityRecord.behaviorAssessment.checkout
+    .unsafePullRequestCheckoutEnabled, false);
+  assert.equal(actionPinSecurityRecord.behaviorAssessment.setupNode
+    .automaticPackageManagerCacheActivated, false);
+  assert.equal(Object.hasOwn(packageJson, "packageManager"), false);
+  assert.equal(packageJson.devEngines?.packageManager, undefined);
+});
+
+test("the Node 24 Infrastructure successor has exact ownership and immutable evidence", () => {
+  const provenance = actionPinSecurityRecord.infrastructureProvenance;
+  assert.equal(git(["show", "-s", "--format=%T", provenance.commit]), provenance.tree);
+  assert.equal(git(["show", "-s", "--format=%P", provenance.commit]), provenance.parent);
+  assert.equal(
+    git(["show", "-s", "--format=%an <%ae>|%cn <%ce>", provenance.commit]),
+    `${provenance.identity}|${provenance.identity}`
+  );
+  assert.equal(git(["show", "-s", "--format=%s", provenance.commit]), provenance.subject);
+  assert.equal(sha256(gitBytesAt(provenance.commit, provenance.contractPath)),
+    provenance.contractSha256);
+  assert.equal(sha256(gitBytesAt(provenance.commit, provenance.verifierPath)),
+    provenance.verifierSha256);
+  assert.equal(git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", provenance.commit
+  ]).split("\n").filter(Boolean).length, provenance.changedFileCount);
+  assert.equal(git(["merge-base", "--is-ancestor", provenance.commit, "HEAD"]), "");
+});
+
+test("every active workflow uses only the accepted Node 24 pins without permission drift", () => {
+  let checkout = 0;
+  let setupNode = 0;
+  for (const evidence of actionPinInfrastructureContract.workflows) {
+    const source = readText(evidence.path);
+    const checkoutPins = [...source.matchAll(/uses:\s*actions\/checkout@([^\s]+)/gu)]
+      .map(match => match[1]);
+    const setupNodePins = [...source.matchAll(/uses:\s*actions\/setup-node@([^\s]+)/gu)]
+      .map(match => match[1]);
+    assert.ok(checkoutPins.every(pin => pin ===
+      actionPinSecurityRecord.upstreamVerification.checkout.tagTarget));
+    assert.ok(setupNodePins.every(pin => pin ===
+      actionPinSecurityRecord.upstreamVerification.setupNode.tagTarget));
+    assert.match(source, /^permissions:\n  contents: read/mu);
+    assert.doesNotMatch(source, /^  contents: write$/mu);
+    assert.doesNotMatch(source, /ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION/u);
+    assert.doesNotMatch(source, /^  (?:pull_request_target|workflow_run):/mu);
+    checkout += checkoutPins.length;
+    setupNode += setupNodePins.length;
+  }
+  assert.deepEqual({ checkout, setupNode }, { checkout: 39, setupNode: 39 });
+  assert.deepEqual(actionPinSecurityRecord.securityProperties, {
+    fullImmutableShaPins: true,
+    movingTags: 0,
+    thirdPartyActionsAdded: 0,
+    node20CompatibilityEscapeVariablePresent: false,
+    repositoryContentsPermission: "read",
+    artifactUploadActionsWriteWorkflowsBefore: 3,
+    artifactUploadActionsWriteWorkflowsAfter: 3,
+    newPermissionGranted: false,
+    checkoutCredentialsPersisted: false,
+    newSecretSources: 0,
+    untrustedPrivilegedPullRequestTrigger: false,
+    newCacheBehavior: false,
+    packageManagerFieldAdded: false,
+    packageDependenciesChanged: false,
+    packageLockChanged: false
+  });
 });
