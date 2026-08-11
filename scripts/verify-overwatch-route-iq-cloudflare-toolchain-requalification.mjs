@@ -9,6 +9,9 @@ import {
   PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE,
   verifyPublicForwardRollbackBuildSource
 } from "./lib/route-iq-public-forward-rollback.mjs";
+import {
+  verifyOverwatchGithubActionsNode24PinSuccessor
+} from "./verify-overwatch-github-actions-node24-pin-successor.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const startCommit = "2d5caafc52de0c1ee42bce5b370e2232e53fd72f";
@@ -51,6 +54,10 @@ const hostedRegressionFixtureRepairCommit =
   "da547614ad0968352240dba314e23aa6111341a2";
 const hostedRegressionFixtureRepairTree =
   "7e3c8f53884b88d0c17964d888f11c23ebb1d239";
+const augustReadinessPublicVerifierFixtureRepairCommit =
+  "f49692d9bb6a18b1fdb5d8038e13df902d96d8a5";
+const augustReadinessPublicVerifierFixtureRepairTree =
+  "e7a1a31af6a52b1564ac0ee65e295f8c65ce9275";
 const governancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
 const reportPath =
@@ -240,6 +247,9 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   );
   const packageJson = readJson("package.json");
   const packageLock = readJson("package-lock.json");
+  const node24Infrastructure = readJson(
+    "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json"
+  );
   const head = git("rev-parse", "HEAD");
   const originMain = git("rev-parse", "refs/remotes/origin/main");
   const currentBranch = git("branch", "--show-current");
@@ -402,12 +412,17 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.equal(git("show", "-s", "--format=%T", hostedRegressionFixtureRepairCommit),
     hostedRegressionFixtureRepairTree);
   verifyOwnerCommit(
-    head,
+    augustReadinessPublicVerifierFixtureRepairCommit,
     hostedRegressionFixtureRepairCommit,
     "Prometheus Overwatch <overwatch@prometheus.local>",
     "overwatch: compose public verifier fixture successor",
     augustReadinessPublicVerifierFixtureRepairFiles
   );
+  assert.equal(git("show", "-s", "--format=%T",
+    augustReadinessPublicVerifierFixtureRepairCommit),
+  augustReadinessPublicVerifierFixtureRepairTree);
+  assert.equal(git("merge-base", "--is-ancestor",
+    augustReadinessPublicVerifierFixtureRepairCommit, head), "");
 
   assert.equal(governance.batchId, "BATCH-20260810-001");
   assert.equal(report.batchId, governance.batchId);
@@ -661,7 +676,16 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     activePolicy.currentEvidence[privateDeploymentContractPath]);
   assert.equal(sha256At(`${activeDeploymentPolicyCommit}^`, privateDeploymentContractPath),
     sha256At(startCommit, privateDeploymentContractPath));
-  assert.equal(git("diff", "--name-only", startCommit, head, "--", ".github/workflows"), "");
+  assert.equal(git("diff", "--name-only", startCommit,
+    augustReadinessPublicVerifierFixtureRepairCommit, "--", ".github/workflows"), "");
+  const node24Verification = verifyOverwatchGithubActionsNode24PinSuccessor();
+  assert.equal(node24Verification.status, "OFFICIAL_NODE24_ACTION_PIN_OVERWATCH_VERIFIED");
+  const workflowDiff = git("diff", "--name-only",
+    augustReadinessPublicVerifierFixtureRepairCommit, head, "--", ".github/workflows");
+  assert.deepEqual(
+    workflowDiff ? workflowDiff.split("\n").sort() : [],
+    node24Infrastructure.workflows.map(item => item.path).sort()
+  );
 
   assert.match(packageJson.scripts.pretest, /security:cloudflare-toolchain:check/u);
   assert.match(packageJson.scripts.pretest, /overwatch:cloudflare-toolchain:check/u);
@@ -691,7 +715,8 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     controlledRehearsalRuntimeGuardRepairCommit,
     keychainInteroperabilityLauncherRepairCommit,
     hostedRegressionFixtureRepairCommit,
-    augustReadinessPublicVerifierFixtureRepairCommit: head,
+    augustReadinessPublicVerifierFixtureRepairCommit,
+    node24ActionPinStatus: node24Verification.status,
     compatibility: governance.compatibility.supportedCandidate,
     allDependencyHigh: security.auditDisposition.after.allDependencies.high,
     productionHigh: security.auditDisposition.after.productionOnly.high,
