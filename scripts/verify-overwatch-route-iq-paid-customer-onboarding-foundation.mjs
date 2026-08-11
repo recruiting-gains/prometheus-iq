@@ -4,10 +4,14 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { hasGithubActionsNode24InfrastructureSuccessor } from
+  "./verify-overwatch-github-actions-node24-pin-successor.mjs";
+
 const rootUrl = new URL("../", import.meta.url);
 const root = fileURLToPath(rootUrl);
 const read = path => fs.readFileSync(new URL(path, rootUrl), "utf8");
 const readJson = path => JSON.parse(read(path));
+const sha256 = value => createHash("sha256").update(value).digest("hex");
 
 const ledgerPath =
   "overwatch/governance/route-iq-paid-customer-production-gate-ledger-v1.json";
@@ -23,6 +27,10 @@ const liveIdentityGovernancePath =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
 const toolchainGovernancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
+const node24ActionPinGovernancePath =
+  "overwatch/governance/github-actions-official-node24-pin-successor-v1.json";
+const node24ActionPinInfrastructurePath =
+  "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json";
 const activeToolchainOwnerCommit = "d55a983134be40bf10777df293ca593e7583f138";
 const activeToolchainOwnerTree = "fcc850958e92d1f75eece476d6047b58972249d0";
 const activeToolchainOwnerParent = "3d646bffde28b1ef995ae03af5976a6db1105430";
@@ -290,6 +298,36 @@ export function validateActiveToolchainPublicLaneSuccessor({
   return successor;
 }
 
+export function validateNode24PublicLaneSuccessor({
+  governance,
+  infrastructure,
+  additionalChangedPaths
+}) {
+  const expectedPaths = [
+    ".github/workflows/deploy-prometheus-public-worker.yml",
+    ".github/workflows/qualify-prometheus-public-worker.yml"
+  ];
+  assert.equal(governance?.batchId, "BATCH-20260810-002");
+  assert.equal(governance?.ownerChain?.infrastructure?.commit,
+    "8782ccb1ad918740473d39ba1b17d3cb443c9ad9");
+  assert.equal(governance?.ownerChain?.infrastructure?.identity,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>");
+  assert.equal(infrastructure?.owner, "Prometheus Infrastructure");
+  assert.deepEqual([...additionalChangedPaths].sort(), expectedPaths);
+  for (const path of expectedPaths) {
+    const evidence = infrastructure.workflows.find(item => item.path === path);
+    assert.ok(evidence);
+    assert.equal(hasGithubActionsNode24InfrastructureSuccessor({
+      governance,
+      infrastructure,
+      path,
+      previousSha256: evidence.predecessorSha256,
+      currentSha256: evidence.successorSha256
+    }), true);
+  }
+  return governance.ownerChain.infrastructure;
+}
+
 function verifyPublicLaneCompatibility(baselineCommit) {
   const changedPaths = git([
     "diff",
@@ -302,12 +340,18 @@ function verifyPublicLaneCompatibility(baselineCommit) {
 
   const governance = readJson(liveIdentityGovernancePath);
   const toolchainGovernance = readJson(toolchainGovernancePath);
+  const node24ActionPinGovernance = readJson(node24ActionPinGovernancePath);
+  const node24ActionPinInfrastructure = readJson(node24ActionPinInfrastructurePath);
+  const node24Paths = node24ActionPinInfrastructure.workflows
+    .map(item => item.path)
+    .filter(path => paidCustomerPublicPaths.includes(path));
   const historicalChangedPaths = changedPaths.filter(path => (
     governance.historicalVerifierReconciliations.paidCustomerOnboardingFoundation
       .changedPaths.includes(path)
   ));
+  const node24ChangedPaths = changedPaths.filter(path => node24Paths.includes(path));
   const additionalChangedPaths = changedPaths.filter(path => (
-    !historicalChangedPaths.includes(path)
+    !historicalChangedPaths.includes(path) && !node24ChangedPaths.includes(path)
   ));
   const reconciliation = validateGovernedPublicLaneSuccessor({
     governance,
@@ -317,6 +361,11 @@ function verifyPublicLaneCompatibility(baselineCommit) {
   const toolchainSuccessor = validateActiveToolchainPublicLaneSuccessor({
     governance: toolchainGovernance,
     additionalChangedPaths
+  });
+  validateNode24PublicLaneSuccessor({
+    governance: node24ActionPinGovernance,
+    infrastructure: node24ActionPinInfrastructure,
+    additionalChangedPaths: node24ChangedPaths
   });
   assert.equal(git([
     "merge-base",
@@ -357,6 +406,26 @@ function verifyPublicLaneCompatibility(baselineCommit) {
     toolchainSuccessor.currentEvidence[activeToolchainPublicPath]);
   assert.equal(sha256At(activeToolchainOwnerParent, activeToolchainPublicPath),
     sha256At(baselineCommit, activeToolchainPublicPath));
+  assert.deepEqual(git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    node24ActionPinGovernance.ownerChain.infrastructure.commit
+  ]).split("\n"), [
+    node24ActionPinGovernance.ownerChain.infrastructure.commit,
+    node24ActionPinGovernance.ownerChain.infrastructure.parent,
+    node24ActionPinGovernance.ownerChain.infrastructure.tree,
+    node24ActionPinGovernance.ownerChain.infrastructure.identity,
+    node24ActionPinGovernance.ownerChain.infrastructure.identity,
+    node24ActionPinGovernance.ownerChain.infrastructure.subject
+  ]);
+  for (const path of node24ChangedPaths) {
+    const evidence = node24ActionPinInfrastructure.workflows.find(item =>
+      item.path === path);
+    assert.equal(sha256At(node24ActionPinGovernance.startingRepository.commit, path),
+      evidence.predecessorSha256);
+    assert.equal(sha256At(node24ActionPinGovernance.ownerChain.infrastructure.commit, path),
+      evidence.successorSha256);
+    assert.equal(sha256(read(path)), evidence.successorSha256);
+  }
 }
 
 function verifyPaidCustomerRuntimeBoundaries() {

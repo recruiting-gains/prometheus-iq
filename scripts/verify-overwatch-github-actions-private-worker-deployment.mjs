@@ -1330,7 +1330,9 @@ const node24ActionPinOverwatchPaths = Object.freeze([
   "overwatch/governance/github-actions-official-node24-pin-successor-v1.json",
   "overwatch/reports/BATCH-20260810-002-route-iq-official-node24-action-pin-successor.json",
   "scripts/verify-overwatch-github-actions-node24-pin-successor.mjs",
-  "tests/overwatch-auto-push-governance.test.mjs"
+  "scripts/verify-overwatch-route-iq-paid-customer-onboarding-foundation.mjs",
+  "tests/overwatch-auto-push-governance.test.mjs",
+  "tests/overwatch-route-iq-paid-customer-onboarding-foundation.test.mjs"
 ]);
 
 const infrastructureIdentity =

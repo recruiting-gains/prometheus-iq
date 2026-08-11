@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   validateActiveToolchainPublicLaneSuccessor,
   validateGovernedPublicLaneSuccessor,
+  validateNode24PublicLaneSuccessor,
   validatePaidCustomerProductionGateLedger,
   validatePrivateWorkerLineage,
   verifyOverwatchRouteIqPaidCustomerOnboardingFoundation
@@ -75,6 +76,37 @@ test("paid-customer public-lane guard composes only the exact active Wrangler su
   assert.throws(() => validateActiveToolchainPublicLaneSuccessor({
     governance,
     additionalChangedPaths: [path, "src/unapproved-public-change.js"]
+  }));
+});
+
+test("paid-customer public lane composes only the exact Node 24 action successor", () => {
+  const governance = readJson(
+    "overwatch/governance/github-actions-official-node24-pin-successor-v1.json"
+  );
+  const infrastructure = readJson(
+    "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json"
+  );
+  const paths = [
+    ".github/workflows/deploy-prometheus-public-worker.yml",
+    ".github/workflows/qualify-prometheus-public-worker.yml"
+  ];
+  assert.equal(validateNode24PublicLaneSuccessor({
+    governance,
+    infrastructure,
+    additionalChangedPaths: paths
+  }), governance.ownerChain.infrastructure);
+
+  const drifted = clone(governance);
+  drifted.ownerChain.infrastructure.commit = "0".repeat(40);
+  assert.throws(() => validateNode24PublicLaneSuccessor({
+    governance: drifted,
+    infrastructure,
+    additionalChangedPaths: paths
+  }));
+  assert.throws(() => validateNode24PublicLaneSuccessor({
+    governance,
+    infrastructure,
+    additionalChangedPaths: [...paths, "src/unapproved-public-change.js"]
   }));
 });
 

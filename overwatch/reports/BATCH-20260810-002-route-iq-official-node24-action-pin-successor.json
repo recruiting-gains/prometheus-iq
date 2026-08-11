@@ -41,6 +41,12 @@
     "historicalHashesPreserved": true,
     "successorHashesPinned": true
   },
+  "overwatchComposition": {
+    "privateDeploymentGovernance": "COMPOSED",
+    "paidCustomerPublicLaneGovernance": "COMPOSED",
+    "historicalToolchainEvidenceRewritten": false,
+    "applicationOrWorkflowBytesChangedByOverwatch": false
+  },
   "upstreamIdentity": {
     "owner": "actions",
     "ownerType": "Organization",
