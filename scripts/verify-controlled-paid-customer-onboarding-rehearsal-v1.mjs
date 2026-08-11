@@ -2,6 +2,7 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,6 +10,9 @@ import { fileURLToPath } from "node:url";
 import {
   CONTROLLED_REHEARSAL_V1_POLICY
 } from "./lib/controlled-paid-customer-onboarding-rehearsal-v1.mjs";
+import {
+  verifyGithubActionsOfficialNode24PinSuccessor
+} from "./verify-github-actions-official-node24-pin-successor.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const JOBS = Object.freeze([
@@ -31,6 +35,46 @@ const SECRET_NAMES = Object.freeze([
 
 function read(path) {
   return readFileSync(resolve(root, path), "utf8");
+}
+
+function sha256(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function normalizeOfficialActionPins(source) {
+  return source
+    .replace(/actions\/checkout@[^\s]+/gu, "actions/checkout@<PIN>")
+    .replace(/actions\/setup-node@[^\s]+/gu, "actions/setup-node@<PIN>");
+}
+
+export function verifyAcceptedAutonomousWorkflowNode24Successor({
+  acceptedWorkflow,
+  currentWorkflow,
+  node24Contract
+}) {
+  const path = ".github/workflows/github-hosted-autonomous-engineering-v1.yml";
+  const evidence = node24Contract?.workflows?.find(item => item.path === path);
+  assert.equal(node24Contract?.batchId, "BATCH-20260810-002");
+  assert.equal(node24Contract?.owner, "Prometheus Infrastructure");
+  assert.ok(evidence, "autonomous workflow Node 24 evidence is missing");
+  assert.equal(sha256(acceptedWorkflow), evidence.predecessorSha256);
+  assert.equal(sha256(currentWorkflow), evidence.successorSha256);
+  assert.equal(sha256(normalizeOfficialActionPins(acceptedWorkflow)),
+    evidence.pinNeutralSha256);
+  assert.equal(sha256(normalizeOfficialActionPins(currentWorkflow)),
+    evidence.pinNeutralSha256);
+  assert.equal(node24Contract.actions.checkout.commit,
+    "3d3c42e5aac5ba805825da76410c181273ba90b1");
+  assert.equal(node24Contract.actions.setupNode.commit,
+    "820762786026740c76f36085b0efc47a31fe5020");
+  assert.ok(currentWorkflow.includes(
+    `actions/checkout@${node24Contract.actions.checkout.commit}`));
+  assert.ok(currentWorkflow.includes(
+    `actions/setup-node@${node24Contract.actions.setupNode.commit}`));
+  return Object.freeze({
+    status: "ACCEPTED_AUTONOMOUS_WORKFLOW_NODE24_SUCCESSOR_VERIFIED",
+    path
+  });
 }
 
 function jobSection(workflow, job, nextJob) {
@@ -482,11 +526,15 @@ export function verifyControlledPaidCustomerOnboardingRehearsalV1() {
     timeout: 30_000
   });
   assert.equal(acceptedAutonomous.status, 0);
-  assert.equal(
-    read(".github/workflows/github-hosted-autonomous-engineering-v1.yml"),
-    acceptedAutonomous.stdout,
-    "accepted autonomous workflow v1 must remain byte-identical"
-  );
+  const node24Verification = verifyGithubActionsOfficialNode24PinSuccessor();
+  assert.equal(node24Verification.status, "OFFICIAL_NODE24_ACTION_PIN_SOURCE_VERIFIED");
+  verifyAcceptedAutonomousWorkflowNode24Successor({
+    acceptedWorkflow: acceptedAutonomous.stdout,
+    currentWorkflow: read(".github/workflows/github-hosted-autonomous-engineering-v1.yml"),
+    node24Contract: JSON.parse(read(
+      "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json"
+    ))
+  });
   return Object.freeze({
     status: "CONTROLLED_REHEARSAL_INFRASTRUCTURE_VERIFICATION_PASSED"
   });

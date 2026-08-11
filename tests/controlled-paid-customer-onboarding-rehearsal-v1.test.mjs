@@ -34,6 +34,7 @@ import {
 import {
   extractControlledRehearsalPreCheckoutGateScript,
   extractControlledRehearsalRunScripts,
+  verifyAcceptedAutonomousWorkflowNode24Successor,
   verifyControlledPaidCustomerOnboardingRehearsalV1,
   verifyControlledRehearsalWorkflowSource
 } from "../scripts/verify-controlled-paid-customer-onboarding-rehearsal-v1.mjs";
@@ -747,6 +748,44 @@ test("actual project workflow and accepted autonomous v1 verify", () => {
     verifyControlledPaidCustomerOnboardingRehearsalV1().status,
     "CONTROLLED_REHEARSAL_INFRASTRUCTURE_VERIFICATION_PASSED"
   );
+});
+
+test("accepted autonomous workflow permits only the exact official Node 24 pin successor", () => {
+  const path = ".github/workflows/github-hosted-autonomous-engineering-v1.yml";
+  const node24Contract = JSON.parse(readFileSync(resolve(
+    root,
+    "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json"
+  ), "utf8"));
+  const accepted = spawnSync("git", [
+    "show", `${CONTROLLED_REHEARSAL_V1_POLICY.baselineCommit}:${path}`
+  ], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  assert.equal(accepted.status, 0);
+  const current = readFileSync(resolve(root, path), "utf8");
+  assert.equal(verifyAcceptedAutonomousWorkflowNode24Successor({
+    acceptedWorkflow: accepted.stdout,
+    currentWorkflow: current,
+    node24Contract
+  }).status, "ACCEPTED_AUTONOMOUS_WORKFLOW_NODE24_SUCCESSOR_VERIFIED");
+
+  for (const mutate of [
+    value => { value.node24Contract.batchId = "BATCH-SUBSTITUTED"; },
+    value => { value.node24Contract.owner = "Prometheus Overwatch"; },
+    value => { value.node24Contract.workflows.find(item => item.path === path)
+      .successorSha256 = "0".repeat(64); },
+    value => { value.currentWorkflow += "\n# unrelated mutation\n"; },
+    value => { value.currentWorkflow = value.currentWorkflow.replace(
+      node24Contract.actions.checkout.commit,
+      "0".repeat(40)
+    ); }
+  ]) {
+    const candidate = {
+      acceptedWorkflow: accepted.stdout,
+      currentWorkflow: current,
+      node24Contract: structuredClone(node24Contract)
+    };
+    mutate(candidate);
+    assert.throws(() => verifyAcceptedAutonomousWorkflowNode24Successor(candidate));
+  }
 });
 
 test("synthetic workflow rejects wrong actor and branch gates", () => {
