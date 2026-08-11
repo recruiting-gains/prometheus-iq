@@ -26,6 +26,9 @@ import {
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
   hasRetentionMaintenancePayloadInfrastructureSuccessor
 } from "../scripts/verify-overwatch-github-actions-private-worker-deployment.mjs";
+import {
+  hasGithubActionsNode24InfrastructureSuccessor
+} from "../scripts/verify-overwatch-github-actions-node24-pin-successor.mjs";
 
 const root = new URL("../", import.meta.url);
 const readJson = path => JSON.parse(readFileSync(new URL(path, root), "utf8"));
@@ -49,6 +52,12 @@ const currentReadinessSuccessors = readJson(
 );
 const toolchainGovernance = readJson(
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json"
+);
+const node24ActionPinGovernance = readJson(
+  "overwatch/governance/github-actions-official-node24-pin-successor-v1.json"
+);
+const node24ActionPinInfrastructure = readJson(
+  "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json"
 );
 const clone = value => structuredClone(value);
 
@@ -278,6 +287,31 @@ test("Overwatch composes only the exact Infrastructure runtime-guard toolchain s
     mutate(candidate);
     assert.throws(() =>
       validateControlledRehearsalRuntimeGuardToolchainSuccessor(candidate));
+  }
+});
+
+test("Overwatch composes only the exact controlled-rehearsal Node 24 workflow successor", () => {
+  const path = ".github/workflows/controlled-paid-customer-onboarding-rehearsal-v1.yml";
+  const evidence = node24ActionPinInfrastructure.workflows.find(item => item.path === path);
+  const input = {
+    governance: node24ActionPinGovernance,
+    infrastructure: node24ActionPinInfrastructure,
+    path,
+    previousSha256: evidence.predecessorSha256,
+    currentSha256: evidence.successorSha256
+  };
+  assert.equal(hasGithubActionsNode24InfrastructureSuccessor(input), true);
+  for (const mutate of [
+    value => { value.governance.batchId = "BATCH-SUBSTITUTED"; },
+    value => { value.governance.ownerChain.infrastructure.commit = "0".repeat(40); },
+    value => { value.infrastructure.owner = "Prometheus Overwatch"; },
+    value => { value.path = ".github/workflows/early-github-handoff-v1.yml"; },
+    value => { value.previousSha256 = "0".repeat(64); },
+    value => { value.currentSha256 = "0".repeat(64); }
+  ]) {
+    const candidate = clone(input);
+    mutate(candidate);
+    assert.equal(hasGithubActionsNode24InfrastructureSuccessor(candidate), false);
   }
 });
 

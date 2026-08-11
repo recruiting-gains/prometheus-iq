@@ -27,6 +27,9 @@ import {
   hasRetentionMaintenancePayloadInfrastructureSuccessor,
   evaluatePrivateWorkflowV2RetentionDeletionIntelligenceSuccessors
 } from "./verify-overwatch-github-actions-private-worker-deployment.mjs";
+import {
+  hasGithubActionsNode24InfrastructureSuccessor
+} from "./verify-overwatch-github-actions-node24-pin-successor.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -614,6 +617,12 @@ function verifyCurrentOwnerFiles(governance) {
     "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json"
   );
   const toolchainGovernance = readJson(toolchainGovernancePath);
+  const node24ActionPinGovernance = readJson(
+    "overwatch/governance/github-actions-official-node24-pin-successor-v1.json"
+  );
+  const node24ActionPinInfrastructure = readJson(
+    "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json"
+  );
   const retentionMaintenanceConsumerSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json"
   );
@@ -736,6 +745,15 @@ function verifyCurrentOwnerFiles(governance) {
           ]).split("\n").filter(Boolean);
           assert.ok(changedPaths.includes(item.path),
             `governed successor omitted path: ${item.path}`);
+        } else if (hasGithubActionsNode24InfrastructureSuccessor({
+          governance: node24ActionPinGovernance,
+          infrastructure: node24ActionPinInfrastructure,
+          path: item.path,
+          previousSha256: successor?.sha256 ?? item.sha256,
+          currentSha256: actual
+        })) {
+          assert.notEqual(actual, item.sha256,
+            `Node 24 action-pin successor did not advance owner evidence: ${item.path}`);
         } else if (hasRetentionMaintenancePayloadInfrastructureSuccessor({
           governance: privateWorkflowGovernance,
           fieldSessionReportTypeGovernance,
