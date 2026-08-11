@@ -7,6 +7,7 @@ import test from "node:test";
 import { fixedCloudflareUnattendedSmokePlan } from
   "../scripts/run-cloudflare-unattended-smoke.mjs";
 import {
+  controlledRehearsalNode24InfrastructureSuccessor,
   evaluateActivePrivateDeploymentToolchainSuccessor,
   evaluateGithubActionsPrivateWorkerDeploymentGovernance,
   evaluateGithubActionsPrivateWorkerSuccessorOwnership,
@@ -16,6 +17,7 @@ import {
   evaluateGithubActionsPrivateWorkerWorkflow,
   hasActivePrivateDeploymentToolchainInfrastructureSuccessor,
   hasCloudflareToolchainInfrastructureSuccessor,
+  hasControlledRehearsalNode24InfrastructureSuccessor,
   hasFieldSessionReportTypeInfrastructureSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
@@ -1109,6 +1111,38 @@ test("active private workflow accepts only the exact Infrastructure Node 24 succ
       }
     }
   }), false);
+});
+
+test("private workflow composes only the exact controlled-rehearsal Node 24 successor", () => {
+  const evidence = controlledRehearsalNode24InfrastructureSuccessor.evidence[0];
+  const exact = {
+    path: evidence.path,
+    previousSha256: evidence.previousSha256,
+    currentSha256: evidence.currentSha256
+  };
+  assert.equal(hasControlledRehearsalNode24InfrastructureSuccessor(exact), true);
+  for (const changed of [
+    { ...exact, path: "scripts/unrelated-verifier.mjs" },
+    { ...exact, previousSha256: "0".repeat(64) },
+    { ...exact, currentSha256: "0".repeat(64) },
+    {
+      ...exact,
+      successor: {
+        ...clone(controlledRehearsalNode24InfrastructureSuccessor),
+        identity: "Prometheus Overwatch <overwatch@prometheus.local>"
+      }
+    },
+    {
+      ...exact,
+      successor: {
+        ...clone(controlledRehearsalNode24InfrastructureSuccessor),
+        evidence: clone(controlledRehearsalNode24InfrastructureSuccessor.evidence)
+          .slice(0, 1)
+      }
+    }
+  ]) {
+    assert.equal(hasControlledRehearsalNode24InfrastructureSuccessor(changed), false);
+  }
 });
 
 test("fixed interoperability smoke is GET or HEAD only and bodyless", () => {

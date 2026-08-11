@@ -1194,6 +1194,30 @@ const v2ControlledRehearsalOwnerPreflightRepairHashes = Object.freeze({
     "2db3ce593d0e00c07546754317dc0634bb04a4632447fcd088b37b010d1ec85c"
 });
 
+export const controlledRehearsalNode24InfrastructureSuccessor = Object.freeze({
+  commit: "b4bfaf8af58c4d914393954358296b13d83940e5",
+  parent: "a6faabf49bf947f35cb42590f74f46fee6bcd275",
+  tree: "1733f8bd215911be1e3f4c0669984e3bcd60f8de",
+  identity: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+  subject: "infrastructure: compose rehearsal Node 24 workflow evidence",
+  evidence: Object.freeze([
+    Object.freeze({
+      path: "scripts/verify-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+      previousSha256:
+        "26c000b13b79debd15337debdbf097512d2da7df2370a2e60227d5ecfabe9635",
+      currentSha256:
+        "a49ebd0395c784301554800c19fdd72d2fe6793783796d5e205c5622c399917b"
+    }),
+    Object.freeze({
+      path: "tests/controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
+      previousSha256:
+        "2db3ce593d0e00c07546754317dc0634bb04a4632447fcd088b37b010d1ec85c",
+      currentSha256:
+        "1781071bf64f6e8e948c1280790c95ae014887b2d6d51d5f910e0d66f5833a2e"
+    })
+  ])
+});
+
 const historicalOwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker.yml":
     "f2e672729d9bee7a4a173627e51a622b944d3b545e4ed1f4851414b5e31897e9",
@@ -1538,6 +1562,53 @@ export function hasCloudflareToolchainInfrastructureSuccessor({
       "infrastructure: update Cloudflare compatibility toolchain"
     ])
       && equal(paths, [...toolchainTransitionOwnerFiles].sort())
+      && sha256(previous) === previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
+
+export function hasControlledRehearsalNode24InfrastructureSuccessor({
+  path,
+  previousSha256,
+  currentSha256,
+  successor = controlledRehearsalNode24InfrastructureSuccessor
+}) {
+  const evidence = successor?.evidence?.find(item => item.path === path);
+  if (!equal(successor, controlledRehearsalNode24InfrastructureSuccessor)
+    || evidence?.previousSha256 !== previousSha256
+    || evidence?.currentSha256 !== currentSha256
+    || !/^[0-9a-f]{64}$/u.test(previousSha256)
+    || !/^[0-9a-f]{64}$/u.test(currentSha256)) {
+    return false;
+  }
+  try {
+    const metadata = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      successor.commit
+    ]).split("\n");
+    const changedPaths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r", successor.commit
+    ]).split("\n").filter(Boolean);
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${successor.parent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${successor.commit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor", successor.commit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return equal(metadata, [
+      successor.commit,
+      successor.parent,
+      successor.tree,
+      successor.identity,
+      successor.identity,
+      successor.subject
+    ])
+      && equal(changedPaths, successor.evidence.map(item => item.path))
       && sha256(previous) === previousSha256
       && sha256(current) === currentSha256;
   } catch {
@@ -5797,6 +5868,14 @@ function verifyV2OwnerAndGovernance() {
         previousSha256: expected,
         currentSha256: candidateSha256
       })
+      || hasControlledRehearsalNode24InfrastructureSuccessor({
+        path,
+        previousSha256: successor?.sha256
+          && successorPredecessorSha256 === expected
+          ? successor.sha256
+          : expected,
+        currentSha256: candidateSha256
+      })
     );
     const activePolicy = toolchainGovernance.activeDeploymentPolicySuccessor;
     const activePolicyPredecessorSha256 = activePolicy.currentEvidence[path]
@@ -5967,8 +6046,14 @@ function verifyV2OwnerAndGovernance() {
       encoding: null,
       stdio: ["ignore", "pipe", "ignore"]
     });
+    const currentSha256 = sha256(readFileSync(resolve(root, path)));
     if (sha256(committed) !== expected
-      || sha256(readFileSync(resolve(root, path))) !== expected
+      || !(currentSha256 === expected
+        || hasControlledRehearsalNode24InfrastructureSuccessor({
+          path,
+          previousSha256: expected,
+          currentSha256
+        }))
       || ownerPreflightEvidence.get(path) !== expected) {
       throw new Error(
         `Private Workflow v2 controlled-rehearsal owner-preflight evidence drifted: ${path}`
