@@ -23,6 +23,11 @@ import {
   hasLiveCanonicalIdentityOwnerEvidenceSuccessor,
   verifyOverwatchGithubActionsPrivateWorkerDeployment
 } from "../scripts/verify-overwatch-github-actions-private-worker-deployment.mjs";
+import {
+  evaluateOverwatchGithubActionsNode24PinSuccessor,
+  hasGithubActionsNode24InfrastructureSuccessor,
+  verifyOverwatchGithubActionsNode24PinSuccessor
+} from "../scripts/verify-overwatch-github-actions-node24-pin-successor.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -60,6 +65,15 @@ const retentionDeletionGovernance = readJson(
 const toolchainGovernance = readJson(
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json"
 );
+const node24ActionPinGovernance = readJson(
+  "overwatch/governance/github-actions-official-node24-pin-successor-v1.json"
+);
+const node24ActionPinInfrastructure = readJson(
+  "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json"
+);
+const node24ActionPinSecurity = readJson(
+  "security/github-actions-official-node24-pin-successor-v1.json"
+);
 
 function evaluate(nextGovernance = governance, nextReport = report, nextContract = contract) {
   return evaluateGithubActionsPrivateWorkerDeploymentGovernance({
@@ -80,6 +94,11 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
   assert.equal(result.activeToolchainOwnerCommit,
     "d55a983134be40bf10777df293ca593e7583f138");
   assert.equal(result.activeWranglerVersion, "4.120.1");
+  assert.equal(result.node24ActionPinStatus,
+    "OFFICIAL_NODE24_ACTION_PIN_OVERWATCH_VERIFIED");
+  assert.equal(result.node24ActionPinWorkflowFiles, 15);
+  assert.equal(result.node24ActionPinCheckoutReferences, 39);
+  assert.equal(result.node24ActionPinSetupNodeReferences, 39);
   assert.equal(result.founderActor, "PrometheusRouteIQ");
   assert.equal(result.founderTriggeringActor, "PrometheusRouteIQ");
   assert.equal(result.workflowBranch, "main");
@@ -1022,11 +1041,74 @@ test("workflow rejects missing gates, environment drift, action drift, and cachi
     workflow.replace("        run: npm test", "        run: true"),
     workflow.replace("      name: prometheus-private-worker-production", "      name: unprotected"),
     workflow.replace(
-      "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5",
+      "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
       "actions/checkout@v4"
     ),
     workflow.replace("          node-version: \"24\"", "          node-version: \"24\"\n          cache: npm")
   ]) assert.equal(evaluateGithubActionsPrivateWorkerWorkflow(changed).ok, false);
+});
+
+test("Overwatch independently verifies the official Node 24 action successor", () => {
+  const result = verifyOverwatchGithubActionsNode24PinSuccessor();
+  assert.deepEqual({
+    status: result.status,
+    workflowFiles: result.workflowFiles,
+    checkoutReferences: result.checkoutReferences,
+    setupNodeReferences: result.setupNodeReferences,
+    releaseIdentityChanged: result.releaseIdentityChanged
+  }, {
+    status: "OFFICIAL_NODE24_ACTION_PIN_OVERWATCH_VERIFIED",
+    workflowFiles: 15,
+    checkoutReferences: 39,
+    setupNodeReferences: 39,
+    releaseIdentityChanged: false
+  });
+});
+
+test("Node 24 successor governance fails closed on pin, tag, and release drift", () => {
+  const values = {
+    governance: node24ActionPinGovernance,
+    infrastructure: node24ActionPinInfrastructure,
+    security: node24ActionPinSecurity,
+    predecessorGovernance: toolchainGovernance
+  };
+  for (const mutate of [
+    value => { value.governance.successor.checkout.commit = "0".repeat(40); },
+    value => { value.governance.successor.movingTags = 1; },
+    value => { value.governance.releaseIdentityContinuity.artifactSha256 =
+      "0".repeat(64); }
+  ]) {
+    const candidate = structuredClone(values);
+    mutate(candidate);
+    assert.equal(evaluateOverwatchGithubActionsNode24PinSuccessor(candidate).ok, false);
+  }
+});
+
+test("active private workflow accepts only the exact Infrastructure Node 24 successor", () => {
+  const workflowEvidence = node24ActionPinInfrastructure.workflows.find(item =>
+    item.path === ".github/workflows/deploy-prometheus-private-worker-v2.yml");
+  const values = {
+    governance: node24ActionPinGovernance,
+    infrastructure: node24ActionPinInfrastructure,
+    path: workflowEvidence.path,
+    previousSha256: workflowEvidence.predecessorSha256,
+    currentSha256: workflowEvidence.successorSha256
+  };
+  assert.equal(hasGithubActionsNode24InfrastructureSuccessor(values), true);
+  assert.equal(hasGithubActionsNode24InfrastructureSuccessor({
+    ...values,
+    currentSha256: "0".repeat(64)
+  }), false);
+  assert.equal(hasGithubActionsNode24InfrastructureSuccessor({
+    ...values,
+    governance: {
+      ...node24ActionPinGovernance,
+      productionBoundary: {
+        ...node24ActionPinGovernance.productionBoundary,
+        deploymentCount: 1
+      }
+    }
+  }), false);
 });
 
 test("fixed interoperability smoke is GET or HEAD only and bodyless", () => {

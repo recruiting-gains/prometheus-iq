@@ -14,6 +14,11 @@ import { verifyGithubActionsPrivateWorkerDeployment } from
   "./verify-github-actions-private-worker-deployment.mjs";
 import { verifyGithubActionsPrivateWorkerWorkflowV2 } from
   "./verify-github-actions-private-worker-workflow-v2.mjs";
+import {
+  hasGithubActionsNode24InfrastructureSuccessor,
+  verifyOverwatchGithubActionsNode24PinSuccessor
+} from
+  "./verify-overwatch-github-actions-node24-pin-successor.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -1320,6 +1325,13 @@ const controlledRehearsalOverwatchPaths = Object.freeze([
   "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
   "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
 ]);
+const node24ActionPinOverwatchPaths = Object.freeze([
+  "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+  "overwatch/governance/github-actions-official-node24-pin-successor-v1.json",
+  "overwatch/reports/BATCH-20260810-002-route-iq-official-node24-action-pin-successor.json",
+  "scripts/verify-overwatch-github-actions-node24-pin-successor.mjs",
+  "tests/overwatch-auto-push-governance.test.mjs"
+]);
 
 const infrastructureIdentity =
   "Prometheus Infrastructure <infrastructure@prometheus.local>";
@@ -2298,10 +2310,10 @@ export function evaluateGithubActionsPrivateWorkerWorkflow(workflow) {
   const actions = [...workflow.matchAll(/^\s*uses:\s*(\S+)$/gmu)]
     .map(match => match[1]);
   require(equal(actions, [
-    "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5",
-    "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
-    "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5",
-    "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020"
+    "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+    "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020"
   ]), "Pinned action set drifted.");
   require(count(workflow, /^          repository: PrometheusRouteIQ\/prometheus-iq$/gmu) === 2
     && count(workflow, /^          ref: main$/gmu) === 2
@@ -5692,6 +5704,12 @@ function verifyV2OwnerAndGovernance() {
       "30810573fc0926c03a6bbc5337db4ce7030c419a4b08c64b219db7c3abeb371b"
   };
   const toolchainGovernance = readJson(toolchainGovernancePath);
+  const node24ActionPinGovernance = readJson(
+    "overwatch/governance/github-actions-official-node24-pin-successor-v1.json"
+  );
+  const node24ActionPinInfrastructure = readJson(
+    "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json"
+  );
   for (const [path, expected] of Object.entries(currentInfrastructureHashes)) {
     const currentSha256 = sha256(readFileSync(resolve(root, path)));
     const liveCanonicalGovernance = readJson(liveCanonicalIdentityGovernancePath);
@@ -5768,6 +5786,13 @@ function verifyV2OwnerAndGovernance() {
         previousSha256: successor?.sha256 && successorPredecessorSha256 === expected
           ? successor.sha256
           : expected,
+        currentSha256: candidateSha256
+      })
+      || hasGithubActionsNode24InfrastructureSuccessor({
+        governance: node24ActionPinGovernance,
+        infrastructure: node24ActionPinInfrastructure,
+        path,
+        previousSha256: expected,
         currentSha256: candidateSha256
       })
     );
@@ -5990,7 +6015,8 @@ function statusPaths() {
 function verifyOverwatchOwnership() {
   const currentExpectedOverwatchPaths = [
     ...expectedOverwatchPaths,
-    ...controlledRehearsalOverwatchPaths
+    ...controlledRehearsalOverwatchPaths,
+    ...node24ActionPinOverwatchPaths
   ];
   const head = git(["rev-parse", "HEAD"]);
   if (head === compatibilityOwnerCommit) {
@@ -6184,6 +6210,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
   if (!workflowEvaluation.ok) throw new Error(workflowEvaluation.failures.join("\n"));
 
   const activeToolchainSuccessor = verifyActivePrivateDeploymentToolchainSuccessor();
+  const node24ActionPinSuccessor =
+    verifyOverwatchGithubActionsNode24PinSuccessor();
   verifyOwnerHistory(governance);
   verifyOverwatchOwnership();
   verifyRegistryAndReleaseWiring();
@@ -6208,7 +6236,11 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
     || request.body !== false
   ))) throw new Error("Fixed smoke plan is not default-deny read-only.");
 
-  const scanPaths = [...new Set([...listTrackedFiles(root), ...expectedOverwatchPaths])];
+  const scanPaths = [...new Set([
+    ...listTrackedFiles(root),
+    ...expectedOverwatchPaths,
+    ...node24ActionPinOverwatchPaths
+  ])];
   if (scanTrackedRepository({
     root,
     trackedFiles: scanPaths,
@@ -6226,6 +6258,10 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
     implementationCommit: compatibilityOwnerCommit,
     activeToolchainOwnerCommit,
     activeWranglerVersion: activeToolchainSuccessor.wranglerVersion,
+    node24ActionPinStatus: node24ActionPinSuccessor.status,
+    node24ActionPinWorkflowFiles: node24ActionPinSuccessor.workflowFiles,
+    node24ActionPinCheckoutReferences: node24ActionPinSuccessor.checkoutReferences,
+    node24ActionPinSetupNodeReferences: node24ActionPinSuccessor.setupNodeReferences,
     founderActor,
     founderTriggeringActor: founderActor,
     workflowBranch: "main",

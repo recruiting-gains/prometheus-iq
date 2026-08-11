@@ -8448,7 +8448,7 @@ Canonical governance:
 
 Status:
 
-Owner implementation and independent Security/Aegis acceptance are complete. Exact-final-commit hosted qualification is the remaining acceptance gate. No Cloudflare authentication, production contact, deployment, storage access, secret access, deletion, or protected-state activation occurred.
+Accepted through exact-final-commit hosted qualification run `31437455764` at commit `f49692d9bb6a18b1fdb5d8038e13df902d96d8a5` and tree `e7a1a31af6a52b1564ac0ee65e295f8c65ce9275`. The clean hosted runner executed 75 test invocations containing 1,786 tests, passed 1,782 with four governed skips and zero failures, built 991 modules, and left the checkout unchanged. No Cloudflare authentication, production contact, deployment, storage access, secret access, deletion, or protected-state activation occurred.
 
 Owner composition:
 
@@ -8460,7 +8460,7 @@ Protected boundaries:
 
 - Dormant retention-maintenance artifact, manifest, configuration, content, retention policy, deletion runtime, maintenance runtime, private forward payload, private rollback bundle, public rollback artifact, and forward revert remain unchanged.
 - Collection remains OFF, cohorts remain 0, recommendation influence remains OFF, providers and scheduler remain OFF, Companion remains dormant, Anthony remains unmapped, and production remains unchanged.
-- The GitHub Node 20 action warning is valid. Official Node 24 replacements exist, but their coupled workflow and release identities require a separate Infrastructure and Overwatch successor; no workflow or permission changed here.
+- The hosted warning from the then-current Node 20-based GitHub actions was preserved as predecessor evidence and is addressed only by the separately governed Node 24 successor below.
 
 Canonical governance:
 
@@ -8469,17 +8469,36 @@ Canonical governance:
 - `overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json`
 - `overwatch/reports/BATCH-20260810-001-route-iq-wrangler-miniflare-major-transition-requalification.json`
 
+### 2026-08-10: Official Node 24 GitHub Action Pin Successor v1
+
+Status:
+
+Infrastructure source migration and independent Security/Aegis acceptance are complete. Exact-final-commit hosted qualification remains the final acceptance gate. All 15 active workflows use the official immutable `actions/checkout` `7.0.1` and `actions/setup-node` `7.0.0` Node 24 commits across 39 references each. No workflow behavior, permission, trigger, application dependency, release identity, rollback identity, Cloudflare state, or protected product state changed.
+
+Owner composition:
+
+- Prometheus Infrastructure owns the pin-only workflow migration, active verifier successors, exact occurrence inventory, and compatibility contract.
+- Prometheus Security/Aegis independently verified the official GitHub-owned action identities, valid signed commits, Node 24 runtimes, runner compatibility, unchanged token and cache boundaries, and absence of privilege expansion.
+- Prometheus Overwatch independently composes the owner chain, preserves historical Node 20 evidence, verifies release continuity, adds fail-closed regression coverage, and binds final acceptance to one exact hosted run.
+
+Canonical governance:
+
+- `workers/infrastructure/github-actions-official-node24-pin-successor-v1.json`
+- `security/github-actions-official-node24-pin-successor-v1.json`
+- `overwatch/governance/github-actions-official-node24-pin-successor-v1.json`
+- `overwatch/reports/BATCH-20260810-002-route-iq-official-node24-action-pin-successor.json`
+
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:
 
-After this exact hosted qualification and Founder review, qualify the official Node 24-compatible checkout and setup-node action pins as a separate Infrastructure and Overwatch workflow successor. Keep application, rollback, permissions, collection, deletion, cohort, and recommendation boundaries unchanged.
+Official Node 24 action-pin successor is source complete. Complete external Founder decisions for pricing, contracts, business banking, tax configuration, and Stripe Live eligibility before any live billing or customer activation. Keep application, rollback, permissions, collection, deletion, cohort, and recommendation boundaries unchanged.
 
-Primary owners: Prometheus Infrastructure and Prometheus Overwatch, with independent Prometheus Security/Aegis verification.
+Primary owner: Founder, with legal, accounting, banking, and payment-provider support as applicable.
 
 Reason:
 
-The Cloudflare toolchain transition removes the four development-only high findings while preserving the dormant release. GitHub currently forces the pinned Node 20 JavaScript actions onto Node 24; official Node 24-compatible replacements exist, but their coupled workflow identities require a separately governed successor.
+The engineering platform and notification path are governed. The remaining launch constraints are external business decisions and evidence, not another speculative product or infrastructure expansion.
 
 Current priority order after notification delivery acceptance:
 

@@ -185,8 +185,8 @@ test("master engineering state preserves intake history while current CRM truth 
   assert.match(duplicateRegister, /preserve both earlier terminal failure records as immutable evidence/u);
   assert.doesNotMatch(duplicateRegister, /current production flow is browser-local `localStorage` plus `mailto:` only/u);
   assert.match(nextTask, /Complete external Founder decisions for pricing, contracts, business banking, tax configuration, and Stripe Live eligibility/u);
-  assert.match(nextTask, /qualify the official Node 24-compatible checkout and setup-node action pins/u);
-  assert.match(nextTask, /separate Infrastructure and Overwatch workflow successor/u);
+  assert.match(nextTask, /Official Node 24 action-pin successor is source complete/u);
+  assert.match(nextTask, /Complete external Founder decisions for pricing, contracts, business banking, tax configuration, and Stripe Live eligibility/u);
   assert.match(nextTask, /Keep application, rollback, permissions, collection, deletion, cohort, and recommendation boundaries unchanged/u);
   assert.doesNotMatch(nextTask, /prepare a separate Founder-reviewed dormant retention-maintenance deployment package/u);
   assert.match(nextTask, /notification path and first-customer evidence boundary are controlled/u);
