@@ -2,9 +2,44 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  verifyCloudflareToolchainPackageSuccessor,
   verifyCloudflareToolchainRepositoryContext,
   verifyOverwatchRouteIqCloudflareToolchainRequalification
 } from "../scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs";
+
+const packageSuccessorEvidence = Object.freeze([
+  Object.freeze({
+    path: "package.json",
+    previousSha256: "f6b097932650a9a504bf81b217e4efe6092d1bebc6b863bc9dd0748192e2d5d8",
+    successorSha256: "a1fd91b3cd45b89b7cb5f9f4fb5e488f42aa2af805bd855f5065f62990c64c90"
+  })
+]);
+
+test("toolchain qualification follows only the governed package successor", () => {
+  const input = {
+    evidence: packageSuccessorEvidence,
+    historicalSha256:
+      "f6b097932650a9a504bf81b217e4efe6092d1bebc6b863bc9dd0748192e2d5d8",
+    currentSha256:
+      "a1fd91b3cd45b89b7cb5f9f4fb5e488f42aa2af805bd855f5065f62990c64c90"
+  };
+  assert.equal(verifyCloudflareToolchainPackageSuccessor(input), true);
+  for (const evidence of [
+    [],
+    [{ ...packageSuccessorEvidence[0], path: "package-lock.json" }],
+    [{ ...packageSuccessorEvidence[0], previousSha256: "0".repeat(64) }],
+    [{ ...packageSuccessorEvidence[0], successorSha256: "0".repeat(64) }],
+    [
+      packageSuccessorEvidence[0],
+      { ...packageSuccessorEvidence[0], successorSha256: "0".repeat(64) }
+    ]
+  ]) {
+    assert.throws(() => verifyCloudflareToolchainPackageSuccessor({
+      ...input,
+      evidence
+    }));
+  }
+});
 
 test("exact hosted detached checkout remains bound to main, SHA, and origin/main", () => {
   const head = "a".repeat(40);
@@ -82,6 +117,8 @@ test("Overwatch binds the exact zero-high toolchain owner chain and release cont
   assert.equal(result.publicRollbackArtifactSha256,
     "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6");
   assert.equal(result.augustReadinessPackageSuccessorCurrent, true);
+  assert.equal(result.currentPackageSha256,
+    "a1fd91b3cd45b89b7cb5f9f4fb5e488f42aa2af805bd855f5065f62990c64c90");
   assert.equal(result.cloudflareContactCount, 0);
   assert.equal(result.deploymentCount, 0);
   assert.equal(result.productionMutationCount, 0);

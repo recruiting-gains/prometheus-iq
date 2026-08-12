@@ -12,6 +12,9 @@ import {
 import {
   verifyOverwatchGithubActionsNode24PinSuccessor
 } from "./verify-overwatch-github-actions-node24-pin-successor.mjs";
+import {
+  validateAugust1ReadinessSuccessors
+} from "./verify-overwatch-route-iq-august-1-launch-readiness.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const startCommit = "2d5caafc52de0c1ee42bce5b370e2232e53fd72f";
@@ -236,12 +239,38 @@ export function verifyCloudflareToolchainRepositoryContext({
   assert.equal(currentBranch, "main");
 }
 
+export function verifyCloudflareToolchainPackageSuccessor({
+  evidence,
+  historicalSha256,
+  currentSha256
+}) {
+  const byPrevious = new Map();
+  for (const item of evidence.filter(candidate => candidate.path === "package.json")) {
+    assert.equal(byPrevious.has(item.previousSha256), false,
+      "package successor evidence branches");
+    byPrevious.set(item.previousSha256, item.successorSha256);
+  }
+  const visited = new Set();
+  let candidate = historicalSha256;
+  while (candidate !== currentSha256) {
+    assert.equal(visited.has(candidate), false, "package successor evidence cycles");
+    visited.add(candidate);
+    assert.equal(byPrevious.has(candidate), true,
+      "package successor evidence is incomplete");
+    candidate = byPrevious.get(candidate);
+  }
+  return true;
+}
+
 export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   const governance = readJson(governancePath);
   const report = readJson(reportPath);
   const infrastructure = readJson(infrastructurePath);
   const security = readJson(securityPath);
-  const augustReadinessSuccessors = readJson(augustReadinessSuccessorsPath);
+  const augustReadinessSuccessors = validateAugust1ReadinessSuccessors(
+    readJson(augustReadinessSuccessorsPath),
+    { root }
+  );
   const predecessor = readJson(
     "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json"
   );
@@ -437,8 +466,13 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     ),
     true
   );
-  assert.equal(sha256("package.json"),
-    "f6b097932650a9a504bf81b217e4efe6092d1bebc6b863bc9dd0748192e2d5d8");
+  const currentPackageSha256 = sha256("package.json");
+  assert.equal(verifyCloudflareToolchainPackageSuccessor({
+    evidence: augustReadinessSuccessors.overwatchCurrentEvidence,
+    historicalSha256:
+      "f6b097932650a9a504bf81b217e4efe6092d1bebc6b863bc9dd0748192e2d5d8",
+    currentSha256: currentPackageSha256
+  }), true);
   assert.equal(sha256(governance.authoritativeRecords.immutablePredecessorGovernance.path),
     governance.authoritativeRecords.immutablePredecessorGovernance.sha256);
   assert.equal(sha256(governance.authoritativeRecords.immutablePredecessorReport.path),
@@ -723,6 +757,7 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     releaseIdentitiesUnchanged: true,
     publicRollbackArtifactSha256: release.publicRollbackArtifactSha256,
     augustReadinessPackageSuccessorCurrent: true,
+    currentPackageSha256,
     cloudflareContactCount: 0,
     deploymentCount: 0,
     productionMutationCount: 0
