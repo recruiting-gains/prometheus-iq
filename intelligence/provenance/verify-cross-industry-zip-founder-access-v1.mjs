@@ -1416,6 +1416,30 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       transitions: [...existing.transitions, ...transitions]
     });
   }
+  const governedLearningSuccessor =
+    rehearsalSuccessor.governedMultiSessionLearningAdvisorySuccessor;
+  for (const [path, transitions] of governedLearningSuccessor.transitionsByPath) {
+    const existing = transitionByPath.get(path);
+    if (!existing) {
+      transitionByPath.set(path, {
+        path,
+        previousSha256: transitions[0].previousSha256,
+        currentSha256: transitions.at(-1).currentSha256,
+        transitions
+      });
+      continue;
+    }
+    assert.equal(
+      transitions[0].previousSha256,
+      existing.currentSha256,
+      `Broken governed-learning adoption chain: ${path}`
+    );
+    transitionByPath.set(path, {
+      ...existing,
+      currentSha256: transitions.at(-1).currentSha256,
+      transitions: [...existing.transitions, ...transitions]
+    });
+  }
 
   assert.equal(
     transitionByPath.get("index.html")?.currentSha256,
@@ -1487,6 +1511,8 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
         .successorTransitionsByPath.has(path)
       && !rehearsalSuccessor.retentionMaintenanceConsumerAdmissionSuccessor
         .successorTransitionsByPath.has(path)
+      && !rehearsalSuccessor.governedMultiSessionLearningAdvisorySuccessor
+        .transitionsByPath.has(path)
   );
   execFileSync("/usr/bin/git", [
     "diff", "--quiet",
