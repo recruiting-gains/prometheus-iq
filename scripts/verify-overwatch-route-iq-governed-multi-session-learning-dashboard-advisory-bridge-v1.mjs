@@ -117,6 +117,24 @@ export function canonicalGitHubRepositoryIdentity(remote) {
   return `${match[1].toLowerCase()}/${repository.toLowerCase()}`;
 }
 
+export function isGovernedMainCheckout({
+  branch,
+  head,
+  originMain,
+  environment = {}
+}) {
+  if (branch === "main") return true;
+  return ["", "HEAD"].includes(branch)
+    && head === originMain
+    && environment.GITHUB_ACTIONS === "true"
+    && environment.GITHUB_REPOSITORY === "PrometheusRouteIQ/prometheus-iq"
+    && environment.GITHUB_REF === "refs/heads/main"
+    && environment.GITHUB_REF_NAME === "main"
+    && environment.GITHUB_REF_TYPE === "branch"
+    && environment.GITHUB_EVENT_NAME === "workflow_dispatch"
+    && environment.GITHUB_SHA === head;
+}
+
 function verifyOwnerCommits(governance) {
   assert.equal(governance.ownerCommits.length, expectedChangedPaths.size);
   for (const ownerCommit of governance.ownerCommits) {
@@ -165,7 +183,14 @@ function verifyRepositoryBoundaries(governance) {
     canonicalGitHubRepositoryIdentity(governance.startingRepository.remote),
     "Repository identity drifted."
   );
-  assert.equal(git(["rev-parse", "--abbrev-ref", "HEAD"]).trim(), "main");
+  const head = git(["rev-parse", "HEAD"]).trim();
+  const originMain = git(["rev-parse", "refs/remotes/origin/main"]).trim();
+  assert.equal(isGovernedMainCheckout({
+    branch: git(["rev-parse", "--abbrev-ref", "HEAD"]).trim(),
+    head,
+    originMain,
+    environment: process.env
+  }), true, "Repository is not the governed main checkout.");
   for (const path of governance.unchangedBehaviorPaths) {
     execFileSync("/usr/bin/git", [
       "diff", "--quiet", `${governance.startingRepository.commit}..HEAD`, "--", path

@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   canonicalGitHubRepositoryIdentity,
+  isGovernedMainCheckout,
   verifyOverwatchRouteIqGovernedLearningAdvisoryBridge
 } from "../scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs";
 
@@ -31,6 +32,47 @@ test("Overwatch verifies the owner chain, canonical artifact, and protected stat
     activeCohorts: 0,
     recommendationInfluence: "OFF"
   });
+});
+
+test("main checkout accepts local main or exact hosted detached main only", () => {
+  const head = "a".repeat(40);
+  const hosted = {
+    GITHUB_ACTIONS: "true",
+    GITHUB_REPOSITORY: "PrometheusRouteIQ/prometheus-iq",
+    GITHUB_REF: "refs/heads/main",
+    GITHUB_REF_NAME: "main",
+    GITHUB_REF_TYPE: "branch",
+    GITHUB_EVENT_NAME: "workflow_dispatch",
+    GITHUB_SHA: head
+  };
+  assert.equal(isGovernedMainCheckout({
+    branch: "main",
+    head,
+    originMain: "b".repeat(40)
+  }), true);
+  assert.equal(isGovernedMainCheckout({
+    branch: "HEAD",
+    head,
+    originMain: head,
+    environment: hosted
+  }), true);
+  for (const [field, value] of [
+    ["branch", "release"],
+    ["originMain", "b".repeat(40)],
+    ["GITHUB_REPOSITORY", "PrometheusRouteIQ/other"],
+    ["GITHUB_REF", "refs/heads/release"],
+    ["GITHUB_SHA", "b".repeat(40)]
+  ]) {
+    const input = {
+      branch: "HEAD",
+      head,
+      originMain: head,
+      environment: { ...hosted }
+    };
+    if (field in input) input[field] = value;
+    else input.environment[field] = value;
+    assert.equal(isGovernedMainCheckout(input), false, field);
+  }
 });
 
 test("repository identity accepts governed GitHub transports and rejects ambiguous remotes", () => {
