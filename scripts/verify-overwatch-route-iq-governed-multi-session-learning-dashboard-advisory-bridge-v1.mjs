@@ -74,6 +74,9 @@ const expectedChangedPaths = new Map([
   ]],
   ["2f86078e53d80f72f8ff02e36e00aa564120f9c6", [
     "intelligence/provenance/protected-baseline-synchronization-governed-multi-session-learning-advisory-v1.json"
+  ]],
+  ["ab4940262d2eb843b2f8bf6f451e881cedf91cf9", [
+    "scripts/verify-dashboard-runtime-workflows.mjs"
   ]]
 ]);
 

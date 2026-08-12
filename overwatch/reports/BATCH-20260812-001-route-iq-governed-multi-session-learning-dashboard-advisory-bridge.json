@@ -20,6 +20,7 @@
     "workspaceCustomerProfileRepresentativeIsolation": "PASS",
     "prohibitedDataProjection": "PASS",
     "desktopAndMobileContracts": "PASS",
+    "dashboardRuntimeWorkflowHarness": "PASS_172_OF_172",
     "privateFounderOnlyReadAdapter": "PASS",
     "legacyLearningSuccessorChain": "PASS",
     "hostedExactCommit": "PENDING_EARLY_GITHUB_HANDOFF"

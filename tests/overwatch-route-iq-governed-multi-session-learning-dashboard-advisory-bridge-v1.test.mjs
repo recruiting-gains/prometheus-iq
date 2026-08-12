@@ -15,7 +15,7 @@ test("Overwatch verifies the owner chain, canonical artifact, and protected stat
   assert.deepEqual(verifyOverwatchRouteIqGovernedLearningAdvisoryBridge(), {
     status: "PASS",
     batchId: "BATCH-20260812-001",
-    ownerCommitCount: 12,
+    ownerCommitCount: 13,
     artifactId: "riq_governed_learning_86f0ff03747d330844473091f46cc05350a1e0ed0b262430e23caaa0ed229a56",
     artifactSha256: "86f0ff03747d330844473091f46cc05350a1e0ed0b262430e23caaa0ed229a56",
     manifestSha256: "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
