@@ -1,0 +1,233 @@
+{
+  "version": "route-iq-intelligence-governed-multi-session-learning-advisory-successor-v1",
+  "batchId": "BATCH-20260812-001",
+  "directive": "Route IQ Governed Multi-Session Learning Projection + Dashboard Advisory Bridge v1",
+  "status": "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Compose the exact Data admission, existing read-only and off-route learning engines, existing CustomerGraphSnapshot, existing Founder Dashboard surface, and private authenticated read adapter without rewriting historical protected baselines or changing recommendation behavior.",
+  "predecessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json",
+    "sha256": "71b1a7ce529784a93bc4454617be15a896cfde0e1af47731ba711c97372bf0a4",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "implementationCommits": [
+    {
+      "commit": "ff06fb0723e0842c970fd344049b999ba774faa4",
+      "tree": "bb2c31134b78dcebec1a1589e3c09acd8201132e",
+      "subject": "data: admit governed multi-session learning evidence",
+      "ownerSubsystem": "Prometheus Data"
+    },
+    {
+      "commit": "eff79c156b1820621cf80b4e4eb87c030d8c5024",
+      "tree": "e1af5725d67610a984f676fd889a69a6c3dd9bf6",
+      "subject": "intelligence: bridge governed multi-session advisory learning",
+      "ownerSubsystem": "Prometheus Intelligence Engine"
+    },
+    {
+      "commit": "53d080494c7377789b697d8bcc47fd0e8958b722",
+      "tree": "ab9cb7da79c75f783da8ea6000ce93e35d2b3f2a",
+      "subject": "dashboard: add founder governed learning advisory",
+      "ownerSubsystem": "Prometheus Dashboard"
+    },
+    {
+      "commit": "9568ccfcbb72035bbd4ff56994209a09b6e06143",
+      "tree": "1b50a61ad838248936896d6d3234c47b6c34121d",
+      "subject": "intelligence: pin governed learning artifact",
+      "ownerSubsystem": "Prometheus Intelligence Engine"
+    },
+    {
+      "commit": "267225d51e32acc6f50ce932a945e2749783734e",
+      "tree": "dbe4dfd627fddc1a434bb700beba488279c49877",
+      "subject": "infrastructure: serve governed learning advisory source",
+      "ownerSubsystem": "Prometheus Infrastructure"
+    },
+    {
+      "commit": "0e3d720f09e65cea066c5181afdff44d96a4e8ca",
+      "tree": "c2063be72b464925d9fd3187b05a18bed1c9a314",
+      "subject": "intelligence: compose governed learning successor chain",
+      "ownerSubsystem": "Prometheus Intelligence Engine"
+    },
+    {
+      "commit": "76946be76fea7dd9ec558739f63bd7310a766a66",
+      "tree": "0d410df5ce458c6c7409dc23b0447e4df03b9f80",
+      "subject": "intelligence: adopt governed learning successor baseline",
+      "ownerSubsystem": "Prometheus Intelligence Engine"
+    },
+    {
+      "commit": "7633c44d5e43ca64e32ece2da38f6e9925d34d4c",
+      "tree": "e42c79a57beecec90c21edd7bef81a0184e281a6",
+      "subject": "intelligence: order governed successor verification",
+      "ownerSubsystem": "Prometheus Intelligence Engine"
+    },
+    {
+      "commit": "f1b889bb45e357a757656d992e91d95580cc8880",
+      "tree": "9e364871eb0be5385ccbebcc145b2100f9e9e6e9",
+      "subject": "intelligence: deduplicate successor aggregation",
+      "ownerSubsystem": "Prometheus Intelligence Engine"
+    }
+  ],
+  "protectedSourceTransitions": [
+    {
+      "path": "index.html",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "commit": "53d080494c7377789b697d8bcc47fd0e8958b722",
+      "tree": "ab9cb7da79c75f783da8ea6000ce93e35d2b3f2a",
+      "subject": "dashboard: add founder governed learning advisory",
+      "previousSha256": "235be31ca523e7ba0d008de040fde8c32a4a8871c307eacb6a5273dd3646fa72",
+      "currentSha256": "4d85ef879dda14887e4cc85872e1b9c46bbc1479881ee296f6a78940f080410c"
+    },
+    {
+      "path": "index.html",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "267225d51e32acc6f50ce932a945e2749783734e",
+      "tree": "dbe4dfd627fddc1a434bb700beba488279c49877",
+      "subject": "infrastructure: serve governed learning advisory source",
+      "previousSha256": "4d85ef879dda14887e4cc85872e1b9c46bbc1479881ee296f6a78940f080410c",
+      "currentSha256": "b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604"
+    },
+    {
+      "path": "deploy/cloudflare-pages/index.html",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "267225d51e32acc6f50ce932a945e2749783734e",
+      "tree": "dbe4dfd627fddc1a434bb700beba488279c49877",
+      "subject": "infrastructure: serve governed learning advisory source",
+      "previousSha256": "235be31ca523e7ba0d008de040fde8c32a4a8871c307eacb6a5273dd3646fa72",
+      "currentSha256": "b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604"
+    },
+    {
+      "path": "dashboard/route-iq-dashboard-platform.mjs",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "commit": "53d080494c7377789b697d8bcc47fd0e8958b722",
+      "tree": "ab9cb7da79c75f783da8ea6000ce93e35d2b3f2a",
+      "subject": "dashboard: add founder governed learning advisory",
+      "previousSha256": "fb557809b6eb36b04d58b9ce859191934fbd90331f0aeba69b3010b52d1e4a8a",
+      "currentSha256": "354d377a02c1675df041ee2d7efeaa50962f1f5305e5c39352b0702c31eed4c0"
+    },
+    {
+      "path": "intelligence/read-only-field-session-learning.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "eff79c156b1820621cf80b4e4eb87c030d8c5024",
+      "tree": "e1af5725d67610a984f676fd889a69a6c3dd9bf6",
+      "subject": "intelligence: bridge governed multi-session advisory learning",
+      "previousSha256": "1eb8084ca8470533ac34b445bb7404865e00bf7f1ae02d01cc40b466c3e3e2ee",
+      "currentSha256": "348e8774e4a02edbfdb4859c60a2205ca227844026565e770b126e7526dfb61d"
+    },
+    {
+      "path": "intelligence/off-route-learning-intelligence.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "eff79c156b1820621cf80b4e4eb87c030d8c5024",
+      "tree": "e1af5725d67610a984f676fd889a69a6c3dd9bf6",
+      "subject": "intelligence: bridge governed multi-session advisory learning",
+      "previousSha256": "cfb0ea2ab1ce69a9e614d402b60bd7cc21ee88df97914c4e558a070ff27403bd",
+      "currentSha256": "6a3b73a5e2c670b072f225e2f77468c201a7501006f76116d23a15499cf83355"
+    },
+    {
+      "path": "workers/prometheus-iq-worker.js",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "267225d51e32acc6f50ce932a945e2749783734e",
+      "tree": "dbe4dfd627fddc1a434bb700beba488279c49877",
+      "subject": "infrastructure: serve governed learning advisory source",
+      "previousSha256": "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051",
+      "currentSha256": "b5a5d26229d6d0808bb41a08fd2b252021df1d5cdfa9e44cda539819fc728b9a"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "0e3d720f09e65cea066c5181afdff44d96a4e8ca",
+      "tree": "c2063be72b464925d9fd3187b05a18bed1c9a314",
+      "subject": "intelligence: compose governed learning successor chain",
+      "previousSha256": "ce1ab3876750043b251cb6029d0c0709159a8ff9c58c4266411883e6f9542e2c",
+      "currentSha256": "12ce609da8194f3071270eb6dd07fe0e6f50c772efd8cab82937a8af8e3bf512"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "76946be76fea7dd9ec558739f63bd7310a766a66",
+      "tree": "0d410df5ce458c6c7409dc23b0447e4df03b9f80",
+      "subject": "intelligence: adopt governed learning successor baseline",
+      "previousSha256": "12ce609da8194f3071270eb6dd07fe0e6f50c772efd8cab82937a8af8e3bf512",
+      "currentSha256": "a3825a1518873245d003af5e6df0ff4adfb782c729904cb54f537e6f0bebbacc"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "7633c44d5e43ca64e32ece2da38f6e9925d34d4c",
+      "tree": "e42c79a57beecec90c21edd7bef81a0184e281a6",
+      "subject": "intelligence: order governed successor verification",
+      "previousSha256": "a3825a1518873245d003af5e6df0ff4adfb782c729904cb54f537e6f0bebbacc",
+      "currentSha256": "1bebf7b1d43a78dd647bda1722afd26c54f71e5bad9d6559e2ff6ab080256eb5"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "f1b889bb45e357a757656d992e91d95580cc8880",
+      "tree": "9e364871eb0be5385ccbebcc145b2100f9e9e6e9",
+      "subject": "intelligence: deduplicate successor aggregation",
+      "previousSha256": "1bebf7b1d43a78dd647bda1722afd26c54f71e5bad9d6559e2ff6ab080256eb5",
+      "currentSha256": "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0"
+    }
+  ],
+  "newSourcePins": [
+    {
+      "path": "data/route-iq-field-sessions-v1/route-iq-eligible-session-manifest.mjs",
+      "sha256": "38d88fed7a9418ddfed7ff3c266297471416ecca881cf72191d1cd41358e319c",
+      "ownerSubsystem": "Prometheus Data"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/route-iq-governed-learning-source-v1.json",
+      "sha256": "e8f6936f1ca5627e3102dd7ffe72bbba41f206dc3628bc03664fc9a2d817cb67",
+      "ownerSubsystem": "Prometheus Data"
+    },
+    {
+      "path": "intelligence/route-iq-governed-multi-session-learning.mjs",
+      "sha256": "0ada2dff53ddb08f0160b2dda767b414e3c16b7bfe77c803ace1fd8333188923",
+      "ownerSubsystem": "Prometheus Intelligence Engine"
+    },
+    {
+      "path": "intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json",
+      "sha256": "89e3619c3f9c9a5d71003761d3c861dbb9c59dddfac6e7991bba483e562fcd37",
+      "ownerSubsystem": "Prometheus Intelligence Engine"
+    },
+    {
+      "path": "intelligence/provenance/verify-route-iq-governed-multi-session-learning-v1.mjs",
+      "sha256": "8e2f12ec7db3ab7cc215f832d5099d34b87674ff15b6c86bed3e8db8f345a142",
+      "ownerSubsystem": "Prometheus Intelligence Engine"
+    },
+    {
+      "path": "workers/infrastructure/route-iq-governed-learning-advisory-runtime.js",
+      "sha256": "d42e7e47a8e07f93a13577591d25fd1e5d70b574b1075f3f291102f9c79f56c5",
+      "ownerSubsystem": "Prometheus Infrastructure"
+    },
+    {
+      "path": "security/route-iq-governed-learning-advisory-v1.json",
+      "sha256": "1e2fb1758916031f57bf6b6a2c0a7ffdbf5920f1ad2c02ca50d98b091bd78211",
+      "ownerSubsystem": "Prometheus Security/Aegis"
+    }
+  ],
+  "behavior": {
+    "accumulatedLearningAdded": true,
+    "existingLearningEnginesReused": true,
+    "customerGraphSnapshotReused": true,
+    "founderAdvisoryOnly": true,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "activePoolSelectionChanged": false,
+    "adaptiveReplenishmentChanged": false,
+    "businessHoursEligibilityChanged": false,
+    "recommendationOutputChanged": false
+  },
+  "boundaries": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "productionStorageAccess": 0,
+    "cloudflareContacts": 0,
+    "deployments": 0,
+    "representativeShadowOutputExposed": false,
+    "productionMutationPerformed": false
+  }
+}
