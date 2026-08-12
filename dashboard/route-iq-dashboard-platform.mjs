@@ -11,6 +11,12 @@ export const routeIqFounderWorkspaceAccessPath = "/api/dashboard/route-iq/founde
 export const routeIqFounderWorkspaceSwitchPath = "/api/dashboard/route-iq/founder/workspace-session";
 export const routeIqPaidCustomerPreviewContractVersion = "route-iq-paid-customer-dashboard-preview-v1";
 export const routeIqPaidCustomerPreviewPath = "/api/dashboard/route-iq/internal/paid-customer-configuration-preview";
+export const routeIqGovernedLearningAdvisoryEnvelopeVersion =
+  "route-iq-governed-learning-dashboard-envelope-v1";
+export const routeIqGovernedLearningAdvisoryContractVersion =
+  "route-iq-governed-learning-dashboard-advisory-v1";
+export const routeIqGovernedLearningAdvisoryPath =
+  "/api/dashboard/route-iq/intelligence/governed-learning-advisory";
 
 export const routeIqDashboardRuntimeAssetKeys = Object.freeze([
   "workspaceConfiguration",
@@ -1342,4 +1348,361 @@ export function governedRuntimeNetworkOnlyPath(pathname) {
     || pathname.startsWith("/data/route-iq-commercial-readiness-v1/")
     || pathname.includes("/business-hours")
     || pathname.includes("/runtime-pool");
+}
+
+const governedLearningTruthVocabulary = Object.freeze([
+  "Verified",
+  "Observed",
+  "Review Required",
+  "Insufficient Evidence",
+  "Unknown"
+]);
+const governedLearningForbiddenKey = /candidate|ranking|ranked|probabilit|brier|\bece\b|shadow|recommendationScore/iu;
+
+function hasGovernedLearningForbiddenKey(value) {
+  if (!value || typeof value !== "object") return false;
+  return Object.entries(value).some(([key, child]) => (
+    governedLearningForbiddenKey.test(key)
+      || hasGovernedLearningForbiddenKey(child)
+  ));
+}
+
+function assertGovernedLearningSession(session) {
+  assertSession(session);
+  if (session.principalRole !== "founder"
+    || session.capabilities.founderIntelligence !== true
+    || session.capabilities.readWorkspaceOperations !== true) {
+    fail(
+      "route_iq_dashboard_governed_learning_forbidden",
+      "Governed learning is available only to an authenticated Founder."
+    );
+  }
+}
+
+function assertTruthState(value, scope) {
+  if (!governedLearningTruthVocabulary.includes(value)) {
+    fail("route_iq_dashboard_governed_learning_truth_invalid", `${scope} has an invalid truth state.`);
+  }
+}
+
+function validateGovernedLearningAdvisory(advisory, envelope, session, expectedCustomerId) {
+  const expectedKeys = [
+    "contractVersion",
+    "truthVocabulary",
+    "evidenceMaturity",
+    "categoryTimeWindowPatterns",
+    "businessVisitOutcomeRelationships",
+    "outcomeObservations",
+    "strongestThresholdSupportedPattern",
+    "weakPatterns",
+    "conflictingPatterns",
+    "stalePatterns",
+    "unavailableEvidence",
+    "unknownEvidence",
+    "confidence",
+    "browserLocalEstimateBoundary",
+    "dataQualityWarnings",
+    "lastGovernedEvidenceAt",
+    "additionalEvidenceNeeded",
+    "versions",
+    "provenance",
+    "safety"
+  ];
+  if (!exactKeys(advisory, expectedKeys)
+    || advisory.contractVersion !== routeIqGovernedLearningAdvisoryContractVersion
+    || JSON.stringify(advisory.truthVocabulary) !== JSON.stringify(governedLearningTruthVocabulary)
+    || hasGovernedLearningForbiddenKey(advisory)
+    || !validTimestamp(advisory.lastGovernedEvidenceAt)
+    || !Array.isArray(advisory.categoryTimeWindowPatterns)
+    || !Array.isArray(advisory.businessVisitOutcomeRelationships)
+    || !Array.isArray(advisory.outcomeObservations)
+    || !Array.isArray(advisory.weakPatterns)
+    || !Array.isArray(advisory.conflictingPatterns)
+    || !Array.isArray(advisory.stalePatterns)
+    || !Array.isArray(advisory.unavailableEvidence)
+    || !Array.isArray(advisory.unknownEvidence)
+    || !Array.isArray(advisory.dataQualityWarnings)
+    || !Array.isArray(advisory.additionalEvidenceNeeded)) {
+    fail(
+      "route_iq_dashboard_governed_learning_advisory_invalid",
+      "The governed learning advisory is malformed or unsafe."
+    );
+  }
+  assertTruthState(advisory.evidenceMaturity?.truthState, "Evidence maturity");
+  assertTruthState(advisory.confidence?.truthState, "Learning confidence");
+  assertTruthState(
+    advisory.strongestThresholdSupportedPattern?.truthState,
+    "Strongest supported pattern"
+  );
+  if (!Number.isInteger(advisory.evidenceMaturity?.sessionsAdmitted)
+    || advisory.evidenceMaturity.sessionsAdmitted < 1
+    || !Number.isInteger(advisory.evidenceMaturity?.visitsAdmitted)
+    || advisory.evidenceMaturity.visitsAdmitted < 1
+    || advisory.confidence?.influence !== "EXPLANATION_ONLY"
+    || advisory.confidence?.propagation !== "OFF"
+    || advisory.browserLocalEstimateBoundary?.governedConfidenceBlendedWithBrowserEstimate !== false
+    || advisory.browserLocalEstimateBoundary?.browserEstimateConfidence !== null
+    || advisory.provenance?.workspaceId !== session.workspaceId
+    || advisory.provenance?.operatingProfileId !== session.operatingProfileId
+    || advisory.provenance?.customerId !== expectedCustomerId
+    || advisory.provenance?.representativeId !== envelope.scope.representativeId
+    || advisory.provenance?.freshnessState !== "CURRENT_WITHIN_RETENTION_BOUNDARY"
+    || !sha256Pattern.test(advisory.provenance?.manifestSha256 || "")
+    || advisory.safety?.founderOnly !== true
+    || advisory.safety?.representativeReadable !== false
+    || advisory.safety?.readOnly !== true
+    || advisory.safety?.recommendationInfluence !== "OFF"
+    || advisory.safety?.confidencePropagation !== "OFF"
+    || advisory.safety?.routeOrderingChanged !== false
+    || advisory.safety?.routeScoringChanged !== false
+    || advisory.safety?.activePoolChanged !== false
+    || advisory.safety?.adaptiveReplenishmentChanged !== false
+    || advisory.safety?.businessHoursEligibilityChanged !== false) {
+    fail(
+      "route_iq_dashboard_governed_learning_boundary_invalid",
+      "The governed learning advisory does not preserve its authorization and product boundaries."
+    );
+  }
+  return advisory;
+}
+
+export function validateGovernedLearningAdvisoryEnvelope(
+  envelope,
+  { session, expectedCustomerId, now = new Date() } = {}
+) {
+  assertGovernedLearningSession(session);
+  if (!strictId.test(expectedCustomerId || "") || expectedCustomerId === session.workspaceId) {
+    fail(
+      "route_iq_dashboard_governed_learning_customer_invalid",
+      "The governed customer mapping is unavailable."
+    );
+  }
+  if (!exactKeys(envelope, [
+    "contractVersion",
+    "authorizationState",
+    "principal",
+    "scope",
+    "artifact",
+    "advisory"
+  ])
+    || envelope.contractVersion !== routeIqGovernedLearningAdvisoryEnvelopeVersion
+    || envelope.authorizationState !== "server_verified"
+    || !exactKeys(envelope.principal, [
+      "identityContextSource",
+      "authenticationAuthority",
+      "authenticated",
+      "callerSupplied",
+      "role"
+    ])
+    || envelope.principal.identityContextSource !== "server_verified_identity_mapping"
+    || envelope.principal.authenticationAuthority !== "cloudflare_access"
+    || envelope.principal.authenticated !== true
+    || envelope.principal.callerSupplied !== false
+    || envelope.principal.role !== "founder"
+    || !exactKeys(envelope.scope, [
+      "workspaceId",
+      "operatingProfileId",
+      "customerId",
+      "representativeId",
+      "authority"
+    ])
+    || envelope.scope.workspaceId !== session.workspaceId
+    || envelope.scope.operatingProfileId !== session.operatingProfileId
+    || envelope.scope.customerId !== expectedCustomerId
+    || !strictId.test(envelope.scope.representativeId || "")
+    || envelope.scope.authority !== "server_resolved"
+    || !exactKeys(envelope.artifact, [
+      "artifactId",
+      "artifactSha256",
+      "generatedAt",
+      "status",
+      "freshnessState",
+      "expiresAt"
+    ])
+    || envelope.artifact.artifactId !== `riq_governed_learning_${envelope.artifact.artifactSha256}`
+    || !sha256Pattern.test(envelope.artifact.artifactSha256 || "")
+    || !validTimestamp(envelope.artifact.generatedAt)
+    || envelope.artifact.status !== "SOURCE_COMPLETE_UNDEPLOYED"
+    || envelope.artifact.freshnessState !== "CURRENT_WITHIN_RETENTION_BOUNDARY"
+    || !validTimestamp(envelope.artifact.expiresAt)
+    || Date.parse(envelope.artifact.expiresAt) <= new Date(now).getTime()) {
+    fail(
+      "route_iq_dashboard_governed_learning_envelope_invalid",
+      "The governed learning response is not a current server-authorized artifact."
+    );
+  }
+  validateGovernedLearningAdvisory(envelope.advisory, envelope, session, expectedCustomerId);
+  return deepFreeze(structuredClone(envelope));
+}
+
+export async function loadGovernedLearningAdvisory({
+  session,
+  expectedCustomerId,
+  fetchFn = globalThis.fetch,
+  now = new Date(),
+  signal
+} = {}) {
+  assertGovernedLearningSession(session);
+  if (typeof fetchFn !== "function") {
+    fail(
+      "route_iq_dashboard_governed_learning_fetch_unavailable",
+      "Governed learning is temporarily unavailable."
+    );
+  }
+  const response = await fetchFn(routeIqGovernedLearningAdvisoryPath, {
+    method: "GET",
+    mode: "same-origin",
+    credentials: "same-origin",
+    cache: "no-store",
+    redirect: "error",
+    headers: { Accept: "application/json" },
+    ...(signal ? { signal } : {})
+  });
+  if (!response?.ok
+    || response.redirected === true
+    || !String(response.headers?.get?.("cache-control") || "").toLowerCase().includes("no-store")
+    || !String(response.headers?.get?.("content-type") || "").toLowerCase().includes("application/json")) {
+    fail(
+      "route_iq_dashboard_governed_learning_response_invalid",
+      "Governed learning is temporarily unavailable."
+    );
+  }
+  let envelope;
+  try {
+    envelope = await response.json();
+  } catch {
+    fail(
+      "route_iq_dashboard_governed_learning_response_malformed",
+      "Governed learning is temporarily unavailable."
+    );
+  }
+  return validateGovernedLearningAdvisoryEnvelope(envelope, {
+    session,
+    expectedCustomerId,
+    now
+  });
+}
+
+function advisoryText(value, maximum = 200) {
+  return cleanText(value, maximum) || "Unknown";
+}
+
+function advisoryList(values, mapValue) {
+  return Object.freeze((values || []).slice(0, 20).map(mapValue));
+}
+
+export function createGovernedLearningAdvisoryViewModel(envelope, options = {}) {
+  const validated = validateGovernedLearningAdvisoryEnvelope(envelope, options);
+  const advisory = validated.advisory;
+  return deepFreeze({
+    status: "READY",
+    maturity: {
+      truthState: advisory.evidenceMaturity.truthState,
+      sessions: advisory.evidenceMaturity.sessionsAdmitted,
+      visits: advisory.evidenceMaturity.visitsAdmitted,
+      label: advisoryText(advisory.evidenceMaturity.status.replaceAll("_", " "), 80)
+    },
+    confidence: {
+      truthState: advisory.confidence.truthState,
+      band: advisoryText(advisory.confidence.band.replaceAll("_", " "), 80),
+      limitingFactors: advisoryList(advisory.confidence.limitingFactors, value => (
+        advisoryText(String(value).replaceAll("_", " "), 120)
+      ))
+    },
+    strongestPattern: {
+      truthState: advisory.strongestThresholdSupportedPattern.truthState,
+      category: advisoryText(advisory.strongestThresholdSupportedPattern.category || "No threshold-supported pattern", 120),
+      confidenceBand: advisoryText(advisory.strongestThresholdSupportedPattern.confidenceBand?.replaceAll("_", " "), 80)
+    },
+    categoryTimeWindows: advisoryList(advisory.categoryTimeWindowPatterns, pattern => ({
+      category: advisoryText(pattern.category, 120),
+      timeWindow: advisoryText(pattern.timeWindow, 80),
+      truthState: governedLearningTruthVocabulary.includes(pattern.truthState)
+        ? pattern.truthState
+        : "Unknown",
+      visits: Number.isInteger(pattern.visits) ? pattern.visits : 0,
+      outcomes: Number.isInteger(pattern.outcomes) ? pattern.outcomes : 0
+    })),
+    outcomeObservations: advisoryList(advisory.outcomeObservations, observation => ({
+      rawOutcome: advisoryText(observation.rawOutcome, 120),
+      normalizedOutcome: advisoryText(observation.normalizedOutcome?.replaceAll("_", " "), 120),
+      truthState: governedLearningTruthVocabulary.includes(observation.truthState)
+        ? observation.truthState
+        : "Unknown"
+    })),
+    relationshipSummary: advisoryList(
+      Object.entries(advisory.businessVisitOutcomeRelationships.reduce((counts, relationship) => {
+        const type = advisoryText(relationship.relationshipType, 80);
+        counts[type] = (counts[type] || 0) + 1;
+        return counts;
+      }, {})),
+      ([relationshipType, count]) => ({ relationshipType, count })
+    ),
+    evidenceReview: {
+      weak: advisory.weakPatterns.length,
+      conflicting: advisory.conflictingPatterns.length,
+      stale: advisory.stalePatterns.length,
+      unavailable: advisory.unavailableEvidence.length,
+      unknown: advisory.unknownEvidence.length
+    },
+    warnings: advisoryList(advisory.dataQualityWarnings, value => advisoryText(value, 180)),
+    nextEvidence: advisoryList(advisory.additionalEvidenceNeeded, item => ({
+      domain: advisoryText(item.domain || item.metric, 100),
+      remaining: Number.isInteger(item.remaining) ? Math.max(0, item.remaining) : 0
+    })),
+    lastGovernedEvidenceAt: advisory.lastGovernedEvidenceAt,
+    provenance: {
+      manifestSha256: advisory.provenance.manifestSha256,
+      bridgeVersion: advisory.versions.bridge,
+      customerId: advisory.provenance.customerId,
+      workspaceId: advisory.provenance.workspaceId
+    },
+    browserLocalBoundary: advisoryText(advisory.browserLocalEstimateBoundary.message, 240)
+  });
+}
+
+function escapeAdvisoryHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function renderAdvisoryItems(items, emptyMessage) {
+  if (!items.length) return `<li>${escapeAdvisoryHtml(emptyMessage)}</li>`;
+  return items.map(item => `<li>${escapeAdvisoryHtml(item)}</li>`).join("");
+}
+
+export function renderGovernedLearningAdvisory(view) {
+  if (view?.status !== "READY") return "";
+  const timeWindows = view.categoryTimeWindows.map(pattern => (
+    `${pattern.category} · ${pattern.timeWindow} · ${pattern.visits} visit${pattern.visits === 1 ? "" : "s"} · ${pattern.truthState}`
+  ));
+  const outcomes = view.outcomeObservations.map(observation => (
+    `${observation.rawOutcome} → ${observation.normalizedOutcome} · ${observation.truthState}`
+  ));
+  const nextEvidence = view.nextEvidence.map(item => (
+    `${item.domain.replaceAll("_", " ")}: ${item.remaining} more`
+  ));
+  const relationships = view.relationshipSummary.map(item => (
+    `${item.relationshipType}: ${item.count}`
+  ));
+  return `
+    <div class="governed-learning-summary">
+      <div><span>Evidence maturity</span><b>${escapeAdvisoryHtml(view.maturity.truthState)}</b><small>${view.maturity.sessions} sessions · ${view.maturity.visits} visits</small></div>
+      <div><span>Confidence</span><b>${escapeAdvisoryHtml(view.confidence.truthState)}</b><small>${escapeAdvisoryHtml(view.confidence.band)}</small></div>
+      <div><span>Strongest supported pattern</span><b>${escapeAdvisoryHtml(view.strongestPattern.category)}</b><small>${escapeAdvisoryHtml(view.strongestPattern.truthState)}</small></div>
+      <div><span>Evidence review</span><b>${view.evidenceReview.weak + view.evidenceReview.conflicting + view.evidenceReview.stale}</b><small>${view.evidenceReview.unavailable} unavailable · ${view.evidenceReview.unknown} unknown</small></div>
+    </div>
+    <div class="governed-learning-details">
+      <section><h3>Category and time-window patterns</h3><ul>${renderAdvisoryItems(timeWindows, "Insufficient evidence")}</ul></section>
+      <section><h3>Outcome observations</h3><ul>${renderAdvisoryItems(outcomes, "No governed outcomes available")}</ul></section>
+      <section><h3>Business, visit, and outcome relationships</h3><ul>${renderAdvisoryItems(relationships, "No governed relationships available")}</ul></section>
+      <section><h3>Limiting factors</h3><ul>${renderAdvisoryItems(view.confidence.limitingFactors, "No limiting factors reported")}</ul></section>
+      <section><h3>Evidence needed next</h3><ul>${renderAdvisoryItems(nextEvidence, "No additional threshold requirement reported")}</ul></section>
+      <section><h3>Data-quality warnings</h3><ul>${renderAdvisoryItems(view.warnings, "No additional warning reported")}</ul></section>
+    </div>
+    <p class="governed-learning-boundary">${escapeAdvisoryHtml(view.browserLocalBoundary)} Source: ${escapeAdvisoryHtml(view.provenance.bridgeVersion)} · manifest verified.</p>`;
 }

@@ -929,6 +929,80 @@
       line-height: 1.45;
     }
 
+    .governed-learning-advisory {
+      display: grid;
+      gap: 14px;
+    }
+
+    .governed-learning-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .governed-learning-summary > div {
+      min-width: 0;
+      min-height: 88px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #f6f9f5;
+    }
+
+    .governed-learning-summary span,
+    .governed-learning-summary small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.32;
+      overflow-wrap: anywhere;
+    }
+
+    .governed-learning-summary b {
+      display: block;
+      margin: 5px 0 3px;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .governed-learning-details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 20px;
+    }
+
+    .governed-learning-details section {
+      min-width: 0;
+    }
+
+    .governed-learning-details h3 {
+      margin: 0 0 6px;
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .governed-learning-details ul {
+      display: grid;
+      gap: 5px;
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .governed-learning-boundary {
+      margin: 0;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
     .paid-customer-preview[hidden] {
       display: none;
     }
@@ -1565,6 +1639,11 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .governed-learning-summary,
+      .governed-learning-details {
+        grid-template-columns: 1fr;
+      }
+
       .quick-facts {
         grid-template-columns: 1fr;
       }
@@ -1899,6 +1978,13 @@
             <p class="daily-intelligence-note" id="founderSnapshotLimitations"></p>
           </article>
         </div>
+        <section id="founderGovernedLearningAdvisory" class="owner-only" aria-labelledby="founderGovernedLearningTitle" hidden>
+          <div class="section-title">
+            <h2 id="founderGovernedLearningTitle">Governed Learning Advisory</h2>
+            <small id="founderGovernedLearningAsOf">Cross-session evidence</small>
+          </div>
+          <article class="panel pad governed-learning-advisory" id="founderGovernedLearningContent" aria-live="polite"></article>
+        </section>
         <div class="section-title">
           <h2>Executive Insight</h2>
           <small>What Prometheus has learned</small>
@@ -2241,6 +2327,7 @@
     const founderDailyIntelligencePrincipalMappingId = "route-iq-founder-access-cruz-v1";
     const founderDailyIntelligencePrincipalId = "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4";
     const founderDailyIntelligenceTimeoutMs = 2500;
+    const founderGovernedLearningTimeoutMs = 2500;
 
     function disableRouteIqProspectiveAdmission(reason) {
       stopRouteIqProspectiveActionListener();
@@ -3184,6 +3271,16 @@
       window.prometheusDebugState.founderDailyIntelligence = { status, authorized, rendered };
     }
 
+    function setFounderGovernedLearningStatus(status, authorized = false, rendered = false) {
+      window.prometheusDebugState.founderGovernedLearning = {
+        status,
+        authorized,
+        rendered,
+        browserStorageWrites: 0,
+        recommendationInfluence: "OFF"
+      };
+    }
+
     function setPaidCustomerRevenueReadinessStatus(status, authorized = false, rendered = false) {
       window.prometheusDebugState.paidCustomerRevenueReadiness = {
         status,
@@ -3399,6 +3496,50 @@
         return true;
       } catch (error) {
         setFounderDailyIntelligenceStatus(error?.name === "TimeoutError" ? "request_timeout" : "request_unavailable");
+        return false;
+      }
+    }
+
+    async function loadFounderGovernedLearningAdvisory() {
+      const container = document.getElementById("founderGovernedLearningAdvisory");
+      const content = document.getElementById("founderGovernedLearningContent");
+      if (container) container.hidden = true;
+      if (sessionRole !== "founder"
+        || !routeIqCustomerPwaSession
+        || !routeIqDashboardPlatformApi
+        || !activeWorkspaceConfiguration?.companyId) {
+        setFounderGovernedLearningStatus("role_or_scope_ineligible");
+        return false;
+      }
+      setFounderGovernedLearningStatus("requesting");
+      try {
+        const envelope = await routeIqDashboardPlatformApi.loadGovernedLearningAdvisory({
+          session: routeIqCustomerPwaSession,
+          expectedCustomerId: activeWorkspaceConfiguration.companyId,
+          fetchFn: fetch,
+          now: new Date(),
+          signal: AbortSignal.timeout(founderGovernedLearningTimeoutMs)
+        });
+        const view = routeIqDashboardPlatformApi.createGovernedLearningAdvisoryViewModel(
+          envelope,
+          {
+            session: routeIqCustomerPwaSession,
+            expectedCustomerId: activeWorkspaceConfiguration.companyId,
+            now: new Date()
+          }
+        );
+        if (!container || !content) return false;
+        content.innerHTML = routeIqDashboardPlatformApi.renderGovernedLearningAdvisory(view);
+        const asOf = document.getElementById("founderGovernedLearningAsOf");
+        if (asOf) asOf.textContent = `Evidence through ${new Date(view.lastGovernedEvidenceAt).toLocaleDateString()}`;
+        container.hidden = false;
+        setFounderGovernedLearningStatus("rendered", true, true);
+        return true;
+      } catch (error) {
+        if (content) content.replaceChildren();
+        setFounderGovernedLearningStatus(
+          error?.name === "TimeoutError" ? "request_timeout" : "unavailable"
+        );
         return false;
       }
     }
@@ -8657,6 +8798,7 @@
         render();
         void loadPaidCustomerRevenueReadiness();
         void loadFounderDailyIntelligence();
+        void loadFounderGovernedLearningAdvisory();
         window.prometheusDebugState.startupCompleted = true;
         window.prometheusDebugState.lastStage = "startup-complete";
         updateFounderDebugPanel({ stage: "startup-complete" });
