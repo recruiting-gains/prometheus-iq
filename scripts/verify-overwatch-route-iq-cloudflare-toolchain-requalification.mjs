@@ -15,6 +15,9 @@ import {
 import {
   validateAugust1ReadinessSuccessors
 } from "./verify-overwatch-route-iq-august-1-launch-readiness.mjs";
+import {
+  hasGovernedLearningPayloadInfrastructureSuccessor
+} from "./verify-overwatch-github-actions-private-worker-deployment.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const startCommit = "2d5caafc52de0c1ee42bce5b370e2232e53fd72f";
@@ -70,6 +73,12 @@ const infrastructurePath =
 const securityPath = "security/npm-high-advisory-triage-batch-20260810-001.json";
 const augustReadinessSuccessorsPath =
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
+const privateWorkflowGovernancePath =
+  "overwatch/governance/github-actions-private-worker-deployment-v2.json";
+const fieldSessionReportTypeGovernancePath =
+  "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json";
+const liveCanonicalIdentityGovernancePath =
+  "overwatch/governance/live-canonical-identity-migration-v1.json";
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -270,6 +279,13 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   const augustReadinessSuccessors = validateAugust1ReadinessSuccessors(
     readJson(augustReadinessSuccessorsPath),
     { root }
+  );
+  const privateWorkflowGovernance = readJson(privateWorkflowGovernancePath);
+  const fieldSessionReportTypeGovernance = readJson(
+    fieldSessionReportTypeGovernancePath
+  );
+  const liveCanonicalIdentityGovernance = readJson(
+    liveCanonicalIdentityGovernancePath
   );
   const predecessor = readJson(
     "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json"
@@ -551,7 +567,17 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.deepEqual(Object.keys(activePolicy.currentEvidence).sort(),
     [...activeDeploymentPolicyFiles].sort());
   for (const [path, expected] of Object.entries(activePolicy.currentEvidence)) {
-    assert.equal(sha256(path), expected, path);
+    const actual = sha256(path);
+    assert.equal(actual === expected
+      || hasGovernedLearningPayloadInfrastructureSuccessor({
+        governance: privateWorkflowGovernance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance,
+        readinessSuccessors: augustReadinessSuccessors,
+        path,
+        previousSha256: expected,
+        currentSha256: actual
+      }), true, path);
   }
   assert.equal(activePolicy.historicalRecordsRewritten, false);
   assert.equal(activePolicy.workflowChanged, false);
@@ -704,12 +730,31 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
   ];
   assert.equal(git("diff", "--name-only", startCommit, head, "--", ...protectedReleasePaths), "");
-  assert.equal(git("log", "--format=%H", "--reverse", `${startCommit}..${head}`, "--",
-    privateDeploymentContractPath), activeDeploymentPolicyCommit);
+  assert.deepEqual(git(
+    "log", "--format=%H", "--reverse", `${startCommit}..${head}`, "--",
+    privateDeploymentContractPath
+  ).split("\n"), [
+    activeDeploymentPolicyCommit,
+    "a80916d6281b3e584de46508d9d4b2e08f582391"
+  ]);
   assert.equal(sha256At(activeDeploymentPolicyCommit, privateDeploymentContractPath),
     activePolicy.currentEvidence[privateDeploymentContractPath]);
   assert.equal(sha256At(`${activeDeploymentPolicyCommit}^`, privateDeploymentContractPath),
     sha256At(startCommit, privateDeploymentContractPath));
+  const governedLearningContractEvidence = privateWorkflowGovernance
+    .governedLearningPayloadSuccessor.evidence.find(
+      item => item.path === privateDeploymentContractPath
+    );
+  assert.equal(
+    sha256At("a80916d6281b3e584de46508d9d4b2e08f582391",
+      privateDeploymentContractPath),
+    governedLearningContractEvidence.successorSha256
+  );
+  assert.equal(
+    sha256At("a80916d6281b3e584de46508d9d4b2e08f582391^",
+      privateDeploymentContractPath),
+    governedLearningContractEvidence.previousSha256
+  );
   assert.equal(git("diff", "--name-only", startCommit,
     augustReadinessPublicVerifierFixtureRepairCommit, "--", ".github/workflows"), "");
   const node24Verification = verifyOverwatchGithubActionsNode24PinSuccessor();
