@@ -106,6 +106,17 @@ function changedPaths(commit) {
     .trim().split("\n").filter(Boolean).sort();
 }
 
+export function canonicalGitHubRepositoryIdentity(remote) {
+  const value = String(remote || "").trim();
+  const match = value.match(
+    /^(?:git@github\.com:|ssh:\/\/git@github\.com\/|https:\/\/github\.com\/)([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)\/?$/u
+  );
+  if (!match) return null;
+  const repository = match[2].replace(/\.git$/u, "");
+  if (!repository) return null;
+  return `${match[1].toLowerCase()}/${repository.toLowerCase()}`;
+}
+
 function verifyOwnerCommits(governance) {
   assert.equal(governance.ownerCommits.length, expectedChangedPaths.size);
   for (const ownerCommit of governance.ownerCommits) {
@@ -149,7 +160,11 @@ function verifyRepositoryBoundaries(governance) {
     git(["rev-parse", `${governance.startingRepository.commit}^{tree}`]).trim(),
     governance.startingRepository.tree
   );
-  assert.equal(git(["remote", "get-url", "origin"]).trim(), governance.startingRepository.remote);
+  assert.equal(
+    canonicalGitHubRepositoryIdentity(git(["remote", "get-url", "origin"]).trim()),
+    canonicalGitHubRepositoryIdentity(governance.startingRepository.remote),
+    "Repository identity drifted."
+  );
   assert.equal(git(["rev-parse", "--abbrev-ref", "HEAD"]).trim(), "main");
   for (const path of governance.unchangedBehaviorPaths) {
     execFileSync("/usr/bin/git", [

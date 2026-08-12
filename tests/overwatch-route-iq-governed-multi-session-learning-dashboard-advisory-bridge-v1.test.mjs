@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  canonicalGitHubRepositoryIdentity,
   verifyOverwatchRouteIqGovernedLearningAdvisoryBridge
 } from "../scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs";
 
@@ -30,6 +31,30 @@ test("Overwatch verifies the owner chain, canonical artifact, and protected stat
     activeCohorts: 0,
     recommendationInfluence: "OFF"
   });
+});
+
+test("repository identity accepts governed GitHub transports and rejects ambiguous remotes", () => {
+  const expected = "prometheusrouteiq/prometheus-iq";
+  for (const remote of [
+    "git@github.com:PrometheusRouteIQ/prometheus-iq.git",
+    "ssh://git@github.com/PrometheusRouteIQ/prometheus-iq.git",
+    "https://github.com/PrometheusRouteIQ/prometheus-iq",
+    "https://github.com/PrometheusRouteIQ/prometheus-iq.git/"
+  ]) {
+    assert.equal(canonicalGitHubRepositoryIdentity(remote), expected);
+  }
+  assert.notEqual(
+    canonicalGitHubRepositoryIdentity("https://github.com/PrometheusRouteIQ/other"),
+    expected
+  );
+  for (const remote of [
+    "https://example.com/PrometheusRouteIQ/prometheus-iq",
+    "https://github.com/PrometheusRouteIQ/prometheus-iq/extra",
+    "https://github.com/PrometheusRouteIQ/prometheus-iq?ref=main",
+    ""
+  ]) {
+    assert.equal(canonicalGitHubRepositoryIdentity(remote), null);
+  }
 });
 
 test("release remains source-only, advisory-only, and separately deployment gated", () => {
