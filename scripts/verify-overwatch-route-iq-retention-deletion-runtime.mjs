@@ -8,6 +8,9 @@ import { verifyCrossSubsystemArtifactContracts } from "./verify-cross-subsystem-
 import {
   verifyOverwatchGithubActionsNode24PinSuccessor
 } from "./verify-overwatch-github-actions-node24-pin-successor.mjs";
+import {
+  verifyOverwatchRouteIqGovernedLearningAdvisoryBridge
+} from "./verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs";
 
 const governancePath = "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260809-001-route-iq-retention-expiry-deletion-runtime.json";
@@ -237,6 +240,36 @@ export function isProtectedRuntimePath(path) {
     return true;
   }
   return segments.some(segment => ["deploy", "website", "crm", "dashboard"].includes(segment));
+}
+
+const governedLearningProtectedRuntimePaths = Object.freeze([
+  "dashboard/route-iq-dashboard-platform.mjs",
+  "deploy/cloudflare-pages/_headers",
+  "deploy/cloudflare-pages/dashboard/route-iq-dashboard-platform.mjs",
+  "deploy/cloudflare-pages/index.html"
+]);
+
+export function verifyRetentionProtectedRuntimeSuccessors({
+  protectedRuntimeChanges,
+  node24WorkflowPaths,
+  governedLearning
+}) {
+  assert.equal(governedLearning?.status, "PASS");
+  assert.equal(governedLearning?.batchId, "BATCH-20260812-001");
+  assert.equal(governedLearning?.ownerCommitCount, 13);
+  assert.equal(governedLearning?.historicalEvidence, "UNCHANGED");
+  assert.equal(governedLearning?.deploymentPerformed, false);
+  assert.equal(governedLearning?.collection, "OFF");
+  assert.equal(governedLearning?.activeCohorts, 0);
+  assert.equal(governedLearning?.recommendationInfluence, "OFF");
+  assert.equal(governedLearning?.founderOnly, true);
+  assert.equal(governedLearning?.publicWorkerExposure, false);
+  assert.deepEqual(
+    [...protectedRuntimeChanges].sort(),
+    [...node24WorkflowPaths, ...governedLearningProtectedRuntimePaths].sort(),
+    `Protected runtime paths changed outside governed successors: ${protectedRuntimeChanges.join(", ")}`
+  );
+  return true;
 }
 
 function changedPaths(commit) {
@@ -483,11 +516,11 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   const protectedRuntimeChanges = changed.filter(isProtectedRuntimePath);
   const node24Verification = verifyOverwatchGithubActionsNode24PinSuccessor();
   assert.equal(node24Verification.status, "OFFICIAL_NODE24_ACTION_PIN_OVERWATCH_VERIFIED");
-  assert.deepEqual(
-    protectedRuntimeChanges.sort(),
-    node24Infrastructure.workflows.map(item => item.path).sort(),
-    `Protected runtime paths changed outside the exact Node 24 successor: ${protectedRuntimeChanges.join(", ")}`
-  );
+  assert.equal(verifyRetentionProtectedRuntimeSuccessors({
+    protectedRuntimeChanges,
+    node24WorkflowPaths: node24Infrastructure.workflows.map(item => item.path),
+    governedLearning: verifyOverwatchRouteIqGovernedLearningAdvisoryBridge()
+  }), true);
   assert.equal(
     git("rev-parse", `${startCommit}:data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions`),
     governance.historicalEvidence.sessionSubtreeGitObjectBefore

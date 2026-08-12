@@ -5,8 +5,22 @@ import test from "node:test";
 import {
   isExactMainCheckout,
   isProtectedRuntimePath,
+  verifyRetentionProtectedRuntimeSuccessors,
   verifyOverwatchRouteIqRetentionDeletionRuntime
 } from "../scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs";
+
+const governedLearningVerification = Object.freeze({
+  status: "PASS",
+  batchId: "BATCH-20260812-001",
+  ownerCommitCount: 13,
+  historicalEvidence: "UNCHANGED",
+  deploymentPerformed: false,
+  collection: "OFF",
+  activeCohorts: 0,
+  recommendationInfluence: "OFF",
+  founderOnly: true,
+  publicWorkerExposure: false
+});
 
 const governance = () => JSON.parse(readFileSync(
   "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json",
@@ -182,5 +196,33 @@ test("protected runtime matching rejects deployable paths without rejecting gove
     "tests/dashboard-runtime-contract.test.mjs"
   ]) {
     assert.equal(isProtectedRuntimePath(path), false, `${path} is evidence, not runtime configuration.`);
+  }
+});
+
+test("retention composes only the exact governed-learning protected runtime paths", () => {
+  const node24WorkflowPaths = [".github/workflows/security-gates.yml"];
+  const governedLearningPaths = [
+    "dashboard/route-iq-dashboard-platform.mjs",
+    "deploy/cloudflare-pages/_headers",
+    "deploy/cloudflare-pages/dashboard/route-iq-dashboard-platform.mjs",
+    "deploy/cloudflare-pages/index.html"
+  ];
+  const input = {
+    protectedRuntimeChanges: [...node24WorkflowPaths, ...governedLearningPaths],
+    node24WorkflowPaths,
+    governedLearning: governedLearningVerification
+  };
+  assert.equal(verifyRetentionProtectedRuntimeSuccessors(input), true);
+  for (const mutate of [
+    value => { value.protectedRuntimeChanges.push("deploy/cloudflare-pages/extra.js"); },
+    value => { value.protectedRuntimeChanges.pop(); },
+    value => { value.governedLearning.status = "FAIL"; },
+    value => { value.governedLearning.deploymentPerformed = true; },
+    value => { value.governedLearning.collection = "ON"; },
+    value => { value.governedLearning.publicWorkerExposure = true; }
+  ]) {
+    const candidate = structuredClone(input);
+    mutate(candidate);
+    assert.throws(() => verifyRetentionProtectedRuntimeSuccessors(candidate));
   }
 });
