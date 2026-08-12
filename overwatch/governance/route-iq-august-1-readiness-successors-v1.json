@@ -79,9 +79,29 @@
       "successorSha256": "f6b097932650a9a504bf81b217e4efe6092d1bebc6b863bc9dd0748192e2d5d8"
     },
     {
+      "path": "package.json",
+      "previousSha256": "f6b097932650a9a504bf81b217e4efe6092d1bebc6b863bc9dd0748192e2d5d8",
+      "successorSha256": "a1fd91b3cd45b89b7cb5f9f4fb5e488f42aa2af805bd855f5065f62990c64c90"
+    },
+    {
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "previousSha256": "addd87265b3bae1281fc6409adeb92d6e50894f93cc3fac4c04e36e8778a6403",
       "successorSha256": "338d0029e8229c3b4d08610f46b3b722831648bcbaee4709519a37861e88a3d5"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "338d0029e8229c3b4d08610f46b3b722831648bcbaee4709519a37861e88a3d5",
+      "successorSha256": "863f4138f85656f07d20929ea4d5f97a96b8b6ec04ea7e6044d0a22ce0a5c462"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "863f4138f85656f07d20929ea4d5f97a96b8b6ec04ea7e6044d0a22ce0a5c462",
+      "successorSha256": "6ba66fbc7509ad6bf688e64eb665f50d9f3ebd20de544f8a75b4ce881215d77b"
+    },
+    {
+      "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+      "previousSha256": "29a96b9b31290c862b745d349a2c7ec2f34e5e265bcbd100425612c5879eb6f8",
+      "successorSha256": "b3a3024bfc10422ea6864c8a8677686679c40127ecf589a79ca72d4fe5e2c816"
     }
   ],
   "successors": [
@@ -339,6 +359,65 @@
           "path": "tests/route-iq-request-crm-infrastructure.test.mjs",
           "previousSha256": "08893abf7fa594159ee8e6347258dcb7fd11cee2c014f538fe3f4a80a5eda739",
           "successorSha256": "1bfa49016643bfb7c81f3e10a3f543f6790a5e9cb6c571716883bca58ea29520"
+        }
+      ]
+    },
+    {
+      "commit": "53d080494c7377789b697d8bcc47fd0e8958b722",
+      "tree": "ab9cb7da79c75f783da8ea6000ce93e35d2b3f2a",
+      "owner": "Prometheus Dashboard <dashboard@prometheus.local>",
+      "reason": "The Dashboard owner adds the governed Founder learning advisory to the existing private interface while preserving historical August 1 evidence and all protected operating boundaries.",
+      "evidence": [
+        {
+          "path": "index.html",
+          "previousSha256": "235be31ca523e7ba0d008de040fde8c32a4a8871c307eacb6a5273dd3646fa72",
+          "successorSha256": "4d85ef879dda14887e4cc85872e1b9c46bbc1479881ee296f6a78940f080410c"
+        }
+      ]
+    },
+    {
+      "commit": "267225d51e32acc6f50ce932a945e2749783734e",
+      "tree": "dbe4dfd627fddc1a434bb700beba488279c49877",
+      "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "reason": "Infrastructure integrates the authenticated private advisory route and regenerated Dashboard assets while retaining every deployment, storage, and protected-state boundary.",
+      "evidence": [
+        {
+          "path": "_headers",
+          "previousSha256": "2be69aefc6de11fd91620e8f9c253fbd37f5561fa28527b551ae0c593cd645a4",
+          "successorSha256": "c221ea26b32e5087a10accc1db1a0a941f3ad4517c472b95ca96461e60948667"
+        },
+        {
+          "path": "deploy/cloudflare-pages/_headers",
+          "previousSha256": "2be69aefc6de11fd91620e8f9c253fbd37f5561fa28527b551ae0c593cd645a4",
+          "successorSha256": "c221ea26b32e5087a10accc1db1a0a941f3ad4517c472b95ca96461e60948667"
+        },
+        {
+          "path": "deploy/cloudflare-pages/index.html",
+          "previousSha256": "235be31ca523e7ba0d008de040fde8c32a4a8871c307eacb6a5273dd3646fa72",
+          "successorSha256": "b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604"
+        },
+        {
+          "path": "index.html",
+          "previousSha256": "4d85ef879dda14887e4cc85872e1b9c46bbc1479881ee296f6a78940f080410c",
+          "successorSha256": "b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604"
+        },
+        {
+          "path": "workers/prometheus-iq-worker.js",
+          "previousSha256": "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051",
+          "successorSha256": "b5a5d26229d6d0808bb41a08fd2b252021df1d5cdfa9e44cda539819fc728b9a"
+        }
+      ]
+    },
+    {
+      "commit": "ab4940262d2eb843b2f8bf6f451e881cedf91cf9",
+      "tree": "fa90f1622eeca960fca30f3005febe5f9b6fbc82",
+      "owner": "Prometheus Dashboard <dashboard@prometheus.local>",
+      "reason": "The Dashboard owner models the Founder advisory boundary in the deterministic browser harness without changing runtime behavior, source evidence, or production state.",
+      "evidence": [
+        {
+          "path": "scripts/verify-dashboard-runtime-workflows.mjs",
+          "previousSha256": "f15bef69f0bffc9104b64f71fd7328df3da4f711d73270226ff67e259789bb9c",
+          "successorSha256": "c014d74ad3ab6f81befdf4880cdc0093fa9f8688e2dc90b3ab3f4cbcbfafb6d4"
         }
       ]
     }

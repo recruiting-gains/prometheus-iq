@@ -593,7 +593,7 @@ export function validateAugust1ReadinessSuccessors(successors, { root = ROOT } =
     "route-iq-august-1-readiness-successors-v1");
   assert.equal(successors.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(successors.historicalCloseoutEvidenceRewritten, false);
-  assert.equal(successors.successors.length, 14);
+  assert.equal(successors.successors.length, 17);
   const infrastructureSuccessor = successors.successors[0];
   assert.equal(infrastructureSuccessor.commit,
     "96c8210b94c3b0214dede252aba3d6d46121cd05");
@@ -683,7 +683,10 @@ export function validateAugust1ReadinessSuccessors(successors, { root = ROOT } =
       "254218013ea7ef29eb679220a6219fd976c1a39f",
       "bb1fd5556b1dea353ec67159c263b7a7474683a0",
       "bbed83c62e6c8d2c73ce287161df282005f99187",
-      "da7504352424096869a18b66dc7c4429480393f4"
+      "da7504352424096869a18b66dc7c4429480393f4",
+      "53d080494c7377789b697d8bcc47fd0e8958b722",
+      "267225d51e32acc6f50ce932a945e2749783734e",
+      "ab4940262d2eb843b2f8bf6f451e881cedf91cf9"
     ]
   );
   for (const successor of successors.successors.slice(4)) {
@@ -760,6 +763,46 @@ export function validateAugust1ReadinessSuccessors(successors, { root = ROOT } =
     path: "tests/route-iq-request-crm-infrastructure.test.mjs",
     previousSha256: "08893abf7fa594159ee8e6347258dcb7fd11cee2c014f538fe3f4a80a5eda739",
     successorSha256: "1bfa49016643bfb7c81f3e10a3f543f6790a5e9cb6c571716883bca58ea29520"
+  }]);
+  const governedLearningDashboardSuccessor = successors.successors[14];
+  assert.deepEqual(governedLearningDashboardSuccessor.evidence, [{
+    path: "index.html",
+    previousSha256: "235be31ca523e7ba0d008de040fde8c32a4a8871c307eacb6a5273dd3646fa72",
+    successorSha256: "4d85ef879dda14887e4cc85872e1b9c46bbc1479881ee296f6a78940f080410c"
+  }]);
+  const governedLearningInfrastructureSuccessor = successors.successors[15];
+  assert.deepEqual(governedLearningInfrastructureSuccessor.evidence, [
+    {
+      path: "_headers",
+      previousSha256: "2be69aefc6de11fd91620e8f9c253fbd37f5561fa28527b551ae0c593cd645a4",
+      successorSha256: "c221ea26b32e5087a10accc1db1a0a941f3ad4517c472b95ca96461e60948667"
+    },
+    {
+      path: "deploy/cloudflare-pages/_headers",
+      previousSha256: "2be69aefc6de11fd91620e8f9c253fbd37f5561fa28527b551ae0c593cd645a4",
+      successorSha256: "c221ea26b32e5087a10accc1db1a0a941f3ad4517c472b95ca96461e60948667"
+    },
+    {
+      path: "deploy/cloudflare-pages/index.html",
+      previousSha256: "235be31ca523e7ba0d008de040fde8c32a4a8871c307eacb6a5273dd3646fa72",
+      successorSha256: "b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604"
+    },
+    {
+      path: "index.html",
+      previousSha256: "4d85ef879dda14887e4cc85872e1b9c46bbc1479881ee296f6a78940f080410c",
+      successorSha256: "b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604"
+    },
+    {
+      path: "workers/prometheus-iq-worker.js",
+      previousSha256: "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051",
+      successorSha256: "b5a5d26229d6d0808bb41a08fd2b252021df1d5cdfa9e44cda539819fc728b9a"
+    }
+  ]);
+  const governedLearningHarnessSuccessor = successors.successors[16];
+  assert.deepEqual(governedLearningHarnessSuccessor.evidence, [{
+    path: "scripts/verify-dashboard-runtime-workflows.mjs",
+    previousSha256: "f15bef69f0bffc9104b64f71fd7328df3da4f711d73270226ff67e259789bb9c",
+    successorSha256: "c014d74ad3ab6f81befdf4880cdc0093fa9f8688e2dc90b3ab3f4cbcbfafb6d4"
   }]);
   assert.ok(Array.isArray(successors.overwatchCurrentEvidence));
   const currentEvidenceByPath = new Map();
