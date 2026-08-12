@@ -7,6 +7,7 @@ import test from "node:test";
 import { fixedCloudflareUnattendedSmokePlan } from
   "../scripts/run-cloudflare-unattended-smoke.mjs";
 import {
+  advancePrivateWorkflowV2GovernedLearningOwnerHash,
   controlledRehearsalNode24InfrastructureSuccessor,
   evaluateActivePrivateDeploymentToolchainSuccessor,
   evaluateGithubActionsPrivateWorkerDeploymentGovernance,
@@ -19,6 +20,7 @@ import {
   hasCloudflareToolchainInfrastructureSuccessor,
   hasControlledRehearsalNode24InfrastructureSuccessor,
   hasFieldSessionReportTypeInfrastructureSuccessor,
+  hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
   hasRetentionMaintenancePayloadInfrastructureSuccessor,
@@ -30,6 +32,9 @@ import {
   hasGithubActionsNode24InfrastructureSuccessor,
   verifyOverwatchGithubActionsNode24PinSuccessor
 } from "../scripts/verify-overwatch-github-actions-node24-pin-successor.mjs";
+import {
+  verifyGovernedMultiSessionLearningAdvisorySuccessor
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -76,6 +81,82 @@ const node24ActionPinInfrastructure = readJson(
 const node24ActionPinSecurity = readJson(
   "security/github-actions-official-node24-pin-successor-v1.json"
 );
+
+test("private Workflow v2 composes only the exact governed-learning Intelligence chain", () => {
+  const successor = verifyGovernedMultiSessionLearningAdvisorySuccessor();
+  const path =
+    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
+  assert.equal(advancePrivateWorkflowV2GovernedLearningOwnerHash({
+    path,
+    acceptedSha256:
+      "ce1ab3876750043b251cb6029d0c0709159a8ff9c58c4266411883e6f9542e2c",
+    successor
+  }), "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0");
+  assert.equal(advancePrivateWorkflowV2GovernedLearningOwnerHash({
+    path: "intelligence/provenance/not-governed.mjs",
+    acceptedSha256: "f".repeat(64),
+    successor
+  }), "f".repeat(64));
+  for (const mutate of [
+    value => { value.successor.batchId = "BATCH-SUBSTITUTED"; },
+    value => { value.successor.ownerSubsystem = "Prometheus Overwatch"; },
+    value => { value.successor.boundaries.prospectiveCollection = "ON"; },
+    value => { value.successor.boundaries.deployments = 1; },
+    value => { value.transitionsByPath.get(path)[0].previousSha256 = "0".repeat(64); }
+  ]) {
+    const candidate = clone(successor);
+    mutate(candidate);
+    assert.throws(() =>
+      advancePrivateWorkflowV2GovernedLearningOwnerHash({
+        path,
+        acceptedSha256:
+          "ce1ab3876750043b251cb6029d0c0709159a8ff9c58c4266411883e6f9542e2c",
+        successor: candidate
+      }));
+  }
+});
+
+test("private Workflow v2 accepts only the exact governed-learning Infrastructure successor", () => {
+  const path = "_headers";
+  const previousSha256 =
+    "2be69aefc6de11fd91620e8f9c253fbd37f5561fa28527b551ae0c593cd645a4";
+  const currentSha256 =
+    "c221ea26b32e5087a10accc1db1a0a941f3ad4517c472b95ca96461e60948667";
+  assert.equal(hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor({
+    readinessSuccessors: currentReadinessSuccessors,
+    path,
+    previousSha256,
+    currentSha256
+  }), true);
+  assert.equal(hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor({
+    readinessSuccessors: currentReadinessSuccessors,
+    path: "_redirects",
+    previousSha256,
+    currentSha256
+  }), false);
+  for (const mutate of [
+    value => { value.successors[15].commit = "0".repeat(40); },
+    value => {
+      value.successors[15].owner =
+        "Prometheus Overwatch <overwatch@prometheus.local>";
+    },
+    value => {
+      value.successors[15].evidence[0].previousSha256 = "0".repeat(64);
+    },
+    value => {
+      value.successors[15].evidence.push(value.successors[15].evidence[0]);
+    }
+  ]) {
+    const candidate = clone(currentReadinessSuccessors);
+    mutate(candidate);
+    assert.equal(hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor({
+      readinessSuccessors: candidate,
+      path,
+      previousSha256,
+      currentSha256
+    }), false);
+  }
+});
 
 function evaluate(nextGovernance = governance, nextReport = report, nextContract = contract) {
   return evaluateGithubActionsPrivateWorkerDeploymentGovernance({

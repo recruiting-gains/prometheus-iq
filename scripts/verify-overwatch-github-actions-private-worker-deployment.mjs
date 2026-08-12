@@ -19,6 +19,11 @@ import {
   verifyOverwatchGithubActionsNode24PinSuccessor
 } from
   "./verify-overwatch-github-actions-node24-pin-successor.mjs";
+import { validateAugust1ReadinessSuccessors } from
+  "./verify-overwatch-route-iq-august-1-launch-readiness.mjs";
+import {
+  verifyGovernedMultiSessionLearningAdvisorySuccessor
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -2094,6 +2099,107 @@ function advanceRetentionDeletionIntelligenceHash(path, acceptedSha256) {
     currentSha256 = successorSha256;
   }
   return currentSha256;
+}
+
+export function advancePrivateWorkflowV2GovernedLearningOwnerHash({
+  path,
+  acceptedSha256,
+  successor
+}) {
+  if (successor?.successor?.batchId !== "BATCH-20260812-001"
+    || successor?.successor?.status !== "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR"
+    || successor?.successor?.ownerSubsystem !== "Prometheus Intelligence Engine"
+    || successor?.successor?.behavior?.recommendationOutputChanged !== false
+    || successor?.successor?.boundaries?.prospectiveCollection !== "OFF"
+    || successor?.successor?.boundaries?.activeCohorts !== 0
+    || successor?.successor?.boundaries?.recommendationInfluence !== "OFF"
+    || successor?.successor?.boundaries?.deployments !== 0
+    || successor?.successor?.boundaries?.productionMutationPerformed !== false) {
+    throw new Error("Private Workflow v2 governed-learning boundary drifted.");
+  }
+  const transitions = successor.transitionsByPath.get(path);
+  if (!transitions) return acceptedSha256;
+  let currentSha256 = acceptedSha256;
+  for (const transition of transitions) {
+    if (transition.previousSha256 !== currentSha256) {
+      throw new Error(
+        `Private Workflow v2 governed-learning Intelligence chain drifted: ${path}`
+      );
+    }
+    currentSha256 = transition.currentSha256;
+  }
+  return currentSha256;
+}
+
+export function hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor({
+  readinessSuccessors,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const commit = "267225d51e32acc6f50ce932a945e2749783734e";
+  const tree = "dbe4dfd627fddc1a434bb700beba488279c49877";
+  const identity =
+    "Prometheus Infrastructure <infrastructure@prometheus.local>";
+  const subject = "infrastructure: serve governed learning advisory source";
+  const successor = readinessSuccessors?.successors?.filter(
+    item => item.commit === commit
+  );
+  const evidence = successor?.[0]?.evidence?.filter(item => (
+    item.path === path
+    && item.previousSha256 === previousSha256
+    && item.successorSha256 === currentSha256
+  ));
+  if (successor?.length !== 1
+    || successor[0].tree !== tree
+    || successor[0].owner !== identity
+    || evidence?.length !== 1
+    || !/^[0-9a-f]{64}$/u.test(previousSha256)
+    || !/^[0-9a-f]{64}$/u.test(currentSha256)) {
+    return false;
+  }
+  try {
+    validateAugust1ReadinessSuccessors(readinessSuccessors, { root });
+    const parent = git(["rev-parse", `${commit}^`]);
+    const metadata = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      commit
+    ]).split("\n");
+    const changedPaths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r", commit
+    ]).split("\n").filter(Boolean).sort();
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${parent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${commit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor", commit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return equal(metadata, [
+      commit,
+      parent,
+      tree,
+      identity,
+      identity,
+      subject
+    ])
+      && equal(changedPaths, [
+        "_headers",
+        "deploy/cloudflare-pages/_headers",
+        "deploy/cloudflare-pages/dashboard/route-iq-dashboard-platform.mjs",
+        "deploy/cloudflare-pages/index.html",
+        "index.html",
+        "tests/route-iq-governed-learning-advisory-infrastructure.test.mjs",
+        "workers/infrastructure/route-iq-governed-learning-advisory-runtime.js",
+        "workers/prometheus-iq-worker.js"
+      ])
+      && sha256(previous) === previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
 }
 
 function count(source, pattern) {
@@ -4322,6 +4428,8 @@ function verifyV2OwnerAndGovernance() {
   if (!retentionDeletionEvaluation.ok) {
     throw new Error(retentionDeletionEvaluation.failures.join("\n"));
   }
+  const governedLearningIntelligenceSuccessor =
+    verifyGovernedMultiSessionLearningAdvisorySuccessor();
 
   const retentionPayloadMetadata = git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
@@ -5134,6 +5242,12 @@ function verifyV2OwnerAndGovernance() {
       path,
       acceptedCurrentSha256
     );
+    acceptedCurrentSha256 =
+      advancePrivateWorkflowV2GovernedLearningOwnerHash({
+        path,
+        acceptedSha256: acceptedCurrentSha256,
+        successor: governedLearningIntelligenceSuccessor
+      });
     if (sha256(committed) !== expected
       || currentSha256 !== acceptedCurrentSha256
       || recordedIntelligenceEvidence.get(path) !== expected) {
@@ -5393,6 +5507,12 @@ function verifyV2OwnerAndGovernance() {
       path,
       acceptedCurrentSha256
     );
+    acceptedCurrentSha256 =
+      advancePrivateWorkflowV2GovernedLearningOwnerHash({
+        path,
+        acceptedSha256: acceptedCurrentSha256,
+        successor: governedLearningIntelligenceSuccessor
+      });
     if (sha256(committed) !== expected
       || sha256(readFileSync(resolve(root, path))) !== acceptedCurrentSha256
       || successorEvidence.get(path) !== expected) {
@@ -5807,7 +5927,7 @@ function verifyV2OwnerAndGovernance() {
         stdio: ["ignore", "pipe", "ignore"]
       }))
       : null;
-    const isGovernedBeforeActivePolicy = candidateSha256 => (
+    const isGovernedBeforeGovernedLearning = candidateSha256 => (
       candidateSha256 === expected
       || (successor?.sha256 === candidateSha256
         && successorPredecessorSha256 === expected)
@@ -5877,6 +5997,41 @@ function verifyV2OwnerAndGovernance() {
         currentSha256: candidateSha256
       })
     );
+    const isGovernedBeforeActivePolicy = candidateSha256 => {
+      if (isGovernedBeforeGovernedLearning(candidateSha256)) return true;
+      const infrastructureEvidence = readinessSuccessors.successors
+        .find(item =>
+          item.commit === "267225d51e32acc6f50ce932a945e2749783734e"
+        )?.evidence.find(item => item.path === path);
+      if (infrastructureEvidence
+        && isGovernedBeforeGovernedLearning(
+          infrastructureEvidence.previousSha256
+        )
+        && hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor({
+          readinessSuccessors,
+          path,
+          previousSha256: infrastructureEvidence.previousSha256,
+          currentSha256: candidateSha256
+        })) {
+        return true;
+      }
+      const transitions = governedLearningIntelligenceSuccessor
+        .transitionsByPath.get(path);
+      if (!transitions
+        || !isGovernedBeforeGovernedLearning(transitions[0].previousSha256)) {
+        return false;
+      }
+      try {
+        return candidateSha256 ===
+          advancePrivateWorkflowV2GovernedLearningOwnerHash({
+            path,
+            acceptedSha256: transitions[0].previousSha256,
+            successor: governedLearningIntelligenceSuccessor
+          });
+      } catch {
+        return false;
+      }
+    };
     const activePolicy = toolchainGovernance.activeDeploymentPolicySuccessor;
     const activePolicyPredecessorSha256 = activePolicy.currentEvidence[path]
       ? sha256(execFileSync("/usr/bin/git", [
