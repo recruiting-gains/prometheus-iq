@@ -24,6 +24,8 @@ export const retentionDeletionConsumerAdmissionSuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-retention-deletion-consumer-admission-v1.json";
 export const retentionMaintenanceConsumerAdmissionSuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json";
+export const governedMultiSessionLearningAdvisorySuccessorProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-governed-multi-session-learning-advisory-v1.json";
 const crossIndustryDashboardRetentionProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json";
 
@@ -108,6 +110,89 @@ function readRetentionMaintenanceTransitionsByPath() {
     transitionsByPath.set(transition.path, transitions);
   }
   return transitionsByPath;
+}
+
+function readGovernedMultiSessionLearningAdvisorySuccessor() {
+  const successor = JSON.parse(
+    read(governedMultiSessionLearningAdvisorySuccessorProvenancePath)
+  );
+  assert.equal(
+    successor.version,
+    "route-iq-intelligence-governed-multi-session-learning-advisory-successor-v1"
+  );
+  assert.equal(successor.batchId, "BATCH-20260812-001");
+  assert.equal(successor.status, "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(
+    successor.predecessor.path,
+    retentionMaintenanceConsumerAdmissionSuccessorProvenancePath
+  );
+  assert.equal(sha256(successor.predecessor.path), successor.predecessor.sha256);
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(successor.predecessor.rewritten, false);
+
+  const transitionsByPath = new Map();
+  for (const transition of successor.protectedSourceTransitions) {
+    const transitions = transitionsByPath.get(transition.path) || [];
+    if (transitions.length > 0) {
+      assert.equal(
+        transition.previousSha256,
+        transitions.at(-1).currentSha256,
+        `Broken governed-learning advisory transition chain: ${transition.path}`
+      );
+    }
+    verifyTransition(transition.path, transition);
+    transitions.push(transition);
+    transitionsByPath.set(transition.path, transitions);
+  }
+  assert.deepEqual(
+    [...transitionsByPath.keys()].sort(),
+    [
+      "dashboard/route-iq-dashboard-platform.mjs",
+      "deploy/cloudflare-pages/index.html",
+      "index.html",
+      "intelligence/off-route-learning-intelligence.mjs",
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "intelligence/read-only-field-session-learning.mjs",
+      "workers/prometheus-iq-worker.js"
+    ]
+  );
+  assert.deepEqual(successor.behavior, {
+    accumulatedLearningAdded: true,
+    existingLearningEnginesReused: true,
+    customerGraphSnapshotReused: true,
+    founderAdvisoryOnly: true,
+    routeOrderingChanged: false,
+    routeScoringChanged: false,
+    activePoolSelectionChanged: false,
+    adaptiveReplenishmentChanged: false,
+    businessHoursEligibilityChanged: false,
+    recommendationOutputChanged: false
+  });
+  assert.deepEqual(successor.boundaries, {
+    prospectiveCollection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    confidencePropagation: "OFF",
+    providers: "OFF",
+    scheduler: "OFF",
+    productionStorageAccess: 0,
+    cloudflareContacts: 0,
+    deployments: 0,
+    representativeShadowOutputExposed: false,
+    productionMutationPerformed: false
+  });
+  return Object.freeze({ successor, transitionsByPath });
+}
+
+function mergeTransitionMaps(...maps) {
+  const merged = new Map();
+  for (const transitionsByPath of maps) {
+    for (const [path, transitions] of transitionsByPath) {
+      merged.set(path, [...(merged.get(path) || []), ...transitions]);
+    }
+  }
+  return merged;
 }
 
 function verifyPaidCustomerRevenueReadinessWorkerSuccessorAgainst(
@@ -818,7 +903,8 @@ function verifyRetentionDeletionConsumerAdmissionSuccessorAgainst(
 }
 
 function verifyRetentionMaintenanceConsumerAdmissionSuccessorAgainst(
-  retentionDeletionConsumerAdmissionSuccessor
+  retentionDeletionConsumerAdmissionSuccessor,
+  laterTransitionsByPath = new Map()
 ) {
   const successor = JSON.parse(
     read(retentionMaintenanceConsumerAdmissionSuccessorProvenancePath)
@@ -963,7 +1049,10 @@ function verifyRetentionMaintenanceConsumerAdmissionSuccessorAgainst(
     deploymentPerformed: false
   });
   for (const [path, transitions] of successorTransitionsByPath) {
-    assert.equal(sha256(path), transitions.at(-1).currentSha256,
+    assert.equal(
+      sha256(path),
+      laterTransitionsByPath.get(path)?.at(-1)?.currentSha256 ||
+        transitions.at(-1).currentSha256,
       `Current retention-maintenance consumer source changed: ${path}`);
   }
 
@@ -975,6 +1064,17 @@ function verifyRetentionMaintenanceConsumerAdmissionSuccessorAgainst(
       ...(transitionsByPath.get(path) || []),
       ...transitions
     ]);
+  }
+  for (const [path, transitions] of laterTransitionsByPath) {
+    const existing = transitionsByPath.get(path) || [];
+    if (existing.length > 0) {
+      assert.equal(
+        transitions[0].previousSha256,
+        existing.at(-1).currentSha256,
+        `Broken governed-learning successor chain: ${path}`
+      );
+    }
+    transitionsByPath.set(path, [...existing, ...transitions]);
   }
   return Object.freeze({
     successor,
@@ -1083,19 +1183,26 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     );
   const retentionMaintenanceTransitionsByPath =
     readRetentionMaintenanceTransitionsByPath();
+  const governedMultiSessionLearningAdvisorySuccessor =
+    readGovernedMultiSessionLearningAdvisorySuccessor();
+  const latestTransitionsByPath = mergeTransitionMaps(
+    retentionMaintenanceTransitionsByPath,
+    governedMultiSessionLearningAdvisorySuccessor.transitionsByPath
+  );
   const retentionDeletionRuntimeProtectedSuccessor =
     verifyRetentionDeletionRuntimeProtectedSuccessorAgainst(
       fieldSessionReportTypeContractProtectedSuccessor,
-      retentionMaintenanceTransitionsByPath
+      latestTransitionsByPath
     );
   const retentionDeletionConsumerAdmissionSuccessor =
     verifyRetentionDeletionConsumerAdmissionSuccessorAgainst(
       retentionDeletionRuntimeProtectedSuccessor,
-      retentionMaintenanceTransitionsByPath
+      latestTransitionsByPath
     );
   const retentionMaintenanceConsumerAdmissionSuccessor =
     verifyRetentionMaintenanceConsumerAdmissionSuccessorAgainst(
-      retentionDeletionConsumerAdmissionSuccessor
+      retentionDeletionConsumerAdmissionSuccessor,
+      governedMultiSessionLearningAdvisorySuccessor.transitionsByPath
     );
   for (const protectedTransition of transitionByPath.values()) {
     const revenueTransitions =
@@ -1119,7 +1226,8 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     fieldSessionReportTypeContractProtectedSuccessor,
     retentionDeletionRuntimeProtectedSuccessor,
     retentionDeletionConsumerAdmissionSuccessor,
-    retentionMaintenanceConsumerAdmissionSuccessor
+    retentionMaintenanceConsumerAdmissionSuccessor,
+    governedMultiSessionLearningAdvisorySuccessor
   });
 }
 
@@ -1156,6 +1264,11 @@ export function verifyRetentionDeletionConsumerAdmissionSuccessor() {
 export function verifyRetentionMaintenanceConsumerAdmissionSuccessor() {
   return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
     .retentionMaintenanceConsumerAdmissionSuccessor;
+}
+
+export function verifyGovernedMultiSessionLearningAdvisorySuccessor() {
+  return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .governedMultiSessionLearningAdvisorySuccessor;
 }
 
 export function verifyCrossIndustryZipFounderAccessAdoption() {
