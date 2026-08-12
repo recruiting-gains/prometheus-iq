@@ -13,6 +13,9 @@ import {
   createRouteIqGovernedLearningUnavailableAdvisory
 } from "../intelligence/route-iq-governed-multi-session-learning.mjs";
 import {
+  verifyCanonicalRouteIqGovernedLearningArtifact
+} from "../intelligence/provenance/verify-route-iq-governed-multi-session-learning-v1.mjs";
+import {
   buildReadOnlyFieldSessionLearningSnapshot,
   loadReadOnlyFieldSessionLearningContract,
   loadReadOnlyFieldSessionLearningPolicy
@@ -220,4 +223,13 @@ test("Unavailable evidence produces an honest advisory with no inferred confiden
   assert.equal(advisory.confidence.score, null);
   assert.equal(advisory.confidence.propagation, "OFF");
   assert.equal(advisory.safety.recommendationInfluence, "OFF");
+});
+
+test("The canonical governed-learning artifact matches deterministic source projection", () => {
+  const result = verifyCanonicalRouteIqGovernedLearningArtifact();
+  assert.equal(result.status, "PASS");
+  assert.equal(result.sessions, 1);
+  assert.equal(result.visits, 4);
+  assert.equal(result.recommendationInfluence, "OFF");
+  assert.equal(result.productionRuntimeActivated, false);
 });
