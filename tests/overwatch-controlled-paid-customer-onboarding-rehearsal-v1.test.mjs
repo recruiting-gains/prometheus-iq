@@ -18,6 +18,7 @@ import {
   validateFieldSessionReportTypeDriftFixtureSuccessor,
   validateFullSystemHarmonyIntelligenceSuccessor,
   validateFullSystemHarmonyShadowReadinessSuccessor,
+  resolveGovernedLearningOwnerSuccessor,
   validateLiveCanonicalIdentityIntelligenceSuccessor,
   validateControlledRehearsalGovernance,
   validateControlledRehearsalReport,
@@ -31,6 +32,9 @@ import {
 import {
   hasGithubActionsNode24InfrastructureSuccessor
 } from "../scripts/verify-overwatch-github-actions-node24-pin-successor.mjs";
+import {
+  verifyGovernedMultiSessionLearningAdvisorySuccessor
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = new URL("../", import.meta.url);
 const readJson = path => JSON.parse(readFileSync(new URL(path, root), "utf8"));
@@ -62,6 +66,46 @@ const node24ActionPinInfrastructure = readJson(
   "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json"
 );
 const clone = value => structuredClone(value);
+
+test("Overwatch composes the exact governed-learning owner successors", () => {
+  const successor = verifyGovernedMultiSessionLearningAdvisorySuccessor();
+  assert.deepEqual(resolveGovernedLearningOwnerSuccessor({
+    successor,
+    path: "workers/prometheus-iq-worker.js",
+    previousSha256:
+      "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051"
+  }), {
+    commit: "267225d51e32acc6f50ce932a945e2749783734e",
+    sha256: "b5a5d26229d6d0808bb41a08fd2b252021df1d5cdfa9e44cda539819fc728b9a"
+  });
+  assert.deepEqual(resolveGovernedLearningOwnerSuccessor({
+    successor,
+    path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+    previousSha256:
+      "ce1ab3876750043b251cb6029d0c0709159a8ff9c58c4266411883e6f9542e2c"
+  }), {
+    commit: "f1b889bb45e357a757656d992e91d95580cc8880",
+    sha256: "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0"
+  });
+  for (const mutate of [
+    value => { value.successor.batchId = "BATCH-SUBSTITUTED"; },
+    value => { value.successor.ownerSubsystem = "Prometheus Overwatch"; },
+    value => { value.transitionsByPath.delete("workers/prometheus-iq-worker.js"); },
+    value => {
+      value.transitionsByPath.get("workers/prometheus-iq-worker.js")[0]
+        .previousSha256 = "0".repeat(64);
+    }
+  ]) {
+    const candidate = clone(successor);
+    mutate(candidate);
+    assert.throws(() => resolveGovernedLearningOwnerSuccessor({
+      successor: candidate,
+      path: "workers/prometheus-iq-worker.js",
+      previousSha256:
+        "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051"
+    }));
+  }
+});
 
 test("Overwatch accepts only the exact Intelligence revenue-readiness successor", () => {
   assert.equal(

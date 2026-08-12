@@ -30,6 +30,9 @@ import {
 import {
   hasGithubActionsNode24InfrastructureSuccessor
 } from "./verify-overwatch-github-actions-node24-pin-successor.mjs";
+import {
+  verifyGovernedMultiSessionLearningAdvisorySuccessor
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -124,6 +127,31 @@ export const controlledRehearsalIntelligenceSuccessor = Object.freeze({
     })
   ])
 });
+
+export function resolveGovernedLearningOwnerSuccessor({
+  successor,
+  path,
+  previousSha256
+}) {
+  assert.equal(successor?.successor?.batchId, "BATCH-20260812-001");
+  assert.equal(successor?.successor?.ownerSubsystem,
+    "Prometheus Intelligence Engine");
+  const transitions = successor?.transitionsByPath?.get(path);
+  assert.ok(Array.isArray(transitions) && transitions.length > 0,
+    `governed learning successor path is absent: ${path}`);
+  assert.equal(transitions[0].previousSha256, previousSha256,
+    `governed learning predecessor drifted: ${path}`);
+  for (let index = 1; index < transitions.length; index += 1) {
+    assert.equal(transitions[index].previousSha256,
+      transitions[index - 1].currentSha256,
+      `governed learning successor chain broke: ${path}`);
+  }
+  const current = transitions.at(-1);
+  return Object.freeze({
+    commit: current.commit,
+    sha256: current.currentSha256
+  });
+}
 
 export const fullSystemHarmonyIntelligenceSuccessor = Object.freeze({
   commit: "2f8992476ca37276b0ee388fe2e33a2158f9d906",
@@ -741,10 +769,23 @@ function verifyCurrentOwnerFiles(governance) {
     "ce1ab3876750043b251cb6029d0c0709159a8ff9c58c4266411883e6f9542e2c");
   assert.equal(retentionMaintenanceConsumerSuccessor.composition.historicalPinsRewritten,
     false);
+  const governedLearningSuccessor =
+    verifyGovernedMultiSessionLearningAdvisorySuccessor();
+  const governedLearningWorkerSuccessor = resolveGovernedLearningOwnerSuccessor({
+    successor: governedLearningSuccessor,
+    path: "workers/prometheus-iq-worker.js",
+    previousSha256:
+      "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051"
+  });
+  const governedLearningCoherenceSuccessor = resolveGovernedLearningOwnerSuccessor({
+    successor: governedLearningSuccessor,
+    path: maintenanceCoherence.path,
+    previousSha256: maintenanceCoherence.currentSha256
+  });
   const governedSuccessors = new Map([
     ["workers/prometheus-iq-worker.js", {
-      commit: "4b81819c861ca7326b4749c06e69654eab8f3166",
-      sha256: "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051"
+      commit: governedLearningWorkerSuccessor.commit,
+      sha256: governedLearningWorkerSuccessor.sha256
     }],
     ["scripts/lib/github-actions-private-worker-workflow-v2.mjs", {
       commit: "fd52da7db16993f79c2286f35089d0b06e114070",
@@ -759,8 +800,8 @@ function verifyCurrentOwnerFiles(governance) {
       sha256: "0c38be17c0823b1e247f1781353bbce543d66deb46f775c7a905b4164cb6d951"
     }],
     ["intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs", {
-      commit: maintenanceCoherence.commit,
-      sha256: maintenanceCoherence.currentSha256
+      commit: governedLearningCoherenceSuccessor.commit,
+      sha256: governedLearningCoherenceSuccessor.sha256
     }],
     ["tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs", {
       commit: "99f591162093ccb1f4ad5ac2eac59fc76bec4bc0",
