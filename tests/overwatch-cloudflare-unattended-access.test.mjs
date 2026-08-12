@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -7,6 +8,7 @@ import test from "node:test";
 import {
   evaluateActiveCloudflareToolchainSuccessor,
   evaluateCloudflareUnattendedAccessGovernance,
+  isActiveCloudflareToolchainEvidenceAccepted,
   verifyOverwatchCloudflareUnattendedAccess
 } from "../scripts/verify-overwatch-cloudflare-unattended-access.mjs";
 
@@ -27,8 +29,23 @@ const commercialReadiness = readJson("overwatch/governance/route-iq-commercial-r
 const toolchainGovernance = readJson(
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json"
 );
+const privateWorkflowGovernance = readJson(
+  "overwatch/governance/github-actions-private-worker-deployment-v2.json"
+);
+const fieldSessionReportTypeGovernance = readJson(
+  "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json"
+);
+const liveCanonicalIdentityGovernance = readJson(
+  "overwatch/governance/live-canonical-identity-migration-v1.json"
+);
+const readinessSuccessors = readJson(
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
+);
 const packageJson = readJson("package.json");
 const packageLock = readJson("package-lock.json");
+const sha256 = path => createHash("sha256")
+  .update(readFileSync(resolve(root, path)))
+  .digest("hex");
 const clone = value => structuredClone(value);
 const evaluate = (infra = infrastructure, gov = governance, batchReport = report) => (
   evaluateCloudflareUnattendedAccessGovernance({
@@ -93,6 +110,28 @@ test("active Wrangler successor is exact and cannot rewrite historical evidence"
     mutate(changed);
     assert.equal(evaluateActiveCloudflareToolchainSuccessor(changed).ok, false);
   }
+});
+
+test("unattended access composes only the exact governed learning payload successor", () => {
+  const path = "workers/infrastructure/github-actions-private-worker-deployment-v2.json";
+  const expectedSha256 = toolchainGovernance.activeDeploymentPolicySuccessor
+    .currentEvidence[path];
+  const values = {
+    path,
+    expectedSha256,
+    currentSha256: sha256(path),
+    privateWorkflowGovernance,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors
+  };
+  assert.notEqual(values.currentSha256, expectedSha256);
+  assert.equal(isActiveCloudflareToolchainEvidenceAccepted(values), true);
+
+  const drifted = clone(values);
+  drifted.privateWorkflowGovernance.governedLearningPayloadSuccessor.evidence
+    .find(item => item.path === path).successorSha256 = "0".repeat(64);
+  assert.equal(isActiveCloudflareToolchainEvidenceAccepted(drifted), false);
 });
 
 test("paused unattended access accepts only explicit owner-authored commercial successors", () => {

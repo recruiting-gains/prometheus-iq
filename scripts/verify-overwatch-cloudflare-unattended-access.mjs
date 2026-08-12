@@ -8,6 +8,9 @@ import {
   scanTrackedRepository,
   verifyLocalSecretArtifacts
 } from "./check-cloudflare-unattended-secret-presence.mjs";
+import {
+  hasGovernedLearningPayloadInfrastructureSuccessor
+} from "./verify-overwatch-github-actions-private-worker-deployment.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const infrastructurePath = "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json";
@@ -20,6 +23,14 @@ const routeIq3dSuccessorPath =
   "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 const toolchainGovernancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
+const privateWorkflowGovernancePath =
+  "overwatch/governance/github-actions-private-worker-deployment-v2.json";
+const fieldSessionReportTypeGovernancePath =
+  "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json";
+const liveCanonicalIdentityGovernancePath =
+  "overwatch/governance/live-canonical-identity-migration-v1.json";
+const augustReadinessSuccessorsPath =
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 const activeToolchainOwnerCommit = "d55a983134be40bf10777df293ca593e7583f138";
 const activeToolchainOwnerTree = "fcc850958e92d1f75eece476d6047b58972249d0";
 
@@ -442,6 +453,27 @@ export function evaluateActiveCloudflareToolchainSuccessor({
   return Object.freeze({ ok: failures.length === 0, failures: Object.freeze(failures) });
 }
 
+export function isActiveCloudflareToolchainEvidenceAccepted({
+  path,
+  expectedSha256,
+  currentSha256,
+  privateWorkflowGovernance,
+  fieldSessionReportTypeGovernance,
+  liveCanonicalIdentityGovernance,
+  readinessSuccessors
+}) {
+  return currentSha256 === expectedSha256
+    || hasGovernedLearningPayloadInfrastructureSuccessor({
+      governance: privateWorkflowGovernance,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors,
+      path,
+      previousSha256: expectedSha256,
+      currentSha256
+    });
+}
+
 export function verifyOverwatchCloudflareUnattendedAccess() {
   const currentInfrastructure = readJson(infrastructurePath);
   const infrastructure = JSON.parse(historicalRead(infrastructurePath));
@@ -451,6 +483,14 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
   const commercialReadinessSuccessor = readJson(commercialReadinessSuccessorPath);
   const routeIq3dSuccessor = readJson(routeIq3dSuccessorPath);
   const toolchainGovernance = readJson(toolchainGovernancePath);
+  const privateWorkflowGovernance = readJson(privateWorkflowGovernancePath);
+  const fieldSessionReportTypeGovernance = readJson(
+    fieldSessionReportTypeGovernancePath
+  );
+  const liveCanonicalIdentityGovernance = readJson(
+    liveCanonicalIdentityGovernancePath
+  );
+  const readinessSuccessors = readJson(augustReadinessSuccessorsPath);
   const packageJson = readJson("package.json");
   const packageLock = readJson("package-lock.json");
   const workflow = read(".github/workflows/security-gates.yml");
@@ -486,7 +526,15 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     failures.push("Active Cloudflare toolchain owner file set drifted.");
   }
   for (const [path, expected] of Object.entries(activeSuccessor.currentEvidence)) {
-    if (sha256(read(path)) !== expected) {
+    if (!isActiveCloudflareToolchainEvidenceAccepted({
+      path,
+      expectedSha256: expected,
+      currentSha256: sha256(read(path)),
+      privateWorkflowGovernance,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors
+    })) {
       failures.push(`Active Cloudflare toolchain evidence drifted: ${path}`);
     }
   }
