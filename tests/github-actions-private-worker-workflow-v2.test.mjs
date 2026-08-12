@@ -102,13 +102,15 @@ const requiredBindings = Object.freeze([
   "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR:durable_object_namespace"
 ].sort());
 
-const RETENTION_DELETION_FORWARD_PAYLOAD_SHA256 =
+const GOVERNED_LEARNING_FORWARD_PAYLOAD_SHA256 =
+  "7ed697de32134dcd940df2238b8bddaa0bb41e57a365716ea7e6f5f454c8fd24";
+const RETENTION_MAINTENANCE_FORWARD_PAYLOAD_SHA256 =
   "bafde531701612f2bf5ca9fd3bb69ee1be60432c78b0a046359c7476e5785e09";
 const INITIAL_RETENTION_DELETION_FORWARD_PAYLOAD_SHA256 =
   "7f2f937286a743bf5f31f42097974fa511fdf29d667d63b49ad911e5072108c3";
-const PRE_RETENTION_FORWARD_PAYLOAD_SHA256 =
-  "d9846e24a2d15ee2a5b540cbe6420d1acd1adf83dec32f593d2c4970e511263a";
-const PRESERVED_DEPLOY_PARITY_SHA256 =
+const GOVERNED_LEARNING_DEPLOY_PARITY_SHA256 =
+  "e501b84ec1fab67f84d021041f80bc08030596be35181d8eb129a96ef6609a83";
+const RETENTION_MAINTENANCE_DEPLOY_PARITY_SHA256 =
   "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9";
 const PRESERVED_ROLLBACK_BUNDLE_SHA256 =
   "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028";
@@ -123,18 +125,18 @@ function qualificationInputs() {
   });
 }
 
-test("dormant retention rotates only the qualified forward payload identity", () => {
+test("governed learning rotates only the qualified forward payload and parity identities", () => {
   const contract = JSON.parse(readFileSync(
     join(root, PRIVATE_WORKFLOW_V2_POLICY.contractPath),
     "utf8"
   ));
   assert.equal(
     PRIVATE_WORKFLOW_V2_POLICY.continuityBaseline.forwardPayloadSha256,
-    RETENTION_DELETION_FORWARD_PAYLOAD_SHA256
+    GOVERNED_LEARNING_FORWARD_PAYLOAD_SHA256
   );
   assert.notEqual(
     PRIVATE_WORKFLOW_V2_POLICY.continuityBaseline.forwardPayloadSha256,
-    PRE_RETENTION_FORWARD_PAYLOAD_SHA256
+    RETENTION_MAINTENANCE_FORWARD_PAYLOAD_SHA256
   );
   assert.notEqual(
     PRIVATE_WORKFLOW_V2_POLICY.continuityBaseline.forwardPayloadSha256,
@@ -142,15 +144,19 @@ test("dormant retention rotates only the qualified forward payload identity", ()
   );
   assert.equal(
     contract.continuity.qualifiedForwardPayloadSha256,
-    RETENTION_DELETION_FORWARD_PAYLOAD_SHA256
+    GOVERNED_LEARNING_FORWARD_PAYLOAD_SHA256
   );
   assert.equal(
     PRIVATE_WORKFLOW_V2_POLICY.continuityBaseline.deployParitySha256,
-    PRESERVED_DEPLOY_PARITY_SHA256
+    GOVERNED_LEARNING_DEPLOY_PARITY_SHA256
   );
   assert.equal(
     contract.continuity.privateDeployParitySha256,
-    PRESERVED_DEPLOY_PARITY_SHA256
+    GOVERNED_LEARNING_DEPLOY_PARITY_SHA256
+  );
+  assert.notEqual(
+    PRIVATE_WORKFLOW_V2_POLICY.continuityBaseline.deployParitySha256,
+    RETENTION_MAINTENANCE_DEPLOY_PARITY_SHA256
   );
   assert.equal(
     PRIVATE_WORKFLOW_V2_POLICY.continuityBaseline.rollbackBundleSha256,
