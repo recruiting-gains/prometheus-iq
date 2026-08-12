@@ -1,0 +1,96 @@
+{
+  "governanceVersion": "route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1",
+  "batchId": "BATCH-20260812-001",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "status": "SOURCE_COMPLETE_UNDEPLOYED_HOSTED_QUALIFICATION_PENDING",
+  "startingRepository": {
+    "remote": "git@github.com:PrometheusRouteIQ/prometheus-iq.git",
+    "branch": "main",
+    "commit": "b7925ea3eee305e0f69e93d2def23b824d24092a",
+    "tree": "ed74ce18fed4e740984660e10b5e500df2e5d440",
+    "clean": true,
+    "synchronized": true
+  },
+  "ownerCommits": [
+    {"commit":"ff06fb0723e0842c970fd344049b999ba774faa4","tree":"bb2c31134b78dcebec1a1589e3c09acd8201132e","owner":"Prometheus Data <data@prometheus.local>","subject":"data: admit governed multi-session learning evidence"},
+    {"commit":"eff79c156b1820621cf80b4e4eb87c030d8c5024","tree":"e1af5725d67610a984f676fd889a69a6c3dd9bf6","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: bridge governed multi-session advisory learning"},
+    {"commit":"53d080494c7377789b697d8bcc47fd0e8958b722","tree":"ab9cb7da79c75f783da8ea6000ce93e35d2b3f2a","owner":"Prometheus Dashboard <dashboard@prometheus.local>","subject":"dashboard: add founder governed learning advisory"},
+    {"commit":"9568ccfcbb72035bbd4ff56994209a09b6e06143","tree":"1b50a61ad838248936896d6d3234c47b6c34121d","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: pin governed learning artifact"},
+    {"commit":"267225d51e32acc6f50ce932a945e2749783734e","tree":"dbe4dfd627fddc1a434bb700beba488279c49877","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: serve governed learning advisory source"},
+    {"commit":"5a96af214010d7b446b0f209b6239933c86cc838","tree":"b4b4464ebe6fab51e8ef1949122c22e4e4b1e852","owner":"Prometheus Security <security@prometheus.local>","subject":"security: verify governed learning advisory boundary"},
+    {"commit":"da3f9ff739ecb883ac2bddb169aefb1b9632b525","tree":"9cbaca722d08c810c1ab6e8e3a5269417049294d","owner":"Prometheus Patents <patents@prometheus.local>","subject":"patents: record governed learning advisory checkpoint"},
+    {"commit":"0e3d720f09e65cea066c5181afdff44d96a4e8ca","tree":"c2063be72b464925d9fd3187b05a18bed1c9a314","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: compose governed learning successor chain"},
+    {"commit":"76946be76fea7dd9ec558739f63bd7310a766a66","tree":"0d410df5ce458c6c7409dc23b0447e4df03b9f80","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: adopt governed learning successor baseline"},
+    {"commit":"7633c44d5e43ca64e32ece2da38f6e9925d34d4c","tree":"e42c79a57beecec90c21edd7bef81a0184e281a6","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: order governed successor verification"},
+    {"commit":"f1b889bb45e357a757656d992e91d95580cc8880","tree":"9e364871eb0be5385ccbebcc145b2100f9e9e6e9","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: deduplicate successor aggregation"},
+    {"commit":"2f86078e53d80f72f8ff02e36e00aa564120f9c6","tree":"4783bf7f4e92fb04a1af3e110dd3d007216baef8","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: pin governed learning successor provenance"}
+  ],
+  "criticalPins": [
+    {"path":"data/route-iq-field-sessions-v1/route-iq-eligible-session-manifest.mjs","sha256":"38d88fed7a9418ddfed7ff3c266297471416ecca881cf72191d1cd41358e319c"},
+    {"path":"data/route-iq-field-sessions-v1/route-iq-governed-learning-source-v1.json","sha256":"e8f6936f1ca5627e3102dd7ffe72bbba41f206dc3628bc03664fc9a2d817cb67"},
+    {"path":"intelligence/route-iq-governed-multi-session-learning.mjs","sha256":"0ada2dff53ddb08f0160b2dda767b414e3c16b7bfe77c803ace1fd8333188923"},
+    {"path":"intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json","sha256":"89e3619c3f9c9a5d71003761d3c861dbb9c59dddfac6e7991bba483e562fcd37"},
+    {"path":"intelligence/provenance/verify-route-iq-governed-multi-session-learning-v1.mjs","sha256":"8e2f12ec7db3ab7cc215f832d5099d34b87674ff15b6c86bed3e8db8f345a142"},
+    {"path":"intelligence/provenance/protected-baseline-synchronization-governed-multi-session-learning-advisory-v1.json","sha256":"2d78216d4d0ff4d073a9b0accb44d69b0fd7b02c266c35c7a3197111bd436917"},
+    {"path":"dashboard/route-iq-dashboard-platform.mjs","sha256":"354d377a02c1675df041ee2d7efeaa50962f1f5305e5c39352b0702c31eed4c0"},
+    {"path":"index.html","sha256":"b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604"},
+    {"path":"workers/infrastructure/route-iq-governed-learning-advisory-runtime.js","sha256":"d42e7e47a8e07f93a13577591d25fd1e5d70b574b1075f3f291102f9c79f56c5"},
+    {"path":"workers/prometheus-iq-worker.js","sha256":"b5a5d26229d6d0808bb41a08fd2b252021df1d5cdfa9e44cda539819fc728b9a"},
+    {"path":"security/route-iq-governed-learning-advisory-v1.json","sha256":"1e2fb1758916031f57bf6b6a2c0a7ffdbf5920f1ad2c02ca50d98b091bd78211"},
+    {"path":"security/verify-route-iq-governed-learning-advisory-v1.mjs","sha256":"adb37d5ca38af335e2e08dd614a896c14e2b73b68704ee7ed0622bab22d089f3"},
+    {"path":"patents/route-iq/GOVERNED_MULTI_SESSION_LEARNING_DASHBOARD_ADVISORY_BRIDGE_V1.md","sha256":"66cb83c3ce2882a169c7eab2fb2ff00cbc137d2eff39ac0d4d1652b1b1351c45"}
+  ],
+  "canonicalArtifact": {
+    "artifactId": "riq_governed_learning_86f0ff03747d330844473091f46cc05350a1e0ed0b262430e23caaa0ed229a56",
+    "artifactSha256": "86f0ff03747d330844473091f46cc05350a1e0ed0b262430e23caaa0ed229a56",
+    "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+    "sessions": 1,
+    "visits": 4,
+    "truthState": "INSUFFICIENT_EVIDENCE"
+  },
+  "delivery": {
+    "route": "/api/dashboard/route-iq/intelligence/governed-learning-advisory",
+    "target": "private_prometheus_iq_source_only",
+    "founderOnly": true,
+    "serverResolvedTenant": true,
+    "callerSelectedAuthorityAllowed": false,
+    "cache": "private_no_store",
+    "browserPersistenceWrites": 0,
+    "publicWorkerExposure": false,
+    "deploymentAuthorized": false
+  },
+  "unchangedBehaviorPaths": [
+    "intelligence/continuous-adaptive-route-replenishment.mjs",
+    "intelligence/route-business-hours-eligibility.mjs",
+    "intelligence/recommendation-explainability-engine.mjs",
+    "scripts/lib/route-intelligence-quality-gate.mjs"
+  ],
+  "historicalEvidence": {
+    "path": "data/route-iq-field-sessions-v1/workspaces",
+    "changed": false,
+    "archivesRewritten": false
+  },
+  "protectedState": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "productionStorageAccess": 0,
+    "cloudflareContacts": 0,
+    "deployments": 0,
+    "crmBehaviorChanged": false,
+    "companionBehaviorChanged": false,
+    "anthonyMappingChanged": false,
+    "representativeShadowOutputExposed": false,
+    "stripeOrLiveBillingChanged": false
+  },
+  "release": {
+    "sourceComplete": true,
+    "hostedQualificationRequired": true,
+    "deploymentAuthorized": false,
+    "productionMutationAuthorized": false,
+    "nextDecision": "separate_founder_authorized_private_worker_release_review"
+  }
+}
