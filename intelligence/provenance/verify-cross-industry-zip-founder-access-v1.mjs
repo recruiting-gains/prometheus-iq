@@ -1373,6 +1373,10 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       });
       continue;
     }
+    const alreadyApplied = existing.transitions.some(
+      transition => transition.currentSha256 === transitions.at(-1).currentSha256
+    );
+    if (alreadyApplied) continue;
     const currentTransitionIndex = transitions.findIndex(
       transition => transition.currentSha256 === existing.currentSha256
     );
