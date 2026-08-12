@@ -67,6 +67,11 @@ import {
   isPaidCustomerRevenueReadinessPath
 } from "./infrastructure/route-iq-paid-customer-revenue-readiness-runtime.js";
 import {
+  ROUTE_IQ_GOVERNED_LEARNING_ADVISORY_PATH,
+  handleRouteIqGovernedLearningAdvisoryRequest,
+  isRouteIqGovernedLearningAdvisoryPath
+} from "./infrastructure/route-iq-governed-learning-advisory-runtime.js";
+import {
   authorizeCloudflareUnattendedSmokeRequest,
   markCloudflareUnattendedSmokeResponse,
   sanitizeCloudflareUnattendedSmokeAssetRequest
@@ -1123,11 +1128,32 @@ async function handleRouteIqCustomerAwareFieldSessionRequest(request, env, execu
 
 async function handleApiRequest(request, env, executionContext, {
   dailySnapshotTestHooks,
+  governedLearningAdvisoryTestHooks,
   paidCustomerOnboardingTestHooks,
   paidCustomerDashboardPreviewTestHooks,
   paidCustomerRevenueReadinessTestHooks
 } = {}) {
   const url = new URL(request.url);
+  if (isRouteIqGovernedLearningAdvisoryPath(url.pathname)) {
+    try {
+      const founderPrincipal = await authorizeRouteIqFounderDailySnapshot(
+        request,
+        env,
+        governedLearningAdvisoryTestHooks?.founderAuthentication
+      );
+      return handleRouteIqGovernedLearningAdvisoryRequest(request, {
+        founderPrincipal,
+        workspace: supportedFieldSessionWorkspaces.fitness_connection,
+        artifact: governedLearningAdvisoryTestHooks?.artifact,
+        now: governedLearningAdvisoryTestHooks?.now || new Date()
+      });
+    } catch {
+      return routeIqFounderSnapshotResponse({
+        ok: false,
+        code: "route_iq_governed_learning_unavailable"
+      }, 404);
+    }
+  }
   if (isPaidCustomerRevenueReadinessPath(url.pathname)) {
     try {
       const founderPrincipal = await authorizeRouteIqFounderDailySnapshot(
@@ -1191,6 +1217,7 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
   customerPwaTestHooks,
   unattendedSmokeTestHooks,
   dailySnapshotTestHooks,
+  governedLearningAdvisoryTestHooks,
   paidCustomerOnboardingTestHooks,
   paidCustomerDashboardPreviewTestHooks,
   paidCustomerRevenueReadinessTestHooks,
@@ -1230,6 +1257,7 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
       } else {
         response = withAegisHeaders(await handleApiRequest(request, env, executionContext, {
           dailySnapshotTestHooks,
+          governedLearningAdvisoryTestHooks,
           paidCustomerOnboardingTestHooks,
           paidCustomerDashboardPreviewTestHooks,
           paidCustomerRevenueReadinessTestHooks
@@ -1266,6 +1294,7 @@ export {
   INSTAGRAM_REPORT_PATH,
   INSTAGRAM_SNAPSHOT_PATH,
   ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH,
+  ROUTE_IQ_GOVERNED_LEARNING_ADVISORY_PATH,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_CONTRACT_VERSION,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV,
   ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH,
@@ -1285,6 +1314,7 @@ export {
   handleRouteIqFounderDailySnapshot,
   handleRouteIqFounderOperationalSession,
   handleRouteIqFounderSystemStatus,
+  handleRouteIqGovernedLearningAdvisoryRequest,
   handleRouteIqPaidCustomerDashboardPreviewRequest,
   handleRouteIqPaidCustomerOnboardingRequest,
   handleRouteIqFieldSessionHandoff,
