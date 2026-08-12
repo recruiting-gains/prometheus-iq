@@ -25,6 +25,7 @@ import {
   verifyOverwatchControlledPaidCustomerOnboardingRehearsalV1
 } from "../scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs";
 import {
+  hasGovernedLearningPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
   hasRetentionMaintenancePayloadInfrastructureSuccessor
@@ -272,7 +273,18 @@ test("Overwatch composes the exact retention deletion and maintenance payload su
       readinessSuccessors: currentReadinessSuccessors,
       path,
       previousSha256,
-      currentSha256: createHash("sha256").update(readFileSync(new URL(path, root))).digest("hex")
+      currentSha256: privateWorkflowGovernance.governedLearningPayloadSuccessor
+        .evidence.find(item => item.path === path).previousSha256
+    }), true);
+    assert.equal(hasGovernedLearningPayloadInfrastructureSuccessor({
+      governance: privateWorkflowGovernance,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors: currentReadinessSuccessors,
+      path,
+      previousSha256,
+      currentSha256: createHash("sha256")
+        .update(readFileSync(new URL(path, root))).digest("hex")
     }), true);
   }
   const changed = clone(privateWorkflowGovernance);
@@ -291,6 +303,17 @@ test("Overwatch composes the exact retention deletion and maintenance payload su
     ))).digest("hex")
   }), false);
   assert.equal(hasRetentionMaintenancePayloadInfrastructureSuccessor({
+    governance: changed,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+    previousSha256:
+      "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
+    currentSha256: privateWorkflowGovernance.governedLearningPayloadSuccessor
+      .evidence[0].previousSha256
+  }), false);
+  assert.equal(hasGovernedLearningPayloadInfrastructureSuccessor({
     governance: changed,
     fieldSessionReportTypeGovernance,
     liveCanonicalIdentityGovernance,

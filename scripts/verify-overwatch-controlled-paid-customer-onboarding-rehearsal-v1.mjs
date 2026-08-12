@@ -21,6 +21,7 @@ import {
 } from "../workers/infrastructure/route-iq-controlled-paid-customer-onboarding-rehearsal-runtime.js";
 import {
   hasFieldSessionReportTypeInfrastructureSuccessor,
+  hasGovernedLearningPayloadInfrastructureSuccessor,
   hasLiveCanonicalIdentityOwnerEvidenceSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
@@ -862,6 +863,17 @@ function verifyCurrentOwnerFiles(governance) {
         })) {
           assert.notEqual(actual, item.sha256,
             `Node 24 action-pin successor did not advance owner evidence: ${item.path}`);
+        } else if (hasGovernedLearningPayloadInfrastructureSuccessor({
+          governance: privateWorkflowGovernance,
+          fieldSessionReportTypeGovernance,
+          liveCanonicalIdentityGovernance,
+          readinessSuccessors: currentReadinessSuccessors,
+          path: item.path,
+          previousSha256: successor?.sha256 ?? item.sha256,
+          currentSha256: actual
+        })) {
+          assert.notEqual(actual, item.sha256,
+            `governed-learning payload successor did not advance owner evidence: ${item.path}`);
         } else if (hasRetentionMaintenancePayloadInfrastructureSuccessor({
           governance: privateWorkflowGovernance,
           fieldSessionReportTypeGovernance,
