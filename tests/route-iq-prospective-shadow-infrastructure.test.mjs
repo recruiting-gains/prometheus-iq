@@ -1631,7 +1631,7 @@ test("activation readiness audit reports writes, records, budgets, production ac
   assert.equal(staleAudit.blockers.includes("activation_cohort_config_stale"), true);
 });
 
-test("Worker API dispatch preserves prospective routing with the governed paid-customer hook shape", () => {
+test("Worker API dispatch preserves prospective routing with the governed API hook shape", () => {
   const source = readFileSync(join(root, "workers/prometheus-iq-worker.js"), "utf8");
   assert.doesNotThrow(() => verifyRouteIqProspectiveWorkerDispatchSource(source));
 });
@@ -1640,12 +1640,14 @@ test("Worker API dispatch verifier rejects unauthorized governed-hook signature 
   const source = readFileSync(join(root, "workers/prometheus-iq-worker.js"), "utf8");
   const signature = `async function handleApiRequest(request, env, executionContext, {
   dailySnapshotTestHooks,
+  governedLearningAdvisoryTestHooks,
   paidCustomerOnboardingTestHooks,
   paidCustomerDashboardPreviewTestHooks,
   paidCustomerRevenueReadinessTestHooks
 } = {}) {`;
   const unauthorizedSignatures = [
     "async function handleApiRequest(request, env, executionContext, { dailySnapshotTestHooks } = {}) {",
+    signature.replace("  governedLearningAdvisoryTestHooks,\n", ""),
     signature.replace("  paidCustomerOnboardingTestHooks,\n", ""),
     signature.replace("  paidCustomerDashboardPreviewTestHooks,\n", ""),
     signature.replace("  paidCustomerRevenueReadinessTestHooks\n", ""),
@@ -1658,13 +1660,14 @@ test("Worker API dispatch verifier rejects unauthorized governed-hook signature 
       "  paidCustomerRevenueReadinessTestHooks,\n  unauthorizedTestHooks\n"
     ),
     signature.replace("paidCustomerOnboardingTestHooks", "customerOnboardingTestHooks"),
+    signature.replace("governedLearningAdvisoryTestHooks", "learningAdvisoryTestHooks"),
     signature.replace("paidCustomerRevenueReadinessTestHooks", "customerRevenueReadinessTestHooks")
   ];
   assert.equal(source.includes(signature), true);
   for (const unauthorizedSignature of unauthorizedSignatures) {
     assert.throws(
       () => verifyRouteIqProspectiveWorkerDispatchSource(source.replace(signature, unauthorizedSignature)),
-      /exact governed paid-customer hook signature/u
+      /exact governed API hook signature/u
     );
   }
 });
@@ -1673,8 +1676,8 @@ test("Worker API dispatch verifier rejects hook-forwarding and prospective-dispa
   const source = readFileSync(join(root, "workers/prometheus-iq-worker.js"), "utf8");
   const mutations = [
     source.replace(
-      "          paidCustomerDashboardPreviewTestHooks,\n          paidCustomerRevenueReadinessTestHooks",
-      "          paidCustomerDashboardPreviewTestHooks"
+      "          governedLearningAdvisoryTestHooks,\n          paidCustomerOnboardingTestHooks",
+      "          paidCustomerOnboardingTestHooks"
     ),
     source.replace(
       "return handleRouteIqProspectiveShadowRequest(request, env, { executionContext });",
@@ -1685,7 +1688,7 @@ test("Worker API dispatch verifier rejects hook-forwarding and prospective-dispa
     assert.notEqual(mutation, source);
     assert.throws(
       () => verifyRouteIqProspectiveWorkerDispatchSource(mutation),
-      /exact (?:governed paid-customer hooks|prospective-shadow execution-context dispatch)/u
+      /exact (?:governed API hooks|prospective-shadow execution-context dispatch)/u
     );
   }
 });
