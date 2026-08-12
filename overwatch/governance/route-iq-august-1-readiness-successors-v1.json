@@ -102,6 +102,11 @@
       "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
       "previousSha256": "29a96b9b31290c862b745d349a2c7ec2f34e5e265bcbd100425612c5879eb6f8",
       "successorSha256": "b3a3024bfc10422ea6864c8a8677686679c40127ecf589a79ca72d4fe5e2c816"
+    },
+    {
+      "path": "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+      "previousSha256": "2165324ae8773102e3d74f072856373248bc1d67b8dcef8e73d0dcd23bfbea5d",
+      "successorSha256": "66be58c413b4b133049998351302fa72181643fd012c500b1939ec02e56489bd"
     }
   ],
   "successors": [
