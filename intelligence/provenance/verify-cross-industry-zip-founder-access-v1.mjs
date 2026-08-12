@@ -1321,6 +1321,10 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       rehearsalSuccessor.retentionMaintenanceConsumerAdmissionSuccessor
         .successorTransitionsByPath
         .get(successor.path) || [];
+    const governedLearningTransitions =
+      rehearsalSuccessor.governedMultiSessionLearningAdvisorySuccessor
+        .transitionsByPath
+        .get(successor.path) || [];
     if (rehearsalTransition) {
       assert.equal(
         rehearsalTransition.previousSha256,
@@ -1333,7 +1337,8 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       ...(rehearsalTransition ? [rehearsalTransition] : []),
       ...revenueReadinessTransitions,
       ...retentionConsumerTransitions,
-      ...retentionMaintenanceTransitions
+      ...retentionMaintenanceTransitions,
+      ...governedLearningTransitions
     ];
     const currentSuccessor = {
       ...successor,
@@ -1429,15 +1434,22 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       });
       continue;
     }
+    const currentTransitionIndex = transitions.findIndex(
+      transition => transition.currentSha256 === existing.currentSha256
+    );
+    const remainingTransitions = currentTransitionIndex >= 0
+      ? transitions.slice(currentTransitionIndex + 1)
+      : transitions;
+    if (remainingTransitions.length === 0) continue;
     assert.equal(
-      transitions[0].previousSha256,
+      remainingTransitions[0].previousSha256,
       existing.currentSha256,
       `Broken governed-learning adoption chain: ${path}`
     );
     transitionByPath.set(path, {
       ...existing,
-      currentSha256: transitions.at(-1).currentSha256,
-      transitions: [...existing.transitions, ...transitions]
+      currentSha256: remainingTransitions.at(-1).currentSha256,
+      transitions: [...existing.transitions, ...remainingTransitions]
     });
   }
 
