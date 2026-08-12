@@ -14,6 +14,8 @@ const fieldSessionReportTypeGovernancePath =
   "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json";
 const retentionDeletionGovernancePath =
   "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json";
+const governedLearningGovernancePath =
+  "overwatch/governance/route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.json";
 const retentionDeletionRuntimeProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json";
 const retentionDeletionConsumerAdmissionProvenancePath =
@@ -411,6 +413,80 @@ export const currentRetentionMaintenanceIntelligenceSuccessor = Object.freeze({
   implementationCommit: "c2bdfa3035383293afeb7e4a16704cb121c01716",
   coherenceCommit: "0faca7bb91b3e4ddbe7c1996ca84cc9247cd205a"
 });
+export const currentGovernedLearningIntelligenceSuccessorChain = Object.freeze([
+  Object.freeze({
+    path: "intelligence/off-route-learning-intelligence.mjs",
+    commit: "eff79c156b1820621cf80b4e4eb87c030d8c5024",
+    parent: "ff06fb0723e0842c970fd344049b999ba774faa4",
+    tree: "e1af5725d67610a984f676fd889a69a6c3dd9bf6",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: bridge governed multi-session advisory learning",
+    commitPaths: Object.freeze([
+      "intelligence/off-route-learning-intelligence.mjs",
+      "intelligence/read-only-field-session-learning.mjs",
+      "intelligence/route-iq-governed-multi-session-learning.mjs",
+      "tests/route-iq-governed-multi-session-learning.test.mjs"
+    ]),
+    previousSha256: "cfb0ea2ab1ce69a9e614d402b60bd7cc21ee88df97914c4e558a070ff27403bd",
+    sha256: "6a3b73a5e2c670b072f225e2f77468c201a7501006f76116d23a15499cf83355"
+  }),
+  Object.freeze({
+    path: "intelligence/read-only-field-session-learning.mjs",
+    commit: "eff79c156b1820621cf80b4e4eb87c030d8c5024",
+    parent: "ff06fb0723e0842c970fd344049b999ba774faa4",
+    tree: "e1af5725d67610a984f676fd889a69a6c3dd9bf6",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: bridge governed multi-session advisory learning",
+    commitPaths: Object.freeze([
+      "intelligence/off-route-learning-intelligence.mjs",
+      "intelligence/read-only-field-session-learning.mjs",
+      "intelligence/route-iq-governed-multi-session-learning.mjs",
+      "tests/route-iq-governed-multi-session-learning.test.mjs"
+    ]),
+    previousSha256: "1eb8084ca8470533ac34b445bb7404865e00bf7f1ae02d01cc40b466c3e3e2ee",
+    sha256: "348e8774e4a02edbfdb4859c60a2205ca227844026565e770b126e7526dfb61d"
+  }),
+  Object.freeze({
+    path: retentionDeletionIntelligenceVerifierPath,
+    commit: "0e3d720f09e65cea066c5181afdff44d96a4e8ca",
+    parent: "da3f9ff739ecb883ac2bddb169aefb1b9632b525",
+    tree: "c2063be72b464925d9fd3187b05a18bed1c9a314",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: compose governed learning successor chain",
+    previousSha256: "ce1ab3876750043b251cb6029d0c0709159a8ff9c58c4266411883e6f9542e2c",
+    sha256: "12ce609da8194f3071270eb6dd07fe0e6f50c772efd8cab82937a8af8e3bf512"
+  }),
+  Object.freeze({
+    path: retentionDeletionIntelligenceVerifierPath,
+    commit: "76946be76fea7dd9ec558739f63bd7310a766a66",
+    parent: "0e3d720f09e65cea066c5181afdff44d96a4e8ca",
+    tree: "0d410df5ce458c6c7409dc23b0447e4df03b9f80",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: adopt governed learning successor baseline",
+    previousSha256: "12ce609da8194f3071270eb6dd07fe0e6f50c772efd8cab82937a8af8e3bf512",
+    sha256: "a3825a1518873245d003af5e6df0ff4adfb782c729904cb54f537e6f0bebbacc"
+  }),
+  Object.freeze({
+    path: retentionDeletionIntelligenceVerifierPath,
+    commit: "7633c44d5e43ca64e32ece2da38f6e9925d34d4c",
+    parent: "76946be76fea7dd9ec558739f63bd7310a766a66",
+    tree: "e42c79a57beecec90c21edd7bef81a0184e281a6",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: order governed successor verification",
+    previousSha256: "a3825a1518873245d003af5e6df0ff4adfb782c729904cb54f537e6f0bebbacc",
+    sha256: "1bebf7b1d43a78dd647bda1722afd26c54f71e5bad9d6559e2ff6ab080256eb5"
+  }),
+  Object.freeze({
+    path: retentionDeletionIntelligenceVerifierPath,
+    commit: "f1b889bb45e357a757656d992e91d95580cc8880",
+    parent: "7633c44d5e43ca64e32ece2da38f6e9925d34d4c",
+    tree: "9e364871eb0be5385ccbebcc145b2100f9e9e6e9",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: deduplicate successor aggregation",
+    previousSha256: "1bebf7b1d43a78dd647bda1722afd26c54f71e5bad9d6559e2ff6ab080256eb5",
+    sha256: "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0"
+  })
+]);
 export const currentFullSystemHarmonyShadowReadinessSuccessor = Object.freeze({
   commit: "029ef1254aa41b6ba129424e9b3deaf3afe6a2f8",
   parent: "0e312cbef36af838dd9f8ba434f2370605f384d4",
@@ -1253,6 +1329,83 @@ export function validateLiveCanonicalIdentityOffRouteBaselineRepair(
   return record;
 }
 
+export function validateGovernedLearningIntelligenceSuccessorChain(
+  records = currentGovernedLearningIntelligenceSuccessorChain
+) {
+  assert.deepEqual(
+    records,
+    currentGovernedLearningIntelligenceSuccessorChain,
+    "Governed-learning Intelligence successor chain drifted."
+  );
+  const governance = readJson(governedLearningGovernancePath);
+  const ownerCommits = new Set(governance.ownerCommits
+    .filter(record => record.owner ===
+      "Prometheus Intelligence Engine <intelligence@prometheus.local>")
+    .map(record => record.commit));
+  const transitionsByPath = new Map();
+
+  for (const record of records) {
+    const pathTransitions = transitionsByPath.get(record.path) || [];
+    const previousTransition = pathTransitions.at(-1);
+    if (previousTransition) {
+      assert.equal(record.previousSha256, previousTransition.sha256,
+        "Governed-learning Intelligence predecessor chain drifted.");
+    }
+    assert.deepEqual(git(
+      "show",
+      "-s",
+      "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      record.commit
+    ).split("\n"), [
+      record.commit,
+      record.parent,
+      record.tree,
+      record.identity,
+      record.identity,
+      record.subject
+    ], "Governed-learning Intelligence owner provenance drifted.");
+    assert.deepEqual(
+      changedPaths(record.commit),
+      [...(record.commitPaths || [record.path])].sort()
+    );
+    assert.equal(ownerCommits.has(record.commit), true,
+      "Governed-learning Intelligence owner commit is absent from governance.");
+    assert.doesNotThrow(() => git(
+      "merge-base",
+      "--is-ancestor",
+      record.commit,
+      "HEAD"
+    ));
+    assert.equal(
+      sha256(gitBytes("show", `${record.parent}:${record.path}`)),
+      record.previousSha256,
+      "Governed-learning Intelligence predecessor bytes drifted."
+    );
+    assert.equal(
+      sha256(gitBytes("show", `${record.commit}:${record.path}`)),
+      record.sha256,
+      "Governed-learning Intelligence successor bytes drifted."
+    );
+    pathTransitions.push(record);
+    transitionsByPath.set(record.path, pathTransitions);
+  }
+
+  for (const [path, transitions] of transitionsByPath) {
+    assert.equal(sha256(read(path)), transitions.at(-1).sha256,
+      `Current governed-learning Intelligence successor drifted: ${path}`);
+  }
+  const verifierTransitions = transitionsByPath.get(
+    retentionDeletionIntelligenceVerifierPath
+  );
+  return Object.freeze({
+    terminalCommit: verifierTransitions.at(-1).commit,
+    terminalSha256: verifierTransitions.at(-1).sha256,
+    transitionCount: records.length,
+    protectedPathCount: transitionsByPath.size,
+    transitionsByPath
+  });
+}
+
 export function validateRetentionDeletionIntelligenceSuccessorChain(
   records = currentRetentionDeletionIntelligenceSuccessorChain,
   maintenanceRecord = currentRetentionMaintenanceIntelligenceSuccessor
@@ -1405,8 +1558,14 @@ export function validateRetentionDeletionIntelligenceSuccessorChain(
   const verifierTransition = transitionsByPath.get(
     retentionDeletionIntelligenceVerifierPath
   ).at(-1);
+  const governedLearningSuccessor =
+    validateGovernedLearningIntelligenceSuccessorChain();
   for (const [path, transitions] of transitionsByPath) {
-    assert.equal(sha256(read(path)), transitions.at(-1).sha256,
+    const governedTransitions = governedLearningSuccessor.transitionsByPath.get(path);
+    const expectedCurrentSha256 = governedTransitions
+      ? governedTransitions.at(-1).sha256
+      : transitions.at(-1).sha256;
+    assert.equal(sha256(read(path)), expectedCurrentSha256,
       `Current retention-deletion Intelligence successor drifted: ${path}`);
   }
   return Object.freeze({
@@ -1485,6 +1644,18 @@ function composeCurrentIntelligenceSha256(path, previousSha256) {
       "Retention-deletion Intelligence composition predecessor drifted."
     );
     expectedSha256 = retentionTransitions.at(-1).sha256;
+  }
+  const governedLearningSuccessor =
+    validateGovernedLearningIntelligenceSuccessorChain();
+  const governedLearningTransitions =
+    governedLearningSuccessor.transitionsByPath.get(path);
+  if (governedLearningTransitions) {
+    assert.equal(
+      expectedSha256,
+      governedLearningTransitions[0].previousSha256,
+      "Governed-learning Intelligence composition predecessor drifted."
+    );
+    expectedSha256 = governedLearningTransitions.at(-1).sha256;
   }
   return expectedSha256;
 }
@@ -2596,6 +2767,8 @@ export function verifyReleaseProvenanceRepair() {
       currentLiveCanonicalIdentityOffRouteBaselineRepair.commit,
     currentRetentionDeletionIntelligenceSuccessorCommit:
       currentRetentionMaintenanceIntelligenceSuccessor.coherenceCommit,
+    currentGovernedLearningIntelligenceSuccessorCommit:
+      currentGovernedLearningIntelligenceSuccessorChain.at(-1).commit,
     currentProtectedDriftFixtureIntelligenceSuccessorCommit:
       currentProtectedDriftFixtureIntelligenceSuccessor.commit
   };
