@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "route-iq-governed-learning-advisory-security-v1",
+  "batchId": "BATCH-20260812-001",
+  "owner": "Prometheus Security/Aegis",
+  "status": "SOURCE_QUALIFIED_UNDEPLOYED",
+  "privateRoute": "/api/dashboard/route-iq/intelligence/governed-learning-advisory",
+  "authorization": {
+    "principal": "IMMUTABLE_FOUNDER_PRINCIPAL_ONLY",
+    "identitySource": "SERVER_VERIFIED_CLOUDFLARE_ACCESS",
+    "tenantSource": "SERVER_RESOLVED_GOVERNED_ARTIFACT",
+    "callerSuppliedCustomerAuthority": false,
+    "callerSuppliedRepresentativeAuthority": false,
+    "representativeReadable": false
+  },
+  "dataBoundary": {
+    "rawNotesAllowed": false,
+    "contactsAllowed": false,
+    "preciseGpsAllowed": false,
+    "secretsAllowed": false,
+    "stressTestEvidenceAllowed": false,
+    "shadowDecisionOutputAllowed": false,
+    "candidateOrProbabilityOutputAllowed": false,
+    "browserPersistenceAllowed": false,
+    "responseCacheAllowed": false
+  },
+  "isolation": {
+    "workspace": "fitness_connection",
+    "customer": "fitness_connection_research",
+    "operatingProfile": "fitness",
+    "crossWorkspaceAllowed": false,
+    "crossCustomerAllowed": false,
+    "crossProfileAllowed": false,
+    "publicWorkerRouteAllowed": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "productionStorageAccess": 0,
+    "deployments": 0,
+    "anthonyMapped": false
+  }
+}
