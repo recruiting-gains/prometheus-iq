@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   verifyFullSystemHarmonyProtectedSuccessor,
+  verifyGovernedMultiSessionLearningAdvisorySuccessor,
   verifyLiveCanonicalIdentityProtectedSuccessor
 } from "./verify-cross-industry-zip-founder-access-v1.mjs";
 
@@ -123,13 +124,16 @@ export function verifyPaidCustomerRevenueReadinessProtectedConsumers({
   const fullSystemHarmonySuccessor = verifyFullSystemHarmonyProtectedSuccessor();
   const liveCanonicalIdentityProtectedSuccessor =
     verifyLiveCanonicalIdentityProtectedSuccessor();
+  const governedLearningAdvisorySuccessor =
+    verifyGovernedMultiSessionLearningAdvisorySuccessor();
   const composedConsumerByPath = new Map();
   for (const consumer of consumerByPath.values()) {
-    const transitions =
+    const liveTransitions =
       liveCanonicalIdentityProtectedSuccessor.transitionsByPath.get(consumer.path);
-    assert.ok(transitions, `Missing current protected-consumer successor: ${consumer.path}`);
+    assert.ok(liveTransitions,
+      `Missing current protected-consumer successor: ${consumer.path}`);
     assert.deepEqual(
-      transitions.slice(0, consumer.transitions.length).map(({
+      liveTransitions.slice(0, consumer.transitions.length).map(({
         ownerSubsystem,
         commit,
         tree,
@@ -147,6 +151,23 @@ export function verifyPaidCustomerRevenueReadinessProtectedConsumers({
       consumer.transitions,
       `Historical protected-consumer transition changed: ${consumer.path}`
     );
+    const governedTransitions = governedLearningAdvisorySuccessor
+      .transitionsByPath.get(consumer.path) || [];
+    const liveCurrentSha256 = liveTransitions.at(-1).currentSha256;
+    const overlap = governedTransitions.findIndex(
+      transition => transition.currentSha256 === liveCurrentSha256
+    );
+    const remainingGovernedTransitions = overlap >= 0
+      ? governedTransitions.slice(overlap + 1)
+      : governedTransitions;
+    if (remainingGovernedTransitions.length > 0) {
+      assert.equal(
+        remainingGovernedTransitions[0].previousSha256,
+        liveCurrentSha256,
+        `Broken governed-learning protected-consumer chain: ${consumer.path}`
+      );
+    }
+    const transitions = [...liveTransitions, ...remainingGovernedTransitions];
     const currentSha256 = transitions.at(-1).currentSha256;
     assert.equal(
       sha256Bytes(read(consumer.path)),
@@ -163,6 +184,7 @@ export function verifyPaidCustomerRevenueReadinessProtectedConsumers({
     evidence,
     consumerByPath: composedConsumerByPath,
     fullSystemHarmonySuccessor,
-    liveCanonicalIdentityProtectedSuccessor
+    liveCanonicalIdentityProtectedSuccessor,
+    governedLearningAdvisorySuccessor
   });
 }
