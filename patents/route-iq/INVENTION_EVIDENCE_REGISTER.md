@@ -439,3 +439,30 @@ Evidence classification:
 - Preserve detailed decision ranking, probability mapping, calibration, sufficiency, and readiness parameters as confidential implementation information pending review.
 - Present the record to patent counsel as a post-provisional material invention candidate for advice on any future filing strategy.
 - This register makes no conclusion about patentability, claim scope, priority, inventorship, or filing strategy.
+
+## 20. Governed Multi-Session Learning Dashboard Advisory Bridge v1
+
+Status: Post-provisional technical implementation checkpoint
+
+Batch ID: BATCH-20260812-001
+
+Recorded: 2026-08-12
+
+Supporting record:
+
+- `patents/route-iq/GOVERNED_MULTI_SESSION_LEARNING_DASHBOARD_ADVISORY_BRIDGE_V1.md`
+
+Technical relationship:
+
+- Composes existing final-session admission, read-only learning, off-route learning, Operating Profile, CustomerGraphSnapshot, private delivery, and Founder Dashboard contracts.
+- Adds deterministic cross-session admission and advisory delivery without creating another learning engine, graph, confidence formula, route scorer, storage system, or Dashboard.
+- Preserves advisory-only human control and leaves routing, recommendation influence, collection, cohorts, confidence propagation, providers, and scheduler unchanged.
+- Keeps raw notes, contacts, precise location evidence, stress-test observations, Shadow Decision output, candidate rankings, and probabilities outside the browser projection.
+- Records insufficient evidence as a governed result rather than weakening existing thresholds.
+
+Evidence classification:
+
+- Preserve this checkpoint as post-provisional technical evidence associated with the IP-001 lineage.
+- Conception date and any future filing treatment require Founder and patent-counsel review.
+- Preserve proprietary admission, confidence, graph-composition, and projection details as confidential implementation information.
+- This register makes no conclusion about patentability, material novelty, claim scope, priority, inventorship, or filing strategy.
