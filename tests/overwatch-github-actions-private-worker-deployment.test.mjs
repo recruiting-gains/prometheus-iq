@@ -20,6 +20,7 @@ import {
   hasCloudflareToolchainInfrastructureSuccessor,
   hasControlledRehearsalNode24InfrastructureSuccessor,
   hasFieldSessionReportTypeInfrastructureSuccessor,
+  hasGovernedLearningProtectedConsumerCompositionSuccessor,
   hasGovernedLearningPayloadInfrastructureSuccessor,
   hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
@@ -397,8 +398,21 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
     path: protectedConsumerPath,
     previousSha256:
       "89529db78c45767e77f2daa0fd88c20fb7eba6aed4293b333e1e0d1afe9801ce",
+    currentSha256:
+      "da7660a5e7e846f772ee9ef59d8bae502a2c43942a2eeec65639d4df9ba687cb"
+  }), true);
+  assert.equal(hasGovernedLearningProtectedConsumerCompositionSuccessor({
+    path: protectedConsumerPath,
+    previousSha256:
+      "da7660a5e7e846f772ee9ef59d8bae502a2c43942a2eeec65639d4df9ba687cb",
     currentSha256: sha256(readFileSync(resolve(root, protectedConsumerPath)))
   }), true);
+  assert.equal(hasGovernedLearningProtectedConsumerCompositionSuccessor({
+    path: protectedConsumerPath,
+    previousSha256:
+      "da7660a5e7e846f772ee9ef59d8bae502a2c43942a2eeec65639d4df9ba687cb",
+    currentSha256: "0".repeat(64)
+  }), false);
 
   const changed = clone(currentReadinessSuccessors);
   changed.successors.find(item => item.commit.startsWith("c4cb9150"))

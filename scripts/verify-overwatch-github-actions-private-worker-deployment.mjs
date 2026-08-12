@@ -1149,6 +1149,24 @@ const v2LiveCanonicalIdentityProtectedConsumerCompositionRepairHashes =
       "dd7449ad92b8932b9d7dc0fe29d25f7f2e3a4b931726f1400d35156476e0a00c"
   });
 
+const v2GovernedLearningProtectedConsumerCompositionCommit =
+  "e76270336ea4b749787f8fdfbbe75aca79916605";
+const v2GovernedLearningProtectedConsumerCompositionParent =
+  "d3c9f35c441e1db8017ce01f7897642612196b50";
+const v2GovernedLearningProtectedConsumerCompositionTree =
+  "85920fa8428238f6559c13f1421688a4935ce36b";
+const v2GovernedLearningProtectedConsumerCompositionEvidence = Object.freeze({
+  "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs":
+    Object.freeze({
+      previousSha256: "da7660a5e7e846f772ee9ef59d8bae502a2c43942a2eeec65639d4df9ba687cb",
+      currentSha256: "27d87421ad191d86599524a6e4dac966b8741ffc7a5a8b065eb0cc7caf3dc3d9"
+    }),
+  "tests/intelligence-architecture.test.mjs": Object.freeze({
+    previousSha256: "36c866c04ddde38fa0018a843c8d3ac7e49f4e3c3c537eb82f2b7bc2a0364f96",
+    currentSha256: "521d50e9f933b1299d9287916a9c7b6f1a7b8fc032c7f0ac62b45cc81d192032"
+  })
+});
+
 const v2LiveCanonicalIdentityOffRouteBaselineRepairHashes = Object.freeze({
   "tests/off-route-learning-intelligence.test.mjs":
     "5c24ea2615105a3e9403450ee4e68747c8508257eec4ca844a070b8a6b9395e0"
@@ -1772,6 +1790,57 @@ export function hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
     ])
       && (!successor.parent || successor.parent === parent)
       && (exactPaths ? equal(paths, exactPaths) : paths.includes(path))
+      && sha256(previous) === previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
+
+export function hasGovernedLearningProtectedConsumerCompositionSuccessor({
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const evidence = v2GovernedLearningProtectedConsumerCompositionEvidence[path];
+  if (!evidence
+    || evidence.previousSha256 !== previousSha256
+    || evidence.currentSha256 !== currentSha256) {
+    return false;
+  }
+  try {
+    const governedLearning = verifyGovernedMultiSessionLearningAdvisorySuccessor();
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      v2GovernedLearningProtectedConsumerCompositionCommit
+    ]).split("\n");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      v2GovernedLearningProtectedConsumerCompositionCommit
+    ]).split("\n").filter(Boolean);
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${v2GovernedLearningProtectedConsumerCompositionParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${v2GovernedLearningProtectedConsumerCompositionCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor",
+      v2GovernedLearningProtectedConsumerCompositionCommit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return governedLearning.successor.version ===
+        "route-iq-intelligence-governed-multi-session-learning-advisory-successor-v1"
+      && governedLearning.successor.boundaries.recommendationInfluence === "OFF"
+      && equal(fields, [
+        v2GovernedLearningProtectedConsumerCompositionCommit,
+        v2GovernedLearningProtectedConsumerCompositionParent,
+        v2GovernedLearningProtectedConsumerCompositionTree,
+        intelligenceIdentity,
+        intelligenceIdentity,
+        "intelligence: compose governed learning protected consumers"
+      ])
+      && equal(paths,
+        Object.keys(v2GovernedLearningProtectedConsumerCompositionEvidence).sort())
       && sha256(previous) === previousSha256
       && sha256(current) === currentSha256;
   } catch {
@@ -6166,6 +6235,11 @@ function verifyV2OwnerAndGovernance() {
       || hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
         governance: liveCanonicalGovernance,
         readinessSuccessors,
+        path,
+        previousSha256: expected,
+        currentSha256: candidateSha256
+      })
+      || hasGovernedLearningProtectedConsumerCompositionSuccessor({
         path,
         previousSha256: expected,
         currentSha256: candidateSha256
