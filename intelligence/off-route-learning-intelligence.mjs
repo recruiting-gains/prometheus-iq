@@ -303,14 +303,17 @@ export function loadOffRouteLearningValidationFixture(contract = loadOffRouteLea
   return readJson(contract.intelligenceOwnedArtifacts.validationFixture);
 }
 
-export function validateOffRouteLearningPolicy(policy) {
+export function validateOffRouteLearningPolicy(policy, scope = {}) {
+  const expectedWorkspaceId = scope.workspaceId || offRouteLearningWorkspaceId;
+  const expectedOperatingProfileId = scope.operatingProfileId
+    || offRouteLearningOperatingProfileId;
   const failures = [];
   const assert = (condition, reason) => { if (!condition) failures.push(reason); };
   assert(policy?.policyVersion === "off-route-learning-intelligence-v1-policy-v1", "policy_version_mismatch");
   assert(policy?.status === "active_read_only_observation", "policy_status_invalid");
   assert(policy?.ownerSubsystem === "Prometheus Intelligence Engine", "policy_owner_invalid");
-  assert(policy?.workspaceId === offRouteLearningWorkspaceId, "policy_workspace_invalid");
-  assert(policy?.operatingProfileId === offRouteLearningOperatingProfileId, "policy_operating_profile_invalid");
+  assert(policy?.workspaceId === expectedWorkspaceId, "policy_workspace_invalid");
+  assert(policy?.operatingProfileId === expectedOperatingProfileId, "policy_operating_profile_invalid");
   const sourceIds = (policy?.sourceTaxonomy || []).map(source => source.sourceId);
   const requiredSourceIds = [
     "route_iq_recommendation",
@@ -341,14 +344,21 @@ export function validateOffRouteLearningPolicy(policy) {
   return failures;
 }
 
-export function validateOffRouteLearningContract(contract, upstreamContract = loadReadOnlyFieldSessionLearningContract()) {
+export function validateOffRouteLearningContract(
+  contract,
+  upstreamContract = loadReadOnlyFieldSessionLearningContract(),
+  scope = {}
+) {
+  const expectedWorkspaceId = scope.workspaceId || offRouteLearningWorkspaceId;
+  const expectedOperatingProfileId = scope.operatingProfileId
+    || offRouteLearningOperatingProfileId;
   const failures = [];
   const assert = (condition, reason) => { if (!condition) failures.push(reason); };
   assert(contract?.version === "off-route-learning-intelligence-v1-contracts-v1", "contract_version_mismatch");
   assert(contract?.status === "active_read_only_observation", "contract_status_invalid");
   assert(contract?.ownerSubsystem === "Prometheus Intelligence Engine", "contract_owner_invalid");
-  assert(contract?.workspaceId === offRouteLearningWorkspaceId, "contract_workspace_invalid");
-  assert(contract?.operatingProfileId === offRouteLearningOperatingProfileId, "contract_operating_profile_invalid");
+  assert(contract?.workspaceId === expectedWorkspaceId, "contract_workspace_invalid");
+  assert(contract?.operatingProfileId === expectedOperatingProfileId, "contract_operating_profile_invalid");
   assert(contract?.upstreamReadOnlyLearning?.canonicalArchiveReaderReused === true, "contract_archive_reader_not_reused");
   assert(contract?.upstreamReadOnlyLearning?.sourceAccessMode === "read_only", "contract_source_access_not_read_only");
   assert(contract?.upstreamReadOnlyLearning?.rawEvidenceConsumptionAllowed === false, "contract_raw_evidence_allowed");
@@ -683,21 +693,43 @@ export function buildOffRouteLearningSnapshot({
   workspaceId = offRouteLearningWorkspaceId,
   operatingProfileId = offRouteLearningOperatingProfileId,
   generatedAt,
-  sourceMode = "canonical_verified_archive"
+  sourceMode = "canonical_verified_archive",
+  scopeAuthorization = null
 }) {
-  const policyFailures = validateOffRouteLearningPolicy(policy);
-  const contractFailures = validateOffRouteLearningContract(contract);
+  if (workspaceId !== contract.workspaceId || operatingProfileId !== contract.operatingProfileId) {
+    throw new OffRouteLearningIntelligenceError(
+      `Unknown off-route learning scope: ${workspaceId}/${operatingProfileId}`,
+      "off_route_learning_scope_rejected"
+    );
+  }
+  const canonicalScope = workspaceId === offRouteLearningWorkspaceId
+    && operatingProfileId === offRouteLearningOperatingProfileId;
+  if (!canonicalScope && (
+    scopeAuthorization?.authority !== "Prometheus Data"
+      || scopeAuthorization?.policyVersion !== "route-iq-governed-learning-admission-v1"
+      || scopeAuthorization?.workspaceId !== workspaceId
+      || scopeAuthorization?.operatingProfileId !== operatingProfileId
+      || !/^riq_eligible_sessions_[a-f0-9]{64}$/u.test(scopeAuthorization?.manifestId || "")
+      || !/^[a-f0-9]{64}$/u.test(scopeAuthorization?.manifestSha256 || "")
+      || scopeAuthorization.manifestId !== `riq_eligible_sessions_${scopeAuthorization.manifestSha256}`
+  )) {
+    throw new OffRouteLearningIntelligenceError(
+      "Off-route learning scope lacks governed Data authorization.",
+      "off_route_learning_scope_authorization_rejected"
+    );
+  }
+  const validationScope = { workspaceId, operatingProfileId };
+  const policyFailures = validateOffRouteLearningPolicy(policy, validationScope);
+  const contractFailures = validateOffRouteLearningContract(
+    contract,
+    loadReadOnlyFieldSessionLearningContract(),
+    validationScope
+  );
   if (policyFailures.length || contractFailures.length) {
     throw new OffRouteLearningIntelligenceError(
       `Off-route learning governance is invalid: ${[...policyFailures, ...contractFailures].join(" | ")}`,
       "off_route_learning_governance_invalid",
       { failures: [...policyFailures, ...contractFailures] }
-    );
-  }
-  if (workspaceId !== contract.workspaceId || operatingProfileId !== contract.operatingProfileId) {
-    throw new OffRouteLearningIntelligenceError(
-      `Unknown off-route learning scope: ${workspaceId}/${operatingProfileId}`,
-      "off_route_learning_scope_rejected"
     );
   }
   if (sourceMode === "validation_fixture" && contract.validationFixturePolicy.canonicalArtifactGenerationAllowed !== false) {

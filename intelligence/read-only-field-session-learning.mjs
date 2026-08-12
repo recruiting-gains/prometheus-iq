@@ -144,15 +144,18 @@ export function loadCanonicalArchivedFieldSessionPackages(contract = loadReadOnl
   }];
 }
 
-export function validateReadOnlyFieldSessionLearningPolicy(policy) {
+export function validateReadOnlyFieldSessionLearningPolicy(policy, scope = {}) {
+  const expectedWorkspaceId = scope.workspaceId || readOnlyFieldSessionLearningWorkspaceId;
+  const expectedOperatingProfileId = scope.operatingProfileId
+    || readOnlyFieldSessionLearningOperatingProfileId;
   const failures = [];
   const fail = (condition, reason) => {
     if (!condition) failures.push(reason);
   };
   fail(policy?.policyVersion === "read-only-field-session-learning-policy-v1", "policy_version_mismatch");
   fail(policy?.status === "active", "policy_not_active");
-  fail(policy?.workspaceId === readOnlyFieldSessionLearningWorkspaceId, "policy_workspace_mismatch");
-  fail(policy?.operatingProfileId === readOnlyFieldSessionLearningOperatingProfileId, "policy_operating_profile_mismatch");
+  fail(policy?.workspaceId === expectedWorkspaceId, "policy_workspace_mismatch");
+  fail(policy?.operatingProfileId === expectedOperatingProfileId, "policy_operating_profile_mismatch");
   fail(Array.isArray(policy?.admission?.authorizedSessionIds) && policy.admission.authorizedSessionIds.length > 0, "policy_authorized_sessions_missing");
   fail(policy?.admission?.rawEvidenceConsumptionAllowed === false, "policy_raw_evidence_not_prohibited");
   fail(policy?.admission?.stressTestObservationConsumptionAllowed === false, "policy_stress_test_evidence_not_prohibited");
@@ -179,7 +182,10 @@ export function validateReadOnlyFieldSessionLearningPolicy(policy) {
   return failures;
 }
 
-export function validateReadOnlyFieldSessionLearningContract(contract, dataContract) {
+export function validateReadOnlyFieldSessionLearningContract(contract, dataContract, scope = {}) {
+  const expectedWorkspaceId = scope.workspaceId || readOnlyFieldSessionLearningWorkspaceId;
+  const expectedOperatingProfileId = scope.operatingProfileId
+    || readOnlyFieldSessionLearningOperatingProfileId;
   const failures = [];
   const fail = (condition, reason) => {
     if (!condition) failures.push(reason);
@@ -187,8 +193,8 @@ export function validateReadOnlyFieldSessionLearningContract(contract, dataContr
   fail(contract?.version === "read-only-field-session-learning-contracts-v1", "contract_version_mismatch");
   fail(contract?.status === "active_read_only", "contract_not_active_read_only");
   fail(contract?.ownerSubsystem === "Prometheus Intelligence Engine", "contract_owner_mismatch");
-  fail(contract?.workspaceId === readOnlyFieldSessionLearningWorkspaceId, "contract_workspace_mismatch");
-  fail(contract?.operatingProfileId === readOnlyFieldSessionLearningOperatingProfileId, "contract_operating_profile_mismatch");
+  fail(contract?.workspaceId === expectedWorkspaceId, "contract_workspace_mismatch");
+  fail(contract?.operatingProfileId === expectedOperatingProfileId, "contract_operating_profile_mismatch");
   fail(contract?.independentAuthorization?.status === "AUTHORIZED_ACTIVE", "independent_authorization_inactive");
   fail(contract?.independentAuthorization?.sourceDataContractId === dataContract?.contractId, "source_data_contract_id_mismatch");
   fail(contract?.independentAuthorization?.sourceContractIndependentAuthorizationRequirementSatisfied === true, "independent_authorization_requirement_unsatisfied");
@@ -309,8 +315,14 @@ export function validateArchivedFieldSessionPackage(archivePackage, context = {}
   fail(dataContract?.intelligenceFieldSessionLearningHandoff?.approvedRecordTypes?.every(kind => contract?.approvedRecordKinds?.includes(kind)), "data_and_intelligence_record_kinds_unlinked");
 
   const identifierText = `${sessionId} ${verified?.sourceProvenance?.sourceKind || ""} ${verified?.sourceProvenance?.originalFileName || ""}`.toLowerCase();
+  const syntheticFixtureAuthorized = context.sourceMode === "validation_fixture"
+    && context.evidenceClassification === "SYNTHETIC_VALIDATION_FIXTURE"
+    && archivePackage?.evidenceClassification === "SYNTHETIC_VALIDATION_FIXTURE";
   for (const fragment of policy?.admission?.disallowedIdentifierFragments || []) {
-    fail(!identifierText.includes(String(fragment).toLowerCase()), `session_identifier_prohibited:${fragment}`);
+    const normalizedFragment = String(fragment).toLowerCase();
+    const fixtureMarkerAllowed = syntheticFixtureAuthorized
+      && ["fixture", "synthetic"].includes(normalizedFragment);
+    fail(fixtureMarkerAllowed || !identifierText.includes(normalizedFragment), `session_identifier_prohibited:${fragment}`);
   }
 
   const visits = verified?.verifiedFields?.completedVisits || [];
@@ -867,16 +879,48 @@ export function buildReadOnlyFieldSessionLearningSnapshot(options = {}) {
   const archivePackages = clone(options.archivePackages || loadCanonicalArchivedFieldSessionPackages(contract));
   const workspaceId = options.workspaceId || contract.workspaceId;
   const operatingProfileId = options.operatingProfileId || contract.operatingProfileId;
+  const sourceMode = options.sourceMode || "canonical_verified_archive";
+  const evidenceClassification = options.evidenceClassification || "FOUNDER_FIELD_RESEARCH";
+  const scopeAuthorization = options.scopeAuthorization || null;
 
-  if (workspaceId !== readOnlyFieldSessionLearningWorkspaceId) {
+  if (workspaceId !== contract.workspaceId) {
     throw new ReadOnlyFieldSessionLearningError(`Unknown field-session learning workspace: ${workspaceId || "missing"}.`, "field_session_learning_workspace_unknown");
   }
-  if (operatingProfileId !== readOnlyFieldSessionLearningOperatingProfileId) {
+  if (operatingProfileId !== contract.operatingProfileId) {
     throw new ReadOnlyFieldSessionLearningError(`Field-session learning operating profile mismatch: ${operatingProfileId || "missing"}.`, "field_session_learning_operating_profile_mismatch");
   }
+  if (!["canonical_verified_archive", "validation_fixture"].includes(sourceMode)
+    || (sourceMode === "validation_fixture" && evidenceClassification !== "SYNTHETIC_VALIDATION_FIXTURE")) {
+    throw new ReadOnlyFieldSessionLearningError(
+      "Field-session learning source mode is not authorized.",
+      "field_session_learning_source_mode_rejected"
+    );
+  }
+  const canonicalScope = workspaceId === readOnlyFieldSessionLearningWorkspaceId
+    && operatingProfileId === readOnlyFieldSessionLearningOperatingProfileId;
+  if (!canonicalScope && (
+    scopeAuthorization?.authority !== "Prometheus Data"
+      || scopeAuthorization?.policyVersion !== "route-iq-governed-learning-admission-v1"
+      || scopeAuthorization?.workspaceId !== workspaceId
+      || scopeAuthorization?.operatingProfileId !== operatingProfileId
+      || scopeAuthorization?.evidenceClassification !== evidenceClassification
+      || !/^riq_eligible_sessions_[a-f0-9]{64}$/u.test(scopeAuthorization?.manifestId || "")
+      || !/^[a-f0-9]{64}$/u.test(scopeAuthorization?.manifestSha256 || "")
+      || scopeAuthorization.manifestId !== `riq_eligible_sessions_${scopeAuthorization.manifestSha256}`
+  )) {
+    throw new ReadOnlyFieldSessionLearningError(
+      "Field-session learning scope lacks governed Data authorization.",
+      "field_session_learning_scope_authorization_rejected"
+    );
+  }
 
-  const policyFailures = validateReadOnlyFieldSessionLearningPolicy(policy);
-  const contractFailures = validateReadOnlyFieldSessionLearningContract(contract, dataContract);
+  const validationScope = { workspaceId, operatingProfileId };
+  const policyFailures = validateReadOnlyFieldSessionLearningPolicy(policy, validationScope);
+  const contractFailures = validateReadOnlyFieldSessionLearningContract(
+    contract,
+    dataContract,
+    validationScope
+  );
   if (policyFailures.length || contractFailures.length) {
     throw new ReadOnlyFieldSessionLearningError(
       `Read-only field-session learning authorization is invalid: ${[...policyFailures, ...contractFailures].join(" | ")}`,
@@ -897,7 +941,9 @@ export function buildReadOnlyFieldSessionLearningSnapshot(options = {}) {
       policy,
       dataContract,
       workspaceId,
-      operatingProfileId
+      operatingProfileId,
+      sourceMode,
+      evidenceClassification
     }).map(reason => `${sessionId || "unknown_session"}:${reason}`));
   }
   if (validationFailures.length) {
@@ -946,11 +992,15 @@ export function buildReadOnlyFieldSessionLearningSnapshot(options = {}) {
     artifactKind: "read_only_field_session_learning_snapshot",
     artifactId: stableId("field-session-learning-snapshot", [workspaceId, operatingProfileId, [...seenSessions].sort(), policy.policyVersion]),
     generatedAt: sourceAsOf,
-    status: "observation_only",
+    status: sourceMode === "validation_fixture"
+      ? "synthetic_validation_observation_only"
+      : "observation_only",
     workspaceId,
     operatingProfileId,
     ownerSubsystem: "Prometheus Intelligence Engine",
-    sourceSubsystem: "Prometheus Data",
+    sourceSubsystem: sourceMode === "validation_fixture"
+      ? "Prometheus Data Synthetic Validation Fixture"
+      : "Prometheus Data",
     sourceAccessMode: "read_only",
     learningVersion: {
       engine: readOnlyFieldSessionLearningVersion,
@@ -967,7 +1017,7 @@ export function buildReadOnlyFieldSessionLearningSnapshot(options = {}) {
       failedSubmissionsConsumed: false,
       partialSessionsConsumed: false,
       unverifiedEvidenceConsumed: false,
-      syntheticEvidenceConsumed: false,
+      syntheticEvidenceConsumed: sourceMode === "validation_fixture",
       sourceMutationDetected: false
     },
     representativeIntelligence,
@@ -999,7 +1049,10 @@ export function buildReadOnlyFieldSessionLearningSnapshot(options = {}) {
   if (beforeHash !== afterHash) {
     throw new ReadOnlyFieldSessionLearningError("Archived field-session evidence changed during projection.", "field_session_learning_archive_mutation_detected");
   }
-  const snapshotFailures = validateReadOnlyFieldSessionLearningSnapshot(snapshot, contract);
+  const snapshotFailures = validateReadOnlyFieldSessionLearningSnapshot(snapshot, contract, {
+    sourceMode,
+    evidenceClassification
+  });
   if (snapshotFailures.length) {
     throw new ReadOnlyFieldSessionLearningError(
       `Read-only field-session learning snapshot is invalid: ${snapshotFailures.join(" | ")}`,
@@ -1010,7 +1063,11 @@ export function buildReadOnlyFieldSessionLearningSnapshot(options = {}) {
   return deepFreeze(snapshot);
 }
 
-export function validateReadOnlyFieldSessionLearningSnapshot(snapshot, contract = loadReadOnlyFieldSessionLearningContract()) {
+export function validateReadOnlyFieldSessionLearningSnapshot(
+  snapshot,
+  contract = loadReadOnlyFieldSessionLearningContract(),
+  context = {}
+) {
   const failures = [];
   const fail = (condition, reason) => {
     if (!condition) failures.push(reason);
@@ -1019,7 +1076,6 @@ export function validateReadOnlyFieldSessionLearningSnapshot(snapshot, contract 
   fail(snapshot?.workspaceId === contract.workspaceId, "snapshot_workspace_mismatch");
   fail(snapshot?.operatingProfileId === contract.operatingProfileId, "snapshot_operating_profile_mismatch");
   fail(snapshot?.ownerSubsystem === "Prometheus Intelligence Engine", "snapshot_owner_mismatch");
-  fail(snapshot?.sourceSubsystem === "Prometheus Data", "snapshot_source_owner_mismatch");
   fail(snapshot?.sourceAccessMode === "read_only", "snapshot_source_access_not_read_only");
   for (const output of contract.requiredOutputs || []) fail(snapshot?.[output] !== undefined, `snapshot_required_output_missing:${output}`);
   fail(snapshot?.sourceEvidence?.rawEvidenceConsumed === false, "snapshot_consumed_raw_evidence");
@@ -1027,7 +1083,19 @@ export function validateReadOnlyFieldSessionLearningSnapshot(snapshot, contract 
   fail(snapshot?.sourceEvidence?.failedSubmissionsConsumed === false, "snapshot_consumed_failed_submission");
   fail(snapshot?.sourceEvidence?.partialSessionsConsumed === false, "snapshot_consumed_partial_session");
   fail(snapshot?.sourceEvidence?.unverifiedEvidenceConsumed === false, "snapshot_consumed_unverified_evidence");
-  fail(snapshot?.sourceEvidence?.syntheticEvidenceConsumed === false, "snapshot_consumed_synthetic_evidence");
+  const syntheticFixtureAuthorized = context.sourceMode === "validation_fixture"
+    && context.evidenceClassification === "SYNTHETIC_VALIDATION_FIXTURE"
+    && snapshot?.status === "synthetic_validation_observation_only";
+  fail(
+    snapshot?.sourceSubsystem === (syntheticFixtureAuthorized
+      ? "Prometheus Data Synthetic Validation Fixture"
+      : "Prometheus Data"),
+    "snapshot_source_owner_mismatch"
+  );
+  fail(
+    snapshot?.sourceEvidence?.syntheticEvidenceConsumed === syntheticFixtureAuthorized,
+    "snapshot_synthetic_evidence_classification_mismatch"
+  );
   fail(snapshot?.recommendationSafety?.recommendationBehaviorChanged === false, "snapshot_changed_recommendation_behavior");
   fail(snapshot?.recommendationSafety?.routeScoringWeightsChanged === false, "snapshot_changed_route_scoring_weights");
   fail(snapshot?.recommendationSafety?.recommendationInfluenceActive === false, "snapshot_activated_recommendation_influence");
