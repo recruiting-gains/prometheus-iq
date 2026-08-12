@@ -415,6 +415,27 @@ const v2RetentionMaintenancePayloadSuccessorEvidence = Object.freeze({
     successorSha256: "157977f192e5b05eacf932c82d64dd6ad51cc7f4860824d0092872f3b8a1890b"
   })
 });
+const v2GovernedLearningPayloadSuccessorCommit =
+  "a80916d6281b3e584de46508d9d4b2e08f582391";
+const v2GovernedLearningPayloadSuccessorParent =
+  "4795ae9d7a5474ff1c0759b999e6b1626db7aed3";
+const v2GovernedLearningPayloadSuccessorTree =
+  "950287c90897ea2f3644476371c51b2fb3cae10f";
+const v2GovernedLearningPayloadSuccessorEvidence = Object.freeze({
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs": Object.freeze({
+    previousSha256: "e87e076f6e235e57af77c4ca207e58dbab5961209ece8a94d207f8ea0538d087",
+    successorSha256: "4d98b54b16d65cafd44b1b25af63c876a8e39ce4292a327e99b5ff8db7cf6fa7"
+  }),
+  "tests/github-actions-private-worker-workflow-v2.test.mjs": Object.freeze({
+    previousSha256: "4023bc498647f56a89558407191e5442258c911ae90e4d8c0db79e9a234c30b5",
+    successorSha256: "dafb17eaf56dc6cf6cd21d1f9828ddce82d223e4d49e7ab8ae8f2db96ca6d503"
+  }),
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    Object.freeze({
+      previousSha256: "f63583e9b596cc12569124350b0899eed60f9db6290e064b3fa5ae574b31f5f8",
+      successorSha256: "83587a33266f61ba5731f3292dfdfcf438d707849f92ac373fa76ff812e62a8d"
+    })
+});
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -2083,6 +2104,108 @@ export function hasRetentionMaintenancePayloadInfrastructureSuccessor({
   }
 }
 
+export function hasGovernedLearningPayloadInfrastructureSuccessor({
+  governance,
+  fieldSessionReportTypeGovernance,
+  liveCanonicalIdentityGovernance,
+  readinessSuccessors,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const successor = governance?.governedLearningPayloadSuccessor;
+  const evidence = successor?.evidence?.filter(item => item.path === path) ?? [];
+  const retentionMaintenanceEvidence = governance
+    ?.retentionMaintenancePayloadSuccessor?.evidence?.find(
+      item => item.path === path
+    );
+  const predecessorIsGoverned = evidence.length === 1 && (
+    evidence[0].previousSha256 === previousSha256
+    || (retentionMaintenanceEvidence
+      && hasActivePrivateDeploymentToolchainInfrastructureSuccessor({
+        governance: readJson(toolchainGovernancePath),
+        path,
+        previousSha256: retentionMaintenanceEvidence.successorSha256,
+        currentSha256: evidence[0].previousSha256
+      }))
+    || hasRetentionMaintenancePayloadInfrastructureSuccessor({
+      governance,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors,
+      path,
+      previousSha256,
+      currentSha256: evidence[0].previousSha256
+    })
+  );
+  if (governance?.governanceId !==
+      "github-actions-private-worker-deployment-governance-v2"
+    || governance?.owningSubsystem !== "Prometheus Overwatch"
+    || successor?.authorization !== "BATCH-20260812-001"
+    || successor?.predecessorImplementationCommit !==
+      v2RetentionMaintenancePayloadSuccessorCommit
+    || successor?.implementationCommit !== v2GovernedLearningPayloadSuccessorCommit
+    || successor?.implementationParent !== v2GovernedLearningPayloadSuccessorParent
+    || successor?.implementationTree !== v2GovernedLearningPayloadSuccessorTree
+    || successor?.implementationOwner !== infrastructureIdentity
+    || successor?.implementationSubject !==
+      "infrastructure: pin governed learning private payload"
+    || successor?.historicalContinuityRewritten !== false
+    || successor?.productionMutationAuthorized !== false
+    || successor?.deploymentAuthorized !== false
+    || successor?.previousDeployParitySha256 !==
+      governance?.retentionMaintenancePayloadSuccessor?.deployParitySha256
+    || successor?.deployParitySha256 !==
+      "e501b84ec1fab67f84d021041f80bc08030596be35181d8eb129a96ef6609a83"
+    || successor?.previousQualifiedForwardPayloadSha256 !==
+      governance?.retentionMaintenancePayloadSuccessor?.qualifiedForwardPayloadSha256
+    || successor?.qualifiedForwardPayloadSha256 !==
+      "7ed697de32134dcd940df2238b8bddaa0bb41e57a365716ea7e6f5f454c8fd24"
+    || successor?.qualifiedRollbackBundleSha256 !==
+      governance?.retentionMaintenancePayloadSuccessor?.qualifiedRollbackBundleSha256
+    || !equal(successor?.evidence,
+      Object.entries(v2GovernedLearningPayloadSuccessorEvidence).map(
+        ([evidencePath, item]) => ({ path: evidencePath, ...item })
+      ))
+    || evidence.length !== 1
+    || evidence[0].successorSha256 !== currentSha256
+    || !predecessorIsGoverned) {
+    return false;
+  }
+  try {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      successor.implementationCommit
+    ]).split("\n");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      successor.implementationCommit
+    ]).split("\n").filter(Boolean);
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${successor.implementationParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${successor.implementationCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor", successor.implementationCommit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return equal(fields, [
+      successor.implementationCommit,
+      successor.implementationParent,
+      successor.implementationTree,
+      infrastructureIdentity,
+      infrastructureIdentity,
+      successor.implementationSubject
+    ])
+      && equal(paths, successor.evidence.map(item => item.path).sort())
+      && sha256(previous) === evidence[0].previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
+
 function advanceRetentionDeletionIntelligenceHash(path, acceptedSha256) {
   let currentSha256 = acceptedSha256;
   for (const successor of v2RetentionDeletionConsumerSuccessors) {
@@ -2803,7 +2926,7 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
   require(governance?.governanceId ===
     "github-actions-private-worker-deployment-governance-v2",
   "Private Workflow v2 governance identity drifted.");
-  require(governance?.version === "1.16.0"
+  require(governance?.version === "1.17.0"
     && governance?.status ===
     "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED"
     && governance?.owningSubsystem === "Prometheus Overwatch",
@@ -4219,12 +4342,46 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       Object.entries(v2RetentionMaintenancePayloadSuccessorEvidence).map(
         ([path, evidence]) => ({ path, ...evidence })
       ))
-    && contract?.continuity?.privateDeployParitySha256 ===
+    && governance?.governedLearningPayloadSuccessor?.authorization ===
+      "BATCH-20260812-001"
+    && governance?.governedLearningPayloadSuccessor
+      ?.historicalContinuityRewritten === false
+    && governance?.governedLearningPayloadSuccessor
+      ?.productionMutationAuthorized === false
+    && governance?.governedLearningPayloadSuccessor?.deploymentAuthorized === false
+    && governance?.governedLearningPayloadSuccessor
+      ?.predecessorImplementationCommit === v2RetentionMaintenancePayloadSuccessorCommit
+    && governance?.governedLearningPayloadSuccessor?.implementationCommit ===
+      v2GovernedLearningPayloadSuccessorCommit
+    && governance?.governedLearningPayloadSuccessor?.implementationParent ===
+      v2GovernedLearningPayloadSuccessorParent
+    && governance?.governedLearningPayloadSuccessor?.implementationTree ===
+      v2GovernedLearningPayloadSuccessorTree
+    && governance?.governedLearningPayloadSuccessor?.implementationOwner ===
+      infrastructureIdentity
+    && governance?.governedLearningPayloadSuccessor?.implementationSubject ===
+      "infrastructure: pin governed learning private payload"
+    && governance?.governedLearningPayloadSuccessor?.previousDeployParitySha256 ===
       governance?.retentionMaintenancePayloadSuccessor?.deployParitySha256
-    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+    && governance?.governedLearningPayloadSuccessor?.deployParitySha256 ===
+      "e501b84ec1fab67f84d021041f80bc08030596be35181d8eb129a96ef6609a83"
+    && governance?.governedLearningPayloadSuccessor
+      ?.previousQualifiedForwardPayloadSha256 ===
       governance?.retentionMaintenancePayloadSuccessor?.qualifiedForwardPayloadSha256
-    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+    && governance?.governedLearningPayloadSuccessor?.qualifiedForwardPayloadSha256 ===
+      "7ed697de32134dcd940df2238b8bddaa0bb41e57a365716ea7e6f5f454c8fd24"
+    && governance?.governedLearningPayloadSuccessor?.qualifiedRollbackBundleSha256 ===
       governance?.retentionMaintenancePayloadSuccessor?.qualifiedRollbackBundleSha256
+    && equal(governance?.governedLearningPayloadSuccessor?.evidence,
+      Object.entries(v2GovernedLearningPayloadSuccessorEvidence).map(
+        ([path, evidence]) => ({ path, ...evidence })
+      ))
+    && contract?.continuity?.privateDeployParitySha256 ===
+      governance?.governedLearningPayloadSuccessor?.deployParitySha256
+    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+      governance?.governedLearningPayloadSuccessor?.qualifiedForwardPayloadSha256
+    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+      governance?.governedLearningPayloadSuccessor?.qualifiedRollbackBundleSha256
     && contract?.browserAcceptance?.contract ===
       "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
     && contract?.browserAcceptance?.runner ===
@@ -4364,6 +4521,14 @@ function verifyOwnerHistory(governance) {
 
 function verifyActivePrivateDeploymentToolchainSuccessor() {
   const governance = readJson(toolchainGovernancePath);
+  const privateWorkflowGovernance = readJson(governanceV2Path);
+  const fieldSessionReportTypeGovernance = readJson(
+    fieldSessionReportTypeGovernancePath
+  );
+  const liveCanonicalIdentityGovernance = readJson(
+    liveCanonicalIdentityGovernancePath
+  );
+  const readinessSuccessors = readJson(currentReadinessSuccessorsPath);
   const successor = governance.activeDeploymentPolicySuccessor;
   const evaluation = evaluateActivePrivateDeploymentToolchainSuccessor({
     successor,
@@ -4389,7 +4554,17 @@ function verifyActivePrivateDeploymentToolchainSuccessor() {
     throw new Error("Active private deployment toolchain owner file set drifted.");
   }
   for (const [path, expected] of Object.entries(successor.currentEvidence)) {
-    if (sha256(readFileSync(resolve(root, path))) !== expected) {
+    const currentSha256 = sha256(readFileSync(resolve(root, path)));
+    if (currentSha256 !== expected
+      && !hasGovernedLearningPayloadInfrastructureSuccessor({
+        governance: privateWorkflowGovernance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance,
+        readinessSuccessors,
+        path,
+        previousSha256: expected,
+        currentSha256
+      })) {
       throw new Error(`Active private deployment toolchain evidence drifted: ${path}`);
     }
   }
@@ -4564,12 +4739,69 @@ function verifyV2OwnerAndGovernance() {
         path,
         previousSha256: evidence.successorSha256,
         currentSha256
+      })
+      || hasGovernedLearningPayloadInfrastructureSuccessor({
+        governance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance: readJson(
+          liveCanonicalIdentityGovernancePath
+        ),
+        readinessSuccessors: readJson(currentReadinessSuccessorsPath),
+        path,
+        previousSha256: evidence.successorSha256,
+        currentSha256
       });
     if (sha256(previous) !== evidence.previousSha256
       || sha256(successor) !== evidence.successorSha256
       || !currentIsGoverned) {
       throw new Error(
         `Private Workflow v2 retention maintenance payload evidence drifted: ${path}`
+      );
+    }
+  }
+
+  const governedLearningPayloadMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    v2GovernedLearningPayloadSuccessorCommit
+  ]).split("\n");
+  if (!equal(governedLearningPayloadMetadata, [
+    v2GovernedLearningPayloadSuccessorCommit,
+    v2GovernedLearningPayloadSuccessorParent,
+    v2GovernedLearningPayloadSuccessorTree,
+    infrastructureIdentity,
+    infrastructureIdentity,
+    "infrastructure: pin governed learning private payload"
+  ])) {
+    throw new Error("Private Workflow v2 governed-learning payload provenance drifted.");
+  }
+  const governedLearningPayloadPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    v2GovernedLearningPayloadSuccessorCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(governedLearningPayloadPaths,
+    Object.keys(v2GovernedLearningPayloadSuccessorEvidence))) {
+    throw new Error("Private Workflow v2 governed-learning payload path set drifted.");
+  }
+  if (governedLearningPayloadPaths.some(path => path.startsWith("overwatch/")
+    || path === "package.json")) {
+    throw new Error(
+      "Private Workflow v2 governed-learning payload crossed the Overwatch boundary."
+    );
+  }
+  for (const [path, evidence] of Object.entries(
+    v2GovernedLearningPayloadSuccessorEvidence
+  )) {
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${v2GovernedLearningPayloadSuccessorParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const successor = execFileSync("/usr/bin/git", [
+      "show", `${v2GovernedLearningPayloadSuccessorCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    if (sha256(previous) !== evidence.previousSha256
+      || sha256(successor) !== evidence.successorSha256
+      || sha256(readFileSync(resolve(root, path))) !== evidence.successorSha256) {
+      throw new Error(
+        `Private Workflow v2 governed-learning payload evidence drifted: ${path}`
       );
     }
   }
@@ -5996,6 +6228,15 @@ function verifyV2OwnerAndGovernance() {
           : expected,
         currentSha256: candidateSha256
       })
+      || hasGovernedLearningPayloadInfrastructureSuccessor({
+        governance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance: liveCanonicalGovernance,
+        readinessSuccessors,
+        path,
+        previousSha256: expected,
+        currentSha256: candidateSha256
+      })
     );
     const isGovernedBeforeActivePolicy = candidateSha256 => {
       if (isGovernedBeforeGovernedLearning(candidateSha256)) return true;
@@ -6591,6 +6832,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2RetentionDeletionIntelligenceSynchronizationCommit,
     immutableWorkflowV2RetentionMaintenancePayloadSuccessorCommit:
       v2RetentionMaintenancePayloadSuccessorCommit,
+    immutableWorkflowV2GovernedLearningPayloadSuccessorCommit:
+      v2GovernedLearningPayloadSuccessorCommit,
     immutableWorkflowV2LiveCanonicalIdentityShadowReadinessRepairCommit:
       v2LiveCanonicalIdentityShadowReadinessRepairCommit,
     immutableWorkflowV2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit:

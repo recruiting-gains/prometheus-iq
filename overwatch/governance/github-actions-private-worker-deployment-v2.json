@@ -1,6 +1,6 @@
 {
   "governanceId": "github-actions-private-worker-deployment-governance-v2",
-  "version": "1.16.0",
+  "version": "1.17.0",
   "batchId": "BATCH-20260726-006",
   "directive": "Paid-Customer Onboarding Foundation and Multi-Industry Configuration v1",
   "status": "SOURCE_GOVERNED_REQUALIFICATION_PENDING_NOT_DEPLOYED",
@@ -1959,6 +1959,40 @@
         "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
         "previousSha256": "7aa1d90727da67866e3c98ca3cc543499d2326698d652f610eacb7706254c8a7",
         "successorSha256": "157977f192e5b05eacf932c82d64dd6ad51cc7f4860824d0092872f3b8a1890b"
+      }
+    ]
+  },
+  "governedLearningPayloadSuccessor": {
+    "authorization": "BATCH-20260812-001",
+    "historicalContinuityRewritten": false,
+    "productionMutationAuthorized": false,
+    "deploymentAuthorized": false,
+    "predecessorImplementationCommit": "ae4e8def3e1142d6c9c99b709179f4be91c1acea",
+    "implementationCommit": "a80916d6281b3e584de46508d9d4b2e08f582391",
+    "implementationParent": "4795ae9d7a5474ff1c0759b999e6b1626db7aed3",
+    "implementationTree": "950287c90897ea2f3644476371c51b2fb3cae10f",
+    "implementationOwner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "implementationSubject": "infrastructure: pin governed learning private payload",
+    "previousDeployParitySha256": "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9",
+    "deployParitySha256": "e501b84ec1fab67f84d021041f80bc08030596be35181d8eb129a96ef6609a83",
+    "previousQualifiedForwardPayloadSha256": "bafde531701612f2bf5ca9fd3bb69ee1be60432c78b0a046359c7476e5785e09",
+    "qualifiedForwardPayloadSha256": "7ed697de32134dcd940df2238b8bddaa0bb41e57a365716ea7e6f5f454c8fd24",
+    "qualifiedRollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+    "evidence": [
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "previousSha256": "e87e076f6e235e57af77c4ca207e58dbab5961209ece8a94d207f8ea0538d087",
+        "successorSha256": "4d98b54b16d65cafd44b1b25af63c876a8e39ce4292a327e99b5ff8db7cf6fa7"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "previousSha256": "4023bc498647f56a89558407191e5442258c911ae90e4d8c0db79e9a234c30b5",
+        "successorSha256": "dafb17eaf56dc6cf6cd21d1f9828ddce82d223e4d49e7ab8ae8f2db96ca6d503"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "previousSha256": "f63583e9b596cc12569124350b0899eed60f9db6290e064b3fa5ae574b31f5f8",
+        "successorSha256": "83587a33266f61ba5731f3292dfdfcf438d707849f92ac373fa76ff812e62a8d"
       }
     ]
   },

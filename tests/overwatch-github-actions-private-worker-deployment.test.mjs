@@ -20,6 +20,7 @@ import {
   hasCloudflareToolchainInfrastructureSuccessor,
   hasControlledRehearsalNode24InfrastructureSuccessor,
   hasFieldSessionReportTypeInfrastructureSuccessor,
+  hasGovernedLearningPayloadInfrastructureSuccessor,
   hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
@@ -309,6 +310,10 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     result.immutableWorkflowV2ControlledRehearsalOwnerPreflightRepairCommit,
     "488837c74eb91950bb8cd37e9b9764490dead98e"
   );
+  assert.equal(
+    result.immutableWorkflowV2GovernedLearningPayloadSuccessorCommit,
+    "a80916d6281b3e584de46508d9d4b2e08f582391"
+  );
   assert.equal(result.localRealWranglerDryRunPassed, true);
   assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
@@ -341,7 +346,8 @@ test("private deployment composes only the exact active Wrangler successor", () 
     governance: toolchainGovernance,
     path,
     previousSha256: "157977f192e5b05eacf932c82d64dd6ad51cc7f4860824d0092872f3b8a1890b",
-    currentSha256: sha256(readFileSync(resolve(root, path)))
+    currentSha256: toolchainGovernance.activeDeploymentPolicySuccessor
+      .currentEvidence[path]
   };
   assert.equal(hasActivePrivateDeploymentToolchainInfrastructureSuccessor(transition), true);
   const changedGovernance = clone(toolchainGovernance);
@@ -372,7 +378,9 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
   const path = "_headers";
   const previousSha256 =
     "96a4816d019802805b61d88699ba952a7180428f9d9d006bb8e319ea3a536275";
-  const currentSha256 = sha256(readFileSync(resolve(root, path)));
+  const currentSha256 = currentReadinessSuccessors.successors
+    .find(item => item.commit === "267225d51e32acc6f50ce932a945e2749783734e")
+    .evidence.find(item => item.path === path).previousSha256;
   assert.equal(hasLiveCanonicalIdentityOwnerEvidenceSuccessor({
     governance: liveCanonicalIdentityGovernance,
     readinessSuccessors: currentReadinessSuccessors,
@@ -449,15 +457,25 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
     readinessSuccessors: currentReadinessSuccessors,
     path: workflowPath,
     previousSha256: workflowPreviousSha256,
+    currentSha256: governanceV2.governedLearningPayloadSuccessor.evidence
+      .find(item => item.path === workflowPath).previousSha256
+  }), true);
+  assert.equal(hasGovernedLearningPayloadInfrastructureSuccessor({
+    governance: governanceV2,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: workflowPath,
+    previousSha256: workflowPreviousSha256,
     currentSha256: workflowCurrentSha256
   }), true);
 
-  const changedGovernance = clone(fieldSessionReportTypeGovernance);
-  changedGovernance.privateWorkflowContinuity.ownerCommit =
-    "0".repeat(40);
-  assert.equal(hasRetentionMaintenancePayloadInfrastructureSuccessor({
-    governance: governanceV2,
-    fieldSessionReportTypeGovernance: changedGovernance,
+  const changedGovernance = clone(governanceV2);
+  changedGovernance.governedLearningPayloadSuccessor.implementationOwner =
+    "Prometheus Overwatch <overwatch@prometheus.local>";
+  assert.equal(hasGovernedLearningPayloadInfrastructureSuccessor({
+    governance: changedGovernance,
+    fieldSessionReportTypeGovernance,
     liveCanonicalIdentityGovernance,
     readinessSuccessors: currentReadinessSuccessors,
     path: workflowPath,
@@ -1379,6 +1397,20 @@ test("private Workflow v2 governance rejects controlled-rehearsal successor drif
     },
     value => {
       value.retentionMaintenancePayloadSuccessor.deploymentAuthorized = true;
+    },
+    value => {
+      value.governedLearningPayloadSuccessor.implementationCommit = "0".repeat(40);
+    },
+    value => {
+      value.governedLearningPayloadSuccessor.evidence[0].successorSha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.governedLearningPayloadSuccessor.deployParitySha256 =
+        value.retentionMaintenancePayloadSuccessor.deployParitySha256;
+    },
+    value => {
+      value.governedLearningPayloadSuccessor.deploymentAuthorized = true;
     }
   ]) {
     const candidate = clone(governanceV2);
@@ -1451,6 +1483,16 @@ test("private Workflow v2 composes the exact ordered retention payload successor
       readinessSuccessors: currentReadinessSuccessors,
       path,
       previousSha256,
+      currentSha256: governanceV2.governedLearningPayloadSuccessor.evidence
+        .find(item => item.path === path).previousSha256
+    }), true);
+    assert.equal(hasGovernedLearningPayloadInfrastructureSuccessor({
+      governance: governanceV2,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors: currentReadinessSuccessors,
+      path,
+      previousSha256,
       currentSha256: sha256(read(path))
     }), true);
   }
@@ -1487,6 +1529,21 @@ test("private Workflow v2 composes the exact ordered retention payload successor
     .evidence[0].previousSha256 = "0".repeat(64);
   assert.equal(hasRetentionMaintenancePayloadInfrastructureSuccessor({
     governance: changedMaintenance,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+    previousSha256:
+      "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
+    currentSha256: sha256(read(
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs"
+    ))
+  }), false);
+  const changedGovernedLearning = clone(governanceV2);
+  changedGovernedLearning.governedLearningPayloadSuccessor
+    .evidence[0].previousSha256 = "0".repeat(64);
+  assert.equal(hasGovernedLearningPayloadInfrastructureSuccessor({
+    governance: changedGovernedLearning,
     fieldSessionReportTypeGovernance,
     liveCanonicalIdentityGovernance,
     readinessSuccessors: currentReadinessSuccessors,
