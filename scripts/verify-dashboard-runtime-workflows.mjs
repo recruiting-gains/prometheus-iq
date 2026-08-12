@@ -6,6 +6,9 @@ import { delimiter, extname, join, normalize, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
+import {
+  routeIqGovernedLearningAdvisoryPath
+} from "../dashboard/route-iq-dashboard-platform.mjs";
 import { createPaidCustomerRevenueReadinessViewModel } from "../dashboard/route-iq-paid-customer-revenue-readiness.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -15,6 +18,7 @@ const fullPoolPath = "data/qualified-prospects/google-qualified-businesses-v2/ru
 const fieldSessionHandoffPath = "api/dashboard/route-iq/field-session";
 const prospectiveEventPath = "api/dashboard/route-iq/prospective/event";
 const founderDailyIntelligencePath = "api/dashboard/route-iq/intelligence/daily-snapshot";
+const founderGovernedLearningPath = routeIqGovernedLearningAdvisoryPath.replace(/^\/+/, "");
 const founderRevenueReadinessPath = "api/dashboard/route-iq/internal/paid-customer-revenue-readiness";
 const founderDailyIntelligenceArtifactPath = resolve(root, "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json");
 const canonicalFounderDailyIntelligenceSnapshot = JSON.parse(readFileSync(founderDailyIntelligenceArtifactPath, "utf8"));
@@ -1039,6 +1043,9 @@ function startStaticServer({
   fieldSessionResponses = [],
   prospectiveResponse = { status: 204 },
   prospectiveBootstrapResponse = disabledProspectiveBootstrap(),
+  founderGovernedLearningResponse: configuredFounderGovernedLearningResponse = {
+    status: 204
+  },
   founderDailyIntelligenceResponse: configuredFounderDailyIntelligenceResponse = {
     status: 200,
     body: { ok: false, authorized: false, code: "founder_intelligence_not_authorized" }
@@ -1050,6 +1057,7 @@ function startStaticServer({
   const prospectiveBootstrapRequests = [];
   const prospectiveNetworkLedger = [];
   const founderDailyIntelligenceRequests = [];
+  const founderGovernedLearningRequests = [];
   const founderRevenueReadinessRequests = [];
   let fieldSessionAttempt = 0;
   const certificate = localHttpsCertificate();
@@ -1064,6 +1072,34 @@ function startStaticServer({
     );
     const relativePath = pathname.replace(/^\/+/, "");
     requests.push({ path: relativePath, method: request.method });
+
+    if (relativePath === founderGovernedLearningPath) {
+      const admitted = customerPwaSession?.principalRole === "founder"
+        && customerPwaSession?.authorizationState === "server_verified"
+        && customerPwaSession?.capabilities?.readWorkspaceOperations === true
+        && customerPwaSession?.capabilities?.founderIntelligence === true;
+      founderGovernedLearningRequests.push({
+        method: request.method,
+        serverPrincipalRole: customerPwaSession?.principalRole || null,
+        serverAuthorizationState: customerPwaSession?.authorizationState || null,
+        admitted,
+        pageContext: String(request.headers.referer || "")
+      });
+      const configured = admitted
+        ? typeof configuredFounderGovernedLearningResponse === "function"
+          ? configuredFounderGovernedLearningResponse({ request, url })
+          : configuredFounderGovernedLearningResponse
+        : { status: 404, body: { ok: false, code: "founder_session_required" } };
+      const status = Number(configured?.status || 204);
+      const body = configured?.body === undefined ? "" : JSON.stringify(configured.body);
+      response.writeHead(status, {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "private, no-store",
+        ...(configured?.headers || {})
+      });
+      response.end(status === 204 ? "" : body);
+      return;
+    }
 
     if (relativePath === founderDailyIntelligencePath) {
       founderDailyIntelligenceRequests.push({
@@ -1302,6 +1338,7 @@ function startStaticServer({
         prospectiveBootstrapRequests,
         prospectiveNetworkLedger,
         founderDailyIntelligenceRequests,
+        founderGovernedLearningRequests,
         founderRevenueReadinessRequests,
         close: () => new Promise(resolveClose => server.close(resolveClose))
       });
@@ -1973,6 +2010,8 @@ async function snapshot(cdp) {
       visibleTabs: [...document.querySelectorAll(".tab[data-tab]")].filter(visible).map(tab => tab.dataset.tab),
       founderDailyIntelligenceVisible: visible(document.getElementById("founderDailyIntelligence")),
       founderDailyIntelligenceText: text(document.getElementById("founderDailyIntelligence")),
+      founderGovernedLearningVisible: visible(document.getElementById("founderGovernedLearningAdvisory")),
+      founderGovernedLearningText: text(document.getElementById("founderGovernedLearningAdvisory")),
       bestNextMove: text(document.getElementById("bestNextMove")),
       bestMoveAddress: text(document.getElementById("bestMoveAddress")),
       bestMoveDirections: document.getElementById("bestMoveDirections")?.href || "",
@@ -2215,6 +2254,17 @@ export async function waitForFounderDailyIntelligence(cdp, expectedStatus, timeo
   }
   const state = await cdp.evaluate("window.prometheusDebugState?.founderDailyIntelligence || null");
   throw new Error(`Founder daily intelligence did not reach ${expectedStatus}: ${JSON.stringify(state)}`);
+}
+
+async function waitForFounderGovernedLearning(cdp, expectedStatus, timeoutMs = 8000) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const state = await cdp.evaluate("window.prometheusDebugState?.founderGovernedLearning || null");
+    if (state?.status === expectedStatus) return state;
+    await wait(100);
+  }
+  const state = await cdp.evaluate("window.prometheusDebugState?.founderGovernedLearning || null");
+  throw new Error(`Founder governed learning did not reach ${expectedStatus}: ${JSON.stringify(state)}`);
 }
 
 async function waitForFounderRevenueReadiness(cdp, expectedStatus, timeoutMs = 8000) {
@@ -4141,6 +4191,7 @@ async function runHarness() {
 
     const switcher = await runPageScenario(chrome, server, "/app?role=founder&debug=1&harness=workspace-switcher", "workspace-switcher");
     await waitForFounderDailyIntelligence(switcher.cdp, "rendered");
+    const switcherGovernedLearningState = await waitForFounderGovernedLearning(switcher.cdp, "unavailable");
     const switcherSnap = await snapshot(switcher.cdp);
     const productFocus = await switcher.cdp.evaluate(`(() => ({
       title: document.querySelector(".brand h1")?.textContent?.trim() || "",
@@ -4152,6 +4203,8 @@ async function runHarness() {
     assertWorkflow("Route IQ only active Dashboard product", productFocus.title === "Prometheus Route IQ" && productFocus.workspaceControls === 0 && productFocus.retiredProductLinks === 0 && !/\bGaia\b|\bAthena\b/.test(productFocus.bodyText), "Prometheus Route IQ renders without inactive-product navigation or current-product labels", JSON.stringify(productFocus));
     const switcherFounderRequests = server.founderDailyIntelligenceRequests.slice();
     const switcherFounderRequest = switcherFounderRequests[0];
+    const switcherGovernedLearningRequests = server.founderGovernedLearningRequests.slice();
+    const switcherGovernedLearningRequest = switcherGovernedLearningRequests[0];
     assertWorkflow(
       "Founder snapshot requires server principal",
       switcherSnap.debug.founderDailyIntelligence.authorized === true
@@ -4164,12 +4217,30 @@ async function runHarness() {
       "server admitted one read-only snapshot request from the verified Founder session",
       JSON.stringify({ state: switcherSnap.debug.founderDailyIntelligence, request: switcherFounderRequest })
     );
+    assertWorkflow(
+      "Founder governed learning unavailable-workspace boundary",
+      switcherGovernedLearningState.authorized === false
+        && switcherGovernedLearningState.rendered === false
+        && switcherSnap.founderGovernedLearningVisible === false
+        && switcherGovernedLearningRequests.length === 1
+        && switcherGovernedLearningRequest?.method === "GET"
+        && switcherGovernedLearningRequest?.serverPrincipalRole === "founder"
+        && switcherGovernedLearningRequest?.serverAuthorizationState === "server_verified"
+        && switcherGovernedLearningRequest?.admitted === true,
+      "the synthetic non-Fitness workspace received a read-only no-content response without rendering cross-workspace evidence",
+      JSON.stringify({
+        state: switcherGovernedLearningState,
+        visible: switcherSnap.founderGovernedLearningVisible,
+        request: switcherGovernedLearningRequest
+      })
+    );
     await switcher.cdp.close();
 
     const founder = await runPageScenario(chrome, server, "/app?role=representative&rep=forged&debug=1&harness=runtime-workflows-founder", "founder");
     const founderSnap = founder.initial;
     assertWorkflow("Server-verified Founder Mode", founderSnap.sessionRole === "founder" && founderSnap.mode === "owner" && founderSnap.activeRepId === customerPwaFounderSessionFixture.representativeId && founderSnap.visibleTabs.includes("places") && founderSnap.visibleTabs.includes("stats") && founderSnap.visibleTabs.includes("find"), `Founder tabs visible: ${founderSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: founderSnap.sessionRole, mode: founderSnap.mode, visibleTabs: founderSnap.visibleTabs }));
     const founderIntelligenceState = await waitForFounderDailyIntelligence(founder.cdp, "rendered");
+    await waitForFounderGovernedLearning(founder.cdp, "unavailable");
     const founderRevenueState = await waitForFounderRevenueReadiness(founder.cdp, "rendered");
     const founderDailyRequests = server.founderDailyIntelligenceRequests.slice(switcherFounderRequests.length);
     const founderRevenueRequests = server.founderRevenueReadinessRequests.slice();
@@ -4319,6 +4390,7 @@ async function runHarness() {
     const mobileFounder = await runPageScenario(chrome, server, "/app?role=founder&rep=cruz&debug=1&pwa=founder&harness=mobile-founder-fit", "mobile-founder", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
+    await waitForFounderGovernedLearning(mobileFounder.cdp, "unavailable");
     const mobileFounderSnap = mobileFounder.initial;
     assertWorkflow("Mobile authenticated Founder controls", mobileFounderSnap.sessionRole === "founder" && mobileFounderSnap.mode === "owner" && mobileFounderSnap.activeRepId === customerPwaFounderSessionFixture.representativeId && mobileFounderSnap.visibleTabs.length === 5, `role ${mobileFounderSnap.sessionRole}, mode ${mobileFounderSnap.mode}, rep ${mobileFounderSnap.activeRepId}, tabs ${mobileFounderSnap.visibleTabs.join(", ")}`, JSON.stringify(mobileFounderSnap));
     verifyMobileFit("Mobile PWA Today no-horizontal-scroll", await mobileFitSnapshot(mobileFounder.cdp));
