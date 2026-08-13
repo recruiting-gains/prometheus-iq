@@ -112,7 +112,7 @@ test("active Wrangler successor is exact and cannot rewrite historical evidence"
   }
 });
 
-test("unattended access composes only the exact governed learning payload successor", () => {
+test("unattended access composes the exact outcome semantic payload successor", () => {
   const path = "workers/infrastructure/github-actions-private-worker-deployment-v2.json";
   const expectedSha256 = toolchainGovernance.activeDeploymentPolicySuccessor
     .currentEvidence[path];
@@ -129,9 +129,14 @@ test("unattended access composes only the exact governed learning payload succes
   assert.equal(isActiveCloudflareToolchainEvidenceAccepted(values), true);
 
   const drifted = clone(values);
-  drifted.privateWorkflowGovernance.governedLearningPayloadSuccessor.evidence
+  drifted.privateWorkflowGovernance.outcomeSemanticIntegrityPayloadSuccessor.evidence
     .find(item => item.path === path).successorSha256 = "0".repeat(64);
   assert.equal(isActiveCloudflareToolchainEvidenceAccepted(drifted), false);
+
+  const brokenPredecessor = clone(values);
+  brokenPredecessor.privateWorkflowGovernance.governedLearningPayloadSuccessor.evidence
+    .find(item => item.path === path).successorSha256 = "0".repeat(64);
+  assert.equal(isActiveCloudflareToolchainEvidenceAccepted(brokenPredecessor), false);
 });
 
 test("paused unattended access accepts only explicit owner-authored commercial successors", () => {

@@ -9,7 +9,8 @@ import {
   verifyLocalSecretArtifacts
 } from "./check-cloudflare-unattended-secret-presence.mjs";
 import {
-  hasGovernedLearningPayloadInfrastructureSuccessor
+  hasGovernedLearningPayloadInfrastructureSuccessor,
+  hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor
 } from "./verify-overwatch-github-actions-private-worker-deployment.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -463,6 +464,15 @@ export function isActiveCloudflareToolchainEvidenceAccepted({
   readinessSuccessors
 }) {
   return currentSha256 === expectedSha256
+    || hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
+      governance: privateWorkflowGovernance,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors,
+      path,
+      previousSha256: expectedSha256,
+      currentSha256
+    })
     || hasGovernedLearningPayloadInfrastructureSuccessor({
       governance: privateWorkflowGovernance,
       fieldSessionReportTypeGovernance,

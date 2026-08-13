@@ -26,6 +26,7 @@ import {
 } from "../scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs";
 import {
   hasGovernedLearningPayloadInfrastructureSuccessor,
+  hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
   hasRetentionMaintenancePayloadInfrastructureSuccessor
@@ -283,6 +284,16 @@ test("Overwatch composes the exact retention deletion and maintenance payload su
       readinessSuccessors: currentReadinessSuccessors,
       path,
       previousSha256,
+      currentSha256: privateWorkflowGovernance.outcomeSemanticIntegrityPayloadSuccessor
+        .evidence.find(item => item.path === path).previousSha256
+    }), true);
+    assert.equal(hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
+      governance: privateWorkflowGovernance,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors: currentReadinessSuccessors,
+      path,
+      previousSha256,
       currentSha256: createHash("sha256")
         .update(readFileSync(new URL(path, root))).digest("hex")
     }), true);
@@ -314,6 +325,18 @@ test("Overwatch composes the exact retention deletion and maintenance payload su
       .evidence[0].previousSha256
   }), false);
   assert.equal(hasGovernedLearningPayloadInfrastructureSuccessor({
+    governance: changed,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+    previousSha256:
+      "b3763384b6e23079f58fedaed68f63ac8fb0fd52ed5acb22478e003200a923b0",
+    currentSha256: createHash("sha256").update(readFileSync(new URL(
+      "scripts/lib/github-actions-private-worker-workflow-v2.mjs", root
+    ))).digest("hex")
+  }), false);
+  assert.equal(hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
     governance: changed,
     fieldSessionReportTypeGovernance,
     liveCanonicalIdentityGovernance,
