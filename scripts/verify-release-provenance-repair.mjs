@@ -485,6 +485,114 @@ export const currentGovernedLearningIntelligenceSuccessorChain = Object.freeze([
     subject: "intelligence: deduplicate successor aggregation",
     previousSha256: "1bebf7b1d43a78dd647bda1722afd26c54f71e5bad9d6559e2ff6ab080256eb5",
     sha256: "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0"
+  }),
+  Object.freeze({
+    path: "intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json",
+    commit: "a2aefa5ed3a14ee2e6b37e433f8b01fb092b1392",
+    parent: "e3d936381ec7164267b9a584b3f69db656bc8781",
+    tree: "6ea30b53914690f34d6b34e882666a2461bfe843",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: guard governed outcome semantics",
+    commitPaths: Object.freeze([
+      "intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json",
+      "intelligence/operating-profile-engine.mjs",
+      "intelligence/read-only-field-session-learning.mjs",
+      "intelligence/route-iq-governed-multi-session-learning.mjs",
+      "tests/operating-profile-engine.test.mjs",
+      "tests/route-iq-governed-multi-session-learning.test.mjs"
+    ]),
+    previousSha256: "89e3619c3f9c9a5d71003761d3c861dbb9c59dddfac6e7991bba483e562fcd37",
+    sha256: "cdebac56535d7603586c1feb1e3b238b84e5c4ca6ccc26ad5db2124ab4aa42aa"
+  }),
+  Object.freeze({
+    path: "intelligence/operating-profile-engine.mjs",
+    commit: "a2aefa5ed3a14ee2e6b37e433f8b01fb092b1392",
+    parent: "e3d936381ec7164267b9a584b3f69db656bc8781",
+    tree: "6ea30b53914690f34d6b34e882666a2461bfe843",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: guard governed outcome semantics",
+    commitPaths: Object.freeze([
+      "intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json",
+      "intelligence/operating-profile-engine.mjs",
+      "intelligence/read-only-field-session-learning.mjs",
+      "intelligence/route-iq-governed-multi-session-learning.mjs",
+      "tests/operating-profile-engine.test.mjs",
+      "tests/route-iq-governed-multi-session-learning.test.mjs"
+    ]),
+    previousSha256: "af19e5e798da35d85a2dfe4b59521916e4dac970eb5df485fae74f7e229b0353",
+    sha256: "b4d273df916c1035c2fbeb2c55308df20f92460ee9970ba0ac98f978e9a85817"
+  }),
+  Object.freeze({
+    path: "intelligence/read-only-field-session-learning.mjs",
+    commit: "a2aefa5ed3a14ee2e6b37e433f8b01fb092b1392",
+    parent: "e3d936381ec7164267b9a584b3f69db656bc8781",
+    tree: "6ea30b53914690f34d6b34e882666a2461bfe843",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: guard governed outcome semantics",
+    commitPaths: Object.freeze([
+      "intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json",
+      "intelligence/operating-profile-engine.mjs",
+      "intelligence/read-only-field-session-learning.mjs",
+      "intelligence/route-iq-governed-multi-session-learning.mjs",
+      "tests/operating-profile-engine.test.mjs",
+      "tests/route-iq-governed-multi-session-learning.test.mjs"
+    ]),
+    previousSha256: "348e8774e4a02edbfdb4859c60a2205ca227844026565e770b126e7526dfb61d",
+    sha256: "e109657982be0497e8c445bfc84fe3a485286a9185af7eaebf400bd31356e3de"
+  }),
+  Object.freeze({
+    path: "intelligence/route-iq-governed-multi-session-learning.mjs",
+    commit: "a2aefa5ed3a14ee2e6b37e433f8b01fb092b1392",
+    parent: "e3d936381ec7164267b9a584b3f69db656bc8781",
+    tree: "6ea30b53914690f34d6b34e882666a2461bfe843",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: guard governed outcome semantics",
+    commitPaths: Object.freeze([
+      "intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json",
+      "intelligence/operating-profile-engine.mjs",
+      "intelligence/read-only-field-session-learning.mjs",
+      "intelligence/route-iq-governed-multi-session-learning.mjs",
+      "tests/operating-profile-engine.test.mjs",
+      "tests/route-iq-governed-multi-session-learning.test.mjs"
+    ]),
+    previousSha256: "0ada2dff53ddb08f0160b2dda767b414e3c16b7bfe77c803ace1fd8333188923",
+    sha256: "8f7c3a3142671fb1c11419d71900984c22062ca85667ac7d0032e8cefc930e6f"
+  }),
+  Object.freeze({
+    path: "tests/operating-profile-engine.test.mjs",
+    commit: "a2aefa5ed3a14ee2e6b37e433f8b01fb092b1392",
+    parent: "e3d936381ec7164267b9a584b3f69db656bc8781",
+    tree: "6ea30b53914690f34d6b34e882666a2461bfe843",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: guard governed outcome semantics",
+    commitPaths: Object.freeze([
+      "intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json",
+      "intelligence/operating-profile-engine.mjs",
+      "intelligence/read-only-field-session-learning.mjs",
+      "intelligence/route-iq-governed-multi-session-learning.mjs",
+      "tests/operating-profile-engine.test.mjs",
+      "tests/route-iq-governed-multi-session-learning.test.mjs"
+    ]),
+    previousSha256: "85f9c198f01f523a3eefdf9f211eb3e5b36a01fc3a8b54ead937568e98e05aac",
+    sha256: "eb2800ffaf3c20778259e409a7a80112c21a3dfd7b6a03d760fc256bb367544a"
+  }),
+  Object.freeze({
+    path: "tests/route-iq-governed-multi-session-learning.test.mjs",
+    commit: "a2aefa5ed3a14ee2e6b37e433f8b01fb092b1392",
+    parent: "e3d936381ec7164267b9a584b3f69db656bc8781",
+    tree: "6ea30b53914690f34d6b34e882666a2461bfe843",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: guard governed outcome semantics",
+    commitPaths: Object.freeze([
+      "intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json",
+      "intelligence/operating-profile-engine.mjs",
+      "intelligence/read-only-field-session-learning.mjs",
+      "intelligence/route-iq-governed-multi-session-learning.mjs",
+      "tests/operating-profile-engine.test.mjs",
+      "tests/route-iq-governed-multi-session-learning.test.mjs"
+    ]),
+    previousSha256: "367b75dccca4fb6d6cf745119670fb99c3a9bb3a164cc88c2b2025718bda78b0",
+    sha256: "e1ce62193a28c1c032766702f8c8ff5f3cc087ca475a460bd586b9bd2e0de3eb"
   })
 ]);
 export const currentFullSystemHarmonyShadowReadinessSuccessor = Object.freeze({

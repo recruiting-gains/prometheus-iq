@@ -8,6 +8,7 @@ import {
   verifyGovernedMultiSessionLearningAdvisorySuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 import {
+  routeIqGovernedLearningArtifactPath,
   verifyCanonicalRouteIqGovernedLearningArtifact
 } from "../intelligence/provenance/verify-route-iq-governed-multi-session-learning-v1.mjs";
 import {
@@ -77,6 +78,18 @@ const expectedChangedPaths = new Map([
   ]],
   ["ab4940262d2eb843b2f8bf6f451e881cedf91cf9", [
     "scripts/verify-dashboard-runtime-workflows.mjs"
+  ]],
+  ["a2aefa5ed3a14ee2e6b37e433f8b01fb092b1392", [
+    "intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json",
+    "intelligence/operating-profile-engine.mjs",
+    "intelligence/read-only-field-session-learning.mjs",
+    "intelligence/route-iq-governed-multi-session-learning.mjs",
+    "tests/operating-profile-engine.test.mjs",
+    "tests/route-iq-governed-multi-session-learning.test.mjs"
+  ]],
+  ["18d317b2ff6d7e7b755ff86d820128a87ac96729", [
+    "intelligence/provenance/protected-baseline-synchronization-governed-multi-session-learning-advisory-v1.json",
+    "intelligence/provenance/protected-baseline-synchronization-outcome-semantic-integrity-v1.json"
   ]]
 ]);
 
@@ -207,6 +220,94 @@ function verifyRepositoryBoundaries(governance) {
   assert.equal(changed.some(path => /^wrangler(?:\.|\/)/u.test(path)), false);
 }
 
+function verifyOutcomeSemanticIntegrity(governance) {
+  const record = readJson(governance.semanticIntegritySuccessor.provenancePath);
+  const artifact = readJson(routeIqGovernedLearningArtifactPath);
+  assert.equal(record.batchId, governance.semanticIntegritySuccessor.batchId);
+  assert.equal(record.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(record.status, "OWNER_IMPLEMENTED_PROTECTED_SUCCESSOR");
+  assert.equal(
+    record.semanticContract.version,
+    governance.semanticIntegritySuccessor.semanticContractVersion
+  );
+  assert.equal(
+    record.canonicalArtifact.successorArtifactId,
+    governance.canonicalArtifact.artifactId
+  );
+  assert.equal(
+    record.canonicalArtifact.logicalSha256,
+    governance.canonicalArtifact.artifactSha256
+  );
+  assert.equal(record.canonicalArtifact.truthState, "INSUFFICIENT_EVIDENCE");
+  assert.equal(record.verifiedInvariants.zeroPositiveLeakageFromReviewRequiredEvidence, true);
+  assert.equal(record.verifiedInvariants.historicalFieldSessionArchivesChanged, false);
+  assert.equal(record.nextTask.title,
+    "Route IQ Prospective Calibration Production Admission + Future-Window Readiness v1");
+
+  for (const transition of record.protectedSourceTransitions) {
+    assert.equal(
+      sha256(transition.path),
+      transition.currentSha256,
+      `Outcome semantic successor drifted: ${transition.path}`
+    );
+    assert.equal(
+      createHash("sha256").update(git(["show", `${record.implementation.parent}:${transition.path}`], null)).digest("hex"),
+      transition.previousSha256,
+      `Outcome semantic predecessor drifted: ${transition.path}`
+    );
+  }
+
+  const outcomeNodes = new Map(artifact.customerGraphSnapshot.nodes
+    .filter(node => node.nodeType === "Outcome")
+    .map(node => [node.nodeId, node]));
+  const outcomeRelationships = artifact.customerGraphSnapshot.relationships.filter(
+    relationship => outcomeNodes.has(relationship.toNodeId)
+  );
+  const noContactNode = [...outcomeNodes.values()].find(node => (
+    node.attributes.rawOutcome === "No contact"
+  ));
+  const membershipNode = [...outcomeNodes.values()].find(node => (
+    node.attributes.rawOutcome === "Membership"
+  ));
+  const noContactRelationship = outcomeRelationships.find(relationship => (
+    relationship.toNodeId === noContactNode?.nodeId
+  ));
+  const membershipRelationship = outcomeRelationships.find(relationship => (
+    relationship.toNodeId === membershipNode?.nodeId
+  ));
+  assert.equal(noContactNode?.attributes.normalizedOutcome, null);
+  assert.equal(noContactNode?.attributes.evidenceStatus, "Review Required");
+  assert.equal(noContactRelationship?.relationshipType, "Visited");
+  assert.equal(noContactRelationship?.semanticDisposition.successEligible, false);
+  assert.equal(membershipNode?.attributes.normalizedOutcome, "sale");
+  assert.equal(membershipRelationship?.relationshipType, "Successful");
+  assert.equal(
+    membershipRelationship?.semanticDisposition.authority.source,
+    "active_operating_profile.successEvents"
+  );
+  for (const relationship of outcomeRelationships.filter(item => (
+    ["Successful", "Follow-up"].includes(item.relationshipType)
+  ))) {
+    assert.equal(relationship.admittedEvidence?.admitted, true);
+    assert.notEqual(relationship.reviewState, "human_review_required");
+    assert.ok(relationship.sourceEvidenceIds.length > 0);
+    assert.ok(relationship.semanticDisposition?.mappingRule?.authority);
+  }
+  assert.equal(artifact.dashboardAdvisory.evidenceMaturity.truthState, "Insufficient Evidence");
+  assert.equal(artifact.dashboardAdvisory.evidenceMaturity.reviewRequiredOutcomeCount, 1);
+  return Object.freeze({
+    successfulRelationships: outcomeRelationships.filter(item => (
+      item.relationshipType === "Successful"
+    )).length,
+    followUpRelationships: outcomeRelationships.filter(item => (
+      item.relationshipType === "Follow-up"
+    )).length,
+    reviewRequiredOutcomes: artifact.normalizedOutcomes.filter(item => (
+      item.semanticDisposition.reviewRequired
+    )).length
+  });
+}
+
 export function verifyOverwatchRouteIqGovernedLearningAdvisoryBridge() {
   const governance = readJson(governancePath);
   assert.equal(governance.batchId, "BATCH-20260812-001");
@@ -235,6 +336,7 @@ export function verifyOverwatchRouteIqGovernedLearningAdvisoryBridge() {
   });
   const successor = verifyGovernedMultiSessionLearningAdvisorySuccessor();
   assert.equal(successor.successor.batchId, governance.batchId);
+  const semanticIntegrity = verifyOutcomeSemanticIntegrity(governance);
   const security = verifyRouteIqGovernedLearningAdvisorySecurity();
   assert.equal(security.status, "PASS");
   assert.equal(security.founderOnly, true);
@@ -274,7 +376,11 @@ export function verifyOverwatchRouteIqGovernedLearningAdvisoryBridge() {
     deploymentPerformed: false,
     collection: governance.protectedState.prospectiveCollection,
     activeCohorts: governance.protectedState.activeCohorts,
-    recommendationInfluence: governance.protectedState.recommendationInfluence
+    recommendationInfluence: governance.protectedState.recommendationInfluence,
+    semanticIntegrityBatchId: governance.semanticIntegritySuccessor.batchId,
+    successfulRelationships: semanticIntegrity.successfulRelationships,
+    followUpRelationships: semanticIntegrity.followUpRelationships,
+    reviewRequiredOutcomes: semanticIntegrity.reviewRequiredOutcomes
   });
 }
 

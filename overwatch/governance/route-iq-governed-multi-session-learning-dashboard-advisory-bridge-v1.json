@@ -24,15 +24,22 @@
     {"commit":"7633c44d5e43ca64e32ece2da38f6e9925d34d4c","tree":"e42c79a57beecec90c21edd7bef81a0184e281a6","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: order governed successor verification"},
     {"commit":"f1b889bb45e357a757656d992e91d95580cc8880","tree":"9e364871eb0be5385ccbebcc145b2100f9e9e6e9","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: deduplicate successor aggregation"},
     {"commit":"2f86078e53d80f72f8ff02e36e00aa564120f9c6","tree":"4783bf7f4e92fb04a1af3e110dd3d007216baef8","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: pin governed learning successor provenance"},
-    {"commit":"ab4940262d2eb843b2f8bf6f451e881cedf91cf9","tree":"fa90f1622eeca960fca30f3005febe5f9b6fbc82","owner":"Prometheus Dashboard <dashboard@prometheus.local>","subject":"dashboard: model governed advisory harness boundary"}
+    {"commit":"ab4940262d2eb843b2f8bf6f451e881cedf91cf9","tree":"fa90f1622eeca960fca30f3005febe5f9b6fbc82","owner":"Prometheus Dashboard <dashboard@prometheus.local>","subject":"dashboard: model governed advisory harness boundary"},
+    {"commit":"a2aefa5ed3a14ee2e6b37e433f8b01fb092b1392","tree":"6ea30b53914690f34d6b34e882666a2461bfe843","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: guard governed outcome semantics"},
+    {"commit":"18d317b2ff6d7e7b755ff86d820128a87ac96729","tree":"f0e08863cab1517207a6f4fbbe8fb9863ae7f099","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: pin outcome semantic successor provenance"}
   ],
   "criticalPins": [
     {"path":"data/route-iq-field-sessions-v1/route-iq-eligible-session-manifest.mjs","sha256":"38d88fed7a9418ddfed7ff3c266297471416ecca881cf72191d1cd41358e319c"},
     {"path":"data/route-iq-field-sessions-v1/route-iq-governed-learning-source-v1.json","sha256":"e8f6936f1ca5627e3102dd7ffe72bbba41f206dc3628bc03664fc9a2d817cb67"},
-    {"path":"intelligence/route-iq-governed-multi-session-learning.mjs","sha256":"0ada2dff53ddb08f0160b2dda767b414e3c16b7bfe77c803ace1fd8333188923"},
-    {"path":"intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json","sha256":"89e3619c3f9c9a5d71003761d3c861dbb9c59dddfac6e7991bba483e562fcd37"},
+    {"path":"intelligence/operating-profile-engine.mjs","sha256":"b4d273df916c1035c2fbeb2c55308df20f92460ee9970ba0ac98f978e9a85817"},
+    {"path":"intelligence/read-only-field-session-learning.mjs","sha256":"e109657982be0497e8c445bfc84fe3a485286a9185af7eaebf400bd31356e3de"},
+    {"path":"intelligence/route-iq-governed-multi-session-learning.mjs","sha256":"8f7c3a3142671fb1c11419d71900984c22062ca85667ac7d0032e8cefc930e6f"},
+    {"path":"intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json","sha256":"cdebac56535d7603586c1feb1e3b238b84e5c4ca6ccc26ad5db2124ab4aa42aa"},
     {"path":"intelligence/provenance/verify-route-iq-governed-multi-session-learning-v1.mjs","sha256":"8e2f12ec7db3ab7cc215f832d5099d34b87674ff15b6c86bed3e8db8f345a142"},
-    {"path":"intelligence/provenance/protected-baseline-synchronization-governed-multi-session-learning-advisory-v1.json","sha256":"2d78216d4d0ff4d073a9b0accb44d69b0fd7b02c266c35c7a3197111bd436917"},
+    {"path":"intelligence/provenance/protected-baseline-synchronization-governed-multi-session-learning-advisory-v1.json","sha256":"bb72cc124eac466442cd0ce32365f5cd48c8a9c46a794c2352c81311a67ed4f0"},
+    {"path":"intelligence/provenance/protected-baseline-synchronization-outcome-semantic-integrity-v1.json","sha256":"e79acd60ef2648e0020a91d431d412cefdeb7f5c104efee54708839d39a2bb2e"},
+    {"path":"tests/operating-profile-engine.test.mjs","sha256":"eb2800ffaf3c20778259e409a7a80112c21a3dfd7b6a03d760fc256bb367544a"},
+    {"path":"tests/route-iq-governed-multi-session-learning.test.mjs","sha256":"e1ce62193a28c1c032766702f8c8ff5f3cc087ca475a460bd586b9bd2e0de3eb"},
     {"path":"dashboard/route-iq-dashboard-platform.mjs","sha256":"354d377a02c1675df041ee2d7efeaa50962f1f5305e5c39352b0702c31eed4c0"},
     {"path":"index.html","sha256":"b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604"},
     {"path":"scripts/verify-dashboard-runtime-workflows.mjs","sha256":"c014d74ad3ab6f81befdf4880cdc0093fa9f8688e2dc90b3ab3f4cbcbfafb6d4"},
@@ -43,11 +50,21 @@
     {"path":"patents/route-iq/GOVERNED_MULTI_SESSION_LEARNING_DASHBOARD_ADVISORY_BRIDGE_V1.md","sha256":"66cb83c3ce2882a169c7eab2fb2ff00cbc137d2eff39ac0d4d1652b1b1351c45"}
   ],
   "canonicalArtifact": {
-    "artifactId": "riq_governed_learning_86f0ff03747d330844473091f46cc05350a1e0ed0b262430e23caaa0ed229a56",
-    "artifactSha256": "86f0ff03747d330844473091f46cc05350a1e0ed0b262430e23caaa0ed229a56",
+    "artifactId": "riq_governed_learning_e2113e2c7290546d0bd1b637902abe38a12b3672e369a3bf01ffdbdec6d82e2f",
+    "artifactSha256": "e2113e2c7290546d0bd1b637902abe38a12b3672e369a3bf01ffdbdec6d82e2f",
     "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
     "sessions": 1,
     "visits": 4,
+    "truthState": "INSUFFICIENT_EVIDENCE"
+  },
+  "semanticIntegritySuccessor": {
+    "batchId": "BATCH-20260813-001",
+    "provenancePath": "intelligence/provenance/protected-baseline-synchronization-outcome-semantic-integrity-v1.json",
+    "semanticContractVersion": "operating-profile-outcome-semantic-disposition-v1",
+    "zeroPositiveLeakageFromReviewRequiredEvidence": true,
+    "fitnessNoContactSuccessful": false,
+    "fitnessMembershipRelationship": "Successful",
+    "relationshipAuthority": "active_operating_profile.successEvents",
     "truthState": "INSUFFICIENT_EVIDENCE"
   },
   "delivery": {
@@ -93,6 +110,6 @@
     "hostedQualificationRequired": true,
     "deploymentAuthorized": false,
     "productionMutationAuthorized": false,
-    "nextDecision": "separate_founder_authorized_private_worker_release_review"
+    "nextDecision": "Route IQ Prospective Calibration Production Admission + Future-Window Readiness v1"
   }
 }

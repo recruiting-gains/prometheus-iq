@@ -17,9 +17,9 @@ test("Overwatch verifies the owner chain, canonical artifact, and protected stat
   assert.deepEqual(verifyOverwatchRouteIqGovernedLearningAdvisoryBridge(), {
     status: "PASS",
     batchId: "BATCH-20260812-001",
-    ownerCommitCount: 13,
-    artifactId: "riq_governed_learning_86f0ff03747d330844473091f46cc05350a1e0ed0b262430e23caaa0ed229a56",
-    artifactSha256: "86f0ff03747d330844473091f46cc05350a1e0ed0b262430e23caaa0ed229a56",
+    ownerCommitCount: 15,
+    artifactId: "riq_governed_learning_e2113e2c7290546d0bd1b637902abe38a12b3672e369a3bf01ffdbdec6d82e2f",
+    artifactSha256: "e2113e2c7290546d0bd1b637902abe38a12b3672e369a3bf01ffdbdec6d82e2f",
     manifestSha256: "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
     sessions: 1,
     visits: 4,
@@ -30,7 +30,11 @@ test("Overwatch verifies the owner chain, canonical artifact, and protected stat
     deploymentPerformed: false,
     collection: "OFF",
     activeCohorts: 0,
-    recommendationInfluence: "OFF"
+    recommendationInfluence: "OFF",
+    semanticIntegrityBatchId: "BATCH-20260813-001",
+    successfulRelationships: 3,
+    followUpRelationships: 0,
+    reviewRequiredOutcomes: 1
   });
 });
 
@@ -109,7 +113,18 @@ test("release remains source-only, advisory-only, and separately deployment gate
   assert.equal(record.delivery.deploymentAuthorized, false);
   assert.equal(record.release.productionMutationAuthorized, false);
   assert.equal(record.release.nextDecision,
-    "separate_founder_authorized_private_worker_release_review");
+    "Route IQ Prospective Calibration Production Admission + Future-Window Readiness v1");
+});
+
+test("semantic successor preserves review-required evidence and exact profile authority", () => {
+  const record = governance();
+  assert.equal(record.semanticIntegritySuccessor.batchId, "BATCH-20260813-001");
+  assert.equal(record.semanticIntegritySuccessor.zeroPositiveLeakageFromReviewRequiredEvidence, true);
+  assert.equal(record.semanticIntegritySuccessor.fitnessNoContactSuccessful, false);
+  assert.equal(record.semanticIntegritySuccessor.fitnessMembershipRelationship, "Successful");
+  assert.equal(record.semanticIntegritySuccessor.relationshipAuthority,
+    "active_operating_profile.successEvents");
+  assert.equal(record.semanticIntegritySuccessor.truthState, "INSUFFICIENT_EVIDENCE");
 });
 
 test("route behavior and historical archives are explicitly outside the batch", () => {

@@ -134,8 +134,8 @@ test("release provenance composes the exact governed-learning Intelligence chain
     "f1b889bb45e357a757656d992e91d95580cc8880");
   assert.equal(result.terminalSha256,
     "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0");
-  assert.equal(result.transitionCount, 6);
-  assert.equal(result.protectedPathCount, 3);
+  assert.equal(result.transitionCount, 12);
+  assert.equal(result.protectedPathCount, 8);
   for (const mutate of [
     value => { value[0].commit = "0".repeat(40); },
     value => { value[1].parent = "0".repeat(40); },
@@ -199,7 +199,7 @@ test("Overwatch verifies Route IQ release provenance repair", () => {
     currentRetentionDeletionIntelligenceSuccessorCommit:
       "0faca7bb91b3e4ddbe7c1996ca84cc9247cd205a",
     currentGovernedLearningIntelligenceSuccessorCommit:
-      "f1b889bb45e357a757656d992e91d95580cc8880",
+      "a2aefa5ed3a14ee2e6b37e433f8b01fb092b1392",
     currentProtectedDriftFixtureIntelligenceSuccessorCommit:
       "ff63d927c121a0030a0cbb1f041a626ffe7968bc"
   });
