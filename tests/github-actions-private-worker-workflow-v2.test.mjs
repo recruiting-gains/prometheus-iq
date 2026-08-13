@@ -102,6 +102,8 @@ const requiredBindings = Object.freeze([
   "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR:durable_object_namespace"
 ].sort());
 
+const OUTCOME_SEMANTIC_INTEGRITY_FORWARD_PAYLOAD_SHA256 =
+  "129d2e93d5d3a0ae538f3eb1e5c1982bcf658b5b05d2da1d8f23bf8e1540e52b";
 const GOVERNED_LEARNING_FORWARD_PAYLOAD_SHA256 =
   "7ed697de32134dcd940df2238b8bddaa0bb41e57a365716ea7e6f5f454c8fd24";
 const RETENTION_MAINTENANCE_FORWARD_PAYLOAD_SHA256 =
@@ -125,12 +127,16 @@ function qualificationInputs() {
   });
 }
 
-test("governed learning rotates only the qualified forward payload and parity identities", () => {
+test("outcome semantic integrity rotates only the forward payload identity", () => {
   const contract = JSON.parse(readFileSync(
     join(root, PRIVATE_WORKFLOW_V2_POLICY.contractPath),
     "utf8"
   ));
   assert.equal(
+    PRIVATE_WORKFLOW_V2_POLICY.continuityBaseline.forwardPayloadSha256,
+    OUTCOME_SEMANTIC_INTEGRITY_FORWARD_PAYLOAD_SHA256
+  );
+  assert.notEqual(
     PRIVATE_WORKFLOW_V2_POLICY.continuityBaseline.forwardPayloadSha256,
     GOVERNED_LEARNING_FORWARD_PAYLOAD_SHA256
   );
@@ -144,7 +150,7 @@ test("governed learning rotates only the qualified forward payload and parity id
   );
   assert.equal(
     contract.continuity.qualifiedForwardPayloadSha256,
-    GOVERNED_LEARNING_FORWARD_PAYLOAD_SHA256
+    OUTCOME_SEMANTIC_INTEGRITY_FORWARD_PAYLOAD_SHA256
   );
   assert.equal(
     PRIVATE_WORKFLOW_V2_POLICY.continuityBaseline.deployParitySha256,
