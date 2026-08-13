@@ -166,6 +166,15 @@
       "subject": "intelligence: deduplicate successor aggregation",
       "previousSha256": "1bebf7b1d43a78dd647bda1722afd26c54f71e5bad9d6559e2ff6ab080256eb5",
       "currentSha256": "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0"
+    },
+    {
+      "path": "intelligence/read-only-field-session-learning.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "a2aefa5ed3a14ee2e6b37e433f8b01fb092b1392",
+      "tree": "6ea30b53914690f34d6b34e882666a2461bfe843",
+      "subject": "intelligence: guard governed outcome semantics",
+      "previousSha256": "348e8774e4a02edbfdb4859c60a2205ca227844026565e770b126e7526dfb61d",
+      "currentSha256": "e109657982be0497e8c445bfc84fe3a485286a9185af7eaebf400bd31356e3de"
     }
   ],
   "newSourcePins": [
@@ -181,12 +190,22 @@
     },
     {
       "path": "intelligence/route-iq-governed-multi-session-learning.mjs",
-      "sha256": "0ada2dff53ddb08f0160b2dda767b414e3c16b7bfe77c803ace1fd8333188923",
+      "sha256": "8f7c3a3142671fb1c11419d71900984c22062ca85667ac7d0032e8cefc930e6f",
       "ownerSubsystem": "Prometheus Intelligence Engine"
     },
     {
       "path": "intelligence/artifacts/route-iq-governed-multi-session-learning-v1/fitness_connection/cruz/governed-learning-artifact-v1.json",
-      "sha256": "89e3619c3f9c9a5d71003761d3c861dbb9c59dddfac6e7991bba483e562fcd37",
+      "sha256": "cdebac56535d7603586c1feb1e3b238b84e5c4ca6ccc26ad5db2124ab4aa42aa",
+      "ownerSubsystem": "Prometheus Intelligence Engine"
+    },
+    {
+      "path": "intelligence/operating-profile-engine.mjs",
+      "sha256": "b4d273df916c1035c2fbeb2c55308df20f92460ee9970ba0ac98f978e9a85817",
+      "ownerSubsystem": "Prometheus Intelligence Engine"
+    },
+    {
+      "path": "intelligence/read-only-field-session-learning.mjs",
+      "sha256": "e109657982be0497e8c445bfc84fe3a485286a9185af7eaebf400bd31356e3de",
       "ownerSubsystem": "Prometheus Intelligence Engine"
     },
     {
