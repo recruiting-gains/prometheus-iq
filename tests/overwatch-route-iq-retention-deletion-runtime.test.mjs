@@ -12,14 +12,19 @@ import {
 const governedLearningVerification = Object.freeze({
   status: "PASS",
   batchId: "BATCH-20260812-001",
-  ownerCommitCount: 13,
+  ownerCommitCount: 15,
   historicalEvidence: "UNCHANGED",
   deploymentPerformed: false,
   collection: "OFF",
   activeCohorts: 0,
   recommendationInfluence: "OFF",
   founderOnly: true,
-  publicWorkerExposure: false
+  publicWorkerExposure: false,
+  semanticIntegrityBatchId: "BATCH-20260813-001",
+  truthState: "INSUFFICIENT_EVIDENCE",
+  successfulRelationships: 3,
+  followUpRelationships: 0,
+  reviewRequiredOutcomes: 1
 });
 
 const governance = () => JSON.parse(readFileSync(
@@ -219,7 +224,12 @@ test("retention composes only the exact governed-learning protected runtime path
     value => { value.governedLearning.status = "FAIL"; },
     value => { value.governedLearning.deploymentPerformed = true; },
     value => { value.governedLearning.collection = "ON"; },
-    value => { value.governedLearning.publicWorkerExposure = true; }
+    value => { value.governedLearning.publicWorkerExposure = true; },
+    value => { value.governedLearning.ownerCommitCount = 14; },
+    value => { value.governedLearning.semanticIntegrityBatchId = "BATCH-STALE"; },
+    value => { value.governedLearning.truthState = "SUFFICIENT_EVIDENCE"; },
+    value => { value.governedLearning.successfulRelationships = 4; },
+    value => { value.governedLearning.reviewRequiredOutcomes = 0; }
   ]) {
     const candidate = structuredClone(input);
     mutate(candidate);

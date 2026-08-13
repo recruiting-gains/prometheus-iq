@@ -256,7 +256,8 @@ export function verifyRetentionProtectedRuntimeSuccessors({
 }) {
   assert.equal(governedLearning?.status, "PASS");
   assert.equal(governedLearning?.batchId, "BATCH-20260812-001");
-  assert.equal(governedLearning?.ownerCommitCount, 13);
+  assert.equal(Number.isInteger(governedLearning?.ownerCommitCount), true);
+  assert.equal(governedLearning.ownerCommitCount >= 15, true);
   assert.equal(governedLearning?.historicalEvidence, "UNCHANGED");
   assert.equal(governedLearning?.deploymentPerformed, false);
   assert.equal(governedLearning?.collection, "OFF");
@@ -264,6 +265,11 @@ export function verifyRetentionProtectedRuntimeSuccessors({
   assert.equal(governedLearning?.recommendationInfluence, "OFF");
   assert.equal(governedLearning?.founderOnly, true);
   assert.equal(governedLearning?.publicWorkerExposure, false);
+  assert.equal(governedLearning?.semanticIntegrityBatchId, "BATCH-20260813-001");
+  assert.equal(governedLearning?.truthState, "INSUFFICIENT_EVIDENCE");
+  assert.equal(governedLearning?.successfulRelationships, 3);
+  assert.equal(governedLearning?.followUpRelationships, 0);
+  assert.equal(governedLearning?.reviewRequiredOutcomes, 1);
   assert.deepEqual(
     [...protectedRuntimeChanges].sort(),
     [...node24WorkflowPaths, ...governedLearningProtectedRuntimePaths].sort(),
