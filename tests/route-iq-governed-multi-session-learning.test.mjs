@@ -95,14 +95,163 @@ test("Intelligence accumulates synthetic non-Fitness sessions chronologically th
     outcome.profileId === "general_outside_sales"
   )));
   assert.ok(result.normalizedOutcomes.some(outcome => (
-    outcome.mappingSource === "normalized_vocabulary"
+    outcome.mappingSource === "operating_profile"
   )));
   assert.ok(result.normalizedOutcomes.some(outcome => (
-    outcome.mappingSource === "default_review_required"
+    outcome.mappingSource === "unclassified_review_required"
+      && outcome.normalizedOutcome === null
       && outcome.evidence.reviewState === "human_review_required"
+      && outcome.semanticDisposition.learningEligible === false
   )));
   assert.equal(result.dashboardAdvisory.evidenceMaturity.sessionsAdmitted, 2);
   assert.equal(result.dashboardAdvisory.evidenceMaturity.visitsAdmitted, 2);
+  assert.equal(
+    result.readOnlyLearningSnapshot.sourceEvidence.semanticLearningEligibleVisitCount,
+    1
+  );
+  assert.equal(
+    result.readOnlyLearningSnapshot.sourceEvidence.semanticReviewRequiredVisitCount,
+    1
+  );
+  assert.equal(
+    result.readOnlyLearningSnapshot.representativeIntelligence[0].leadQuality.leads,
+    0
+  );
+  assert.equal(
+    result.dashboardAdvisory.evidenceMaturity.successfulRelationshipCount,
+    0
+  );
+});
+
+test("Fitness No contact is quarantined while admitted Membership is Successful", () => {
+  const result = build(loadFitnessGovernedLearningFixture());
+  const noContact = result.normalizedOutcomes.find(outcome => outcome.rawOutcome === "No contact");
+  const membership = result.normalizedOutcomes.find(outcome => outcome.rawOutcome === "Membership");
+  const outcomeNodes = new Map(result.customerGraphSnapshot.nodes
+    .filter(node => node.nodeType === "Outcome")
+    .map(node => [node.nodeId, node]));
+  const outcomeRelationships = result.customerGraphSnapshot.relationships.filter(relationship => (
+    outcomeNodes.has(relationship.toNodeId)
+  ));
+  const noContactRelationship = outcomeRelationships.find(relationship => (
+    outcomeNodes.get(relationship.toNodeId).attributes.visitId === noContact.visitId
+  ));
+  const membershipRelationship = outcomeRelationships.find(relationship => (
+    outcomeNodes.get(relationship.toNodeId).attributes.visitId === membership.visitId
+  ));
+
+  assert.equal(noContact.normalizedOutcome, null);
+  assert.equal(noContact.mappingSource, "unclassified_review_required");
+  assert.equal(noContact.semanticDisposition.disposition, "unclassified_review_required");
+  assert.equal(noContact.semanticDisposition.learningEligible, false);
+  assert.equal(noContactRelationship.relationshipType, "Visited");
+  assert.equal(noContactRelationship.reviewState, "human_review_required");
+  assert.equal(noContactRelationship.semanticDisposition.successEligible, false);
+
+  assert.equal(membership.normalizedOutcome, "sale");
+  assert.equal(membership.semanticDisposition.disposition, "positive_success");
+  assert.equal(membership.evidence.reviewState, "admitted_non_review_required");
+  assert.equal(membershipRelationship.relationshipType, "Successful");
+  assert.equal(membershipRelationship.semanticDisposition.successEligible, true);
+  assert.equal(
+    membershipRelationship.semanticDisposition.authority.source,
+    "active_operating_profile.successEvents"
+  );
+  assert.equal(membershipRelationship.admittedEvidence.admitted, true);
+
+  assert.equal(result.readOnlyLearningSnapshot.sourceEvidence.outcomeSemanticAdmissionCount, 4);
+  assert.equal(result.readOnlyLearningSnapshot.sourceEvidence.semanticLearningEligibleVisitCount, 3);
+  assert.equal(result.readOnlyLearningSnapshot.sourceEvidence.semanticReviewRequiredVisitCount, 1);
+  assert.equal(
+    result.readOnlyLearningSnapshot.representativeIntelligence[0]
+      .conversationOutcomes.outcomes["No contact"],
+    undefined
+  );
+  assert.equal(
+    result.dashboardAdvisory.categoryTimeWindowPatterns[0].outcomes["No contact"],
+    undefined
+  );
+  assert.equal(result.dashboardAdvisory.evidenceMaturity.truthState, "Insufficient Evidence");
+  assert.equal(result.dashboardAdvisory.evidenceMaturity.reviewRequiredOutcomeCount, 1);
+  assert.equal(result.dashboardAdvisory.evidenceMaturity.successfulRelationshipCount, 3);
+  const noContactAdvisory = result.dashboardAdvisory.outcomeObservations.find(
+    observation => observation.rawOutcome === "No contact"
+  );
+  assert.equal(noContactAdvisory.truthState, "Review Required");
+  assert.equal(noContactAdvisory.normalizedOutcome, null);
+  assert.equal(noContactAdvisory.semanticDisposition.successEligible, false);
+  const noContactAdvisoryRelationship = result.dashboardAdvisory
+    .businessVisitOutcomeRelationships.find(relationship => (
+      relationship.relationshipId === noContactRelationship.relationshipId
+    ));
+  assert.equal(noContactAdvisoryRelationship.truthState, "Review Required");
+  assert.equal(noContactAdvisoryRelationship.relationshipType, "Visited");
+});
+
+test("Successful and Follow-up graph relationships require admitted evidence and exact semantic authority", () => {
+  const fixture = createSyntheticGovernedLearningFixture(1);
+  const visit = fixture.archivePackages[0].verifiedFieldSession.verifiedFields.completedVisits[0];
+  visit.sourceReport.outcome = "follow_up";
+  fixture.archivePackages[0].historyUpdates.customerOutcomeHistory[0].loggedOutcome = "follow_up";
+  const result = build(fixture);
+  const semanticRelationships = result.customerGraphSnapshot.relationships.filter(relationship => (
+    relationship.semanticDisposition
+  ));
+  const followUp = semanticRelationships.find(relationship => (
+    relationship.relationshipType === "Follow-up"
+  ));
+
+  assert.ok(followUp);
+  assert.equal(followUp.reviewState, "admitted_non_review_required");
+  assert.equal(followUp.admittedEvidence.admitted, true);
+  assert.equal(followUp.semanticDisposition.followUpEligible, true);
+  assert.equal(
+    followUp.semanticDisposition.authority.source,
+    "operating_profile_outcome_semantic_disposition.canonicalFollowUpOutcome"
+  );
+  for (const relationship of semanticRelationships.filter(item => (
+    ["Successful", "Follow-up"].includes(item.relationshipType)
+  ))) {
+    assert.equal(relationship.admittedEvidence.admitted, true);
+    assert.notEqual(relationship.reviewState, "human_review_required");
+    assert.ok(relationship.sourceEvidenceIds.length > 0);
+    assert.ok(relationship.semanticDisposition.mappingRule.authority);
+  }
+});
+
+test("the representative-learning semantic admission guard rejects missing, replayed, and cross-record evidence", () => {
+  const fixture = loadFitnessGovernedLearningFixture();
+  const governed = build(fixture);
+  const admissions = governed.normalizedOutcomes.map(outcome => ({
+    semanticContractVersion: outcome.semanticDisposition.contractVersion,
+    sessionId: outcome.sessionId,
+    visitId: outcome.visitId,
+    sourceRecordSha256: outcome.evidence.admission.sourceRecordSha256,
+    admitted: outcome.evidence.admission.admitted,
+    reviewRequired: outcome.semanticDisposition.reviewRequired,
+    learningEligible: outcome.semanticDisposition.learningEligible,
+    disposition: outcome.semanticDisposition.disposition,
+    normalizedOutcome: outcome.normalizedOutcome
+  }));
+  const buildLearning = outcomeSemanticAdmissions => buildReadOnlyFieldSessionLearningSnapshot({
+    archivePackages: fixture.archivePackages,
+    outcomeSemanticAdmissions
+  });
+
+  assert.throws(
+    () => buildLearning(admissions.slice(1)),
+    error => error?.code === "field_session_learning_semantic_admission_incomplete"
+  );
+  assert.throws(
+    () => buildLearning([...admissions, clone(admissions[0])]),
+    error => error?.code === "field_session_learning_semantic_admission_invalid"
+  );
+  const crossRecord = clone(admissions);
+  crossRecord[0].sourceRecordSha256 = "f".repeat(64);
+  assert.throws(
+    () => buildLearning(crossRecord),
+    error => error?.code === "field_session_learning_semantic_admission_invalid"
+  );
 });
 
 test("Intelligence builds a customer-scoped graph and keeps workspace identity distinct", () => {

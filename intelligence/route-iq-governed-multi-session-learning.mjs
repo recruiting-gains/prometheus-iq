@@ -23,6 +23,7 @@ import {
   getOperatingProfile,
   loadOperatingProfiles,
   normalizeIndustryOutcome,
+  operatingProfileOutcomeSemanticDispositionContract,
   validateOperatingProfile
 } from "./operating-profile-engine.mjs";
 import {
@@ -193,102 +194,135 @@ function graphFromLearning({ manifest, learning, normalizedOutcomes, generatedAt
     nodes.push(node);
   }
 
-  const outcomeByVisit = new Map(normalizedOutcomes.map(item => [item.visitId, item]));
-  for (const business of learning.businessIntelligence) {
-    const businessNode = buildCustomerGraphNode({
+  const businessLearning = new Map(learning.businessIntelligence.map(item => [
+    item.googlePlaceId,
+    item
+  ]));
+  const businessNodes = new Map();
+  for (const normalized of normalizedOutcomes) {
+    let businessNode = businessNodes.get(normalized.businessId);
+    if (!businessNode) {
+      const learnedBusiness = businessLearning.get(normalized.businessId);
+      businessNode = buildCustomerGraphNode({
+        customerId,
+        nodeType: "Business",
+        sourceRefs: sourceReference(
+          manifest,
+          learnedBusiness?.intelligenceId || normalized.evidence.evidenceId
+        ),
+        learnedAt: learnedBusiness?.explainability.lastUpdated
+          || normalized.evidence.visitOccurredAt,
+        reviewState: "human_review_preserved",
+        confidence: learnedBusiness
+          ? {
+              confidenceBand: learnedBusiness.confidence.band,
+              confidenceScore: learnedBusiness.confidence.score
+            }
+          : undefined,
+        evidenceCount: learnedBusiness?.confidence.evidenceCount.visits || 0,
+        attributes: {
+          businessId: normalized.businessId,
+          businessName: normalized.businessName,
+          category: normalized.category,
+          workspaceId: manifest.workspaceId,
+          evidenceStatus: learnedBusiness
+            ? learnedBusiness.confidence.thresholdQualified
+              ? TRUTH_STATES.observed
+              : TRUTH_STATES.insufficient
+            : TRUTH_STATES.reviewRequired,
+          limitingFactors: learnedBusiness
+            ? [...learnedBusiness.confidence.limitingFactors]
+            : ["outcome_semantics_require_human_review"]
+        }
+      });
+      businessNodes.set(normalized.businessId, businessNode);
+      nodes.push(businessNode);
+    }
+
+    const visitNode = buildCustomerGraphNode({
       customerId,
-      nodeType: "Business",
-      sourceRefs: sourceReference(manifest, business.intelligenceId),
-      learnedAt: business.explainability.lastUpdated,
+      nodeType: "Visit",
+      sourceRefs: sourceReference(manifest, normalized.sessionId),
+      learnedAt: normalized.evidence.visitOccurredAt,
       reviewState: "human_review_preserved",
-      confidence: {
-        confidenceBand: business.confidence.band,
-        confidenceScore: business.confidence.score
-      },
-      evidenceCount: business.confidence.evidenceCount.visits,
       attributes: {
-        businessId: business.googlePlaceId,
-        businessName: business.businessName,
-        category: business.category,
+        visitId: normalized.visitId,
+        sessionId: normalized.sessionId,
         workspaceId: manifest.workspaceId,
-        evidenceStatus: business.confidence.thresholdQualified
-          ? TRUTH_STATES.observed
-          : TRUTH_STATES.insufficient,
-        limitingFactors: [...business.confidence.limitingFactors]
+        representativeId: manifest.representativeId,
+        evidenceStatus: TRUTH_STATES.verified
       }
     });
-    nodes.push(businessNode);
-    for (const interaction of business.historicalInteractions) {
-      const normalized = outcomeByVisit.get(interaction.visitId);
-      if (!normalized) fail("route_iq_learning_outcome_projection_missing");
-      const visitNode = buildCustomerGraphNode({
-        customerId,
-        nodeType: "Visit",
-        sourceRefs: sourceReference(manifest, interaction.sessionId),
-        learnedAt: interaction.timestamp,
-        reviewState: "human_review_preserved",
-        attributes: {
-          visitId: interaction.visitId,
-          sessionId: interaction.sessionId,
-          workspaceId: manifest.workspaceId,
-          representativeId: manifest.representativeId,
-          evidenceStatus: TRUTH_STATES.verified
-        }
-      });
-      const outcomeNode = buildCustomerGraphNode({
-        customerId,
-        nodeType: "Outcome",
-        sourceRefs: sourceReference(manifest, normalized.normalizedOutcomeId),
-        learnedAt: interaction.timestamp,
-        reviewState: normalized.evidence.reviewState,
-        attributes: {
-          visitId: interaction.visitId,
-          rawOutcome: normalized.rawOutcome,
-          normalizedOutcome: normalized.normalizedOutcome,
-          mappingSource: normalized.mappingSource,
-          workspaceId: manifest.workspaceId,
-          evidenceStatus: normalized.evidence.reviewState === "human_review_required"
-            ? TRUTH_STATES.reviewRequired
-            : TRUTH_STATES.observed
-        }
-      });
-      nodes.push(visitNode, outcomeNode);
-      const evidenceIds = [normalized.evidence.evidenceId];
-      relationships.push(
-        buildCustomerGraphRelationship({
-          customerId,
-          relationshipType: "Visited",
-          fromNodeId: representative.nodeId,
-          toNodeId: visitNode.nodeId,
-          sourceEvidenceIds: evidenceIds,
-          observedAt: interaction.timestamp,
-          reviewState: "human_review_preserved"
-        }),
-        buildCustomerGraphRelationship({
-          customerId,
-          relationshipType: "Visited",
-          fromNodeId: visitNode.nodeId,
-          toNodeId: businessNode.nodeId,
-          sourceEvidenceIds: evidenceIds,
-          observedAt: interaction.timestamp,
-          reviewState: "human_review_preserved"
-        }),
-        buildCustomerGraphRelationship({
-          customerId,
-          relationshipType: normalized.normalizedOutcome === "follow_up_required"
-            ? "Follow-up"
-            : normalized.normalizedOutcome === "membership_or_unit"
-              || normalized.normalizedOutcome === "lead"
-              ? "Successful"
-              : "Visited",
-          fromNodeId: visitNode.nodeId,
-          toNodeId: outcomeNode.nodeId,
-          sourceEvidenceIds: evidenceIds,
-          observedAt: interaction.timestamp,
-          reviewState: "human_review_preserved"
-        })
-      );
+    const outcomeNode = buildCustomerGraphNode({
+      customerId,
+      nodeType: "Outcome",
+      sourceRefs: sourceReference(manifest, normalized.normalizedOutcomeId),
+      learnedAt: normalized.evidence.visitOccurredAt,
+      reviewState: normalized.evidence.reviewState,
+      attributes: {
+        visitId: normalized.visitId,
+        rawOutcome: normalized.rawOutcome,
+        normalizedOutcome: normalized.normalizedOutcome,
+        mappingSource: normalized.mappingSource,
+        semanticDisposition: clone(normalized.semanticDisposition),
+        admittedEvidence: clone(normalized.evidence.admission),
+        workspaceId: manifest.workspaceId,
+        evidenceStatus: normalized.evidence.reviewState === "human_review_required"
+          ? TRUTH_STATES.reviewRequired
+          : TRUTH_STATES.observed
+      }
+    });
+    nodes.push(visitNode, outcomeNode);
+    const evidenceIds = [normalized.evidence.evidenceId];
+    const semantic = normalized.semanticDisposition;
+    const semanticRelationshipType = semantic.relationshipEligible
+      ? semantic.relationshipType
+      : "Visited";
+    if (semanticRelationshipType === "Successful"
+      && (!semantic.successEligible
+        || semantic.authority.source !== "active_operating_profile.successEvents")) {
+      fail("route_iq_learning_success_semantic_authority_rejected");
     }
+    if (semanticRelationshipType === "Follow-up"
+      && (!semantic.followUpEligible
+        || semantic.authority.source
+          !== "operating_profile_outcome_semantic_disposition.canonicalFollowUpOutcome")) {
+      fail("route_iq_learning_follow_up_semantic_authority_rejected");
+    }
+    const outcomeRelationship = {
+      ...buildCustomerGraphRelationship({
+        customerId,
+        relationshipType: semanticRelationshipType,
+        fromNodeId: visitNode.nodeId,
+        toNodeId: outcomeNode.nodeId,
+        sourceEvidenceIds: evidenceIds,
+        observedAt: normalized.evidence.visitOccurredAt,
+        reviewState: normalized.evidence.reviewState
+      }),
+      semanticDisposition: clone(semantic),
+      admittedEvidence: clone(normalized.evidence.admission)
+    };
+    relationships.push(
+      buildCustomerGraphRelationship({
+        customerId,
+        relationshipType: "Visited",
+        fromNodeId: representative.nodeId,
+        toNodeId: visitNode.nodeId,
+        sourceEvidenceIds: evidenceIds,
+        observedAt: normalized.evidence.visitOccurredAt,
+        reviewState: "human_review_preserved"
+      }),
+      buildCustomerGraphRelationship({
+        customerId,
+        relationshipType: "Visited",
+        fromNodeId: visitNode.nodeId,
+        toNodeId: businessNode.nodeId,
+        sourceEvidenceIds: evidenceIds,
+        observedAt: normalized.evidence.visitOccurredAt,
+        reviewState: "human_review_preserved"
+      }),
+      outcomeRelationship
+    );
   }
 
   const snapshot = buildCustomerGraphSnapshot({
@@ -301,14 +335,14 @@ function graphFromLearning({ manifest, learning, normalizedOutcomes, generatedAt
     confidence: {
       confidenceBand: learning.learningConfidence[0]?.band || "insufficient_evidence",
       confidenceScore: learning.learningConfidence[0]?.score ?? null,
-      evidenceCount: manifest.totals.visits,
+      evidenceCount: learning.sourceEvidence.semanticLearningEligibleVisitCount,
       allowedInfluence: "explanation_only",
       propagationActive: false,
       lastValidationAt: generatedAt
     },
     explainability: {
       why: "This Founder-only graph connects admitted field sessions to observed businesses, visits, and outcomes.",
-      whatEvidence: `${manifest.totals.sessions} admitted session(s) and ${manifest.totals.visits} verified visit(s).`,
+      whatEvidence: `${manifest.totals.sessions} admitted session(s), ${manifest.totals.visits} verified visit(s), and ${learning.sourceEvidence.semanticLearningEligibleVisitCount} semantically eligible visit(s).`,
       howConfident: "Confidence is explanatory only and cannot change routing or recommendations.",
       whatChanged: "No route order, score, pool, replenishment, or recommendation output changed.",
       whatShouldHappenNext: "Collect additional governed sessions until the existing evidence thresholds are met."
@@ -325,7 +359,14 @@ function normalizedOutcomesFromPackages(manifest, archivePackages, profiles) {
     fail("route_iq_learning_operating_profile_invalid");
   }
   const output = [];
+  const manifestEntries = new Map(manifest.entries.map(entry => [entry.sessionId, entry]));
   for (const archivePackage of archivePackages) {
+    const sessionId = archivePackage.manifest.sessionId;
+    const manifestEntry = manifestEntries.get(sessionId);
+    if (!manifestEntry
+      || manifestEntry.sourceRecordSha256 !== archivePackage.manifest.rawSha256) {
+      fail("route_iq_learning_outcome_admission_scope_rejected");
+    }
     for (const visit of archivePackage.verifiedFieldSession.verifiedFields.completedVisits) {
       const business = visit.governedBusinessIdentity;
       const report = visit.sourceReport;
@@ -337,9 +378,32 @@ function normalizedOutcomesFromPackages(manifest, archivePackages, profiles) {
           occurredAt: report.timestamp,
           businessRef: { source: "governed_business", id: business.googlePlaceId },
           repRef: { source: "governed_representative", id: manifest.representativeId }
+        },
+        governedAdmission: {
+          admitted: true,
+          authority: manifest.authority,
+          manifestId: manifest.manifestId,
+          manifestSha256: manifest.manifestSha256,
+          sourceRecordSha256: manifestEntry.sourceRecordSha256,
+          sessionId,
+          visitId: visit.visitId
         }
       }, { profile, registry: profiles });
-      output.push({ ...normalized, sessionId: archivePackage.manifest.sessionId, visitId: visit.visitId });
+      output.push({
+        ...normalized,
+        sessionId,
+        visitId: visit.visitId,
+        businessId: business.googlePlaceId,
+        businessName: business.businessName,
+        category: business.category || "Unknown",
+        timeWindow: report.timeWindow || "Unknown",
+        reportedMetrics: {
+          conversations: Number(report.conversations || 0),
+          leads: Number(report.leads || 0),
+          units: Number(report.units || 0),
+          laterUnits: Number(report.laterUnits || 0)
+        }
+      });
     }
   }
   return output.sort((left, right) => (
@@ -348,27 +412,50 @@ function normalizedOutcomesFromPackages(manifest, archivePackages, profiles) {
   ));
 }
 
-function categoryTimePatterns(packages) {
+function outcomeSemanticAdmissions(normalizedOutcomes) {
+  return normalizedOutcomes.map(outcome => ({
+    semanticContractVersion: outcome.semanticDisposition.contractVersion,
+    sessionId: outcome.sessionId,
+    visitId: outcome.visitId,
+    sourceRecordSha256: outcome.evidence.admission.sourceRecordSha256,
+    admitted: outcome.evidence.admission.admitted,
+    reviewRequired: outcome.semanticDisposition.reviewRequired,
+    learningEligible: outcome.semanticDisposition.learningEligible,
+    disposition: outcome.semanticDisposition.disposition,
+    normalizedOutcome: outcome.normalizedOutcome
+  }));
+}
+
+function categoryTimePatterns(normalizedOutcomes, learning) {
   const grouped = new Map();
-  for (const archivePackage of packages) {
-    for (const visit of archivePackage.verifiedFieldSession.verifiedFields.completedVisits) {
-      const category = visit.governedBusinessIdentity.category || "Unknown";
-      const timeWindow = visit.sourceReport.timeWindow || "Unknown";
-      const key = `${category}\u0000${timeWindow}`;
-      const current = grouped.get(key) || {
-        category,
-        timeWindow,
-        visits: 0,
-        conversations: 0,
-        outcomes: new Map()
-      };
+  for (const outcome of normalizedOutcomes) {
+    const category = outcome.category;
+    const timeWindow = outcome.timeWindow;
+    const key = `${category}\u0000${timeWindow}`;
+    const current = grouped.get(key) || {
+      category,
+      timeWindow,
+      visits: 0,
+      conversations: 0,
+      outcomes: new Map(),
+      reviewRequiredExclusions: 0
+    };
+    if (outcome.semanticDisposition.learningEligible) {
       current.visits += 1;
-      current.conversations += Number(visit.sourceReport.conversations || 0);
-      const outcome = visit.sourceReport.outcome || "Unknown";
-      current.outcomes.set(outcome, (current.outcomes.get(outcome) || 0) + 1);
-      grouped.set(key, current);
+      current.conversations += outcome.reportedMetrics.conversations;
+      const rawOutcome = typeof outcome.rawOutcome === "string" && outcome.rawOutcome.trim()
+        ? outcome.rawOutcome
+        : "Unclassified";
+      current.outcomes.set(rawOutcome, (current.outcomes.get(rawOutcome) || 0) + 1);
+    } else {
+      current.reviewRequiredExclusions += 1;
     }
+    grouped.set(key, current);
   }
+  const categoryConfidence = new Map(learning.categoryIntelligence.map(item => [
+    item.category,
+    item.confidence
+  ]));
   return [...grouped.values()].sort((left, right) => (
     left.category.localeCompare(right.category) || left.timeWindow.localeCompare(right.timeWindow)
   )).map(item => ({
@@ -377,7 +464,10 @@ function categoryTimePatterns(packages) {
     visits: item.visits,
     conversations: item.conversations,
     outcomes: Object.fromEntries([...item.outcomes.entries()].sort(([left], [right]) => left.localeCompare(right))),
-    truthState: TRUTH_STATES.observed
+    reviewRequiredExclusions: item.reviewRequiredExclusions,
+    truthState: categoryConfidence.get(item.category)?.thresholdQualified
+      ? TRUTH_STATES.observed
+      : TRUTH_STATES.insufficient
   }));
 }
 
@@ -391,7 +481,7 @@ function additionalEvidenceNeeded(learning) {
   }));
 }
 
-function dashboardAdvisory({ manifest, packages, learning, offRoute, graph, queryResult }) {
+function dashboardAdvisory({ manifest, normalizedOutcomes, learning, offRoute, graph, queryResult }) {
   const confidence = learning.learningConfidence.find(item => item.domain === "representative")
     || learning.learningConfidence[0];
   const categoryCandidates = learning.categoryIntelligence
@@ -417,6 +507,12 @@ function dashboardAdvisory({ manifest, packages, learning, offRoute, graph, quer
     truthState: TRUTH_STATES.reviewRequired,
     observedOutcomeCount: new Set(item.priorOutcomes).size
   }));
+  const reviewRequiredOutcomeCount = normalizedOutcomes.filter(outcome => (
+    outcome.semanticDisposition.reviewRequired
+  )).length;
+  const semanticOutcomeRelationships = graph.relationships.filter(relationship => (
+    Boolean(relationship.semanticDisposition)
+  ));
   return {
     contractVersion: routeIqGovernedLearningAdvisoryContractVersion,
     truthVocabulary: Object.values(TRUTH_STATES),
@@ -426,9 +522,18 @@ function dashboardAdvisory({ manifest, packages, learning, offRoute, graph, quer
         : TRUTH_STATES.insufficient,
       sessionsAdmitted: manifest.totals.sessions,
       visitsAdmitted: manifest.totals.visits,
+      visitsEligibleForSemanticLearning:
+        learning.sourceEvidence.semanticLearningEligibleVisitCount,
+      reviewRequiredOutcomeCount,
+      successfulRelationshipCount: semanticOutcomeRelationships.filter(relationship => (
+        relationship.relationshipType === "Successful"
+      )).length,
+      followUpRelationshipCount: semanticOutcomeRelationships.filter(relationship => (
+        relationship.relationshipType === "Follow-up"
+      )).length,
       status: confidence?.thresholdQualified ? "THRESHOLD_SUPPORTED" : "INSUFFICIENT_EVIDENCE"
     },
-    categoryTimeWindowPatterns: categoryTimePatterns(packages),
+    categoryTimeWindowPatterns: categoryTimePatterns(normalizedOutcomes, learning),
     businessVisitOutcomeRelationships: graph.relationships.filter(relationship => (
       ["Visited", "Successful", "Follow-up"].includes(relationship.relationshipType)
     )).map(relationship => ({
@@ -436,13 +541,25 @@ function dashboardAdvisory({ manifest, packages, learning, offRoute, graph, quer
       relationshipType: relationship.relationshipType,
       fromNodeId: relationship.fromNodeId,
       toNodeId: relationship.toNodeId,
-      truthState: TRUTH_STATES.observed
+      truthState: relationship.reviewState === "human_review_required"
+        ? TRUTH_STATES.reviewRequired
+        : TRUTH_STATES.observed,
+      reviewState: relationship.reviewState,
+      semanticDisposition: relationship.semanticDisposition
+        ? clone(relationship.semanticDisposition)
+        : null,
+      admittedEvidence: relationship.admittedEvidence
+        ? clone(relationship.admittedEvidence)
+        : null
     })),
     outcomeObservations: graph.nodes.filter(node => node.nodeType === "Outcome").map(node => ({
       outcomeNodeId: node.nodeId,
       rawOutcome: node.attributes.rawOutcome,
       normalizedOutcome: node.attributes.normalizedOutcome,
-      truthState: node.attributes.evidenceStatus
+      truthState: node.attributes.evidenceStatus,
+      mappingSource: node.attributes.mappingSource,
+      semanticDisposition: clone(node.attributes.semanticDisposition),
+      admittedEvidence: clone(node.attributes.admittedEvidence)
     })),
     strongestThresholdSupportedPattern: categoryCandidates[0]
       ? {
@@ -483,7 +600,10 @@ function dashboardAdvisory({ manifest, packages, learning, offRoute, graph, quer
     dataQualityWarnings: [
       ...(manifest.totals.sessions < 3 ? ["Additional governed sessions are required."] : []),
       ...(offRoute.sourceEvidence.unknownSourceVisits > 0 ? ["Some visit decision sources are unknown."] : []),
-      ...(unavailable.length ? ["Some evidence dimensions are unavailable."] : [])
+      ...(unavailable.length ? ["Some evidence dimensions are unavailable."] : []),
+      ...(reviewRequiredOutcomeCount
+        ? [`${reviewRequiredOutcomeCount} outcome(s) require human review and are excluded from semantic learning.`]
+        : [])
     ],
     lastGovernedEvidenceAt: lastEvidenceAt,
     additionalEvidenceNeeded: additionalEvidenceNeeded(learning),
@@ -493,7 +613,9 @@ function dashboardAdvisory({ manifest, packages, learning, offRoute, graph, quer
       readOnlyLearning: learning.learningVersion.engine,
       offRouteLearning: offRoute.learningVersion.engine,
       customerGraph: graph.contractVersion,
-      operatingProfile: manifest.operatingProfileId
+      operatingProfile: manifest.operatingProfileId,
+      outcomeSemanticDisposition:
+        operatingProfileOutcomeSemanticDispositionContract.version
     },
     provenance: {
       manifestId: manifest.manifestId,
@@ -506,6 +628,8 @@ function dashboardAdvisory({ manifest, packages, learning, offRoute, graph, quer
       representativeId: manifest.representativeId,
       evidenceClassification: manifest.evidenceClassification,
       humanOverrideState: "preserved",
+      outcomeSemanticAuthority:
+        operatingProfileOutcomeSemanticDispositionContract.version,
       freshnessState: "CURRENT_WITHIN_RETENTION_BOUNDARY"
     },
     safety: {
@@ -596,6 +720,11 @@ export function buildRouteIqGovernedMultiSessionLearning({
     operatingProfileId: manifest.operatingProfileId,
     evidenceClassification: manifest.evidenceClassification
   };
+  const normalizedOutcomes = normalizedOutcomesFromPackages(
+    manifest,
+    packages,
+    operatingProfiles
+  );
   const dataContract = loadReadOnlyFieldSessionDataContract(governance.readOnlyContract);
   const learning = buildReadOnlyFieldSessionLearningSnapshot({
     archivePackages: packages,
@@ -606,7 +735,8 @@ export function buildRouteIqGovernedMultiSessionLearning({
     operatingProfileId: manifest.operatingProfileId,
     sourceMode,
     evidenceClassification: manifest.evidenceClassification,
-    scopeAuthorization
+    scopeAuthorization,
+    outcomeSemanticAdmissions: outcomeSemanticAdmissions(normalizedOutcomes)
   });
   const offRoute = buildOffRouteLearningSnapshot({
     records: projectCanonicalArchivedVisitEvidence(packages, {
@@ -621,11 +751,6 @@ export function buildRouteIqGovernedMultiSessionLearning({
     sourceMode,
     scopeAuthorization
   });
-  const normalizedOutcomes = normalizedOutcomesFromPackages(
-    manifest,
-    packages,
-    operatingProfiles
-  );
   const graph = graphFromLearning({
     manifest,
     learning,
@@ -641,7 +766,7 @@ export function buildRouteIqGovernedMultiSessionLearning({
   if (queryResult.failureReasons.length) fail("route_iq_learning_customer_graph_query_rejected");
   const advisory = dashboardAdvisory({
     manifest,
-    packages,
+    normalizedOutcomes,
     learning,
     offRoute,
     graph,

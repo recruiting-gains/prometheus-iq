@@ -6,6 +6,35 @@ import {
 } from "../administration/contracts/route-iq-workspace-configuration-v2.mjs";
 
 export const operatingProfileEngineVersion = "operating-profile-engine-v1";
+export const operatingProfileOutcomeSemanticDispositionContract = Object.freeze({
+  version: "operating-profile-outcome-semantic-disposition-v1",
+  precedence: Object.freeze([
+    "unclassified_review_required",
+    "follow_up",
+    "positive_success",
+    "negative",
+    "neutral_intermediate"
+  ]),
+  dispositions: Object.freeze({
+    positiveSuccess: "positive_success",
+    followUp: "follow_up",
+    neutralIntermediate: "neutral_intermediate",
+    negative: "negative",
+    unclassifiedReviewRequired: "unclassified_review_required"
+  }),
+  canonicalFollowUpOutcome: "follow_up",
+  negativeOutcomes: Object.freeze([
+    "no_decision_maker",
+    "closed_business",
+    "duplicate",
+    "wrong_business",
+    "competitor"
+  ]),
+  successAuthority: "active_operating_profile.successEvents",
+  failClosedUnknownOutcomes: true,
+  recommendationInfluence: "OFF",
+  confidencePropagation: "OFF"
+});
 
 const repoRoot = resolve(import.meta.dirname, "..");
 const profilePath = "intelligence/profiles/operating-profiles.json";
@@ -25,7 +54,13 @@ function clone(value) {
 }
 
 function normalizeTerm(value) {
-  return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+  if (typeof value !== "string") return "";
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function rawOutcomeDescription(value) {
+  if (typeof value !== "string" || !value.trim()) return "Unclassified field outcome";
+  return value.trim().slice(0, 120);
 }
 
 export function loadOperatingProfiles() {
@@ -54,15 +89,37 @@ export function getOperatingProfile(profileId, registry = loadOperatingProfiles(
 
 export function validateOperatingProfile(profile, registry = loadOperatingProfiles(), contracts = loadOperatingProfileContracts()) {
   const failures = [];
+  const mappedTerms = new Map();
   for (const field of contracts.requiredProfileFields) {
     if (profile[field] === undefined) failures.push(`${profile.profileId || "profile"} missing ${field}`);
   }
-  for (const mapping of profile.outcomeMappings || []) {
+  for (const successEvent of profile.successEvents || []) {
+    if (!registry.normalizedOutcomeVocabulary.includes(successEvent)) {
+      failures.push(`${profile.profileId} has unknown success event ${successEvent}`);
+    }
+  }
+  for (const [mappingIndex, mapping] of (profile.outcomeMappings || []).entries()) {
     if (!Array.isArray(mapping.terms) || !mapping.terms.length) {
       failures.push(`${profile.profileId} has outcome mapping without terms`);
     }
     if (!registry.normalizedOutcomeVocabulary.includes(mapping.normalizedOutcome)) {
       failures.push(`${profile.profileId} maps to unknown normalized outcome ${mapping.normalizedOutcome}`);
+    }
+    for (const term of mapping.terms || []) {
+      const normalizedTerm = normalizeTerm(term);
+      if (!normalizedTerm) {
+        failures.push(`${profile.profileId} has a blank outcome mapping term`);
+        continue;
+      }
+      const prior = mappedTerms.get(normalizedTerm);
+      if (prior && prior.normalizedOutcome !== mapping.normalizedOutcome) {
+        failures.push(`${profile.profileId} ambiguously maps outcome term ${normalizedTerm}`);
+      } else {
+        mappedTerms.set(normalizedTerm, {
+          mappingIndex,
+          normalizedOutcome: mapping.normalizedOutcome
+        });
+      }
     }
   }
   return failures;
@@ -97,6 +154,19 @@ export function validateOperatingProfileRegistry(registry = loadOperatingProfile
     failures.push("Normalized outcome model sequence does not match the contract registry.");
   }
 
+  const semanticContract = operatingProfileOutcomeSemanticDispositionContract;
+  if (!semanticContract.version.endsWith("-v1")) {
+    failures.push("Outcome semantic disposition contract must be versioned.");
+  }
+  if (!registry.normalizedOutcomeVocabulary.includes(semanticContract.canonicalFollowUpOutcome)) {
+    failures.push("Canonical follow-up outcome is absent from the normalized vocabulary.");
+  }
+  for (const outcome of semanticContract.negativeOutcomes) {
+    if (!registry.normalizedOutcomeVocabulary.includes(outcome)) {
+      failures.push(`Negative semantic outcome is absent from the normalized vocabulary: ${outcome}`);
+    }
+  }
+
   for (const profile of registry.profiles || []) {
     failures.push(...validateOperatingProfile(profile, registry, contracts));
   }
@@ -110,30 +180,122 @@ export function validateOperatingProfileRegistry(registry = loadOperatingProfile
 
 function findOutcomeMapping(profile, rawOutcome, registry) {
   const normalizedRawOutcome = normalizeTerm(rawOutcome);
-  const vocabularyMatch = registry.normalizedOutcomeVocabulary.find(value => value === normalizedRawOutcome.replace(/\s+/g, "_"));
-  if (vocabularyMatch) {
-    return {
-      normalizedOutcome: vocabularyMatch,
-      matchedTerm: normalizedRawOutcome,
-      mappingSource: "normalized_vocabulary"
-    };
-  }
-
-  for (const mapping of profile.outcomeMappings || []) {
+  for (const [mappingIndex, mapping] of (profile.outcomeMappings || []).entries()) {
     if ((mapping.terms || []).some(term => normalizeTerm(term) === normalizedRawOutcome)) {
       return {
         normalizedOutcome: mapping.normalizedOutcome,
         matchedTerm: normalizedRawOutcome,
-        mappingSource: "operating_profile"
+        mappingSource: "operating_profile",
+        mappingRule: {
+          authority: "active_operating_profile.outcomeMappings",
+          profileId: profile.profileId,
+          mappingIndex,
+          normalizedOutcome: mapping.normalizedOutcome
+        }
       };
     }
   }
 
+  const vocabularyMatch = normalizedRawOutcome
+    ? registry.normalizedOutcomeVocabulary.find(value => (
+        value === normalizedRawOutcome.replace(/\s+/g, "_")
+      ))
+    : null;
+  if (vocabularyMatch) {
+    return {
+      normalizedOutcome: vocabularyMatch,
+      matchedTerm: normalizedRawOutcome,
+      mappingSource: "normalized_vocabulary",
+      mappingRule: {
+        authority: "operating_profile_registry.normalizedOutcomeVocabulary",
+        profileId: profile.profileId,
+        normalizedOutcome: vocabularyMatch
+      }
+    };
+  }
+
   return {
-    normalizedOutcome: "lead",
+    normalizedOutcome: null,
     matchedTerm: normalizedRawOutcome,
-    mappingSource: "default_review_required",
-    reviewRequired: true
+    mappingSource: "unclassified_review_required",
+    reviewRequired: true,
+    mappingRule: {
+      authority: "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+      profileId: profile.profileId,
+      normalizedOutcome: null
+    }
+  };
+}
+
+function normalizedAdmission(input) {
+  const source = input.governedAdmission || {};
+  return {
+    admitted: source.admitted === true,
+    authority: source.authority || null,
+    manifestId: source.manifestId || null,
+    manifestSha256: source.manifestSha256 || null,
+    sourceRecordSha256: source.sourceRecordSha256 || null,
+    sessionId: source.sessionId || null,
+    visitId: source.visitId || null
+  };
+}
+
+function semanticDispositionFor({ profile, registry, mapping, reviewRequired, admission }) {
+  const contract = operatingProfileOutcomeSemanticDispositionContract;
+  const normalizedOutcome = mapping.normalizedOutcome;
+  let disposition = contract.dispositions.neutralIntermediate;
+  let relationshipType = "Visited";
+  let authority = {
+    source: "operating_profile_outcome_semantic_disposition.neutralIntermediate",
+    profileId: profile.profileId,
+    ruleValue: normalizedOutcome
+  };
+
+  if (reviewRequired || !normalizedOutcome) {
+    disposition = contract.dispositions.unclassifiedReviewRequired;
+    authority = {
+      source: "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+      profileId: profile.profileId,
+      ruleValue: null
+    };
+  } else if (normalizedOutcome === contract.canonicalFollowUpOutcome) {
+    disposition = contract.dispositions.followUp;
+    relationshipType = "Follow-up";
+    authority = {
+      source: "operating_profile_outcome_semantic_disposition.canonicalFollowUpOutcome",
+      profileId: profile.profileId,
+      ruleValue: contract.canonicalFollowUpOutcome
+    };
+  } else if ((profile.successEvents || []).includes(normalizedOutcome)) {
+    disposition = contract.dispositions.positiveSuccess;
+    relationshipType = "Successful";
+    authority = {
+      source: "active_operating_profile.successEvents",
+      profileId: profile.profileId,
+      ruleValue: normalizedOutcome
+    };
+  } else if (contract.negativeOutcomes.includes(normalizedOutcome)) {
+    disposition = contract.dispositions.negative;
+    authority = {
+      source: "operating_profile_outcome_semantic_disposition.negativeOutcomes",
+      profileId: profile.profileId,
+      ruleValue: normalizedOutcome
+    };
+  }
+
+  const learningEligible = admission.admitted && !reviewRequired && Boolean(normalizedOutcome);
+  return {
+    contractVersion: contract.version,
+    disposition,
+    relationshipType,
+    relationshipEligible: learningEligible,
+    learningEligible,
+    successEligible: learningEligible && disposition === contract.dispositions.positiveSuccess,
+    followUpEligible: learningEligible && disposition === contract.dispositions.followUp,
+    reviewRequired,
+    authority,
+    mappingRule: clone(mapping.mappingRule),
+    registryVersion: registry.version
   };
 }
 
@@ -146,6 +308,14 @@ export function normalizeIndustryOutcome(input, options = {}) {
   const repRef = input.visit?.repRef || input.repRef || { source: "unknown" };
   const reviewRequired = mapping.reviewRequired || input.reviewRequired || input.humanOverride?.reviewRequired || false;
   const normalizedOutcome = mapping.normalizedOutcome;
+  const admission = normalizedAdmission(input);
+  const semanticDisposition = semanticDispositionFor({
+    profile,
+    registry,
+    mapping,
+    reviewRequired,
+    admission
+  });
   const evidenceId = stableId("evidence", {
     profileId: profile.profileId,
     rawOutcome: input.rawOutcome,
@@ -167,30 +337,37 @@ export function normalizeIndustryOutcome(input, options = {}) {
     matchedTerm: mapping.matchedTerm,
     mappingSource: mapping.mappingSource,
     normalizedOutcome,
-    normalizedOutcomeLabel: normalizedOutcome.replace(/_/g, " "),
+    normalizedOutcomeLabel: normalizedOutcome?.replace(/_/g, " ") || "unclassified",
+    semanticDisposition,
     stageSequence: [...registry.normalizedOutcomeModel.sequence],
     evidence: {
       evidenceId,
       evidenceType: "field_visit_outcome",
-      normalizedEvidenceType: normalizedOutcome,
+      normalizedEvidenceType: normalizedOutcome || "unclassified",
       source: "operating_profile_engine",
       businessRef,
       repRef,
       visitOccurredAt: occurredAt,
       truthLevel: input.truthLevel || "field_reported",
-      reviewState: reviewRequired ? "human_review_required" : "pending_human_review",
+      reviewState: reviewRequired
+        ? "human_review_required"
+        : admission.admitted
+          ? "admitted_non_review_required"
+          : "pending_human_review",
+      admission,
       productionLearningActive: false
     },
     learningSignalSeed: {
       signalId: stableId("signal", { evidenceId, normalizedOutcome }),
-      signalFamily: normalizedOutcome,
+      signalFamily: normalizedOutcome || "unclassified",
       allowedInfluence: "offline_architecture_only",
+      semanticLearningEligible: semanticDisposition.learningEligible,
       canInfluenceProductionRecommendations: false
     },
     confidenceSeed: {
       confidenceBand: reviewRequired ? "review_required" : "unactivated",
       confidenceScore: null,
-      evidenceCount: 1,
+      evidenceCount: semanticDisposition.learningEligible ? 1 : 0,
       lastValidationAt: occurredAt,
       learningTrend: "unactivated",
       allowedInfluence: "none",
@@ -201,8 +378,10 @@ export function normalizeIndustryOutcome(input, options = {}) {
       reason: "architecture_only_no_production_learning"
     },
     explanationSeed: {
-      why: `${profile.label} outcome "${input.rawOutcome}" maps to normalized evidence "${normalizedOutcome}".`,
-      whatEvidence: [`${input.rawOutcome} reported during a field visit.`],
+      why: reviewRequired
+        ? `${profile.label} outcome remains unclassified and requires human review.`
+        : `${profile.label} outcome maps to normalized evidence "${normalizedOutcome}" under ${semanticDisposition.authority.source}.`,
+      whatEvidence: [`${rawOutcomeDescription(input.rawOutcome)} reported during a field visit.`],
       howConfident: "Confidence is not production-active yet.",
       whatChanged: "No production recommendation changed.",
       nextAction: reviewRequired
@@ -234,7 +413,8 @@ export function buildNormalizedOutcomeModel(input, options = {}) {
       Outcome: {
         rawOutcome: normalized.rawOutcome,
         normalizedOutcome: normalized.normalizedOutcome,
-        mappingSource: normalized.mappingSource
+        mappingSource: normalized.mappingSource,
+        semanticDisposition: normalized.semanticDisposition
       },
       Evidence: normalized.evidence,
       "Learning Signal": normalized.learningSignalSeed,

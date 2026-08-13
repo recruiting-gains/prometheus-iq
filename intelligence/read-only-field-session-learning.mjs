@@ -439,26 +439,159 @@ function explanationFor({ conclusion, evidenceUsed, confidence, lastUpdated, sco
   };
 }
 
-function sourceContribution(archivePackage, asOf, policy) {
+function semanticAdmissionKey(sessionId, visitId) {
+  return `${sessionId}\u0000${visitId}`;
+}
+
+function buildSemanticAdmissionIndex(records, archivePackages) {
+  if (records === undefined) return null;
+  if (!Array.isArray(records)) {
+    throw new ReadOnlyFieldSessionLearningError(
+      "Outcome semantic admissions must be an exact governed list.",
+      "field_session_learning_semantic_admission_invalid"
+    );
+  }
+
+  const expected = new Map();
+  for (const archivePackage of archivePackages) {
+    const sessionId = archivePackage.manifest.sessionId;
+    for (const visit of archivePackage.verifiedFieldSession.verifiedFields.completedVisits) {
+      expected.set(semanticAdmissionKey(sessionId, visit.visitId), {
+        sessionId,
+        visitId: visit.visitId,
+        sourceRecordSha256: archivePackage.manifest.rawSha256
+      });
+    }
+  }
+
+  const index = new Map();
+  for (const record of records) {
+    const key = semanticAdmissionKey(record?.sessionId, record?.visitId);
+    const target = expected.get(key);
+    const disposition = cleanText(record?.disposition, 80);
+    const reviewRequired = record?.reviewRequired === true;
+    const admitted = record?.admitted === true;
+    const expectedLearningEligibility = admitted
+      && !reviewRequired
+      && disposition !== "unclassified_review_required";
+    if (!target
+      || index.has(key)
+      || target.sourceRecordSha256 !== record?.sourceRecordSha256
+      || !cleanText(record?.semanticContractVersion, 120)
+      || record?.learningEligible !== expectedLearningEligibility) {
+      throw new ReadOnlyFieldSessionLearningError(
+        "Outcome semantic admission failed closed.",
+        "field_session_learning_semantic_admission_invalid"
+      );
+    }
+    index.set(key, clone(record));
+  }
+  if (index.size !== expected.size) {
+    throw new ReadOnlyFieldSessionLearningError(
+      "Outcome semantic admission is incomplete.",
+      "field_session_learning_semantic_admission_incomplete"
+    );
+  }
+  return index;
+}
+
+function aggregateEligibleCategoryOutcomes(businessOutcomes) {
+  const grouped = new Map();
+  for (const outcome of businessOutcomes) {
+    const category = cleanText(outcome.category, 160) || "Unknown";
+    const current = grouped.get(category) || {
+      category,
+      visits: 0,
+      conversations: 0,
+      leads: 0,
+      units: 0,
+      laterUnits: 0,
+      memberships: undefined
+    };
+    current.visits += 1;
+    current.conversations += finiteNumber(outcome.conversations);
+    current.leads += finiteNumber(outcome.leads);
+    current.units += finiteNumber(outcome.units);
+    current.laterUnits += finiteNumber(outcome.laterUnits);
+    current.memberships = mergeMemberships(current.memberships, outcome.memberships);
+    grouped.set(category, current);
+  }
+  return [...grouped.values()]
+    .sort((left, right) => left.category.localeCompare(right.category))
+    .map(value => ({ ...value, memberships: value.memberships ?? null }));
+}
+
+function sourceContribution(archivePackage, asOf, policy, semanticAdmissions = null) {
   const verified = archivePackage.verifiedFieldSession;
   const history = archivePackage.historyUpdates;
   const metrics = archivePackage.calculatedMetrics;
   const sourceTimestamp = verified.sourceProvenance.ingestedAt || verified.verifiedFields.exportTimestamp;
-  return {
-    sessionId: verified.sessionId,
+  const sessionId = verified.sessionId;
+  const completedVisits = clone(verified.verifiedFields.completedVisits || []);
+  const businessOutcomes = clone(history.customerOutcomeHistory || []);
+  const sessionSemanticAdmissions = semanticAdmissions
+    ? completedVisits.map(visit => (
+        semanticAdmissions.get(semanticAdmissionKey(sessionId, visit.visitId))
+      ))
+    : [];
+  const eligibleVisitIds = semanticAdmissions
+    ? new Set(completedVisits.filter(visit => (
+        semanticAdmissions.get(semanticAdmissionKey(sessionId, visit.visitId))?.learningEligible === true
+      )).map(visit => visit.visitId))
+    : new Set(completedVisits.map(visit => visit.visitId));
+  const eligibleVisits = completedVisits.filter(visit => eligibleVisitIds.has(visit.visitId));
+  const eligibleBusinessOutcomes = businessOutcomes.filter(outcome => eligibleVisitIds.has(outcome.visitId));
+  const originalTotals = history.representativeHistory.totals;
+  const totals = semanticAdmissions
+    ? {
+        totalStops: originalTotals.totalStops,
+        totalVisits: eligibleBusinessOutcomes.length,
+        totalConversations: eligibleBusinessOutcomes.reduce(
+          (sum, outcome) => sum + finiteNumber(outcome.conversations), 0
+        ),
+        totalLeads: eligibleBusinessOutcomes.reduce(
+          (sum, outcome) => sum + finiteNumber(outcome.leads), 0
+        ),
+        totalUnits: eligibleBusinessOutcomes.reduce(
+          (sum, outcome) => sum + finiteNumber(outcome.units), 0
+        ),
+        totalLaterUnits: eligibleBusinessOutcomes.reduce(
+          (sum, outcome) => sum + finiteNumber(outcome.laterUnits), 0
+        ),
+        totalMemberships: eligibleBusinessOutcomes.length === businessOutcomes.length
+          ? originalTotals.totalMemberships
+          : null
+      }
+    : clone(originalTotals);
+  const contribution = {
+    sessionId,
     representativeId: verified.verifiedFields.representative.id,
     territoryId: verified.verifiedFields.territoryId,
     fieldSessionDate: verified.verifiedFields.fieldSessionDate,
     lastUpdated: sourceTimestamp,
     recencyWeight: recencyWeight(sourceTimestamp, asOf, policy),
-    totals: clone(history.representativeHistory.totals),
-    categoryOutcomes: clone(history.categoryOutcomeHistory || []),
-    businessOutcomes: clone(history.customerOutcomeHistory || []),
+    totals,
+    categoryOutcomes: semanticAdmissions
+      ? aggregateEligibleCategoryOutcomes(eligibleBusinessOutcomes)
+      : clone(history.categoryOutcomeHistory || []),
+    businessOutcomes: eligibleBusinessOutcomes,
     calculatedMetrics: clone(metrics.calculations),
-    completedVisits: clone(verified.verifiedFields.completedVisits || []),
+    completedVisits: eligibleVisits,
     unavailableFields: clone(verified.unavailableFields || []),
     sourceRawSha256: verified.sourceProvenance.rawSha256
   };
+  if (semanticAdmissions) {
+    contribution.semanticAdmission = {
+      applied: Boolean(semanticAdmissions),
+      admittedVisitCount: completedVisits.length,
+      learningEligibleVisitCount: eligibleVisits.length,
+      reviewRequiredVisitCount: sessionSemanticAdmissions.filter(record => (
+        record?.reviewRequired === true
+      )).length,
+      learningExcludedVisitCount: completedVisits.length - eligibleVisits.length
+    };
+  }
+  return contribution;
 }
 
 function buildRepresentativeIntelligence(contributions, policy, scope) {
@@ -959,11 +1092,26 @@ export function buildReadOnlyFieldSessionLearningSnapshot(options = {}) {
       || archivePackage.verifiedFieldSession.verifiedFields.exportTimestamp
   )));
   const scope = { workspaceId, operatingProfileId };
-  const contributions = archivePackages.map(archivePackage => sourceContribution(archivePackage, sourceAsOf, policy));
-  const representativeIntelligence = buildRepresentativeIntelligence(contributions, policy, scope);
-  const territoryIntelligence = buildTerritoryIntelligence(contributions, policy, scope);
-  const categoryIntelligence = buildCategoryIntelligence(contributions, policy, scope);
-  const businessIntelligence = buildBusinessIntelligence(contributions, policy, scope);
+  const semanticAdmissions = buildSemanticAdmissionIndex(
+    options.outcomeSemanticAdmissions,
+    archivePackages
+  );
+  const contributions = archivePackages.map(archivePackage => (
+    sourceContribution(archivePackage, sourceAsOf, policy, semanticAdmissions)
+  ));
+  const learningContributions = semanticAdmissions
+    ? contributions.filter(contribution => (
+        contribution.semanticAdmission.learningEligibleVisitCount > 0
+      ))
+    : contributions;
+  const representativeIntelligence = buildRepresentativeIntelligence(
+    learningContributions,
+    policy,
+    scope
+  );
+  const territoryIntelligence = buildTerritoryIntelligence(learningContributions, policy, scope);
+  const categoryIntelligence = buildCategoryIntelligence(learningContributions, policy, scope);
+  const businessIntelligence = buildBusinessIntelligence(learningContributions, policy, scope);
   const evidenceConfidence = buildEvidenceConfidence(archivePackages, contract);
   const learningConfidence = [
     ...representativeIntelligence,
@@ -982,6 +1130,9 @@ export function buildReadOnlyFieldSessionLearningSnapshot(options = {}) {
     fieldSessionDate: contribution.fieldSessionDate,
     sourceRawSha256: contribution.sourceRawSha256,
     totals: clone(contribution.totals),
+    ...(semanticAdmissions
+      ? { semanticAdmission: clone(contribution.semanticAdmission) }
+      : {}),
     lastUpdated: contribution.lastUpdated,
     applicableWorkspace: workspaceId,
     applicableRepresentative: contribution.representativeId,
@@ -1018,6 +1169,27 @@ export function buildReadOnlyFieldSessionLearningSnapshot(options = {}) {
       partialSessionsConsumed: false,
       unverifiedEvidenceConsumed: false,
       syntheticEvidenceConsumed: sourceMode === "validation_fixture",
+      ...(semanticAdmissions
+        ? {
+            outcomeSemanticAdmissionApplied: true,
+            outcomeSemanticAdmissionCount: semanticAdmissions.size,
+            semanticLearningEligibleVisitCount: contributions.reduce(
+              (sum, contribution) => sum
+                + contribution.semanticAdmission.learningEligibleVisitCount,
+              0
+            ),
+            semanticReviewRequiredVisitCount: contributions.reduce(
+              (sum, contribution) => sum
+                + contribution.semanticAdmission.reviewRequiredVisitCount,
+              0
+            ),
+            semanticLearningExcludedVisitCount: contributions.reduce(
+              (sum, contribution) => sum
+                + contribution.semanticAdmission.learningExcludedVisitCount,
+              0
+            )
+          }
+        : {}),
       sourceMutationDetected: false
     },
     representativeIntelligence,
@@ -1083,6 +1255,18 @@ export function validateReadOnlyFieldSessionLearningSnapshot(
   fail(snapshot?.sourceEvidence?.failedSubmissionsConsumed === false, "snapshot_consumed_failed_submission");
   fail(snapshot?.sourceEvidence?.partialSessionsConsumed === false, "snapshot_consumed_partial_session");
   fail(snapshot?.sourceEvidence?.unverifiedEvidenceConsumed === false, "snapshot_consumed_unverified_evidence");
+  if (snapshot?.sourceEvidence?.outcomeSemanticAdmissionApplied === true) {
+    const admitted = snapshot.sourceEvidence.outcomeSemanticAdmissionCount;
+    const eligible = snapshot.sourceEvidence.semanticLearningEligibleVisitCount;
+    const excluded = snapshot.sourceEvidence.semanticLearningExcludedVisitCount;
+    const reviewRequired = snapshot.sourceEvidence.semanticReviewRequiredVisitCount;
+    fail(Number.isInteger(admitted) && admitted >= 0, "snapshot_semantic_admission_count_invalid");
+    fail(Number.isInteger(eligible) && eligible >= 0, "snapshot_semantic_eligible_count_invalid");
+    fail(Number.isInteger(excluded) && excluded >= 0, "snapshot_semantic_excluded_count_invalid");
+    fail(Number.isInteger(reviewRequired) && reviewRequired >= 0, "snapshot_semantic_review_count_invalid");
+    fail(eligible + excluded === admitted, "snapshot_semantic_admission_totals_invalid");
+    fail(reviewRequired <= excluded, "snapshot_semantic_review_exclusion_invalid");
+  }
   const syntheticFixtureAuthorized = context.sourceMode === "validation_fixture"
     && context.evidenceClassification === "SYNTHETIC_VALIDATION_FIXTURE"
     && snapshot?.status === "synthetic_validation_observation_only";

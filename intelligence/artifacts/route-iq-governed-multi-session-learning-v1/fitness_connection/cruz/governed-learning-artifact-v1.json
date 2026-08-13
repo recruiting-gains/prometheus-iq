@@ -113,6 +113,11 @@
       "partialSessionsConsumed": false,
       "unverifiedEvidenceConsumed": false,
       "syntheticEvidenceConsumed": false,
+      "outcomeSemanticAdmissionApplied": true,
+      "outcomeSemanticAdmissionCount": 4,
+      "semanticLearningEligibleVisitCount": 3,
+      "semanticReviewRequiredVisitCount": 1,
+      "semanticLearningExcludedVisitCount": 1,
       "sourceMutationDetected": false
     },
     "representativeIntelligence": [
@@ -128,7 +133,7 @@
         },
         "categoryPerformance": {
           "Auto": {
-            "visits": 4,
+            "visits": 3,
             "conversations": 4,
             "leads": 3,
             "units": 0,
@@ -136,18 +141,17 @@
           }
         },
         "conversationOutcomes": {
-          "visits": 4,
+          "visits": 3,
           "conversations": 4,
-          "conversationRatePercent": 100,
+          "conversationRatePercent": 133.33,
           "outcomes": {
             "Conversation": 2,
-            "Membership": 1,
-            "No contact": 1
+            "Membership": 1
           }
         },
         "leadQuality": {
           "leads": 3,
-          "leadPerVisitRatePercent": 75,
+          "leadPerVisitRatePercent": 100,
           "unitPerLeadRatePercent": 0,
           "status": "insufficient_evidence"
         },
@@ -157,7 +161,7 @@
         },
         "timeOfDayEffectiveness": {
           "Midday": {
-            "visits": 4,
+            "visits": 3,
             "conversations": 4,
             "leads": 3,
             "units": 0
@@ -174,17 +178,17 @@
           "membershipStatus": "unavailable"
         },
         "confidence": {
-          "confidenceId": "learning-confidence-d23e2c3d28a378ce5761",
+          "confidenceId": "learning-confidence-a43a28892cc7a28ed0a4",
           "domain": "representative",
           "targetId": "cruz",
-          "score": 0.55,
+          "score": 0.5333,
           "band": "insufficient_evidence",
           "thresholdQualified": false,
           "recommendationInfluenceEligible": false,
           "recencyWeight": 1,
           "metricProgress": {
             "verifiedSessions": 0.3333,
-            "visits": 0.3333,
+            "visits": 0.25,
             "conversations": 0.6667,
             "leads": 1,
             "memberships": 0,
@@ -199,7 +203,7 @@
             },
             {
               "metric": "visits",
-              "actual": 4,
+              "actual": 3,
               "required": 12,
               "met": false
             },
@@ -237,7 +241,7 @@
           ],
           "evidenceCount": {
             "sessions": 1,
-            "visits": 4,
+            "visits": 3,
             "conversations": 4,
             "leads": 3,
             "memberships": null
@@ -249,19 +253,19 @@
           "policyVersion": "read-only-field-session-learning-policy-v1"
         },
         "explainability": {
-          "conclusion": "cruz has 4 verified visits, 4 conversations, and 3 leads across 1 archived session(s).",
+          "conclusion": "cruz has 3 verified visits, 4 conversations, and 3 leads across 1 archived session(s).",
           "evidenceUsed": [
             "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
           ],
           "evidenceCount": {
             "sessions": 1,
-            "visits": 4,
+            "visits": 3,
             "conversations": 4,
             "leads": 3,
             "memberships": null
           },
           "confidence": {
-            "score": 0.55,
+            "score": 0.5333,
             "band": "insufficient_evidence",
             "thresholdQualified": false,
             "recommendationInfluenceEligible": false,
@@ -303,17 +307,17 @@
         },
         "unavailableReason": "The canonical field-session record contains no territory identifier or geographic grouping evidence.",
         "confidence": {
-          "confidenceId": "learning-confidence-88f3f37515a972f3ba05",
+          "confidenceId": "learning-confidence-b18caef58b2350537239",
           "domain": "territory",
           "targetId": "territory-unavailable",
-          "score": 0.55,
+          "score": 0.5333,
           "band": "insufficient_evidence",
           "thresholdQualified": false,
           "recommendationInfluenceEligible": false,
           "recencyWeight": 1,
           "metricProgress": {
             "verifiedSessions": 0.3333,
-            "visits": 0.3333,
+            "visits": 0.25,
             "conversations": 0.6667,
             "leads": 1,
             "memberships": 0,
@@ -328,7 +332,7 @@
             },
             {
               "metric": "visits",
-              "actual": 4,
+              "actual": 3,
               "required": 12,
               "met": false
             },
@@ -367,7 +371,7 @@
           ],
           "evidenceCount": {
             "sessions": 1,
-            "visits": 4,
+            "visits": 3,
             "conversations": 4,
             "leads": 3,
             "memberships": null
@@ -385,13 +389,13 @@
           ],
           "evidenceCount": {
             "sessions": 1,
-            "visits": 4,
+            "visits": 3,
             "conversations": 4,
             "leads": 3,
             "memberships": null
           },
           "confidence": {
-            "score": 0.55,
+            "score": 0.5333,
             "band": "insufficient_evidence",
             "thresholdQualified": false,
             "recommendationInfluenceEligible": false,
@@ -419,29 +423,29 @@
         "category": "Auto",
         "metrics": {
           "verifiedSessions": 1,
-          "visits": 4,
+          "visits": 3,
           "conversations": 4,
           "leads": 3,
           "memberships": null,
           "units": 0,
           "laterUnits": 0,
-          "conversationRatePercent": 100,
-          "leadRatePercent": 75,
+          "conversationRatePercent": 133.33,
+          "leadRatePercent": 100,
           "conversionRatePercent": 0
         },
         "bestCategoryDeclared": false,
         "confidence": {
-          "confidenceId": "learning-confidence-9915703b9de00e1709b1",
+          "confidenceId": "learning-confidence-ae067e07e7d3655b698d",
           "domain": "category",
           "targetId": "Auto",
-          "score": 0.6333,
+          "score": 0.6083,
           "band": "insufficient_evidence",
           "thresholdQualified": false,
           "recommendationInfluenceEligible": false,
           "recencyWeight": 1,
           "metricProgress": {
             "verifiedSessions": 0.3333,
-            "visits": 0.5,
+            "visits": 0.375,
             "conversations": 1,
             "leads": 1,
             "memberships": 0,
@@ -456,7 +460,7 @@
             },
             {
               "metric": "visits",
-              "actual": 4,
+              "actual": 3,
               "required": 8,
               "met": false
             },
@@ -493,7 +497,7 @@
           ],
           "evidenceCount": {
             "sessions": 1,
-            "visits": 4,
+            "visits": 3,
             "conversations": 4,
             "leads": 3,
             "memberships": null
@@ -505,19 +509,19 @@
           "policyVersion": "read-only-field-session-learning-policy-v1"
         },
         "explainability": {
-          "conclusion": "Auto has 4 verified visits, 4 conversations, 3 leads, and 0 verified units.",
+          "conclusion": "Auto has 3 verified visits, 4 conversations, 3 leads, and 0 verified units.",
           "evidenceUsed": [
             "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
           ],
           "evidenceCount": {
             "sessions": 1,
-            "visits": 4,
+            "visits": 3,
             "conversations": 4,
             "leads": 3,
             "memberships": null
           },
           "confidence": {
-            "score": 0.6333,
+            "score": 0.6083,
             "band": "insufficient_evidence",
             "thresholdQualified": false,
             "recommendationInfluenceEligible": false,
@@ -666,146 +670,6 @@
             ]
           },
           "lastUpdated": "2026-07-11T18:29:37.862Z",
-          "applicableWorkspace": "fitness_connection",
-          "applicableRepresentative": "cruz",
-          "applicableTerritory": null
-        }
-      },
-      {
-        "intelligenceId": "business-intelligence-050e69d47e3bda2cbcdb",
-        "status": "observation_only_insufficient_evidence",
-        "googlePlaceId": "ChIJG2VxAUibQIYR4ayVbntYkiY",
-        "businessName": "Exxon mechanic shop",
-        "category": "Auto",
-        "historicalInteractions": [
-          {
-            "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
-            "visitId": "visit-02-c3f943ebaa9c",
-            "timestamp": "2026-07-11T18:41:40.758Z",
-            "loggedOutcome": "No contact",
-            "conversations": 0,
-            "leads": 0,
-            "units": 0,
-            "laterUnits": 0
-          }
-        ],
-        "priorOutcomes": [
-          "No contact"
-        ],
-        "visitSpacing": {
-          "status": "insufficient_evidence",
-          "intervalsDays": []
-        },
-        "leadHistory": {
-          "leads": 0,
-          "verifiedInteractions": 1
-        },
-        "membershipHistory": {
-          "memberships": null,
-          "status": "unavailable"
-        },
-        "confidence": {
-          "confidenceId": "learning-confidence-fb5c0fb1aebb08889f01",
-          "domain": "business",
-          "targetId": "ChIJG2VxAUibQIYR4ayVbntYkiY",
-          "score": 0.375,
-          "band": "insufficient_evidence",
-          "thresholdQualified": false,
-          "recommendationInfluenceEligible": false,
-          "recencyWeight": 1,
-          "metricProgress": {
-            "verifiedSessions": 0.5,
-            "visits": 0.5,
-            "conversations": 0,
-            "leads": 0,
-            "memberships": 0,
-            "recency": 1
-          },
-          "thresholdChecks": [
-            {
-              "metric": "verifiedSessions",
-              "actual": 1,
-              "required": 2,
-              "met": false
-            },
-            {
-              "metric": "visits",
-              "actual": 1,
-              "required": 2,
-              "met": false
-            },
-            {
-              "metric": "conversations",
-              "actual": 0,
-              "required": 1,
-              "met": false
-            },
-            {
-              "metric": "leads",
-              "actual": 0,
-              "required": 1,
-              "met": false
-            },
-            {
-              "metric": "memberships",
-              "actual": null,
-              "required": 0,
-              "met": true
-            }
-          ],
-          "territoryIdentityRequired": false,
-          "territoryIdentityAvailable": false,
-          "limitingFactors": [
-            "verifiedSessions_below_threshold",
-            "visits_below_threshold",
-            "conversations_below_threshold",
-            "leads_below_threshold",
-            "confidence_below_threshold",
-            "recommendation_influence_disabled_pending_future_handoff"
-          ],
-          "evidenceUsed": [
-            "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-02-c3f943ebaa9c"
-          ],
-          "evidenceCount": {
-            "sessions": 1,
-            "visits": 1,
-            "conversations": 0,
-            "leads": 0,
-            "memberships": null
-          },
-          "lastUpdated": "2026-07-11T18:41:40.758Z",
-          "applicableWorkspace": "fitness_connection",
-          "applicableRepresentative": "cruz",
-          "applicableTerritory": null,
-          "policyVersion": "read-only-field-session-learning-policy-v1"
-        },
-        "explainability": {
-          "conclusion": "Exxon mechanic shop has 1 verified historical interaction(s), 0 conversations, and 0 leads.",
-          "evidenceUsed": [
-            "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-02-c3f943ebaa9c"
-          ],
-          "evidenceCount": {
-            "sessions": 1,
-            "visits": 1,
-            "conversations": 0,
-            "leads": 0,
-            "memberships": null
-          },
-          "confidence": {
-            "score": 0.375,
-            "band": "insufficient_evidence",
-            "thresholdQualified": false,
-            "recommendationInfluenceEligible": false,
-            "limitingFactors": [
-              "verifiedSessions_below_threshold",
-              "visits_below_threshold",
-              "conversations_below_threshold",
-              "leads_below_threshold",
-              "confidence_below_threshold",
-              "recommendation_influence_disabled_pending_future_handoff"
-            ]
-          },
-          "lastUpdated": "2026-07-11T18:41:40.758Z",
           "applicableWorkspace": "fitness_connection",
           "applicableRepresentative": "cruz",
           "applicableTerritory": null
@@ -1088,17 +952,17 @@
     ],
     "learningConfidence": [
       {
-        "confidenceId": "learning-confidence-d23e2c3d28a378ce5761",
+        "confidenceId": "learning-confidence-a43a28892cc7a28ed0a4",
         "domain": "representative",
         "targetId": "cruz",
-        "score": 0.55,
+        "score": 0.5333,
         "band": "insufficient_evidence",
         "thresholdQualified": false,
         "recommendationInfluenceEligible": false,
         "recencyWeight": 1,
         "metricProgress": {
           "verifiedSessions": 0.3333,
-          "visits": 0.3333,
+          "visits": 0.25,
           "conversations": 0.6667,
           "leads": 1,
           "memberships": 0,
@@ -1113,7 +977,7 @@
           },
           {
             "metric": "visits",
-            "actual": 4,
+            "actual": 3,
             "required": 12,
             "met": false
           },
@@ -1151,7 +1015,7 @@
         ],
         "evidenceCount": {
           "sessions": 1,
-          "visits": 4,
+          "visits": 3,
           "conversations": 4,
           "leads": 3,
           "memberships": null
@@ -1163,17 +1027,17 @@
         "policyVersion": "read-only-field-session-learning-policy-v1"
       },
       {
-        "confidenceId": "learning-confidence-88f3f37515a972f3ba05",
+        "confidenceId": "learning-confidence-b18caef58b2350537239",
         "domain": "territory",
         "targetId": "territory-unavailable",
-        "score": 0.55,
+        "score": 0.5333,
         "band": "insufficient_evidence",
         "thresholdQualified": false,
         "recommendationInfluenceEligible": false,
         "recencyWeight": 1,
         "metricProgress": {
           "verifiedSessions": 0.3333,
-          "visits": 0.3333,
+          "visits": 0.25,
           "conversations": 0.6667,
           "leads": 1,
           "memberships": 0,
@@ -1188,7 +1052,7 @@
           },
           {
             "metric": "visits",
-            "actual": 4,
+            "actual": 3,
             "required": 12,
             "met": false
           },
@@ -1227,7 +1091,7 @@
         ],
         "evidenceCount": {
           "sessions": 1,
-          "visits": 4,
+          "visits": 3,
           "conversations": 4,
           "leads": 3,
           "memberships": null
@@ -1239,17 +1103,17 @@
         "policyVersion": "read-only-field-session-learning-policy-v1"
       },
       {
-        "confidenceId": "learning-confidence-9915703b9de00e1709b1",
+        "confidenceId": "learning-confidence-ae067e07e7d3655b698d",
         "domain": "category",
         "targetId": "Auto",
-        "score": 0.6333,
+        "score": 0.6083,
         "band": "insufficient_evidence",
         "thresholdQualified": false,
         "recommendationInfluenceEligible": false,
         "recencyWeight": 1,
         "metricProgress": {
           "verifiedSessions": 0.3333,
-          "visits": 0.5,
+          "visits": 0.375,
           "conversations": 1,
           "leads": 1,
           "memberships": 0,
@@ -1264,7 +1128,7 @@
           },
           {
             "metric": "visits",
-            "actual": 4,
+            "actual": 3,
             "required": 8,
             "met": false
           },
@@ -1301,7 +1165,7 @@
         ],
         "evidenceCount": {
           "sessions": 1,
-          "visits": 4,
+          "visits": 3,
           "conversations": 4,
           "leads": 3,
           "memberships": null
@@ -1379,81 +1243,6 @@
           "memberships": null
         },
         "lastUpdated": "2026-07-11T18:29:37.862Z",
-        "applicableWorkspace": "fitness_connection",
-        "applicableRepresentative": "cruz",
-        "applicableTerritory": null,
-        "policyVersion": "read-only-field-session-learning-policy-v1"
-      },
-      {
-        "confidenceId": "learning-confidence-fb5c0fb1aebb08889f01",
-        "domain": "business",
-        "targetId": "ChIJG2VxAUibQIYR4ayVbntYkiY",
-        "score": 0.375,
-        "band": "insufficient_evidence",
-        "thresholdQualified": false,
-        "recommendationInfluenceEligible": false,
-        "recencyWeight": 1,
-        "metricProgress": {
-          "verifiedSessions": 0.5,
-          "visits": 0.5,
-          "conversations": 0,
-          "leads": 0,
-          "memberships": 0,
-          "recency": 1
-        },
-        "thresholdChecks": [
-          {
-            "metric": "verifiedSessions",
-            "actual": 1,
-            "required": 2,
-            "met": false
-          },
-          {
-            "metric": "visits",
-            "actual": 1,
-            "required": 2,
-            "met": false
-          },
-          {
-            "metric": "conversations",
-            "actual": 0,
-            "required": 1,
-            "met": false
-          },
-          {
-            "metric": "leads",
-            "actual": 0,
-            "required": 1,
-            "met": false
-          },
-          {
-            "metric": "memberships",
-            "actual": null,
-            "required": 0,
-            "met": true
-          }
-        ],
-        "territoryIdentityRequired": false,
-        "territoryIdentityAvailable": false,
-        "limitingFactors": [
-          "verifiedSessions_below_threshold",
-          "visits_below_threshold",
-          "conversations_below_threshold",
-          "leads_below_threshold",
-          "confidence_below_threshold",
-          "recommendation_influence_disabled_pending_future_handoff"
-        ],
-        "evidenceUsed": [
-          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-02-c3f943ebaa9c"
-        ],
-        "evidenceCount": {
-          "sessions": 1,
-          "visits": 1,
-          "conversations": 0,
-          "leads": 0,
-          "memberships": null
-        },
-        "lastUpdated": "2026-07-11T18:41:40.758Z",
         "applicableWorkspace": "fitness_connection",
         "applicableRepresentative": "cruz",
         "applicableTerritory": null,
@@ -1658,12 +1447,19 @@
         "sourceRawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
         "totals": {
           "totalStops": null,
-          "totalVisits": 4,
+          "totalVisits": 3,
           "totalConversations": 4,
           "totalLeads": 3,
           "totalUnits": 0,
           "totalLaterUnits": 0,
           "totalMemberships": null
+        },
+        "semanticAdmission": {
+          "applied": true,
+          "admittedVisitCount": 4,
+          "learningEligibleVisitCount": 3,
+          "reviewRequiredVisitCount": 1,
+          "learningExcludedVisitCount": 1
         },
         "lastUpdated": "2026-07-12T00:36:02.000Z",
         "applicableWorkspace": "fitness_connection",
@@ -2489,6 +2285,27 @@
       "mappingSource": "normalized_vocabulary",
       "normalizedOutcome": "conversation",
       "normalizedOutcomeLabel": "conversation",
+      "semanticDisposition": {
+        "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+        "disposition": "positive_success",
+        "relationshipType": "Successful",
+        "relationshipEligible": true,
+        "learningEligible": true,
+        "successEligible": true,
+        "followUpEligible": false,
+        "reviewRequired": false,
+        "authority": {
+          "source": "active_operating_profile.successEvents",
+          "profileId": "fitness",
+          "ruleValue": "conversation"
+        },
+        "mappingRule": {
+          "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+          "profileId": "fitness",
+          "normalizedOutcome": "conversation"
+        },
+        "registryVersion": "operating-profile-engine-v1"
+      },
       "stageSequence": [
         "Visit",
         "Outcome",
@@ -2512,13 +2329,23 @@
         },
         "visitOccurredAt": "2026-07-11T18:29:37.862Z",
         "truthLevel": "governed_field_session",
-        "reviewState": "pending_human_review",
+        "reviewState": "admitted_non_review_required",
+        "admission": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-01-ab32d577b882"
+        },
         "productionLearningActive": false
       },
       "learningSignalSeed": {
         "signalId": "signal_c4b7484408fad415",
         "signalFamily": "conversation",
         "allowedInfluence": "offline_architecture_only",
+        "semanticLearningEligible": true,
         "canInfluenceProductionRecommendations": false
       },
       "confidenceSeed": {
@@ -2535,7 +2362,7 @@
         "reason": "architecture_only_no_production_learning"
       },
       "explanationSeed": {
-        "why": "Fitness outcome \"Conversation\" maps to normalized evidence \"conversation\".",
+        "why": "Fitness outcome maps to normalized evidence \"conversation\" under active_operating_profile.successEvents.",
         "whatEvidence": [
           "Conversation reported during a field visit."
         ],
@@ -2552,7 +2379,17 @@
         "activePoolChanged": false
       },
       "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
-      "visitId": "visit-01-ab32d577b882"
+      "visitId": "visit-01-ab32d577b882",
+      "businessId": "ChIJ5QnzguGXQIYRBj3DRt1qxSU",
+      "businessName": "Galachy Tire Shop",
+      "category": "Auto",
+      "timeWindow": "Midday",
+      "reportedMetrics": {
+        "conversations": 3,
+        "leads": 2,
+        "units": 0,
+        "laterUnits": 0
+      }
     },
     {
       "normalizedOutcomeId": "normalized_outcome_3643fc0f242d8713",
@@ -2561,9 +2398,30 @@
       "profileLabel": "Fitness",
       "rawOutcome": "No contact",
       "matchedTerm": "no contact",
-      "mappingSource": "default_review_required",
-      "normalizedOutcome": "lead",
-      "normalizedOutcomeLabel": "lead",
+      "mappingSource": "unclassified_review_required",
+      "normalizedOutcome": null,
+      "normalizedOutcomeLabel": "unclassified",
+      "semanticDisposition": {
+        "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+        "disposition": "unclassified_review_required",
+        "relationshipType": "Visited",
+        "relationshipEligible": false,
+        "learningEligible": false,
+        "successEligible": false,
+        "followUpEligible": false,
+        "reviewRequired": true,
+        "authority": {
+          "source": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+          "profileId": "fitness",
+          "ruleValue": null
+        },
+        "mappingRule": {
+          "authority": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+          "profileId": "fitness",
+          "normalizedOutcome": null
+        },
+        "registryVersion": "operating-profile-engine-v1"
+      },
       "stageSequence": [
         "Visit",
         "Outcome",
@@ -2575,7 +2433,7 @@
       "evidence": {
         "evidenceId": "evidence_3643fc0f242d8713",
         "evidenceType": "field_visit_outcome",
-        "normalizedEvidenceType": "lead",
+        "normalizedEvidenceType": "unclassified",
         "source": "operating_profile_engine",
         "businessRef": {
           "source": "governed_business",
@@ -2588,18 +2446,28 @@
         "visitOccurredAt": "2026-07-11T18:41:40.758Z",
         "truthLevel": "governed_field_session",
         "reviewState": "human_review_required",
+        "admission": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-02-c3f943ebaa9c"
+        },
         "productionLearningActive": false
       },
       "learningSignalSeed": {
-        "signalId": "signal_19eb92f696a73e0f",
-        "signalFamily": "lead",
+        "signalId": "signal_6539fd9778143eef",
+        "signalFamily": "unclassified",
         "allowedInfluence": "offline_architecture_only",
+        "semanticLearningEligible": false,
         "canInfluenceProductionRecommendations": false
       },
       "confidenceSeed": {
         "confidenceBand": "review_required",
         "confidenceScore": null,
-        "evidenceCount": 1,
+        "evidenceCount": 0,
         "lastValidationAt": "2026-07-11T18:41:40.758Z",
         "learningTrend": "unactivated",
         "allowedInfluence": "none",
@@ -2610,7 +2478,7 @@
         "reason": "architecture_only_no_production_learning"
       },
       "explanationSeed": {
-        "why": "Fitness outcome \"No contact\" maps to normalized evidence \"lead\".",
+        "why": "Fitness outcome remains unclassified and requires human review.",
         "whatEvidence": [
           "No contact reported during a field visit."
         ],
@@ -2627,7 +2495,17 @@
         "activePoolChanged": false
       },
       "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
-      "visitId": "visit-02-c3f943ebaa9c"
+      "visitId": "visit-02-c3f943ebaa9c",
+      "businessId": "ChIJG2VxAUibQIYR4ayVbntYkiY",
+      "businessName": "Exxon mechanic shop",
+      "category": "Auto",
+      "timeWindow": "Midday",
+      "reportedMetrics": {
+        "conversations": 0,
+        "leads": 0,
+        "units": 0,
+        "laterUnits": 0
+      }
     },
     {
       "normalizedOutcomeId": "normalized_outcome_2b4fe6e9d2e5d17d",
@@ -2639,6 +2517,28 @@
       "mappingSource": "operating_profile",
       "normalizedOutcome": "sale",
       "normalizedOutcomeLabel": "sale",
+      "semanticDisposition": {
+        "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+        "disposition": "positive_success",
+        "relationshipType": "Successful",
+        "relationshipEligible": true,
+        "learningEligible": true,
+        "successEligible": true,
+        "followUpEligible": false,
+        "reviewRequired": false,
+        "authority": {
+          "source": "active_operating_profile.successEvents",
+          "profileId": "fitness",
+          "ruleValue": "sale"
+        },
+        "mappingRule": {
+          "authority": "active_operating_profile.outcomeMappings",
+          "profileId": "fitness",
+          "mappingIndex": 0,
+          "normalizedOutcome": "sale"
+        },
+        "registryVersion": "operating-profile-engine-v1"
+      },
       "stageSequence": [
         "Visit",
         "Outcome",
@@ -2662,13 +2562,23 @@
         },
         "visitOccurredAt": "2026-07-11T19:15:59.328Z",
         "truthLevel": "governed_field_session",
-        "reviewState": "pending_human_review",
+        "reviewState": "admitted_non_review_required",
+        "admission": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-03-5da0d1f6c66b"
+        },
         "productionLearningActive": false
       },
       "learningSignalSeed": {
         "signalId": "signal_f366b39064adc2cb",
         "signalFamily": "sale",
         "allowedInfluence": "offline_architecture_only",
+        "semanticLearningEligible": true,
         "canInfluenceProductionRecommendations": false
       },
       "confidenceSeed": {
@@ -2685,7 +2595,7 @@
         "reason": "architecture_only_no_production_learning"
       },
       "explanationSeed": {
-        "why": "Fitness outcome \"Membership\" maps to normalized evidence \"sale\".",
+        "why": "Fitness outcome maps to normalized evidence \"sale\" under active_operating_profile.successEvents.",
         "whatEvidence": [
           "Membership reported during a field visit."
         ],
@@ -2702,7 +2612,17 @@
         "activePoolChanged": false
       },
       "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
-      "visitId": "visit-03-5da0d1f6c66b"
+      "visitId": "visit-03-5da0d1f6c66b",
+      "businessId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+      "businessName": "Texans Auto Repair - Blackhawk",
+      "category": "Auto",
+      "timeWindow": "Midday",
+      "reportedMetrics": {
+        "conversations": 1,
+        "leads": 1,
+        "units": 0,
+        "laterUnits": 0
+      }
     },
     {
       "normalizedOutcomeId": "normalized_outcome_3678cdc101a7b8f6",
@@ -2714,6 +2634,27 @@
       "mappingSource": "normalized_vocabulary",
       "normalizedOutcome": "conversation",
       "normalizedOutcomeLabel": "conversation",
+      "semanticDisposition": {
+        "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+        "disposition": "positive_success",
+        "relationshipType": "Successful",
+        "relationshipEligible": true,
+        "learningEligible": true,
+        "successEligible": true,
+        "followUpEligible": false,
+        "reviewRequired": false,
+        "authority": {
+          "source": "active_operating_profile.successEvents",
+          "profileId": "fitness",
+          "ruleValue": "conversation"
+        },
+        "mappingRule": {
+          "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+          "profileId": "fitness",
+          "normalizedOutcome": "conversation"
+        },
+        "registryVersion": "operating-profile-engine-v1"
+      },
       "stageSequence": [
         "Visit",
         "Outcome",
@@ -2737,13 +2678,23 @@
         },
         "visitOccurredAt": "2026-07-11T19:31:21.937Z",
         "truthLevel": "governed_field_session",
-        "reviewState": "pending_human_review",
+        "reviewState": "admitted_non_review_required",
+        "admission": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-04-32a0b9fb24c2"
+        },
         "productionLearningActive": false
       },
       "learningSignalSeed": {
         "signalId": "signal_d11a14f3ad4b302e",
         "signalFamily": "conversation",
         "allowedInfluence": "offline_architecture_only",
+        "semanticLearningEligible": true,
         "canInfluenceProductionRecommendations": false
       },
       "confidenceSeed": {
@@ -2760,7 +2711,7 @@
         "reason": "architecture_only_no_production_learning"
       },
       "explanationSeed": {
-        "why": "Fitness outcome \"Conversation\" maps to normalized evidence \"conversation\".",
+        "why": "Fitness outcome maps to normalized evidence \"conversation\" under active_operating_profile.successEvents.",
         "whatEvidence": [
           "Conversation reported during a field visit."
         ],
@@ -2777,11 +2728,21 @@
         "activePoolChanged": false
       },
       "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
-      "visitId": "visit-04-32a0b9fb24c2"
+      "visitId": "visit-04-32a0b9fb24c2",
+      "businessId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+      "businessName": "Christian Brothers Automotive Pearland",
+      "category": "Auto",
+      "timeWindow": "Midday",
+      "reportedMetrics": {
+        "conversations": 0,
+        "leads": 0,
+        "units": 0,
+        "laterUnits": 0
+      }
     }
   ],
   "customerGraphSnapshot": {
-    "graphId": "cig_graph_d2330a617cf8fac4",
+    "graphId": "cig_graph_acbfb1f8b593c2dd",
     "snapshotVersion": "customer-graph-snapshot-v1",
     "contractVersion": "customer-intelligence-graph-v1",
     "customerId": "fitness_connection_research",
@@ -3079,7 +3040,7 @@
         }
       },
       {
-        "nodeId": "cig_node_601d59327b49cb3a",
+        "nodeId": "cig_node_78e317bd8eb2c7a5",
         "contractVersion": "customer-intelligence-graph-v1",
         "nodeType": "Outcome",
         "customerId": "fitness_connection_research",
@@ -3094,6 +3055,36 @@
           "rawOutcome": "Conversation",
           "normalizedOutcome": "conversation",
           "mappingSource": "normalized_vocabulary",
+          "semanticDisposition": {
+            "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+            "disposition": "positive_success",
+            "relationshipType": "Successful",
+            "relationshipEligible": true,
+            "learningEligible": true,
+            "successEligible": true,
+            "followUpEligible": false,
+            "reviewRequired": false,
+            "authority": {
+              "source": "active_operating_profile.successEvents",
+              "profileId": "fitness",
+              "ruleValue": "conversation"
+            },
+            "mappingRule": {
+              "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+              "profileId": "fitness",
+              "normalizedOutcome": "conversation"
+            },
+            "registryVersion": "operating-profile-engine-v1"
+          },
+          "admittedEvidence": {
+            "admitted": true,
+            "authority": "Prometheus Data",
+            "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+            "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+            "visitId": "visit-01-ab32d577b882"
+          },
           "workspaceId": "fitness_connection",
           "evidenceStatus": "Observed"
         },
@@ -3115,7 +3106,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "pending_human_review",
+        "reviewState": "admitted_non_review_required",
         "sensitivity": "customer_private",
         "validFrom": "1970-01-01T00:00:00.000Z",
         "validUntil": null,
@@ -3138,14 +3129,14 @@
         }
       },
       {
-        "nodeId": "cig_node_ff4024823a4cbb0f",
+        "nodeId": "cig_node_0ab3255251fc79e2",
         "contractVersion": "customer-intelligence-graph-v1",
         "nodeType": "Business",
         "customerId": "fitness_connection_research",
         "sourceRefs": [
           {
             "source": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
-            "id": "business-intelligence-050e69d47e3bda2cbcdb"
+            "id": "evidence_3643fc0f242d8713"
           }
         ],
         "attributes": {
@@ -3153,29 +3144,24 @@
           "businessName": "Exxon mechanic shop",
           "category": "Auto",
           "workspaceId": "fitness_connection",
-          "evidenceStatus": "Insufficient Evidence",
+          "evidenceStatus": "Review Required",
           "limitingFactors": [
-            "verifiedSessions_below_threshold",
-            "visits_below_threshold",
-            "conversations_below_threshold",
-            "leads_below_threshold",
-            "confidence_below_threshold",
-            "recommendation_influence_disabled_pending_future_handoff"
+            "outcome_semantics_require_human_review"
           ]
         },
         "provenance": {
           "sourceRefs": [
             {
               "source": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
-              "id": "business-intelligence-050e69d47e3bda2cbcdb"
+              "id": "evidence_3643fc0f242d8713"
             }
           ],
           "sourceEvidenceIds": [],
           "learnedAt": "2026-07-11T18:41:40.758Z",
           "generatedBy": "prometheus_intelligence_engine",
           "confidence": {
-            "confidenceBand": "insufficient_evidence",
-            "confidenceScore": 0.375,
+            "confidenceBand": "unactivated",
+            "confidenceScore": null,
             "evidenceCount": 1,
             "allowedInfluence": "read_only"
           },
@@ -3262,7 +3248,7 @@
         }
       },
       {
-        "nodeId": "cig_node_d52ae377d1ec8f1f",
+        "nodeId": "cig_node_447f41723422a627",
         "contractVersion": "customer-intelligence-graph-v1",
         "nodeType": "Outcome",
         "customerId": "fitness_connection_research",
@@ -3275,8 +3261,38 @@
         "attributes": {
           "visitId": "visit-02-c3f943ebaa9c",
           "rawOutcome": "No contact",
-          "normalizedOutcome": "lead",
-          "mappingSource": "default_review_required",
+          "normalizedOutcome": null,
+          "mappingSource": "unclassified_review_required",
+          "semanticDisposition": {
+            "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+            "disposition": "unclassified_review_required",
+            "relationshipType": "Visited",
+            "relationshipEligible": false,
+            "learningEligible": false,
+            "successEligible": false,
+            "followUpEligible": false,
+            "reviewRequired": true,
+            "authority": {
+              "source": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+              "profileId": "fitness",
+              "ruleValue": null
+            },
+            "mappingRule": {
+              "authority": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+              "profileId": "fitness",
+              "normalizedOutcome": null
+            },
+            "registryVersion": "operating-profile-engine-v1"
+          },
+          "admittedEvidence": {
+            "admitted": true,
+            "authority": "Prometheus Data",
+            "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+            "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+            "visitId": "visit-02-c3f943ebaa9c"
+          },
           "workspaceId": "fitness_connection",
           "evidenceStatus": "Review Required"
         },
@@ -3442,7 +3458,7 @@
         }
       },
       {
-        "nodeId": "cig_node_4bf9b035334998fb",
+        "nodeId": "cig_node_ba154982e2ec6abd",
         "contractVersion": "customer-intelligence-graph-v1",
         "nodeType": "Outcome",
         "customerId": "fitness_connection_research",
@@ -3457,6 +3473,37 @@
           "rawOutcome": "Membership",
           "normalizedOutcome": "sale",
           "mappingSource": "operating_profile",
+          "semanticDisposition": {
+            "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+            "disposition": "positive_success",
+            "relationshipType": "Successful",
+            "relationshipEligible": true,
+            "learningEligible": true,
+            "successEligible": true,
+            "followUpEligible": false,
+            "reviewRequired": false,
+            "authority": {
+              "source": "active_operating_profile.successEvents",
+              "profileId": "fitness",
+              "ruleValue": "sale"
+            },
+            "mappingRule": {
+              "authority": "active_operating_profile.outcomeMappings",
+              "profileId": "fitness",
+              "mappingIndex": 0,
+              "normalizedOutcome": "sale"
+            },
+            "registryVersion": "operating-profile-engine-v1"
+          },
+          "admittedEvidence": {
+            "admitted": true,
+            "authority": "Prometheus Data",
+            "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+            "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+            "visitId": "visit-03-5da0d1f6c66b"
+          },
           "workspaceId": "fitness_connection",
           "evidenceStatus": "Observed"
         },
@@ -3478,7 +3525,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "pending_human_review",
+        "reviewState": "admitted_non_review_required",
         "sensitivity": "customer_private",
         "validFrom": "1970-01-01T00:00:00.000Z",
         "validUntil": null,
@@ -3625,7 +3672,7 @@
         }
       },
       {
-        "nodeId": "cig_node_100efe5821e235e1",
+        "nodeId": "cig_node_d4f8fa13d831c27c",
         "contractVersion": "customer-intelligence-graph-v1",
         "nodeType": "Outcome",
         "customerId": "fitness_connection_research",
@@ -3640,6 +3687,36 @@
           "rawOutcome": "Conversation",
           "normalizedOutcome": "conversation",
           "mappingSource": "normalized_vocabulary",
+          "semanticDisposition": {
+            "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+            "disposition": "positive_success",
+            "relationshipType": "Successful",
+            "relationshipEligible": true,
+            "learningEligible": true,
+            "successEligible": true,
+            "followUpEligible": false,
+            "reviewRequired": false,
+            "authority": {
+              "source": "active_operating_profile.successEvents",
+              "profileId": "fitness",
+              "ruleValue": "conversation"
+            },
+            "mappingRule": {
+              "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+              "profileId": "fitness",
+              "normalizedOutcome": "conversation"
+            },
+            "registryVersion": "operating-profile-engine-v1"
+          },
+          "admittedEvidence": {
+            "admitted": true,
+            "authority": "Prometheus Data",
+            "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+            "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+            "visitId": "visit-04-32a0b9fb24c2"
+          },
           "workspaceId": "fitness_connection",
           "evidenceStatus": "Observed"
         },
@@ -3661,7 +3738,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "pending_human_review",
+        "reviewState": "admitted_non_review_required",
         "sensitivity": "customer_private",
         "validFrom": "1970-01-01T00:00:00.000Z",
         "validUntil": null,
@@ -3790,11 +3867,11 @@
         }
       },
       {
-        "relationshipId": "cig_rel_771ca1691b735b85",
+        "relationshipId": "cig_rel_708167a2e5f30038",
         "contractVersion": "customer-intelligence-graph-v1",
-        "relationshipType": "Visited",
+        "relationshipType": "Successful",
         "fromNodeId": "cig_node_319fb529fcb0d04c",
-        "toNodeId": "cig_node_601d59327b49cb3a",
+        "toNodeId": "cig_node_78e317bd8eb2c7a5",
         "customerId": "fitness_connection_research",
         "sourceEvidenceIds": [
           "evidence_cf9f7734c65f45e7"
@@ -3820,7 +3897,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "human_review_preserved",
+        "reviewState": "admitted_non_review_required",
         "validFrom": "2026-07-11T18:29:37.862Z",
         "validUntil": null,
         "safety": {
@@ -3839,6 +3916,36 @@
           "confidencePropagationActive": false,
           "humanOverridePreserved": true,
           "customerIsolationRequired": true
+        },
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "positive_success",
+          "relationshipType": "Successful",
+          "relationshipEligible": true,
+          "learningEligible": true,
+          "successEligible": true,
+          "followUpEligible": false,
+          "reviewRequired": false,
+          "authority": {
+            "source": "active_operating_profile.successEvents",
+            "profileId": "fitness",
+            "ruleValue": "conversation"
+          },
+          "mappingRule": {
+            "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+            "profileId": "fitness",
+            "normalizedOutcome": "conversation"
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-01-ab32d577b882"
         }
       },
       {
@@ -3894,11 +4001,11 @@
         }
       },
       {
-        "relationshipId": "cig_rel_dc520c7bd2aeb9c2",
+        "relationshipId": "cig_rel_4c54feabe8e46721",
         "contractVersion": "customer-intelligence-graph-v1",
         "relationshipType": "Visited",
         "fromNodeId": "cig_node_f805816fd7d98d96",
-        "toNodeId": "cig_node_ff4024823a4cbb0f",
+        "toNodeId": "cig_node_0ab3255251fc79e2",
         "customerId": "fitness_connection_research",
         "sourceEvidenceIds": [
           "evidence_3643fc0f242d8713"
@@ -3946,11 +4053,11 @@
         }
       },
       {
-        "relationshipId": "cig_rel_a5ab1bff4bd98114",
+        "relationshipId": "cig_rel_25e8aa3eaf724315",
         "contractVersion": "customer-intelligence-graph-v1",
-        "relationshipType": "Successful",
+        "relationshipType": "Visited",
         "fromNodeId": "cig_node_f805816fd7d98d96",
-        "toNodeId": "cig_node_d52ae377d1ec8f1f",
+        "toNodeId": "cig_node_447f41723422a627",
         "customerId": "fitness_connection_research",
         "sourceEvidenceIds": [
           "evidence_3643fc0f242d8713"
@@ -3976,7 +4083,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "human_review_preserved",
+        "reviewState": "human_review_required",
         "validFrom": "2026-07-11T18:41:40.758Z",
         "validUntil": null,
         "safety": {
@@ -3995,6 +4102,36 @@
           "confidencePropagationActive": false,
           "humanOverridePreserved": true,
           "customerIsolationRequired": true
+        },
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "unclassified_review_required",
+          "relationshipType": "Visited",
+          "relationshipEligible": false,
+          "learningEligible": false,
+          "successEligible": false,
+          "followUpEligible": false,
+          "reviewRequired": true,
+          "authority": {
+            "source": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+            "profileId": "fitness",
+            "ruleValue": null
+          },
+          "mappingRule": {
+            "authority": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+            "profileId": "fitness",
+            "normalizedOutcome": null
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-02-c3f943ebaa9c"
         }
       },
       {
@@ -4102,11 +4239,11 @@
         }
       },
       {
-        "relationshipId": "cig_rel_2e458a926bdee983",
+        "relationshipId": "cig_rel_4442dd8dfd79edfb",
         "contractVersion": "customer-intelligence-graph-v1",
-        "relationshipType": "Visited",
+        "relationshipType": "Successful",
         "fromNodeId": "cig_node_4a273a3bf31e6b03",
-        "toNodeId": "cig_node_4bf9b035334998fb",
+        "toNodeId": "cig_node_ba154982e2ec6abd",
         "customerId": "fitness_connection_research",
         "sourceEvidenceIds": [
           "evidence_2b4fe6e9d2e5d17d"
@@ -4132,7 +4269,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "human_review_preserved",
+        "reviewState": "admitted_non_review_required",
         "validFrom": "2026-07-11T19:15:59.328Z",
         "validUntil": null,
         "safety": {
@@ -4151,6 +4288,37 @@
           "confidencePropagationActive": false,
           "humanOverridePreserved": true,
           "customerIsolationRequired": true
+        },
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "positive_success",
+          "relationshipType": "Successful",
+          "relationshipEligible": true,
+          "learningEligible": true,
+          "successEligible": true,
+          "followUpEligible": false,
+          "reviewRequired": false,
+          "authority": {
+            "source": "active_operating_profile.successEvents",
+            "profileId": "fitness",
+            "ruleValue": "sale"
+          },
+          "mappingRule": {
+            "authority": "active_operating_profile.outcomeMappings",
+            "profileId": "fitness",
+            "mappingIndex": 0,
+            "normalizedOutcome": "sale"
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-03-5da0d1f6c66b"
         }
       },
       {
@@ -4258,11 +4426,11 @@
         }
       },
       {
-        "relationshipId": "cig_rel_36d1dc434dc3058d",
+        "relationshipId": "cig_rel_466f0e16398fa81a",
         "contractVersion": "customer-intelligence-graph-v1",
-        "relationshipType": "Visited",
+        "relationshipType": "Successful",
         "fromNodeId": "cig_node_92da264dc030b55a",
-        "toNodeId": "cig_node_100efe5821e235e1",
+        "toNodeId": "cig_node_d4f8fa13d831c27c",
         "customerId": "fitness_connection_research",
         "sourceEvidenceIds": [
           "evidence_3678cdc101a7b8f6"
@@ -4288,7 +4456,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "human_review_preserved",
+        "reviewState": "admitted_non_review_required",
         "validFrom": "2026-07-11T19:31:21.937Z",
         "validUntil": null,
         "safety": {
@@ -4307,6 +4475,36 @@
           "confidencePropagationActive": false,
           "humanOverridePreserved": true,
           "customerIsolationRequired": true
+        },
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "positive_success",
+          "relationshipType": "Successful",
+          "relationshipEligible": true,
+          "learningEligible": true,
+          "successEligible": true,
+          "followUpEligible": false,
+          "reviewRequired": false,
+          "authority": {
+            "source": "active_operating_profile.successEvents",
+            "profileId": "fitness",
+            "ruleValue": "conversation"
+          },
+          "mappingRule": {
+            "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+            "profileId": "fitness",
+            "normalizedOutcome": "conversation"
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-04-32a0b9fb24c2"
         }
       }
     ],
@@ -4376,14 +4574,14 @@
           }
         },
         {
-          "nodeId": "cig_node_ff4024823a4cbb0f",
+          "nodeId": "cig_node_0ab3255251fc79e2",
           "contractVersion": "customer-intelligence-graph-v1",
           "nodeType": "Business",
           "customerId": "fitness_connection_research",
           "sourceRefs": [
             {
               "source": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
-              "id": "business-intelligence-050e69d47e3bda2cbcdb"
+              "id": "evidence_3643fc0f242d8713"
             }
           ],
           "attributes": {
@@ -4391,29 +4589,24 @@
             "businessName": "Exxon mechanic shop",
             "category": "Auto",
             "workspaceId": "fitness_connection",
-            "evidenceStatus": "Insufficient Evidence",
+            "evidenceStatus": "Review Required",
             "limitingFactors": [
-              "verifiedSessions_below_threshold",
-              "visits_below_threshold",
-              "conversations_below_threshold",
-              "leads_below_threshold",
-              "confidence_below_threshold",
-              "recommendation_influence_disabled_pending_future_handoff"
+              "outcome_semantics_require_human_review"
             ]
           },
           "provenance": {
             "sourceRefs": [
               {
                 "source": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
-                "id": "business-intelligence-050e69d47e3bda2cbcdb"
+                "id": "evidence_3643fc0f242d8713"
               }
             ],
             "sourceEvidenceIds": [],
             "learnedAt": "2026-07-11T18:41:40.758Z",
             "generatedBy": "prometheus_intelligence_engine",
             "confidence": {
-              "confidenceBand": "insufficient_evidence",
-              "confidenceScore": 0.375,
+              "confidenceBand": "unactivated",
+              "confidenceScore": null,
               "evidenceCount": 1,
               "allowedInfluence": "read_only"
             },
@@ -4807,7 +5000,7 @@
       ],
       "outcomes": [
         {
-          "nodeId": "cig_node_601d59327b49cb3a",
+          "nodeId": "cig_node_78e317bd8eb2c7a5",
           "contractVersion": "customer-intelligence-graph-v1",
           "nodeType": "Outcome",
           "customerId": "fitness_connection_research",
@@ -4822,6 +5015,36 @@
             "rawOutcome": "Conversation",
             "normalizedOutcome": "conversation",
             "mappingSource": "normalized_vocabulary",
+            "semanticDisposition": {
+              "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+              "disposition": "positive_success",
+              "relationshipType": "Successful",
+              "relationshipEligible": true,
+              "learningEligible": true,
+              "successEligible": true,
+              "followUpEligible": false,
+              "reviewRequired": false,
+              "authority": {
+                "source": "active_operating_profile.successEvents",
+                "profileId": "fitness",
+                "ruleValue": "conversation"
+              },
+              "mappingRule": {
+                "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+                "profileId": "fitness",
+                "normalizedOutcome": "conversation"
+              },
+              "registryVersion": "operating-profile-engine-v1"
+            },
+            "admittedEvidence": {
+              "admitted": true,
+              "authority": "Prometheus Data",
+              "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+              "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+              "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+              "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+              "visitId": "visit-01-ab32d577b882"
+            },
             "workspaceId": "fitness_connection",
             "evidenceStatus": "Observed"
           },
@@ -4843,7 +5066,7 @@
             },
             "humanOverrideState": "preserved"
           },
-          "reviewState": "pending_human_review",
+          "reviewState": "admitted_non_review_required",
           "sensitivity": "customer_private",
           "validFrom": "1970-01-01T00:00:00.000Z",
           "validUntil": null,
@@ -4866,7 +5089,7 @@
           }
         },
         {
-          "nodeId": "cig_node_d52ae377d1ec8f1f",
+          "nodeId": "cig_node_447f41723422a627",
           "contractVersion": "customer-intelligence-graph-v1",
           "nodeType": "Outcome",
           "customerId": "fitness_connection_research",
@@ -4879,8 +5102,38 @@
           "attributes": {
             "visitId": "visit-02-c3f943ebaa9c",
             "rawOutcome": "No contact",
-            "normalizedOutcome": "lead",
-            "mappingSource": "default_review_required",
+            "normalizedOutcome": null,
+            "mappingSource": "unclassified_review_required",
+            "semanticDisposition": {
+              "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+              "disposition": "unclassified_review_required",
+              "relationshipType": "Visited",
+              "relationshipEligible": false,
+              "learningEligible": false,
+              "successEligible": false,
+              "followUpEligible": false,
+              "reviewRequired": true,
+              "authority": {
+                "source": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+                "profileId": "fitness",
+                "ruleValue": null
+              },
+              "mappingRule": {
+                "authority": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+                "profileId": "fitness",
+                "normalizedOutcome": null
+              },
+              "registryVersion": "operating-profile-engine-v1"
+            },
+            "admittedEvidence": {
+              "admitted": true,
+              "authority": "Prometheus Data",
+              "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+              "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+              "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+              "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+              "visitId": "visit-02-c3f943ebaa9c"
+            },
             "workspaceId": "fitness_connection",
             "evidenceStatus": "Review Required"
           },
@@ -4925,7 +5178,7 @@
           }
         },
         {
-          "nodeId": "cig_node_4bf9b035334998fb",
+          "nodeId": "cig_node_ba154982e2ec6abd",
           "contractVersion": "customer-intelligence-graph-v1",
           "nodeType": "Outcome",
           "customerId": "fitness_connection_research",
@@ -4940,6 +5193,37 @@
             "rawOutcome": "Membership",
             "normalizedOutcome": "sale",
             "mappingSource": "operating_profile",
+            "semanticDisposition": {
+              "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+              "disposition": "positive_success",
+              "relationshipType": "Successful",
+              "relationshipEligible": true,
+              "learningEligible": true,
+              "successEligible": true,
+              "followUpEligible": false,
+              "reviewRequired": false,
+              "authority": {
+                "source": "active_operating_profile.successEvents",
+                "profileId": "fitness",
+                "ruleValue": "sale"
+              },
+              "mappingRule": {
+                "authority": "active_operating_profile.outcomeMappings",
+                "profileId": "fitness",
+                "mappingIndex": 0,
+                "normalizedOutcome": "sale"
+              },
+              "registryVersion": "operating-profile-engine-v1"
+            },
+            "admittedEvidence": {
+              "admitted": true,
+              "authority": "Prometheus Data",
+              "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+              "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+              "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+              "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+              "visitId": "visit-03-5da0d1f6c66b"
+            },
             "workspaceId": "fitness_connection",
             "evidenceStatus": "Observed"
           },
@@ -4961,7 +5245,7 @@
             },
             "humanOverrideState": "preserved"
           },
-          "reviewState": "pending_human_review",
+          "reviewState": "admitted_non_review_required",
           "sensitivity": "customer_private",
           "validFrom": "1970-01-01T00:00:00.000Z",
           "validUntil": null,
@@ -4984,7 +5268,7 @@
           }
         },
         {
-          "nodeId": "cig_node_100efe5821e235e1",
+          "nodeId": "cig_node_d4f8fa13d831c27c",
           "contractVersion": "customer-intelligence-graph-v1",
           "nodeType": "Outcome",
           "customerId": "fitness_connection_research",
@@ -4999,6 +5283,36 @@
             "rawOutcome": "Conversation",
             "normalizedOutcome": "conversation",
             "mappingSource": "normalized_vocabulary",
+            "semanticDisposition": {
+              "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+              "disposition": "positive_success",
+              "relationshipType": "Successful",
+              "relationshipEligible": true,
+              "learningEligible": true,
+              "successEligible": true,
+              "followUpEligible": false,
+              "reviewRequired": false,
+              "authority": {
+                "source": "active_operating_profile.successEvents",
+                "profileId": "fitness",
+                "ruleValue": "conversation"
+              },
+              "mappingRule": {
+                "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+                "profileId": "fitness",
+                "normalizedOutcome": "conversation"
+              },
+              "registryVersion": "operating-profile-engine-v1"
+            },
+            "admittedEvidence": {
+              "admitted": true,
+              "authority": "Prometheus Data",
+              "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+              "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+              "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+              "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+              "visitId": "visit-04-32a0b9fb24c2"
+            },
             "workspaceId": "fitness_connection",
             "evidenceStatus": "Observed"
           },
@@ -5020,7 +5334,7 @@
             },
             "humanOverrideState": "preserved"
           },
-          "reviewState": "pending_human_review",
+          "reviewState": "admitted_non_review_required",
           "sensitivity": "customer_private",
           "validFrom": "1970-01-01T00:00:00.000Z",
           "validUntil": null,
@@ -5107,14 +5421,14 @@
       "territories": [],
       "opportunityRelationships": [
         {
-          "relationshipId": "cig_rel_a5ab1bff4bd98114",
+          "relationshipId": "cig_rel_708167a2e5f30038",
           "contractVersion": "customer-intelligence-graph-v1",
           "relationshipType": "Successful",
-          "fromNodeId": "cig_node_f805816fd7d98d96",
-          "toNodeId": "cig_node_d52ae377d1ec8f1f",
+          "fromNodeId": "cig_node_319fb529fcb0d04c",
+          "toNodeId": "cig_node_78e317bd8eb2c7a5",
           "customerId": "fitness_connection_research",
           "sourceEvidenceIds": [
-            "evidence_3643fc0f242d8713"
+            "evidence_cf9f7734c65f45e7"
           ],
           "confidenceSeed": {
             "propagationEligible": false,
@@ -5125,9 +5439,9 @@
           "provenance": {
             "sourceRefs": [],
             "sourceEvidenceIds": [
-              "evidence_3643fc0f242d8713"
+              "evidence_cf9f7734c65f45e7"
             ],
-            "learnedAt": "2026-07-11T18:41:40.758Z",
+            "learnedAt": "2026-07-11T18:29:37.862Z",
             "generatedBy": "prometheus_intelligence_engine",
             "confidence": {
               "confidenceBand": "unactivated",
@@ -5137,8 +5451,8 @@
             },
             "humanOverrideState": "preserved"
           },
-          "reviewState": "human_review_preserved",
-          "validFrom": "2026-07-11T18:41:40.758Z",
+          "reviewState": "admitted_non_review_required",
+          "validFrom": "2026-07-11T18:29:37.862Z",
           "validUntil": null,
           "safety": {
             "readOnly": true,
@@ -5156,6 +5470,201 @@
             "confidencePropagationActive": false,
             "humanOverridePreserved": true,
             "customerIsolationRequired": true
+          },
+          "semanticDisposition": {
+            "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+            "disposition": "positive_success",
+            "relationshipType": "Successful",
+            "relationshipEligible": true,
+            "learningEligible": true,
+            "successEligible": true,
+            "followUpEligible": false,
+            "reviewRequired": false,
+            "authority": {
+              "source": "active_operating_profile.successEvents",
+              "profileId": "fitness",
+              "ruleValue": "conversation"
+            },
+            "mappingRule": {
+              "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+              "profileId": "fitness",
+              "normalizedOutcome": "conversation"
+            },
+            "registryVersion": "operating-profile-engine-v1"
+          },
+          "admittedEvidence": {
+            "admitted": true,
+            "authority": "Prometheus Data",
+            "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+            "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+            "visitId": "visit-01-ab32d577b882"
+          }
+        },
+        {
+          "relationshipId": "cig_rel_4442dd8dfd79edfb",
+          "contractVersion": "customer-intelligence-graph-v1",
+          "relationshipType": "Successful",
+          "fromNodeId": "cig_node_4a273a3bf31e6b03",
+          "toNodeId": "cig_node_ba154982e2ec6abd",
+          "customerId": "fitness_connection_research",
+          "sourceEvidenceIds": [
+            "evidence_2b4fe6e9d2e5d17d"
+          ],
+          "confidenceSeed": {
+            "propagationEligible": false,
+            "propagationActive": false,
+            "evidenceCount": 1,
+            "reason": "architecture_only_no_confidence_propagation"
+          },
+          "provenance": {
+            "sourceRefs": [],
+            "sourceEvidenceIds": [
+              "evidence_2b4fe6e9d2e5d17d"
+            ],
+            "learnedAt": "2026-07-11T19:15:59.328Z",
+            "generatedBy": "prometheus_intelligence_engine",
+            "confidence": {
+              "confidenceBand": "unactivated",
+              "confidenceScore": null,
+              "evidenceCount": 1,
+              "allowedInfluence": "read_only"
+            },
+            "humanOverrideState": "preserved"
+          },
+          "reviewState": "admitted_non_review_required",
+          "validFrom": "2026-07-11T19:15:59.328Z",
+          "validUntil": null,
+          "safety": {
+            "readOnly": true,
+            "consumerImplementationActive": false,
+            "automaticLearningActive": false,
+            "automaticScoringActive": false,
+            "productionScoringChanged": false,
+            "productionRecommendationsChanged": false,
+            "activePoolChanged": false,
+            "dashboardRuntimeChanged": false,
+            "websiteRuntimeChanged": false,
+            "mobileRuntimeChanged": false,
+            "companionRuntimeChanged": false,
+            "crmRuntimeChanged": false,
+            "confidencePropagationActive": false,
+            "humanOverridePreserved": true,
+            "customerIsolationRequired": true
+          },
+          "semanticDisposition": {
+            "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+            "disposition": "positive_success",
+            "relationshipType": "Successful",
+            "relationshipEligible": true,
+            "learningEligible": true,
+            "successEligible": true,
+            "followUpEligible": false,
+            "reviewRequired": false,
+            "authority": {
+              "source": "active_operating_profile.successEvents",
+              "profileId": "fitness",
+              "ruleValue": "sale"
+            },
+            "mappingRule": {
+              "authority": "active_operating_profile.outcomeMappings",
+              "profileId": "fitness",
+              "mappingIndex": 0,
+              "normalizedOutcome": "sale"
+            },
+            "registryVersion": "operating-profile-engine-v1"
+          },
+          "admittedEvidence": {
+            "admitted": true,
+            "authority": "Prometheus Data",
+            "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+            "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+            "visitId": "visit-03-5da0d1f6c66b"
+          }
+        },
+        {
+          "relationshipId": "cig_rel_466f0e16398fa81a",
+          "contractVersion": "customer-intelligence-graph-v1",
+          "relationshipType": "Successful",
+          "fromNodeId": "cig_node_92da264dc030b55a",
+          "toNodeId": "cig_node_d4f8fa13d831c27c",
+          "customerId": "fitness_connection_research",
+          "sourceEvidenceIds": [
+            "evidence_3678cdc101a7b8f6"
+          ],
+          "confidenceSeed": {
+            "propagationEligible": false,
+            "propagationActive": false,
+            "evidenceCount": 1,
+            "reason": "architecture_only_no_confidence_propagation"
+          },
+          "provenance": {
+            "sourceRefs": [],
+            "sourceEvidenceIds": [
+              "evidence_3678cdc101a7b8f6"
+            ],
+            "learnedAt": "2026-07-11T19:31:21.937Z",
+            "generatedBy": "prometheus_intelligence_engine",
+            "confidence": {
+              "confidenceBand": "unactivated",
+              "confidenceScore": null,
+              "evidenceCount": 1,
+              "allowedInfluence": "read_only"
+            },
+            "humanOverrideState": "preserved"
+          },
+          "reviewState": "admitted_non_review_required",
+          "validFrom": "2026-07-11T19:31:21.937Z",
+          "validUntil": null,
+          "safety": {
+            "readOnly": true,
+            "consumerImplementationActive": false,
+            "automaticLearningActive": false,
+            "automaticScoringActive": false,
+            "productionScoringChanged": false,
+            "productionRecommendationsChanged": false,
+            "activePoolChanged": false,
+            "dashboardRuntimeChanged": false,
+            "websiteRuntimeChanged": false,
+            "mobileRuntimeChanged": false,
+            "companionRuntimeChanged": false,
+            "crmRuntimeChanged": false,
+            "confidencePropagationActive": false,
+            "humanOverridePreserved": true,
+            "customerIsolationRequired": true
+          },
+          "semanticDisposition": {
+            "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+            "disposition": "positive_success",
+            "relationshipType": "Successful",
+            "relationshipEligible": true,
+            "learningEligible": true,
+            "successEligible": true,
+            "followUpEligible": false,
+            "reviewRequired": false,
+            "authority": {
+              "source": "active_operating_profile.successEvents",
+              "profileId": "fitness",
+              "ruleValue": "conversation"
+            },
+            "mappingRule": {
+              "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+              "profileId": "fitness",
+              "normalizedOutcome": "conversation"
+            },
+            "registryVersion": "operating-profile-engine-v1"
+          },
+          "admittedEvidence": {
+            "admitted": true,
+            "authority": "Prometheus Data",
+            "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+            "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+            "visitId": "visit-04-32a0b9fb24c2"
           }
         }
       ],
@@ -5296,7 +5805,7 @@
           }
         },
         {
-          "nodeId": "cig_node_601d59327b49cb3a",
+          "nodeId": "cig_node_78e317bd8eb2c7a5",
           "nodeType": "Outcome",
           "learnedAt": "2026-07-11T18:29:37.862Z",
           "generatedBy": "prometheus_intelligence_engine",
@@ -5308,13 +5817,13 @@
           }
         },
         {
-          "nodeId": "cig_node_ff4024823a4cbb0f",
+          "nodeId": "cig_node_0ab3255251fc79e2",
           "nodeType": "Business",
           "learnedAt": "2026-07-11T18:41:40.758Z",
           "generatedBy": "prometheus_intelligence_engine",
           "confidence": {
-            "confidenceBand": "insufficient_evidence",
-            "confidenceScore": 0.375,
+            "confidenceBand": "unactivated",
+            "confidenceScore": null,
             "evidenceCount": 1,
             "allowedInfluence": "read_only"
           }
@@ -5332,7 +5841,7 @@
           }
         },
         {
-          "nodeId": "cig_node_d52ae377d1ec8f1f",
+          "nodeId": "cig_node_447f41723422a627",
           "nodeType": "Outcome",
           "learnedAt": "2026-07-11T18:41:40.758Z",
           "generatedBy": "prometheus_intelligence_engine",
@@ -5368,7 +5877,7 @@
           }
         },
         {
-          "nodeId": "cig_node_4bf9b035334998fb",
+          "nodeId": "cig_node_ba154982e2ec6abd",
           "nodeType": "Outcome",
           "learnedAt": "2026-07-11T19:15:59.328Z",
           "generatedBy": "prometheus_intelligence_engine",
@@ -5404,7 +5913,7 @@
           }
         },
         {
-          "nodeId": "cig_node_100efe5821e235e1",
+          "nodeId": "cig_node_d4f8fa13d831c27c",
           "nodeType": "Outcome",
           "learnedAt": "2026-07-11T19:31:21.937Z",
           "generatedBy": "prometheus_intelligence_engine",
@@ -5441,8 +5950,8 @@
         "Outcome": 4
       },
       "relationshipTypeCounts": {
-        "Visited": 11,
-        "Successful": 1
+        "Visited": 9,
+        "Successful": 3
       },
       "sourceEvidenceIds": [
         "evidence_cf9f7734c65f45e7",
@@ -5466,7 +5975,7 @@
         "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943:business-intelligence-c940540bec8e1b27dcfa",
         "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943:route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
         "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943:normalized_outcome_cf9f7734c65f45e7",
-        "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943:business-intelligence-050e69d47e3bda2cbcdb",
+        "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943:evidence_3643fc0f242d8713",
         "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943:normalized_outcome_3643fc0f242d8713",
         "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943:business-intelligence-25f0d1dc33f7a7baca87",
         "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943:normalized_outcome_2b4fe6e9d2e5d17d",
@@ -5486,15 +5995,15 @@
     },
     "explainability": {
       "why": "This Founder-only graph connects admitted field sessions to observed businesses, visits, and outcomes.",
-      "whatEvidence": "1 admitted session(s) and 4 verified visit(s).",
+      "whatEvidence": "1 admitted session(s), 4 verified visit(s), and 3 semantically eligible visit(s).",
       "howConfident": "Confidence is explanatory only and cannot change routing or recommendations.",
       "whatChanged": "No route order, score, pool, replenishment, or recommendation output changed.",
       "whatShouldHappenNext": "Collect additional governed sessions until the existing evidence thresholds are met."
     },
     "confidence": {
       "confidenceBand": "insufficient_evidence",
-      "confidenceScore": 0.55,
-      "evidenceCount": 4,
+      "confidenceScore": 0.5333,
+      "evidenceCount": 3,
       "allowedInfluence": "explanation_only",
       "propagationActive": false,
       "lastValidationAt": "2026-07-12T00:36:02.000Z"
@@ -5917,7 +6426,7 @@
         }
       },
       {
-        "nodeId": "cig_node_601d59327b49cb3a",
+        "nodeId": "cig_node_78e317bd8eb2c7a5",
         "contractVersion": "customer-intelligence-graph-v1",
         "nodeType": "Outcome",
         "customerId": "fitness_connection_research",
@@ -5932,6 +6441,36 @@
           "rawOutcome": "Conversation",
           "normalizedOutcome": "conversation",
           "mappingSource": "normalized_vocabulary",
+          "semanticDisposition": {
+            "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+            "disposition": "positive_success",
+            "relationshipType": "Successful",
+            "relationshipEligible": true,
+            "learningEligible": true,
+            "successEligible": true,
+            "followUpEligible": false,
+            "reviewRequired": false,
+            "authority": {
+              "source": "active_operating_profile.successEvents",
+              "profileId": "fitness",
+              "ruleValue": "conversation"
+            },
+            "mappingRule": {
+              "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+              "profileId": "fitness",
+              "normalizedOutcome": "conversation"
+            },
+            "registryVersion": "operating-profile-engine-v1"
+          },
+          "admittedEvidence": {
+            "admitted": true,
+            "authority": "Prometheus Data",
+            "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+            "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+            "visitId": "visit-01-ab32d577b882"
+          },
           "workspaceId": "fitness_connection",
           "evidenceStatus": "Observed"
         },
@@ -5953,7 +6492,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "pending_human_review",
+        "reviewState": "admitted_non_review_required",
         "sensitivity": "customer_private",
         "validFrom": "1970-01-01T00:00:00.000Z",
         "validUntil": null,
@@ -5976,14 +6515,14 @@
         }
       },
       {
-        "nodeId": "cig_node_ff4024823a4cbb0f",
+        "nodeId": "cig_node_0ab3255251fc79e2",
         "contractVersion": "customer-intelligence-graph-v1",
         "nodeType": "Business",
         "customerId": "fitness_connection_research",
         "sourceRefs": [
           {
             "source": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
-            "id": "business-intelligence-050e69d47e3bda2cbcdb"
+            "id": "evidence_3643fc0f242d8713"
           }
         ],
         "attributes": {
@@ -5991,29 +6530,24 @@
           "businessName": "Exxon mechanic shop",
           "category": "Auto",
           "workspaceId": "fitness_connection",
-          "evidenceStatus": "Insufficient Evidence",
+          "evidenceStatus": "Review Required",
           "limitingFactors": [
-            "verifiedSessions_below_threshold",
-            "visits_below_threshold",
-            "conversations_below_threshold",
-            "leads_below_threshold",
-            "confidence_below_threshold",
-            "recommendation_influence_disabled_pending_future_handoff"
+            "outcome_semantics_require_human_review"
           ]
         },
         "provenance": {
           "sourceRefs": [
             {
               "source": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
-              "id": "business-intelligence-050e69d47e3bda2cbcdb"
+              "id": "evidence_3643fc0f242d8713"
             }
           ],
           "sourceEvidenceIds": [],
           "learnedAt": "2026-07-11T18:41:40.758Z",
           "generatedBy": "prometheus_intelligence_engine",
           "confidence": {
-            "confidenceBand": "insufficient_evidence",
-            "confidenceScore": 0.375,
+            "confidenceBand": "unactivated",
+            "confidenceScore": null,
             "evidenceCount": 1,
             "allowedInfluence": "read_only"
           },
@@ -6100,7 +6634,7 @@
         }
       },
       {
-        "nodeId": "cig_node_d52ae377d1ec8f1f",
+        "nodeId": "cig_node_447f41723422a627",
         "contractVersion": "customer-intelligence-graph-v1",
         "nodeType": "Outcome",
         "customerId": "fitness_connection_research",
@@ -6113,8 +6647,38 @@
         "attributes": {
           "visitId": "visit-02-c3f943ebaa9c",
           "rawOutcome": "No contact",
-          "normalizedOutcome": "lead",
-          "mappingSource": "default_review_required",
+          "normalizedOutcome": null,
+          "mappingSource": "unclassified_review_required",
+          "semanticDisposition": {
+            "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+            "disposition": "unclassified_review_required",
+            "relationshipType": "Visited",
+            "relationshipEligible": false,
+            "learningEligible": false,
+            "successEligible": false,
+            "followUpEligible": false,
+            "reviewRequired": true,
+            "authority": {
+              "source": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+              "profileId": "fitness",
+              "ruleValue": null
+            },
+            "mappingRule": {
+              "authority": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+              "profileId": "fitness",
+              "normalizedOutcome": null
+            },
+            "registryVersion": "operating-profile-engine-v1"
+          },
+          "admittedEvidence": {
+            "admitted": true,
+            "authority": "Prometheus Data",
+            "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+            "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+            "visitId": "visit-02-c3f943ebaa9c"
+          },
           "workspaceId": "fitness_connection",
           "evidenceStatus": "Review Required"
         },
@@ -6280,7 +6844,7 @@
         }
       },
       {
-        "nodeId": "cig_node_4bf9b035334998fb",
+        "nodeId": "cig_node_ba154982e2ec6abd",
         "contractVersion": "customer-intelligence-graph-v1",
         "nodeType": "Outcome",
         "customerId": "fitness_connection_research",
@@ -6295,6 +6859,37 @@
           "rawOutcome": "Membership",
           "normalizedOutcome": "sale",
           "mappingSource": "operating_profile",
+          "semanticDisposition": {
+            "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+            "disposition": "positive_success",
+            "relationshipType": "Successful",
+            "relationshipEligible": true,
+            "learningEligible": true,
+            "successEligible": true,
+            "followUpEligible": false,
+            "reviewRequired": false,
+            "authority": {
+              "source": "active_operating_profile.successEvents",
+              "profileId": "fitness",
+              "ruleValue": "sale"
+            },
+            "mappingRule": {
+              "authority": "active_operating_profile.outcomeMappings",
+              "profileId": "fitness",
+              "mappingIndex": 0,
+              "normalizedOutcome": "sale"
+            },
+            "registryVersion": "operating-profile-engine-v1"
+          },
+          "admittedEvidence": {
+            "admitted": true,
+            "authority": "Prometheus Data",
+            "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+            "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+            "visitId": "visit-03-5da0d1f6c66b"
+          },
           "workspaceId": "fitness_connection",
           "evidenceStatus": "Observed"
         },
@@ -6316,7 +6911,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "pending_human_review",
+        "reviewState": "admitted_non_review_required",
         "sensitivity": "customer_private",
         "validFrom": "1970-01-01T00:00:00.000Z",
         "validUntil": null,
@@ -6463,7 +7058,7 @@
         }
       },
       {
-        "nodeId": "cig_node_100efe5821e235e1",
+        "nodeId": "cig_node_d4f8fa13d831c27c",
         "contractVersion": "customer-intelligence-graph-v1",
         "nodeType": "Outcome",
         "customerId": "fitness_connection_research",
@@ -6478,6 +7073,36 @@
           "rawOutcome": "Conversation",
           "normalizedOutcome": "conversation",
           "mappingSource": "normalized_vocabulary",
+          "semanticDisposition": {
+            "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+            "disposition": "positive_success",
+            "relationshipType": "Successful",
+            "relationshipEligible": true,
+            "learningEligible": true,
+            "successEligible": true,
+            "followUpEligible": false,
+            "reviewRequired": false,
+            "authority": {
+              "source": "active_operating_profile.successEvents",
+              "profileId": "fitness",
+              "ruleValue": "conversation"
+            },
+            "mappingRule": {
+              "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+              "profileId": "fitness",
+              "normalizedOutcome": "conversation"
+            },
+            "registryVersion": "operating-profile-engine-v1"
+          },
+          "admittedEvidence": {
+            "admitted": true,
+            "authority": "Prometheus Data",
+            "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+            "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+            "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+            "visitId": "visit-04-32a0b9fb24c2"
+          },
           "workspaceId": "fitness_connection",
           "evidenceStatus": "Observed"
         },
@@ -6499,7 +7124,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "pending_human_review",
+        "reviewState": "admitted_non_review_required",
         "sensitivity": "customer_private",
         "validFrom": "1970-01-01T00:00:00.000Z",
         "validUntil": null,
@@ -6628,11 +7253,11 @@
         }
       },
       {
-        "relationshipId": "cig_rel_771ca1691b735b85",
+        "relationshipId": "cig_rel_708167a2e5f30038",
         "contractVersion": "customer-intelligence-graph-v1",
-        "relationshipType": "Visited",
+        "relationshipType": "Successful",
         "fromNodeId": "cig_node_319fb529fcb0d04c",
-        "toNodeId": "cig_node_601d59327b49cb3a",
+        "toNodeId": "cig_node_78e317bd8eb2c7a5",
         "customerId": "fitness_connection_research",
         "sourceEvidenceIds": [
           "evidence_cf9f7734c65f45e7"
@@ -6658,7 +7283,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "human_review_preserved",
+        "reviewState": "admitted_non_review_required",
         "validFrom": "2026-07-11T18:29:37.862Z",
         "validUntil": null,
         "safety": {
@@ -6677,6 +7302,36 @@
           "confidencePropagationActive": false,
           "humanOverridePreserved": true,
           "customerIsolationRequired": true
+        },
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "positive_success",
+          "relationshipType": "Successful",
+          "relationshipEligible": true,
+          "learningEligible": true,
+          "successEligible": true,
+          "followUpEligible": false,
+          "reviewRequired": false,
+          "authority": {
+            "source": "active_operating_profile.successEvents",
+            "profileId": "fitness",
+            "ruleValue": "conversation"
+          },
+          "mappingRule": {
+            "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+            "profileId": "fitness",
+            "normalizedOutcome": "conversation"
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-01-ab32d577b882"
         }
       },
       {
@@ -6732,11 +7387,11 @@
         }
       },
       {
-        "relationshipId": "cig_rel_dc520c7bd2aeb9c2",
+        "relationshipId": "cig_rel_4c54feabe8e46721",
         "contractVersion": "customer-intelligence-graph-v1",
         "relationshipType": "Visited",
         "fromNodeId": "cig_node_f805816fd7d98d96",
-        "toNodeId": "cig_node_ff4024823a4cbb0f",
+        "toNodeId": "cig_node_0ab3255251fc79e2",
         "customerId": "fitness_connection_research",
         "sourceEvidenceIds": [
           "evidence_3643fc0f242d8713"
@@ -6784,11 +7439,11 @@
         }
       },
       {
-        "relationshipId": "cig_rel_a5ab1bff4bd98114",
+        "relationshipId": "cig_rel_25e8aa3eaf724315",
         "contractVersion": "customer-intelligence-graph-v1",
-        "relationshipType": "Successful",
+        "relationshipType": "Visited",
         "fromNodeId": "cig_node_f805816fd7d98d96",
-        "toNodeId": "cig_node_d52ae377d1ec8f1f",
+        "toNodeId": "cig_node_447f41723422a627",
         "customerId": "fitness_connection_research",
         "sourceEvidenceIds": [
           "evidence_3643fc0f242d8713"
@@ -6814,7 +7469,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "human_review_preserved",
+        "reviewState": "human_review_required",
         "validFrom": "2026-07-11T18:41:40.758Z",
         "validUntil": null,
         "safety": {
@@ -6833,6 +7488,36 @@
           "confidencePropagationActive": false,
           "humanOverridePreserved": true,
           "customerIsolationRequired": true
+        },
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "unclassified_review_required",
+          "relationshipType": "Visited",
+          "relationshipEligible": false,
+          "learningEligible": false,
+          "successEligible": false,
+          "followUpEligible": false,
+          "reviewRequired": true,
+          "authority": {
+            "source": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+            "profileId": "fitness",
+            "ruleValue": null
+          },
+          "mappingRule": {
+            "authority": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+            "profileId": "fitness",
+            "normalizedOutcome": null
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-02-c3f943ebaa9c"
         }
       },
       {
@@ -6940,11 +7625,11 @@
         }
       },
       {
-        "relationshipId": "cig_rel_2e458a926bdee983",
+        "relationshipId": "cig_rel_4442dd8dfd79edfb",
         "contractVersion": "customer-intelligence-graph-v1",
-        "relationshipType": "Visited",
+        "relationshipType": "Successful",
         "fromNodeId": "cig_node_4a273a3bf31e6b03",
-        "toNodeId": "cig_node_4bf9b035334998fb",
+        "toNodeId": "cig_node_ba154982e2ec6abd",
         "customerId": "fitness_connection_research",
         "sourceEvidenceIds": [
           "evidence_2b4fe6e9d2e5d17d"
@@ -6970,7 +7655,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "human_review_preserved",
+        "reviewState": "admitted_non_review_required",
         "validFrom": "2026-07-11T19:15:59.328Z",
         "validUntil": null,
         "safety": {
@@ -6989,6 +7674,37 @@
           "confidencePropagationActive": false,
           "humanOverridePreserved": true,
           "customerIsolationRequired": true
+        },
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "positive_success",
+          "relationshipType": "Successful",
+          "relationshipEligible": true,
+          "learningEligible": true,
+          "successEligible": true,
+          "followUpEligible": false,
+          "reviewRequired": false,
+          "authority": {
+            "source": "active_operating_profile.successEvents",
+            "profileId": "fitness",
+            "ruleValue": "sale"
+          },
+          "mappingRule": {
+            "authority": "active_operating_profile.outcomeMappings",
+            "profileId": "fitness",
+            "mappingIndex": 0,
+            "normalizedOutcome": "sale"
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-03-5da0d1f6c66b"
         }
       },
       {
@@ -7096,11 +7812,11 @@
         }
       },
       {
-        "relationshipId": "cig_rel_36d1dc434dc3058d",
+        "relationshipId": "cig_rel_466f0e16398fa81a",
         "contractVersion": "customer-intelligence-graph-v1",
-        "relationshipType": "Visited",
+        "relationshipType": "Successful",
         "fromNodeId": "cig_node_92da264dc030b55a",
-        "toNodeId": "cig_node_100efe5821e235e1",
+        "toNodeId": "cig_node_d4f8fa13d831c27c",
         "customerId": "fitness_connection_research",
         "sourceEvidenceIds": [
           "evidence_3678cdc101a7b8f6"
@@ -7126,7 +7842,7 @@
           },
           "humanOverrideState": "preserved"
         },
-        "reviewState": "human_review_preserved",
+        "reviewState": "admitted_non_review_required",
         "validFrom": "2026-07-11T19:31:21.937Z",
         "validUntil": null,
         "safety": {
@@ -7145,11 +7861,41 @@
           "confidencePropagationActive": false,
           "humanOverridePreserved": true,
           "customerIsolationRequired": true
+        },
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "positive_success",
+          "relationshipType": "Successful",
+          "relationshipEligible": true,
+          "learningEligible": true,
+          "successEligible": true,
+          "followUpEligible": false,
+          "reviewRequired": false,
+          "authority": {
+            "source": "active_operating_profile.successEvents",
+            "profileId": "fitness",
+            "ruleValue": "conversation"
+          },
+          "mappingRule": {
+            "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+            "profileId": "fitness",
+            "normalizedOutcome": "conversation"
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-04-32a0b9fb24c2"
         }
       }
     ],
     "provenance": {
-      "sourceGraphId": "cig_graph_d2330a617cf8fac4",
+      "sourceGraphId": "cig_graph_acbfb1f8b593c2dd",
       "generatedAt": "2026-07-12T00:36:02.000Z",
       "sourceEvidenceIds": [
         "evidence_cf9f7734c65f45e7",
@@ -7196,20 +7942,24 @@
       "truthState": "Insufficient Evidence",
       "sessionsAdmitted": 1,
       "visitsAdmitted": 4,
+      "visitsEligibleForSemanticLearning": 3,
+      "reviewRequiredOutcomeCount": 1,
+      "successfulRelationshipCount": 3,
+      "followUpRelationshipCount": 0,
       "status": "INSUFFICIENT_EVIDENCE"
     },
     "categoryTimeWindowPatterns": [
       {
         "category": "Auto",
         "timeWindow": "Midday",
-        "visits": 4,
+        "visits": 3,
         "conversations": 4,
         "outcomes": {
           "Conversation": 2,
-          "Membership": 1,
-          "No contact": 1
+          "Membership": 1
         },
-        "truthState": "Observed"
+        "reviewRequiredExclusions": 1,
+        "truthState": "Insufficient Evidence"
       }
     ],
     "businessVisitOutcomeRelationships": [
@@ -7218,110 +7968,384 @@
         "relationshipType": "Visited",
         "fromNodeId": "cig_node_7910e0ee68b45f2b",
         "toNodeId": "cig_node_319fb529fcb0d04c",
-        "truthState": "Observed"
+        "truthState": "Observed",
+        "reviewState": "human_review_preserved",
+        "semanticDisposition": null,
+        "admittedEvidence": null
       },
       {
         "relationshipId": "cig_rel_083418c62ca8fd76",
         "relationshipType": "Visited",
         "fromNodeId": "cig_node_319fb529fcb0d04c",
         "toNodeId": "cig_node_fea916f01484394a",
-        "truthState": "Observed"
+        "truthState": "Observed",
+        "reviewState": "human_review_preserved",
+        "semanticDisposition": null,
+        "admittedEvidence": null
       },
       {
-        "relationshipId": "cig_rel_771ca1691b735b85",
-        "relationshipType": "Visited",
+        "relationshipId": "cig_rel_708167a2e5f30038",
+        "relationshipType": "Successful",
         "fromNodeId": "cig_node_319fb529fcb0d04c",
-        "toNodeId": "cig_node_601d59327b49cb3a",
-        "truthState": "Observed"
+        "toNodeId": "cig_node_78e317bd8eb2c7a5",
+        "truthState": "Observed",
+        "reviewState": "admitted_non_review_required",
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "positive_success",
+          "relationshipType": "Successful",
+          "relationshipEligible": true,
+          "learningEligible": true,
+          "successEligible": true,
+          "followUpEligible": false,
+          "reviewRequired": false,
+          "authority": {
+            "source": "active_operating_profile.successEvents",
+            "profileId": "fitness",
+            "ruleValue": "conversation"
+          },
+          "mappingRule": {
+            "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+            "profileId": "fitness",
+            "normalizedOutcome": "conversation"
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-01-ab32d577b882"
+        }
       },
       {
         "relationshipId": "cig_rel_aeb1d29d660eed1b",
         "relationshipType": "Visited",
         "fromNodeId": "cig_node_7910e0ee68b45f2b",
         "toNodeId": "cig_node_f805816fd7d98d96",
-        "truthState": "Observed"
+        "truthState": "Observed",
+        "reviewState": "human_review_preserved",
+        "semanticDisposition": null,
+        "admittedEvidence": null
       },
       {
-        "relationshipId": "cig_rel_dc520c7bd2aeb9c2",
+        "relationshipId": "cig_rel_4c54feabe8e46721",
         "relationshipType": "Visited",
         "fromNodeId": "cig_node_f805816fd7d98d96",
-        "toNodeId": "cig_node_ff4024823a4cbb0f",
-        "truthState": "Observed"
+        "toNodeId": "cig_node_0ab3255251fc79e2",
+        "truthState": "Observed",
+        "reviewState": "human_review_preserved",
+        "semanticDisposition": null,
+        "admittedEvidence": null
       },
       {
-        "relationshipId": "cig_rel_a5ab1bff4bd98114",
-        "relationshipType": "Successful",
+        "relationshipId": "cig_rel_25e8aa3eaf724315",
+        "relationshipType": "Visited",
         "fromNodeId": "cig_node_f805816fd7d98d96",
-        "toNodeId": "cig_node_d52ae377d1ec8f1f",
-        "truthState": "Observed"
+        "toNodeId": "cig_node_447f41723422a627",
+        "truthState": "Review Required",
+        "reviewState": "human_review_required",
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "unclassified_review_required",
+          "relationshipType": "Visited",
+          "relationshipEligible": false,
+          "learningEligible": false,
+          "successEligible": false,
+          "followUpEligible": false,
+          "reviewRequired": true,
+          "authority": {
+            "source": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+            "profileId": "fitness",
+            "ruleValue": null
+          },
+          "mappingRule": {
+            "authority": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+            "profileId": "fitness",
+            "normalizedOutcome": null
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-02-c3f943ebaa9c"
+        }
       },
       {
         "relationshipId": "cig_rel_ba3358ca51003e8f",
         "relationshipType": "Visited",
         "fromNodeId": "cig_node_7910e0ee68b45f2b",
         "toNodeId": "cig_node_4a273a3bf31e6b03",
-        "truthState": "Observed"
+        "truthState": "Observed",
+        "reviewState": "human_review_preserved",
+        "semanticDisposition": null,
+        "admittedEvidence": null
       },
       {
         "relationshipId": "cig_rel_ad4bb2627b561881",
         "relationshipType": "Visited",
         "fromNodeId": "cig_node_4a273a3bf31e6b03",
         "toNodeId": "cig_node_90f8eacc2851467f",
-        "truthState": "Observed"
+        "truthState": "Observed",
+        "reviewState": "human_review_preserved",
+        "semanticDisposition": null,
+        "admittedEvidence": null
       },
       {
-        "relationshipId": "cig_rel_2e458a926bdee983",
-        "relationshipType": "Visited",
+        "relationshipId": "cig_rel_4442dd8dfd79edfb",
+        "relationshipType": "Successful",
         "fromNodeId": "cig_node_4a273a3bf31e6b03",
-        "toNodeId": "cig_node_4bf9b035334998fb",
-        "truthState": "Observed"
+        "toNodeId": "cig_node_ba154982e2ec6abd",
+        "truthState": "Observed",
+        "reviewState": "admitted_non_review_required",
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "positive_success",
+          "relationshipType": "Successful",
+          "relationshipEligible": true,
+          "learningEligible": true,
+          "successEligible": true,
+          "followUpEligible": false,
+          "reviewRequired": false,
+          "authority": {
+            "source": "active_operating_profile.successEvents",
+            "profileId": "fitness",
+            "ruleValue": "sale"
+          },
+          "mappingRule": {
+            "authority": "active_operating_profile.outcomeMappings",
+            "profileId": "fitness",
+            "mappingIndex": 0,
+            "normalizedOutcome": "sale"
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-03-5da0d1f6c66b"
+        }
       },
       {
         "relationshipId": "cig_rel_9eced5f12ace315e",
         "relationshipType": "Visited",
         "fromNodeId": "cig_node_7910e0ee68b45f2b",
         "toNodeId": "cig_node_92da264dc030b55a",
-        "truthState": "Observed"
+        "truthState": "Observed",
+        "reviewState": "human_review_preserved",
+        "semanticDisposition": null,
+        "admittedEvidence": null
       },
       {
         "relationshipId": "cig_rel_8d37d04ef96cf780",
         "relationshipType": "Visited",
         "fromNodeId": "cig_node_92da264dc030b55a",
         "toNodeId": "cig_node_f502ee278f3b3e40",
-        "truthState": "Observed"
+        "truthState": "Observed",
+        "reviewState": "human_review_preserved",
+        "semanticDisposition": null,
+        "admittedEvidence": null
       },
       {
-        "relationshipId": "cig_rel_36d1dc434dc3058d",
-        "relationshipType": "Visited",
+        "relationshipId": "cig_rel_466f0e16398fa81a",
+        "relationshipType": "Successful",
         "fromNodeId": "cig_node_92da264dc030b55a",
-        "toNodeId": "cig_node_100efe5821e235e1",
-        "truthState": "Observed"
+        "toNodeId": "cig_node_d4f8fa13d831c27c",
+        "truthState": "Observed",
+        "reviewState": "admitted_non_review_required",
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "positive_success",
+          "relationshipType": "Successful",
+          "relationshipEligible": true,
+          "learningEligible": true,
+          "successEligible": true,
+          "followUpEligible": false,
+          "reviewRequired": false,
+          "authority": {
+            "source": "active_operating_profile.successEvents",
+            "profileId": "fitness",
+            "ruleValue": "conversation"
+          },
+          "mappingRule": {
+            "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+            "profileId": "fitness",
+            "normalizedOutcome": "conversation"
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-04-32a0b9fb24c2"
+        }
       }
     ],
     "outcomeObservations": [
       {
-        "outcomeNodeId": "cig_node_601d59327b49cb3a",
+        "outcomeNodeId": "cig_node_78e317bd8eb2c7a5",
         "rawOutcome": "Conversation",
         "normalizedOutcome": "conversation",
-        "truthState": "Observed"
+        "truthState": "Observed",
+        "mappingSource": "normalized_vocabulary",
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "positive_success",
+          "relationshipType": "Successful",
+          "relationshipEligible": true,
+          "learningEligible": true,
+          "successEligible": true,
+          "followUpEligible": false,
+          "reviewRequired": false,
+          "authority": {
+            "source": "active_operating_profile.successEvents",
+            "profileId": "fitness",
+            "ruleValue": "conversation"
+          },
+          "mappingRule": {
+            "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+            "profileId": "fitness",
+            "normalizedOutcome": "conversation"
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-01-ab32d577b882"
+        }
       },
       {
-        "outcomeNodeId": "cig_node_d52ae377d1ec8f1f",
+        "outcomeNodeId": "cig_node_447f41723422a627",
         "rawOutcome": "No contact",
-        "normalizedOutcome": "lead",
-        "truthState": "Review Required"
+        "normalizedOutcome": null,
+        "truthState": "Review Required",
+        "mappingSource": "unclassified_review_required",
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "unclassified_review_required",
+          "relationshipType": "Visited",
+          "relationshipEligible": false,
+          "learningEligible": false,
+          "successEligible": false,
+          "followUpEligible": false,
+          "reviewRequired": true,
+          "authority": {
+            "source": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+            "profileId": "fitness",
+            "ruleValue": null
+          },
+          "mappingRule": {
+            "authority": "operating_profile_outcome_semantic_disposition.failClosedUnknownOutcomes",
+            "profileId": "fitness",
+            "normalizedOutcome": null
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-02-c3f943ebaa9c"
+        }
       },
       {
-        "outcomeNodeId": "cig_node_4bf9b035334998fb",
+        "outcomeNodeId": "cig_node_ba154982e2ec6abd",
         "rawOutcome": "Membership",
         "normalizedOutcome": "sale",
-        "truthState": "Observed"
+        "truthState": "Observed",
+        "mappingSource": "operating_profile",
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "positive_success",
+          "relationshipType": "Successful",
+          "relationshipEligible": true,
+          "learningEligible": true,
+          "successEligible": true,
+          "followUpEligible": false,
+          "reviewRequired": false,
+          "authority": {
+            "source": "active_operating_profile.successEvents",
+            "profileId": "fitness",
+            "ruleValue": "sale"
+          },
+          "mappingRule": {
+            "authority": "active_operating_profile.outcomeMappings",
+            "profileId": "fitness",
+            "mappingIndex": 0,
+            "normalizedOutcome": "sale"
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-03-5da0d1f6c66b"
+        }
       },
       {
-        "outcomeNodeId": "cig_node_100efe5821e235e1",
+        "outcomeNodeId": "cig_node_d4f8fa13d831c27c",
         "rawOutcome": "Conversation",
         "normalizedOutcome": "conversation",
-        "truthState": "Observed"
+        "truthState": "Observed",
+        "mappingSource": "normalized_vocabulary",
+        "semanticDisposition": {
+          "contractVersion": "operating-profile-outcome-semantic-disposition-v1",
+          "disposition": "positive_success",
+          "relationshipType": "Successful",
+          "relationshipEligible": true,
+          "learningEligible": true,
+          "successEligible": true,
+          "followUpEligible": false,
+          "reviewRequired": false,
+          "authority": {
+            "source": "active_operating_profile.successEvents",
+            "profileId": "fitness",
+            "ruleValue": "conversation"
+          },
+          "mappingRule": {
+            "authority": "operating_profile_registry.normalizedOutcomeVocabulary",
+            "profileId": "fitness",
+            "normalizedOutcome": "conversation"
+          },
+          "registryVersion": "operating-profile-engine-v1"
+        },
+        "admittedEvidence": {
+          "admitted": true,
+          "authority": "Prometheus Data",
+          "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
+          "sourceRecordSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-04-32a0b9fb24c2"
+        }
       }
     ],
     "strongestThresholdSupportedPattern": {
@@ -7330,7 +8354,7 @@
       "confidenceBand": "insufficient_evidence",
       "evidenceCount": {
         "sessions": 1,
-        "visits": 4,
+        "visits": 3,
         "conversations": 4,
         "leads": 3,
         "memberships": null
@@ -7360,7 +8384,7 @@
     "confidence": {
       "truthState": "Insufficient Evidence",
       "band": "insufficient_evidence",
-      "score": 0.55,
+      "score": 0.5333,
       "limitingFactors": [
         "verifiedSessions_below_threshold",
         "visits_below_threshold",
@@ -7381,7 +8405,8 @@
     "dataQualityWarnings": [
       "Additional governed sessions are required.",
       "Some visit decision sources are unknown.",
-      "Some evidence dimensions are unavailable."
+      "Some evidence dimensions are unavailable.",
+      "1 outcome(s) require human review and are excluded from semantic learning."
     ],
     "lastGovernedEvidenceAt": "2026-07-12T00:36:02.000Z",
     "additionalEvidenceNeeded": [
@@ -7393,9 +8418,9 @@
       },
       {
         "metric": "visits",
-        "current": 4,
+        "current": 3,
         "required": 12,
-        "remaining": 8
+        "remaining": 9
       },
       {
         "metric": "conversations",
@@ -7416,12 +8441,13 @@
       "readOnlyLearning": "read-only-field-session-learning-v1",
       "offRouteLearning": "off-route-learning-intelligence-v1",
       "customerGraph": "customer-intelligence-graph-v1",
-      "operatingProfile": "fitness"
+      "operatingProfile": "fitness",
+      "outcomeSemanticDisposition": "operating-profile-outcome-semantic-disposition-v1"
     },
     "provenance": {
       "manifestId": "riq_eligible_sessions_2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
       "manifestSha256": "2371fa77495dcaef65c5bccbb751b4fb6b5c27f61e984f1e54eefabf951ee943",
-      "graphId": "cig_graph_d2330a617cf8fac4",
+      "graphId": "cig_graph_acbfb1f8b593c2dd",
       "graphQueryId": "cig_query_contract_ea7bd92c12cb16f7",
       "workspaceId": "fitness_connection",
       "customerId": "fitness_connection_research",
@@ -7429,6 +8455,7 @@
       "representativeId": "cruz",
       "evidenceClassification": "FOUNDER_FIELD_RESEARCH",
       "humanOverrideState": "preserved",
+      "outcomeSemanticAuthority": "operating-profile-outcome-semantic-disposition-v1",
       "freshnessState": "CURRENT_WITHIN_RETENTION_BOUNDARY"
     },
     "safety": {
@@ -7456,6 +8483,6 @@
     "sourceArchiveMutationPerformed": false,
     "productionRuntimeActivated": false
   },
-  "artifactId": "riq_governed_learning_86f0ff03747d330844473091f46cc05350a1e0ed0b262430e23caaa0ed229a56",
-  "artifactSha256": "86f0ff03747d330844473091f46cc05350a1e0ed0b262430e23caaa0ed229a56"
+  "artifactId": "riq_governed_learning_e2113e2c7290546d0bd1b637902abe38a12b3672e369a3bf01ffdbdec6d82e2f",
+  "artifactSha256": "e2113e2c7290546d0bd1b637902abe38a12b3672e369a3bf01ffdbdec6d82e2f"
 }
