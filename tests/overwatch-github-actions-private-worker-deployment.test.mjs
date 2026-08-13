@@ -22,6 +22,7 @@ import {
   hasFieldSessionReportTypeInfrastructureSuccessor,
   hasGovernedLearningProtectedConsumerCompositionSuccessor,
   hasGovernedLearningPayloadInfrastructureSuccessor,
+  hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor,
   hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
@@ -315,6 +316,10 @@ test("Overwatch verifies Founder-authenticated private-repository deployment dis
     result.immutableWorkflowV2GovernedLearningPayloadSuccessorCommit,
     "a80916d6281b3e584de46508d9d4b2e08f582391"
   );
+  assert.equal(
+    result.immutableWorkflowV2OutcomeSemanticIntegrityPayloadSuccessorCommit,
+    "9c85a32f296eb44cff59cf101615e133960fdd93"
+  );
   assert.equal(result.localRealWranglerDryRunPassed, true);
   assert.equal(result.cleanRunnerRealWranglerEvidencePending, true);
   assert.equal(result.protectedEnvironmentRequiredNamesPresent, true);
@@ -481,6 +486,16 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
     readinessSuccessors: currentReadinessSuccessors,
     path: workflowPath,
     previousSha256: workflowPreviousSha256,
+    currentSha256: governanceV2.outcomeSemanticIntegrityPayloadSuccessor.evidence
+      .find(item => item.path === workflowPath).previousSha256
+  }), true);
+  assert.equal(hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
+    governance: governanceV2,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: workflowPath,
+    previousSha256: workflowPreviousSha256,
     currentSha256: workflowCurrentSha256
   }), true);
 
@@ -489,6 +504,19 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
     "Prometheus Overwatch <overwatch@prometheus.local>";
   assert.equal(hasGovernedLearningPayloadInfrastructureSuccessor({
     governance: changedGovernance,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors: currentReadinessSuccessors,
+    path: workflowPath,
+    previousSha256: workflowPreviousSha256,
+    currentSha256: workflowCurrentSha256
+  }), false);
+
+  const changedSemanticGovernance = clone(governanceV2);
+  changedSemanticGovernance.outcomeSemanticIntegrityPayloadSuccessor.implementationOwner =
+    "Prometheus Overwatch <overwatch@prometheus.local>";
+  assert.equal(hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
+    governance: changedSemanticGovernance,
     fieldSessionReportTypeGovernance,
     liveCanonicalIdentityGovernance,
     readinessSuccessors: currentReadinessSuccessors,
@@ -1425,6 +1453,20 @@ test("private Workflow v2 governance rejects controlled-rehearsal successor drif
     },
     value => {
       value.governedLearningPayloadSuccessor.deploymentAuthorized = true;
+    },
+    value => {
+      value.outcomeSemanticIntegrityPayloadSuccessor.implementationCommit = "0".repeat(40);
+    },
+    value => {
+      value.outcomeSemanticIntegrityPayloadSuccessor.evidence[0].successorSha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.outcomeSemanticIntegrityPayloadSuccessor.deployParitySha256 =
+        value.retentionMaintenancePayloadSuccessor.deployParitySha256;
+    },
+    value => {
+      value.outcomeSemanticIntegrityPayloadSuccessor.deploymentAuthorized = true;
     }
   ]) {
     const candidate = clone(governanceV2);
@@ -1501,6 +1543,16 @@ test("private Workflow v2 composes the exact ordered retention payload successor
         .find(item => item.path === path).previousSha256
     }), true);
     assert.equal(hasGovernedLearningPayloadInfrastructureSuccessor({
+      governance: governanceV2,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors: currentReadinessSuccessors,
+      path,
+      previousSha256,
+      currentSha256: governanceV2.outcomeSemanticIntegrityPayloadSuccessor.evidence
+        .find(item => item.path === path).previousSha256
+    }), true);
+    assert.equal(hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
       governance: governanceV2,
       fieldSessionReportTypeGovernance,
       liveCanonicalIdentityGovernance,

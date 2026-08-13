@@ -436,6 +436,27 @@ const v2GovernedLearningPayloadSuccessorEvidence = Object.freeze({
       successorSha256: "83587a33266f61ba5731f3292dfdfcf438d707849f92ac373fa76ff812e62a8d"
     })
 });
+const v2OutcomeSemanticIntegrityPayloadSuccessorCommit =
+  "9c85a32f296eb44cff59cf101615e133960fdd93";
+const v2OutcomeSemanticIntegrityPayloadSuccessorParent =
+  "a884e45b9cc6b142fb73d081cc6bfc1beb50bc1b";
+const v2OutcomeSemanticIntegrityPayloadSuccessorTree =
+  "bd24eec6c7c4e1690f416a8a440596efafb67325";
+const v2OutcomeSemanticIntegrityPayloadSuccessorEvidence = Object.freeze({
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs": Object.freeze({
+    previousSha256: "4d98b54b16d65cafd44b1b25af63c876a8e39ce4292a327e99b5ff8db7cf6fa7",
+    successorSha256: "37734d9d66d9cb5039c5d55070ea0c13cfb68f67bd46989e6942e32e84938bde"
+  }),
+  "tests/github-actions-private-worker-workflow-v2.test.mjs": Object.freeze({
+    previousSha256: "dafb17eaf56dc6cf6cd21d1f9828ddce82d223e4d49e7ab8ae8f2db96ca6d503",
+    successorSha256: "0be634c012833c62ae58f06eec0f59328b65ebf8ca0540bcd350ecefc49d0933"
+  }),
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    Object.freeze({
+      previousSha256: "83587a33266f61ba5731f3292dfdfcf438d707849f92ac373fa76ff812e62a8d",
+      successorSha256: "874f5955727fab02d292e90afc6e3964f47d0b9ccda80db25b2e0477135e09a1"
+    })
+});
 
 const v2OwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker-v2.yml":
@@ -2234,6 +2255,100 @@ export function hasGovernedLearningPayloadInfrastructureSuccessor({
       governance?.retentionMaintenancePayloadSuccessor?.qualifiedRollbackBundleSha256
     || !equal(successor?.evidence,
       Object.entries(v2GovernedLearningPayloadSuccessorEvidence).map(
+        ([evidencePath, item]) => ({ path: evidencePath, ...item })
+      ))
+    || evidence.length !== 1
+    || evidence[0].successorSha256 !== currentSha256
+    || !predecessorIsGoverned) {
+    return false;
+  }
+  try {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      successor.implementationCommit
+    ]).split("\n");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      successor.implementationCommit
+    ]).split("\n").filter(Boolean);
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${successor.implementationParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${successor.implementationCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor", successor.implementationCommit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return equal(fields, [
+      successor.implementationCommit,
+      successor.implementationParent,
+      successor.implementationTree,
+      infrastructureIdentity,
+      infrastructureIdentity,
+      successor.implementationSubject
+    ])
+      && equal(paths, successor.evidence.map(item => item.path).sort())
+      && sha256(previous) === evidence[0].previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
+
+export function hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
+  governance,
+  fieldSessionReportTypeGovernance,
+  liveCanonicalIdentityGovernance,
+  readinessSuccessors,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const successor = governance?.outcomeSemanticIntegrityPayloadSuccessor;
+  const evidence = successor?.evidence?.filter(item => item.path === path) ?? [];
+  const predecessorIsGoverned = evidence.length === 1 && (
+    evidence[0].previousSha256 === previousSha256
+    || hasGovernedLearningPayloadInfrastructureSuccessor({
+      governance,
+      fieldSessionReportTypeGovernance,
+      liveCanonicalIdentityGovernance,
+      readinessSuccessors,
+      path,
+      previousSha256,
+      currentSha256: evidence[0].previousSha256
+    })
+  );
+  if (governance?.governanceId !==
+      "github-actions-private-worker-deployment-governance-v2"
+    || governance?.owningSubsystem !== "Prometheus Overwatch"
+    || successor?.authorization !== "BATCH-20260813-001"
+    || successor?.predecessorImplementationCommit !==
+      v2GovernedLearningPayloadSuccessorCommit
+    || successor?.implementationCommit !==
+      v2OutcomeSemanticIntegrityPayloadSuccessorCommit
+    || successor?.implementationParent !==
+      v2OutcomeSemanticIntegrityPayloadSuccessorParent
+    || successor?.implementationTree !==
+      v2OutcomeSemanticIntegrityPayloadSuccessorTree
+    || successor?.implementationOwner !== infrastructureIdentity
+    || successor?.implementationSubject !==
+      "infrastructure: pin outcome semantic private payload"
+    || successor?.historicalContinuityRewritten !== false
+    || successor?.productionMutationAuthorized !== false
+    || successor?.deploymentAuthorized !== false
+    || successor?.previousDeployParitySha256 !==
+      governance?.governedLearningPayloadSuccessor?.deployParitySha256
+    || successor?.deployParitySha256 !==
+      governance?.governedLearningPayloadSuccessor?.deployParitySha256
+    || successor?.previousQualifiedForwardPayloadSha256 !==
+      governance?.governedLearningPayloadSuccessor?.qualifiedForwardPayloadSha256
+    || successor?.qualifiedForwardPayloadSha256 !==
+      "129d2e93d5d3a0ae538f3eb1e5c1982bcf658b5b05d2da1d8f23bf8e1540e52b"
+    || successor?.qualifiedRollbackBundleSha256 !==
+      governance?.governedLearningPayloadSuccessor?.qualifiedRollbackBundleSha256
+    || !equal(successor?.evidence,
+      Object.entries(v2OutcomeSemanticIntegrityPayloadSuccessorEvidence).map(
         ([evidencePath, item]) => ({ path: evidencePath, ...item })
       ))
     || evidence.length !== 1
@@ -4445,12 +4560,47 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       Object.entries(v2GovernedLearningPayloadSuccessorEvidence).map(
         ([path, evidence]) => ({ path, ...evidence })
       ))
-    && contract?.continuity?.privateDeployParitySha256 ===
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor?.authorization ===
+      "BATCH-20260813-001"
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor
+      ?.historicalContinuityRewritten === false
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor
+      ?.productionMutationAuthorized === false
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor?.deploymentAuthorized === false
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor
+      ?.predecessorImplementationCommit === v2GovernedLearningPayloadSuccessorCommit
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor?.implementationCommit ===
+      v2OutcomeSemanticIntegrityPayloadSuccessorCommit
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor?.implementationParent ===
+      v2OutcomeSemanticIntegrityPayloadSuccessorParent
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor?.implementationTree ===
+      v2OutcomeSemanticIntegrityPayloadSuccessorTree
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor?.implementationOwner ===
+      infrastructureIdentity
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor?.implementationSubject ===
+      "infrastructure: pin outcome semantic private payload"
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor?.previousDeployParitySha256 ===
       governance?.governedLearningPayloadSuccessor?.deployParitySha256
-    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor?.deployParitySha256 ===
+      governance?.governedLearningPayloadSuccessor?.deployParitySha256
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor
+      ?.previousQualifiedForwardPayloadSha256 ===
       governance?.governedLearningPayloadSuccessor?.qualifiedForwardPayloadSha256
-    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor?.qualifiedForwardPayloadSha256 ===
+      "129d2e93d5d3a0ae538f3eb1e5c1982bcf658b5b05d2da1d8f23bf8e1540e52b"
+    && governance?.outcomeSemanticIntegrityPayloadSuccessor
+      ?.qualifiedRollbackBundleSha256 ===
       governance?.governedLearningPayloadSuccessor?.qualifiedRollbackBundleSha256
+    && equal(governance?.outcomeSemanticIntegrityPayloadSuccessor?.evidence,
+      Object.entries(v2OutcomeSemanticIntegrityPayloadSuccessorEvidence).map(
+        ([path, evidence]) => ({ path, ...evidence })
+      ))
+    && contract?.continuity?.privateDeployParitySha256 ===
+      governance?.outcomeSemanticIntegrityPayloadSuccessor?.deployParitySha256
+    && contract?.continuity?.qualifiedForwardPayloadSha256 ===
+      governance?.outcomeSemanticIntegrityPayloadSuccessor?.qualifiedForwardPayloadSha256
+    && contract?.continuity?.qualifiedRollbackBundleSha256 ===
+      governance?.outcomeSemanticIntegrityPayloadSuccessor?.qualifiedRollbackBundleSha256
     && contract?.browserAcceptance?.contract ===
       "workers/infrastructure/route-iq-paid-customer-private-browser-acceptance-v1.json"
     && contract?.browserAcceptance?.runner ===
@@ -4625,6 +4775,15 @@ function verifyActivePrivateDeploymentToolchainSuccessor() {
   for (const [path, expected] of Object.entries(successor.currentEvidence)) {
     const currentSha256 = sha256(readFileSync(resolve(root, path)));
     if (currentSha256 !== expected
+      && !hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
+        governance: privateWorkflowGovernance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance,
+        readinessSuccessors,
+        path,
+        previousSha256: expected,
+        currentSha256
+      })
       && !hasGovernedLearningPayloadInfrastructureSuccessor({
         governance: privateWorkflowGovernance,
         fieldSessionReportTypeGovernance,
@@ -4819,6 +4978,17 @@ function verifyV2OwnerAndGovernance() {
         path,
         previousSha256: evidence.successorSha256,
         currentSha256
+      })
+      || hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
+        governance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance: readJson(
+          liveCanonicalIdentityGovernancePath
+        ),
+        readinessSuccessors: readJson(currentReadinessSuccessorsPath),
+        path,
+        previousSha256: evidence.successorSha256,
+        currentSha256
       });
     if (sha256(previous) !== evidence.previousSha256
       || sha256(successor) !== evidence.successorSha256
@@ -4866,11 +5036,70 @@ function verifyV2OwnerAndGovernance() {
     const successor = execFileSync("/usr/bin/git", [
       "show", `${v2GovernedLearningPayloadSuccessorCommit}:${path}`
     ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const currentSha256 = sha256(readFileSync(resolve(root, path)));
+    const currentIsGoverned = currentSha256 === evidence.successorSha256
+      || hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
+        governance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance: readJson(
+          liveCanonicalIdentityGovernancePath
+        ),
+        readinessSuccessors: readJson(currentReadinessSuccessorsPath),
+        path,
+        previousSha256: evidence.successorSha256,
+        currentSha256
+      });
+    if (sha256(previous) !== evidence.previousSha256
+      || sha256(successor) !== evidence.successorSha256
+      || !currentIsGoverned) {
+      throw new Error(
+        `Private Workflow v2 governed-learning payload evidence drifted: ${path}`
+      );
+    }
+  }
+
+  const outcomeSemanticPayloadMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    v2OutcomeSemanticIntegrityPayloadSuccessorCommit
+  ]).split("\n");
+  if (!equal(outcomeSemanticPayloadMetadata, [
+    v2OutcomeSemanticIntegrityPayloadSuccessorCommit,
+    v2OutcomeSemanticIntegrityPayloadSuccessorParent,
+    v2OutcomeSemanticIntegrityPayloadSuccessorTree,
+    infrastructureIdentity,
+    infrastructureIdentity,
+    "infrastructure: pin outcome semantic private payload"
+  ])) {
+    throw new Error("Private Workflow v2 outcome-semantic payload provenance drifted.");
+  }
+  const outcomeSemanticPayloadPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    v2OutcomeSemanticIntegrityPayloadSuccessorCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(outcomeSemanticPayloadPaths,
+    Object.keys(v2OutcomeSemanticIntegrityPayloadSuccessorEvidence))) {
+    throw new Error("Private Workflow v2 outcome-semantic payload path set drifted.");
+  }
+  if (outcomeSemanticPayloadPaths.some(path => path.startsWith("overwatch/")
+    || path === "package.json")) {
+    throw new Error(
+      "Private Workflow v2 outcome-semantic payload crossed the Overwatch boundary."
+    );
+  }
+  for (const [path, evidence] of Object.entries(
+    v2OutcomeSemanticIntegrityPayloadSuccessorEvidence
+  )) {
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${v2OutcomeSemanticIntegrityPayloadSuccessorParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const successor = execFileSync("/usr/bin/git", [
+      "show", `${v2OutcomeSemanticIntegrityPayloadSuccessorCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
     if (sha256(previous) !== evidence.previousSha256
       || sha256(successor) !== evidence.successorSha256
       || sha256(readFileSync(resolve(root, path))) !== evidence.successorSha256) {
       throw new Error(
-        `Private Workflow v2 governed-learning payload evidence drifted: ${path}`
+        `Private Workflow v2 outcome-semantic payload evidence drifted: ${path}`
       );
     }
   }
@@ -6239,6 +6468,15 @@ function verifyV2OwnerAndGovernance() {
         previousSha256: expected,
         currentSha256: candidateSha256
       })
+      || hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
+        governance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance: liveCanonicalGovernance,
+        readinessSuccessors,
+        path,
+        previousSha256: expected,
+        currentSha256: candidateSha256
+      })
       || hasGovernedLearningProtectedConsumerCompositionSuccessor({
         path,
         previousSha256: expected,
@@ -6908,6 +7146,8 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
       v2RetentionMaintenancePayloadSuccessorCommit,
     immutableWorkflowV2GovernedLearningPayloadSuccessorCommit:
       v2GovernedLearningPayloadSuccessorCommit,
+    immutableWorkflowV2OutcomeSemanticIntegrityPayloadSuccessorCommit:
+      v2OutcomeSemanticIntegrityPayloadSuccessorCommit,
     immutableWorkflowV2LiveCanonicalIdentityShadowReadinessRepairCommit:
       v2LiveCanonicalIdentityShadowReadinessRepairCommit,
     immutableWorkflowV2LiveCanonicalIdentityProtectedConsumerCompositionRepairCommit:

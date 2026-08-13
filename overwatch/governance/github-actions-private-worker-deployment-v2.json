@@ -1996,6 +1996,40 @@
       }
     ]
   },
+  "outcomeSemanticIntegrityPayloadSuccessor": {
+    "authorization": "BATCH-20260813-001",
+    "historicalContinuityRewritten": false,
+    "productionMutationAuthorized": false,
+    "deploymentAuthorized": false,
+    "predecessorImplementationCommit": "a80916d6281b3e584de46508d9d4b2e08f582391",
+    "implementationCommit": "9c85a32f296eb44cff59cf101615e133960fdd93",
+    "implementationParent": "a884e45b9cc6b142fb73d081cc6bfc1beb50bc1b",
+    "implementationTree": "bd24eec6c7c4e1690f416a8a440596efafb67325",
+    "implementationOwner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "implementationSubject": "infrastructure: pin outcome semantic private payload",
+    "previousDeployParitySha256": "e501b84ec1fab67f84d021041f80bc08030596be35181d8eb129a96ef6609a83",
+    "deployParitySha256": "e501b84ec1fab67f84d021041f80bc08030596be35181d8eb129a96ef6609a83",
+    "previousQualifiedForwardPayloadSha256": "7ed697de32134dcd940df2238b8bddaa0bb41e57a365716ea7e6f5f454c8fd24",
+    "qualifiedForwardPayloadSha256": "129d2e93d5d3a0ae538f3eb1e5c1982bcf658b5b05d2da1d8f23bf8e1540e52b",
+    "qualifiedRollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+    "evidence": [
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "previousSha256": "4d98b54b16d65cafd44b1b25af63c876a8e39ce4292a327e99b5ff8db7cf6fa7",
+        "successorSha256": "37734d9d66d9cb5039c5d55070ea0c13cfb68f67bd46989e6942e32e84938bde"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "previousSha256": "dafb17eaf56dc6cf6cd21d1f9828ddce82d223e4d49e7ab8ae8f2db96ca6d503",
+        "successorSha256": "0be634c012833c62ae58f06eec0f59328b65ebf8ca0540bcd350ecefc49d0933"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "previousSha256": "83587a33266f61ba5731f3292dfdfcf438d707849f92ac373fa76ff812e62a8d",
+        "successorSha256": "874f5955727fab02d292e90afc6e3964f47d0b9ccda80db25b2e0477135e09a1"
+      }
+    ]
+  },
   "workflowBoundary": {
     "qualificationWorkflow": "Qualify Prometheus Private Worker v2",
     "deploymentWorkflow": "Deploy Prometheus Private Worker v2",
