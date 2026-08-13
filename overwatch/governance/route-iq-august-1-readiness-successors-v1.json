@@ -107,6 +107,11 @@
       "path": "tests/overwatch-public-deployment-workflow-v2.test.mjs",
       "previousSha256": "2165324ae8773102e3d74f072856373248bc1d67b8dcef8e73d0dcd23bfbea5d",
       "successorSha256": "66be58c413b4b133049998351302fa72181643fd012c500b1939ec02e56489bd"
+    },
+    {
+      "path": "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+      "previousSha256": "66be58c413b4b133049998351302fa72181643fd012c500b1939ec02e56489bd",
+      "successorSha256": "65243e3c525bac1ea41849228acfdc8f6952610fff838dfee5835b973c3f9a1c"
     }
   ],
   "successors": [
