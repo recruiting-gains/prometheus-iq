@@ -29,7 +29,8 @@
     {"commit":"f93c1d960365d62fc633aefd5f90f04d4f2cd723","tree":"cd97de04d523f10b1727f487934ccf6bbf271d7b","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: govern future calibration windows"},
     {"commit":"04bf2ea7e5ff6db734e559f16b9154772d76fc73","tree":"f0f09dd6568bbb3677c27846c513f184ffd1027c","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: bridge production calibration admission"},
     {"commit":"48aa89891f311a5a6d2bf65373c26c632d73e2b8","tree":"bc42128af2778160b6fed6e0bf363259c0acc737","owner":"Prometheus Security <security@prometheus.local>","subject":"security: verify production calibration admission boundary"},
-    {"commit":"46daa2be91ac84c1256d82231836d23fa625e6fa","tree":"dd905b3984bab89e9c7096aa4b18fd99d3ca36c7","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: package calibration admission forward revert"}
+    {"commit":"46daa2be91ac84c1256d82231836d23fa625e6fa","tree":"dd905b3984bab89e9c7096aa4b18fd99d3ca36c7","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: package calibration admission forward revert"},
+    {"commit":"54a4faf0a5f6f6b1cf48af19cf50812c1ffdb8ed","tree":"3fa6922f002901641b5efc3ae425946043c86974","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: verify production calibration adapter path"}
   ],
   "provenanceAndCompatibilityCommits": [
     "a54e29c1d3cc302ce4988c53a9f10d98df118b4b",
@@ -57,7 +58,8 @@
     {"path":"workers/infrastructure/route-iq-prospective-shadow-runtime.js","sha256":"a9ab5f19c2059e07320e5735c6a2cd3bd4ee53ca2b14ff01a4a9c6ac876c1e9d"},
     {"path":"intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json","sha256":"cbaa9bfcb9e6540c8800a207e32aa59cc4302a8898b5dab0e10b10f9595085a0"},
     {"path":"workers/infrastructure/route-iq-prospective-calibration-production-admission-forward-revert-v1.json","sha256":"68e2fe0ee894a6ef4c83d9d2d0f32ff3ffdf9e7d7310c7b6472c51b40fbdd4cf"},
-    {"path":"tests/route-iq-prospective-production-admission-security.test.mjs","sha256":"1290e3a094b366fce85d1647b2afa83521906acd5ffb5caf8e3f66675853dd21"}
+    {"path":"tests/route-iq-prospective-production-admission-security.test.mjs","sha256":"1290e3a094b366fce85d1647b2afa83521906acd5ffb5caf8e3f66675853dd21"},
+    {"path":"scripts/verify-route-iq-prospective-shadow-infrastructure.mjs","sha256":"0ec49d64e83cac04905a6d22e4f60e23621df2b204e7122c44f81b3980f3c794"}
   ],
   "historicalProtection": {
     "julyReadinessConfigPath": "intelligence/config/shadow-decision-readiness-v1.json",
