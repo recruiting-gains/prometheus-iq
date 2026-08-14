@@ -4,6 +4,9 @@ import {
   readRouteIqFieldSessionArchive
 } from "../../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
 import {
+  createRouteIqProspectiveProductionRetentionAdmissionAdapter
+} from "../../data/route-iq-field-sessions-v1/route-iq-prospective-production-retention-admission.mjs";
+import {
   routeIqProspectiveCoordinatorContractVersion,
   routeIqProspectiveRuntimeContextContractVersion
 } from "../../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
@@ -40,9 +43,11 @@ import {
 } from "./route-iq-prospective-shadow-access.js";
 import {
   assertRouteIqProspectiveAuthorityConfig,
-  createRouteIqProspectiveAuthorityEnvelope
+  createRouteIqProspectiveAuthorityEnvelope,
+  createRouteIqProspectiveAuthorityVerifier
 } from "./route-iq-prospective-shadow-authority.js";
 import {
+  verifyAndCreateRouteIqProspectiveRetentionAuthorityEnvelope,
   verifyRouteIqProspectiveDataRetentionAdmission
 } from "./route-iq-prospective-shadow-retention-admission.js";
 import {
@@ -511,45 +516,231 @@ async function readExactCommittedProjectionWithRecovery({
   );
 }
 
-async function resolveRouteIqEvaluationRetentionEnvelope({
+function productionRetentionRequest({
   scope,
   scoreableOutcome,
   outcomeReceipt,
   fieldSessionOutcomeProjection,
+  fieldSessionId
+}) {
+  if (typeof fieldSessionId !== "string" || fieldSessionId.length === 0) {
+    failRouteIqProspective(
+      "The committed field-session identity is unavailable for retention admission.",
+      "route_iq_prospective_retention_field_session_unavailable",
+      409
+    );
+  }
+  return Object.freeze({
+    scope: { ...scope },
+    opportunityId: scoreableOutcome.opportunityId,
+    fieldSessionId,
+    coordinatorSessionId: outcomeReceipt.sessionId,
+    evaluationContextSha256: scoreableOutcome.evaluationContextSha256,
+    evaluatedCandidateId: scoreableOutcome.candidateId,
+    actionArtifactId: scoreableOutcome.actionArtifactId,
+    outcomeReceiptArtifactId: outcomeReceipt.artifactId,
+    outcomeReceiptRecordSha256: outcomeReceipt.recordSha256,
+    sourceArchiveSessionSha256:
+      fieldSessionOutcomeProjection.sourceArchive.sourceArchiveSessionSha256,
+    sourceArchiveRawSha256: fieldSessionOutcomeProjection.sourceArchive.rawSha256,
+    sourceOutcomeEvidenceSha256: scoreableOutcome.sourceOutcomeEvidenceSha256,
+    authoritativeOutcomeTime: outcomeReceipt.authoritativeRecordTime
+  });
+}
+
+function productionRetentionExpected(request, fieldSessionOutcomeProjection, env, adapter) {
+  return Object.freeze({
+    providerBindingIdentitySha256: env?.[adapter.bindingName]?.bindingIdentitySha256,
+    scope: { ...request.scope },
+    opportunityId: request.opportunityId,
+    fieldSessionId: request.fieldSessionId,
+    coordinatorSessionId: request.coordinatorSessionId,
+    evaluationContextSha256: request.evaluationContextSha256,
+    evaluatedCandidateId: request.evaluatedCandidateId,
+    actionArtifactId: request.actionArtifactId,
+    outcomeReceiptArtifactId: request.outcomeReceiptArtifactId,
+    outcomeReceiptRecordSha256: request.outcomeReceiptRecordSha256,
+    sourceArchiveSessionSha256: request.sourceArchiveSessionSha256,
+    sourceArchiveRawSha256: request.sourceArchiveRawSha256,
+    sourceArchiveNormalizedSha256:
+      fieldSessionOutcomeProjection.sourceArchive.normalizedSha256,
+    sourceOutcomeEvidenceSha256: request.sourceOutcomeEvidenceSha256,
+    authoritativeOutcomeTime: request.authoritativeOutcomeTime
+  });
+}
+
+export async function resolveRouteIqEvaluationRetentionAuthority({
+  scope,
+  scoreableOutcome,
+  outcomeReceipt,
+  fieldSessionOutcomeProjection,
+  fieldSessionId,
   env,
   noncanonicalTestHooks
 }) {
-  if (noncanonicalTestHooks?.enabled !== true
-    || typeof noncanonicalTestHooks.readNoncanonicalDataRetentionAdmission !== "function") {
+  if (noncanonicalTestHooks?.enabled === true) {
+    if (typeof noncanonicalTestHooks.readNoncanonicalDataRetentionAdmission !== "function") {
+      failRouteIqProspective(
+        "Noncanonical authenticated Data retention input is unavailable.",
+        "route_iq_prospective_test_retention_input_invalid",
+        500
+      );
+    }
+    let admissionEnvelope;
+    let retentionGovernanceLedger;
+    try {
+      const sourceTestAdmission = await noncanonicalTestHooks.readNoncanonicalDataRetentionAdmission({
+        scope: { ...scope },
+        scoreableOutcome,
+        outcomeReceipt,
+        fieldSessionOutcomeProjection
+      });
+      if (sourceTestAdmission?.admissionEnvelope) {
+        admissionEnvelope = sourceTestAdmission.admissionEnvelope;
+        retentionGovernanceLedger = sourceTestAdmission.retentionGovernanceLedger;
+      } else {
+        admissionEnvelope = sourceTestAdmission;
+      }
+    } catch {
+      failRouteIqProspective(
+        "Noncanonical authenticated Data retention input is invalid.",
+        "route_iq_prospective_test_retention_input_invalid",
+        500
+      );
+    }
+    const verified = await verifyRouteIqProspectiveDataRetentionAdmission(admissionEnvelope, {
+      env,
+      scope,
+      scoreableOutcome,
+      now: noncanonicalTestHooks.currentDate,
+      allowNoncanonicalFixture: true
+    });
+    return Object.freeze({
+      mode: "legacy_source_test",
+      retentionEnvelope: verified.retentionEnvelope,
+      retentionGovernanceLedger
+    });
+  }
+
+  const adapter = createRouteIqProspectiveProductionRetentionAdmissionAdapter(env);
+  if (!adapter.available) {
     failRouteIqProspective(
       "Authenticated Data retention input is unavailable for prospective evaluation.",
       "route_iq_prospective_retention_input_unavailable",
       409
     );
   }
-
-  let admissionEnvelope;
-  try {
-    admissionEnvelope = await noncanonicalTestHooks.readNoncanonicalDataRetentionAdmission({
-      scope: { ...scope },
-      scoreableOutcome,
-      outcomeReceipt,
-      fieldSessionOutcomeProjection
-    });
-  } catch {
-    failRouteIqProspective(
-      "Noncanonical authenticated Data retention input is invalid.",
-      "route_iq_prospective_test_retention_input_invalid",
-      500
-    );
-  }
-  const verified = await verifyRouteIqProspectiveDataRetentionAdmission(admissionEnvelope, {
-    env,
+  const request = productionRetentionRequest({
     scope,
     scoreableOutcome,
-    now: noncanonicalTestHooks.currentDate
+    outcomeReceipt,
+    fieldSessionOutcomeProjection,
+    fieldSessionId
   });
-  return verified.retentionEnvelope;
+
+  let admissionRecord;
+  try {
+    admissionRecord = await adapter.read(request);
+  } catch (error) {
+    if (error?.code) throw error;
+    failRouteIqProspective(
+      "Authenticated Data retention input is unavailable for prospective evaluation.",
+      "route_iq_prospective_retention_input_unavailable",
+      503
+    );
+  }
+  const admissionEnvelope = await createProducerAuthorityEnvelope({
+    purpose: "data_retention_admission",
+    ...admissionRecord
+  }, env);
+  const verified = await verifyAndCreateRouteIqProspectiveRetentionAuthorityEnvelope(
+    admissionEnvelope,
+    {
+      env,
+      expected: productionRetentionExpected(
+        request,
+        fieldSessionOutcomeProjection,
+        env,
+        adapter
+      )
+    }
+  );
+  return Object.freeze({
+    mode: "authoritative_production",
+    productionRetentionAdmission: verified.productionRetentionAdmission,
+    futureWindowAssignment: verified.futureWindowAssignment,
+    retentionAuthorityEnvelope: verified.retentionAuthorityEnvelope
+  });
+}
+
+async function resolveRouteIqEvaluationRetentionEnvelope(input) {
+  return resolveRouteIqEvaluationRetentionAuthority(input);
+}
+
+function evaluationBuilderInput(input, retention) {
+  if (retention.mode === "legacy_source_test") {
+    return {
+      ...input,
+      retentionEnvelope: retention.retentionEnvelope,
+      retentionGovernanceLedger: retention.retentionGovernanceLedger
+    };
+  }
+  return {
+    ...input,
+    productionRetentionAdmission: retention.productionRetentionAdmission,
+    futureWindowAssignment: retention.futureWindowAssignment
+  };
+}
+
+function evaluationAdmissionInput(authorityEnvelope, retention) {
+  if (retention.mode === "legacy_source_test") {
+    return {
+      authorityEnvelope,
+      sourceTestOnly: {
+        retentionGovernanceLedger: retention.retentionGovernanceLedger
+      }
+    };
+  }
+  return {
+    authorityEnvelope,
+    retentionAuthorityEnvelope: retention.retentionAuthorityEnvelope,
+    futureWindowAssignment: retention.futureWindowAssignment
+  };
+}
+
+export async function verifyRouteIqProspectiveFutureWindowHandoff(
+  retentionAuthorityEnvelope,
+  futureWindowAssignment,
+  { env } = {}
+) {
+  const verified = await createRouteIqProspectiveAuthorityVerifier(env).verify(
+    retentionAuthorityEnvelope,
+    { purpose: "data_retention_admission", channel: "producer" }
+  );
+  const productionRetentionAdmission = Object.fromEntries(
+    Object.entries(verified.claims).filter(([key]) => key !== "purpose")
+  );
+  if (futureWindowAssignment?.authorityEvidence?.sourceRecordSha256
+      !== productionRetentionAdmission.evidenceIdentitySha256
+    || futureWindowAssignment?.authorityEvidence?.authorityReceiptSha256
+      !== productionRetentionAdmission.claimsSha256
+    || futureWindowAssignment?.authorityEvidence?.issuedAt
+      !== productionRetentionAdmission.issuedAt
+    || futureWindowAssignment?.authorityEvidence?.expiresAt
+      !== productionRetentionAdmission.expiresAt
+    || futureWindowAssignment?.windowAssignment?.authoritativeServerAnchor
+      !== productionRetentionAdmission.issuedAt) {
+    failRouteIqProspective(
+      "Future-window assignment is not bound to the retention authority.",
+      "route_iq_prospective_future_window_authority_invalid",
+      403
+    );
+  }
+  return Object.freeze({
+    verificationType: verified.verificationType,
+    productionRetentionAdmission: structuredClone(productionRetentionAdmission),
+    futureWindowAssignment: structuredClone(futureWindowAssignment)
+  });
 }
 
 export async function admitRouteIqProspectiveIntelligenceOutcomes({
@@ -559,6 +750,7 @@ export async function admitRouteIqProspectiveIntelligenceOutcomes({
   env,
   fieldSessionOutcomeProjection,
   reconciliationReceipt,
+  fieldSessionId,
   noncanonicalTestHooks
 }) {
   canonicalIsoTimestamp(reconciliationReceipt?.createdAt, "reconciliationReceipt.createdAt", { status: 500 });
@@ -618,21 +810,23 @@ export async function admitRouteIqProspectiveIntelligenceOutcomes({
       let evaluationReceipt = null;
       let evaluationSkipped = false;
       if (scoreableOutcome.observedOutcome.status === "observed") {
-        const retentionEnvelope = await resolveRouteIqEvaluationRetentionEnvelope({
+        const retention = await resolveRouteIqEvaluationRetentionEnvelope({
           scope,
           scoreableOutcome,
           outcomeReceipt,
           fieldSessionOutcomeProjection,
+          fieldSessionId,
           env,
           noncanonicalTestHooks
         });
-        evaluation = buildRouteIqEvaluationFromAdmittedOutcome({
-          reconciliationReceipt,
-          committedProjection,
-          scoreableOutcome,
-          outcomeReceipt,
-          retentionEnvelope
-        });
+        evaluation = buildRouteIqEvaluationFromAdmittedOutcome(
+          evaluationBuilderInput({
+            reconciliationReceipt,
+            committedProjection,
+            scoreableOutcome,
+            outcomeReceipt
+          }, retention)
+        );
         if (!isRouteIqEvaluationReadinessCountEligible(evaluation)) {
           failRouteIqProspective(
             "Committed outcome evaluation is not readiness-count eligible.",
@@ -640,16 +834,20 @@ export async function admitRouteIqProspectiveIntelligenceOutcomes({
             409
           );
         }
-        const evaluationClaims = buildRouteIqEvaluationAdmissionClaims({
+        const canonicalEvaluationClaims = buildRouteIqEvaluationAdmissionClaims({
           scope,
           evaluation,
           authoritativeRecordTime: nextAuthoritativeRecordTime()
         });
+        const evaluationClaims = retention.mode === "legacy_source_test"
+          ? { ...canonicalEvaluationClaims, sourceClassification: "source_only_fixture" }
+          : canonicalEvaluationClaims;
         evaluationReceipt = await stub.admitIntelligenceEvaluation({
           scopeEnvelope,
-          input: {
-            authorityEnvelope: await createProducerAuthorityEnvelope(evaluationClaims, env)
-          }
+          input: evaluationAdmissionInput(
+            await createProducerAuthorityEnvelope(evaluationClaims, env),
+            retention
+          )
         });
         admittedEvaluationCount += 1;
       } else {
@@ -844,6 +1042,7 @@ export async function reconcileAndCloseRouteIqProspectiveSessionFromHandoff(requ
       env,
       fieldSessionOutcomeProjection: projection,
       reconciliationReceipt,
+      fieldSessionId: authenticated.canonicalHandoff.sessionId,
       noncanonicalTestHooks
     });
   } catch (error) {

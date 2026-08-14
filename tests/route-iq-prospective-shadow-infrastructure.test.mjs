@@ -16,14 +16,29 @@ import worker, {
 } from "../workers/prometheus-iq-worker.js";
 import {
   consumeRouteIqEndOfDayHandoff,
+  createRouteIqFieldSessionArchivePackage,
   deriveRouteIqCandidateIdFromGooglePlaceId,
+  persistRouteIqFieldSessionArchive,
   projectCommittedRouteIqFieldSessionOutcomes,
   readRouteIqFieldSessionArchive,
+  routeIqCanonicalDailyRepresentativeReportType,
   routeIqChronologicalEvidenceProjectionVersion,
   routeIqEndOfDayHandoffContractId,
   routeIqFieldSessionOutcomeProjectionVersion,
   routeIqFieldSessionStoreBinding
 } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
+import {
+  computeRouteIqProspectiveProductionRetentionAdmissionSha256,
+  readRouteIqProspectiveProductionRetentionAdmission,
+  routeIqProspectiveProductionRetentionAdmissionBinding,
+  routeIqProspectiveProductionRetentionAdmissionProviderVersion
+} from "../data/route-iq-field-sessions-v1/route-iq-prospective-production-retention-admission.mjs";
+import {
+  createRouteIqRetentionProductionLegalHoldAuthorityClaims,
+  openRouteIqRetentionGovernanceLedger,
+  routeIqRetentionProductionLegalHoldAuthorityVersion,
+  routeIqRetentionProductionLegalHoldMaximumAgeMilliseconds
+} from "../data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs";
 import {
   computeRouteIqCandidateManifestDigests,
   routeIqCandidateManifestSchemaVersion,
@@ -75,10 +90,15 @@ import {
 import {
   closeRouteIqProspectiveSessionFromHandoff,
   admitRouteIqProspectiveIntelligenceOutcomes,
-  handleRouteIqProspectiveShadowRequest
+  handleRouteIqProspectiveShadowRequest,
+  resolveRouteIqEvaluationRetentionAuthority,
+  verifyRouteIqProspectiveFutureWindowHandoff
 } from "../workers/infrastructure/route-iq-prospective-shadow-runtime.js";
 import {
   routeIqProspectiveDataRetentionAdmissionVersion,
+  routeIqProspectiveFutureWindowAuthorityEvidenceVersion,
+  routeIqProspectiveFutureWindowAuthorityPurpose,
+  routeIqProspectiveFutureWindowPolicyVersion,
   verifyRouteIqProspectiveDataRetentionAdmission
 } from "../workers/infrastructure/route-iq-prospective-shadow-retention-admission.js";
 import {
@@ -104,6 +124,10 @@ import {
   shadowDecisionProspectiveDispositionSchemaVersion,
   shadowDecisionRankingBasisVersion
 } from "../intelligence/shadow-decision-readiness-runtime.mjs";
+import {
+  createRetentionAuthority,
+  createRetentionStore
+} from "./route-iq-retention-test-support.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const testNow = new Date("2026-07-13T20:00:00.000Z");
@@ -270,6 +294,325 @@ async function readNoncanonicalDataRetentionAdmission(input, env) {
     sourceArchiveRawSha256: input.scoreableOutcome.sourceArchiveRawSha256,
     retentionEnvelope: buildNoncanonicalAuthenticatedDataRetentionEnvelope(input)
   }, env, { channel: "producer" });
+}
+
+const infrastructureRetentionSessionId =
+  "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11";
+const infrastructureRetentionSessionRoot =
+  `data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/${infrastructureRetentionSessionId}`;
+const infrastructureRetentionRawPath =
+  `${infrastructureRetentionSessionRoot}/raw/prometheus-iq-cruz-daily-report-2026-07-11.json`;
+const infrastructureRetentionSourceEvidencePath =
+  "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json";
+
+function offsetIso(value, milliseconds) {
+  return new Date(Date.parse(value) + milliseconds).toISOString();
+}
+
+function infrastructureRetentionStore() {
+  const values = new Map();
+  return {
+    async get(key) {
+      return values.get(key) ?? null;
+    },
+    async put(key, value) {
+      values.set(key, String(value));
+    },
+    async list({ prefix = "" } = {}) {
+      return {
+        keys: [...values.keys()]
+          .filter(key => key.startsWith(prefix))
+          .sort()
+          .map(name => ({ name })),
+        list_complete: true
+      };
+    }
+  };
+}
+
+function infrastructureRetentionReport() {
+  const report = JSON.parse(readFileSync(infrastructureRetentionRawPath, "utf8"));
+  report.app = "Prometheus Route IQ";
+  report.reportType = routeIqCanonicalDailyRepresentativeReportType;
+  report.visits = report.visits.map(visit => ({
+    ...visit,
+    visitDecisionSource: {
+      sourceId: "unknown",
+      reason: "The Infrastructure admission fixture uses an explicit unknown source.",
+      evidence: [],
+      confidence: 0,
+      capturedAt: visit.timestamp
+    },
+    recommendationDecisionContext: {
+      recommendationAvailable: null,
+      recommendationId: null,
+      decision: null
+    }
+  }));
+  return report;
+}
+
+async function infrastructureRetentionArchiveRead() {
+  const store = infrastructureRetentionStore();
+  const archivePackage = createRouteIqFieldSessionArchivePackage({
+    rawReportText: JSON.stringify(infrastructureRetentionReport(), null, 2),
+    originalFileName: "infrastructure-production-retention-admission-fixture.json",
+    canonicalRawArtifactPath: "source-only/infrastructure-production-retention-admission-fixture.json",
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    finalExportConfirmed: true,
+    finalityBasis: "Source-only Infrastructure production-adapter contract fixture.",
+    ingestedAt: "2026-07-12T00:36:02.000Z",
+    runtimePools: JSON.parse(readFileSync(
+      "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+      "utf8"
+    )),
+    activePool: JSON.parse(readFileSync(
+      "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+      "utf8"
+    )),
+    businessHours: JSON.parse(readFileSync(
+      "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+      "utf8"
+    )),
+    stressTestEvidence: JSON.parse(readFileSync(
+      infrastructureRetentionSourceEvidencePath,
+      "utf8"
+    ))
+  });
+  await persistRouteIqFieldSessionArchive(archivePackage, {
+    store,
+    persistedAt: "2026-07-12T00:40:00.000Z"
+  });
+  return readRouteIqFieldSessionArchive({
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    sessionId: infrastructureRetentionSessionId
+  }, { store });
+}
+
+function infrastructureLegalHoldAuthoritySource(context, issuedAt, sourceClassification) {
+  const environment = sourceClassification === "authoritative_production"
+    ? "production"
+    : "source_fixture";
+  const bindingIdentitySha256 = digest(
+    `${sourceClassification}:infrastructure-retention-legal-hold`
+  );
+  return {
+    version: routeIqRetentionProductionLegalHoldAuthorityVersion,
+    sourceClassification,
+    environment,
+    bindingIdentitySha256,
+    async readAuthorityAssertions(request) {
+      const unsigned = {
+        version: routeIqRetentionProductionLegalHoldAuthorityVersion,
+        sourceClassification,
+        environment,
+        bindingIdentitySha256,
+        evaluatedAt: request.evaluatedAt,
+        observedAt: issuedAt,
+        validUntil: offsetIso(
+          issuedAt,
+          routeIqRetentionProductionLegalHoldMaximumAgeMilliseconds
+        ),
+        scope: request.scope,
+        subjectSha256: request.subjectSha256,
+        legalHoldState: request.legalHoldState,
+        ledgerRecordCount: request.ledgerRecordCount,
+        ledgerLastRecordSha256: request.ledgerLastRecordSha256,
+        ledgerSha256: request.ledgerSha256
+      };
+      const { version: ignoredVersion, ...claimInput } = unsigned;
+      const claims = createRouteIqRetentionProductionLegalHoldAuthorityClaims(claimInput);
+      const authority = context.authority.sign(claims, {
+        authority: "prometheus_data_legal_hold_authority",
+        seed: `infrastructure-retention:${digest(JSON.stringify(unsigned))}`
+      });
+      return { assertions: [{ ...unsigned, authority }] };
+    }
+  };
+}
+
+function infrastructureOutcomeAuthority(request) {
+  const body = {
+    schemaVersion: "route-iq-prospective-outcome-admission-authority-v1",
+    authority: "prometheus_data_prospective_coordinator",
+    scope: structuredClone(request.scope),
+    opportunityId: request.opportunityId,
+    coordinatorSessionId: request.coordinatorSessionId,
+    evaluationContextSha256: request.evaluationContextSha256,
+    evaluatedCandidateId: request.evaluatedCandidateId,
+    actionArtifactId: request.actionArtifactId,
+    outcomeReceiptArtifactId: request.outcomeReceiptArtifactId,
+    outcomeReceiptRecordSha256: request.outcomeReceiptRecordSha256,
+    fieldSessionId: request.fieldSessionId,
+    sourceArchiveSessionSha256: request.sourceArchiveSessionSha256,
+    sourceArchiveRawSha256: request.sourceArchiveRawSha256,
+    sourceOutcomeEvidenceSha256: request.sourceOutcomeEvidenceSha256,
+    authoritativeOutcomeTime: request.authoritativeOutcomeTime,
+    outcomeRecordSha256: request.outcomeReceiptRecordSha256
+  };
+  return {
+    ...body,
+    authorityIdentitySha256:
+      computeRouteIqProspectiveProductionRetentionAdmissionSha256(body)
+  };
+}
+
+async function infrastructureProductionRetentionContext({
+  sourceClassification = "authoritative_production",
+  providerOverrides = {}
+} = {}) {
+  const archiveRead = await infrastructureRetentionArchiveRead();
+  const projection = projectCommittedRouteIqFieldSessionOutcomes({
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    representativeId: "cruz",
+    archiveRecord: archiveRead.record
+  });
+  const issuedAt = new Date(Date.now() - 1000).toISOString();
+  const request = {
+    scope: scope(),
+    opportunityId: committedId("opportunity", "infrastructure-production-retention"),
+    fieldSessionId: infrastructureRetentionSessionId,
+    coordinatorSessionId: committedId("session", "infrastructure-production-retention"),
+    evaluationContextSha256: committedDigest("infrastructure-production-evaluation-context"),
+    evaluatedCandidateId: committedId("candidate", "infrastructure-production-retention"),
+    actionArtifactId: committedId("action", "infrastructure-production-retention"),
+    outcomeReceiptArtifactId: committedId("outcome", "infrastructure-production-retention"),
+    outcomeReceiptRecordSha256: committedDigest("infrastructure-production-outcome-record"),
+    sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256,
+    sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+    sourceOutcomeEvidenceSha256: projection.outcomes[0].evidenceSha256,
+    authoritativeOutcomeTime: "2026-07-13T20:09:00.000Z"
+  };
+  const authority = createRetentionAuthority(
+    "infrastructure-production-retention-admission-test-key"
+  );
+  const ledger = await openRouteIqRetentionGovernanceLedger({
+    store: createRetentionStore(),
+    subject: {
+      workspaceId: request.scope.workspaceId,
+      operatingProfileId: request.scope.operatingProfileId,
+      recordClass: "prospective_shadow_evidence",
+      sourceRecordSha256: request.sourceOutcomeEvidenceSha256
+    },
+    authorityVerifier: authority.verifier
+  });
+  const context = { authority, ledger };
+  const bindingIdentitySha256 = digest(
+    `${sourceClassification}:infrastructure-production-retention-provider`
+  );
+  const claimedAdmissions = new Set();
+  const claimedSources = new Set();
+  const provider = {
+    version: routeIqProspectiveProductionRetentionAdmissionProviderVersion,
+    sourceClassification,
+    environment: sourceClassification === "authoritative_production"
+      ? "production"
+      : "source_fixture",
+    bindingIdentitySha256,
+    async readAuthoritativeTime() {
+      return { authoritativeTime: issuedAt };
+    },
+    async readCommittedArchive() {
+      return structuredClone(archiveRead);
+    },
+    async readOutcomeAdmissionAuthority() {
+      return infrastructureOutcomeAuthority(request);
+    },
+    async readRetentionGovernance() {
+      return {
+        retentionGovernanceLedger: ledger,
+        legalHoldAuthoritySource:
+          infrastructureLegalHoldAuthoritySource(context, issuedAt, sourceClassification),
+        customerAccountId: request.scope.workspaceId,
+        customerContractExpiresAt: null,
+        customerOverrideAuthority: null,
+        customerOverrideAuthorityVerifier: null
+      };
+    },
+    async readGovernedRuntimeState() {
+      const body = {
+        schemaVersion: "route-iq-prospective-runtime-activation-state-v1",
+        source: "server_governed",
+        collectionState: "on",
+        recommendationInfluence: "off",
+        recordOrigin: "prospective",
+        observedAt: issuedAt,
+        bindingIdentitySha256
+      };
+      return {
+        ...body,
+        stateIdentitySha256:
+          computeRouteIqProspectiveProductionRetentionAdmissionSha256(body)
+      };
+    },
+    async claimAdmission(claim) {
+      const state = claimedAdmissions.has(claim.admissionKey)
+        ? "duplicate"
+        : claimedSources.has(claim.replayKey)
+          ? "replay"
+          : "claimed";
+      if (state === "claimed") {
+        claimedAdmissions.add(claim.admissionKey);
+        claimedSources.add(claim.replayKey);
+      }
+      return {
+        state,
+        admissionKey: claim.admissionKey,
+        replayKey: claim.replayKey,
+        claimsSha256: claim.claimsSha256,
+        legalHoldSnapshotIdentitySha256: claim.legalHoldSnapshotIdentitySha256,
+        legalHoldLedgerSha256: claim.legalHoldLedgerSha256,
+        legalHoldState: claim.requireCurrentLegalHoldState
+      };
+    },
+    ...providerOverrides
+  };
+  const scoreableOutcome = {
+    opportunityId: request.opportunityId,
+    candidateId: request.evaluatedCandidateId,
+    actionArtifactId: request.actionArtifactId,
+    evaluationContextSha256: request.evaluationContextSha256,
+    sourceArchiveRawSha256: request.sourceArchiveRawSha256,
+    sourceOutcomeEvidenceSha256: request.sourceOutcomeEvidenceSha256
+  };
+  const outcomeReceipt = {
+    sessionId: request.coordinatorSessionId,
+    artifactId: request.outcomeReceiptArtifactId,
+    recordSha256: request.outcomeReceiptRecordSha256,
+    authoritativeRecordTime: request.authoritativeOutcomeTime
+  };
+  return {
+    request,
+    provider,
+    projection,
+    scoreableOutcome,
+    outcomeReceipt,
+    issuedAt,
+    bindingIdentitySha256
+  };
+}
+
+function infrastructureProductionExpected(context) {
+  return {
+    providerBindingIdentitySha256: context.bindingIdentitySha256,
+    scope: structuredClone(context.request.scope),
+    opportunityId: context.request.opportunityId,
+    fieldSessionId: context.request.fieldSessionId,
+    coordinatorSessionId: context.request.coordinatorSessionId,
+    evaluationContextSha256: context.request.evaluationContextSha256,
+    evaluatedCandidateId: context.request.evaluatedCandidateId,
+    actionArtifactId: context.request.actionArtifactId,
+    outcomeReceiptArtifactId: context.request.outcomeReceiptArtifactId,
+    outcomeReceiptRecordSha256: context.request.outcomeReceiptRecordSha256,
+    sourceArchiveSessionSha256: context.request.sourceArchiveSessionSha256,
+    sourceArchiveRawSha256: context.request.sourceArchiveRawSha256,
+    sourceArchiveNormalizedSha256: context.projection.sourceArchive.normalizedSha256,
+    sourceOutcomeEvidenceSha256: context.request.sourceOutcomeEvidenceSha256,
+    authoritativeOutcomeTime: context.request.authoritativeOutcomeTime
+  };
 }
 
 async function principalMap(subject, representativeId = "cruz") {
@@ -2655,7 +2998,7 @@ test("committed outcome helper continues later links after poisoned failures and
     assert.equal(second.status, "processed_with_failures");
     assert.equal(second.totals.failedLinkCount, 1);
     assert.equal(recoveryCalls, beforeRetryRecoveries);
-    assert.equal(second.processedLinks[0].code, "route_iq_evaluation_input_invalid");
+    assert.equal(second.processedLinks[0].code, "route_iq_evaluation_retention_admission_blocked");
   });
 });
 
@@ -2859,11 +3202,21 @@ test("Data retention admission requires a fresh producer signature and exact sco
     retentionEnvelope: { dataOwned: "opaque-to-infrastructure" }
   };
   const envelope = await createRouteIqProspectiveAuthorityEnvelope(claims, env, { channel: "producer" });
+  await assert.rejects(
+    verifyRouteIqProspectiveDataRetentionAdmission(envelope, {
+      env,
+      scope: scope(),
+      scoreableOutcome,
+      now: testNow
+    }),
+    error => error.code === "route_iq_prospective_data_retention_admission_invalid"
+  );
   const verified = await verifyRouteIqProspectiveDataRetentionAdmission(envelope, {
     env,
     scope: scope(),
     scoreableOutcome,
-    now: testNow
+    now: testNow,
+    allowNoncanonicalFixture: true
   });
   assert.equal(verified.verificationType, "infrastructure_verified_producer_signature");
   assert.deepEqual(verified.retentionEnvelope, claims.retentionEnvelope);
@@ -2875,7 +3228,8 @@ test("Data retention admission requires a fresh producer signature and exact sco
       env,
       scope: scope(),
       scoreableOutcome,
-      now: testNow
+      now: testNow,
+      allowNoncanonicalFixture: true
     }),
     error => error.code === "route_iq_prospective_authority_invalid"
   );
@@ -2888,7 +3242,8 @@ test("Data retention admission requires a fresh producer signature and exact sco
       env,
       scope: scope(),
       scoreableOutcome,
-      now: testNow
+      now: testNow,
+      allowNoncanonicalFixture: true
     }),
     error => error.code === "route_iq_prospective_data_retention_admission_invalid"
   );
@@ -2902,7 +3257,8 @@ test("Data retention admission requires a fresh producer signature and exact sco
       env,
       scope: scope(),
       scoreableOutcome,
-      now: testNow
+      now: testNow,
+      allowNoncanonicalFixture: true
     }),
     error => error.code === "route_iq_prospective_data_retention_admission_stale"
   );
@@ -2915,7 +3271,8 @@ test("Data retention admission requires a fresh producer signature and exact sco
       env,
       scope: scope(),
       scoreableOutcome,
-      now: testNow
+      now: testNow,
+      allowNoncanonicalFixture: true
     }),
     error => error.code === "route_iq_prospective_data_retention_admission_invalid"
   );
@@ -2931,6 +3288,159 @@ test("Data retention admission requires a fresh producer signature and exact sco
       now: testNow
     }),
     error => error.code === "route_iq_prospective_data_retention_admission_invalid"
+  );
+});
+
+test("production retention adapter emits an exact signed coordinator and future-window handoff", async () => {
+  const context = await infrastructureProductionRetentionContext();
+  const env = {
+    ...authorityEnv(),
+    [routeIqProspectiveProductionRetentionAdmissionBinding]: context.provider
+  };
+  const resolved = await resolveRouteIqEvaluationRetentionAuthority({
+    scope: context.request.scope,
+    scoreableOutcome: context.scoreableOutcome,
+    outcomeReceipt: context.outcomeReceipt,
+    fieldSessionOutcomeProjection: context.projection,
+    fieldSessionId: context.request.fieldSessionId,
+    env
+  });
+
+  assert.equal(resolved.mode, "authoritative_production");
+  assert.deepEqual(
+    resolved.productionRetentionAdmission.dataAdmission.sourceSession,
+    {
+      coordinatorSessionId: context.request.coordinatorSessionId,
+      fieldSessionId: context.request.fieldSessionId,
+      rawSha256: context.request.sourceArchiveRawSha256
+    }
+  );
+  const handoff = await createRouteIqProspectiveAuthorityVerifier(env).verify(
+    resolved.retentionAuthorityEnvelope,
+    { purpose: "data_retention_admission", channel: "producer" }
+  );
+  assert.equal(
+    handoff.claims.evaluationBinding.evaluationContextSha256,
+    context.request.evaluationContextSha256
+  );
+  assert.equal(
+    handoff.claims.evaluationBinding.evaluatedCandidateId,
+    context.request.evaluatedCandidateId
+  );
+  assert.equal(
+    handoff.claims.evaluationBinding.actionArtifactId,
+    context.request.actionArtifactId
+  );
+  assert.equal(
+    handoff.claims.evaluationBinding.outcomeReceiptArtifactId,
+    context.request.outcomeReceiptArtifactId
+  );
+  assert.equal(
+    handoff.claims.evaluationBinding.outcomeReceiptRecordSha256,
+    context.request.outcomeReceiptRecordSha256
+  );
+  assert.equal(
+    handoff.claims.sourceOutcomeEvidenceSha256,
+    context.request.sourceOutcomeEvidenceSha256
+  );
+  assert.equal(handoff.claims.representativeOutputAllowed, false);
+  assert.equal(handoff.claims.recommendationInfluenceAllowed, false);
+  assert.equal(handoff.claims.productionMutationAuthorized, false);
+
+  const futureWindow = await verifyRouteIqProspectiveFutureWindowHandoff(
+    resolved.retentionAuthorityEnvelope,
+    resolved.futureWindowAssignment,
+    { env }
+  );
+  const evidence = futureWindow.futureWindowAssignment.authorityEvidence;
+  assert.equal(evidence.evidenceVersion, routeIqProspectiveFutureWindowAuthorityEvidenceVersion);
+  assert.equal(evidence.purpose, routeIqProspectiveFutureWindowAuthorityPurpose);
+  assert.equal(evidence.policyVersion, routeIqProspectiveFutureWindowPolicyVersion);
+  assert.equal(evidence.issuedAt, context.issuedAt);
+  assert.equal(evidence.expiresAt, resolved.productionRetentionAdmission.expiresAt);
+  assert.equal(evidence.authoritativeServerAnchor, evidence.issuedAt);
+  assert.equal(
+    evidence.sourceRecordSha256,
+    resolved.productionRetentionAdmission.evidenceIdentitySha256
+  );
+  assert.equal(
+    evidence.authorityReceiptSha256,
+    resolved.productionRetentionAdmission.claimsSha256
+  );
+  assert.deepEqual(
+    futureWindow.productionRetentionAdmission,
+    resolved.productionRetentionAdmission
+  );
+
+  await assert.rejects(
+    resolveRouteIqEvaluationRetentionAuthority({
+      scope: context.request.scope,
+      scoreableOutcome: context.scoreableOutcome,
+      outcomeReceipt: context.outcomeReceipt,
+      fieldSessionOutcomeProjection: context.projection,
+      fieldSessionId: context.request.fieldSessionId,
+      env
+    }),
+    error => error.code === "route_iq_prospective_retention_admission_duplicate"
+  );
+});
+
+test("production retention transport rejects tamper, cross-scope, and fixture classification", async () => {
+  const context = await infrastructureProductionRetentionContext();
+  const env = {
+    ...authorityEnv(),
+    [routeIqProspectiveProductionRetentionAdmissionBinding]: context.provider
+  };
+  const record = await readRouteIqProspectiveProductionRetentionAdmission(
+    context.request,
+    { env }
+  );
+  const envelope = await createRouteIqProspectiveAuthorityEnvelope({
+    purpose: "data_retention_admission",
+    ...record
+  }, env, { channel: "producer" });
+  const expected = infrastructureProductionExpected(context);
+  const verified = await verifyRouteIqProspectiveDataRetentionAdmission(envelope, {
+    env,
+    expected
+  });
+  assert.equal(verified.admissionRecord.sourceClassification, "authoritative_production");
+
+  const tampered = structuredClone(envelope);
+  tampered.claims.evaluationBinding.actionArtifactId =
+    committedId("action", "tampered-production-retention");
+  await assert.rejects(
+    verifyRouteIqProspectiveDataRetentionAdmission(tampered, { env, expected }),
+    error => error.code === "route_iq_prospective_authority_invalid"
+  );
+  await assert.rejects(
+    verifyRouteIqProspectiveDataRetentionAdmission(envelope, {
+      env,
+      expected: {
+        ...expected,
+        scope: scope("anthony")
+      }
+    }),
+    error => error.code === "route_iq_prospective_data_retention_admission_invalid"
+  );
+
+  const fixtureContext = await infrastructureProductionRetentionContext({
+    sourceClassification: "source_only_fixture"
+  });
+  const fixtureEnv = {
+    ...authorityEnv(),
+    [routeIqProspectiveProductionRetentionAdmissionBinding]: fixtureContext.provider
+  };
+  await assert.rejects(
+    resolveRouteIqEvaluationRetentionAuthority({
+      scope: fixtureContext.request.scope,
+      scoreableOutcome: fixtureContext.scoreableOutcome,
+      outcomeReceipt: fixtureContext.outcomeReceipt,
+      fieldSessionOutcomeProjection: fixtureContext.projection,
+      fieldSessionId: fixtureContext.request.fieldSessionId,
+      env: fixtureEnv
+    }),
+    error => error.code === "route_iq_prospective_retention_admission_provider_invalid"
   );
 });
 
@@ -3027,6 +3537,41 @@ export default {
 };
 `;
 
+function miniflareFutureWindowModuleScript() {
+  let source = readFileSync(
+    join(root, "intelligence/route-iq-prospective-future-window-policy.mjs"),
+    "utf8"
+  );
+  const imports = [
+    {
+      binding: "historicalJulyReadinessConfig",
+      path: "intelligence/config/shadow-decision-readiness-v1.json",
+      specifier: "./config/shadow-decision-readiness-v1.json"
+    },
+    {
+      binding: "prospectiveFutureWindowPolicy",
+      path: "intelligence/config/route-iq-prospective-future-window-policy-v1.json",
+      specifier: "./config/route-iq-prospective-future-window-policy-v1.json"
+    },
+    {
+      binding: "prospectiveFutureWindowContract",
+      path: "intelligence/contracts/route-iq-prospective-future-window-policy-v1.json",
+      specifier: "./contracts/route-iq-prospective-future-window-policy-v1.json"
+    }
+  ];
+  for (const entry of imports) {
+    const statement = new RegExp(
+      `import\\s+${entry.binding}\\s+from\\s+"${entry.specifier.replaceAll("/", "\\/")}"\\s+with\\s+\\{\\s*type:\\s*"json",?\\s*\\};`,
+      "u"
+    );
+    const replacement = `const ${entry.binding} = ${readFileSync(join(root, entry.path), "utf8")};`;
+    const next = source.replace(statement, replacement);
+    assert.notEqual(next, source, `Miniflare JSON import not found: ${entry.specifier}`);
+    source = next;
+  }
+  return source;
+}
+
 function createMiniflare(bindings, persistencePath) {
   return new Miniflare(convertV4MiniflareOptions({
     modules: [
@@ -3040,10 +3585,16 @@ function createMiniflare(bindings, persistencePath) {
         "workers/infrastructure/route-iq-prospective-shadow-authority.js",
         "workers/infrastructure/route-iq-prospective-shadow-contract.js",
         "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+        "data/route-iq-field-sessions-v1/route-iq-prospective-production-retention-admission.mjs",
         "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
         "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
         "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs"
-      ].map(path => ({ type: "ESModule", path: join(root, path) }))
+      ].map(path => ({ type: "ESModule", path: join(root, path) })),
+      {
+        type: "ESModule",
+        path: join(root, "intelligence/route-iq-prospective-future-window-policy.mjs"),
+        contents: miniflareFutureWindowModuleScript()
+      }
     ],
     modulesRoot: root,
     compatibilityDate: "2026-07-13",
@@ -3621,7 +4172,10 @@ test("real Miniflare restart processes two same-session reconciliation links aga
     });
     assert.deepEqual(
       processed.processedLinks.map(link => link.code),
-      ["route_iq_evaluation_input_invalid", "route_iq_evaluation_input_invalid"]
+      [
+        "route_iq_evaluation_retention_admission_blocked",
+        "route_iq_evaluation_retention_admission_blocked"
+      ]
     );
   } finally {
     await miniflare.dispose();
