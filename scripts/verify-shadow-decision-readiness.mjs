@@ -1343,7 +1343,11 @@ export function verifyShadowDecisionReadiness({
   );
   assert.match(
     infrastructureRuntimeText,
-    /noncanonicalTestHooks\?\.enabled !== true[\s\S]+readNoncanonicalDataRetentionAdmission[\s\S]+verifyRouteIqProspectiveDataRetentionAdmission/,
+    /noncanonicalTestHooks\?\.enabled === true[\s\S]+readNoncanonicalDataRetentionAdmission[\s\S]+allowNoncanonicalFixture: true/,
+  );
+  assert.match(
+    infrastructureRuntimeText,
+    /createRouteIqProspectiveProductionRetentionAdmissionAdapter\(env\)[\s\S]+adapter\.available[\s\S]+adapter\.read\(request\)[\s\S]+verifyAndCreateRouteIqProspectiveRetentionAuthorityEnvelope/,
   );
   const retentionResolutionIndex = infrastructureRuntimeText.indexOf(
     "resolveRouteIqEvaluationRetentionEnvelope({",
