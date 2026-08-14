@@ -65,6 +65,14 @@
       "ownerSubsystem": "Prometheus Intelligence Engine",
       "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
       "subject": "intelligence: consume calibration successor lineage"
+    },
+    {
+      "commit": "4ffec0d5c8495f07c1814ddd9f2e9bf2fdc8da28",
+      "parent": "43f61c2ccc73914e0901197e1a80b4c33bb6f810",
+      "tree": "999c89d149cadbf8e1e0ea52c2566f1ca995d691",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: verify production retention branch"
     }
   ],
   "protectedSourceTransitions": [
@@ -148,6 +156,15 @@
       "subject": "intelligence: consume calibration successor lineage",
       "previousSha256": "bda4488c6015751fe24ddd36dd5dec38a8106a0a2a061a56e3232785b325c911",
       "currentSha256": "2d394dd2fb7077dc5ec97e6b50a27d986adf1f560a3a26087484108d029d27bd"
+    },
+    {
+      "path": "scripts/verify-shadow-decision-readiness.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "4ffec0d5c8495f07c1814ddd9f2e9bf2fdc8da28",
+      "tree": "999c89d149cadbf8e1e0ea52c2566f1ca995d691",
+      "subject": "intelligence: verify production retention branch",
+      "previousSha256": "2d394dd2fb7077dc5ec97e6b50a27d986adf1f560a3a26087484108d029d27bd",
+      "currentSha256": "7b26356782e9d91b4115ff20d526da60874a24c54d402bcfb4eb209d644315a5"
     }
   ],
   "newSourceArtifacts": [
@@ -200,15 +217,17 @@
       "sha256": "1290e3a094b366fce85d1647b2afa83521906acd5ffb5caf8e3f66675853dd21"
     }
   ],
-  "coherenceSourceTransition": {
-    "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
-    "ownerSubsystem": "Prometheus Intelligence Engine",
-    "commit": "a54e29c1d3cc302ce4988c53a9f10d98df118b4b",
-    "tree": "b4ddf4c324c7a3fa4b56e32856729278a2e65338",
-    "subject": "intelligence: compose calibration admission successor",
-    "previousSha256": "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0",
-    "currentSha256": "cec918ec403bf787899716c58b582900745d0cb1a5b56a07e0f779b46932f83f"
-  },
+  "coherenceSourceTransitions": [
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "a54e29c1d3cc302ce4988c53a9f10d98df118b4b",
+      "tree": "b4ddf4c324c7a3fa4b56e32856729278a2e65338",
+      "subject": "intelligence: compose calibration admission successor",
+      "previousSha256": "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0",
+      "currentSha256": "cec918ec403bf787899716c58b582900745d0cb1a5b56a07e0f779b46932f83f"
+    }
+  ],
   "historicalCalibration": {
     "path": "intelligence/config/shadow-decision-readiness-v1.json",
     "rawSha256": "29287a69b4cfbbb195806e45517872a33c2cc8e5335b2f83d73c003718120204",

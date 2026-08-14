@@ -240,9 +240,11 @@ function readProspectiveCalibrationProductionAdmissionSuccessor(
 
   const transitionsByPath = new Map();
   for (const transition of successor.protectedSourceTransitions) {
-    assert.equal(transitionsByPath.has(transition.path), false);
     assert.ok(commits.has(transition.commit));
-    const predecessors = predecessorTransitionsByPath.get(transition.path) || [];
+    const localTransitions = transitionsByPath.get(transition.path) || [];
+    const predecessors = localTransitions.length > 0
+      ? localTransitions
+      : predecessorTransitionsByPath.get(transition.path) || [];
     if (predecessors.length > 0) {
       assert.equal(
         transition.previousSha256,
@@ -251,7 +253,7 @@ function readProspectiveCalibrationProductionAdmissionSuccessor(
       );
     }
     verifyTransition(transition.path, transition);
-    transitionsByPath.set(transition.path, [transition]);
+    transitionsByPath.set(transition.path, [...localTransitions, transition]);
   }
 
   for (const artifact of successor.newSourceArtifacts) {
@@ -266,17 +268,21 @@ function readProspectiveCalibrationProductionAdmissionSuccessor(
     assert.throws(() => git(["cat-file", "-e", `${artifact.commit}^:${artifact.path}`]));
   }
 
-  const coherence = successor.coherenceSourceTransition;
-  assert.ok(coherence);
-  const coherencePredecessors = predecessorTransitionsByPath.get(coherence.path) || [];
-  assert.ok(coherencePredecessors.length > 0);
-  assert.equal(
-    coherence.previousSha256,
-    coherencePredecessors.at(-1).currentSha256,
-    "Broken prospective-calibration verifier coherence chain."
-  );
-  verifyTransition(coherence.path, coherence);
-  transitionsByPath.set(coherence.path, [coherence]);
+  assert.ok(successor.coherenceSourceTransitions.length > 0);
+  for (const coherence of successor.coherenceSourceTransitions) {
+    const localTransitions = transitionsByPath.get(coherence.path) || [];
+    const predecessors = localTransitions.length > 0
+      ? localTransitions
+      : predecessorTransitionsByPath.get(coherence.path) || [];
+    assert.ok(predecessors.length > 0);
+    assert.equal(
+      coherence.previousSha256,
+      predecessors.at(-1).currentSha256,
+      "Broken prospective-calibration verifier coherence chain."
+    );
+    verifyTransition(coherence.path, coherence);
+    transitionsByPath.set(coherence.path, [...localTransitions, coherence]);
+  }
 
   assert.deepEqual(successor.thresholds, {
     totalSamples: 97,
