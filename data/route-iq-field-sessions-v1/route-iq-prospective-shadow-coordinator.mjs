@@ -19,6 +19,15 @@ import {
   readRouteIqRetentionLegalHoldSnapshot,
   validateRouteIqRetentionBoundaryForLedger
 } from "./route-iq-retention-governance.mjs";
+import {
+  computeRouteIqProspectiveProductionRetentionAdmissionSha256,
+  routeIqProspectiveProductionRetentionAdmissionVersion,
+  routeIqProspectiveProductionRetentionPolicySha256,
+  validateRouteIqProspectiveProductionRetentionAdmission
+} from "./route-iq-prospective-production-retention-admission.mjs";
+import {
+  validateRouteIqProspectiveFutureWindowAssignment
+} from "../../intelligence/route-iq-prospective-future-window-policy.mjs";
 
 export const routeIqProspectiveCoordinatorSchemaVersion = "route-iq-prospective-coordinator-schema-v1";
 export const routeIqProspectiveCoordinatorContractVersion = "route-iq-prospective-coordinator-contract-v1";
@@ -36,6 +45,8 @@ export const routeIqEvaluationContextSchemaVersion = "route-iq-immutable-evaluat
 export const routeIqIntelligenceEvaluationRecordSchemaVersion = "route-iq-admitted-shadow-evaluation-record-v1";
 export const routeIqIntelligenceEvaluationContractVersion = "route-iq-admitted-shadow-evaluation-v1";
 export const routeIqAcceptedIntelligenceRetentionAdmissionVersion = "route-iq-prospective-intelligence-retention-admission-v1";
+export const routeIqAcceptedProductionIntelligenceRetentionAuditVersion =
+  "route-iq-prospective-production-intelligence-retention-audit-v1";
 export const routeIqAcceptedProspectiveRetentionPolicySha256 = "a0a60f3ffb693d9fadd2b1637d22fc6f6f035f8fa2533af96dc3a0c1644e1a9f";
 export const routeIqProspectiveKvAuthority = "non_authoritative_cache_only";
 export const routeIqProspectiveCollectionDefault = "off";
@@ -683,7 +694,11 @@ async function verifyEnvelope(authorityVerifier, envelope, { purpose, coordinato
   if (!authorityVerifier || typeof authorityVerifier.verify !== "function") {
     fail("route_iq_coordinator_authority_verifier_required", "Infrastructure must supply a cryptographic authority verifier.", {}, 500);
   }
-  const result = await authorityVerifier.verify(envelope, { purpose, coordinatorId });
+  const result = await authorityVerifier.verify(envelope, {
+    purpose,
+    coordinatorId,
+    ...(producer ? { channel: "producer" } : {})
+  });
   assertExactKeys(result, ["authenticated", "verificationType", "keyId", "algorithm", "claims"], "authorityVerification");
   const expectedType = producer ? "infrastructure_verified_producer_signature" : "infrastructure_keyed_attestation";
   if (result.authenticated !== true || result.verificationType !== expectedType) {
@@ -714,6 +729,69 @@ function canonicalEvaluationScope(scope) {
     operatingProfileId: scope.operatingProfileId,
     representativeId: scope.representativeId
   };
+}
+
+function productionRetentionRecordFromVerifiedClaims(claims) {
+  assertObject(claims, "verifiedRetentionAuthority.claims");
+  if (claims.purpose !== "data_retention_admission") {
+    fail(
+      "route_iq_evaluation_retention_authority_invalid",
+      "The signed Data retention authority has the wrong purpose.",
+      {},
+      403
+    );
+  }
+  const record = clone(claims);
+  delete record.purpose;
+  return deepFreeze(record);
+}
+
+function validateProductionFutureWindowAssignment(assignment, retentionAdmission = null) {
+  try {
+    validateRouteIqProspectiveFutureWindowAssignment(assignment);
+  } catch (error) {
+    fail(
+      "route_iq_evaluation_future_window_assignment_invalid",
+      "The immutable future-window assignment is invalid.",
+      { causeCode: error?.code || null },
+      409
+    );
+  }
+  if (retentionAdmission && (
+    assignment.authorityEvidence.sourceRecordSha256 !== retentionAdmission.evidenceIdentitySha256
+    || assignment.authorityEvidence.authorityReceiptSha256 !== retentionAdmission.claimsSha256
+    || assignment.authorityEvidence.issuedAt !== retentionAdmission.issuedAt
+    || assignment.authorityEvidence.expiresAt !== retentionAdmission.expiresAt
+    || assignment.windowAssignment.authoritativeServerAnchor !== retentionAdmission.issuedAt
+  )) {
+    fail(
+      "route_iq_evaluation_future_window_assignment_binding_invalid",
+      "The immutable future-window assignment does not bind the signed Data admission.",
+      {},
+      409
+    );
+  }
+  return deepFreeze(clone(assignment));
+}
+
+function productionRetentionIdentity(retentionAdmission, assignment) {
+  return deepFreeze({
+    productionAdmissionVersion: retentionAdmission.admissionVersion,
+    admissionKey: retentionAdmission.admissionKey,
+    replayKey: retentionAdmission.replayKey,
+    admissionClaimsSha256: retentionAdmission.claimsSha256,
+    providerBindingIdentitySha256: retentionAdmission.providerBindingIdentitySha256,
+    legalHoldSnapshotIdentitySha256: retentionAdmission.legalHold.snapshotIdentitySha256,
+    legalHoldLedgerSha256: retentionAdmission.legalHold.ledgerSha256,
+    legalHoldAttestationSha256: retentionAdmission.legalHold.attestationSha256,
+    futureWindowAssignmentVersion: assignment.assignmentVersion,
+    futureWindowAssignmentId: assignment.assignmentId,
+    futureWindowAssignmentSha256: assignment.assignmentSha256,
+    futureWindowPolicyVersion: assignment.policyVersion,
+    futureWindowPolicySha256: assignment.policySha256,
+    futureWindowWindowsSha256: assignment.windowAssignment.windowsSha256,
+    authoritativeServerAnchor: assignment.windowAssignment.authoritativeServerAnchor
+  });
 }
 
 const OPERATION_BASE_KEYS = [
@@ -1974,6 +2052,137 @@ function readEvaluationContext(repository, sourceOutcomeEvidenceSha256) {
   return { row, context };
 }
 
+function readCanonicalClosedSessionHandoff(repository, sessionId) {
+  const rows = repositoryRows(repository, `
+    SELECT * FROM canonical_session_events
+    WHERE session_id = ? AND event_kind = 'CLOSED'
+    ORDER BY record_sequence
+  `, [sessionId]);
+  if (rows.length !== 1) {
+    fail(
+      "route_iq_evaluation_retention_session_handoff_missing",
+      "Production retention admission requires one canonical closed-session handoff.",
+      {},
+      409
+    );
+  }
+  const canonical = parseCanonicalJson(
+    rows[0].canonical_json,
+    rows[0].record_sha256,
+    "canonical closed-session handoff"
+  );
+  if (canonical.sessionId !== sessionId
+    || canonical.eventKind !== "CLOSED"
+    || canonical.payload?.handoffContractVersion !== "route-iq-end-of-day-data-handoff-v1") {
+    fail(
+      "route_iq_evaluation_retention_session_handoff_invalid",
+      "The canonical closed-session handoff is invalid.",
+      {},
+      409
+    );
+  }
+  return canonical;
+}
+
+function validateProductionRetentionAgainstCanonicalState(record, {
+  repository,
+  scope,
+  opportunity,
+  session,
+  link,
+  evaluationContext,
+  outcomeEvent,
+  serverNow
+}) {
+  assertObject(record, "verifiedRetentionAuthority.claims");
+  assertObject(record.evaluationBinding, "verifiedRetentionAuthority.claims.evaluationBinding");
+  assertObject(record.committedArchive, "verifiedRetentionAuthority.claims.committedArchive");
+  assertObject(record.committedArchive.scope, "verifiedRetentionAuthority.claims.committedArchive.scope");
+  assertObject(record.legalHold, "verifiedRetentionAuthority.claims.legalHold");
+  assertObject(record.dataAdmission, "verifiedRetentionAuthority.claims.dataAdmission");
+  assertObject(record.dataAdmission.envelope, "verifiedRetentionAuthority.claims.dataAdmission.envelope");
+  assertObject(record.dataAdmission.sourceSession, "verifiedRetentionAuthority.claims.dataAdmission.sourceSession");
+
+  const canonicalScope = canonicalEvaluationScope(scope);
+  const handoff = readCanonicalClosedSessionHandoff(repository, session.session_id);
+  const localMismatch = stableJson(record.scope) !== stableJson(canonicalScope)
+    || stableJson(record.committedArchive.scope) !== stableJson(canonicalScope)
+    || record.opportunityId !== opportunity.opportunity_id
+    || record.evaluationBinding.evaluationContextSha256 !== evaluationContext.row.context_sha256
+    || record.evaluationBinding.evaluatedCandidateId !== link.candidate_id
+    || record.evaluationBinding.actionArtifactId !== link.action_artifact_id
+    || record.evaluationBinding.outcomeReceiptArtifactId !== outcomeEvent.artifactId
+    || record.evaluationBinding.outcomeReceiptRecordSha256 !== outcomeEvent.recordSha256
+    || record.sourceOutcomeEvidenceSha256 !== link.evidence_sha256
+    || record.committedArchive.sourceOutcomeEvidenceSha256 !== link.evidence_sha256
+    || record.committedArchive.sourceArchiveSessionSha256 !== link.source_archive_session_sha256
+    || record.committedArchive.rawSha256 !== link.source_archive_raw_sha256
+    || record.committedArchive.archiveCommittedAt !== link.archive_committed_at
+    || record.committedArchive.contractVersion !== routeIqFieldSessionOutcomeProjectionVersion
+    || record.committedArchive.handoffContractId !== handoff.payload.handoffContractVersion
+    || handoff.payload.endOfDayHandoffSha256 !== link.source_archive_raw_sha256
+    || sha256(record.committedArchive.fieldSessionId) !== link.source_archive_session_sha256
+    || record.dataAdmission.sourceSession.coordinatorSessionId !== session.session_id
+    || record.dataAdmission.sourceSession.fieldSessionId !== record.committedArchive.fieldSessionId
+    || record.dataAdmission.sourceSession.rawSha256 !== link.source_archive_raw_sha256
+    || record.authoritativeOutcomeTime !== outcomeEvent.authoritativeRecordTime
+    || record.outcomeRecordSha256 !== outcomeEvent.recordSha256;
+  if (localMismatch) {
+    fail(
+      "route_iq_evaluation_retention_authority_binding_invalid",
+      "The signed Data retention authority does not match canonical coordinator state.",
+      {},
+      409
+    );
+  }
+
+  const expected = {
+    sourceClassification: "authoritative_production",
+    providerBindingIdentitySha256: record.providerBindingIdentitySha256,
+    scope: canonicalScope,
+    opportunityId: opportunity.opportunity_id,
+    evaluationContextSha256: evaluationContext.row.context_sha256,
+    evaluatedCandidateId: link.candidate_id,
+    actionArtifactId: link.action_artifact_id,
+    outcomeReceiptArtifactId: outcomeEvent.artifactId,
+    outcomeReceiptRecordSha256: outcomeEvent.recordSha256,
+    fieldSessionId: record.committedArchive.fieldSessionId,
+    coordinatorSessionId: session.session_id,
+    sourceArchiveSessionSha256: link.source_archive_session_sha256,
+    sourceArchiveRawSha256: link.source_archive_raw_sha256,
+    sourceArchiveNormalizedSha256: record.committedArchive.normalizedSha256,
+    committedArchiveIdentitySha256: record.committedArchive.archiveIdentitySha256,
+    sourceOutcomeEvidenceSha256: link.evidence_sha256,
+    authoritativeOutcomeTime: outcomeEvent.authoritativeRecordTime,
+    outcomeRecordSha256: outcomeEvent.recordSha256,
+    policyVersion: routeIqProspectiveRetentionPolicyVersion,
+    policySha256: routeIqProspectiveProductionRetentionPolicySha256,
+    retentionBoundarySha256: computeRouteIqProspectiveProductionRetentionAdmissionSha256(
+      record.dataAdmission.envelope.retentionBoundary
+    ),
+    legalHoldSnapshotIdentitySha256: record.legalHold.snapshotIdentitySha256,
+    legalHoldLedgerSha256: record.legalHold.ledgerSha256,
+    legalHoldAttestationSha256: record.legalHold.attestationSha256,
+    legalHoldObservedAt: record.legalHold.observedAt,
+    legalHoldValidUntil: record.legalHold.validUntil,
+    admissionKey: record.admissionKey,
+    replayKey: record.replayKey
+  };
+  try {
+    return validateRouteIqProspectiveProductionRetentionAdmission(record, expected, {
+      serverNow,
+      requireAuthoritativeProduction: true
+    });
+  } catch (error) {
+    fail(
+      "route_iq_evaluation_retention_authority_invalid",
+      "The signed Data retention authority failed canonical validation.",
+      { causeCode: error?.code || null },
+      409
+    );
+  }
+}
+
 function evaluationRecordBody(record) {
   return Object.fromEntries(Object.entries(record).filter(([key]) => key !== "evaluationRecordSha256"));
 }
@@ -2009,13 +2218,55 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
     admission.evaluatedAt,
     "evaluationRecord.retentionAdmission.evaluatedAt"
   );
-  const expectedBoundary = validateRouteIqRetentionBoundaryForLedger(
-    Object.fromEntries(Object.entries(admission.retentionBoundary).filter(([key]) => ![
-      "contractVersion", "authorizationState", "source"
-    ].includes(key))),
-    expected.retentionGovernanceLedger,
-    expected.retentionSubject
-  );
+  const productionMode = expected.retentionMode === "authoritative_production";
+  const sourceTestMode = expected.retentionMode === "source_test_only";
+  if (!productionMode && !sourceTestMode) {
+    fail(
+      "route_iq_evaluation_retention_mode_invalid",
+      "Evaluation retention mode is not governed.",
+      {},
+      500
+    );
+  }
+  let expectedBoundary;
+  let expectedAudit = null;
+  if (sourceTestMode) {
+    expectedBoundary = validateRouteIqRetentionBoundaryForLedger(
+      Object.fromEntries(Object.entries(admission.retentionBoundary).filter(([key]) => ![
+        "contractVersion", "authorizationState", "source"
+      ].includes(key))),
+      expected.retentionGovernanceLedger,
+      expected.retentionSubject
+    );
+    if (expected.retentionLegalHoldSnapshot.state !== "none"
+      || expected.retentionLegalHoldSnapshot.authoritative !== true
+      || expected.retentionLegalHoldSnapshot.subjectBound !== true) {
+      fail(
+        "route_iq_evaluation_retention_legal_hold_blocked",
+        "An active or unknown legal hold blocks Data evaluation admission.",
+        {},
+        409
+      );
+    }
+  } else {
+    expectedBoundary = expected.productionRetentionAdmission.dataAdmission.envelope.retentionBoundary;
+    expectedAudit = {
+      auditVersion: routeIqAcceptedProductionIntelligenceRetentionAuditVersion,
+      ...productionRetentionIdentity(
+        expected.productionRetentionAdmission,
+        expected.futureWindowAssignment
+      )
+    };
+    if (stableJson(admission.retentionBoundary) !== stableJson(expectedBoundary)
+      || stableJson(admission.audit) !== stableJson(expectedAudit)) {
+      fail(
+        "route_iq_evaluation_retention_admission_binding_invalid",
+        "Intelligence retention evidence does not bind the signed Data admission and future-window assignment.",
+        {},
+        409
+      );
+    }
+  }
   const expiresAt = canonicalTimestamp(
     expectedBoundary.expiresAt,
     "evaluationRecord.retentionAdmission.expiresAt"
@@ -2024,16 +2275,6 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
     expected.admissionRecordTime,
     "evaluationRecord.retentionAdmission.authoritativeAdmissionTime"
   );
-  if (expected.retentionLegalHoldSnapshot.state !== "none"
-    || expected.retentionLegalHoldSnapshot.authoritative !== true
-    || expected.retentionLegalHoldSnapshot.subjectBound !== true) {
-    fail(
-      "route_iq_evaluation_retention_legal_hold_blocked",
-      "An active or unknown legal hold blocks Data evaluation admission.",
-      {},
-      409
-    );
-  }
   if (expiresAt.time <= evaluatedAt.time || expiresAt.time <= admittedAt.time) {
     fail(
       "route_iq_evaluation_retention_expired",
@@ -2045,7 +2286,9 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
   if (admission.retentionBoundary.contractVersion !== routeIqProspectiveRetentionBoundaryContractVersion
     || admission.retentionBoundary.authorizationState !== "founder_authorized_18_month_maximum"
     || admission.retentionBoundary.source !== "authenticated_data_retention_contract"
-    || expectedBoundary.createdAt !== expected.sourceEvidenceCreatedAt) {
+    || (sourceTestMode && expectedBoundary.createdAt !== expected.sourceEvidenceCreatedAt)
+    || (productionMode
+      && expectedBoundary.createdAt !== expected.productionRetentionAdmission.committedArchive.archiveCommittedAt)) {
     fail(
       "route_iq_evaluation_retention_boundary_invalid",
       "Retention admission does not match the Data-owned 18-month maximum and shortening-only boundary.",
@@ -2062,7 +2305,7 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
     || admission.reasonCodes.length !== 0
     || admission.collectionState !== "on"
     || admission.recommendationInfluence !== "off"
-    || admission.audit !== null
+    || (sourceTestMode && admission.audit !== null)
     || admission.representativeOutputAllowed !== false
     || admission.recommendationInfluenceAllowed !== false
     || admission.canonicalProductionEvaluationAllowed !== true) {
@@ -2075,10 +2318,13 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
   }
   const source = admission.sourceEvidence;
   const expectedRetentionBoundarySha256 = sha256(admission.retentionBoundary);
+  const expectedSourceRecordSha256 = productionMode
+    ? expected.productionRetentionAdmission.sourceOutcomeEvidenceSha256
+    : expected.retentionSubject.sourceRecordSha256;
   if (source.coordinatorSessionSha256 !== sha256(expected.coordinatorSessionId)
     || source.fieldSessionSha256 !== expected.sourceArchiveSessionSha256
     || source.sourceRawSha256 !== expected.sourceArchiveRawSha256
-    || source.sourceRecordSha256 !== expected.retentionSubject.sourceRecordSha256
+    || source.sourceRecordSha256 !== expectedSourceRecordSha256
     || source.retentionBoundarySha256 !== expectedRetentionBoundarySha256
     || admission.evaluatedAt !== expected.outcomeEvent.authoritativeRecordTime) {
     fail(
@@ -3516,7 +3762,37 @@ class RouteIqProspectiveCoordinatorCore {
   }
 
   async admitIntelligenceEvaluation(input = {}) {
-    this.assertInput(input, ["authorityEnvelope", "retentionGovernanceLedger"], "evaluationAdmissionRequest");
+    const sourceTestMode = Object.hasOwn(input, "sourceTestOnly");
+    if (sourceTestMode) {
+      this.assertInput(input, ["authorityEnvelope", "sourceTestOnly"], "evaluationAdmissionRequest");
+      assertExactKeys(
+        input.sourceTestOnly,
+        ["retentionGovernanceLedger"],
+        "evaluationAdmissionRequest.sourceTestOnly"
+      );
+      if (!Object.hasOwn(input.sourceTestOnly, "retentionGovernanceLedger")
+        || !input.sourceTestOnly.retentionGovernanceLedger) {
+        fail(
+          "route_iq_evaluation_source_test_retention_ledger_required",
+          "The explicit source-test-only path requires its fixture retention ledger.",
+          {},
+          409
+        );
+      }
+    } else {
+      this.assertInput(input, [
+        "authorityEnvelope", "retentionAuthorityEnvelope", "futureWindowAssignment"
+      ], "evaluationAdmissionRequest");
+      if (!Object.hasOwn(input, "retentionAuthorityEnvelope")
+        || !Object.hasOwn(input, "futureWindowAssignment")) {
+        fail(
+          "route_iq_evaluation_retention_authority_required",
+          "Production evaluation requires signed Data retention authority and an immutable future-window assignment.",
+          {},
+          409
+        );
+      }
+    }
     const authority = await verifyEnvelope(this.authorityVerifier, input.authorityEnvelope, {
       purpose: "evaluation_admission",
       coordinatorId: this.coordinatorId,
@@ -3524,8 +3800,17 @@ class RouteIqProspectiveCoordinatorCore {
     });
     const claims = normalizeScopeOnlyRuntimeClaims(authority.claims, this.scope, "evaluation_admission", [
       "sourceOutcomeEvidenceSha256", "evaluationContextSha256", "evaluationRecordSha256",
-      "evaluationContractVersion", "evaluationRecord"
+      "evaluationContractVersion", "evaluationRecord", "sourceClassification"
     ]);
+    if ((sourceTestMode && claims.sourceClassification !== "source_only_fixture")
+      || (!sourceTestMode && claims.sourceClassification !== undefined)) {
+      fail(
+        "route_iq_evaluation_retention_mode_invalid",
+        "The signed evaluation source classification does not match its admission path.",
+        {},
+        403
+      );
+    }
     requireSha(claims.sourceOutcomeEvidenceSha256, "verifiedRuntimeClaims.evaluation_admission.sourceOutcomeEvidenceSha256");
     requireSha(claims.evaluationContextSha256, "verifiedRuntimeClaims.evaluation_admission.evaluationContextSha256");
     requireSha(claims.evaluationRecordSha256, "verifiedRuntimeClaims.evaluation_admission.evaluationRecordSha256");
@@ -3539,17 +3824,38 @@ class RouteIqProspectiveCoordinatorCore {
       recordClass: "prospective_shadow_evidence",
       sourceRecordSha256: claims.sourceOutcomeEvidenceSha256
     };
-    const requestedHoldSnapshot = await readAuthoritativeRouteIqRetentionLegalHoldSnapshot(
-      input.retentionGovernanceLedger,
-      retentionSubject,
-      claims.authoritativeRecordTime
-    );
-    if (requestedHoldSnapshot.state !== "none") {
-      fail(
-        "route_iq_evaluation_retention_legal_hold_blocked",
-        "An active legal hold blocks Data evaluation admission.",
-        {},
-        409
+    let requestedHoldSnapshot = null;
+    let signedProductionRetentionAdmission = null;
+    let futureWindowAssignment = null;
+    if (sourceTestMode) {
+      requestedHoldSnapshot = await readAuthoritativeRouteIqRetentionLegalHoldSnapshot(
+        input.sourceTestOnly.retentionGovernanceLedger,
+        retentionSubject,
+        claims.authoritativeRecordTime
+      );
+      if (requestedHoldSnapshot.state !== "none") {
+        fail(
+          "route_iq_evaluation_retention_legal_hold_blocked",
+          "An active legal hold blocks Data evaluation admission.",
+          {},
+          409
+        );
+      }
+    } else {
+      const retentionAuthority = await verifyEnvelope(
+        this.authorityVerifier,
+        input.retentionAuthorityEnvelope,
+        {
+          purpose: "data_retention_admission",
+          coordinatorId: this.coordinatorId,
+          producer: true
+        }
+      );
+      signedProductionRetentionAdmission = productionRetentionRecordFromVerifiedClaims(
+        retentionAuthority.claims
+      );
+      futureWindowAssignment = validateProductionFutureWindowAssignment(
+        input.futureWindowAssignment
       );
     }
     const result = this.repository.transactionSync(() => {
@@ -3563,6 +3869,36 @@ class RouteIqProspectiveCoordinatorCore {
         fail("route_iq_evaluation_chronology_invalid", "Evaluation admission must be strictly later than the admitted outcome.", {}, 409);
       }
       const recordTime = nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime);
+      let productionRetentionAdmission = null;
+      let productionIdentity = null;
+      if (!sourceTestMode) {
+        productionRetentionAdmission = validateProductionRetentionAgainstCanonicalState(
+          signedProductionRetentionAdmission,
+          {
+            repository: this.repository,
+            scope: this.scope,
+            opportunity,
+            session,
+            link,
+            evaluationContext,
+            outcomeEvent,
+            serverNow: recordTime
+          }
+        );
+        futureWindowAssignment = validateProductionFutureWindowAssignment(
+          futureWindowAssignment,
+          productionRetentionAdmission
+        );
+        productionIdentity = productionRetentionIdentity(
+          productionRetentionAdmission,
+          futureWindowAssignment
+        );
+      }
+      const operationContent = {
+        evaluationRecordSha256: claims.evaluationRecordSha256,
+        evaluationRecord: claims.evaluationRecord,
+        ...(productionIdentity ? { productionRetentionIdentity: productionIdentity } : {})
+      };
       const operationClaims = internalOperationClaims({
         scope: this.scope,
         session,
@@ -3574,10 +3910,7 @@ class RouteIqProspectiveCoordinatorCore {
           evaluationContextSha256: claims.evaluationContextSha256,
           evaluationContractVersion: claims.evaluationContractVersion
         },
-        content: {
-          evaluationRecordSha256: claims.evaluationRecordSha256,
-          evaluationRecord: claims.evaluationRecord
-        }
+        content: operationContent
       });
       const identities = identitiesForClaims(this.coordinatorId, operationClaims);
       const canonicalRequest = {
@@ -3585,7 +3918,8 @@ class RouteIqProspectiveCoordinatorCore {
         evaluationContextSha256: claims.evaluationContextSha256,
         evaluationRecordSha256: claims.evaluationRecordSha256,
         evaluationContractVersion: claims.evaluationContractVersion,
-        evaluationRecord: clone(claims.evaluationRecord)
+        evaluationRecord: clone(claims.evaluationRecord),
+        ...(productionIdentity ? { productionRetentionIdentity: clone(productionIdentity) } : {})
       };
       const requestSha256 = sha256(canonicalRequest);
       const existing = existingReceiptDecision(this.repository, {
@@ -3647,13 +3981,19 @@ class RouteIqProspectiveCoordinatorCore {
         sourceArchiveSessionSha256: link.source_archive_session_sha256,
         sourceEvidenceCreatedAt: outcomeEvent.authoritativeRecordTime,
         admissionRecordTime: recordTime,
-        retentionGovernanceLedger: input.retentionGovernanceLedger,
-        retentionSubject,
-        retentionLegalHoldSnapshot: readRouteIqRetentionLegalHoldSnapshot(
-          input.retentionGovernanceLedger,
+        retentionMode: sourceTestMode ? "source_test_only" : "authoritative_production",
+        ...(sourceTestMode ? {
+          retentionGovernanceLedger: input.sourceTestOnly.retentionGovernanceLedger,
           retentionSubject,
-          recordTime
-        ),
+          retentionLegalHoldSnapshot: readRouteIqRetentionLegalHoldSnapshot(
+            input.sourceTestOnly.retentionGovernanceLedger,
+            retentionSubject,
+            recordTime
+          )
+        } : {
+          productionRetentionAdmission,
+          futureWindowAssignment
+        }),
         sourceProjection: {
           projectionId: committedProjection.projection_id,
           projectionCommitId: committedProjection.commit_id,
@@ -3697,7 +4037,10 @@ class RouteIqProspectiveCoordinatorCore {
           evaluationContextSha256: claims.evaluationContextSha256,
           evaluationRecordSha256: claims.evaluationRecordSha256,
           evaluationContractVersion: claims.evaluationContractVersion,
-          retentionLegalHoldLedgerSha256: expected.retentionLegalHoldSnapshot.ledgerSha256,
+          retentionLegalHoldLedgerSha256: sourceTestMode
+            ? expected.retentionLegalHoldSnapshot.ledgerSha256
+            : productionRetentionAdmission.legalHold.ledgerSha256,
+          ...(productionIdentity ? { productionRetentionIdentity: clone(productionIdentity) } : {}),
           evaluationRecord: clone(evaluationRecord),
           fullEvaluationPersisted: true,
           calculatedByData: false,
@@ -3716,7 +4059,10 @@ class RouteIqProspectiveCoordinatorCore {
           sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
           evaluationContextSha256: claims.evaluationContextSha256,
           evaluationRecordSha256: claims.evaluationRecordSha256,
-          retentionLegalHoldLedgerSha256: expected.retentionLegalHoldSnapshot.ledgerSha256,
+          retentionLegalHoldLedgerSha256: sourceTestMode
+            ? expected.retentionLegalHoldSnapshot.ledgerSha256
+            : productionRetentionAdmission.legalHold.ledgerSha256,
+          ...(productionIdentity ? { productionRetentionIdentity: clone(productionIdentity) } : {}),
           fullEvaluationPersisted: true,
           calculatedByData: false
         }

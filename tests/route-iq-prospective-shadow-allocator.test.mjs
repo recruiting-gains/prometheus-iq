@@ -19,6 +19,7 @@ import {
   routeIqEvaluationContextSchemaVersion,
   routeIqFieldSessionOutcomeProjectionContractVersion,
   routeIqAcceptedIntelligenceRetentionAdmissionVersion,
+  routeIqAcceptedProductionIntelligenceRetentionAuditVersion,
   routeIqAcceptedProspectiveRetentionPolicySha256,
   routeIqIntelligenceEvaluationContractVersion,
   routeIqIntelligenceEvaluationRecordSchemaVersion,
@@ -32,6 +33,15 @@ import {
 import {
   routeIqProspectiveRetentionBoundaryContractVersion
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs";
+import {
+  computeRouteIqProspectiveProductionRetentionAdmissionSha256,
+  routeIqProspectiveProductionRetentionAdmissionMaximumAgeMilliseconds,
+  routeIqProspectiveProductionRetentionAdmissionVersion,
+  routeIqProspectiveProductionRetentionPolicySha256
+} from "../data/route-iq-field-sessions-v1/route-iq-prospective-production-retention-admission.mjs";
+import {
+  createRouteIqProspectiveFutureWindowAssignment
+} from "../intelligence/route-iq-prospective-future-window-policy.mjs";
 import {
   createRetentionAuthority,
   createRetentionStore,
@@ -817,19 +827,313 @@ async function prepareTwoAdmittedOutcomeSources(h, suffix) {
   };
 }
 
-function evaluationAdmissionClaims(source, record, authoritativeRecordTime = iso(90_000)) {
+function evaluationAdmissionClaims(
+  source,
+  record,
+  authoritativeRecordTime = iso(90_000),
+  sourceClassification = "source_only_fixture"
+) {
   return runtimeClaims(source.h, "evaluation_admission", authoritativeRecordTime, {
     sourceOutcomeEvidenceSha256: source.link.evidenceSha256,
     evaluationContextSha256: source.link.evaluationContextSha256,
     evaluationRecordSha256: record.evaluationRecordSha256,
     evaluationContractVersion: routeIqIntelligenceEvaluationContractVersion,
-    evaluationRecord: record
+    evaluationRecord: record,
+    ...(sourceClassification ? { sourceClassification } : {})
   });
 }
 
 function rehashEvaluationRecord(record) {
   const body = Object.fromEntries(Object.entries(record).filter(([key]) => key !== "evaluationRecordSha256"));
   return { ...body, evaluationRecordSha256: digest(body) };
+}
+
+const PRODUCTION_FIELD_SESSION_ID =
+  "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-13";
+
+function buildProductionRetentionAdmission(source, {
+  issuedAt = iso(88_000),
+  legalHoldIdentitySuffix = "primary"
+} = {}) {
+  const scope = {
+    workspaceId: source.h.scope.workspaceId,
+    operatingProfileId: source.h.scope.operatingProfileId,
+    representativeId: source.h.scope.representativeId
+  };
+  const sourceLink = source.h.repository.one(
+    "SELECT * FROM field_session_outcome_links WHERE evidence_sha256 = ?",
+    source.link.evidenceSha256
+  );
+  const archiveBody = {
+    contractVersion: source.projection.schemaVersion,
+    fieldSessionId: PRODUCTION_FIELD_SESSION_ID,
+    scope,
+    handoffContractId: source.projection.sourceArchive.handoffContractId,
+    sourceArchiveSessionSha256: sourceLink.source_archive_session_sha256,
+    rawSha256: sourceLink.source_archive_raw_sha256,
+    normalizedSha256: source.projection.sourceArchive.normalizedSha256,
+    archiveCommittedAt: sourceLink.archive_committed_at,
+    sourceOutcomeEvidenceSha256: source.link.evidenceSha256
+  };
+  const committedArchive = {
+    ...archiveBody,
+    archiveIdentitySha256:
+      computeRouteIqProspectiveProductionRetentionAdmissionSha256(archiveBody)
+  };
+  const retentionSubject = {
+    workspaceId: scope.workspaceId,
+    operatingProfileId: scope.operatingProfileId,
+    recordClass: "prospective_shadow_evidence",
+    sourceRecordSha256: source.link.evidenceSha256
+  };
+  const calculatedBoundary = calculateRouteIqRetentionBoundary({
+    subject: retentionSubject,
+    customerAccountId: scope.workspaceId,
+    createdAt: sourceLink.archive_committed_at,
+    customerContractExpiresAt: null,
+    customerOverrideAuthority: null
+  });
+  const retentionBoundary = {
+    contractVersion: routeIqProspectiveRetentionBoundaryContractVersion,
+    authorizationState: "founder_authorized_18_month_maximum",
+    source: "authenticated_data_retention_contract",
+    ...calculatedBoundary
+  };
+  const outcomeRecordSha256 = source.outcomeReceipt.recordSha256;
+  const evidenceIdentitySha256 =
+    computeRouteIqProspectiveProductionRetentionAdmissionSha256({
+      scope,
+      opportunityId: source.link.opportunityId,
+      fieldSessionId: PRODUCTION_FIELD_SESSION_ID,
+      coordinatorSessionId: source.outcomeReceipt.sessionId,
+      evaluationContextSha256: source.link.evaluationContextSha256,
+      evaluatedCandidateId: source.link.candidateId,
+      actionArtifactId: source.link.actionArtifactId,
+      outcomeReceiptArtifactId: source.outcomeReceipt.artifactId,
+      outcomeReceiptRecordSha256: source.outcomeReceipt.recordSha256,
+      committedArchiveIdentitySha256: committedArchive.archiveIdentitySha256,
+      sourceArchiveSessionSha256: sourceLink.source_archive_session_sha256,
+      sourceArchiveRawSha256: sourceLink.source_archive_raw_sha256,
+      sourceOutcomeEvidenceSha256: source.link.evidenceSha256,
+      outcomeRecordSha256,
+      authoritativeOutcomeTime: source.outcomeReceipt.authoritativeRecordTime,
+      policyVersion: "route-iq-prospective-shadow-retention-policy-v1",
+      policySha256: routeIqProspectiveProductionRetentionPolicySha256
+    });
+  const legalHold = {
+    state: "none",
+    snapshotIdentitySha256: digest(`production-legal-hold-snapshot:${legalHoldIdentitySuffix}`),
+    ledgerSha256: digest(`production-legal-hold-ledger:${legalHoldIdentitySuffix}`),
+    attestationSha256: digest(`production-legal-hold-attestation:${legalHoldIdentitySuffix}`),
+    observedAt: issuedAt,
+    validUntil: new Date(Date.parse(issuedAt) + 60_000).toISOString(),
+    authoritative: true
+  };
+  const sourceSession = {
+    coordinatorSessionId: source.outcomeReceipt.sessionId,
+    fieldSessionId: PRODUCTION_FIELD_SESSION_ID,
+    rawSha256: sourceLink.source_archive_raw_sha256
+  };
+  const envelope = {
+    policyVersion: "route-iq-prospective-shadow-retention-policy-v1",
+    collectionState: "on",
+    recommendationInfluence: "off",
+    recordOrigin: "prospective",
+    workspaceId: scope.workspaceId,
+    operatingProfileId: scope.operatingProfileId,
+    representativeId: scope.representativeId,
+    evaluatedAt: source.outcomeReceipt.authoritativeRecordTime,
+    retentionBoundary,
+    derivedProjectionExpiresAt: retentionBoundary.expiresAt
+  };
+  const binding = {
+    scope,
+    opportunityId: source.link.opportunityId,
+    evaluationContextSha256: source.link.evaluationContextSha256,
+    evaluatedCandidateId: source.link.candidateId,
+    actionArtifactId: source.link.actionArtifactId,
+    outcomeReceiptArtifactId: source.outcomeReceipt.artifactId,
+    outcomeReceiptRecordSha256: source.outcomeReceipt.recordSha256,
+    sourceOutcomeEvidenceSha256: source.link.evidenceSha256,
+    authoritativeOutcomeTime: source.outcomeReceipt.authoritativeRecordTime,
+    committedArchiveIdentitySha256: committedArchive.archiveIdentitySha256,
+    outcomeRecordSha256,
+    evidenceIdentitySha256,
+    policyVersion: "route-iq-prospective-shadow-retention-policy-v1",
+    policySha256: routeIqProspectiveProductionRetentionPolicySha256,
+    legalHoldSnapshotIdentitySha256: legalHold.snapshotIdentitySha256,
+    issuedAt
+  };
+  const admissionKey = `riq_retention_admission_${
+    computeRouteIqProspectiveProductionRetentionAdmissionSha256(binding)
+  }`;
+  const replayKey = `riq_retention_source_${
+    computeRouteIqProspectiveProductionRetentionAdmissionSha256({
+      scope,
+      sourceOutcomeEvidenceSha256: source.link.evidenceSha256
+    })
+  }`;
+  const body = {
+    admissionVersion: routeIqProspectiveProductionRetentionAdmissionVersion,
+    admissionState: "RETENTION_ADMITTED",
+    authority: "prometheus_data_retention_admission",
+    sourceClassification: "authoritative_production",
+    environment: "production",
+    providerBindingIdentitySha256: digest("production-retention-provider-binding"),
+    admissionKey,
+    replayKey,
+    issuedAt,
+    expiresAt: new Date(
+      Date.parse(issuedAt)
+        + routeIqProspectiveProductionRetentionAdmissionMaximumAgeMilliseconds
+    ).toISOString(),
+    scope,
+    opportunityId: source.link.opportunityId,
+    evaluationBinding: {
+      evaluationContextSha256: source.link.evaluationContextSha256,
+      evaluatedCandidateId: source.link.candidateId,
+      actionArtifactId: source.link.actionArtifactId,
+      outcomeReceiptArtifactId: source.outcomeReceipt.artifactId,
+      outcomeReceiptRecordSha256: source.outcomeReceipt.recordSha256
+    },
+    committedArchive,
+    sourceOutcomeEvidenceSha256: source.link.evidenceSha256,
+    authoritativeOutcomeTime: source.outcomeReceipt.authoritativeRecordTime,
+    outcomeRecordSha256,
+    policyVersion: "route-iq-prospective-shadow-retention-policy-v1",
+    policySha256: routeIqProspectiveProductionRetentionPolicySha256,
+    evidenceIdentitySha256,
+    legalHold,
+    dataAdmission: {
+      dataPolicySha256: routeIqProspectiveProductionRetentionPolicySha256,
+      envelope,
+      sourceSession
+    },
+    collectionState: "on",
+    recommendationInfluence: "off",
+    recordOrigin: "prospective",
+    representativeOutputAllowed: false,
+    recommendationInfluenceAllowed: false,
+    productionMutationAuthorized: false
+  };
+  return {
+    ...body,
+    claimsSha256:
+      computeRouteIqProspectiveProductionRetentionAdmissionSha256(body)
+  };
+}
+
+async function buildFutureWindowAssignment(productionAdmission) {
+  const evidenceBody = {
+    evidenceVersion: "route-iq-authoritative-server-anchor-evidence-v1",
+    purpose: "route_iq_prospective_future_window_anchor",
+    policyVersion: "route-iq-prospective-future-window-policy-v1",
+    issuedAt: productionAdmission.issuedAt,
+    expiresAt: productionAdmission.expiresAt,
+    authoritativeServerAnchor: productionAdmission.issuedAt,
+    sourceRecordSha256: productionAdmission.evidenceIdentitySha256,
+    authorityReceiptSha256: productionAdmission.claimsSha256
+  };
+  const evidence = {
+    ...evidenceBody,
+    evidenceSha256: digest(evidenceBody)
+  };
+  return createRouteIqProspectiveFutureWindowAssignment(
+    { authorityEnvelope: { sourceTestOnly: true } },
+    {
+      serverNow: productionAdmission.issuedAt,
+      authorityVerifier: {
+        async verify() {
+          return {
+            admitted: true,
+            admissionVersion: "route-iq-authoritative-server-evidence-admission-v1",
+            verificationType: "infrastructure_verified_producer_signature",
+            algorithm: "HMAC-SHA-256",
+            keyId: `riq_key_${digest("future-window-assignment-test-key")}`,
+            admittedAt: productionAdmission.issuedAt,
+            evidence
+          };
+        }
+      }
+    }
+  );
+}
+
+function productionEvaluationRecord(source, productionAdmission, futureWindowAssignment) {
+  const record = structuredClone(source.evaluationRecord);
+  const boundary = productionAdmission.dataAdmission.envelope.retentionBoundary;
+  record.retentionAdmission = {
+    admissionVersion: routeIqAcceptedIntelligenceRetentionAdmissionVersion,
+    dataPolicyVersion: "route-iq-prospective-shadow-retention-policy-v1",
+    dataPolicySha256: routeIqAcceptedProspectiveRetentionPolicySha256,
+    state: "RETENTION_ADMITTED",
+    admitted: true,
+    reasonCodes: [],
+    sourceEvidence: {
+      coordinatorSessionSha256: digest(
+        productionAdmission.dataAdmission.sourceSession.coordinatorSessionId
+      ),
+      fieldSessionSha256: digest(
+        productionAdmission.dataAdmission.sourceSession.fieldSessionId
+      ),
+      sourceRawSha256: productionAdmission.dataAdmission.sourceSession.rawSha256,
+      sourceRecordSha256: boundary.subject.sourceRecordSha256,
+      retentionBoundarySha256: digest(boundary)
+    },
+    evaluatedAt: productionAdmission.authoritativeOutcomeTime,
+    retentionBoundary: structuredClone(boundary),
+    collectionState: productionAdmission.collectionState,
+    recommendationInfluence: productionAdmission.recommendationInfluence,
+    audit: {
+      auditVersion: routeIqAcceptedProductionIntelligenceRetentionAuditVersion,
+      productionAdmissionVersion: productionAdmission.admissionVersion,
+      admissionKey: productionAdmission.admissionKey,
+      replayKey: productionAdmission.replayKey,
+      admissionClaimsSha256: productionAdmission.claimsSha256,
+      providerBindingIdentitySha256:
+        productionAdmission.providerBindingIdentitySha256,
+      legalHoldSnapshotIdentitySha256:
+        productionAdmission.legalHold.snapshotIdentitySha256,
+      legalHoldLedgerSha256: productionAdmission.legalHold.ledgerSha256,
+      legalHoldAttestationSha256:
+        productionAdmission.legalHold.attestationSha256,
+      futureWindowAssignmentVersion: futureWindowAssignment.assignmentVersion,
+      futureWindowAssignmentId: futureWindowAssignment.assignmentId,
+      futureWindowAssignmentSha256: futureWindowAssignment.assignmentSha256,
+      futureWindowPolicyVersion: futureWindowAssignment.policyVersion,
+      futureWindowPolicySha256: futureWindowAssignment.policySha256,
+      futureWindowWindowsSha256:
+        futureWindowAssignment.windowAssignment.windowsSha256,
+      authoritativeServerAnchor:
+        futureWindowAssignment.windowAssignment.authoritativeServerAnchor
+    },
+    representativeOutputAllowed: false,
+    recommendationInfluenceAllowed: false,
+    canonicalProductionEvaluationAllowed: true
+  };
+  return rehashEvaluationRecord(record);
+}
+
+function productionEvaluationInput(source, productionAdmission, futureWindowAssignment) {
+  const evaluationRecord = productionEvaluationRecord(
+    source,
+    productionAdmission,
+    futureWindowAssignment
+  );
+  return {
+    evaluationRecord,
+    input: {
+      authorityEnvelope: source.h.authority.sign(
+        evaluationAdmissionClaims(source, evaluationRecord, iso(90_000), null),
+        "producer"
+      ),
+      retentionAuthorityEnvelope: source.h.authority.sign({
+        purpose: "data_retention_admission",
+        ...productionAdmission
+      }, "producer"),
+      futureWindowAssignment
+    }
+  };
 }
 
 test("server allocator contract and pending candidate boundary are explicit", async () => {
@@ -1395,13 +1699,14 @@ test("committed handoff reconciliation binds multiple actions, appends correctio
   const evaluationRecord = buildFullEvaluationRecord(restarted, receipt, receipt.linked[0], admitted);
   const retention = await openEvaluationRetentionLedger(restarted, receipt.linked[0].evidenceSha256);
   const evaluated = await restarted.coordinator.admitIntelligenceEvaluation({
-    retentionGovernanceLedger: retention.ledger,
+    sourceTestOnly: { retentionGovernanceLedger: retention.ledger },
     authorityEnvelope: restarted.authority.sign(runtimeClaims(restarted, "evaluation_admission", iso(140_000), {
       sourceOutcomeEvidenceSha256: receipt.linked[0].evidenceSha256,
       evaluationContextSha256: receipt.linked[0].evaluationContextSha256,
       evaluationRecordSha256: evaluationRecord.evaluationRecordSha256,
       evaluationContractVersion: routeIqIntelligenceEvaluationContractVersion,
-      evaluationRecord
+      evaluationRecord,
+      sourceClassification: "source_only_fixture"
     }), "producer")
   });
   assert.equal(evaluated.state, "EVALUATED");
@@ -1409,13 +1714,14 @@ test("committed handoff reconciliation binds multiple actions, appends correctio
   assert.equal(evaluated.evaluationContextSha256, receipt.linked[0].evaluationContextSha256);
   assert.equal(evaluated.fullEvaluationPersisted, true);
   const replayedEvaluation = await restarted.coordinator.admitIntelligenceEvaluation({
-    retentionGovernanceLedger: retention.ledger,
+    sourceTestOnly: { retentionGovernanceLedger: retention.ledger },
     authorityEnvelope: restarted.authority.sign(runtimeClaims(restarted, "evaluation_admission", iso(150_000), {
       sourceOutcomeEvidenceSha256: receipt.linked[0].evidenceSha256,
       evaluationContextSha256: receipt.linked[0].evaluationContextSha256,
       evaluationRecordSha256: evaluationRecord.evaluationRecordSha256,
       evaluationContractVersion: routeIqIntelligenceEvaluationContractVersion,
-      evaluationRecord
+      evaluationRecord,
+      sourceClassification: "source_only_fixture"
     }), "producer")
   });
   assert.deepEqual(replayedEvaluation, evaluated);
@@ -1433,6 +1739,130 @@ test("committed handoff reconciliation binds multiple actions, appends correctio
   const events = h.repository.query("SELECT authoritative_record_time FROM lifecycle_events ORDER BY record_sequence");
   assert.ok(events.every((event, index) => index === 0
     || Date.parse(event.authoritative_record_time) > Date.parse(events[index - 1].authoritative_record_time)));
+});
+
+test("production evaluation verifies signed Data retention authority and persists immutable future-window identity", async () => {
+  const source = await admitPreparedScoreable(await prepareReconciledEvaluationSource(
+    "production-retention-authority",
+    { sourceArchiveSessionSha256: digest(PRODUCTION_FIELD_SESSION_ID) }
+  ));
+  const productionAdmission = buildProductionRetentionAdmission(source);
+  const assignment = await buildFutureWindowAssignment(productionAdmission);
+  const prepared = productionEvaluationInput(source, productionAdmission, assignment);
+
+  const admitted = await source.h.coordinator.admitIntelligenceEvaluation(prepared.input);
+  assert.equal(admitted.state, "EVALUATED");
+  assert.equal(
+    admitted.productionRetentionIdentity.admissionClaimsSha256,
+    productionAdmission.claimsSha256
+  );
+  assert.equal(
+    admitted.productionRetentionIdentity.futureWindowAssignmentSha256,
+    assignment.assignmentSha256
+  );
+  const event = JSON.parse(source.h.repository.one(
+    "SELECT canonical_json FROM lifecycle_events WHERE event_kind = 'EVALUATED'"
+  ).canonical_json);
+  assert.deepEqual(
+    event.payload.productionRetentionIdentity,
+    admitted.productionRetentionIdentity
+  );
+  assert.equal(
+    event.payload.evaluationRecord.retentionAdmission.audit.futureWindowAssignmentId,
+    assignment.assignmentId
+  );
+
+  const retry = await source.h.coordinator.admitIntelligenceEvaluation(prepared.input);
+  assert.deepEqual(retry, admitted);
+  assert.equal(source.h.repository.one(
+    "SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'EVALUATED'"
+  ).count, 1);
+});
+
+test("production evaluation fails before mutation for missing, invalid, and noncanonical retention authority", async t => {
+  for (const name of ["missing", "invalid signature", "invalid assignment", "legacy ledger input"]) {
+    await t.test(name, async () => {
+      const source = await admitPreparedScoreable(await prepareReconciledEvaluationSource(
+        `production-retention-${name.replaceAll(" ", "-")}`,
+        { sourceArchiveSessionSha256: digest(PRODUCTION_FIELD_SESSION_ID) }
+      ));
+      const productionAdmission = buildProductionRetentionAdmission(source);
+      const assignment = await buildFutureWindowAssignment(productionAdmission);
+      const prepared = productionEvaluationInput(source, productionAdmission, assignment);
+      let request;
+      if (name === "missing") {
+        request = {
+          authorityEnvelope: prepared.input.authorityEnvelope,
+          futureWindowAssignment: assignment
+        };
+      } else if (name === "invalid signature") {
+        request = structuredClone(prepared.input);
+        request.retentionAuthorityEnvelope.signature = digest("invalid-signature");
+      } else if (name === "invalid assignment") {
+        request = structuredClone(prepared.input);
+        request.futureWindowAssignment.assignmentSha256 = digest("invalid-assignment");
+      } else {
+        request = {
+          authorityEnvelope: source.h.authority.sign(
+            evaluationAdmissionClaims(source, source.evaluationRecord),
+            "producer"
+          ),
+          retentionGovernanceLedger: source.retention.ledger
+        };
+      }
+      await assert.rejects(() => source.h.coordinator.admitIntelligenceEvaluation(request));
+      assert.equal(source.h.repository.one(
+        "SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'EVALUATED'"
+      ).count, 0);
+      assert.equal(source.h.repository.one(
+        "SELECT COUNT(*) AS count FROM operation_attempts WHERE operation_kind = 'evaluation_admission'"
+      ).count, 0);
+    });
+  }
+});
+
+test("production evaluation identical retry is stable and changed signed source reuse conflicts without reassignment", async () => {
+  const source = await admitPreparedScoreable(await prepareReconciledEvaluationSource(
+    "production-retention-reuse",
+    { sourceArchiveSessionSha256: digest(PRODUCTION_FIELD_SESSION_ID) }
+  ));
+  const firstAdmission = buildProductionRetentionAdmission(source);
+  const firstAssignment = await buildFutureWindowAssignment(firstAdmission);
+  const firstPrepared = productionEvaluationInput(source, firstAdmission, firstAssignment);
+  const first = await source.h.coordinator.admitIntelligenceEvaluation(firstPrepared.input);
+  assert.deepEqual(
+    await source.h.coordinator.admitIntelligenceEvaluation(firstPrepared.input),
+    first
+  );
+
+  const changedAdmission = buildProductionRetentionAdmission(source, {
+    issuedAt: iso(89_000),
+    legalHoldIdentitySuffix: "changed-reuse"
+  });
+  assert.equal(changedAdmission.replayKey, firstAdmission.replayKey);
+  const changedAssignment = await buildFutureWindowAssignment(changedAdmission);
+  const changedPrepared = productionEvaluationInput(
+    source,
+    changedAdmission,
+    changedAssignment
+  );
+  await assert.rejects(
+    () => source.h.coordinator.admitIntelligenceEvaluation(changedPrepared.input),
+    error => error.code === "route_iq_coordinator_conflict"
+  );
+  const original = JSON.parse(source.h.repository.one(
+    "SELECT canonical_json FROM lifecycle_events WHERE event_kind = 'EVALUATED'"
+  ).canonical_json);
+  assert.equal(
+    original.payload.productionRetentionIdentity.futureWindowAssignmentSha256,
+    firstAssignment.assignmentSha256
+  );
+  assert.equal(source.h.repository.one(
+    "SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'EVALUATED'"
+  ).count, 1);
+  assert.equal(source.h.repository.one(
+    "SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'CONFLICT_RECORDED'"
+  ).count, 1);
 });
 
 test("scoreable admission requires the exact immutable evaluation context", async () => {
@@ -1830,7 +2260,7 @@ test("full evaluation admission rejects context, rank, probability, candidate, c
       entry.mutateClaims?.(claims);
       await assert.rejects(
         () => source.h.coordinator.admitIntelligenceEvaluation({
-          retentionGovernanceLedger: source.retention.ledger,
+          sourceTestOnly: { retentionGovernanceLedger: source.retention.ledger },
           authorityEnvelope: source.h.authority.sign(claims, "producer")
         }),
         error => error.code === entry.code
@@ -1994,7 +2424,9 @@ test("evaluation retention admission fails closed for missing, extra, expired, u
       const record = rehashEvaluationRecord(changed);
       await assert.rejects(
         () => source.h.coordinator.admitIntelligenceEvaluation({
-          retentionGovernanceLedger: entry.ledgerOverride || source.retention.ledger,
+          sourceTestOnly: {
+            retentionGovernanceLedger: entry.ledgerOverride || source.retention.ledger
+          },
           authorityEnvelope: source.h.authority.sign(evaluationAdmissionClaims(source, record), "producer")
         }),
         error => error.code === entry.code
@@ -2014,7 +2446,7 @@ test("administratively disposed field-session evidence cannot enter canonical ev
   }));
   await assert.rejects(
     () => source.h.coordinator.admitIntelligenceEvaluation({
-      retentionGovernanceLedger: source.retention.ledger,
+      sourceTestOnly: { retentionGovernanceLedger: source.retention.ledger },
       authorityEnvelope: source.h.authority.sign(
         evaluationAdmissionClaims(source, source.evaluationRecord),
         "producer"
@@ -2032,7 +2464,7 @@ test("evaluation admission is strictly later, idempotent across restart, and rec
   const source = await admitPreparedScoreable(await prepareReconciledEvaluationSource("evaluation-replay"));
   await assert.rejects(
     () => source.h.coordinator.admitIntelligenceEvaluation({
-      retentionGovernanceLedger: source.retention.ledger,
+      sourceTestOnly: { retentionGovernanceLedger: source.retention.ledger },
       authorityEnvelope: source.h.authority.sign(
         evaluationAdmissionClaims(source, source.evaluationRecord, source.outcomeReceipt.authoritativeRecordTime),
         "producer"
@@ -2041,7 +2473,7 @@ test("evaluation admission is strictly later, idempotent across restart, and rec
     error => error.code === "route_iq_evaluation_chronology_invalid"
   );
   const first = await source.h.coordinator.admitIntelligenceEvaluation({
-    retentionGovernanceLedger: source.retention.ledger,
+    sourceTestOnly: { retentionGovernanceLedger: source.retention.ledger },
     authorityEnvelope: source.h.authority.sign(evaluationAdmissionClaims(source, source.evaluationRecord), "producer")
   });
   const restarted = await openHarness({
@@ -2051,7 +2483,7 @@ test("evaluation admission is strictly later, idempotent across restart, and rec
     territoryContext: knownTerritoryContext("evaluation-evaluation-replay")
   });
   const replay = await restarted.coordinator.admitIntelligenceEvaluation({
-    retentionGovernanceLedger: source.retention.ledger,
+    sourceTestOnly: { retentionGovernanceLedger: source.retention.ledger },
     authorityEnvelope: restarted.authority.sign({
       ...evaluationAdmissionClaims({ ...source, h: restarted }, source.evaluationRecord, iso(100_000))
     }, "producer")
@@ -2063,7 +2495,7 @@ test("evaluation admission is strictly later, idempotent across restart, and rec
   const changedRecord = rehashEvaluationRecord(changed);
   await assert.rejects(
     () => restarted.coordinator.admitIntelligenceEvaluation({
-      retentionGovernanceLedger: source.retention.ledger,
+      sourceTestOnly: { retentionGovernanceLedger: source.retention.ledger },
       authorityEnvelope: restarted.authority.sign(
         evaluationAdmissionClaims({ ...source, h: restarted }, changedRecord, iso(110_000)),
         "producer"
