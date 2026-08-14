@@ -26,6 +26,8 @@ export const retentionMaintenanceConsumerAdmissionSuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json";
 export const governedMultiSessionLearningAdvisorySuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-governed-multi-session-learning-advisory-v1.json";
+export const prospectiveCalibrationProductionAdmissionSuccessorProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json";
 const crossIndustryDashboardRetentionProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json";
 
@@ -62,6 +64,9 @@ function expectedIdentity(ownerSubsystem) {
   }
   if (ownerSubsystem === "Prometheus Intelligence Engine") {
     return "Prometheus Intelligence Engine <intelligence@prometheus.local>";
+  }
+  if (ownerSubsystem === "Prometheus Security") {
+    return "Prometheus Security <security@prometheus.local>";
   }
   throw new Error(`Unsupported protected source owner: ${ownerSubsystem}`);
 }
@@ -193,6 +198,114 @@ function mergeTransitionMaps(...maps) {
     }
   }
   return merged;
+}
+
+function readProspectiveCalibrationProductionAdmissionSuccessor(
+  predecessorTransitionsByPath
+) {
+  const successor = JSON.parse(
+    read(prospectiveCalibrationProductionAdmissionSuccessorProvenancePath)
+  );
+  assert.equal(
+    successor.version,
+    "route-iq-intelligence-prospective-calibration-production-admission-successor-v1"
+  );
+  assert.equal(successor.batchId, "BATCH-20260814-001");
+  assert.equal(successor.status, "OWNER_IMPLEMENTED_PROTECTED_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(successor.predecessors.length, 2);
+  for (const predecessor of successor.predecessors) {
+    assert.equal(sha256(predecessor.path), predecessor.sha256);
+    assert.equal(predecessor.remainsHistorical, true);
+    assert.equal(predecessor.rewritten, false);
+  }
+
+  const commits = new Map();
+  for (const implementation of successor.implementationCommits) {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      implementation.commit
+    ]).trim().split("\n");
+    assert.deepEqual(fields, [
+      implementation.commit,
+      implementation.parent,
+      implementation.tree,
+      implementation.identity,
+      implementation.identity,
+      implementation.subject
+    ]);
+    assert.equal(implementation.identity, expectedIdentity(implementation.ownerSubsystem));
+    commits.set(implementation.commit, implementation);
+  }
+
+  const transitionsByPath = new Map();
+  for (const transition of successor.protectedSourceTransitions) {
+    assert.equal(transitionsByPath.has(transition.path), false);
+    assert.ok(commits.has(transition.commit));
+    const predecessors = predecessorTransitionsByPath.get(transition.path) || [];
+    if (predecessors.length > 0) {
+      assert.equal(
+        transition.previousSha256,
+        predecessors.at(-1).currentSha256,
+        `Broken prospective-calibration transition chain: ${transition.path}`
+      );
+    }
+    verifyTransition(transition.path, transition);
+    transitionsByPath.set(transition.path, [transition]);
+  }
+
+  for (const artifact of successor.newSourceArtifacts) {
+    const implementation = commits.get(artifact.commit);
+    assert.ok(implementation);
+    assert.equal(artifact.ownerSubsystem, implementation.ownerSubsystem);
+    assert.equal(sha256(artifact.path), artifact.sha256);
+    assert.equal(
+      hashBytes(git(["show", `${artifact.commit}:${artifact.path}`], null)),
+      artifact.sha256
+    );
+    assert.throws(() => git(["cat-file", "-e", `${artifact.commit}^:${artifact.path}`]));
+  }
+
+  const coherence = successor.coherenceSourceTransition;
+  assert.ok(coherence);
+  const coherencePredecessors = predecessorTransitionsByPath.get(coherence.path) || [];
+  assert.ok(coherencePredecessors.length > 0);
+  assert.equal(
+    coherence.previousSha256,
+    coherencePredecessors.at(-1).currentSha256,
+    "Broken prospective-calibration verifier coherence chain."
+  );
+  verifyTransition(coherence.path, coherence);
+  transitionsByPath.set(coherence.path, [coherence]);
+
+  assert.deepEqual(successor.thresholds, {
+    totalSamples: 97,
+    calibrationBins: 5,
+    supportingRecordsPerPopulatedBin: 20,
+    supportedEvaluationWindows: 2,
+    consecutivePassingWindows: 2,
+    changed: false
+  });
+  assert.deepEqual(successor.truthState, {
+    governedLearning: "INSUFFICIENT_EVIDENCE",
+    shadowEligibleDecisions: 0,
+    newCanonicalEvidenceCreated: false
+  });
+  assert.deepEqual(successor.protectedState, {
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    confidencePropagation: "OFF",
+    providers: "OFF",
+    scheduler: "OFF",
+    shadowDecisionVisible: false,
+    productionStorageAccess: 0,
+    liveAdmissions: 0,
+    productionMutations: 0,
+    cloudflareEngineeringContacts: 0,
+    deployments: 0
+  });
+  return Object.freeze({ successor, transitionsByPath });
 }
 
 function verifyPaidCustomerRevenueReadinessWorkerSuccessorAgainst(
@@ -1185,9 +1298,17 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     readRetentionMaintenanceTransitionsByPath();
   const governedMultiSessionLearningAdvisorySuccessor =
     readGovernedMultiSessionLearningAdvisorySuccessor();
-  const latestTransitionsByPath = mergeTransitionMaps(
+  const predecessorTransitionsByPath = mergeTransitionMaps(
     retentionMaintenanceTransitionsByPath,
     governedMultiSessionLearningAdvisorySuccessor.transitionsByPath
+  );
+  const prospectiveCalibrationProductionAdmissionSuccessor =
+    readProspectiveCalibrationProductionAdmissionSuccessor(
+      predecessorTransitionsByPath
+    );
+  const latestTransitionsByPath = mergeTransitionMaps(
+    predecessorTransitionsByPath,
+    prospectiveCalibrationProductionAdmissionSuccessor.transitionsByPath
   );
   const retentionDeletionRuntimeProtectedSuccessor =
     verifyRetentionDeletionRuntimeProtectedSuccessorAgainst(
@@ -1202,7 +1323,10 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
   const retentionMaintenanceConsumerAdmissionSuccessor =
     verifyRetentionMaintenanceConsumerAdmissionSuccessorAgainst(
       retentionDeletionConsumerAdmissionSuccessor,
-      governedMultiSessionLearningAdvisorySuccessor.transitionsByPath
+      mergeTransitionMaps(
+        governedMultiSessionLearningAdvisorySuccessor.transitionsByPath,
+        prospectiveCalibrationProductionAdmissionSuccessor.transitionsByPath
+      )
     );
   for (const protectedTransition of transitionByPath.values()) {
     const revenueTransitions =
@@ -1227,7 +1351,8 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     retentionDeletionRuntimeProtectedSuccessor,
     retentionDeletionConsumerAdmissionSuccessor,
     retentionMaintenanceConsumerAdmissionSuccessor,
-    governedMultiSessionLearningAdvisorySuccessor
+    governedMultiSessionLearningAdvisorySuccessor,
+    prospectiveCalibrationProductionAdmissionSuccessor
   });
 }
 

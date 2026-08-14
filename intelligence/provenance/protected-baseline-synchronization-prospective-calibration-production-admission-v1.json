@@ -1,0 +1,248 @@
+{
+  "version": "route-iq-intelligence-prospective-calibration-production-admission-successor-v1",
+  "batchId": "BATCH-20260814-001",
+  "status": "OWNER_IMPLEMENTED_PROTECTED_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Compose the Data-owned production retention admission, Intelligence-owned future-window assignment, Infrastructure-owned server handoff, and independent Security verification without changing historical calibration evidence or activating production.",
+  "startingRepository": {
+    "branch": "main",
+    "commit": "5578456b8d5aca8b123708fcec1c1b34bea9f475",
+    "tree": "8d880bdd6fb43bbad9bcc0d73434e1696ed31370",
+    "synchronized": true,
+    "clean": true
+  },
+  "predecessors": [
+    {
+      "path": "intelligence/provenance/protected-baseline-synchronization-governed-multi-session-learning-advisory-v1.json",
+      "sha256": "bb72cc124eac466442cd0ce32365f5cd48c8a9c46a794c2352c81311a67ed4f0",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    {
+      "path": "intelligence/provenance/protected-baseline-synchronization-outcome-semantic-integrity-v1.json",
+      "sha256": "e79acd60ef2648e0020a91d431d412cefdeb7f5c104efee54708839d39a2bb2e",
+      "remainsHistorical": true,
+      "rewritten": false
+    }
+  ],
+  "implementationCommits": [
+    {
+      "commit": "6dc4363e20c6d0be622c2dcd89ed4cd7c470c13a",
+      "parent": "5578456b8d5aca8b123708fcec1c1b34bea9f475",
+      "tree": "2f68576624b979feb8e9139ca3124d635f5035b5",
+      "ownerSubsystem": "Prometheus Data",
+      "identity": "Prometheus Data <data@prometheus.local>",
+      "subject": "data: admit prospective production retention evidence"
+    },
+    {
+      "commit": "f93c1d960365d62fc633aefd5f90f04d4f2cd723",
+      "parent": "6dc4363e20c6d0be622c2dcd89ed4cd7c470c13a",
+      "tree": "cd97de04d523f10b1727f487934ccf6bbf271d7b",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: govern future calibration windows"
+    },
+    {
+      "commit": "04bf2ea7e5ff6db734e559f16b9154772d76fc73",
+      "parent": "f93c1d960365d62fc633aefd5f90f04d4f2cd723",
+      "tree": "f0f09dd6568bbb3677c27846c513f184ffd1027c",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "infrastructure: bridge production calibration admission"
+    },
+    {
+      "commit": "48aa89891f311a5a6d2bf65373c26c632d73e2b8",
+      "parent": "04bf2ea7e5ff6db734e559f16b9154772d76fc73",
+      "tree": "bc42128af2778160b6fed6e0bf363259c0acc737",
+      "ownerSubsystem": "Prometheus Security",
+      "identity": "Prometheus Security <security@prometheus.local>",
+      "subject": "security: verify production calibration admission boundary"
+    }
+  ],
+  "protectedSourceTransitions": [
+    {
+      "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "6dc4363e20c6d0be622c2dcd89ed4cd7c470c13a",
+      "tree": "2f68576624b979feb8e9139ca3124d635f5035b5",
+      "subject": "data: admit prospective production retention evidence",
+      "previousSha256": "586d19dbf65c4c740ecea6a7e0b4e1d01d733471a2604f8a92b946af092ee282",
+      "currentSha256": "3e2187a4bdbb3535b115f049d02b30e47dce2a6b68536d641d03642af626d10b"
+    },
+    {
+      "path": "tests/route-iq-prospective-shadow-allocator.test.mjs",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "6dc4363e20c6d0be622c2dcd89ed4cd7c470c13a",
+      "tree": "2f68576624b979feb8e9139ca3124d635f5035b5",
+      "subject": "data: admit prospective production retention evidence",
+      "previousSha256": "74cedcd172a00c4dea1b4f20355dbd03c5832f551591214aeefc851e2a39ff89",
+      "currentSha256": "43f737e50588b67e0a38c4bc34652e184cd47cced37afbd609d39b12c191afa9"
+    },
+    {
+      "path": "intelligence/route-iq-committed-outcome-evaluation.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "f93c1d960365d62fc633aefd5f90f04d4f2cd723",
+      "tree": "cd97de04d523f10b1727f487934ccf6bbf271d7b",
+      "subject": "intelligence: govern future calibration windows",
+      "previousSha256": "2f5a513564b94998e426d29aa72ee7807983ea6ded3d5e08e216706f2b073e53",
+      "currentSha256": "32d0fd96253721e89766d7103f27f26dd48df96e7f438b5af06c92ecd0777107"
+    },
+    {
+      "path": "intelligence/route-iq-prospective-retention-admission.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "f93c1d960365d62fc633aefd5f90f04d4f2cd723",
+      "tree": "cd97de04d523f10b1727f487934ccf6bbf271d7b",
+      "subject": "intelligence: govern future calibration windows",
+      "previousSha256": "3f2b0d5447f0f62937eabe01b6031d915efeec0829b79211618ebb941086d3ef",
+      "currentSha256": "deafd9fa81a481195577ec9fdbaa6ae3aae60bc2ba1df423d9153ae8ea4ec655"
+    },
+    {
+      "path": "tests/route-iq-committed-outcome-evaluation.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "f93c1d960365d62fc633aefd5f90f04d4f2cd723",
+      "tree": "cd97de04d523f10b1727f487934ccf6bbf271d7b",
+      "subject": "intelligence: govern future calibration windows",
+      "previousSha256": "1df0676b452ca89a1145c9249a212e43b6106deaed7b795869005809b2d35a21",
+      "currentSha256": "41682f8e52ad22c574d20702f257ed402682dafb53935bd8307ec4204262fa0a"
+    },
+    {
+      "path": "workers/infrastructure/route-iq-prospective-shadow-retention-admission.js",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "04bf2ea7e5ff6db734e559f16b9154772d76fc73",
+      "tree": "f0f09dd6568bbb3677c27846c513f184ffd1027c",
+      "subject": "infrastructure: bridge production calibration admission",
+      "previousSha256": "a5775bf297050b17c8dd044ecaf266ae2261d75a39ac82f6c060587403bffdb4",
+      "currentSha256": "876ab11666ce34a1c7abbeac066e3ca6382000c55ba156d1a7194f9b5c0cab6c"
+    },
+    {
+      "path": "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "04bf2ea7e5ff6db734e559f16b9154772d76fc73",
+      "tree": "f0f09dd6568bbb3677c27846c513f184ffd1027c",
+      "subject": "infrastructure: bridge production calibration admission",
+      "previousSha256": "70af4a724797b5a9261f1fb3e3aea122974daa3c8fad4f5fe708ad9836e0cacd",
+      "currentSha256": "a9ab5f19c2059e07320e5735c6a2cd3bd4ee53ca2b14ff01a4a9c6ac876c1e9d"
+    },
+    {
+      "path": "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "04bf2ea7e5ff6db734e559f16b9154772d76fc73",
+      "tree": "f0f09dd6568bbb3677c27846c513f184ffd1027c",
+      "subject": "infrastructure: bridge production calibration admission",
+      "previousSha256": "3873f718611a9534e90bca4d886ae3adc52534b586c543556be863c0450468cc",
+      "currentSha256": "007cba8899067dc8b6d39c23b1b5d7c3a556196ba48d35c98dd03ec3a0c58502"
+    }
+  ],
+  "newSourceArtifacts": [
+    {
+      "path": "data/route-iq-field-sessions-v1/route-iq-prospective-production-retention-admission.mjs",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "6dc4363e20c6d0be622c2dcd89ed4cd7c470c13a",
+      "sha256": "aee7ebc4772621081ce405defd56eba3783c35ec5ef3f0919eadba5b9d24628d"
+    },
+    {
+      "path": "tests/route-iq-prospective-production-retention-admission.test.mjs",
+      "ownerSubsystem": "Prometheus Data",
+      "commit": "6dc4363e20c6d0be622c2dcd89ed4cd7c470c13a",
+      "sha256": "2d28cfd4369155a859f07bb39591d3149c1c3b5b71f02deee3a9d2a2cd7f1647"
+    },
+    {
+      "path": "intelligence/config/route-iq-prospective-future-window-policy-v1.json",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "f93c1d960365d62fc633aefd5f90f04d4f2cd723",
+      "sha256": "a5e31df01e65d26cefae792a4255981e6230458a0b28a20f751d97c9f225ef78"
+    },
+    {
+      "path": "intelligence/contracts/route-iq-prospective-future-window-policy-v1.json",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "f93c1d960365d62fc633aefd5f90f04d4f2cd723",
+      "sha256": "8734d526b3b9efc4084fda91e63c49a9d361525d89450ccc54b7aa63575a301a"
+    },
+    {
+      "path": "intelligence/route-iq-prospective-future-window-policy.md",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "f93c1d960365d62fc633aefd5f90f04d4f2cd723",
+      "sha256": "cf4f630de428223d93a75464702a8c982702160df09e7f6a1d543b9132416d3d"
+    },
+    {
+      "path": "intelligence/route-iq-prospective-future-window-policy.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "f93c1d960365d62fc633aefd5f90f04d4f2cd723",
+      "sha256": "226e2da7fc637b765318a6fb0b46ea07324efd1304eb33109ed4fc98ec634607"
+    },
+    {
+      "path": "tests/route-iq-prospective-future-window-policy.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "f93c1d960365d62fc633aefd5f90f04d4f2cd723",
+      "sha256": "60f61ab177e28dc2ce9516869f159c160d17466bf90910d0ef4942b4add69bd8"
+    },
+    {
+      "path": "tests/route-iq-prospective-production-admission-security.test.mjs",
+      "ownerSubsystem": "Prometheus Security",
+      "commit": "48aa89891f311a5a6d2bf65373c26c632d73e2b8",
+      "sha256": "1290e3a094b366fce85d1647b2afa83521906acd5ffb5caf8e3f66675853dd21"
+    }
+  ],
+  "coherenceSourceTransition": null,
+  "historicalCalibration": {
+    "path": "intelligence/config/shadow-decision-readiness-v1.json",
+    "rawSha256": "29287a69b4cfbbb195806e45517872a33c2cc8e5335b2f83d73c003718120204",
+    "byteLength": 4417,
+    "reassigned": false,
+    "rewritten": false
+  },
+  "thresholds": {
+    "totalSamples": 97,
+    "calibrationBins": 5,
+    "supportingRecordsPerPopulatedBin": 20,
+    "supportedEvaluationWindows": 2,
+    "consecutivePassingWindows": 2,
+    "changed": false
+  },
+  "composition": {
+    "existingRetentionModelExtended": true,
+    "existingEvaluationEngineExtended": true,
+    "parallelLearningEngineCreated": false,
+    "productionProviderAvailableByDefault": false,
+    "legalHoldAuthorityRequired": true,
+    "maximumAdmissionAgeMilliseconds": 300000,
+    "exclusiveExpiry": true,
+    "atomicReplayRejectionRequired": true,
+    "callerSelectedAuthorityAllowed": false,
+    "browserAuthorityAllowed": false,
+    "retroactiveWindowReassignmentAllowed": false,
+    "observationalOnly": true
+  },
+  "patents": {
+    "patentRecordChangeRequired": false,
+    "classification": "WITHIN_EXISTING_DOCUMENTED_IP_001_AND_SHADOW_DECISION_SCOPE"
+  },
+  "truthState": {
+    "governedLearning": "INSUFFICIENT_EVIDENCE",
+    "shadowEligibleDecisions": 0,
+    "newCanonicalEvidenceCreated": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "shadowDecisionVisible": false,
+    "productionStorageAccess": 0,
+    "liveAdmissions": 0,
+    "productionMutations": 0,
+    "cloudflareEngineeringContacts": 0,
+    "deployments": 0
+  },
+  "releaseBoundary": {
+    "sourceComplete": true,
+    "productionBindingProvisioned": false,
+    "privateWorkerArtifactRegenerated": false,
+    "deploymentAuthorized": false,
+    "productionMutationAuthorized": false,
+    "collectionActivationAuthorized": false,
+    "separatePrivateWorkerQualificationRequired": true
+  }
+}
