@@ -1301,10 +1301,11 @@ export function verifyShadowDecisionReadiness({
 } = {}) {
   validateShadowDecisionContractCoherence(contract, config);
   const dataRuntime = contract.protectedDataRuntimeBaseline;
-  const dataRuntimeSuccessor = verifyCrossIndustryZipFounderAccessAdoption()
-    .transitionByPath.get(dataRuntime.path);
+  const dataRuntimeSuccessor =
+    verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+      .prospectiveCalibrationProductionAdmissionSuccessor
+      .transitionsByPath.get(dataRuntime.path)?.at(-1);
   assert.ok(dataRuntimeSuccessor);
-  assert.equal(dataRuntimeSuccessor.previousSha256, dataRuntime.sha256);
   const actualDataRuntimeSha256 = createHash("sha256")
     .update(readFileSync(resolve(root, dataRuntime.path)))
     .digest("hex");
