@@ -1353,7 +1353,7 @@ export function verifyShadowDecisionReadiness({
     "resolveRouteIqEvaluationRetentionEnvelope({",
   );
   const evaluationConstructionIndex = infrastructureRuntimeText.indexOf(
-    "buildRouteIqEvaluationFromAdmittedOutcome({",
+    "buildRouteIqEvaluationFromAdmittedOutcome(",
     retentionResolutionIndex,
   );
   assert.ok(retentionResolutionIndex >= 0);
