@@ -1,0 +1,50 @@
+{
+  "version": "route-iq-prospective-calibration-production-admission-forward-revert-v1",
+  "batchId": "BATCH-20260814-001",
+  "ownerSubsystem": "Prometheus Infrastructure",
+  "status": "SOURCE_ONLY_NOT_EXECUTED",
+  "startingRepository": {
+    "commit": "5578456b8d5aca8b123708fcec1c1b34bea9f475",
+    "tree": "8d880bdd6fb43bbad9bcc0d73434e1696ed31370",
+    "branch": "main"
+  },
+  "scope": {
+    "productionDeploymentOccurred": false,
+    "productionRollbackRequired": false,
+    "cloudflareMutationOccurred": false,
+    "productionStorageMutationOccurred": false
+  },
+  "normalForwardRevert": {
+    "historyRewriteAllowed": false,
+    "forcePushAllowed": false,
+    "resetAllowed": false,
+    "method": "Create owner-attributed normal forward commits that reverse the exact source changes, then qualify the resulting exact commit through the governed hosted workflow.",
+    "functionalOwnerCommitsInReverseOrder": [
+      "04bf2ea7e5ff6db734e559f16b9154772d76fc73",
+      "f93c1d960365d62fc633aefd5f90f04d4f2cd723",
+      "6dc4363e20c6d0be622c2dcd89ed4cd7c470c13a"
+    ],
+    "governanceSuccessors": "Reverse only through separately owner-attributed normal forward commits after the functional source has been restored and verified.",
+    "verificationRequired": [
+      "exact predecessor source hashes restored",
+      "historical July evidence unchanged",
+      "collection OFF",
+      "active cohorts 0",
+      "recommendation influence OFF",
+      "confidence propagation OFF",
+      "provider and legal-hold authority unavailable by default",
+      "full exact-commit hosted qualification PASS"
+    ]
+  },
+  "protectedData": {
+    "historicalFieldSessionArchivesMayBeRewritten": false,
+    "historicalCalibrationEvidenceMayBeReassigned": false,
+    "productionDataMayBeReadOrWritten": false,
+    "productionDeletionAllowed": false
+  },
+  "releaseBoundary": {
+    "existingPrivateWorkflowV2ArtifactMayBeReused": false,
+    "newQualificationRequiredAfterAnyForwardRevert": true,
+    "deploymentRequiresSeparateFounderAuthorization": true
+  }
+}
