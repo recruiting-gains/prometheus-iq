@@ -1300,11 +1300,12 @@ export function verifyShadowDecisionReadiness({
   config = loadShadowDecisionConfig(),
 } = {}) {
   validateShadowDecisionContractCoherence(contract, config);
-  const dataRuntime = contract.protectedDataRuntimeBaseline;
-  const dataRuntimeSuccessor =
+  const latestProtectedSuccessor =
     verifyControlledOnboardingRehearsalSmokeContractSuccessor()
-      .prospectiveCalibrationProductionAdmissionSuccessor
-      .transitionsByPath.get(dataRuntime.path)?.at(-1);
+      .prospectiveCalibrationProductionAdmissionSuccessor;
+  const dataRuntime = contract.protectedDataRuntimeBaseline;
+  const dataRuntimeSuccessor = latestProtectedSuccessor.transitionsByPath
+    .get(dataRuntime.path)?.at(-1);
   assert.ok(dataRuntimeSuccessor);
   const actualDataRuntimeSha256 = createHash("sha256")
     .update(readFileSync(resolve(root, dataRuntime.path)))
@@ -1386,7 +1387,15 @@ export function verifyShadowDecisionReadiness({
     const transition = currentProtectedSuccessors[baseline.path];
     const latestTransition =
       zipFounderAdoption.transitionByPath.get(baseline.path);
-    if (transition) {
+    const prospectiveTransition = latestProtectedSuccessor.transitionsByPath
+      .get(baseline.path)?.at(-1);
+    if (prospectiveTransition) {
+      assert.equal(
+        actual,
+        prospectiveTransition.currentSha256,
+        `Protected prospective-calibration successor changed: ${name}`,
+      );
+    } else if (transition) {
       assert.equal(
         transition.previousSha256,
         baseline.sha256,
