@@ -81,6 +81,14 @@
       "ownerSubsystem": "Prometheus Intelligence Engine",
       "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
       "subject": "intelligence: follow governed evaluation builder"
+    },
+    {
+      "commit": "11c0c413ce00ecafe7d0738bb274a2fa87c703c3",
+      "parent": "2b8cecb4ba05dddff61c257bec9cfc556b600839",
+      "tree": "803a0e0cbbe74ae7d342920de9c9b4fa4a074454",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: verify latest calibration successors"
     }
   ],
   "protectedSourceTransitions": [
@@ -182,6 +190,15 @@
       "subject": "intelligence: follow governed evaluation builder",
       "previousSha256": "7b26356782e9d91b4115ff20d526da60874a24c54d402bcfb4eb209d644315a5",
       "currentSha256": "0a06c2dd853d4fe3ab53f0b0d70312ca0dc2680f1765842a62682b95b78c1319"
+    },
+    {
+      "path": "scripts/verify-shadow-decision-readiness.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "11c0c413ce00ecafe7d0738bb274a2fa87c703c3",
+      "tree": "803a0e0cbbe74ae7d342920de9c9b4fa4a074454",
+      "subject": "intelligence: verify latest calibration successors",
+      "previousSha256": "0a06c2dd853d4fe3ab53f0b0d70312ca0dc2680f1765842a62682b95b78c1319",
+      "currentSha256": "d005fc68c00032444c4d9efca3823efcd25fb38e2ff8b624fe1a8191bb10a361"
     }
   ],
   "newSourceArtifacts": [
