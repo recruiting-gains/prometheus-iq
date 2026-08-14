@@ -32,6 +32,13 @@ const maintenanceSuccessor = () => JSON.parse(readFileSync(
   ),
   "utf8"
 ));
+const calibrationSuccessor = () => JSON.parse(readFileSync(
+  new URL(
+    "../intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json",
+    import.meta.url
+  ),
+  "utf8"
+));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 
 test("Overwatch independently verifies the Founder retention boundary and held activation state", async () => {
@@ -69,17 +76,23 @@ test("retention governance admits only the exact Intelligence Worker-safe succes
   );
 });
 
-test("historical retention governance composes the exact deletion coordinator successor", () => {
+test("historical retention governance composes deletion and calibration coordinator successors", () => {
   const historical = retentionGovernance().dataContract;
   const successor = deletionGovernance().dataRuntime.coordinatorRuntime;
+  const calibration = calibrationSuccessor().protectedSourceTransitions.find(
+    transition => transition.path === successor.path
+  );
   assert.equal(historical.coordinatorPath, successor.path);
   assert.equal(historical.coordinatorSha256,
     "30727656084c774d48a2d80b79f7dcad66a864fd6bd5c489905d9247fd953e85");
   assert.equal(successor.sha256,
     "586d19dbf65c4c740ecea6a7e0b4e1d01d733471a2604f8a92b946af092ee282");
   assert.notEqual(historical.coordinatorSha256, successor.sha256);
+  assert.equal(calibration.previousSha256, successor.sha256);
+  assert.equal(calibration.currentSha256,
+    "3e2187a4bdbb3535b115f049d02b30e47dce2a6b68536d641d03642af626d10b");
   assert.equal(sha256(readFileSync(new URL(`../${successor.path}`, import.meta.url))),
-    successor.sha256);
+    calibration.currentSha256);
 });
 
 test("historical retention governance composes the dormant maintenance successor without rewriting its pins", () => {

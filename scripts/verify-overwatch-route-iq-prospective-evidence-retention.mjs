@@ -25,6 +25,9 @@ import {
 import { verifyRouteIqProspectiveRetentionIntelligence } from "./verify-route-iq-prospective-retention-intelligence.mjs";
 import { verifyCrossSubsystemArtifactContracts } from "./verify-cross-subsystem-artifact-contracts.mjs";
 import {
+  verifyControlledOnboardingRehearsalSmokeContractSuccessor
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
+import {
   aggregateAuthorityClaims,
   aggregateGovernanceBinding,
   createRetentionAuthority,
@@ -89,6 +92,19 @@ function changedPaths(commit) {
 
 function unionChangedPaths(commits) {
   return [...new Set(commits.flatMap(changedPaths))].sort();
+}
+
+function resolveSuccessorSha256(path, predecessorSha256, transitionsByPath) {
+  let expectedSha256 = predecessorSha256;
+  for (const transition of transitionsByPath.get(path) || []) {
+    assert.equal(
+      transition.previousSha256,
+      expectedSha256,
+      `Protected retention successor predecessor mismatch: ${path}`
+    );
+    expectedSha256 = transition.currentSha256;
+  }
+  return expectedSha256;
 }
 
 function assertOwnedPaths(owner, paths) {
@@ -463,6 +479,9 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
   const reportTypeRepair = readJson(fieldSessionReportTypeGovernancePath);
   const retentionDeletion = readJson(retentionDeletionGovernancePath);
   const retentionMaintenance = readJson(retentionMaintenanceSuccessorPath);
+  const calibrationSuccessor =
+    verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+      .prospectiveCalibrationProductionAdmissionSuccessor;
   const maintenanceTransitionPins = new Map([
     [
       retentionMaintenance.upstreamDataAuthority.retentionGovernance.path,
@@ -539,15 +558,13 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
       [retentionDeletion.dataRuntime.coordinatorRuntime.path,
         retentionDeletion.dataRuntime.coordinatorRuntime.sha256]
     ]);
+    let acceptedPreCalibrationSha256;
     if (pathKey === "archiveRuntimePath") {
       assert.equal(
         governance.dataContract[hashKey],
         archiveIdentitySuccessor.identitySuccessor.previousSha256
       );
-      assert.equal(
-        currentArchiveSha256,
-        retentionDeletion.dataRuntime.archiveRuntime.sha256
-      );
+      acceptedPreCalibrationSha256 = retentionDeletion.dataRuntime.archiveRuntime.sha256;
     } else if (deletionSuccessorPins.has(path) || maintenanceTransitionPins.has(path)) {
       const historicalCommit = deletionSuccessorPins.has(path)
         ? retentionDeletion.startingRepository.commit
@@ -556,19 +573,33 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
         sha256(execFileSync("git", ["show", `${historicalCommit}:${path}`])),
         governance.dataContract[hashKey]
       );
-      assert.equal(
-        sha256(read(path)),
-        maintenanceTransitionPins.get(path) ?? deletionSuccessorPins.get(path)
-      );
+      acceptedPreCalibrationSha256 =
+        maintenanceTransitionPins.get(path) ?? deletionSuccessorPins.get(path);
     } else {
-      assert.equal(sha256(read(path)), governance.dataContract[hashKey]);
+      acceptedPreCalibrationSha256 = governance.dataContract[hashKey];
     }
+    assert.equal(
+      pathKey === "archiveRuntimePath" ? currentArchiveSha256 : sha256(read(path)),
+      resolveSuccessorSha256(
+        path,
+        acceptedPreCalibrationSha256,
+        calibrationSuccessor.transitionsByPath
+      )
+    );
   }
   for (const [pathKey, hashKey] of [
     ["runtimePath", "runtimeSha256"],
     ["readinessPath", "readinessSha256"]
   ]) {
-    assert.equal(sha256(read(governance.infrastructureAdmission[pathKey])), governance.infrastructureAdmission[hashKey]);
+    const path = governance.infrastructureAdmission[pathKey];
+    assert.equal(
+      sha256(read(path)),
+      resolveSuccessorSha256(
+        path,
+        governance.infrastructureAdmission[hashKey],
+        calibrationSuccessor.transitionsByPath
+      )
+    );
   }
   for (const [pathKey, hashKey] of [
     ["runtimePath", "runtimeSha256"],
@@ -586,6 +617,7 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
         retentionDeletion.intelligenceBoundary.specification.sha256
       ]
     ]);
+    let acceptedPreCalibrationSha256;
     if (deletionSuccessorPins.has(path) || maintenanceTransitionPins.has(path)) {
       const historicalCommit = deletionSuccessorPins.has(path)
         ? retentionDeletion.startingRepository.commit
@@ -594,13 +626,19 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
         sha256(execFileSync("git", ["show", `${historicalCommit}:${path}`])),
         governance.intelligenceAdmission[hashKey]
       );
-      assert.equal(
-        sha256(read(path)),
-        maintenanceTransitionPins.get(path) ?? deletionSuccessorPins.get(path)
-      );
+      acceptedPreCalibrationSha256 =
+        maintenanceTransitionPins.get(path) ?? deletionSuccessorPins.get(path);
     } else {
-      assert.equal(sha256(read(path)), governance.intelligenceAdmission[hashKey]);
+      acceptedPreCalibrationSha256 = governance.intelligenceAdmission[hashKey];
     }
+    assert.equal(
+      sha256(read(path)),
+      resolveSuccessorSha256(
+        path,
+        acceptedPreCalibrationSha256,
+        calibrationSuccessor.transitionsByPath
+      )
+    );
   }
   assert.equal(
     governance.intelligenceAdmission.previousRuntimeSha256,
