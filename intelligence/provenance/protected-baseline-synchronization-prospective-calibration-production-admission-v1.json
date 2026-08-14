@@ -183,7 +183,15 @@
       "sha256": "1290e3a094b366fce85d1647b2afa83521906acd5ffb5caf8e3f66675853dd21"
     }
   ],
-  "coherenceSourceTransition": null,
+  "coherenceSourceTransition": {
+    "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+    "ownerSubsystem": "Prometheus Intelligence Engine",
+    "commit": "a54e29c1d3cc302ce4988c53a9f10d98df118b4b",
+    "tree": "b4ddf4c324c7a3fa4b56e32856729278a2e65338",
+    "subject": "intelligence: compose calibration admission successor",
+    "previousSha256": "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0",
+    "currentSha256": "cec918ec403bf787899716c58b582900745d0cb1a5b56a07e0f779b46932f83f"
+  },
   "historicalCalibration": {
     "path": "intelligence/config/shadow-decision-readiness-v1.json",
     "rawSha256": "29287a69b4cfbbb195806e45517872a33c2cc8e5335b2f83d73c003718120204",
