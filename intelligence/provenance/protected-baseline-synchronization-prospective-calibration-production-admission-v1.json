@@ -73,6 +73,14 @@
       "ownerSubsystem": "Prometheus Intelligence Engine",
       "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
       "subject": "intelligence: verify production retention branch"
+    },
+    {
+      "commit": "a4ae87df883e304c3dfd64766977456410f46193",
+      "parent": "cfde7e1b8aeaecce09ff270a9124f6dd6a2b1000",
+      "tree": "2499fd5239997a35ebeb6de2dfd3277ca41c05ed",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: follow governed evaluation builder"
     }
   ],
   "protectedSourceTransitions": [
@@ -165,6 +173,15 @@
       "subject": "intelligence: verify production retention branch",
       "previousSha256": "2d394dd2fb7077dc5ec97e6b50a27d986adf1f560a3a26087484108d029d27bd",
       "currentSha256": "7b26356782e9d91b4115ff20d526da60874a24c54d402bcfb4eb209d644315a5"
+    },
+    {
+      "path": "scripts/verify-shadow-decision-readiness.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "a4ae87df883e304c3dfd64766977456410f46193",
+      "tree": "2499fd5239997a35ebeb6de2dfd3277ca41c05ed",
+      "subject": "intelligence: follow governed evaluation builder",
+      "previousSha256": "7b26356782e9d91b4115ff20d526da60874a24c54d402bcfb4eb209d644315a5",
+      "currentSha256": "0a06c2dd853d4fe3ab53f0b0d70312ca0dc2680f1765842a62682b95b78c1319"
     }
   ],
   "newSourceArtifacts": [
