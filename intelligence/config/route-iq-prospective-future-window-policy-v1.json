@@ -1,0 +1,51 @@
+{
+  "batchId": "BATCH-20260814-001",
+  "policyVersion": "route-iq-prospective-future-window-policy-v1",
+  "assignmentVersion": "route-iq-prospective-future-window-assignment-v1",
+  "readinessConfigVersion": "route-iq-shadow-decision-readiness-config-v2",
+  "status": "source_only_not_activated",
+  "owningSubsystem": "Prometheus Intelligence",
+  "historicalReadinessConfig": {
+    "path": "intelligence/config/shadow-decision-readiness-v1.json",
+    "configVersion": "route-iq-shadow-decision-readiness-config-v1",
+    "rawSha256": "29287a69b4cfbbb195806e45517872a33c2cc8e5335b2f83d73c003718120204",
+    "byteLength": 4417,
+    "reuseRule": "all_fields_except_batch_id_config_version_and_windows_are_exactly_preserved"
+  },
+  "authority": {
+    "purpose": "route_iq_prospective_future_window_anchor",
+    "admissionVersion": "route-iq-authoritative-server-evidence-admission-v1",
+    "evidenceVersion": "route-iq-authoritative-server-anchor-evidence-v1",
+    "acceptedVerificationTypes": [
+      "infrastructure_keyed_attestation",
+      "infrastructure_verified_producer_signature"
+    ],
+    "acceptedKeyedAlgorithms": [
+      "HMAC-SHA-256",
+      "Ed25519"
+    ],
+    "callerSuppliedAnchorAllowed": false,
+    "futureIssuedAuthorityAllowed": false,
+    "maximumAdmissionAgeMilliseconds": 300000,
+    "exclusiveExpiry": true,
+    "anchorEqualsAdmissionIssuedAt": true
+  },
+  "windows": {
+    "bounds": "start_inclusive_end_exclusive",
+    "timezone": "UTC",
+    "anchorRule": "training_start_equals_admitted_authoritative_server_anchor",
+    "templateRule": "preserve_historical_window_kind_order_and_exact_durations",
+    "gapAllowed": false,
+    "overlapAllowed": false,
+    "trainingWindowCount": 1,
+    "minimumEvaluationWindows": 2,
+    "futureEvaluationRule": "every_evaluation_start_is_strictly_after_the_authoritative_server_anchor",
+    "reassignmentRule": "immutable_compare_and_append"
+  },
+  "activation": {
+    "sourceOnly": true,
+    "productionConsumerActivated": false,
+    "productionDeploymentPerformed": false,
+    "recommendationInfluence": "OFF"
+  }
+}

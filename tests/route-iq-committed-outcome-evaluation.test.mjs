@@ -25,6 +25,9 @@ import {
   openRouteIqRetentionGovernanceLedger,
 } from "../data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs";
 import {
+  computeRouteIqProspectiveRetentionPolicySha256,
+} from "../intelligence/route-iq-prospective-retention-admission.mjs";
+import {
   buildRouteIqEvaluationAdmissionClaims,
   buildRouteIqEvaluationFromAdmittedOutcome,
   buildRouteIqScoreableOutcomeAdmissionClaims,
@@ -444,7 +447,7 @@ function evaluationInput(derived) {
     retentionGovernanceLedger,
     retentionEnvelope: {
       dataAdmission: {
-        dataPolicySha256: "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601",
+        dataPolicySha256: computeRouteIqProspectiveRetentionPolicySha256(),
         envelope: {
           policyVersion: routeIqProspectiveRetentionPolicyVersion,
           collectionState: "on",

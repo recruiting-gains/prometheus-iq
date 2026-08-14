@@ -1,0 +1,87 @@
+{
+  "contractVersion": "route-iq-prospective-future-window-policy-contract-v1",
+  "batchId": "BATCH-20260814-001",
+  "owner": "Prometheus Intelligence",
+  "status": "source_only_not_activated",
+  "entrypoint": "createRouteIqProspectiveFutureWindowAssignment",
+  "modulePath": "intelligence/route-iq-prospective-future-window-policy.mjs",
+  "input": {
+    "exactKeys": [
+      "authorityEnvelope",
+      "priorAssignment"
+    ],
+    "requiredKeys": [
+      "authorityEnvelope"
+    ],
+    "callerAnchorFieldsAllowed": false,
+    "callerWindowFieldsAllowed": false
+  },
+  "authorityVerifier": {
+    "method": "verify",
+    "context": {
+      "purpose": "route_iq_prospective_future_window_anchor",
+      "policyVersion": "route-iq-prospective-future-window-policy-v1",
+      "admissionVersion": "route-iq-authoritative-server-evidence-admission-v1",
+      "evidenceVersion": "route-iq-authoritative-server-anchor-evidence-v1"
+    },
+    "resultExactKeys": [
+      "admitted",
+      "admissionVersion",
+      "verificationType",
+      "algorithm",
+      "keyId",
+      "admittedAt",
+      "evidence"
+    ],
+    "evidenceExactKeys": [
+      "evidenceVersion",
+      "purpose",
+      "policyVersion",
+      "issuedAt",
+      "expiresAt",
+      "authoritativeServerAnchor",
+      "sourceRecordSha256",
+      "authorityReceiptSha256",
+      "evidenceSha256"
+    ],
+    "trustedServerOptionsExactKeys": [
+      "authorityVerifier",
+      "serverNow"
+    ],
+    "maximumAdmissionAgeMilliseconds": 300000,
+    "expiryBoundary": "exclusive",
+    "anchorRule": "authoritativeServerAnchor_equals_signed_issuedAt"
+  },
+  "chronology": {
+    "firstWindow": "training",
+    "trainingWindowCount": 1,
+    "minimumEvaluationWindowCount": 2,
+    "gapAllowed": false,
+    "overlapAllowed": false,
+    "bounds": "start_inclusive_end_exclusive",
+    "evaluationStartsAfterAnchor": true
+  },
+  "binding": {
+    "authorityEvidenceSha256Required": true,
+    "authorityAdmissionSha256Required": true,
+    "sourcePolicyRawSha256Required": true,
+    "historicalConfigRawSha256Required": true,
+    "readinessConfigSha256Required": true,
+    "windowsSha256Required": true,
+    "assignmentSha256Required": true,
+    "canonicalSerialization": "recursive_lexicographic_object_keys_utf8_with_one_trailing_lf",
+    "immutable": true
+  },
+  "persistenceHandoff": {
+    "sourceImplementationPersistsState": false,
+    "consumerMustUseAssignmentIdAsUniqueKey": true,
+    "consumerMustPassPriorAssignmentOnRetry": true,
+    "compareAndAppendRequired": true,
+    "retroactiveReassignmentAllowed": false
+  },
+  "activation": {
+    "productionConsumerActivated": false,
+    "productionDeploymentPerformed": false,
+    "recommendationInfluence": "OFF"
+  }
+}

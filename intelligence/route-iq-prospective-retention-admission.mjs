@@ -18,9 +18,19 @@ import {
   routeIqDeidentifiedAggregateVersion,
   routeIqRetentionMaximumCalendarMonths,
 } from "../data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs";
+import {
+  routeIqProspectiveProductionRetentionAdmissionVersion,
+} from "../data/route-iq-field-sessions-v1/route-iq-prospective-production-retention-admission.mjs";
+import {
+  routeIqProspectiveFutureWindowAssignmentVersion,
+  routeIqProspectiveFutureWindowPolicyVersion,
+  validateRouteIqProspectiveFutureWindowAssignment,
+} from "./route-iq-prospective-future-window-policy.mjs";
 
 export const routeIqProspectiveIntelligenceRetentionAdmissionVersion =
   "route-iq-prospective-intelligence-retention-admission-v1";
+export const routeIqProspectiveProductionIntelligenceRetentionAuditVersion =
+  "route-iq-prospective-production-intelligence-retention-audit-v1";
 export const routeIqProspectiveRetentionPolicyPath =
   "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json";
 export const routeIqProspectiveRetentionPolicySha256 =
@@ -322,6 +332,110 @@ export function requireRouteIqProspectiveIntelligenceRetentionAdmission(
     });
   }
   return admission;
+}
+
+export function requireRouteIqProspectiveProductionIntelligenceRetentionAdmission(
+  input = {},
+) {
+  assertExactKeys(
+    input,
+    ["productionAdmission", "futureWindowAssignment"],
+    "route_iq_production_retention_admission_input_invalid",
+  );
+  const productionAdmission = input.productionAdmission;
+  const assignment = input.futureWindowAssignment;
+  if (!isPlainObject(productionAdmission)) {
+    fail("route_iq_production_retention_admission_invalid");
+  }
+  try {
+    validateRouteIqProspectiveFutureWindowAssignment(assignment);
+  } catch (error) {
+    fail("route_iq_production_retention_window_assignment_invalid", {
+      causeCode: error?.code || null,
+    });
+  }
+  const boundary = productionAdmission.dataAdmission?.envelope?.retentionBoundary;
+  const sourceSession = productionAdmission.dataAdmission?.sourceSession;
+  if (
+    productionAdmission.admissionVersion !==
+      routeIqProspectiveProductionRetentionAdmissionVersion ||
+    productionAdmission.admissionState !== "RETENTION_ADMITTED" ||
+    productionAdmission.authority !== "prometheus_data_retention_admission" ||
+    productionAdmission.sourceClassification !== "authoritative_production" ||
+    productionAdmission.environment !== "production" ||
+    productionAdmission.policyVersion !== routeIqProspectiveRetentionPolicyVersion ||
+    productionAdmission.policySha256 !==
+      computeRouteIqProspectiveRetentionPolicySha256() ||
+    productionAdmission.collectionState !== "on" ||
+    productionAdmission.recommendationInfluence !== "off" ||
+    productionAdmission.recordOrigin !== "prospective" ||
+    productionAdmission.legalHold?.state !== "none" ||
+    productionAdmission.legalHold?.authoritative !== true ||
+    productionAdmission.representativeOutputAllowed !== false ||
+    productionAdmission.recommendationInfluenceAllowed !== false ||
+    productionAdmission.productionMutationAuthorized !== false ||
+    !isPlainObject(boundary) ||
+    !isPlainObject(sourceSession) ||
+    assignment.assignmentVersion !==
+      routeIqProspectiveFutureWindowAssignmentVersion ||
+    assignment.policyVersion !== routeIqProspectiveFutureWindowPolicyVersion ||
+    assignment.authorityEvidence.sourceRecordSha256 !==
+      productionAdmission.evidenceIdentitySha256 ||
+    assignment.authorityEvidence.authorityReceiptSha256 !==
+      productionAdmission.claimsSha256 ||
+    assignment.authorityEvidence.issuedAt !== productionAdmission.issuedAt ||
+    assignment.authorityEvidence.expiresAt !== productionAdmission.expiresAt ||
+    assignment.windowAssignment.authoritativeServerAnchor !==
+      productionAdmission.issuedAt
+  ) {
+    fail("route_iq_production_retention_admission_invalid");
+  }
+  const audit = {
+    auditVersion: routeIqProspectiveProductionIntelligenceRetentionAuditVersion,
+    productionAdmissionVersion: productionAdmission.admissionVersion,
+    admissionKey: productionAdmission.admissionKey,
+    replayKey: productionAdmission.replayKey,
+    admissionClaimsSha256: productionAdmission.claimsSha256,
+    providerBindingIdentitySha256:
+      productionAdmission.providerBindingIdentitySha256,
+    legalHoldSnapshotIdentitySha256:
+      productionAdmission.legalHold.snapshotIdentitySha256,
+    legalHoldLedgerSha256: productionAdmission.legalHold.ledgerSha256,
+    legalHoldAttestationSha256:
+      productionAdmission.legalHold.attestationSha256,
+    futureWindowAssignmentVersion: assignment.assignmentVersion,
+    futureWindowAssignmentId: assignment.assignmentId,
+    futureWindowAssignmentSha256: assignment.assignmentSha256,
+    futureWindowPolicyVersion: assignment.policyVersion,
+    futureWindowPolicySha256: assignment.policySha256,
+    futureWindowWindowsSha256: assignment.windowAssignment.windowsSha256,
+    authoritativeServerAnchor:
+      assignment.windowAssignment.authoritativeServerAnchor,
+  };
+  const result = {
+    admissionVersion: routeIqProspectiveIntelligenceRetentionAdmissionVersion,
+    dataPolicyVersion: routeIqProspectiveRetentionPolicyVersion,
+    dataPolicySha256: computeRouteIqProspectiveRetentionPolicySha256(),
+    state: "RETENTION_ADMITTED",
+    admitted: true,
+    reasonCodes: [],
+    sourceEvidence: {
+      coordinatorSessionSha256: sha256(sourceSession.coordinatorSessionId),
+      fieldSessionSha256: sha256(sourceSession.fieldSessionId),
+      sourceRawSha256: sourceSession.rawSha256,
+      sourceRecordSha256: boundary.subject.sourceRecordSha256,
+      retentionBoundarySha256: sha256(boundary),
+    },
+    evaluatedAt: productionAdmission.authoritativeOutcomeTime,
+    retentionBoundary: clone(boundary),
+    collectionState: productionAdmission.collectionState,
+    recommendationInfluence: productionAdmission.recommendationInfluence,
+    audit,
+    representativeOutputAllowed: false,
+    recommendationInfluenceAllowed: false,
+    canonicalProductionEvaluationAllowed: true,
+  };
+  return deepFreeze(result);
 }
 
 export async function evaluateRouteIqIndefiniteAggregateIntelligenceAdmission(
