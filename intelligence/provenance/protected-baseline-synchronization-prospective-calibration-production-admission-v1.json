@@ -226,6 +226,15 @@
       "subject": "intelligence: compose calibration admission successor",
       "previousSha256": "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0",
       "currentSha256": "cec918ec403bf787899716c58b582900745d0cb1a5b56a07e0f779b46932f83f"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "496481a97a1a6f728d8c589d127e1df6d73eb60d",
+      "tree": "500fb91f8fc63474546db66d3eb791a27be6aebc",
+      "subject": "intelligence: preserve ordered calibration lineage",
+      "previousSha256": "cec918ec403bf787899716c58b582900745d0cb1a5b56a07e0f779b46932f83f",
+      "currentSha256": "37cc3509749764dab08d939575ad20dc37a10f0b708c7d11ef3aa0b5dc7ae3af"
     }
   ],
   "historicalCalibration": {
