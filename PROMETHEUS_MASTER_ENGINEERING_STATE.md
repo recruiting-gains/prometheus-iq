@@ -8488,17 +8488,44 @@ Canonical governance:
 - `overwatch/governance/github-actions-official-node24-pin-successor-v1.json`
 - `overwatch/reports/BATCH-20260810-002-route-iq-official-node24-action-pin-successor.json`
 
+### 2026-08-12: Governed Multi-Session Learning Dashboard Advisory Bridge v1
+
+Status:
+
+Completed at commit `e3d936381ec7164267b9a584b3f69db656bc8781`. The existing Operating Profile Engine, governed field-session evidence, customer graph, and Founder-only advisory path were composed without activating collection, cohorts, confidence propagation, or recommendation influence. The governed truth state remained `INSUFFICIENT_EVIDENCE`.
+
+### 2026-08-13: Outcome Semantic Integrity Corrective v1
+
+Status:
+
+Completed at commit `5578456b8d5aca8b123708fcec1c1b34bea9f475`, tree `8d880bdd6fb43bbad9bcc0d73434e1696ed31370`, with exact predecessor qualification run `31734563902` passing. Review-required and unclassified evidence cannot leak into success, follow-up, graph, confidence, or representative-learning conclusions. The Fitness `No contact` case remains quarantined; admitted `Membership` maps through the authoritative profile rule to `sale`. The truth state remained `INSUFFICIENT_EVIDENCE`.
+
+### 2026-08-14: Prospective Calibration Production Admission + Future-Window Readiness v1
+
+Status:
+
+Source complete, intentionally undeployed, and awaiting exact-final-commit hosted qualification. Data owns a dormant, server-only retention-admission adapter that binds exact scope, evidence hashes, authoritative outcome time, retention policy, and legal-hold state. Intelligence owns chronological, gapless, immutable future training/evaluation assignments that preserve every accepted threshold and leave the July configuration and evidence untouched. Infrastructure routes the existing prospective close/evaluation path through those authorities and keeps test hooks test-only. Security/Aegis independently verifies freshness, replay, isolation, legal-hold, and non-disclosure boundaries. Patents recorded no new patent material because the mechanism remains within existing documented IP and Shadow Decision scope.
+
+Protected state remains collection `OFF`, cohorts `0`, recommendation influence `OFF`, confidence propagation `OFF`, providers and scheduler `OFF`, Shadow Decision hidden, with zero live admissions, production storage access, Cloudflare engineering contacts, mutations, or deployments.
+
+Canonical governance:
+
+- `intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json`
+- `overwatch/governance/route-iq-prospective-calibration-production-admission-future-window-readiness-v1.json`
+- `overwatch/reports/BATCH-20260814-001-route-iq-prospective-calibration-production-admission-future-window-readiness.json`
+- `workers/infrastructure/route-iq-prospective-calibration-production-admission-forward-revert-v1.json`
+
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:
 
-Official Node 24 action-pin successor is source complete. Complete external Founder decisions for pricing, contracts, business banking, tax configuration, and Stripe Live eligibility before any live billing or customer activation. Keep application, rollback, permissions, collection, deletion, cohort, and recommendation boundaries unchanged.
+After exact-final-commit hosted qualification passes, prepare a separate Private Worker v2 deployment-readiness successor for `BATCH-20260814-001`. That successor must build a new immutable artifact containing every new admission and future-window module, pin current production identities through separately authorized read-only preflight, and preserve the existing private Workflow v2 lane. It must not deploy or activate collection without separate Founder authorization.
 
-Primary owner: Founder, with legal, accounting, banking, and payment-provider support as applicable.
+Primary owners: Prometheus Infrastructure and Prometheus Overwatch, with a separate Founder authorization boundary for any production inspection, qualification lane dispatch beyond the source-only handoff, deployment, provider provisioning, legal-hold authority, or collection activation.
 
 Reason:
 
-The engineering platform and notification path are governed. The remaining launch constraints are external business decisions and evidence, not another speculative product or infrastructure expansion.
+The reusable private Workflow v2 architecture can consume exact immutable artifacts without rebuilding, but its existing artifact is a predecessor and does not contain this source. Final forward-payload, manifest, content-tree, rollback-bundle, deployment-parity, and current production-version identities therefore do not yet exist for this successor and must not be inferred or reused.
 
 Current priority order after notification delivery acceptance:
 

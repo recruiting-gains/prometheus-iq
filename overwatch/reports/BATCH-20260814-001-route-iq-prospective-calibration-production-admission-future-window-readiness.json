@@ -1,0 +1,49 @@
+{
+  "reportVersion": "route-iq-prospective-calibration-production-admission-future-window-readiness-engineering-batch-v1",
+  "batchId": "BATCH-20260814-001",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "verdict": "SOURCE_COMPLETE_UNDEPLOYED_HOSTED_QUALIFICATION_PENDING",
+  "startingCommit": "5578456b8d5aca8b123708fcec1c1b34bea9f475",
+  "startingTree": "8d880bdd6fb43bbad9bcc0d73434e1696ed31370",
+  "plainEnglishChange": "Route IQ now has a dormant server-side path that can request exact Data-owned retention approval and assign admitted future evidence to governed training and evaluation windows. The provider, collection, cohorts, recommendations, confidence propagation, scheduler, and production mutation paths remain off.",
+  "qualification": {
+    "dataAdmission": "PASS_12_OF_12",
+    "futureWindows": "PASS_8_OF_8",
+    "committedEvaluationAndRetention": "PASS_12_OF_12",
+    "coordinatorAndAllocator": "PASS_80_OF_80",
+    "infrastructureAndWorkerEmulation": "PASS_46_OF_46",
+    "securityAndAegisBoundary": "PASS_8_OF_8",
+    "legacyRetentionSuccessorComposition": "PASS_5_OF_5",
+    "focusedTotal": "PASS_171_OF_171",
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "build": "PENDING_FINAL_LOCAL_PREFLIGHT",
+    "fullHostedExactCommit": "PENDING_EARLY_GITHUB_HANDOFF"
+  },
+  "truth": {
+    "readiness": "INSUFFICIENT_EVIDENCE",
+    "eligibleShadowDecisions": 0,
+    "historicalJulyEvidenceReassigned": false,
+    "thresholdsChanged": false
+  },
+  "releaseBoundary": {
+    "sourceOnly": true,
+    "deploymentAuthorized": false,
+    "privateV2QualificationAuthorized": false,
+    "productionAccessAuthorized": false,
+    "collectionActivationAuthorized": false,
+    "separateDeploymentReadinessSuccessorRequired": true
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providersAndScheduler": "OFF",
+    "shadowDecisionHidden": true,
+    "productionStorageAccess": 0,
+    "cloudflareEngineeringContacts": 0,
+    "deployments": 0,
+    "liveAdmissions": 0
+  }
+}

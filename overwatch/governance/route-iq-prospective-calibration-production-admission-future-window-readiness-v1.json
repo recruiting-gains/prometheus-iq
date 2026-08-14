@@ -1,0 +1,155 @@
+{
+  "governanceVersion": "route-iq-prospective-calibration-production-admission-future-window-readiness-v1",
+  "batchId": "BATCH-20260814-001",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "status": "SOURCE_COMPLETE_UNDEPLOYED_HOSTED_QUALIFICATION_PENDING",
+  "startingRepository": {
+    "remote": "git@github.com:PrometheusRouteIQ/prometheus-iq.git",
+    "branch": "main",
+    "commit": "5578456b8d5aca8b123708fcec1c1b34bea9f475",
+    "tree": "8d880bdd6fb43bbad9bcc0d73434e1696ed31370",
+    "predecessorQualificationRun": "31734563902",
+    "predecessorTruthState": "INSUFFICIENT_EVIDENCE",
+    "clean": true,
+    "synchronized": true
+  },
+  "humanAuthenticationPreflight": {
+    "status": "HUMAN_AUTHENTICATION_PREFLIGHT_COMPLETE",
+    "githubLoginPageOpened": true,
+    "cloudflareLoginPageOpened": true,
+    "githubRepositoryReadVerified": true,
+    "githubActionsReadVerified": true,
+    "githubPushVerified": true,
+    "cloudflareHumanSignInConfirmedOnly": true,
+    "cloudflareEngineeringApiResourceConfigurationStorageLogAnalyticsDeploymentContacts": 0,
+    "credentialOrSecretMaterialRecorded": false
+  },
+  "functionalOwnerCommits": [
+    {"commit":"6dc4363e20c6d0be622c2dcd89ed4cd7c470c13a","tree":"2f68576624b979feb8e9139ca3124d635f5035b5","owner":"Prometheus Data <data@prometheus.local>","subject":"data: admit prospective production retention evidence"},
+    {"commit":"f93c1d960365d62fc633aefd5f90f04d4f2cd723","tree":"cd97de04d523f10b1727f487934ccf6bbf271d7b","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: govern future calibration windows"},
+    {"commit":"04bf2ea7e5ff6db734e559f16b9154772d76fc73","tree":"f0f09dd6568bbb3677c27846c513f184ffd1027c","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: bridge production calibration admission"},
+    {"commit":"48aa89891f311a5a6d2bf65373c26c632d73e2b8","tree":"bc42128af2778160b6fed6e0bf363259c0acc737","owner":"Prometheus Security <security@prometheus.local>","subject":"security: verify production calibration admission boundary"},
+    {"commit":"46daa2be91ac84c1256d82231836d23fa625e6fa","tree":"dd905b3984bab89e9c7096aa4b18fd99d3ca36c7","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: package calibration admission forward revert"}
+  ],
+  "provenanceAndCompatibilityCommits": [
+    "a54e29c1d3cc302ce4988c53a9f10d98df118b4b",
+    "e5cc04e9853983e45203102bf6153b87dc17701f",
+    "5582b1cb05307f1dc8dd31002f698e3af09c1a9f",
+    "43f61c2ccc73914e0901197e1a80b4c33bb6f810",
+    "4ffec0d5c8495f07c1814ddd9f2e9bf2fdc8da28",
+    "496481a97a1a6f728d8c589d127e1df6d73eb60d",
+    "cfde7e1b8aeaecce09ff270a9124f6dd6a2b1000",
+    "a4ae87df883e304c3dfd64766977456410f46193",
+    "2b8cecb4ba05dddff61c257bec9cfc556b600839",
+    "11c0c413ce00ecafe7d0738bb274a2fa87c703c3",
+    "10950eca3e4e86698ae3b49d1d0360e9ad90f89b",
+    "a06b367003c43e937d05fbd3da88040e11f7f9ba"
+  ],
+  "criticalPins": [
+    {"path":"data/route-iq-field-sessions-v1/route-iq-prospective-production-retention-admission.mjs","sha256":"aee7ebc4772621081ce405defd56eba3783c35ec5ef3f0919eadba5b9d24628d"},
+    {"path":"data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs","sha256":"3e2187a4bdbb3535b115f049d02b30e47dce2a6b68536d641d03642af626d10b"},
+    {"path":"intelligence/config/route-iq-prospective-future-window-policy-v1.json","sha256":"a5e31df01e65d26cefae792a4255981e6230458a0b28a20f751d97c9f225ef78"},
+    {"path":"intelligence/contracts/route-iq-prospective-future-window-policy-v1.json","sha256":"8734d526b3b9efc4084fda91e63c49a9d361525d89450ccc54b7aa63575a301a"},
+    {"path":"intelligence/route-iq-prospective-future-window-policy.mjs","sha256":"226e2da7fc637b765318a6fb0b46ea07324efd1304eb33109ed4fc98ec634607"},
+    {"path":"intelligence/route-iq-prospective-retention-admission.mjs","sha256":"deafd9fa81a481195577ec9fdbaa6ae3aae60bc2ba1df423d9153ae8ea4ec655"},
+    {"path":"intelligence/route-iq-committed-outcome-evaluation.mjs","sha256":"32d0fd96253721e89766d7103f27f26dd48df96e7f438b5af06c92ecd0777107"},
+    {"path":"workers/infrastructure/route-iq-prospective-shadow-retention-admission.js","sha256":"876ab11666ce34a1c7abbeac066e3ca6382000c55ba156d1a7194f9b5c0cab6c"},
+    {"path":"workers/infrastructure/route-iq-prospective-shadow-runtime.js","sha256":"a9ab5f19c2059e07320e5735c6a2cd3bd4ee53ca2b14ff01a4a9c6ac876c1e9d"},
+    {"path":"intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json","sha256":"cbaa9bfcb9e6540c8800a207e32aa59cc4302a8898b5dab0e10b10f9595085a0"},
+    {"path":"workers/infrastructure/route-iq-prospective-calibration-production-admission-forward-revert-v1.json","sha256":"68e2fe0ee894a6ef4c83d9d2d0f32ff3ffdf9e7d7310c7b6472c51b40fbdd4cf"},
+    {"path":"tests/route-iq-prospective-production-admission-security.test.mjs","sha256":"1290e3a094b366fce85d1647b2afa83521906acd5ffb5caf8e3f66675853dd21"}
+  ],
+  "historicalProtection": {
+    "julyReadinessConfigPath": "intelligence/config/shadow-decision-readiness-v1.json",
+    "julyReadinessConfigSha256": "29287a69b4cfbbb195806e45517872a33c2cc8e5335b2f83d73c003718120204",
+    "julyReadinessConfigByteLength": 4417,
+    "historicalFieldSessionArchivesChanged": false,
+    "historicalEvaluationEvidenceChanged": false,
+    "historicalEvidenceReassigned": false
+  },
+  "readinessThresholds": {
+    "minimumTotalSamples": 97,
+    "calibrationBins": 5,
+    "minimumSupportingRecordsPerPopulatedBin": 20,
+    "minimumSupportedEvaluationWindows": 2,
+    "minimumConsecutivePassingWindows": 2,
+    "changed": false
+  },
+  "admissionBoundary": {
+    "maximumAgeMilliseconds": 300000,
+    "expiryExclusive": true,
+    "authoritativeLegalHoldRequired": true,
+    "replayAndDuplicateAdmissionRejected": true,
+    "callerSuppliedAuthorityRejected": true,
+    "browserSuppliedTimeRejected": true,
+    "providerAvailableByDefault": false,
+    "liveAdmissionCount": 0
+  },
+  "futureWindowBoundary": {
+    "trainingWindows": 1,
+    "minimumFutureEvaluationWindows": 2,
+    "gapsAllowed": false,
+    "overlapsAllowed": false,
+    "retroactiveReassignmentAllowed": false,
+    "callerSelectedAnchorAllowed": false,
+    "assignmentImmutable": true
+  },
+  "patentReview": {
+    "patentRecordChangeRequired": false,
+    "classification": "WITHIN_EXISTING_DOCUMENTED_IP_001_AND_SHADOW_DECISION_SCOPE"
+  },
+  "privateWorkflowV2Handoff": {
+    "designatedQualificationWorkflow": {"path":".github/workflows/qualify-prometheus-private-worker-v2.yml","sha256":"db7258aa7782277444b345d8bd3500f623ba1236c5eef078b1f2fae3a34293d2"},
+    "designatedDeploymentWorkflow": {"path":".github/workflows/deploy-prometheus-private-worker-v2.yml","sha256":"2f4c255e4440a1eae8a6724e254f38cc1871e57c25176e57df62aa1a5bb4f07a"},
+    "targetWorker": "prometheus-iq",
+    "protectedEnvironment": "prometheus-private-worker-production",
+    "workflowContract": {"path":"workers/infrastructure/github-actions-private-worker-deployment-v2.json","sha256":"874f5955727fab02d292e90afc6e3964f47d0b9ccda80db25b2e0477135e09a1"},
+    "privateRollbackContractSource": {"path":"workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json","sha256":"0c38be17c0823b1e247f1781353bbce543d66deb46f775c7a905b4164cb6d951"},
+    "privateRollbackWranglerSource": {"path":"workers/infrastructure/route-iq-private-forward-rollback-wrangler-v3.json","sha256":"23b6c5c5d506ea88565c428b1adbe0e068de14250126b4e1f53d4d10fd0b827e"},
+    "privateRollbackInertSource": {"path":"workers/infrastructure/route-iq-private-forward-rollback-inert-durable-object-v3.js","sha256":"c668e6d69c734c637ccb942767b7107c5725e62cc2deec18f6552b1726c7e47d"},
+    "deploymentParityPredecessorSha256": "e501b84ec1fab67f84d021041f80bc08030596be35181d8eb129a96ef6609a83",
+    "forwardPayloadPredecessorSha256": "129d2e93d5d3a0ae538f3eb1e5c1982bcf658b5b05d2da1d8f23bf8e1540e52b",
+    "rollbackBundlePredecessorSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+    "existingQualificationArtifactIncludesNewModules": false,
+    "existingQualificationArtifactStatus": "STALE_PREDECESSOR_NOT_DEPLOYABLE_FOR_THIS_SOURCE",
+    "deploymentWorkflowConsumesExactArtifactWithoutRebuild": true,
+    "finalForwardPayloadSha256": "REQUIRES_SEPARATE_PRIVATE_V2_QUALIFICATION",
+    "finalRollbackBundleSha256": "REQUIRES_SEPARATE_PRIVATE_V2_QUALIFICATION",
+    "finalManifestSha256": "REQUIRES_SEPARATE_PRIVATE_V2_QUALIFICATION",
+    "finalContentTreeSha256": "REQUIRES_SEPARATE_PRIVATE_V2_QUALIFICATION",
+    "currentProductionWorkerVersion": "REQUIRES_SEPARATE_AUTHORIZED_READ_ONLY_PREFLIGHT",
+    "qualificationOrDeploymentDispatchedByThisBatch": false
+  },
+  "toolchain": {
+    "runner": "ubuntu-24.04",
+    "node": "24.4.1",
+    "wrangler": "4.120.1",
+    "miniflare": "5.20260804.0-alpha",
+    "checkout": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "setupNode": "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+    "uploadArtifact": "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+    "downloadArtifact": "actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0",
+    "packageLockSha256": "6689435e2070d0f36d97448019348dc776d28cca9f6538d3d632cd5e5c1590ec"
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "shadowDecisionVisible": false,
+    "productionMutations": 0,
+    "productionStorageAccess": 0,
+    "cloudflareEngineeringContacts": 0,
+    "deployments": 0,
+    "truthState": "INSUFFICIENT_EVIDENCE"
+  },
+  "release": {
+    "sourceComplete": true,
+    "deploymentAuthorized": false,
+    "productionMutationAuthorized": false,
+    "privateV2QualificationAuthorized": false,
+    "nextSeparateTask": "Private Worker v2 Deployment Readiness Successor for BATCH-20260814-001"
+  }
+}
