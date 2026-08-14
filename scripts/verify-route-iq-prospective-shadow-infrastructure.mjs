@@ -167,7 +167,12 @@ for (const required of [
   "sourceOutcomeEvidenceSha256",
   "sourceArchiveRawSha256",
   "ROUTE_IQ_PROSPECTIVE_DATA_RETENTION_ADMISSION_MAX_LIFETIME_SECONDS",
-  "Data owns the retention-envelope semantics"
+  "routeIqProspectiveProductionRetentionAdmissionVersion",
+  "validateRouteIqProspectiveProductionRetentionAdmission",
+  "providerBindingIdentitySha256",
+  "legalHoldSnapshotIdentitySha256",
+  "createRouteIqProspectiveFutureWindowAssignment",
+  "Data owns retention semantics"
 ]) {
   assert.ok(`${retentionAdmission}\n${runtime}`.includes(required), `Data retention admission must include ${required}`);
 }
@@ -306,11 +311,14 @@ assert.match(runtime, /const recovered = await stub\.recoverNextProjection/u);
 assert.match(runtime, /const readOnce = async \(\) => stub\.readCommittedProjectionForOutcomeArtifact/u);
 assert.match(
   runtime,
-  /noncanonicalTestHooks\?\.enabled !== true[\s\S]+typeof noncanonicalTestHooks\.readNoncanonicalDataRetentionAdmission !== "function"/u
+  /if \(noncanonicalTestHooks\?\.enabled === true\) \{[\s\S]+typeof noncanonicalTestHooks\.readNoncanonicalDataRetentionAdmission !== "function"[\s\S]+mode: "legacy_source_test"[\s\S]+const adapter = createRouteIqProspectiveProductionRetentionAdmissionAdapter\(env\)/u
 );
 assert.ok(
-  runtime.indexOf("resolveRouteIqEvaluationRetentionEnvelope")
-    < runtime.indexOf("buildRouteIqEvaluationFromAdmittedOutcome({", runtime.indexOf("resolveRouteIqEvaluationRetentionEnvelope")),
+  runtime.indexOf("const retention = await resolveRouteIqEvaluationRetentionEnvelope({")
+    < runtime.indexOf(
+      "evaluation = buildRouteIqEvaluationFromAdmittedOutcome(",
+      runtime.indexOf("const retention = await resolveRouteIqEvaluationRetentionEnvelope({")
+    ),
   "Authenticated retention resolution must precede evaluation construction"
 );
 
