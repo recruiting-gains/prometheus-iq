@@ -57,6 +57,14 @@
       "ownerSubsystem": "Prometheus Security",
       "identity": "Prometheus Security <security@prometheus.local>",
       "subject": "security: verify production calibration admission boundary"
+    },
+    {
+      "commit": "5582b1cb05307f1dc8dd31002f698e3af09c1a9f",
+      "parent": "e5cc04e9853983e45203102bf6153b87dc17701f",
+      "tree": "74b0683c0071a4d6da43ac6aa5c94a842ad7fac2",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: consume calibration successor lineage"
     }
   ],
   "protectedSourceTransitions": [
@@ -131,6 +139,15 @@
       "subject": "infrastructure: bridge production calibration admission",
       "previousSha256": "3873f718611a9534e90bca4d886ae3adc52534b586c543556be863c0450468cc",
       "currentSha256": "007cba8899067dc8b6d39c23b1b5d7c3a556196ba48d35c98dd03ec3a0c58502"
+    },
+    {
+      "path": "scripts/verify-shadow-decision-readiness.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "5582b1cb05307f1dc8dd31002f698e3af09c1a9f",
+      "tree": "74b0683c0071a4d6da43ac6aa5c94a842ad7fac2",
+      "subject": "intelligence: consume calibration successor lineage",
+      "previousSha256": "bda4488c6015751fe24ddd36dd5dec38a8106a0a2a061a56e3232785b325c911",
+      "currentSha256": "2d394dd2fb7077dc5ec97e6b50a27d986adf1f560a3a26087484108d029d27bd"
     }
   ],
   "newSourceArtifacts": [
