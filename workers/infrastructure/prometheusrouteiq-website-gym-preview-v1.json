@@ -70,6 +70,27 @@
       "preview_assets_sha256"
     ]
   },
+  "officialNode24ActionSuccessor": {
+    "classification": "NEW_WORKFLOW_OFFICIAL_NODE24_PIN_SUCCESSOR",
+    "path": ".github/workflows/preview-prometheus-route-iq-gym-first.yml",
+    "sha256": "0d9da8ced5b963a662076404d723823e2331cb8094fa6b10b6e99ec313eaacc5",
+    "absentAtNode24MigrationBaseline": true,
+    "checkout": {
+      "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "occurrences": 2
+    },
+    "setupNode": {
+      "commit": "820762786026740c76f36085b0efc47a31fe5020",
+      "occurrences": 2,
+      "nodeVersion": "24.4.1"
+    },
+    "permissions": {
+      "contents": "read"
+    },
+    "movingActionTags": 0,
+    "thirdPartyActions": 0,
+    "cacheInputs": 0
+  },
   "postDeploymentSmoke": {
     "methods": [
       "GET",

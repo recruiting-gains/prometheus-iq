@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   appendFileSync,
   copyFileSync,
@@ -422,6 +423,32 @@ test("manual workflow binds one exact Founder main run to the preview target and
     "version_id",
     "preview_assets_sha256"
   ]);
+  assert.deepEqual(contract.officialNode24ActionSuccessor, {
+    classification: "NEW_WORKFLOW_OFFICIAL_NODE24_PIN_SUCCESSOR",
+    path: ".github/workflows/preview-prometheus-route-iq-gym-first.yml",
+    sha256: createHash("sha256").update(workflow).digest("hex"),
+    absentAtNode24MigrationBaseline: true,
+    checkout: {
+      commit: "3d3c42e5aac5ba805825da76410c181273ba90b1",
+      occurrences: 2
+    },
+    setupNode: {
+      commit: "820762786026740c76f36085b0efc47a31fe5020",
+      occurrences: 2,
+      nodeVersion: "24.4.1"
+    },
+    permissions: { contents: "read" },
+    movingActionTags: 0,
+    thirdPartyActions: 0,
+    cacheInputs: 0
+  });
+  assert.equal((workflow.match(
+    /uses: actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/gu
+  ) || []).length, 2);
+  assert.equal((workflow.match(
+    /uses: actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020/gu
+  ) || []).length, 2);
+  assert.equal((workflow.match(/node-version: "24\.4\.1"/gu) || []).length, 2);
 
   const invocations = workflow.split(/\r?\n/u)
     .map(line => line.trim())

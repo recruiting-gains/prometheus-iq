@@ -12,6 +12,8 @@ const contractPath =
   "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json";
 const predecessorGovernancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
+const gymPreviewContractPath =
+  "workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json";
 
 function read(path) {
   return readFileSync(resolve(root, path), "utf8");
@@ -43,6 +45,8 @@ function committedSource(commit, path) {
 export function verifyGithubActionsOfficialNode24PinSuccessor() {
   const contract = JSON.parse(read(contractPath));
   const predecessorGovernance = JSON.parse(read(predecessorGovernancePath));
+  const gymPreviewContract = JSON.parse(read(gymPreviewContractPath));
+  const gymPreviewSuccessor = gymPreviewContract.officialNode24ActionSuccessor;
   const checkoutPin = contract.actions.checkout.commit;
   const setupNodePin = contract.actions.setupNode.commit;
   const workflowDirectory = resolve(root, ".github/workflows");
@@ -51,6 +55,7 @@ export function verifyGithubActionsOfficialNode24PinSuccessor() {
     .map(path => `.github/workflows/${path}`)
     .sort();
   const governedPaths = contract.workflows.map(entry => entry.path).sort();
+  const successorPaths = [gymPreviewSuccessor.path];
 
   assert.equal(contract.contractVersion, "github-actions-official-node24-pin-successor-v1");
   assert.equal(contract.batchId, "BATCH-20260810-002");
@@ -105,7 +110,7 @@ export function verifyGithubActionsOfficialNode24PinSuccessor() {
     assert.match(action.commit, /^[0-9a-f]{40}$/u);
   }
 
-  assert.deepEqual(actualPaths, governedPaths);
+  assert.deepEqual(actualPaths, [...governedPaths, ...successorPaths].sort());
   let checkoutOccurrences = 0;
   let setupNodeOccurrences = 0;
   let existingCacheInputs = 0;
@@ -164,6 +169,40 @@ export function verifyGithubActionsOfficialNode24PinSuccessor() {
     majorNodeVersions += (current.match(/^\s+node-version:\s*"24"$/gmu) ?? []).length;
   }
 
+  const successorWorkflow = read(gymPreviewSuccessor.path);
+  assert.equal(gymPreviewSuccessor.classification,
+    "NEW_WORKFLOW_OFFICIAL_NODE24_PIN_SUCCESSOR");
+  assert.equal(gymPreviewContract.workflow.path, gymPreviewSuccessor.path);
+  assert.equal(sha256(successorWorkflow), gymPreviewSuccessor.sha256);
+  assert.equal(gymPreviewSuccessor.absentAtNode24MigrationBaseline, true);
+  assert.throws(() => committedSource(
+    contract.startingRepository.commit,
+    gymPreviewSuccessor.path
+  ));
+  assert.deepEqual(actionPins(successorWorkflow, "checkout"),
+    Array(gymPreviewSuccessor.checkout.occurrences).fill(checkoutPin));
+  assert.deepEqual(actionPins(successorWorkflow, "setup-node"),
+    Array(gymPreviewSuccessor.setupNode.occurrences).fill(setupNodePin));
+  assert.equal(gymPreviewSuccessor.checkout.commit, checkoutPin);
+  assert.equal(gymPreviewSuccessor.setupNode.commit, setupNodePin);
+  assert.equal(gymPreviewSuccessor.setupNode.nodeVersion, "24.4.1");
+  assert.equal((successorWorkflow.match(
+    /^\s+node-version:\s*"24\.4\.1"$/gmu
+  ) ?? []).length, gymPreviewSuccessor.setupNode.occurrences);
+  assert.match(successorWorkflow, /^permissions:\n  contents: read$/mu);
+  assert.deepEqual(gymPreviewSuccessor.permissions, { contents: "read" });
+  assert.doesNotMatch(successorWorkflow,
+    /^  (?:pull_request_target|workflow_run):/mu);
+  const successorActions = [...successorWorkflow.matchAll(
+    /^\s*-?\s*uses:\s*([^\s]+)$/gmu
+  )].map(match => match[1]);
+  assert.ok(successorActions.every(reference =>
+    /^actions\/(?:checkout|setup-node)@[0-9a-f]{40}$/u.test(reference)));
+  assert.equal(gymPreviewSuccessor.movingActionTags, 0);
+  assert.equal(gymPreviewSuccessor.thirdPartyActions, 0);
+  assert.equal((successorWorkflow.match(/^\s+cache:\s*\S+/gmu) ?? []).length,
+    gymPreviewSuccessor.cacheInputs);
+
   assert.equal(checkoutOccurrences, 39);
   assert.equal(setupNodeOccurrences, 39);
   assert.equal(existingCacheInputs, 1);
@@ -202,9 +241,13 @@ export function verifyGithubActionsOfficialNode24PinSuccessor() {
 
   return Object.freeze({
     status: "OFFICIAL_NODE24_ACTION_PIN_SOURCE_VERIFIED",
-    workflowFiles: actualPaths.length,
+    workflowFiles: governedPaths.length,
     checkoutOccurrences,
     setupNodeOccurrences,
+    successorWorkflowFiles: successorPaths.length,
+    activeWorkflowFiles: actualPaths.length,
+    successorCheckoutOccurrences: gymPreviewSuccessor.checkout.occurrences,
+    successorSetupNodeOccurrences: gymPreviewSuccessor.setupNode.occurrences,
     movingTags: 0,
     newCacheInputs: 0,
     cloudflareContacts: 0,
