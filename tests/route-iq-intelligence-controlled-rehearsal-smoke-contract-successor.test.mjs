@@ -84,10 +84,13 @@ test("shadow-readiness adoption composes the exact gym-preview runtime surface",
   const routeQuality = adoption.transitionByPath.get(
     "scripts/lib/route-intelligence-quality-gate.mjs"
   );
-  assert.equal(
-    routeQuality.previousSha256,
-    "7a37c1d2bfc3c07e38a0e706756c64f69718c9a7d36bd0b1eebc5717a7621468"
+  const gymTransition = routeQuality.transitions.find(transition =>
+    transition.previousSha256 ===
+      "7a37c1d2bfc3c07e38a0e706756c64f69718c9a7d36bd0b1eebc5717a7621468"
+    && transition.currentSha256 ===
+      "7bda35b46eb577dd89c6cd2617c70cb3c7a0b656faff168543c13db35a01c0b4"
   );
+  assert.ok(gymTransition);
   assert.equal(
     routeQuality.currentSha256,
     "7bda35b46eb577dd89c6cd2617c70cb3c7a0b656faff168543c13db35a01c0b4"
@@ -132,26 +135,27 @@ test("paid-customer revenue readiness composes an exact Infrastructure Worker su
   assert.equal(verified.successor.boundaries.recommendationInfluence, "OFF");
 });
 
-test("composed adoption carries both Worker transitions without rewriting either record", () => {
+test("composed adoption carries ordered Worker successors without rewriting prior records", () => {
   const adoption = verifyCrossIndustryZipFounderAccessAdoption();
   const worker = adoption.transitionByPath.get("workers/prometheus-iq-worker.js");
-
-  assert.equal(
-    worker.transitions.at(-3).currentSha256,
-    "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132"
+  const rehearsalIndex = worker.transitions.findIndex(transition =>
+    transition.currentSha256 ===
+      "24015aeca7f2fde982c6e3fc4a468e19d29e8d3018ec600a2109cf341808a132"
   );
+  assert.ok(rehearsalIndex >= 0);
   assert.equal(
-    worker.transitions.at(-2).previousSha256,
-    worker.transitions.at(-3).currentSha256
+    worker.transitions[rehearsalIndex + 1].previousSha256,
+    worker.transitions[rehearsalIndex].currentSha256
   );
-  assert.equal(worker.transitions.at(-2).currentSha256,
+  assert.equal(worker.transitions[rehearsalIndex + 1].currentSha256,
     "0ee3fb5426f5104fc70d97c0ce284d149fb5e13d2f521c04214bd361fa39ea61");
-  assert.equal(
-    worker.transitions.at(-1).previousSha256,
-    worker.transitions.at(-2).currentSha256
-  );
+  for (let index = 1; index < worker.transitions.length; index += 1) {
+    assert.equal(worker.transitions[index].previousSha256,
+      worker.transitions[index - 1].currentSha256);
+  }
+  assert.equal(worker.currentSha256, worker.transitions.at(-1).currentSha256);
   assert.equal(worker.currentSha256,
-    "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051");
+    "b5a5d26229d6d0808bb41a08fd2b252021df1d5cdfa9e44cda539819fc728b9a");
 });
 
 test("Full-System Harmony successor preserves revenue-readiness evidence", () => {
