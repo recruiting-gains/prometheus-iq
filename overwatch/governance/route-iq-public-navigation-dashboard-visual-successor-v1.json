@@ -1,0 +1,178 @@
+{
+  "version": "route-iq-overwatch-public-navigation-dashboard-visual-successor-v1",
+  "batchId": "BATCH-20260815-001",
+  "directive": "Route IQ Public Preview Navigation + Dashboard Visual Identity Alignment v1",
+  "status": "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "predecessors": [
+    {
+      "path": "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json",
+      "sha256": "2a35aabd652756422809d2408b4a39065bbd6b9957869dee30db8cfd7004a133",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    {
+      "path": "overwatch/governance/route-iq-gym-preview-deployment-environment-successor-v1.json",
+      "sha256": "e8f3a005cac1e479a6f273610f9b8676a8c9ecc2d5fb66d02170679d1890c86e",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    {
+      "path": "overwatch/governance/route-iq-gym-preview-route-quality-runtime-surface-successor-v1.json",
+      "sha256": "8755ff32e13896c0fab29c0323987326a2e4d1d2ba991a8fece70ae482a0c7b0",
+      "remainsHistorical": true,
+      "rewritten": false
+    }
+  ],
+  "implementationCommits": [
+    {
+      "commit": "72d9f99ab75d3716f855835fd84345306de67cd7",
+      "parent": "7c9f4c624d65a085637f03ad810ce35c56177401",
+      "tree": "d0c5e7a1ab7bc0d7ecb0dbeba01696432823a3d4",
+      "identity": "Prometheus Website <website@prometheus.local>",
+      "ownerSubsystem": "Prometheus Website",
+      "subject": "website: keep preview navigation inside public routes",
+      "changedFiles": [
+        "src/main.jsx",
+        "tests/website-route-iq-product-focus.test.mjs",
+        "vite.config.js"
+      ]
+    },
+    {
+      "commit": "99dbf7b5b83e19842d451e010ce159b17705251b",
+      "parent": "72d9f99ab75d3716f855835fd84345306de67cd7",
+      "tree": "b50fdcd485c8cef43113fb1f3853cdc2b1590e9f",
+      "identity": "Prometheus Dashboard <dashboard@prometheus.local>",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "subject": "dashboard: align private workspace with public identity",
+      "changedFiles": [
+        "index.html",
+        "manifest-founder.webmanifest",
+        "manifest.webmanifest",
+        "tests/dashboard-route-iq-product-focus.test.mjs"
+      ]
+    },
+    {
+      "commit": "84088bb82cd60b36a721222c6e6632e5be7046d2",
+      "parent": "99dbf7b5b83e19842d451e010ce159b17705251b",
+      "tree": "646a70190ffb7fde216d584a4c52d488be2bb438",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "subject": "infrastructure: bind navigation and dashboard assets",
+      "changedFiles": [
+        "deploy/cloudflare-pages/index.html",
+        "deploy/cloudflare-pages/manifest-founder.webmanifest",
+        "deploy/cloudflare-pages/manifest.webmanifest",
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-B1-h6ijC.js",
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-DUONdOlD.js",
+        "deploy/prometheusrouteiq-website/assets/landing-BOzyl4oV.js",
+        "deploy/prometheusrouteiq-website/assets/landing-BeMJF6LH.js",
+        "deploy/prometheusrouteiq-website/index.html",
+        "tests/route-iq-gym-website-preview-infrastructure.test.mjs",
+        "workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json"
+      ]
+    },
+    {
+      "commit": "f9ddaf11fda78f801069de909f6dbd4f782fe22a",
+      "parent": "84088bb82cd60b36a721222c6e6632e5be7046d2",
+      "tree": "200fa1d2113159e9616558edcc182d3f7f483353",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "subject": "intelligence: compose dashboard visual successor",
+      "changedFiles": [
+        "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
+      ]
+    },
+    {
+      "commit": "56995755e299db4a114c753ed7ca67f1751f0a7c",
+      "parent": "f9ddaf11fda78f801069de909f6dbd4f782fe22a",
+      "tree": "4e77c879526c86356b75a00a42c241d681379a1c",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "subject": "intelligence: record dashboard visual provenance",
+      "changedFiles": [
+        "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-identity-v1.json"
+      ]
+    },
+    {
+      "commit": "441e4f2c829c0eb5d04078711314d9481d4ccbd4",
+      "parent": "56995755e299db4a114c753ed7ca67f1751f0a7c",
+      "tree": "1e36c724e4e5508b330ce0558344af9f7d521ac6",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "subject": "infrastructure: regenerate public visual rollback",
+      "changedFiles": [
+        "scripts/lib/route-iq-public-forward-rollback.mjs",
+        "tests/github-actions-public-worker-workflow-v2.test.mjs",
+        "tests/route-iq-public-forward-rollback-pinned-source.test.mjs",
+        "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+      ]
+    }
+  ],
+  "intelligenceProvenance": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-identity-v1.json",
+    "sha256": "f263570a78693b998c5f18535861170f1b4345d700bb83bf7661ccb5cf4f5cf9"
+  },
+  "currentContracts": {
+    "preview": {
+      "path": "workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json",
+      "sha256": "63626873b7e2fe1d47c3513562642b45dc8210705c20e9d55484be751f40d4d4"
+    },
+    "workflow": {
+      "path": ".github/workflows/preview-prometheus-route-iq-gym-first.yml",
+      "sha256": "fa0efa259d006527d500e714b4f92f7c1c76df06f7cc7973c448aaa0d45006d9"
+    },
+    "forwardRollback": {
+      "path": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+      "sha256": "168689b3b8beac3eb0ba966737e01c8af3583b18417dd04bc6f4920fcdb5af2c"
+    }
+  },
+  "releaseIdentities": {
+    "websiteCommit": "72d9f99ab75d3716f855835fd84345306de67cd7",
+    "websiteTree": "d0c5e7a1ab7bc0d7ecb0dbeba01696432823a3d4",
+    "previewAssetSha256": "d65df33306cf699837dfdcf02a58c42eda6004bb242f407536475238edec5324",
+    "previewFileCount": 26,
+    "previewTotalBytes": 2471832,
+    "deploymentAssetSha256": "7390e873fe2f336390215494adc20def7a768bf929c0c85db219d213ac849f2b",
+    "rollbackContractSha256": "168689b3b8beac3eb0ba966737e01c8af3583b18417dd04bc6f4920fcdb5af2c",
+    "rollbackBundleSha256": "0468e368ff70bb292841cff4aaa9cac70b395d4b64b47b411091a25b6f185233",
+    "initialCriticalBytes": 488792,
+    "lazy3dBytes": 892213
+  },
+  "navigationContract": {
+    "publicRoutes": [
+      "/",
+      "/investors",
+      "/thank-you"
+    ],
+    "legalRoutesRemainPublic": true,
+    "sectionAnchorsRemainPublic": true,
+    "browserHistorySupported": true,
+    "dashboardFallbackProhibited": true
+  },
+  "dashboardVisualContract": {
+    "command": "#000000",
+    "commandSecondary": "#1a1a1a",
+    "accent": "#ff6a00",
+    "themeColor": "#000000",
+    "operationalStatusColorsPreserved": true,
+    "dashboardBehaviorChanged": false
+  },
+  "releaseBoundary": {
+    "productionDeploymentAuthorized": false,
+    "productionStorageAccessAllowed": false,
+    "publicPreviewOnly": true
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "shadowDecisionVisible": false,
+    "truthState": "INSUFFICIENT_EVIDENCE",
+    "productionDeployments": 0,
+    "productionDataMutations": 0
+  }
+}

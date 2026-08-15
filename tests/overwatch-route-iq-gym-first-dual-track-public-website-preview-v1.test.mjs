@@ -6,9 +6,11 @@ import {
   GYM_PREVIEW_GOVERNANCE_PATH,
   GYM_PREVIEW_ENVIRONMENT_SUCCESSOR_PATH,
   GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH,
+  GYM_PREVIEW_VISUAL_SUCCESSOR_PATH,
   validateGymPreviewEnvironmentSuccessor,
   validateGymPreviewGovernance,
   validateGymPreviewRouteQualitySuccessor,
+  validateGymPreviewVisualSuccessor,
   verifyOverwatchGymFirstDualTrackPublicWebsitePreview
 } from "../scripts/verify-overwatch-route-iq-gym-first-dual-track-public-website-preview-v1.mjs";
 
@@ -19,23 +21,42 @@ const environmentSuccessor = () => JSON.parse(
 const routeQualitySuccessor = () => JSON.parse(
   readFileSync(GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH, "utf8")
 );
+const visualSuccessor = () => JSON.parse(
+  readFileSync(GYM_PREVIEW_VISUAL_SUCCESSOR_PATH, "utf8")
+);
 
 test("Overwatch verifies the exact gym-first dual-track source and isolated preview boundary", () => {
   assert.deepEqual(
     verifyOverwatchGymFirstDualTrackPublicWebsitePreview({ requireClean: false }),
     {
       status: "PASS",
-      batchId: "BATCH-20260814-002",
-      ownerCommitCount: 10,
-      previewAssetSha256: "4a148051d9deb34f9334c31b216120ce6665d1da30865e33725fcd7de6f7cf3b",
-      deploymentAssetSha256: "6a6dde7efd17144b91f5f294cd25c7cfaaf2ff1347e637d6e692f5ed66cdab3b",
-      rollbackBundleSha256: "548a0a3f5d53b240b708e283ed18f2865a0c2dd2fdb041d5ccd405ce2e5bc4e0",
+      batchId: "BATCH-20260815-001",
+      ownerCommitCount: 6,
+      previewAssetSha256: "d65df33306cf699837dfdcf02a58c42eda6004bb242f407536475238edec5324",
+      deploymentAssetSha256: "7390e873fe2f336390215494adc20def7a768bf929c0c85db219d213ac849f2b",
+      rollbackBundleSha256: "0468e368ff70bb292841cff4aaa9cac70b395d4b64b47b411091a25b6f185233",
       emailDisposition: "PROTECTED_CRM_NOTIFICATION_ONLY",
       truthState: "INSUFFICIENT_EVIDENCE",
       runtimeFileCount: 34,
       productionDeploymentAuthorized: false
     }
   );
+});
+
+test("navigation and Dashboard visual changes remain an isolated source successor", () => {
+  const value = visualSuccessor();
+  assert.equal(validateGymPreviewVisualSuccessor(value), value);
+  for (const mutate of [
+    record => { record.navigationContract.dashboardFallbackProhibited = false; },
+    record => { record.dashboardVisualContract.accent = "#5b5fc7"; },
+    record => { record.dashboardVisualContract.dashboardBehaviorChanged = true; },
+    record => { record.releaseBoundary.productionDeploymentAuthorized = true; },
+    record => { record.protectedState.collection = "ON"; }
+  ]) {
+    const candidate = visualSuccessor();
+    mutate(candidate);
+    assert.throws(() => validateGymPreviewVisualSuccessor(candidate));
+  }
 });
 
 test("Overwatch rejects a widened gym runtime-surface successor", () => {

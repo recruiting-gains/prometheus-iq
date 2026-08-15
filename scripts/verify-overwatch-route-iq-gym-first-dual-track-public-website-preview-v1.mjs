@@ -24,6 +24,8 @@ export const GYM_PREVIEW_ENVIRONMENT_REPORT_PATH =
   "overwatch/reports/BATCH-20260814-002-gym-preview-environment-successor.json";
 export const GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH =
   "overwatch/governance/route-iq-gym-preview-route-quality-runtime-surface-successor-v1.json";
+export const GYM_PREVIEW_VISUAL_SUCCESSOR_PATH =
+  "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json";
 
 const read = path => readFileSync(resolve(root, path));
 const text = path => read(path).toString("utf8");
@@ -159,6 +161,38 @@ export function validateGymPreviewRouteQualitySuccessor(governance) {
   return governance;
 }
 
+export function validateGymPreviewVisualSuccessor(successor) {
+  assert.equal(successor.version,
+    "route-iq-overwatch-public-navigation-dashboard-visual-successor-v1");
+  assert.equal(successor.batchId, "BATCH-20260815-001");
+  assert.equal(successor.status, "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(successor.implementationCommits.length, 6);
+  assert.deepEqual(successor.navigationContract.publicRoutes,
+    ["/", "/investors", "/thank-you"]);
+  assert.equal(successor.navigationContract.legalRoutesRemainPublic, true);
+  assert.equal(successor.navigationContract.sectionAnchorsRemainPublic, true);
+  assert.equal(successor.navigationContract.browserHistorySupported, true);
+  assert.equal(successor.navigationContract.dashboardFallbackProhibited, true);
+  assert.deepEqual(successor.dashboardVisualContract, {
+    command: "#000000",
+    commandSecondary: "#1a1a1a",
+    accent: "#ff6a00",
+    themeColor: "#000000",
+    operationalStatusColorsPreserved: true,
+    dashboardBehaviorChanged: false
+  });
+  assert.equal(successor.releaseBoundary.productionDeploymentAuthorized, false);
+  assert.equal(successor.releaseBoundary.productionStorageAccessAllowed, false);
+  assert.equal(successor.releaseBoundary.publicPreviewOnly, true);
+  assert.equal(successor.protectedState.collection, "OFF");
+  assert.equal(successor.protectedState.activeCohorts, 0);
+  assert.equal(successor.protectedState.recommendationInfluence, "OFF");
+  assert.equal(successor.protectedState.productionDeployments, 0);
+  assert.equal(successor.protectedState.productionDataMutations, 0);
+  return successor;
+}
+
 function verifyWebsite(governance) {
   const landing = text("landing.html");
   const source = text("src/main.jsx");
@@ -190,17 +224,17 @@ function verifyWebsite(governance) {
   assert.equal((source.match(/<picture/gu) || []).length, 2);
 }
 
-function verifyBoundaries(governance, environmentSuccessor) {
-  const preview = json(environmentSuccessor.currentContracts.preview.path);
+function verifyBoundaries(governance, environmentSuccessor, visualSuccessor) {
+  const preview = json(visualSuccessor.currentContracts.preview.path);
   const security = json(governance.contracts.security.path);
   const claims = json(governance.contracts.claims.path);
   const gym = json(governance.contracts.gymIntake.path);
-  const workflow = text(environmentSuccessor.currentContracts.workflow.path);
+  const workflow = text(visualSuccessor.currentContracts.workflow.path);
   for (const key of ["gymIntake", "security", "claims"]) {
     const contract = governance.contracts[key];
     assert.equal(sha256(read(contract.path)), contract.sha256, `${contract.path} drifted`);
   }
-  for (const contract of Object.values(environmentSuccessor.currentContracts)) {
+  for (const contract of Object.values(visualSuccessor.currentContracts)) {
     assert.equal(sha256(read(contract.path)), contract.sha256, `${contract.path} drifted`);
   }
   assert.deepEqual(preview.previewWorker.allowedBindings, ["ASSETS"]);
@@ -228,6 +262,9 @@ export function verifyOverwatchGymFirstDualTrackPublicWebsitePreview({
   );
   const routeQualitySuccessor = validateGymPreviewRouteQualitySuccessor(
     json(GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH)
+  );
+  const visualSuccessor = validateGymPreviewVisualSuccessor(
+    json(GYM_PREVIEW_VISUAL_SUCCESSOR_PATH)
   );
   const report = json(GYM_PREVIEW_REPORT_PATH);
   const environmentReport = json(GYM_PREVIEW_ENVIRONMENT_REPORT_PATH);
@@ -260,29 +297,45 @@ export function verifyOverwatchGymFirstDualTrackPublicWebsitePreview({
       businessHoursEligibilityChanged: false
     }
   );
+  for (const predecessor of visualSuccessor.predecessors) {
+    assert.equal(sha256(read(predecessor.path)), predecessor.sha256);
+    assert.equal(predecessor.remainsHistorical, true);
+    assert.equal(predecessor.rewritten, false);
+  }
+  for (const record of visualSuccessor.implementationCommits) verifyImplementationCommit(record);
+  assert.equal(
+    sha256(read(visualSuccessor.intelligenceProvenance.path)),
+    visualSuccessor.intelligenceProvenance.sha256
+  );
   for (const key of ["gymIntake", "security", "claims"]) {
     const contract = governance.contracts[key];
     assert.equal(sha256(read(contract.path)), contract.sha256, `${contract.path} drifted`);
   }
   verifyWebsite(governance);
-  verifyBoundaries(governance, environmentSuccessor);
+  verifyBoundaries(governance, environmentSuccessor, visualSuccessor);
   const previewAssets = hashPrometheusRouteIqGymPreviewAssets();
-  assert.equal(previewAssets.sha256, governance.releaseIdentities.previewAssetSha256);
-  assert.equal(previewAssets.fileCount, governance.releaseIdentities.fileCount);
+  assert.equal(previewAssets.sha256, visualSuccessor.releaseIdentities.previewAssetSha256);
+  assert.equal(previewAssets.fileCount, visualSuccessor.releaseIdentities.previewFileCount);
+  assert.equal(previewAssets.totalBytes, visualSuccessor.releaseIdentities.previewTotalBytes);
   const deployment = verifyRouteIqPublicDeploymentAssets({ build: false });
-  assert.equal(deployment.candidateWebsiteCommit, governance.releaseIdentities.websiteCommit);
-  assert.equal(deployment.candidateWebsiteTree, governance.releaseIdentities.websiteTree);
+  assert.equal(deployment.candidateWebsiteCommit, visualSuccessor.releaseIdentities.websiteCommit);
+  assert.equal(deployment.candidateWebsiteTree, visualSuccessor.releaseIdentities.websiteTree);
   assert.equal(deployment.deploymentAssetsSha256,
-    governance.releaseIdentities.deploymentAssetSha256);
+    visualSuccessor.releaseIdentities.deploymentAssetSha256);
+  assert.equal(deployment.initialCriticalBytes,
+    visualSuccessor.releaseIdentities.initialCriticalBytes);
+  assert.equal(deployment.sizes.lazy3d, visualSuccessor.releaseIdentities.lazy3dBytes);
   const rollback = verifyPublicForwardRollbackArtifact(root);
-  assert.equal(rollback.artifactSha256, governance.releaseIdentities.rollbackBundleSha256);
+  assert.equal(rollback.artifactSha256, visualSuccessor.releaseIdentities.rollbackBundleSha256);
   assert.equal(sha256(read("workers/infrastructure/route-iq-public-forward-rollback-v1.json")),
-    governance.releaseIdentities.rollbackContractSha256);
+    visualSuccessor.releaseIdentities.rollbackContractSha256);
   const protectedChanges = git("diff", "--name-only",
     `${governance.startingRepository.commit}..HEAD`, "--",
     "dashboard", "data", "intelligence", "index.html", "workers/prometheus-iq-worker.js")
     .split("\n").filter(Boolean);
   assert.deepEqual(protectedChanges, [
+    "index.html",
+    "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-identity-v1.json",
     "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json",
     "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
   ]);
@@ -290,8 +343,8 @@ export function verifyOverwatchGymFirstDualTrackPublicWebsitePreview({
   if (requireClean) assert.equal(git("status", "--porcelain"), "");
   return Object.freeze({
     status: "PASS",
-    batchId: governance.batchId,
-    ownerCommitCount: governance.ownerCommits.length + 1,
+    batchId: visualSuccessor.batchId,
+    ownerCommitCount: visualSuccessor.implementationCommits.length,
     previewAssetSha256: previewAssets.sha256,
     deploymentAssetSha256: deployment.deploymentAssetsSha256,
     rollbackBundleSha256: rollback.artifactSha256,
