@@ -32,6 +32,11 @@ const governance = () => JSON.parse(readFileSync(
   "utf8"
 ));
 
+const gymPreviewGovernance = () => JSON.parse(readFileSync(
+  "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json",
+  "utf8"
+));
+
 test("Overwatch verifies the exact owner chain and dormant deletion release boundary", () => {
   assert.deepEqual(verifyOverwatchRouteIqRetentionDeletionRuntime(), {
     status: "PASS",
@@ -204,7 +209,7 @@ test("protected runtime matching rejects deployable paths without rejecting gove
   }
 });
 
-test("retention composes only the exact governed-learning protected runtime paths", () => {
+test("retention composes only the exact governed protected-runtime successors", () => {
   const node24WorkflowPaths = [".github/workflows/security-gates.yml"];
   const governedLearningPaths = [
     "dashboard/route-iq-dashboard-platform.mjs",
@@ -212,10 +217,18 @@ test("retention composes only the exact governed-learning protected runtime path
     "deploy/cloudflare-pages/dashboard/route-iq-dashboard-platform.mjs",
     "deploy/cloudflare-pages/index.html"
   ];
+  const gymPreviewRecord = gymPreviewGovernance();
+  const gymPreviewPaths = gymPreviewRecord.retentionProtectedRuntimeSuccessor.paths;
   const input = {
-    protectedRuntimeChanges: [...node24WorkflowPaths, ...governedLearningPaths],
+    protectedRuntimeChanges: [
+      ...node24WorkflowPaths,
+      ...governedLearningPaths,
+      ...gymPreviewPaths
+    ],
     node24WorkflowPaths,
-    governedLearning: governedLearningVerification
+    governedLearning: governedLearningVerification,
+    gymPreviewGovernance: gymPreviewRecord,
+    gymPreviewProtectedRuntimeChanges: gymPreviewPaths
   };
   assert.equal(verifyRetentionProtectedRuntimeSuccessors(input), true);
   for (const mutate of [
@@ -229,7 +242,22 @@ test("retention composes only the exact governed-learning protected runtime path
     value => { value.governedLearning.semanticIntegrityBatchId = "BATCH-STALE"; },
     value => { value.governedLearning.truthState = "SUFFICIENT_EVIDENCE"; },
     value => { value.governedLearning.successfulRelationships = 4; },
-    value => { value.governedLearning.reviewRequiredOutcomes = 0; }
+    value => { value.governedLearning.reviewRequiredOutcomes = 0; },
+    value => { value.gymPreviewGovernance.batchId = "BATCH-STALE"; },
+    value => { value.gymPreviewGovernance.ownerSubsystem = "Prometheus Infrastructure"; },
+    value => {
+      value.gymPreviewGovernance.retentionProtectedRuntimeSuccessor.classification = "STALE";
+    },
+    value => {
+      value.gymPreviewGovernance.retentionProtectedRuntimeSuccessor.ownerCommits.pop();
+    },
+    value => {
+      value.gymPreviewGovernance.retentionProtectedRuntimeSuccessor.retentionRuntimeChanged = true;
+    },
+    value => {
+      value.gymPreviewGovernance.retentionProtectedRuntimeSuccessor.productionDeploymentAuthorized = true;
+    },
+    value => { value.gymPreviewProtectedRuntimeChanges.pop(); }
   ]) {
     const candidate = structuredClone(input);
     mutate(candidate);

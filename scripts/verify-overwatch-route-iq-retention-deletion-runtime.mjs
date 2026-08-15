@@ -15,6 +15,8 @@ import {
 const governancePath = "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260809-001-route-iq-retention-expiry-deletion-runtime.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
+const gymPreviewGovernancePath =
+  "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
 const startCommit = "0ae9b3752476bc782b067a2a47fd388e4c3791ef";
 const startTree = "3b6778b25c731e75c489b738dc00256868522d22";
 const acceptedCommit = "78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e";
@@ -252,7 +254,9 @@ const governedLearningProtectedRuntimePaths = Object.freeze([
 export function verifyRetentionProtectedRuntimeSuccessors({
   protectedRuntimeChanges,
   node24WorkflowPaths,
-  governedLearning
+  governedLearning,
+  gymPreviewGovernance,
+  gymPreviewProtectedRuntimeChanges
 }) {
   assert.equal(governedLearning?.status, "PASS");
   assert.equal(governedLearning?.batchId, "BATCH-20260812-001");
@@ -270,9 +274,35 @@ export function verifyRetentionProtectedRuntimeSuccessors({
   assert.equal(governedLearning?.successfulRelationships, 3);
   assert.equal(governedLearning?.followUpRelationships, 0);
   assert.equal(governedLearning?.reviewRequiredOutcomes, 1);
+  const gymPreviewSuccessor =
+    gymPreviewGovernance?.retentionProtectedRuntimeSuccessor;
+  assert.equal(gymPreviewGovernance?.batchId, "BATCH-20260814-002");
+  assert.equal(gymPreviewGovernance?.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(gymPreviewSuccessor?.classification,
+    "GYM_PREVIEW_RETENTION_PROTECTED_RUNTIME_SUCCESSOR");
+  assert.equal(gymPreviewSuccessor?.baselineCommit,
+    gymPreviewGovernance?.startingRepository?.commit);
+  assert.deepEqual(gymPreviewSuccessor?.ownerCommits, [
+    "530808f3a730f76be8fc78e6bfa2f8b753741182",
+    "e38bfef992d491eb9d52a1b63518cace6e9a41c5",
+    "c42576db4330e2ba42373df247e6a6c65172ff55",
+    "15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac",
+    "919092f0700ac43fb507dc32111ad2e9d1e9d2e0"
+  ]);
+  assert.equal(gymPreviewSuccessor?.retentionRuntimeChanged, false);
+  assert.equal(gymPreviewSuccessor?.retentionStorageChanged, false);
+  assert.equal(gymPreviewSuccessor?.schedulerAdded, false);
+  assert.equal(gymPreviewSuccessor?.productionDeploymentAuthorized, false);
+  assert.deepEqual([...gymPreviewProtectedRuntimeChanges].sort(),
+    [...gymPreviewSuccessor.paths].sort());
+  assert.ok(gymPreviewSuccessor.paths.every(isProtectedRuntimePath));
   assert.deepEqual(
     [...protectedRuntimeChanges].sort(),
-    [...node24WorkflowPaths, ...governedLearningProtectedRuntimePaths].sort(),
+    [
+      ...node24WorkflowPaths,
+      ...governedLearningProtectedRuntimePaths,
+      ...gymPreviewSuccessor.paths
+    ].sort(),
     `Protected runtime paths changed outside governed successors: ${protectedRuntimeChanges.join(", ")}`
   );
   return true;
@@ -520,12 +550,20 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
 
   const changed = git("diff", "--name-only", `${startCommit}..HEAD`).split("\n").filter(Boolean);
   const protectedRuntimeChanges = changed.filter(isProtectedRuntimePath);
+  const gymPreviewGovernance = readJson(gymPreviewGovernancePath);
+  const gymPreviewProtectedRuntimeChanges = git(
+    "diff",
+    "--name-only",
+    `${gymPreviewGovernance.startingRepository.commit}..HEAD`
+  ).split("\n").filter(Boolean).filter(isProtectedRuntimePath);
   const node24Verification = verifyOverwatchGithubActionsNode24PinSuccessor();
   assert.equal(node24Verification.status, "OFFICIAL_NODE24_ACTION_PIN_OVERWATCH_VERIFIED");
   assert.equal(verifyRetentionProtectedRuntimeSuccessors({
     protectedRuntimeChanges,
     node24WorkflowPaths: node24Infrastructure.workflows.map(item => item.path),
-    governedLearning: verifyOverwatchRouteIqGovernedLearningAdvisoryBridge()
+    governedLearning: verifyOverwatchRouteIqGovernedLearningAdvisoryBridge(),
+    gymPreviewGovernance,
+    gymPreviewProtectedRuntimeChanges
   }), true);
   assert.equal(
     git("rev-parse", `${startCommit}:data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions`),

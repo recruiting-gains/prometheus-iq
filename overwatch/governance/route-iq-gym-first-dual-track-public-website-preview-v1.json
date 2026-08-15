@@ -113,6 +113,43 @@
     "publicWorkflowChanged": false,
     "routesBindingsAndSchemaChanged": false
   },
+  "retentionProtectedRuntimeSuccessor": {
+    "classification": "GYM_PREVIEW_RETENTION_PROTECTED_RUNTIME_SUCCESSOR",
+    "baselineCommit": "524d96b5e495bd632bb606d17f288b234922aaf1",
+    "ownerCommits": [
+      "530808f3a730f76be8fc78e6bfa2f8b753741182",
+      "e38bfef992d491eb9d52a1b63518cace6e9a41c5",
+      "c42576db4330e2ba42373df247e6a6c65172ff55",
+      "15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac",
+      "919092f0700ac43fb507dc32111ad2e9d1e9d2e0"
+    ],
+    "paths": [
+      ".github/workflows/preview-prometheus-route-iq-gym-first.yml",
+      "crm/README.md",
+      "crm/route-iq-gym-intake.mjs",
+      "crm/route-iq-gym-request-contract-v1.json",
+      "crm/route-iq-request-crm.mjs",
+      "deploy/prometheusrouteiq-website/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg",
+      "deploy/prometheusrouteiq-website/01-772904932_1493675372780221_5358616428807129112_n-2.webp",
+      "deploy/prometheusrouteiq-website/02-prometheus_route_iq_ad.jpg",
+      "deploy/prometheusrouteiq-website/02-prometheus_route_iq_ad.webp",
+      "deploy/prometheusrouteiq-website/assets/IntelligenceScene-B1-h6ijC.js",
+      "deploy/prometheusrouteiq-website/assets/landing-B9ZhfHwS.css",
+      "deploy/prometheusrouteiq-website/assets/landing-BeMJF6LH.js",
+      "deploy/prometheusrouteiq-website/assets/landing-C2NZ4sqg.js",
+      "deploy/prometheusrouteiq-website/assets/landing-SxUmzID1.css",
+      "deploy/prometheusrouteiq-website/index.html",
+      "deploy/prometheusrouteiq-website/legal.css",
+      "deploy/prometheusrouteiq-website/site-20260701-brand-v2.webmanifest",
+      "deploy/prometheusrouteiq-website/site.webmanifest",
+      "deploy/prometheusrouteiq-website/sitemap.xml",
+      "wrangler.prometheusrouteiq-website-gym-preview.jsonc"
+    ],
+    "retentionRuntimeChanged": false,
+    "retentionStorageChanged": false,
+    "schedulerAdded": false,
+    "productionDeploymentAuthorized": false
+  },
   "productionBaseline": {
     "publicWorker": "prometheusrouteiq-website",
     "publicVersion": "77f59977-44bc-461c-b835-435bfa14c1c9",
