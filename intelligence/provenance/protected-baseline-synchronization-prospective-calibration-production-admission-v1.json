@@ -113,6 +113,14 @@
       "ownerSubsystem": "Prometheus Intelligence Engine",
       "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
       "subject": "intelligence: test calibration contract lineage"
+    },
+    {
+      "commit": "a32d404005d2f469512048e94dde929b2c33dff9",
+      "parent": "8c16bfdeb7e92ac4a0437cf76b16a5a32fd2c263",
+      "tree": "4cfbb96fb511d075dff35b4a78182cbc5047cbe3",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose calibration read-only successor"
     }
   ],
   "protectedSourceTransitions": [
@@ -268,6 +276,15 @@
       "subject": "intelligence: test calibration contract lineage",
       "previousSha256": "77afc3b24a108eae86acbe9a9632658292d2aecb7af082ef03167ed5c175b412",
       "currentSha256": "f5d9ce8cab00886e2aa844c95689e2657339fb91452bfbb1e733b2661c2a49c5"
+    },
+    {
+      "path": "tests/read-only-field-session-learning.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "a32d404005d2f469512048e94dde929b2c33dff9",
+      "tree": "4cfbb96fb511d075dff35b4a78182cbc5047cbe3",
+      "subject": "intelligence: compose calibration read-only successor",
+      "previousSha256": "733435dd04c9343642d01bf6fbbc1e8ab5e942bcb0580963614f768a53fb4c84",
+      "currentSha256": "c99aa835eb0abb53ad8fe999fa632b1b2a84a3b99f30cea8f708261f525eefb7"
     }
   ],
   "newSourceArtifacts": [
@@ -338,6 +355,15 @@
       "subject": "intelligence: preserve ordered calibration lineage",
       "previousSha256": "cec918ec403bf787899716c58b582900745d0cb1a5b56a07e0f779b46932f83f",
       "currentSha256": "37cc3509749764dab08d939575ad20dc37a10f0b708c7d11ef3aa0b5dc7ae3af"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "a32d404005d2f469512048e94dde929b2c33dff9",
+      "tree": "4cfbb96fb511d075dff35b4a78182cbc5047cbe3",
+      "subject": "intelligence: compose calibration read-only successor",
+      "previousSha256": "37cc3509749764dab08d939575ad20dc37a10f0b708c7d11ef3aa0b5dc7ae3af",
+      "currentSha256": "6bac7ac80a6ac9b3ef3f1bef4869a61c4f7a76a146bfd2fd7edb4c58fddcbfe2"
     }
   ],
   "historicalCalibration": {
