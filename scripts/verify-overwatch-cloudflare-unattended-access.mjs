@@ -10,7 +10,8 @@ import {
 } from "./check-cloudflare-unattended-secret-presence.mjs";
 import {
   hasGovernedLearningPayloadInfrastructureSuccessor,
-  hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor
+  hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor,
+  hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor
 } from "./verify-overwatch-github-actions-private-worker-deployment.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -463,7 +464,27 @@ export function isActiveCloudflareToolchainEvidenceAccepted({
   liveCanonicalIdentityGovernance,
   readinessSuccessors
 }) {
+  const visualParityEvidence = privateWorkflowGovernance
+    ?.dashboardVisualDeployParitySuccessor?.evidence?.find(
+      item => item.path === path
+    );
   return currentSha256 === expectedSha256
+    || (visualParityEvidence
+      && hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
+        governance: privateWorkflowGovernance,
+        fieldSessionReportTypeGovernance,
+        liveCanonicalIdentityGovernance,
+        readinessSuccessors,
+        path,
+        previousSha256: expectedSha256,
+        currentSha256: visualParityEvidence.previousSha256
+      })
+      && hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+        governance: privateWorkflowGovernance,
+        path,
+        previousSha256: visualParityEvidence.previousSha256,
+        currentSha256
+      }))
     || hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
       governance: privateWorkflowGovernance,
       fieldSessionReportTypeGovernance,
