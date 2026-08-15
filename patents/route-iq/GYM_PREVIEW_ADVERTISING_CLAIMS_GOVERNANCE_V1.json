@@ -1,0 +1,96 @@
+{
+  "recordVersion": "route-iq-gym-preview-advertising-claims-governance-v1",
+  "batchId": "BATCH-20260814-002",
+  "recorded": "2026-08-15",
+  "owner": "Prometheus Patents/Claims",
+  "status": "CLAIMS_DISPOSITION_RECORDED",
+  "sourceBaseline": {
+    "commit": "530808f3a730f76be8fc78e6bfa2f8b753741182",
+    "tree": "80801bdcab87aa8d7504b655d725dd46c25dfe34"
+  },
+  "founderCreative": {
+    "text": "29 MEMBERS IN 48 HOURS. $0 AD SPEND.",
+    "encoding": "UTF-8",
+    "byteLength": 36,
+    "sha256": "443e3ce797a568ee39d9335fd64cf1f7a5afe9bee59bb2ec27949b4abbc93f05",
+    "bytesAltered": false,
+    "assertion": "Founder creative bytes are unaltered.",
+    "disposition": "PRESERVE_EXACT_FOUNDER_CREATIVE_BYTES"
+  },
+  "advertisingClaim": {
+    "classification": "PREVIEW_ONLY",
+    "truthState": "INSUFFICIENT_EVIDENCE",
+    "previewUseAllowed": true,
+    "productionUseAllowed": false,
+    "productionDisposition": "BLOCKED_PENDING_GOVERNED_EVIDENCE",
+    "productionEligibilityRule": "EVERY_REQUIREMENT_PROVEN",
+    "productionEvidenceRequirements": [
+      {
+        "requirement": "result",
+        "requiredProof": "the 29-member result",
+        "status": "NOT_PROVEN"
+      },
+      {
+        "requirement": "time_period",
+        "requiredProof": "the complete 48-hour time period",
+        "status": "NOT_PROVEN"
+      },
+      {
+        "requirement": "ad_spend_scope",
+        "requiredProof": "the complete scope and definition of zero ad spend",
+        "status": "NOT_PROVEN"
+      },
+      {
+        "requirement": "gym_context",
+        "requiredProof": "the gym and operating context in which the result occurred",
+        "status": "NOT_PROVEN"
+      },
+      {
+        "requirement": "qualifications",
+        "requiredProof": "all material qualifications and limitations attached to the claim",
+        "status": "NOT_PROVEN"
+      }
+    ]
+  },
+  "positioningReplacement": {
+    "sourcePhrase": "production validation environment",
+    "approvedReplacement": "Gym sales is our first focused market.",
+    "disposition": "APPROVED",
+    "basis": {
+      "truthState": "INSUFFICIENT_EVIDENCE",
+      "collection": "OFF",
+      "recommendationInfluence": "OFF"
+    },
+    "boundary": "The replacement describes market focus and does not assert production validation."
+  },
+  "patentDesignation": {
+    "text": "U.S. PATENT PENDING",
+    "disposition": "PRESERVE",
+    "supportStatus": "SUPPORTED_BY_EXISTING_REPOSITORY_GOVERNANCE",
+    "evidence": [
+      {
+        "path": "patents/PATENT_ROADMAP.md",
+        "recordedFact": "Route IQ is Patent Pending."
+      },
+      {
+        "path": "patents/route-iq/ROUTE_IQ_USPTO_PROVISIONAL_FILING_REPORT_V1.md",
+        "recordedFact": "The Founder completed a U.S. provisional patent application filing for Route IQ."
+      }
+    ],
+    "newRightsClaimedByThisRecord": false
+  },
+  "inventionDisposition": {
+    "materiallyInventiveChangeDetected": false,
+    "classification": "OPERATIONAL_CLAIMS_GOVERNANCE",
+    "newPatentChange": "NONE",
+    "inventionRegisterMutationRequired": false,
+    "futureRule": "Record a new patent change only when a later implementation is materially inventive."
+  },
+  "ownerBoundary": {
+    "founderCreativeImplementationChanged": false,
+    "productionBehaviorChanged": false,
+    "collectionChanged": false,
+    "recommendationInfluenceChanged": false,
+    "deploymentPerformed": false
+  }
+}
