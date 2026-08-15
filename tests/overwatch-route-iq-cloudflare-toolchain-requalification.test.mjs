@@ -118,7 +118,7 @@ test("Overwatch binds the exact zero-high toolchain owner chain and release cont
     "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6");
   assert.equal(result.augustReadinessPackageSuccessorCurrent, true);
   assert.equal(result.currentPackageSha256,
-    "a1fd91b3cd45b89b7cb5f9f4fb5e488f42aa2af805bd855f5065f62990c64c90");
+    "279131b040ea4db64e1f4081a6a6fb072b00070d05fa434d880d16a95b6d0582");
   assert.equal(result.cloudflareContactCount, 0);
   assert.equal(result.deploymentCount, 0);
   assert.equal(result.productionMutationCount, 0);
