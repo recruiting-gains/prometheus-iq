@@ -67,6 +67,28 @@
     "websiteSourceChanged": false,
     "previewWorkflowChanged": false
   },
+  "overwatchIntegration": {
+    "classification": "GYM_PREVIEW_ROUTE_QUALITY_OVERWATCH_INTEGRATION",
+    "commit": "6515322276a17c425729a3fb039e29002e90512a",
+    "parent": "addadce074912077bc2a9616256c8dd36185b5d3",
+    "tree": "f146238a6b6d6f81291619e809aad403811fcc3e",
+    "owner": "Prometheus Overwatch <overwatch@prometheus.local>",
+    "subject": "overwatch: compose gym runtime rehearsal successor",
+    "evidence": [
+      {
+        "path": "scripts/verify-overwatch-controlled-paid-customer-onboarding-rehearsal-v1.mjs",
+        "previousSha256": "211aa8abf18549cb41c2c90f43d0504d7d897417e33e1bb06a9e69b1f634610d",
+        "currentSha256": "bbb6a096f79fc423078a578deac40c08de6568f8cedcd5daa37e6d913304313e"
+      },
+      {
+        "path": "tests/overwatch-controlled-paid-customer-onboarding-rehearsal-v1.test.mjs",
+        "previousSha256": "ed29059a44014206af1beb3333f4fb4734ada30eb754fff8b71218e1496d3958",
+        "currentSha256": "f9263f422fbdfcbaab0bb808c7acbeb21d9b9971924d7800d1887285e8e94186"
+      }
+    ],
+    "runtimeBehaviorChanged": false,
+    "productionDeploymentAuthorized": false
+  },
   "protectedState": {
     "collection": "OFF",
     "activeCohorts": 0,
