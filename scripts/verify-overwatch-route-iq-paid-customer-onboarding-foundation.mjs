@@ -31,6 +31,8 @@ const node24ActionPinGovernancePath =
   "overwatch/governance/github-actions-official-node24-pin-successor-v1.json";
 const node24ActionPinInfrastructurePath =
   "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json";
+const gymPreviewGovernancePath =
+  "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
 const activeToolchainOwnerCommit = "d55a983134be40bf10777df293ca593e7583f138";
 const activeToolchainOwnerTree = "fcc850958e92d1f75eece476d6047b58972249d0";
 const activeToolchainOwnerParent = "3d646bffde28b1ef995ae03af5976a6db1105430";
@@ -256,7 +258,8 @@ const paidCustomerPublicPaths = Object.freeze([
 export function validateGovernedPublicLaneSuccessor({
   governance,
   baselineCommit,
-  changedPaths
+  changedPaths,
+  supersededPaths = []
 }) {
   assert.equal(governance.governanceId, "live-canonical-identity-migration-v1");
   assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");
@@ -273,8 +276,52 @@ export function validateGovernedPublicLaneSuccessor({
     "c4cb9150fb8ad218e34026a63fa577271860c270",
     "e225b9e6380416cceddbfe10ee7aa318b123e75c"
   ]);
-  assert.deepEqual(changedPaths, reconciliation.changedPaths);
+  assert.deepEqual(
+    [...changedPaths, ...supersededPaths].sort(),
+    [...reconciliation.changedPaths].sort()
+  );
+  assert.equal(new Set([...changedPaths, ...supersededPaths]).size,
+    reconciliation.changedPaths.length);
   return reconciliation;
+}
+
+export function validateGymPreviewPublicLaneSuccessor({
+  governance,
+  changedPaths
+}) {
+  const successor = governance?.paidCustomerPublicLaneSuccessor;
+  assert.equal(governance?.batchId, "BATCH-20260814-002");
+  assert.equal(governance?.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(successor?.classification, "GYM_FIRST_PREVIEW_PUBLIC_LANE_SUCCESSOR");
+  assert.equal(successor?.baselineCommit, governance.startingRepository.commit);
+  assert.deepEqual(successor?.ownerCommits, [
+    "c42576db4330e2ba42373df247e6a6c65172ff55",
+    "15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac"
+  ]);
+  assert.equal(governance.releaseIdentities.websiteCommit, successor.ownerCommits[0]);
+  assert.deepEqual(changedPaths, successor.changedPaths);
+  assert.deepEqual(successor.supersededHistoricalPaths, [
+    "deploy/prometheusrouteiq-website/assets/IntelligenceScene-BLFmJFP3.js",
+    "deploy/prometheusrouteiq-website/assets/landing-C2NZ4sqg.js"
+  ]);
+  assert.deepEqual(successor.historicalRenameChain, [
+    {
+      baselinePath: "deploy/prometheusrouteiq-website/assets/IntelligenceScene-C_J7bBXb.js",
+      canonicalPath:
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-BLFmJFP3.js",
+      previewPath:
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-B1-h6ijC.js"
+    },
+    {
+      baselinePath: "deploy/prometheusrouteiq-website/assets/landing-DL0VmnXB.js",
+      canonicalPath: "deploy/prometheusrouteiq-website/assets/landing-C2NZ4sqg.js",
+      previewPath: "deploy/prometheusrouteiq-website/assets/landing-BeMJF6LH.js"
+    }
+  ]);
+  assert.equal(successor.productionDeploymentAuthorized, false);
+  assert.equal(successor.publicWorkflowChanged, false);
+  assert.equal(successor.routesBindingsAndSchemaChanged, false);
+  return successor;
 }
 
 export function validateActiveToolchainPublicLaneSuccessor({
@@ -342,6 +389,7 @@ function verifyPublicLaneCompatibility(baselineCommit) {
   const toolchainGovernance = readJson(toolchainGovernancePath);
   const node24ActionPinGovernance = readJson(node24ActionPinGovernancePath);
   const node24ActionPinInfrastructure = readJson(node24ActionPinInfrastructurePath);
+  const gymPreviewGovernance = readJson(gymPreviewGovernancePath);
   const node24Paths = node24ActionPinInfrastructure.workflows
     .map(item => item.path)
     .filter(path => paidCustomerPublicPaths.includes(path));
@@ -350,17 +398,29 @@ function verifyPublicLaneCompatibility(baselineCommit) {
       .changedPaths.includes(path)
   ));
   const node24ChangedPaths = changedPaths.filter(path => node24Paths.includes(path));
-  const additionalChangedPaths = changedPaths.filter(path => (
-    !historicalChangedPaths.includes(path) && !node24ChangedPaths.includes(path)
-  ));
+  const activeToolchainChangedPaths = changedPaths.filter(path =>
+    path === activeToolchainPublicPath);
+  const gymPreviewChangedPaths = git([
+    "diff",
+    "--name-only",
+    gymPreviewGovernance.startingRepository.commit,
+    "HEAD",
+    "--",
+    ...paidCustomerPublicPaths
+  ]).split("\n").filter(Boolean);
+  const gymPreviewSuccessor = validateGymPreviewPublicLaneSuccessor({
+    governance: gymPreviewGovernance,
+    changedPaths: gymPreviewChangedPaths
+  });
   const reconciliation = validateGovernedPublicLaneSuccessor({
     governance,
     baselineCommit,
-    changedPaths: historicalChangedPaths
+    changedPaths: historicalChangedPaths,
+    supersededPaths: gymPreviewSuccessor.supersededHistoricalPaths
   });
   const toolchainSuccessor = validateActiveToolchainPublicLaneSuccessor({
     governance: toolchainGovernance,
-    additionalChangedPaths
+    additionalChangedPaths: activeToolchainChangedPaths
   });
   validateNode24PublicLaneSuccessor({
     governance: node24ActionPinGovernance,
@@ -376,17 +436,59 @@ function verifyPublicLaneCompatibility(baselineCommit) {
   for (const commit of reconciliation.ownerCommits) {
     assert.equal(git(["merge-base", "--is-ancestor", commit, "HEAD"]), "");
   }
-  for (const path of historicalChangedPaths) {
-    const touchingCommits = git([
-      "log",
-      "--format=%H",
-      `${baselineCommit}..HEAD`,
-      "--",
-      path
-    ]).split("\n").filter(Boolean);
-    assert.ok(touchingCommits.length > 0);
-    assert.ok(touchingCommits.every(commit => reconciliation.ownerCommits.includes(commit)),
-      `ungoverned public successor commit touched ${path}`);
+  for (const commit of gymPreviewSuccessor.ownerCommits) {
+    assert.equal(git(["merge-base", "--is-ancestor", commit, "HEAD"]), "");
+  }
+  assert.deepEqual(git([
+    "log",
+    "--format=%H",
+    `${baselineCommit}..HEAD`,
+    "--",
+    ...paidCustomerPublicPaths
+  ]).split("\n").filter(Boolean), [
+    "15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac",
+    "c42576db4330e2ba42373df247e6a6c65172ff55",
+    "8782ccb1ad918740473d39ba1b17d3cb443c9ad9",
+    activeToolchainOwnerCommit,
+    "e225b9e6380416cceddbfe10ee7aa318b123e75c",
+    "c4cb9150fb8ad218e34026a63fa577271860c270",
+    "aa0c50ade9b66fd579c3609107a02e4c70de4179"
+  ]);
+  const historicalRenames = git([
+    "diff",
+    "--name-status",
+    "--find-renames",
+    baselineCommit,
+    reconciliation.ownerCommits.at(-1),
+    "--",
+    "deploy/prometheusrouteiq-website/assets"
+  ]).split("\n").filter(Boolean);
+  const gymPreviewTransitions = git([
+    "diff",
+    "--name-status",
+    "--find-renames",
+    gymPreviewSuccessor.baselineCommit,
+    "HEAD",
+    "--",
+    "deploy/prometheusrouteiq-website/assets"
+  ]).split("\n").filter(Boolean);
+  for (const rename of gymPreviewSuccessor.historicalRenameChain) {
+    assert.ok(historicalRenames.some(line => {
+      const [status, baselinePath, canonicalPath] = line.split("\t");
+      return status.startsWith("R") && baselinePath === rename.baselinePath &&
+        canonicalPath === rename.canonicalPath;
+    }), `historical public asset rename is not governed: ${rename.baselinePath}`);
+    const renamedInPreview = gymPreviewTransitions.some(line => {
+      const [status, canonicalPath, previewPath] = line.split("\t");
+      return status.startsWith("R") && canonicalPath === rename.canonicalPath &&
+        previewPath === rename.previewPath;
+    });
+    const replacedInPreview =
+      gymPreviewTransitions.includes(`D\t${rename.canonicalPath}`) &&
+      gymPreviewTransitions.includes(`A\t${rename.previewPath}`);
+    assert.ok(renamedInPreview || replacedInPreview,
+      `gym preview asset transition is not governed: ${rename.canonicalPath}`);
+    assert.ok(gymPreviewChangedPaths.includes(rename.previewPath));
   }
   assert.deepEqual(git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",

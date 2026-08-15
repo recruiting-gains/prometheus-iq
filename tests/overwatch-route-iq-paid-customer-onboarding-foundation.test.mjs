@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   validateActiveToolchainPublicLaneSuccessor,
   validateGovernedPublicLaneSuccessor,
+  validateGymPreviewPublicLaneSuccessor,
   validateNode24PublicLaneSuccessor,
   validatePaidCustomerProductionGateLedger,
   validatePrivateWorkerLineage,
@@ -54,6 +55,47 @@ test("historical public-lane guard admits only the exact governed identity succe
     governance: weakened,
     baselineCommit: reconciliation.baselineCommit,
     changedPaths: reconciliation.changedPaths
+  }));
+});
+
+test("historical public-lane guard composes the exact gym-preview asset successor", () => {
+  const historical = readJson(
+    "overwatch/governance/live-canonical-identity-migration-v1.json"
+  );
+  const governance = readJson(
+    "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json"
+  );
+  const successor = governance.paidCustomerPublicLaneSuccessor;
+  const reconciliation = historical.historicalVerifierReconciliations
+    .paidCustomerOnboardingFoundation;
+  const retainedHistoricalPaths = reconciliation.changedPaths.filter(path =>
+    !successor.supersededHistoricalPaths.includes(path));
+  assert.equal(validateGovernedPublicLaneSuccessor({
+    governance: historical,
+    baselineCommit: reconciliation.baselineCommit,
+    changedPaths: retainedHistoricalPaths,
+    supersededPaths: successor.supersededHistoricalPaths
+  }), reconciliation);
+  assert.equal(validateGymPreviewPublicLaneSuccessor({
+    governance,
+    changedPaths: successor.changedPaths
+  }), successor);
+
+  const wrongOwner = clone(governance);
+  wrongOwner.paidCustomerPublicLaneSuccessor.ownerCommits[0] = "0".repeat(40);
+  assert.throws(() => validateGymPreviewPublicLaneSuccessor({
+    governance: wrongOwner,
+    changedPaths: successor.changedPaths
+  }));
+  assert.throws(() => validateGymPreviewPublicLaneSuccessor({
+    governance,
+    changedPaths: [...successor.changedPaths, "src/unapproved-public-change.js"]
+  }));
+  const deployable = clone(governance);
+  deployable.paidCustomerPublicLaneSuccessor.productionDeploymentAuthorized = true;
+  assert.throws(() => validateGymPreviewPublicLaneSuccessor({
+    governance: deployable,
+    changedPaths: successor.changedPaths
   }));
 });
 

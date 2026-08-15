@@ -593,7 +593,7 @@ export function validateAugust1ReadinessSuccessors(successors, { root = ROOT } =
     "route-iq-august-1-readiness-successors-v1");
   assert.equal(successors.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(successors.historicalCloseoutEvidenceRewritten, false);
-  assert.equal(successors.successors.length, 17);
+  assert.equal(successors.successors.length, 21);
   const infrastructureSuccessor = successors.successors[0];
   assert.equal(infrastructureSuccessor.commit,
     "96c8210b94c3b0214dede252aba3d6d46121cd05");
@@ -686,7 +686,11 @@ export function validateAugust1ReadinessSuccessors(successors, { root = ROOT } =
       "da7504352424096869a18b66dc7c4429480393f4",
       "53d080494c7377789b697d8bcc47fd0e8958b722",
       "267225d51e32acc6f50ce932a945e2749783734e",
-      "ab4940262d2eb843b2f8bf6f451e881cedf91cf9"
+      "ab4940262d2eb843b2f8bf6f451e881cedf91cf9",
+      "530808f3a730f76be8fc78e6bfa2f8b753741182",
+      "e38bfef992d491eb9d52a1b63518cace6e9a41c5",
+      "c42576db4330e2ba42373df247e6a6c65172ff55",
+      "15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac"
     ]
   );
   for (const successor of successors.successors.slice(4)) {
@@ -804,6 +808,62 @@ export function validateAugust1ReadinessSuccessors(successors, { root = ROOT } =
     previousSha256: "f15bef69f0bffc9104b64f71fd7328df3da4f711d73270226ff67e259789bb9c",
     successorSha256: "c014d74ad3ab6f81befdf4880cdc0093fa9f8688e2dc90b3ab3f4cbcbfafb6d4"
   }]);
+  assert.deepEqual(successors.successors[17], {
+    commit: "530808f3a730f76be8fc78e6bfa2f8b753741182",
+    tree: "80801bdcab87aa8d7504b655d725dd46c25dfe34",
+    owner: "Prometheus CRM <crm@prometheus.local>",
+    reason: "The CRM owner adds the versioned gym-intake contract to the existing durable request system while preserving receipt identity, Founder-only retrieval, and notification-after-persistence controls.",
+    evidence: [{
+      path: "crm/route-iq-request-crm.mjs",
+      previousSha256: "3a240899a2e9ad7e736937b1ad00e6fe240527e44676c52ebae59cca7135aef2",
+      successorSha256: "05ff3a54c94b561b12b539671032fa0dc66dca2dc62e45b01eadf8ae91981e0a"
+    }]
+  });
+  assert.deepEqual(successors.successors[18], {
+    commit: "e38bfef992d491eb9d52a1b63518cace6e9a41c5",
+    tree: "1262a0b55c5b487c86c4468bfe66944f04d36c85",
+    owner: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    reason: "Infrastructure introduces the isolated synthetic preview sink and composes the gym contract into existing CRM runtime verification without granting production storage, email, or binding access.",
+    evidence: [
+      {
+        path: "tests/route-iq-request-crm-infrastructure.test.mjs",
+        previousSha256: "1bfa49016643bfb7c81f3e10a3f543f6790a5e9cb6c571716883bca58ea29520",
+        successorSha256: "df5f9165487944601de579dd4167aa52288517c9bf551f5c92e9d24b4acb2288"
+      },
+      {
+        path: "workers/infrastructure/route-iq-request-crm-runtime-v1.json",
+        previousSha256: "2698f79b8714b6f10611afa54731c6ce31a356293dd5b79f7fd56567f639d068",
+        successorSha256: "53a7ef488244528457fe2c28186c54ff2f1f6517eac8d3d047eba00f09a7e418"
+      },
+      {
+        path: "workers/infrastructure/route-iq-request-crm-runtime.js",
+        previousSha256: "0e85ad567529ea2d747dcc07352f7459801ca9058831e5630896ad94df081dcf",
+        successorSha256: "31f6887ba2e2eaa4c30ebed568049b13fed7968f264aa36969f8a97f7ae8458f"
+      }
+    ]
+  });
+  assert.deepEqual(successors.successors[19], {
+    commit: "c42576db4330e2ba42373df247e6a6c65172ff55",
+    tree: "b19db314b3b4a1de582d01fdc31494466bb6d082",
+    owner: "Prometheus Website <website@prometheus.local>",
+    reason: "The Website owner adds the gym-first dual-track public source and regression coverage while preserving the existing investor experience and keeping production deployment separately gated.",
+    evidence: [{
+      path: "tests/website-route-iq-product-focus.test.mjs",
+      previousSha256: "a517f51c87f9e9f1f63469acd65c5c25ba839f2b19745d0fe3e636749642b257",
+      successorSha256: "4132d701b7f7b9a0df3dfc0f76fbc13f6165fabf8615af7d3963f939c5473c82"
+    }]
+  });
+  assert.deepEqual(successors.successors[20], {
+    commit: "15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac",
+    tree: "8f65b4d1b703c0b95e79edf4c4d82c9b540181dd",
+    owner: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    reason: "Infrastructure regenerates the public deployment and forward-rollback evidence for the new source candidate while preserving production identity and withholding all production deployment authority.",
+    evidence: [{
+      path: "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+      previousSha256: "4477ddff8777d95e74023a09f2e9a7895060e1d290eeb5d9b2557ca620d827c7",
+      successorSha256: "9fdd92e4ba6313ef992858ea6c377e18854005d6b18f868c6fa956da99fbe5ca"
+    }]
+  });
   assert.ok(Array.isArray(successors.overwatchCurrentEvidence));
   const currentEvidenceByPath = new Map();
   const allowedCurrentEvidencePaths = new Set([
