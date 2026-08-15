@@ -56,7 +56,7 @@
     "exactBatchId": "BATCH-20260814-002",
     "runAttempt": 1,
     "concurrencyGroup": "preview-prometheus-route-iq-gym-first",
-    "protectedEnvironment": "prometheus-public-worker-production",
+    "protectedEnvironment": "prometheus-public-worker-preview",
     "consumedSecrets": [
       "CLOUDFLARE_API_TOKEN",
       "CLOUDFLARE_ACCOUNT_ID"
@@ -73,7 +73,7 @@
   "officialNode24ActionSuccessor": {
     "classification": "NEW_WORKFLOW_OFFICIAL_NODE24_PIN_SUCCESSOR",
     "path": ".github/workflows/preview-prometheus-route-iq-gym-first.yml",
-    "sha256": "0d9da8ced5b963a662076404d723823e2331cb8094fa6b10b6e99ec313eaacc5",
+    "sha256": "fa0efa259d006527d500e714b4f92f7c1c76df06f7cc7973c448aaa0d45006d9",
     "absentAtNode24MigrationBaseline": true,
     "checkout": {
       "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1",

@@ -358,7 +358,7 @@ test("manual workflow binds one exact Founder main run to the preview target and
     "npm run security:check",
     "npm run security:aegis:verify",
     "environment:",
-    "name: prometheus-public-worker-production",
+    "name: prometheus-public-worker-preview",
     "preview_url:",
     "version_id:",
     "preview_assets_sha256:",
@@ -370,7 +370,8 @@ test("manual workflow binds one exact Founder main run to the preview target and
     assert.equal(workflow.includes(required), true, `Missing workflow control: ${required}`);
   }
   assert.equal((workflow.match(/github\.run_attempt == 1/gu) || []).length, 2);
-  assert.equal((workflow.match(/name: prometheus-public-worker-production/gu) || []).length, 1);
+  assert.equal((workflow.match(/name: prometheus-public-worker-preview/gu) || []).length, 1);
+  assert.equal((workflow.match(/name: prometheus-public-worker-production/gu) || []).length, 0);
   assert.deepEqual(
     [...workflow.matchAll(/secrets\.([A-Z0-9_]+)/gu)].map(match => match[1]),
     ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"]

@@ -216,7 +216,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment:
-      name: prometheus-public-worker-production
+      name: prometheus-public-worker-preview
     outputs:
       candidate_commit: ${{ steps.preview-assets.outputs.candidate_commit }}
       candidate_tree: ${{ steps.preview-assets.outputs.candidate_tree }}
