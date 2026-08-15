@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   validateActiveToolchainPublicLaneSuccessor,
+  validateDashboardVisualPublicLaneSuccessor,
   validateGovernedPublicLaneSuccessor,
   validateGymPreviewPublicLaneSuccessor,
   validateNode24PublicLaneSuccessor,
@@ -96,6 +97,55 @@ test("historical public-lane guard composes the exact gym-preview asset successo
   assert.throws(() => validateGymPreviewPublicLaneSuccessor({
     governance: deployable,
     changedPaths: successor.changedPaths
+  }));
+});
+
+test("paid-customer public lane composes the exact navigation and visual successor", () => {
+  const gymGovernance = readJson(
+    "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json"
+  );
+  const governance = readJson(
+    "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json"
+  );
+  const gymPreviewSuccessor = gymGovernance.paidCustomerPublicLaneSuccessor;
+  const replacedPaths = new Set([
+    "deploy/prometheusrouteiq-website/assets/IntelligenceScene-B1-h6ijC.js",
+    "deploy/prometheusrouteiq-website/assets/landing-BeMJF6LH.js"
+  ]);
+  const changedPaths = [
+    ...gymPreviewSuccessor.changedPaths.filter(path => !replacedPaths.has(path)),
+    "deploy/prometheusrouteiq-website/assets/IntelligenceScene-DUONdOlD.js",
+    "deploy/prometheusrouteiq-website/assets/landing-BOzyl4oV.js"
+  ].sort();
+  const result = validateDashboardVisualPublicLaneSuccessor({
+    governance,
+    gymPreviewSuccessor,
+    changedPaths
+  });
+  assert.deepEqual(result.publicOwnerCommits, [
+    "72d9f99ab75d3716f855835fd84345306de67cd7",
+    "84088bb82cd60b36a721222c6e6632e5be7046d2",
+    "441e4f2c829c0eb5d04078711314d9481d4ccbd4"
+  ]);
+
+  const wrongOwner = clone(governance);
+  wrongOwner.implementationCommits[0].commit = "0".repeat(40);
+  assert.throws(() => validateDashboardVisualPublicLaneSuccessor({
+    governance: wrongOwner,
+    gymPreviewSuccessor,
+    changedPaths
+  }));
+  assert.throws(() => validateDashboardVisualPublicLaneSuccessor({
+    governance,
+    gymPreviewSuccessor,
+    changedPaths: [...changedPaths, "src/unapproved-public-change.js"]
+  }));
+  const deployable = clone(governance);
+  deployable.releaseBoundary.productionDeploymentAuthorized = true;
+  assert.throws(() => validateDashboardVisualPublicLaneSuccessor({
+    governance: deployable,
+    gymPreviewSuccessor,
+    changedPaths
   }));
 });
 
