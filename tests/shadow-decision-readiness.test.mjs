@@ -1402,6 +1402,9 @@ test("retention deletion successor composes the current shadow contract without 
   const transition = retentionSuccessor.protectedSourceTransitions.find(
     value => value.path === "intelligence/contracts/shadow-decision-readiness-contracts.json",
   );
+  const prospectiveTransition = verifyCrossIndustryZipFounderAccessAdoption()
+    .rehearsalSuccessor.prospectiveCalibrationProductionAdmissionSuccessor
+    .transitionsByPath.get(transition.path).at(-1);
 
   assert.ok(transition);
   assert.equal(
@@ -1409,8 +1412,9 @@ test("retention deletion successor composes the current shadow contract without 
     "c814acf7d0d1c08dbc42c24ca1231135b7123397c0c5b2698d3898ca0b3e9ab6",
   );
   assert.equal(transition.previousSha256, dashboardSuccessor.protectedConsumer.currentSha256);
+  assert.equal(transition.currentSha256, prospectiveTransition.previousSha256);
   assert.equal(
-    transition.currentSha256,
+    prospectiveTransition.currentSha256,
     digest(readFileSync(transition.path)),
   );
   assert.equal(transition.commit, "17bef15930ded364a55aadd47d0f96722cc8e9c6");
