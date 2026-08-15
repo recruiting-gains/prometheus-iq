@@ -121,6 +121,14 @@
       "ownerSubsystem": "Prometheus Intelligence Engine",
       "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
       "subject": "intelligence: compose calibration read-only successor"
+    },
+    {
+      "commit": "4a9537b8e65d109fea53032f1782996ec655faa3",
+      "parent": "4d5b9e22ee4e4ba72064c88d694c8e663b06732e",
+      "tree": "3e972938e5336ac34b8d50bfca485b6a37e559fe",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose calibration architecture successor"
     }
   ],
   "protectedSourceTransitions": [
@@ -285,6 +293,15 @@
       "subject": "intelligence: compose calibration read-only successor",
       "previousSha256": "733435dd04c9343642d01bf6fbbc1e8ab5e942bcb0580963614f768a53fb4c84",
       "currentSha256": "c99aa835eb0abb53ad8fe999fa632b1b2a84a3b99f30cea8f708261f525eefb7"
+    },
+    {
+      "path": "tests/intelligence-architecture.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "4a9537b8e65d109fea53032f1782996ec655faa3",
+      "tree": "3e972938e5336ac34b8d50bfca485b6a37e559fe",
+      "subject": "intelligence: compose calibration architecture successor",
+      "previousSha256": "521d50e9f933b1299d9287916a9c7b6f1a7b8fc032c7f0ac62b45cc81d192032",
+      "currentSha256": "917f8a4fb2f6cf13dc0f545f8ed2cea1e0f128234ab8ef3f8212ae5e0bcb8807"
     }
   ],
   "newSourceArtifacts": [
