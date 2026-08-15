@@ -702,6 +702,15 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
     readinessSuccessors: currentReadinessSuccessors,
     path: workflowPath,
     previousSha256: workflowPreviousSha256,
+    currentSha256: governanceV2.outcomeSemanticIntegrityPayloadSuccessor.evidence
+      .find(item => item.path === workflowPath).successorSha256
+  }), true);
+  const workflowVisualEvidence = governanceV2.dashboardVisualDeployParitySuccessor
+    .evidence.find(item => item.path === workflowPath);
+  assert.equal(hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+    governance: governanceV2,
+    path: workflowPath,
+    previousSha256: workflowVisualEvidence.previousSha256,
     currentSha256: workflowCurrentSha256
   }), true);
 
@@ -1792,9 +1801,19 @@ test("private Workflow v2 composes the exact ordered retention payload successor
     }), true);
     const currentSha256 = sha256(read(path));
     if (currentSha256 !== outcomeSemanticSuccessorSha256) {
-      assert.equal(hasProspectiveCalibrationSourceQualificationGuardSuccessor({
+      const visualEvidence = governanceV2.dashboardVisualDeployParitySuccessor.evidence
+        .find(item => item.path === path);
+      if (visualEvidence.previousSha256 !== outcomeSemanticSuccessorSha256) {
+        assert.equal(hasProspectiveCalibrationSourceQualificationGuardSuccessor({
+          path,
+          previousSha256: outcomeSemanticSuccessorSha256,
+          currentSha256: visualEvidence.previousSha256
+        }), true);
+      }
+      assert.equal(hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+        governance: governanceV2,
         path,
-        previousSha256: outcomeSemanticSuccessorSha256,
+        previousSha256: visualEvidence.previousSha256,
         currentSha256
       }), true);
     }
