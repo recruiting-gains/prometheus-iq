@@ -150,12 +150,12 @@
     },
     "infrastructureRuntime": {
       "path": "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
-      "sha256": "70af4a724797b5a9261f1fb3e3aea122974daa3c8fad4f5fe708ad9836e0cacd",
-      "sourceCommit": "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
+      "sha256": "a9ab5f19c2059e07320e5735c6a2cd3bd4ee53ca2b14ff01a4a9c6ac876c1e9d",
+      "sourceCommit": "04bf2ea7e5ff6db734e559f16b9154772d76fc73",
       "sourceOwnerSubsystem": "Prometheus Infrastructure",
       "predecessor": {
-        "sha256": "ab45a00cb74115bb067ce00ab15890e9a959a9a3accb67917397f7f11236346d",
-        "sourceCommit": "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+        "sha256": "70af4a724797b5a9261f1fb3e3aea122974daa3c8fad4f5fe708ad9836e0cacd",
+        "sourceCommit": "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
         "remainsHistorical": true,
         "rewritten": false
       }
