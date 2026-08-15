@@ -31,9 +31,9 @@ export const PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE = Object.freeze({
   commit: "e225b9e6380416cceddbfe10ee7aa318b123e75c",
   tree: "6fe395423d6b907c967e0ce588b53f7307cbba2b",
   owner: "Prometheus Infrastructure <infrastructure@prometheus.local>",
-  rollbackContractSha256: "9fdd92e4ba6313ef992858ea6c377e18854005d6b18f868c6fa956da99fbe5ca",
+  rollbackContractSha256: "168689b3b8beac3eb0ba966737e01c8af3583b18417dd04bc6f4920fcdb5af2c",
   packageLockSha256: "6689435e2070d0f36d97448019348dc776d28cca9f6538d3d632cd5e5c1590ec",
-  artifactSha256: "548a0a3f5d53b240b708e283ed18f2865a0c2dd2fdb041d5ccd405ce2e5bc4e0"
+  artifactSha256: "0468e368ff70bb292841cff4aaa9cac70b395d4b64b47b411091a25b6f185233"
 });
 const GENERATED_OUTPUT_FILES = Object.freeze([
   "prometheusrouteiq-website-entry.js",
