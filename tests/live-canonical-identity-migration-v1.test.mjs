@@ -51,7 +51,7 @@ test("current public identity establishes Prometheus Route IQ and Prometheus.IQ"
   }
 
   const landing = read("landing.html");
-  assert.match(landing, /<title>Prometheus Route IQ \|/u);
+  assert.match(landing, /<title>Prometheus Route IQ for Gyms \| Field Sales Intelligence<\/title>/u);
   assert.match(landing, /og:site_name" content="Prometheus\.IQ"/u);
   const graph = JSON.parse(landing.match(/<script type="application\/ld\+json">([^<]+)<\/script>/u)[1])["@graph"];
   assert.equal(graph[0].name, "Prometheus.IQ");

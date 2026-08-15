@@ -88,6 +88,14 @@ const LIVE_CANONICAL_IDENTITY_PUBLIC_ASSET_COMMIT =
   "c4cb9150fb8ad218e34026a63fa577271860c270";
 const LIVE_CANONICAL_IDENTITY_PUBLIC_ASSET_TREE =
   "e7870b29540e0fb2fa89dbf691804192e3cf9c1d";
+const GYM_PREVIEW_CURRENT_DEPLOYMENT_ASSET_SHA256 =
+  "6a6dde7efd17144b91f5f294cd25c7cfaaf2ff1347e637d6e692f5ed66cdab3b";
+const GYM_PREVIEW_CURRENT_ROLLBACK_ARTIFACT_SHA256 =
+  "548a0a3f5d53b240b708e283ed18f2865a0c2dd2fdb041d5ccd405ce2e5bc4e0";
+const GYM_PREVIEW_CURRENT_PUBLIC_ASSET_COMMIT =
+  "c42576db4330e2ba42373df247e6a6c65172ff55";
+const GYM_PREVIEW_CURRENT_PUBLIC_ASSET_TREE =
+  "b19db314b3b4a1de582d01fdc31494466bb6d082";
 const UNATTENDED_GOVERNANCE_ID = "cloudflare-unattended-deployment-access-governance-v1";
 const ROUTE_IQ_3D_GOVERNANCE_ID = "route-iq-3d-visual-continuity-v1";
 const PACKAGE_PATH = "package.json";
@@ -1662,24 +1670,24 @@ export function verifyOverwatchPublicDeploymentWorkflowV2() {
   const assets = verifyRouteIqPublicDeploymentAssets({ build: false });
   assert.equal(
     assets.deploymentAssetsSha256,
-    LIVE_CANONICAL_IDENTITY_DEPLOYMENT_ASSET_SHA256
+    GYM_PREVIEW_CURRENT_DEPLOYMENT_ASSET_SHA256
   );
   assert.equal(
     assets.candidateWebsiteCommit,
-    LIVE_CANONICAL_IDENTITY_PUBLIC_ASSET_COMMIT
+    GYM_PREVIEW_CURRENT_PUBLIC_ASSET_COMMIT
   );
   assert.equal(
     assets.candidateWebsiteTree,
-    LIVE_CANONICAL_IDENTITY_PUBLIC_ASSET_TREE
+    GYM_PREVIEW_CURRENT_PUBLIC_ASSET_TREE
   );
   const rollback = verifyPublicForwardRollbackArtifact(root);
   assert.equal(
     rollback.artifactSha256,
-    LIVE_CANONICAL_IDENTITY_ROLLBACK_ARTIFACT_SHA256
+    GYM_PREVIEW_CURRENT_ROLLBACK_ARTIFACT_SHA256
   );
   assert.equal(
     rollback.candidateDeploymentAssetsSha256,
-    LIVE_CANONICAL_IDENTITY_DEPLOYMENT_ASSET_SHA256
+    GYM_PREVIEW_CURRENT_DEPLOYMENT_ASSET_SHA256
   );
   return Object.freeze({ status: "OVERWATCH_PUBLIC_DEPLOYMENT_WORKFLOW_V2_VERIFIED" });
 }

@@ -1,0 +1,107 @@
+{
+  "governanceVersion": "route-iq-gym-first-dual-track-public-website-preview-v1",
+  "batchId": "BATCH-20260814-002",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "status": "SOURCE_COMPLETE_ISOLATED_PREVIEW_QUALIFICATION_PENDING",
+  "startingRepository": {
+    "remote": "git@github.com:PrometheusRouteIQ/prometheus-iq.git",
+    "branch": "main",
+    "commit": "524d96b5e495bd632bb606d17f288b234922aaf1",
+    "tree": "798d5a8f66e4fa8d0589e6b7dc28c97690ee4d5e",
+    "clean": true,
+    "synchronized": true
+  },
+  "ownerCommits": [
+    {"commit":"530808f3a730f76be8fc78e6bfa2f8b753741182","tree":"80801bdcab87aa8d7504b655d725dd46c25dfe34","owner":"Prometheus CRM <crm@prometheus.local>","subject":"crm: add governed gym intake contract"},
+    {"commit":"607a4c2cf29b423847f25c1f44986f03fe726c63","tree":"a38a68febb93fb8ba4215f53a9e66f4d384906b3","owner":"Prometheus Patents <patents@prometheus.local>","subject":"patents: gate gym preview advertising claims"},
+    {"commit":"97870ff4e3ebb7613cb6d72f0fd698a0ac92cdfa","tree":"4bf00580f60b2c22a16070a269a665159ce6028f","owner":"Prometheus Security <security@prometheus.local>","subject":"security: govern gym preview intake boundary"},
+    {"commit":"e38bfef992d491eb9d52a1b63518cace6e9a41c5","tree":"1262a0b55c5b487c86c4468bfe66944f04d36c85","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: add isolated gym website preview lane"},
+    {"commit":"c42576db4330e2ba42373df247e6a6c65172ff55","tree":"b19db314b3b4a1de582d01fdc31494466bb6d082","owner":"Prometheus Website <website@prometheus.local>","subject":"website: build gym-first dual-track preview"},
+    {"commit":"15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac","tree":"8f65b4d1b703c0b95e79edf4c4d82c9b540181dd","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: bind gym preview release assets"},
+    {"commit":"919092f0700ac43fb507dc32111ad2e9d1e9d2e0","tree":"cce0d299016812863d956710b44a317f9968548e","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: require gym preview oversight gate"}
+  ],
+  "founderAssets": [
+    {"sourceFilename":"772904932_1493675372780221_5358616428807129112_n 2.jpeg","repositoryPath":"public-site-static/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg","width":2048,"height":1072,"sha256":"0b65a6c611f3ea3d1aa03e819fc231ab63d109cea1027df0688b142cc5fe110d"},
+    {"sourceFilename":"prometheus_route_iq_ad.jpg","repositoryPath":"public-site-static/02-prometheus_route_iq_ad.jpg","width":2240,"height":1120,"sha256":"cff89c9fc30f0030b5fdabf16ade3b31310062038a6c02cc1601033842b87e9d"}
+  ],
+  "routeMap": {
+    "/": "GYM_FIRST_REQUEST_ROUTE_IQ",
+    "/investors": "PRESERVED_OUTSIDE_SALES_AND_3D_EXPERIENCE",
+    "/thank-you": "RECEIPT_GATED_NOINDEX",
+    "/privacy/": "PUBLIC_LEGAL",
+    "/terms/": "PUBLIC_LEGAL",
+    "/data-deletion/": "PUBLIC_LEGAL"
+  },
+  "contracts": {
+    "gymIntake": {"path":"crm/route-iq-gym-request-contract-v1.json","version":"route-iq-gym-request.v1","sha256":"70c401492dbd3d385e2b48b3de6fd75b83930b21548cc715ecc269500bccd199"},
+    "security": {"path":"security/route-iq-gym-preview-intake-boundary-v1.json","sha256":"536d78afb8f9d8671288a10d0254cb64982af811924b9719572541190b951f9a","emailDisposition":"PROTECTED_CRM_NOTIFICATION_ONLY"},
+    "claims": {"path":"patents/route-iq/GYM_PREVIEW_ADVERTISING_CLAIMS_GOVERNANCE_V1.json","sha256":"dc7bbca28bdb2cfde69d012ec2a0171c8e8607063780199cd6529b375cd0191d","truthState":"INSUFFICIENT_EVIDENCE","productionUseAllowed":false},
+    "preview": {"path":"workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json","sha256":"63c1c55963436daf033f446216c77efc845241f806e8b8d940a49fe79329c20b"},
+    "workflow": {"path":".github/workflows/preview-prometheus-route-iq-gym-first.yml","sha256":"0d9da8ced5b963a662076404d723823e2331cb8094fa6b10b6e99ec313eaacc5"}
+  },
+  "releaseIdentities": {
+    "websiteCommit": "c42576db4330e2ba42373df247e6a6c65172ff55",
+    "websiteTree": "b19db314b3b4a1de582d01fdc31494466bb6d082",
+    "previewAssetSha256": "4a148051d9deb34f9334c31b216120ce6665d1da30865e33725fcd7de6f7cf3b",
+    "deploymentAssetSha256": "6a6dde7efd17144b91f5f294cd25c7cfaaf2ff1347e637d6e692f5ed66cdab3b",
+    "rollbackContractSha256": "9fdd92e4ba6313ef992858ea6c377e18854005d6b18f868c6fa956da99fbe5ca",
+    "rollbackBundleSha256": "548a0a3f5d53b240b708e283ed18f2865a0c2dd2fdb041d5ccd405ce2e5bc4e0",
+    "fileCount": 26,
+    "initialCriticalBytes": 487454,
+    "lazy3dBytes": 892213
+  },
+  "productionBaseline": {
+    "publicWorker": "prometheusrouteiq-website",
+    "publicVersion": "77f59977-44bc-461c-b835-435bfa14c1c9",
+    "privateWorker": "prometheus-iq",
+    "privateVersion": "44d34150-266e-44dc-93dd-f655ea601ba3",
+    "trafficPercent": 100,
+    "mutationAuthorized": false
+  },
+  "previewBoundary": {
+    "worker": "prometheusrouteiq-website-gym-preview",
+    "workersDev": true,
+    "previewUrls": false,
+    "bindings": ["ASSETS"],
+    "productionRoutes": [],
+    "customDomains": [],
+    "durableObjects": [],
+    "kvNamespaces": [],
+    "emailBindings": [],
+    "crmBindings": [],
+    "workerSecrets": [],
+    "persistenceAllowed": false,
+    "emailAllowed": false,
+    "syntheticReceiptsOnly": true
+  },
+  "utmBoundary": {
+    "allowed": ["utm_source","utm_medium","utm_campaign","utm_term","utm_content"],
+    "otherParametersDiscarded": true,
+    "persistentVisitorTracking": false
+  },
+  "claimsDisposition": {
+    "finalMarketWording": "Gym sales is our first focused market.",
+    "founderCreativePreviewAllowed": true,
+    "founderCreativeProductionAllowed": false,
+    "productionBlocker": "GOVERNED_RESULT_TIME_AD_SPEND_CONTEXT_AND_QUALIFICATION_EVIDENCE_REQUIRED"
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "shadowDecisionVisible": false,
+    "truthState": "INSUFFICIENT_EVIDENCE",
+    "productionDeployments": 0,
+    "productionDataMutations": 0
+  },
+  "releaseBoundary": {
+    "sourceComplete": true,
+    "isolatedPreviewAuthorized": true,
+    "productionDeploymentAuthorized": false,
+    "hostedQualificationRequired": true,
+    "previewDeploymentRequired": true
+  }
+}

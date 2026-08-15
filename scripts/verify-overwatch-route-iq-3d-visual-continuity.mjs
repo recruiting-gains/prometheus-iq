@@ -9,12 +9,15 @@ import { fileURLToPath } from "node:url";
 
 import { verifyOverwatchPublicDeploymentIntegrityRepairReadiness } from "./verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs";
 import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
+import { verifyPublicForwardRollbackArtifact } from "./lib/route-iq-public-forward-rollback.mjs";
 
 export const ROUTE_IQ_3D_GOVERNANCE_PATH = "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 const PUBLIC_DEPLOYMENT_GOVERNANCE_PATH =
   "overwatch/governance/public-deployment-workflow-v2.json";
 const LIVE_IDENTITY_GOVERNANCE_PATH =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
+const GYM_PREVIEW_GOVERNANCE_PATH =
+  "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const STARTING_COMMIT = "08b452c4cc187fd3b8bd957e6bedef3aed12ac01";
@@ -345,8 +348,10 @@ function verifyWebsiteAndClaims(root) {
   assert.doesNotMatch(`${source}\n${landing}`, /causal uplift|recommendation superiority/iu);
 
   assert.doesNotMatch(landing, /<link[^>]+rel="preload"[^>]+route-iq-field-operations\.jpg/iu);
-  assert.match(landing, /Route IQ \| Field Decision Intelligence for Outside Sales/u);
-  assert.match(landing, /route-iq-field-operations-social\.jpg/u);
+  assert.match(landing, /Prometheus Route IQ for Gyms \| Field Sales Intelligence/u);
+  assert.match(landing, /01-772904932_1493675372780221_5358616428807129112_n-2\.jpeg/u);
+  assert.match(source, /Built for private onboarding, executive review, and field operating discipline\./u);
+  assert.match(source, /Request Investor Deck/u);
   for (const removed of [
     "deploy/prometheusrouteiq-website/enterprise-lead-intake.js",
     "deploy/prometheusrouteiq-website/route-iq-request-form.js",
@@ -468,19 +473,23 @@ export function verifyOverwatchRouteIq3dVisualContinuity({
     governance: readJson(root, LIVE_IDENTITY_GOVERNANCE_PATH),
     historicalRelease: historicalActiveRelease
   });
+  const currentPreview = readJson(root, GYM_PREVIEW_GOVERNANCE_PATH);
   const commits = verifyOwnership(root, governance);
   verifyWebsiteAndClaims(root);
   verifyCrmAndIsolation(root);
 
   assert.equal(
     sha256File(root, governance.rollback.contractPath),
-    activeRelease.currentReleaseIdentities.rollbackContractSha256
+    currentPreview.releaseIdentities.rollbackContractSha256
   );
   const deployment = verifyRouteIqPublicDeploymentAssets({ build });
   assert.equal(
     deployment.deploymentAssetsSha256,
-    activeRelease.currentReleaseIdentities.deploymentAssetSha256
+    currentPreview.releaseIdentities.deploymentAssetSha256
   );
+  const rollback = verifyPublicForwardRollbackArtifact(root);
+  assert.equal(rollback.artifactSha256,
+    currentPreview.releaseIdentities.rollbackBundleSha256);
   for (const path of [
     "overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json"
   ]) {
@@ -499,7 +508,7 @@ export function verifyOverwatchRouteIq3dVisualContinuity({
     ownerCommits: commits.slice(0, EXPECTED_OWNER_ORDER.length),
     deploymentAssetsSha256: deployment.deploymentAssetsSha256,
     historicalDeploymentAssetsSha256: governance.generatedAssets.deploymentAssetsSha256,
-    rollbackArtifactSha256: activeRelease.currentReleaseIdentities.rollbackArtifactSha256,
+    rollbackArtifactSha256: rollback.artifactSha256,
     historicalRollbackArtifactSha256: governance.rollback.artifactSha256,
     initialCriticalBytes: deployment.initialCriticalBytes,
     lazy3dBytes: deployment.sizes.lazy3d,
