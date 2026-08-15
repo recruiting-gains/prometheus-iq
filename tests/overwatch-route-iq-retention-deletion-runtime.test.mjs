@@ -37,6 +37,11 @@ const gymPreviewGovernance = () => JSON.parse(readFileSync(
   "utf8"
 ));
 
+const dashboardVisualGovernance = () => JSON.parse(readFileSync(
+  "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json",
+  "utf8"
+));
+
 test("Overwatch verifies the exact owner chain and dormant deletion release boundary", () => {
   assert.deepEqual(verifyOverwatchRouteIqRetentionDeletionRuntime(), {
     status: "PASS",
@@ -219,16 +224,31 @@ test("retention composes only the exact governed protected-runtime successors", 
   ];
   const gymPreviewRecord = gymPreviewGovernance();
   const gymPreviewPaths = gymPreviewRecord.retentionProtectedRuntimeSuccessor.paths;
+  const dashboardVisualRecord = dashboardVisualGovernance();
+  const replacedGymPreviewPaths = new Set([
+    "deploy/prometheusrouteiq-website/assets/IntelligenceScene-B1-h6ijC.js",
+    "deploy/prometheusrouteiq-website/assets/landing-BeMJF6LH.js"
+  ]);
+  const dashboardVisualPaths = [
+    ...gymPreviewPaths.filter(path => !replacedGymPreviewPaths.has(path)),
+    "deploy/prometheusrouteiq-website/assets/IntelligenceScene-DUONdOlD.js",
+    "deploy/prometheusrouteiq-website/assets/landing-BOzyl4oV.js",
+    "deploy/cloudflare-pages/index.html",
+    "deploy/cloudflare-pages/manifest-founder.webmanifest",
+    "deploy/cloudflare-pages/manifest.webmanifest"
+  ];
   const input = {
-    protectedRuntimeChanges: [
+    protectedRuntimeChanges: [...new Set([
       ...node24WorkflowPaths,
       ...governedLearningPaths,
-      ...gymPreviewPaths
-    ],
+      ...dashboardVisualPaths
+    ])],
     node24WorkflowPaths,
     governedLearning: governedLearningVerification,
     gymPreviewGovernance: gymPreviewRecord,
-    gymPreviewProtectedRuntimeChanges: gymPreviewPaths
+    gymPreviewProtectedRuntimeChanges: gymPreviewPaths,
+    dashboardVisualGovernance: dashboardVisualRecord,
+    dashboardVisualProtectedRuntimeChanges: dashboardVisualPaths
   };
   assert.equal(verifyRetentionProtectedRuntimeSuccessors(input), true);
   for (const mutate of [
@@ -257,7 +277,16 @@ test("retention composes only the exact governed protected-runtime successors", 
     value => {
       value.gymPreviewGovernance.retentionProtectedRuntimeSuccessor.productionDeploymentAuthorized = true;
     },
-    value => { value.gymPreviewProtectedRuntimeChanges.pop(); }
+    value => { value.gymPreviewProtectedRuntimeChanges.pop(); },
+    value => { value.dashboardVisualGovernance.batchId = "BATCH-STALE"; },
+    value => {
+      value.dashboardVisualGovernance.ownerSubsystem = "Prometheus Infrastructure";
+    },
+    value => {
+      value.dashboardVisualGovernance.releaseBoundary.productionDeploymentAuthorized = true;
+    },
+    value => { value.dashboardVisualGovernance.protectedState.productionDeployments = 1; },
+    value => { value.dashboardVisualProtectedRuntimeChanges.pop(); }
   ]) {
     const candidate = structuredClone(input);
     mutate(candidate);

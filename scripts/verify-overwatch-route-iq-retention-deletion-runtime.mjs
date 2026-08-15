@@ -17,6 +17,8 @@ const reportPath = "overwatch/reports/BATCH-20260809-001-route-iq-retention-expi
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const gymPreviewGovernancePath =
   "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
+const dashboardVisualGovernancePath =
+  "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json";
 const startCommit = "0ae9b3752476bc782b067a2a47fd388e4c3791ef";
 const startTree = "3b6778b25c731e75c489b738dc00256868522d22";
 const acceptedCommit = "78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e";
@@ -256,7 +258,9 @@ export function verifyRetentionProtectedRuntimeSuccessors({
   node24WorkflowPaths,
   governedLearning,
   gymPreviewGovernance,
-  gymPreviewProtectedRuntimeChanges
+  gymPreviewProtectedRuntimeChanges,
+  dashboardVisualGovernance,
+  dashboardVisualProtectedRuntimeChanges
 }) {
   assert.equal(governedLearning?.status, "PASS");
   assert.equal(governedLearning?.batchId, "BATCH-20260812-001");
@@ -296,13 +300,55 @@ export function verifyRetentionProtectedRuntimeSuccessors({
   assert.deepEqual([...gymPreviewProtectedRuntimeChanges].sort(),
     [...gymPreviewSuccessor.paths].sort());
   assert.ok(gymPreviewSuccessor.paths.every(isProtectedRuntimePath));
+  assert.equal(dashboardVisualGovernance?.version,
+    "route-iq-overwatch-public-navigation-dashboard-visual-successor-v1");
+  assert.equal(dashboardVisualGovernance?.batchId, "BATCH-20260815-001");
+  assert.equal(dashboardVisualGovernance?.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(dashboardVisualGovernance?.status,
+    "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR");
+  const visualInfrastructure = dashboardVisualGovernance.implementationCommits.find(entry =>
+    entry.commit === "84088bb82cd60b36a721222c6e6632e5be7046d2");
+  assert.equal(visualInfrastructure?.identity,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>");
+  const assetTransitions = [
+    [
+      "deploy/prometheusrouteiq-website/assets/IntelligenceScene-B1-h6ijC.js",
+      "deploy/prometheusrouteiq-website/assets/IntelligenceScene-DUONdOlD.js"
+    ],
+    [
+      "deploy/prometheusrouteiq-website/assets/landing-BeMJF6LH.js",
+      "deploy/prometheusrouteiq-website/assets/landing-BOzyl4oV.js"
+    ]
+  ];
+  for (const [previousPath, currentPath] of assetTransitions) {
+    assert.ok(visualInfrastructure.changedFiles.includes(previousPath));
+    assert.ok(visualInfrastructure.changedFiles.includes(currentPath));
+  }
+  const addedMirrors = [
+    "deploy/cloudflare-pages/index.html",
+    "deploy/cloudflare-pages/manifest-founder.webmanifest",
+    "deploy/cloudflare-pages/manifest.webmanifest"
+  ];
+  assert.ok(addedMirrors.every(path => visualInfrastructure.changedFiles.includes(path)));
+  const replaced = new Set(assetTransitions.map(([path]) => path));
+  const currentGymPreviewPaths = [
+    ...gymPreviewSuccessor.paths.filter(path => !replaced.has(path)),
+    ...assetTransitions.map(([, path]) => path),
+    ...addedMirrors
+  ];
+  assert.deepEqual([...dashboardVisualProtectedRuntimeChanges].sort(),
+    [...new Set(currentGymPreviewPaths)].sort());
+  assert.equal(dashboardVisualGovernance.releaseBoundary.productionDeploymentAuthorized, false);
+  assert.equal(dashboardVisualGovernance.releaseBoundary.productionStorageAccessAllowed, false);
+  assert.equal(dashboardVisualGovernance.protectedState.productionDeployments, 0);
+  assert.equal(dashboardVisualGovernance.protectedState.productionDataMutations, 0);
   assert.deepEqual(
     [...protectedRuntimeChanges].sort(),
-    [
+    [...new Set([
       ...node24WorkflowPaths,
       ...governedLearningProtectedRuntimePaths,
-      ...gymPreviewSuccessor.paths
-    ].sort(),
+      ...currentGymPreviewPaths
+    ])].sort(),
     `Protected runtime paths changed outside governed successors: ${protectedRuntimeChanges.join(", ")}`
   );
   return true;
@@ -554,6 +600,13 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
   const gymPreviewProtectedRuntimeChanges = git(
     "diff",
     "--name-only",
+    gymPreviewGovernance.startingRepository.commit,
+    gymPreviewGovernance.retentionProtectedRuntimeSuccessor.ownerCommits.at(-1)
+  ).split("\n").filter(Boolean).filter(isProtectedRuntimePath);
+  const dashboardVisualGovernance = readJson(dashboardVisualGovernancePath);
+  const dashboardVisualProtectedRuntimeChanges = git(
+    "diff",
+    "--name-only",
     `${gymPreviewGovernance.startingRepository.commit}..HEAD`
   ).split("\n").filter(Boolean).filter(isProtectedRuntimePath);
   const node24Verification = verifyOverwatchGithubActionsNode24PinSuccessor();
@@ -563,7 +616,9 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
     node24WorkflowPaths: node24Infrastructure.workflows.map(item => item.path),
     governedLearning: verifyOverwatchRouteIqGovernedLearningAdvisoryBridge(),
     gymPreviewGovernance,
-    gymPreviewProtectedRuntimeChanges
+    gymPreviewProtectedRuntimeChanges,
+    dashboardVisualGovernance,
+    dashboardVisualProtectedRuntimeChanges
   }), true);
   assert.equal(
     git("rev-parse", `${startCommit}:data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions`),
