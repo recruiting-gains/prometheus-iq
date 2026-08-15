@@ -163,6 +163,24 @@
       "subject": "intelligence: preserve gym runtime source authority",
       "previousSha256": "2eccf1cffa98ea2310a1307df3fee3b3bd42c6f94637eb395b2c18859d70b741",
       "currentSha256": "253d36e3344befe32ece26b3d16d234d5f6be18033c6fec0d33c671dac94153a"
+    },
+    {
+      "path": "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "6ca95fbfc56ba54354c5bce6faa6ab278d4a098b",
+      "tree": "8e4226c9fa4d0641bc7db1d62dc25d06aac9993d",
+      "subject": "intelligence: compose gym runtime adoption successor",
+      "previousSha256": "84f124dc1137926c86687ab61274392c16dae53dc11f723300c5982557fd4118",
+      "currentSha256": "a72e0c2efc4a59441e16b20761a3c0e11060c3e0568059f3808062c5300a697e"
+    },
+    {
+      "path": "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "1ccc0c4b158812070f3586b8297ad569870151c3",
+      "tree": "9a946e46903c84297a82c42268bf2a2c281a5c49",
+      "subject": "test(intelligence): preserve extensible gym successor order",
+      "previousSha256": "a72e0c2efc4a59441e16b20761a3c0e11060c3e0568059f3808062c5300a697e",
+      "currentSha256": "9a5d478b84dfb18396e899213f5d78a856b3f4b3693b1727aaa35fa0d1b1315f"
     }
   ],
   "behavior": {

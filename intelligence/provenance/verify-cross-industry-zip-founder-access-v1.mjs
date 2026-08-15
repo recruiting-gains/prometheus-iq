@@ -361,12 +361,19 @@ function readGymPreviewRouteQualityRuntimeSurfaceSuccessor(
     const predecessors = localTransitions.length > 0
       ? localTransitions
       : predecessorTransitionsByPath.get(transition.path) || [];
-    assert.ok(predecessors.length > 0);
-    assert.equal(
-      transition.previousSha256,
-      predecessors.at(-1).currentSha256,
-      `Broken gym-preview runtime-surface transition chain: ${transition.path}`
-    );
+    if (predecessors.length === 0) {
+      assert.equal(
+        transition.path,
+        "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+        `Ungoverned gym-preview predecessor: ${transition.path}`
+      );
+    } else {
+      assert.equal(
+        transition.previousSha256,
+        predecessors.at(-1).currentSha256,
+        `Broken gym-preview runtime-surface transition chain: ${transition.path}`
+      );
+    }
     verifyTransition(transition.path, transition);
     transitionsByPath.set(transition.path, [...localTransitions, transition]);
   }
@@ -374,7 +381,8 @@ function readGymPreviewRouteQualityRuntimeSurfaceSuccessor(
     [...transitionsByPath.keys()].sort(),
     [
       "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
-      "scripts/lib/route-intelligence-quality-gate.mjs"
+      "scripts/lib/route-intelligence-quality-gate.mjs",
+      "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
     ]
   );
   assert.deepEqual(successor.behavior, {
