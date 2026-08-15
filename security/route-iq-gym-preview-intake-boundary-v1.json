@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "route-iq-gym-preview-intake-security-v1",
+  "batchId": "BATCH-20260814-002",
+  "owner": "Prometheus Security",
+  "ownerIdentity": "Prometheus Security <security@prometheus.local>",
+  "baseline": {
+    "commit": "530808f3a730f76be8fc78e6bfa2f8b753741182",
+    "tree": "80801bdcab87aa8d7504b655d725dd46c25dfe34",
+    "subject": "crm: add governed gym intake contract"
+  },
+  "protectedState": "PROTECTED_CRM_NOTIFICATION_ONLY",
+  "requestBoundary": {
+    "contractVersion": "route-iq-gym-request.v1",
+    "formId": "route_iq_gym_request",
+    "workspaceId": "prometheus_route_iq",
+    "operatingProfileId": "route_iq_commercial",
+    "browserMaySelectScope": false,
+    "unknownScopeFailsClosed": true,
+    "sameOriginSubmissionOnly": true,
+    "originControlsPreserved": true,
+    "rateControlsPreserved": true,
+    "abuseControlsPreserved": true,
+    "cspExpansionAllowed": false
+  },
+  "notificationBoundary": {
+    "classification": "RECEIPT_METADATA_ONLY",
+    "allowedRequestFields": [
+      "receiptId",
+      "submittedAt",
+      "requestContractVersion"
+    ],
+    "forbiddenRequestFields": [
+      "fullName",
+      "workEmail",
+      "cell",
+      "gymName",
+      "cityState",
+      "outsideRepCount",
+      "attribution",
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_term",
+      "utm_content"
+    ],
+    "afterDurablePersistenceRequired": true,
+    "beforeDurablePersistenceAllowed": false,
+    "contactPiiAllowed": false,
+    "gymOrCityAllowed": false,
+    "attributionValuesAllowed": false
+  },
+  "founderCrmBoundary": {
+    "authorization": "IMMUTABLE_FOUNDER_PRINCIPAL_ONLY",
+    "publicRetrievalAllowed": false,
+    "publicListingAllowed": false,
+    "publicExportAllowed": false,
+    "allowedRetainedRequestFields": [
+      "formId",
+      "fullName",
+      "gymName",
+      "cityState",
+      "outsideRepCount",
+      "workEmail",
+      "cell",
+      "consent",
+      "submittedAt",
+      "acquisitionSource",
+      "attribution"
+    ],
+    "workspaceIsolationRequired": true,
+    "operatingProfileIsolationRequired": true
+  },
+  "attributionBoundary": {
+    "exactAllowlist": [
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_term",
+      "utm_content"
+    ],
+    "additionalFieldsAllowed": false,
+    "maximumLengthPerValue": 120,
+    "emptyValuesOmitted": true,
+    "hostileValuesRejected": true,
+    "secretLikeValuesRejected": true,
+    "landingUrlRetained": false,
+    "referrerUrlRetained": false,
+    "piiInOutboundUrlsAllowed": false,
+    "piiInLogsAllowed": false,
+    "piiInAnalyticsAllowed": false,
+    "piiInGithubActionsAllowed": false,
+    "piiInErrorsAllowed": false
+  },
+  "previewBoundary": {
+    "classification": "NON_PERSISTING_PREVIEW_SINK",
+    "crmWritesAllowed": false,
+    "durableWritesAllowed": false,
+    "emailAllowed": false,
+    "productionCrmBindingsAllowed": false,
+    "productionEmailBindingsAllowed": false,
+    "productionIntakeEndpointAllowed": false,
+    "productionMutationAllowed": false
+  },
+  "socialPlaceholders": {
+    "reddit": {
+      "accountId": "",
+      "pixelId": "",
+      "enabled": false
+    },
+    "meta": {
+      "accountId": "",
+      "pixelId": "",
+      "enabled": false
+    },
+    "externalScriptsAllowed": false,
+    "externalNetworkAllowed": false,
+    "trackingCookiesAllowed": false,
+    "browserTrackingStorageAllowed": false,
+    "cspExpansionAllowed": false
+  },
+  "preservedControls": {
+    "origin": true,
+    "rateLimiting": true,
+    "abuseResistance": true,
+    "contentSecurityPolicy": true,
+    "founderOnlyRetrieval": true,
+    "publicPrivateIsolation": true
+  },
+  "expectedFuturePaths": [
+    "src/main.jsx",
+    "src/route-iq-gym-request-form.js",
+    "workers/infrastructure/prometheusrouteiq-website-gym-preview-entry.mjs",
+    "wrangler.prometheusrouteiq-website-gym-preview.jsonc",
+    ".github/workflows/preview-prometheus-route-iq-gym-first.yml"
+  ],
+  "disposition": {
+    "status": "SECURITY_GOVERNANCE_RECORDED_UNDEPLOYED",
+    "integrationAdmission": "SECURITY_TEST_PASS_REQUIRED",
+    "productionAuthorized": false,
+    "pushPerformed": false,
+    "deploymentPerformed": false,
+    "productionDataMutationPerformed": false
+  }
+}
