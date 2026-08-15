@@ -15,6 +15,7 @@
   "qualification": {
     "websiteFocused": "PASS_24_OF_24",
     "infrastructureFocused": "PASS_12_OF_12",
+    "securityFocused": "PASS_7_OF_7",
     "desktop1440x900": "PASS_LOCAL_BUILD_PREVIEW",
     "mobile390x844": "PASS_LOCAL_BUILD_PREVIEW",
     "reducedMotion": "PASS_LOCAL_BUILD_PREVIEW",

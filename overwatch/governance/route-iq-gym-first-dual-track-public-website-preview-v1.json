@@ -18,7 +18,8 @@
     {"commit":"e38bfef992d491eb9d52a1b63518cace6e9a41c5","tree":"1262a0b55c5b487c86c4468bfe66944f04d36c85","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: add isolated gym website preview lane"},
     {"commit":"c42576db4330e2ba42373df247e6a6c65172ff55","tree":"b19db314b3b4a1de582d01fdc31494466bb6d082","owner":"Prometheus Website <website@prometheus.local>","subject":"website: build gym-first dual-track preview"},
     {"commit":"15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac","tree":"8f65b4d1b703c0b95e79edf4c4d82c9b540181dd","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: bind gym preview release assets"},
-    {"commit":"919092f0700ac43fb507dc32111ad2e9d1e9d2e0","tree":"cce0d299016812863d956710b44a317f9968548e","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: require gym preview oversight gate"}
+    {"commit":"919092f0700ac43fb507dc32111ad2e9d1e9d2e0","tree":"cce0d299016812863d956710b44a317f9968548e","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: require gym preview oversight gate"},
+    {"commit":"ab382d47da5711b6ff2af7ace438bb3284bd76d2","tree":"c8e24adb6ef9029b11f7f68b3133b3013bb640de","owner":"Prometheus Security <security@prometheus.local>","subject":"security: distinguish isolated preview safeguards"}
   ],
   "founderAssets": [
     {"sourceFilename":"772904932_1493675372780221_5358616428807129112_n 2.jpeg","repositoryPath":"public-site-static/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg","width":2048,"height":1072,"sha256":"0b65a6c611f3ea3d1aa03e819fc231ab63d109cea1027df0688b142cc5fe110d"},

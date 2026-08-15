@@ -16,7 +16,7 @@ test("Overwatch verifies the exact gym-first dual-track source and isolated prev
     {
       status: "PASS",
       batchId: "BATCH-20260814-002",
-      ownerCommitCount: 7,
+    ownerCommitCount: 8,
       previewAssetSha256: "4a148051d9deb34f9334c31b216120ce6665d1da30865e33725fcd7de6f7cf3b",
       deploymentAssetSha256: "6a6dde7efd17144b91f5f294cd25c7cfaaf2ff1347e637d6e692f5ed66cdab3b",
       rollbackBundleSha256: "548a0a3f5d53b240b708e283ed18f2865a0c2dd2fdb041d5ccd405ce2e5bc4e0",
