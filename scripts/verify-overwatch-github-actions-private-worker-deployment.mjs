@@ -456,7 +456,19 @@ const v2OutcomeSemanticIntegrityPayloadSuccessorEvidence = Object.freeze({
     Object.freeze({
       previousSha256: "83587a33266f61ba5731f3292dfdfcf438d707849f92ac373fa76ff812e62a8d",
       successorSha256: "874f5955727fab02d292e90afc6e3964f47d0b9ccda80db25b2e0477135e09a1"
-    })
+  })
+});
+const v2ProspectiveCalibrationSourceGuardCommit =
+  "2d4d9e1da5f64c4de7977016e58969b0dc5e8951";
+const v2ProspectiveCalibrationSourceGuardParent =
+  "fe86fadd20e240724de0246460be36faff15634f";
+const v2ProspectiveCalibrationSourceGuardTree =
+  "3d8626679231404b7a0e5c890394230a68323b10";
+const v2ProspectiveCalibrationSourceGuardEvidence = Object.freeze({
+  "tests/github-actions-private-worker-workflow-v2.test.mjs": Object.freeze({
+    previousSha256: "0be634c012833c62ae58f06eec0f59328b65ebf8ca0540bcd350ecefc49d0933",
+    successorSha256: "27469994b9f29a76e39c9165a30f1c4d82b627c11453adc00c22358815c864c8"
+  })
 });
 
 const v2OwnerHashes = Object.freeze({
@@ -2386,6 +2398,52 @@ export function hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
       && equal(paths, successor.evidence.map(item => item.path).sort())
       && sha256(previous) === evidence[0].previousSha256
       && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
+
+export function hasProspectiveCalibrationSourceQualificationGuardSuccessor({
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const evidence = v2ProspectiveCalibrationSourceGuardEvidence[path];
+  if (!evidence
+    || previousSha256 !== evidence.previousSha256
+    || currentSha256 !== evidence.successorSha256) {
+    return false;
+  }
+  try {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      v2ProspectiveCalibrationSourceGuardCommit
+    ]).split("\n");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      v2ProspectiveCalibrationSourceGuardCommit
+    ]).split("\n").filter(Boolean);
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${v2ProspectiveCalibrationSourceGuardParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${v2ProspectiveCalibrationSourceGuardCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor",
+      v2ProspectiveCalibrationSourceGuardCommit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return equal(fields, [
+      v2ProspectiveCalibrationSourceGuardCommit,
+      v2ProspectiveCalibrationSourceGuardParent,
+      v2ProspectiveCalibrationSourceGuardTree,
+      infrastructureIdentity,
+      infrastructureIdentity,
+      "infrastructure: reject unqualified calibration artifact"
+    ])
+      && equal(paths, Object.keys(v2ProspectiveCalibrationSourceGuardEvidence))
+      && sha256(previous) === evidence.previousSha256
+      && sha256(current) === evidence.successorSha256;
   } catch {
     return false;
   }
@@ -5038,6 +5096,12 @@ function verifyV2OwnerAndGovernance() {
         path,
         previousSha256: evidence.successorSha256,
         currentSha256
+      })
+      || hasProspectiveCalibrationSourceQualificationGuardSuccessor({
+        path,
+        previousSha256:
+          v2OutcomeSemanticIntegrityPayloadSuccessorEvidence[path]?.successorSha256,
+        currentSha256
       });
     if (sha256(previous) !== evidence.previousSha256
       || sha256(successor) !== evidence.successorSha256
@@ -5097,6 +5161,12 @@ function verifyV2OwnerAndGovernance() {
         path,
         previousSha256: evidence.successorSha256,
         currentSha256
+      })
+      || hasProspectiveCalibrationSourceQualificationGuardSuccessor({
+        path,
+        previousSha256:
+          v2OutcomeSemanticIntegrityPayloadSuccessorEvidence[path]?.successorSha256,
+        currentSha256
       });
     if (sha256(previous) !== evidence.previousSha256
       || sha256(successor) !== evidence.successorSha256
@@ -5144,9 +5214,16 @@ function verifyV2OwnerAndGovernance() {
     const successor = execFileSync("/usr/bin/git", [
       "show", `${v2OutcomeSemanticIntegrityPayloadSuccessorCommit}:${path}`
     ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const currentSha256 = sha256(readFileSync(resolve(root, path)));
+    const currentIsGoverned = currentSha256 === evidence.successorSha256
+      || hasProspectiveCalibrationSourceQualificationGuardSuccessor({
+        path,
+        previousSha256: evidence.successorSha256,
+        currentSha256
+      });
     if (sha256(previous) !== evidence.previousSha256
       || sha256(successor) !== evidence.successorSha256
-      || sha256(readFileSync(resolve(root, path))) !== evidence.successorSha256) {
+      || !currentIsGoverned) {
       throw new Error(
         `Private Workflow v2 outcome-semantic payload evidence drifted: ${path}`
       );
@@ -6608,6 +6685,12 @@ function verifyV2OwnerAndGovernance() {
         readinessSuccessors,
         path,
         previousSha256: expected,
+        currentSha256: candidateSha256
+      })
+      || hasProspectiveCalibrationSourceQualificationGuardSuccessor({
+        path,
+        previousSha256:
+          v2OutcomeSemanticIntegrityPayloadSuccessorEvidence[path]?.successorSha256,
         currentSha256: candidateSha256
       })
     );

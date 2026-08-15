@@ -25,6 +25,7 @@ import {
   hasGovernedLearningPayloadInfrastructureSuccessor,
   hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor,
   hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor,
+  hasProspectiveCalibrationSourceQualificationGuardSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
   hasRetentionMaintenancePayloadInfrastructureSuccessor,
@@ -155,6 +156,30 @@ test("private Workflow v2 composes only the exact prospective-calibration source
           "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0",
         successor: candidate
       }));
+  }
+});
+
+test("private Workflow v2 accepts only the owner-authored unqualified-artifact guard", () => {
+  const input = {
+    path: "tests/github-actions-private-worker-workflow-v2.test.mjs",
+    previousSha256:
+      "0be634c012833c62ae58f06eec0f59328b65ebf8ca0540bcd350ecefc49d0933",
+    currentSha256:
+      "27469994b9f29a76e39c9165a30f1c4d82b627c11453adc00c22358815c864c8"
+  };
+  assert.equal(
+    hasProspectiveCalibrationSourceQualificationGuardSuccessor(input),
+    true
+  );
+  for (const candidate of [
+    { ...input, path: "package.json" },
+    { ...input, previousSha256: "0".repeat(64) },
+    { ...input, currentSha256: "0".repeat(64) }
+  ]) {
+    assert.equal(
+      hasProspectiveCalibrationSourceQualificationGuardSuccessor(candidate),
+      false
+    );
   }
 });
 
