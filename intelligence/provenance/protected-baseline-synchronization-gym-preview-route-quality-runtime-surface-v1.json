@@ -89,6 +89,14 @@
       "tree": "9a946e46903c84297a82c42268bf2a2c281a5c49",
       "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
       "subject": "test(intelligence): preserve extensible gym successor order"
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "54dc041ea3dc1fef681ae5412f80d9cc9dfa52f6",
+      "parent": "5fb83893b408d8b4daa9e7d26ad04bb294884b10",
+      "tree": "2ac627660b2947d1506228acc4e436202d6e492f",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: govern gym preview regression path"
     }
   ],
   "protectedSourceTransitions": [
@@ -181,6 +189,15 @@
       "subject": "test(intelligence): preserve extensible gym successor order",
       "previousSha256": "a72e0c2efc4a59441e16b20761a3c0e11060c3e0568059f3808062c5300a697e",
       "currentSha256": "9a5d478b84dfb18396e899213f5d78a856b3f4b3693b1727aaa35fa0d1b1315f"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "54dc041ea3dc1fef681ae5412f80d9cc9dfa52f6",
+      "tree": "2ac627660b2947d1506228acc4e436202d6e492f",
+      "subject": "intelligence: govern gym preview regression path",
+      "previousSha256": "253d36e3344befe32ece26b3d16d234d5f6be18033c6fec0d33c671dac94153a",
+      "currentSha256": "29038a1374dc771735c5da91b3113c465c4964dfe4cbfa6b647a97d4202639fa"
     }
   ],
   "behavior": {
