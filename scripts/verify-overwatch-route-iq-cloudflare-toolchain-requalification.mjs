@@ -85,6 +85,8 @@ const liveCanonicalIdentityGovernancePath =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
 const gymPreviewGovernancePath =
   "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
+const dashboardVisualGovernancePath =
+  "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json";
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -306,6 +308,33 @@ export function hasGymPreviewPublicRollbackBuildSourceSuccessor({
     && successor?.productionDeploymentAuthorized === false;
 }
 
+export function hasDashboardVisualPublicRollbackBuildSourceSuccessor({
+  governance,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const ownerCommit = governance?.implementationCommits?.find(entry =>
+    entry.commit === "441e4f2c829c0eb5d04078711314d9481d4ccbd4");
+  return governance?.version ===
+      "route-iq-overwatch-public-navigation-dashboard-visual-successor-v1"
+    && governance?.batchId === "BATCH-20260815-001"
+    && governance?.ownerSubsystem === "Prometheus Overwatch"
+    && governance?.status === "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR"
+    && ownerCommit?.identity ===
+      "Prometheus Infrastructure <infrastructure@prometheus.local>"
+    && ownerCommit?.subject === "infrastructure: regenerate public visual rollback"
+    && ownerCommit?.changedFiles?.includes(path)
+    && previousSha256 === sha256At(`${ownerCommit.commit}^`, path)
+    && currentSha256 === sha256At(ownerCommit.commit, path)
+    && governance?.currentContracts?.forwardRollback?.sha256 ===
+      governance?.releaseIdentities?.rollbackContractSha256
+    && governance?.releaseBoundary?.productionDeploymentAuthorized === false
+    && governance?.releaseBoundary?.productionStorageAccessAllowed === false
+    && governance?.protectedState?.productionDeployments === 0
+    && governance?.protectedState?.productionDataMutations === 0;
+}
+
 export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   const governance = readJson(governancePath);
   const report = readJson(reportPath);
@@ -323,6 +352,7 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     liveCanonicalIdentityGovernancePath
   );
   const gymPreviewGovernance = readJson(gymPreviewGovernancePath);
+  const dashboardVisualGovernance = readJson(dashboardVisualGovernancePath);
   const predecessor = readJson(
     "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json"
   );
@@ -588,19 +618,25 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     rollbackLockAttestationCommit);
   const rollbackBuildSourcePath = "scripts/lib/route-iq-public-forward-rollback.mjs";
   const rollbackBuildSourceCurrentSha256 = sha256(rollbackBuildSourcePath);
+  const gymPreviewRollbackSuccessor =
+    gymPreviewGovernance.toolchainReleaseReproducibilitySuccessor;
   assert.equal(
-    governance.releaseReproducibilityRepair.changedPathSha256 ===
-      rollbackBuildSourceCurrentSha256
-    || hasGymPreviewPublicRollbackBuildSourceSuccessor({
+    hasGymPreviewPublicRollbackBuildSourceSuccessor({
       governance: gymPreviewGovernance,
       path: rollbackBuildSourcePath,
       previousSha256: governance.releaseReproducibilityRepair.changedPathSha256,
-      currentSha256: rollbackBuildSourceCurrentSha256
-    }),
+      currentSha256: gymPreviewRollbackSuccessor.currentSha256
+    }) && (
+      rollbackBuildSourceCurrentSha256 === gymPreviewRollbackSuccessor.currentSha256
+      || hasDashboardVisualPublicRollbackBuildSourceSuccessor({
+        governance: dashboardVisualGovernance,
+        path: rollbackBuildSourcePath,
+        previousSha256: gymPreviewRollbackSuccessor.currentSha256,
+        currentSha256: rollbackBuildSourceCurrentSha256
+      })
+    ),
     true
   );
-  const gymPreviewRollbackSuccessor =
-    gymPreviewGovernance.toolchainReleaseReproducibilitySuccessor;
   assert.equal(sha256At(`${gymPreviewRollbackSuccessor.ownerCommit}^`,
     rollbackBuildSourcePath), gymPreviewRollbackSuccessor.previousSha256);
   assert.equal(sha256At(gymPreviewRollbackSuccessor.ownerCommit,
@@ -805,8 +841,18 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   assert.equal(sha256At(gymPreviewRollbackSuccessor.ownerCommit,
     gymPreviewRollbackSuccessor.rollbackContractPath),
     gymPreviewRollbackSuccessor.rollbackContractSha256);
+  const dashboardVisualRollbackOwner = dashboardVisualGovernance.implementationCommits
+    .find(entry => entry.commit === "441e4f2c829c0eb5d04078711314d9481d4ccbd4");
+  assert.ok(dashboardVisualRollbackOwner.changedFiles.includes(
+    gymPreviewRollbackSuccessor.rollbackContractPath));
+  assert.equal(sha256At(`${dashboardVisualRollbackOwner.commit}^`,
+    gymPreviewRollbackSuccessor.rollbackContractPath),
+  gymPreviewRollbackSuccessor.rollbackContractSha256);
+  assert.equal(sha256At(dashboardVisualRollbackOwner.commit,
+    gymPreviewRollbackSuccessor.rollbackContractPath),
+  dashboardVisualGovernance.releaseIdentities.rollbackContractSha256);
   assert.equal(sha256(gymPreviewRollbackSuccessor.rollbackContractPath),
-    gymPreviewRollbackSuccessor.rollbackContractSha256);
+    dashboardVisualGovernance.releaseIdentities.rollbackContractSha256);
   assert.deepEqual(git(
     "log", "--format=%H", "--reverse", `${startCommit}..${head}`, "--",
     privateDeploymentContractPath

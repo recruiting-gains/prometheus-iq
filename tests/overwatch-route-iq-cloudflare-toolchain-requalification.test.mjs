@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  hasDashboardVisualPublicRollbackBuildSourceSuccessor,
   hasGymPreviewPublicRollbackBuildSourceSuccessor,
   verifyCloudflareToolchainPackageSuccessor,
   verifyCloudflareToolchainRepositoryContext,
@@ -74,6 +75,42 @@ test("toolchain qualification composes only the exact gym preview rollback sourc
       }
     }
   ]) assert.equal(hasGymPreviewPublicRollbackBuildSourceSuccessor(candidate), false);
+});
+
+test("toolchain qualification composes only the exact Dashboard visual rollback source", () => {
+  const governance = JSON.parse(readFileSync(
+    new URL(
+      "../overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json",
+      import.meta.url
+    ),
+    "utf8"
+  ));
+  const input = {
+    governance,
+    path: "scripts/lib/route-iq-public-forward-rollback.mjs",
+    previousSha256:
+      "ef06ab00ed5d069b9f05307d438231189481f897f933c60d1a80b83fb2a23dd1",
+    currentSha256:
+      "f6b56aed5ee2ff0251c501db24910944fb354dd5f30811f3c1efac806aab78ba"
+  };
+  assert.equal(hasDashboardVisualPublicRollbackBuildSourceSuccessor(input), true);
+  for (const candidate of [
+    { ...input, path: "scripts/unapproved.mjs" },
+    { ...input, previousSha256: "0".repeat(64) },
+    { ...input, currentSha256: "0".repeat(64) },
+    {
+      ...input,
+      governance: {
+        ...governance,
+        releaseBoundary: {
+          ...governance.releaseBoundary,
+          productionDeploymentAuthorized: true
+        }
+      }
+    }
+  ]) {
+    assert.equal(hasDashboardVisualPublicRollbackBuildSourceSuccessor(candidate), false);
+  }
 });
 
 test("exact hosted detached checkout remains bound to main, SHA, and origin/main", () => {
