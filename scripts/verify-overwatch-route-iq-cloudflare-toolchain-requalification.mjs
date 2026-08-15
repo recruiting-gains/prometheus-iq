@@ -17,7 +17,8 @@ import {
 } from "./verify-overwatch-route-iq-august-1-launch-readiness.mjs";
 import {
   hasGovernedLearningPayloadInfrastructureSuccessor,
-  hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor
+  hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor,
+  hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor
 } from "./verify-overwatch-github-actions-private-worker-deployment.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -46,6 +47,8 @@ const activeDeploymentPolicyTree = "fcc850958e92d1f75eece476d6047b58972249d0";
 const governedLearningPayloadCommit = "a80916d6281b3e584de46508d9d4b2e08f582391";
 const outcomeSemanticIntegrityPayloadCommit =
   "9c85a32f296eb44cff59cf101615e133960fdd93";
+const dashboardVisualDeployParityCommit =
+  "6f77e2ae856e3bc90d3a44e1b0c53fc302dd2741";
 const activePolicyQualificationCommit = "ab081a9e9f56f4db87d20c6b02aecf082b96ac4b";
 const activePolicyQualificationTree = "6b77b299971a860ae40c0207c83c588674f352d2";
 const verificationCompositionRepairCommit = "057ae93b538fb26f95193530914830d3633852d8";
@@ -678,6 +681,14 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
         path,
         previousSha256: expected,
         currentSha256: actual
+      })
+      || hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+        governance: privateWorkflowGovernance,
+        path,
+        previousSha256: privateWorkflowGovernance
+          .dashboardVisualDeployParitySuccessor.evidence
+          .find(evidence => evidence.path === path)?.previousSha256,
+        currentSha256: actual
       }), true, path);
   }
   assert.equal(activePolicy.historicalRecordsRewritten, false);
@@ -859,7 +870,8 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   ).split("\n"), [
     activeDeploymentPolicyCommit,
     governedLearningPayloadCommit,
-    outcomeSemanticIntegrityPayloadCommit
+    outcomeSemanticIntegrityPayloadCommit,
+    dashboardVisualDeployParityCommit
   ]);
   assert.equal(sha256At(activeDeploymentPolicyCommit, privateDeploymentContractPath),
     activePolicy.currentEvidence[privateDeploymentContractPath]);
@@ -889,6 +901,18 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     sha256At(`${outcomeSemanticIntegrityPayloadCommit}^`,
       privateDeploymentContractPath),
     outcomeSemanticContractEvidence.previousSha256
+  );
+  const dashboardVisualDeployParityEvidence = privateWorkflowGovernance
+    .dashboardVisualDeployParitySuccessor.evidence.find(
+      item => item.path === privateDeploymentContractPath
+    );
+  assert.equal(
+    sha256At(dashboardVisualDeployParityCommit, privateDeploymentContractPath),
+    dashboardVisualDeployParityEvidence.successorSha256
+  );
+  assert.equal(
+    sha256At(`${dashboardVisualDeployParityCommit}^`, privateDeploymentContractPath),
+    dashboardVisualDeployParityEvidence.previousSha256
   );
   assert.equal(git("diff", "--name-only", startCommit,
     augustReadinessPublicVerifierFixtureRepairCommit, "--", ".github/workflows"), "");
