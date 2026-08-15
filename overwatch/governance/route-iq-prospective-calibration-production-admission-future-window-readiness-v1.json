@@ -68,7 +68,9 @@
     {"commit":"b837bf39676732f75fec599b8c939c387f213eef","tree":"e137e4e363ca83e0d3c38249541620a1bb812e42","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: advance calibration private lineage"},
     {"commit":"4d5b9e22ee4e4ba72064c88d694c8e663b06732e","tree":"275976b88aedbc5d2b1e4de9bdc4fc5b6778e2ca","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: reconcile calibration private fixture"},
     {"commit":"4a9537b8e65d109fea53032f1782996ec655faa3","tree":"3e972938e5336ac34b8d50bfca485b6a37e559fe","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: compose calibration architecture successor"},
-    {"commit":"8c722dd4927b8f281d115f665bf1b6865269f93e","tree":"d1ae35adf50c5092f6b7e1c79225d9681a580da1","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: bind calibration architecture lineage"}
+    {"commit":"8c722dd4927b8f281d115f665bf1b6865269f93e","tree":"d1ae35adf50c5092f6b7e1c79225d9681a580da1","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: bind calibration architecture lineage"},
+    {"commit":"efdc2ec9290ec32c0531c1782bc74d4d87712a45","tree":"6c4581144eeadffbd948b03e8982dd985d57cbe8","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: compose calibration hosted provenance"},
+    {"commit":"baf7973cd2d09e2b0786f6714b3d6e187ff2ec81","tree":"77a80ad1c22299ec236931f51c587db997cca1c5","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: admit exact hosted detached checkout"}
   ],
   "criticalPins": [
     {"path":"data/route-iq-field-sessions-v1/route-iq-prospective-production-retention-admission.mjs","sha256":"aee7ebc4772621081ce405defd56eba3783c35ec5ef3f0919eadba5b9d24628d"},
