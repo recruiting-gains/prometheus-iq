@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -24,6 +25,7 @@ import {
 } from "../scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs";
 import {
   evaluateFounderAttendedFreshAttemptEvidenceRotationGovernance,
+  verifyManualIsolatedGymPreviewWorkflow,
   verifyOverwatchFounderAttendedFreshAttemptEvidenceRotation
 } from "../scripts/verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs";
 
@@ -115,6 +117,48 @@ test("Overwatch independently verifies immutable fresh-attempt rotation", () => 
   assert.equal(result.deploymentPerformed, false);
   assert.equal(result.nextSafeCommand,
     "node scripts/run-cloudflare-founder-attended-create-receipt-v2-get-only.mjs");
+});
+
+test("fresh-attempt deployment guard admits only the exact manual isolated gym preview", () => {
+  const path = ".github/workflows/preview-prometheus-route-iq-gym-first.yml";
+  const source = readFileSync(resolve(root, path), "utf8");
+  const previewGovernance = readJson(
+    "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json"
+  );
+  const config = readJson("wrangler.prometheusrouteiq-website-gym-preview.jsonc");
+  const input = { path, source, governance: previewGovernance, config };
+  assert.equal(verifyManualIsolatedGymPreviewWorkflow(input), true);
+
+  const mutateSource = mutation => {
+    const changed = structuredClone(input);
+    changed.source = mutation(changed.source);
+    changed.governance.founderAttendedAutomaticDeploymentGuardSuccessor.workflowSha256 =
+      createHash("sha256").update(changed.source).digest("hex");
+    return changed;
+  };
+  const candidates = [
+    mutateSource(value => value.replace("  workflow_dispatch:\n", "  push:\n  workflow_dispatch:\n")),
+    mutateSource(value => value.replace(
+      "--name prometheusrouteiq-website-gym-preview 2>&1",
+      "--name prometheusrouteiq-website 2>&1"
+    )),
+    mutateSource(value => value.replace("github.triggering_actor == 'PrometheusRouteIQ' &&\n", "")),
+    mutateSource(value => `${value}\n          npx wrangler deploy --config wrangler.prometheusrouteiq-website-gym-preview.jsonc --name prometheusrouteiq-website-gym-preview\n`),
+    (() => {
+      const changed = structuredClone(input);
+      changed.config.workers_dev = false;
+      return changed;
+    })(),
+    (() => {
+      const changed = structuredClone(input);
+      changed.governance.founderAttendedAutomaticDeploymentGuardSuccessor
+        .productionWorkerDeploymentAllowed = true;
+      return changed;
+    })()
+  ];
+  for (const changed of candidates) {
+    assert.throws(() => verifyManualIsolatedGymPreviewWorkflow(changed));
+  }
 });
 
 test("Overwatch independently exercises abandoned-attempt isolation and latest selection", t => {

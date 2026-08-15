@@ -21,6 +21,7 @@ import {
   verifyCloudflareFounderAttendedSuccessfulResponseReconciliation
 } from "./verify-cloudflare-founder-attended-successful-response-reconciliation.mjs";
 import {
+  verifyManualIsolatedGymPreviewWorkflow,
   verifyOverwatchFounderAttendedFreshAttemptEvidenceRotation
 } from "./verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs";
 import {
@@ -1086,10 +1087,23 @@ function verifyReleaseWiring(governance) {
 function verifyNoAutomaticDeployment() {
   const workflowPaths = git(["ls-files", ".github/workflows"])
     .split("\n").filter(Boolean);
+  const gymPreviewGovernance = readJson(
+    "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json"
+  );
+  const gymPreviewConfig = readJson("wrangler.prometheusrouteiq-website-gym-preview.jsonc");
   for (const path of workflowPaths) {
     const source = read(path);
-    if (/wrangler\s+(?:deploy|versions\s+upload|versions\s+deploy)|cloudflare.*deploy/iu
-      .test(source)) {
+    if (!/wrangler\s+(?:deploy|versions\s+upload|versions\s+deploy)|cloudflare.*deploy/iu
+      .test(source)) continue;
+    if (path === gymPreviewGovernance.founderAttendedAutomaticDeploymentGuardSuccessor
+      .workflowPath) {
+      verifyManualIsolatedGymPreviewWorkflow({
+        path,
+        source,
+        governance: gymPreviewGovernance,
+        config: gymPreviewConfig
+      });
+    } else {
       throw new Error(`Push may trigger deployment: ${path}`);
     }
   }

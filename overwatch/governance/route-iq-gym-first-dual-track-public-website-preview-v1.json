@@ -151,6 +151,21 @@
     "schedulerAdded": false,
     "productionDeploymentAuthorized": false
   },
+  "founderAttendedAutomaticDeploymentGuardSuccessor": {
+    "classification": "MANUAL_ISOLATED_GYM_PREVIEW_WORKFLOW_SUCCESSOR",
+    "historicalGuardPath": "scripts/verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs",
+    "workflowPath": ".github/workflows/preview-prometheus-route-iq-gym-first.yml",
+    "workflowSha256": "0d9da8ced5b963a662076404d723823e2331cb8094fa6b10b6e99ec313eaacc5",
+    "workflowOwnerCommit": "919092f0700ac43fb507dc32111ad2e9d1e9d2e0",
+    "onlyTrigger": "workflow_dispatch",
+    "exactWorkerName": "prometheusrouteiq-website-gym-preview",
+    "exactConfigPath": "wrangler.prometheusrouteiq-website-gym-preview.jsonc",
+    "previewOnly": true,
+    "productionWorkerDeploymentAllowed": false,
+    "privateWorkerDeploymentAllowed": false,
+    "productionRoutesAllowed": false,
+    "productionDataAccessAllowed": false
+  },
   "productionBaseline": {
     "publicWorker": "prometheusrouteiq-website",
     "publicVersion": "77f59977-44bc-461c-b835-435bfa14c1c9",

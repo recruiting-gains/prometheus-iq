@@ -23,6 +23,9 @@ const keychainInteroperabilityGovernancePath =
 const reportPath =
   "overwatch/reports/BATCH-20260715-006-cloudflare-founder-attended-fresh-attempt-evidence-rotation.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
+const gymPreviewGovernancePath =
+  "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
+const gymPreviewConfigPath = "wrangler.prometheusrouteiq-website-gym-preview.jsonc";
 const initialOwnerCommit = "20e367ccd815f059adcdfa241f34a66c0a28675b";
 const initialOwnerParent = "4fbd3030c980a7e17230654dfe2ece0766793436";
 const initialOwnerTree = "becaa26ef02f7973d2c43fd241a8902ce44e9f7f";
@@ -465,12 +468,112 @@ function verifyCanonicalRegistration() {
   }
 }
 
+export function verifyManualIsolatedGymPreviewWorkflow({
+  path,
+  source,
+  governance,
+  config
+}) {
+  const successor = governance?.founderAttendedAutomaticDeploymentGuardSuccessor;
+  if (governance?.batchId !== "BATCH-20260814-002"
+    || governance?.ownerSubsystem !== "Prometheus Overwatch"
+    || successor?.classification !== "MANUAL_ISOLATED_GYM_PREVIEW_WORKFLOW_SUCCESSOR"
+    || successor?.historicalGuardPath !==
+      "scripts/verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs"
+    || successor?.workflowPath !== path
+    || successor?.workflowSha256 !== sha256(source)
+    || successor?.workflowOwnerCommit !== "919092f0700ac43fb507dc32111ad2e9d1e9d2e0"
+    || successor?.onlyTrigger !== "workflow_dispatch"
+    || successor?.exactWorkerName !== "prometheusrouteiq-website-gym-preview"
+    || successor?.exactConfigPath !== gymPreviewConfigPath
+    || successor?.previewOnly !== true
+    || successor?.productionWorkerDeploymentAllowed !== false
+    || successor?.privateWorkerDeploymentAllowed !== false
+    || successor?.productionRoutesAllowed !== false
+    || successor?.productionDataAccessAllowed !== false) {
+    throw new Error("Isolated preview workflow governance drifted.");
+  }
+
+  const triggerEnd = source.indexOf("permissions:\n");
+  const trigger = source.slice(source.indexOf("on:\n"), triggerEnd);
+  const triggerNames = [...trigger.matchAll(/^  ([a-z_]+):$/gmu)].map(match => match[1]);
+  if (!equal(triggerNames, ["workflow_dispatch"])) {
+    throw new Error("Isolated preview workflow trigger drifted.");
+  }
+  for (const forbidden of [
+    "push:", "pull_request:", "schedule:", "repository_dispatch:", "workflow_call:"
+  ]) {
+    if (trigger.includes(forbidden)) {
+      throw new Error("Isolated preview workflow gained an automatic trigger.");
+    }
+  }
+  for (const required of [
+    "name: Preview Prometheus Route IQ Gym First",
+    "name: Deploy the exact isolated gym preview once"
+  ]) {
+    if (!source.includes(required)) throw new Error(`Isolated preview workflow gate missing: ${required}`);
+  }
+  for (const gate of [
+    "github.event_name == 'workflow_dispatch'",
+    "github.actor == 'PrometheusRouteIQ'",
+    "github.triggering_actor == 'PrometheusRouteIQ'",
+    "github.ref == 'refs/heads/main'",
+    "github.sha == inputs.candidate_commit",
+    "inputs.batch_id == 'BATCH-20260814-002'",
+    "github.run_attempt == 1"
+  ]) {
+    if (source.split(gate).length - 1 !== 2) {
+      throw new Error(`Isolated preview workflow dual-job gate drifted: ${gate}`);
+    }
+  }
+  const invocations = source.split(/\r?\n/u)
+    .map(line => line.trim())
+    .filter(line => line.startsWith("npx wrangler deploy "));
+  if (invocations.length !== 2
+    || invocations.filter(line => line.includes(" --dry-run ")).length !== 1
+    || invocations.filter(line => !line.includes(" --dry-run ")).length !== 1) {
+    throw new Error("Isolated preview workflow deployment count drifted.");
+  }
+  for (const invocation of invocations) {
+    if (!invocation.includes(`--config ${successor.exactConfigPath}`)
+      || !invocation.match(new RegExp(`--name ${successor.exactWorkerName}(?:\\s|$)`, "u"))
+      || /--route(?:s)?(?:\s|=)|--env(?:\s|=)/u.test(invocation)
+      || /--name prometheus-iq(?:\s|$)|--name prometheusrouteiq-website(?:\s|$)/u
+        .test(invocation)) {
+      throw new Error("Isolated preview workflow target drifted.");
+    }
+  }
+  if (config?.name !== successor.exactWorkerName
+    || config?.workers_dev !== true
+    || config?.preview_urls !== false
+    || config?.assets?.binding !== "ASSETS"
+    || Object.keys(config).some(key => [
+      "routes", "route", "durable_objects", "kv_namespaces", "d1_databases",
+      "r2_buckets", "queues", "services", "vars"
+    ].includes(key))) {
+    throw new Error("Isolated preview Worker configuration drifted.");
+  }
+  return true;
+}
+
 function verifyNoAutomaticDeployment() {
   const workflowPaths = git(["ls-files", ".github/workflows"])
     .split("\n").filter(Boolean);
+  const gymPreviewGovernance = readJson(gymPreviewGovernancePath);
+  const gymPreviewConfig = readJson(gymPreviewConfigPath);
   for (const path of workflowPaths) {
-    if (/wrangler\s+(?:deploy|versions\s+upload|versions\s+deploy)|cloudflare.*deploy/iu
-      .test(read(path))) {
+    const source = read(path);
+    if (!/wrangler\s+(?:deploy|versions\s+upload|versions\s+deploy)|cloudflare.*deploy/iu
+      .test(source)) continue;
+    if (path === gymPreviewGovernance.founderAttendedAutomaticDeploymentGuardSuccessor
+      .workflowPath) {
+      verifyManualIsolatedGymPreviewWorkflow({
+        path,
+        source,
+        governance: gymPreviewGovernance,
+        config: gymPreviewConfig
+      });
+    } else {
       throw new Error(`Push may trigger deployment: ${path}`);
     }
   }
