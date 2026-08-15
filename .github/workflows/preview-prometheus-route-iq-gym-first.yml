@@ -91,6 +91,8 @@ jobs:
           node --test tests/crm-route-iq-gym-request-contract.test.mjs
           node --test tests/route-iq-request-crm-infrastructure.test.mjs
           node --test tests/route-iq-gym-website-preview-infrastructure.test.mjs
+          node scripts/verify-overwatch-route-iq-gym-first-dual-track-public-website-preview-v1.mjs
+          node --test tests/overwatch-route-iq-gym-first-dual-track-public-website-preview-v1.test.mjs
 
       - name: Run full relevant repository qualification
         run: |
