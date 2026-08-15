@@ -26,6 +26,7 @@ import {
   hasGovernedLearningProtectedConsumerCompositionSuccessor,
   hasGovernedLearningPayloadInfrastructureSuccessor,
   hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor,
+  hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor,
   hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor,
   hasProspectiveCalibrationSourceQualificationGuardSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
@@ -251,6 +252,53 @@ test("private Workflow v2 composes only the exact dashboard visual-identity sour
         successor: candidate
       }));
   }
+});
+
+test("private Workflow v2 admits only the Infrastructure-owned dashboard deploy-parity successor", () => {
+  const path = "scripts/lib/github-actions-private-worker-workflow-v2.mjs";
+  const input = {
+    governance: governanceV2,
+    path,
+    previousSha256:
+      "37734d9d66d9cb5039c5d55070ea0c13cfb68f67bd46989e6942e32e84938bde",
+    currentSha256:
+      "f0e821b5bed6cb1caf354cc0910d9e565b04ee557a1462797734905800c3e387"
+  };
+  assert.equal(
+    hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor(input),
+    true
+  );
+  for (const mutate of [
+    value => { value.dashboardVisualDeployParitySuccessor.authorization = "BATCH-X"; },
+    value => {
+      value.dashboardVisualDeployParitySuccessor.implementationOwner =
+        "Prometheus Overwatch <overwatch@prometheus.local>";
+    },
+    value => {
+      value.dashboardVisualDeployParitySuccessor.deployParitySha256 = "0".repeat(64);
+    },
+    value => {
+      value.dashboardVisualDeployParitySuccessor.protectedState.collection = "ON";
+    },
+    value => {
+      value.dashboardVisualDeployParitySuccessor.evidence[0].successorSha256 =
+        "0".repeat(64);
+    }
+  ]) {
+    const candidate = clone(governanceV2);
+    mutate(candidate);
+    assert.equal(
+      hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+        ...input,
+        governance: candidate
+      }),
+      false
+    );
+  }
+  assert.equal(hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+    ...input,
+    path: "workers/infrastructure/not-governed.json"
+  }), false);
 });
 
 test("private Workflow v2 accepts only the owner-authored unqualified-artifact guard", () => {
@@ -1636,6 +1684,15 @@ test("private Workflow v2 governance rejects controlled-rehearsal successor drif
     },
     value => {
       value.outcomeSemanticIntegrityPayloadSuccessor.deploymentAuthorized = true;
+    },
+    value => {
+      value.dashboardVisualDeployParitySuccessor.implementationCommit = "0".repeat(40);
+    },
+    value => {
+      value.dashboardVisualDeployParitySuccessor.deployParitySha256 = "0".repeat(64);
+    },
+    value => {
+      value.dashboardVisualDeployParitySuccessor.protectedState.collection = "ON";
     }
   ]) {
     const candidate = clone(governanceV2);

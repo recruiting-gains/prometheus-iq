@@ -2030,6 +2030,45 @@
       }
     ]
   },
+  "dashboardVisualDeployParitySuccessor": {
+    "authorization": "BATCH-20260815-001",
+    "historicalContinuityRewritten": false,
+    "productionMutationAuthorized": false,
+    "deploymentAuthorized": false,
+    "implementationCommit": "6f77e2ae856e3bc90d3a44e1b0c53fc302dd2741",
+    "implementationParent": "aeb860ae62dae931b45d6bbc49e00ece55a55417",
+    "implementationTree": "0a112e2d2cbb722c47035a82470f317e50aa5e1d",
+    "implementationOwner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "implementationSubject": "infrastructure: align private dashboard visual parity",
+    "previousDeployParitySha256": "e501b84ec1fab67f84d021041f80bc08030596be35181d8eb129a96ef6609a83",
+    "deployParitySha256": "f8b9e9560152d5c4aaefebcb949f4259940731db739af1adcc358208301810ed",
+    "qualifiedForwardPayloadSha256": "129d2e93d5d3a0ae538f3eb1e5c1982bcf658b5b05d2da1d8f23bf8e1540e52b",
+    "qualifiedRollbackBundleSha256": "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028",
+    "evidence": [
+      {
+        "path": "scripts/lib/github-actions-private-worker-workflow-v2.mjs",
+        "previousSha256": "37734d9d66d9cb5039c5d55070ea0c13cfb68f67bd46989e6942e32e84938bde",
+        "successorSha256": "f0e821b5bed6cb1caf354cc0910d9e565b04ee557a1462797734905800c3e387"
+      },
+      {
+        "path": "tests/github-actions-private-worker-workflow-v2.test.mjs",
+        "previousSha256": "27469994b9f29a76e39c9165a30f1c4d82b627c11453adc00c22358815c864c8",
+        "successorSha256": "8e32bc665a66e2ffa3f8152a820510c3870e63b5b34e0e20abe89ea92f1722ee"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
+        "previousSha256": "874f5955727fab02d292e90afc6e3964f47d0b9ccda80db25b2e0477135e09a1",
+        "successorSha256": "2abd62d4f1921f93f0432bbb45ff57100afffdb905f34354bf8df10e843f360e"
+      }
+    ],
+    "protectedState": {
+      "collection": "OFF",
+      "activeCohorts": 0,
+      "recommendationInfluence": "OFF",
+      "productionDeployments": 0,
+      "productionMutations": 0
+    }
+  },
   "workflowBoundary": {
     "qualificationWorkflow": "Qualify Prometheus Private Worker v2",
     "deploymentWorkflow": "Deploy Prometheus Private Worker v2",

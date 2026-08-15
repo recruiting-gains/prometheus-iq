@@ -458,6 +458,27 @@ const v2OutcomeSemanticIntegrityPayloadSuccessorEvidence = Object.freeze({
       successorSha256: "874f5955727fab02d292e90afc6e3964f47d0b9ccda80db25b2e0477135e09a1"
   })
 });
+const v2DashboardVisualDeployParitySuccessorCommit =
+  "6f77e2ae856e3bc90d3a44e1b0c53fc302dd2741";
+const v2DashboardVisualDeployParitySuccessorParent =
+  "aeb860ae62dae931b45d6bbc49e00ece55a55417";
+const v2DashboardVisualDeployParitySuccessorTree =
+  "0a112e2d2cbb722c47035a82470f317e50aa5e1d";
+const v2DashboardVisualDeployParitySuccessorEvidence = Object.freeze({
+  "scripts/lib/github-actions-private-worker-workflow-v2.mjs": Object.freeze({
+    previousSha256: "37734d9d66d9cb5039c5d55070ea0c13cfb68f67bd46989e6942e32e84938bde",
+    successorSha256: "f0e821b5bed6cb1caf354cc0910d9e565b04ee557a1462797734905800c3e387"
+  }),
+  "tests/github-actions-private-worker-workflow-v2.test.mjs": Object.freeze({
+    previousSha256: "27469994b9f29a76e39c9165a30f1c4d82b627c11453adc00c22358815c864c8",
+    successorSha256: "8e32bc665a66e2ffa3f8152a820510c3870e63b5b34e0e20abe89ea92f1722ee"
+  }),
+  "workers/infrastructure/github-actions-private-worker-deployment-v2.json":
+    Object.freeze({
+      previousSha256: "874f5955727fab02d292e90afc6e3964f47d0b9ccda80db25b2e0477135e09a1",
+      successorSha256: "2abd62d4f1921f93f0432bbb45ff57100afffdb905f34354bf8df10e843f360e"
+    })
+});
 const v2ProspectiveCalibrationSourceGuardCommit =
   "2d4d9e1da5f64c4de7977016e58969b0dc5e8951";
 const v2ProspectiveCalibrationSourceGuardParent =
@@ -2397,6 +2418,86 @@ export function hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
     ])
       && equal(paths, successor.evidence.map(item => item.path).sort())
       && sha256(previous) === evidence[0].previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
+
+export function hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+  governance,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const successor = governance?.dashboardVisualDeployParitySuccessor;
+  const evidence = successor?.evidence?.filter(item => item.path === path) ?? [];
+  if (governance?.governanceId !==
+      "github-actions-private-worker-deployment-governance-v2"
+    || governance?.owningSubsystem !== "Prometheus Overwatch"
+    || successor?.authorization !== "BATCH-20260815-001"
+    || successor?.implementationCommit !==
+      v2DashboardVisualDeployParitySuccessorCommit
+    || successor?.implementationParent !==
+      v2DashboardVisualDeployParitySuccessorParent
+    || successor?.implementationTree !==
+      v2DashboardVisualDeployParitySuccessorTree
+    || successor?.implementationOwner !== infrastructureIdentity
+    || successor?.implementationSubject !==
+      "infrastructure: align private dashboard visual parity"
+    || successor?.historicalContinuityRewritten !== false
+    || successor?.productionMutationAuthorized !== false
+    || successor?.deploymentAuthorized !== false
+    || successor?.previousDeployParitySha256 !==
+      "e501b84ec1fab67f84d021041f80bc08030596be35181d8eb129a96ef6609a83"
+    || successor?.deployParitySha256 !==
+      "f8b9e9560152d5c4aaefebcb949f4259940731db739af1adcc358208301810ed"
+    || successor?.qualifiedForwardPayloadSha256 !==
+      "129d2e93d5d3a0ae538f3eb1e5c1982bcf658b5b05d2da1d8f23bf8e1540e52b"
+    || successor?.qualifiedRollbackBundleSha256 !==
+      "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028"
+    || successor?.protectedState?.collection !== "OFF"
+    || successor?.protectedState?.activeCohorts !== 0
+    || successor?.protectedState?.recommendationInfluence !== "OFF"
+    || successor?.protectedState?.productionDeployments !== 0
+    || successor?.protectedState?.productionMutations !== 0
+    || !equal(successor?.evidence,
+      Object.entries(v2DashboardVisualDeployParitySuccessorEvidence).map(
+        ([evidencePath, item]) => ({ path: evidencePath, ...item })
+      ))
+    || evidence.length !== 1
+    || evidence[0].previousSha256 !== previousSha256
+    || evidence[0].successorSha256 !== currentSha256) {
+    return false;
+  }
+  try {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      successor.implementationCommit
+    ]).split("\n");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      successor.implementationCommit
+    ]).split("\n").filter(Boolean);
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${successor.implementationParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${successor.implementationCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor", successor.implementationCommit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return equal(fields, [
+      successor.implementationCommit,
+      successor.implementationParent,
+      successor.implementationTree,
+      infrastructureIdentity,
+      infrastructureIdentity,
+      successor.implementationSubject
+    ])
+      && equal(paths, successor.evidence.map(item => item.path).sort())
+      && sha256(previous) === previousSha256
       && sha256(current) === currentSha256;
   } catch {
     return false;
@@ -4786,8 +4887,50 @@ export function evaluateGithubActionsPrivateWorkerV2Governance({
       Object.entries(v2OutcomeSemanticIntegrityPayloadSuccessorEvidence).map(
         ([path, evidence]) => ({ path, ...evidence })
       ))
-    && contract?.continuity?.privateDeployParitySha256 ===
+    && governance?.dashboardVisualDeployParitySuccessor?.authorization ===
+      "BATCH-20260815-001"
+    && governance?.dashboardVisualDeployParitySuccessor
+      ?.historicalContinuityRewritten === false
+    && governance?.dashboardVisualDeployParitySuccessor
+      ?.productionMutationAuthorized === false
+    && governance?.dashboardVisualDeployParitySuccessor?.deploymentAuthorized === false
+    && governance?.dashboardVisualDeployParitySuccessor?.implementationCommit ===
+      v2DashboardVisualDeployParitySuccessorCommit
+    && governance?.dashboardVisualDeployParitySuccessor?.implementationParent ===
+      v2DashboardVisualDeployParitySuccessorParent
+    && governance?.dashboardVisualDeployParitySuccessor?.implementationTree ===
+      v2DashboardVisualDeployParitySuccessorTree
+    && governance?.dashboardVisualDeployParitySuccessor?.implementationOwner ===
+      infrastructureIdentity
+    && governance?.dashboardVisualDeployParitySuccessor?.implementationSubject ===
+      "infrastructure: align private dashboard visual parity"
+    && governance?.dashboardVisualDeployParitySuccessor?.previousDeployParitySha256 ===
       governance?.outcomeSemanticIntegrityPayloadSuccessor?.deployParitySha256
+    && governance?.dashboardVisualDeployParitySuccessor?.deployParitySha256 ===
+      "f8b9e9560152d5c4aaefebcb949f4259940731db739af1adcc358208301810ed"
+    && governance?.dashboardVisualDeployParitySuccessor
+      ?.qualifiedForwardPayloadSha256 ===
+      governance?.outcomeSemanticIntegrityPayloadSuccessor?.qualifiedForwardPayloadSha256
+    && governance?.dashboardVisualDeployParitySuccessor
+      ?.qualifiedRollbackBundleSha256 ===
+      governance?.outcomeSemanticIntegrityPayloadSuccessor
+        ?.qualifiedRollbackBundleSha256
+    && governance?.dashboardVisualDeployParitySuccessor?.protectedState?.collection ===
+      "OFF"
+    && governance?.dashboardVisualDeployParitySuccessor
+      ?.protectedState?.activeCohorts === 0
+    && governance?.dashboardVisualDeployParitySuccessor
+      ?.protectedState?.recommendationInfluence === "OFF"
+    && governance?.dashboardVisualDeployParitySuccessor
+      ?.protectedState?.productionDeployments === 0
+    && governance?.dashboardVisualDeployParitySuccessor
+      ?.protectedState?.productionMutations === 0
+    && equal(governance?.dashboardVisualDeployParitySuccessor?.evidence,
+      Object.entries(v2DashboardVisualDeployParitySuccessorEvidence).map(
+        ([path, evidence]) => ({ path, ...evidence })
+      ))
+    && contract?.continuity?.privateDeployParitySha256 ===
+      governance?.dashboardVisualDeployParitySuccessor?.deployParitySha256
     && contract?.continuity?.qualifiedForwardPayloadSha256 ===
       governance?.outcomeSemanticIntegrityPayloadSuccessor?.qualifiedForwardPayloadSha256
     && contract?.continuity?.qualifiedRollbackBundleSha256 ===
@@ -4982,6 +5125,13 @@ function verifyActivePrivateDeploymentToolchainSuccessor() {
         readinessSuccessors,
         path,
         previousSha256: expected,
+        currentSha256
+      })
+      && !hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+        governance: privateWorkflowGovernance,
+        path,
+        previousSha256:
+          v2DashboardVisualDeployParitySuccessorEvidence[path]?.previousSha256,
         currentSha256
       })) {
       throw new Error(`Active private deployment toolchain evidence drifted: ${path}`);
@@ -5194,6 +5344,13 @@ function verifyV2OwnerAndGovernance() {
         previousSha256:
           v2OutcomeSemanticIntegrityPayloadSuccessorEvidence[path]?.successorSha256,
         currentSha256
+      })
+      || hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+        governance,
+        path,
+        previousSha256:
+          v2DashboardVisualDeployParitySuccessorEvidence[path]?.previousSha256,
+        currentSha256
       });
     if (sha256(previous) !== evidence.previousSha256
       || sha256(successor) !== evidence.successorSha256
@@ -5259,6 +5416,13 @@ function verifyV2OwnerAndGovernance() {
         previousSha256:
           v2OutcomeSemanticIntegrityPayloadSuccessorEvidence[path]?.successorSha256,
         currentSha256
+      })
+      || hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+        governance,
+        path,
+        previousSha256:
+          v2DashboardVisualDeployParitySuccessorEvidence[path]?.previousSha256,
+        currentSha256
       });
     if (sha256(previous) !== evidence.previousSha256
       || sha256(successor) !== evidence.successorSha256
@@ -5311,6 +5475,13 @@ function verifyV2OwnerAndGovernance() {
       || hasProspectiveCalibrationSourceQualificationGuardSuccessor({
         path,
         previousSha256: evidence.successorSha256,
+        currentSha256
+      })
+      || hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+        governance,
+        path,
+        previousSha256:
+          v2DashboardVisualDeployParitySuccessorEvidence[path]?.previousSha256,
         currentSha256
       });
     if (sha256(previous) !== evidence.previousSha256
@@ -6807,6 +6978,13 @@ function verifyV2OwnerAndGovernance() {
         path,
         previousSha256:
           v2OutcomeSemanticIntegrityPayloadSuccessorEvidence[path]?.successorSha256,
+        currentSha256: candidateSha256
+      })
+      || hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+        governance,
+        path,
+        previousSha256:
+          v2DashboardVisualDeployParitySuccessorEvidence[path]?.previousSha256,
         currentSha256: candidateSha256
       })
     );
