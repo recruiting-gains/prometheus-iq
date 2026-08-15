@@ -4,8 +4,12 @@ import test from "node:test";
 
 import {
   validateDormantRetentionMaintenanceReadiness,
+  verifyRetentionMaintenancePublicRollbackSuccessor,
   verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness
 } from "../scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs";
+import {
+  PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE
+} from "../scripts/lib/route-iq-public-forward-rollback.mjs";
 import {
   dryRunRouteIqRetentionMaintenanceReleasePackage
 } from "../workers/infrastructure/route-iq-retention-maintenance-release-package.mjs";
@@ -170,6 +174,45 @@ test("historical readiness pins are extended through a linear package successor"
   const changed = structuredClone(value);
   changed.governance.historicalVerifierComposition.historicalPinsRewritten = true;
   assert.throws(() => validateDormantRetentionMaintenanceReadiness(changed));
+});
+
+test("historical public rollback evidence composes only the exact gym-preview successor", () => {
+  const gymPreviewGovernance = readJson(
+    "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json"
+  );
+  const successor = gymPreviewGovernance.toolchainReleaseReproducibilitySuccessor;
+  const input = {
+    historicalArtifactSha256:
+      "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6",
+    currentBuildSource: PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE,
+    currentSourceSha256: successor.currentSha256,
+    currentRollbackContractSha256: successor.rollbackContractSha256,
+    gymPreviewGovernance
+  };
+  assert.equal(verifyRetentionMaintenancePublicRollbackSuccessor(input), true);
+  for (const mutate of [
+    value => { value.historicalArtifactSha256 = "0".repeat(64); },
+    value => { value.currentBuildSource.artifactSha256 = "0".repeat(64); },
+    value => { value.currentSourceSha256 = "0".repeat(64); },
+    value => { value.currentRollbackContractSha256 = "0".repeat(64); },
+    value => { value.gymPreviewGovernance.batchId = "BATCH-STALE"; },
+    value => {
+      value.gymPreviewGovernance.toolchainReleaseReproducibilitySuccessor.ownerCommit =
+        "0".repeat(40);
+    },
+    value => {
+      value.gymPreviewGovernance.toolchainReleaseReproducibilitySuccessor
+        .previousRollbackBundleSha256 = "0".repeat(64);
+    },
+    value => {
+      value.gymPreviewGovernance.toolchainReleaseReproducibilitySuccessor
+        .productionDeploymentAuthorized = true;
+    }
+  ]) {
+    const changed = structuredClone(input);
+    mutate(changed);
+    assert.throws(() => verifyRetentionMaintenancePublicRollbackSuccessor(changed));
+  }
 });
 
 test("a production-reachable high advisory or forced fix blocks readiness", () => {
