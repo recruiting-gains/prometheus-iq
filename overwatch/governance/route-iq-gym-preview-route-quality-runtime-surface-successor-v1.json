@@ -1,0 +1,82 @@
+{
+  "version": "route-iq-overwatch-gym-preview-route-quality-runtime-surface-successor-v1",
+  "batchId": "BATCH-20260814-002",
+  "status": "INDEPENDENTLY_VERIFIED_PROTECTED_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "implementationProvenance": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json",
+    "sha256": "db24099b6197b064ce9dc6494625ca4ea47f618e0f60ec40767f63a59421e688"
+  },
+  "implementationCommits": [
+    {
+      "commit": "4a23b263ce9de006959c79e3271a78aef90ea8dc",
+      "tree": "0e3b957eb90346ae2cedfbc7ab74f7283220ebd8",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: include gym form in runtime evidence"
+    },
+    {
+      "commit": "1e2378a420bfc39ca1b4715af6db7eb94a0864c5",
+      "tree": "5bfe9fdea9c532def01154d03985a02981b8f7e5",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose gym runtime surface successor"
+    },
+    {
+      "commit": "a4ed5b1cce7629d9eba6bbb760b40ac50eed3afc",
+      "tree": "30706d3b25d692e8455dc16ddf38915784cff10e",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose historical runtime predecessor"
+    },
+    {
+      "commit": "945e0c9922b14b2efd1f1edeb79a6401edcb96bc",
+      "tree": "70d8210e22716eabd0e7388961c0e1deb6e27bef",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: preserve ordered gym runtime lineage"
+    },
+    {
+      "commit": "d322a443f12db73171ebffd76a87ae96e46f37ec",
+      "tree": "58532736fabf5a49b80ab6bcba5ba6ffc6c307d7",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: extend maintenance runtime lineage"
+    },
+    {
+      "commit": "519683fcafb95f643bd4156fb4125c9c5fb575ab",
+      "tree": "4a01f55612bad4ad890c146bc69eb242bb4da62b",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: record gym runtime surface provenance"
+    }
+  ],
+  "changedFiles": [
+    "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json",
+    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+    "scripts/lib/route-intelligence-quality-gate.mjs",
+    "tests/route-intelligence-quality-gate.test.mjs"
+  ],
+  "runtimeSurface": {
+    "previousFileCount": 33,
+    "currentFileCount": 34,
+    "addedFile": "src/route-iq-gym-request-form.js",
+    "dashboardFetches": 6,
+    "liveGoogleApiCalls": 0
+  },
+  "releasePreservation": {
+    "previewAssetSha256": "4a148051d9deb34f9334c31b216120ce6665d1da30865e33725fcd7de6f7cf3b",
+    "productionDeploymentAssetSha256": "6a6dde7efd17144b91f5f294cd25c7cfaaf2ff1347e637d6e692f5ed66cdab3b",
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "businessHoursEligibilityChanged": false,
+    "websiteSourceChanged": false,
+    "previewWorkflowChanged": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "shadowDecisionVisible": false,
+    "productionStorageAccess": 0,
+    "productionDeployments": 0,
+    "productionMutations": 0
+  }
+}

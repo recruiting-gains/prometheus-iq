@@ -10,12 +10,16 @@ import { pathToFileURL } from "node:url";
 import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
 import { verifyPublicForwardRollbackArtifact } from "./lib/route-iq-public-forward-rollback.mjs";
 import { hashPrometheusRouteIqGymPreviewAssets } from "../workers/infrastructure/prometheusrouteiq-website-gym-preview-assets.mjs";
+import { verifyGymPreviewRouteQualityRuntimeSurfaceSuccessor } from
+  "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 export const GYM_PREVIEW_GOVERNANCE_PATH =
   "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
 export const GYM_PREVIEW_REPORT_PATH =
   "overwatch/reports/BATCH-20260814-002-route-iq-gym-first-dual-track-public-website-preview.json";
+export const GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH =
+  "overwatch/governance/route-iq-gym-preview-route-quality-runtime-surface-successor-v1.json";
 
 const read = path => readFileSync(resolve(root, path));
 const text = path => read(path).toString("utf8");
@@ -62,6 +66,33 @@ export function validateGymPreviewGovernance(governance) {
   assert.equal(governance.protectedState.collection, "OFF");
   assert.equal(governance.protectedState.activeCohorts, 0);
   assert.equal(governance.protectedState.recommendationInfluence, "OFF");
+  return governance;
+}
+
+export function validateGymPreviewRouteQualitySuccessor(governance) {
+  assert.equal(governance.version,
+    "route-iq-overwatch-gym-preview-route-quality-runtime-surface-successor-v1");
+  assert.equal(governance.batchId, "BATCH-20260814-002");
+  assert.equal(governance.status, "INDEPENDENTLY_VERIFIED_PROTECTED_SUCCESSOR");
+  assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(governance.implementationCommits.length, 6);
+  assert.deepEqual(governance.runtimeSurface, {
+    previousFileCount: 33,
+    currentFileCount: 34,
+    addedFile: "src/route-iq-gym-request-form.js",
+    dashboardFetches: 6,
+    liveGoogleApiCalls: 0
+  });
+  assert.equal(governance.releasePreservation.routeOrderingChanged, false);
+  assert.equal(governance.releasePreservation.routeScoringChanged, false);
+  assert.equal(governance.releasePreservation.businessHoursEligibilityChanged, false);
+  assert.equal(governance.releasePreservation.websiteSourceChanged, false);
+  assert.equal(governance.releasePreservation.previewWorkflowChanged, false);
+  assert.equal(governance.protectedState.collection, "OFF");
+  assert.equal(governance.protectedState.activeCohorts, 0);
+  assert.equal(governance.protectedState.recommendationInfluence, "OFF");
+  assert.equal(governance.protectedState.productionDeployments, 0);
+  assert.equal(governance.protectedState.productionMutations, 0);
   return governance;
 }
 
@@ -122,10 +153,32 @@ export function verifyOverwatchGymFirstDualTrackPublicWebsitePreview({
   requireClean = true
 } = {}) {
   const governance = validateGymPreviewGovernance(json(GYM_PREVIEW_GOVERNANCE_PATH));
+  const routeQualitySuccessor = validateGymPreviewRouteQualitySuccessor(
+    json(GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH)
+  );
   const report = json(GYM_PREVIEW_REPORT_PATH);
   assert.equal(git("rev-parse", `${governance.startingRepository.commit}^{tree}`),
     governance.startingRepository.tree);
   for (const record of governance.ownerCommits) verifyCommit(record);
+  for (const record of routeQualitySuccessor.implementationCommits) verifyCommit(record);
+  assert.equal(
+    sha256(read(routeQualitySuccessor.implementationProvenance.path)),
+    routeQualitySuccessor.implementationProvenance.sha256
+  );
+  const intelligenceSuccessor = verifyGymPreviewRouteQualityRuntimeSurfaceSuccessor();
+  assert.deepEqual(
+    intelligenceSuccessor.successor.behavior,
+    {
+      previousRuntimeFileCount: 33,
+      currentRuntimeFileCount: 34,
+      addedRuntimeFile: "src/route-iq-gym-request-form.js",
+      liveGoogleApiCalls: 0,
+      dashboardFetches: 6,
+      routeOrderingChanged: false,
+      routeScoringChanged: false,
+      businessHoursEligibilityChanged: false
+    }
+  );
   for (const contract of Object.values(governance.contracts)) {
     assert.equal(sha256(read(contract.path)), contract.sha256, `${contract.path} drifted`);
   }
@@ -147,7 +200,10 @@ export function verifyOverwatchGymFirstDualTrackPublicWebsitePreview({
     `${governance.startingRepository.commit}..HEAD`, "--",
     "dashboard", "data", "intelligence", "index.html", "workers/prometheus-iq-worker.js")
     .split("\n").filter(Boolean);
-  assert.deepEqual(protectedChanges, []);
+  assert.deepEqual(protectedChanges, [
+    "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json",
+    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
+  ]);
   assert.equal(report.verdict, "SOURCE_COMPLETE_ISOLATED_PREVIEW_QUALIFICATION_PENDING");
   if (requireClean) assert.equal(git("status", "--porcelain"), "");
   return Object.freeze({
@@ -159,6 +215,7 @@ export function verifyOverwatchGymFirstDualTrackPublicWebsitePreview({
     rollbackBundleSha256: rollback.artifactSha256,
     emailDisposition: governance.contracts.security.emailDisposition,
     truthState: governance.protectedState.truthState,
+    runtimeFileCount: routeQualitySuccessor.runtimeSurface.currentFileCount,
     productionDeploymentAuthorized: false
   });
 }

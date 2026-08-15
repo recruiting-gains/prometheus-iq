@@ -4,11 +4,16 @@ import test from "node:test";
 
 import {
   GYM_PREVIEW_GOVERNANCE_PATH,
+  GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH,
   validateGymPreviewGovernance,
+  validateGymPreviewRouteQualitySuccessor,
   verifyOverwatchGymFirstDualTrackPublicWebsitePreview
 } from "../scripts/verify-overwatch-route-iq-gym-first-dual-track-public-website-preview-v1.mjs";
 
 const governance = () => JSON.parse(readFileSync(GYM_PREVIEW_GOVERNANCE_PATH, "utf8"));
+const routeQualitySuccessor = () => JSON.parse(
+  readFileSync(GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH, "utf8")
+);
 
 test("Overwatch verifies the exact gym-first dual-track source and isolated preview boundary", () => {
   assert.deepEqual(
@@ -22,9 +27,24 @@ test("Overwatch verifies the exact gym-first dual-track source and isolated prev
       rollbackBundleSha256: "548a0a3f5d53b240b708e283ed18f2865a0c2dd2fdb041d5ccd405ce2e5bc4e0",
       emailDisposition: "PROTECTED_CRM_NOTIFICATION_ONLY",
       truthState: "INSUFFICIENT_EVIDENCE",
+      runtimeFileCount: 34,
       productionDeploymentAuthorized: false
     }
   );
+});
+
+test("Overwatch rejects a widened gym runtime-surface successor", () => {
+  for (const mutate of [
+    value => { value.runtimeSurface.currentFileCount = 33; },
+    value => { value.runtimeSurface.liveGoogleApiCalls = 1; },
+    value => { value.releasePreservation.routeScoringChanged = true; },
+    value => { value.releasePreservation.websiteSourceChanged = true; },
+    value => { value.protectedState.productionDeployments = 1; }
+  ]) {
+    const value = routeQualitySuccessor();
+    mutate(value);
+    assert.throws(() => validateGymPreviewRouteQualitySuccessor(value));
+  }
 });
 
 test("preview production bindings, writes, email, and production promotion fail closed", () => {
