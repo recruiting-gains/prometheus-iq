@@ -792,8 +792,19 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     dashboardCoherenceSuccessor.protectedConsumer.currentSha256,
     retentionDeletionContractTransition.previousSha256,
   );
+  const prospectiveContractTransitions =
+    zipFounderAdoption.rehearsalSuccessor
+      .prospectiveCalibrationProductionAdmissionSuccessor.transitionsByPath.get(
+        contract.artifacts.contract,
+      );
+  assert.equal(prospectiveContractTransitions.length, 1);
+  const prospectiveContractTransition = prospectiveContractTransitions[0];
   assert.equal(
     retentionDeletionContractTransition.currentSha256,
+    prospectiveContractTransition.previousSha256,
+  );
+  assert.equal(
+    prospectiveContractTransition.currentSha256,
     sha256File(dashboardCoherenceSuccessor.protectedConsumer.path),
   );
   assert.equal(
