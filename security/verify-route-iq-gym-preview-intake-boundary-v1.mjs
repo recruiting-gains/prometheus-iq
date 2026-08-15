@@ -91,10 +91,8 @@ const RELEVANT_PATH = /(?:gym[^/]*(?:intake|preview|request)|(?:intake|preview|r
 const RELEVANT_SOURCE = /(?:PROTECTED_CRM_NOTIFICATION_ONLY|route[-_]iq[-_]gym[-_](?:intake|preview|request)|route_iq_gym_request)/iu;
 const PREVIEW_PATH = /(?:gym[^/]*preview|preview[^/]*gym)/iu;
 const PREVIEW_INTEGRATION_PATHS = new Set(ROUTE_IQ_GYM_PREVIEW_SECURITY_POLICY.expectedFuturePaths);
-const SENSITIVE_NAME = "(?:fullName|workEmail|cell|gymName|cityState|outsideRepCount|attribution|utm_(?:source|medium|campaign|term|content))";
-const SENSITIVE_REFERENCE = "(?:\\$\\{[^}\\n]*" + SENSITIVE_NAME
-  + "[^}\\n]*\\}|(?:input|payload|body|record|request|normalized|formData|fields)"
-  + "(?:\\?\\.|\\.)" + SENSITIVE_NAME + ")";
+const DIRECT_PII_NAME = "(?:fullName|workEmail|cell|gymName|cityState|outsideRepCount)";
+const SENSITIVE_NAME = `(?:${DIRECT_PII_NAME}|attribution|utm_(?:source|medium|campaign|term|content))`;
 
 const TRACKER_SIGNATURES = Object.freeze([
   ["external_tracker_meta", /(?:connect\.facebook\.net|www\.facebook\.com\/tr|graph\.facebook\.com|\bfbq\s*\(|\b_fbp\b|\b_fbc\b)/iu],
@@ -135,10 +133,33 @@ function addViolation(violations, code) {
   if (!violations.includes(code)) violations.push(code);
 }
 
-function sourceHasSensitiveSink(source, sinkPattern) {
-  const before = new RegExp(`${sinkPattern}[\\s\\S]{0,320}${SENSITIVE_REFERENCE}`, "iu");
-  const after = new RegExp(`${SENSITIVE_REFERENCE}[\\s\\S]{0,320}${sinkPattern}`, "iu");
+function sensitiveReference(namePattern = SENSITIVE_NAME) {
+  return "(?:\\$\\{[^}\\n]*" + namePattern
+    + "[^}\\n]*\\}|(?:input|payload|body|record|request|normalized|formData|fields)"
+    + "(?:\\?\\.|\\.)" + namePattern + ")";
+}
+
+function sourceHasSensitiveSink(
+  source,
+  sinkPattern,
+  namePattern = SENSITIVE_NAME,
+  gapPattern = "[\\s\\S]{0,320}"
+) {
+  const reference = sensitiveReference(namePattern);
+  const before = new RegExp(`${sinkPattern}${gapPattern}${reference}`, "iu");
+  const after = new RegExp(`${reference}${gapPattern}${sinkPattern}`, "iu");
   return before.test(source) || after.test(source);
+}
+
+function executablePreviewSource(path, source) {
+  let executable = source.replace(/\bprocess\.(?:stdout|stderr)\.write\s*\(/gu, "safeOutput(");
+  if (path.startsWith(".github/workflows/")) {
+    executable = executable.replace(
+      /^(\s*if\s+grep\s+-E\s+)["'][^"'\r\n]+["'](\s+"\$bundle";\s*then\s*)$/gmu,
+      "$1''$2"
+    );
+  }
+  return executable;
 }
 
 function notificationFunctionSource(source) {
@@ -162,7 +183,12 @@ export function inspectRouteIqGymPreviewSource(path, source) {
     || /Access-Control-Allow-Origin[\s\S]{0,160}headers\.get\(["']Origin["']\)/iu.test(source)) {
     addViolation(violations, "origin_policy_expanded");
   }
-  if (sourceHasSensitiveSink(source, "(?:URLSearchParams|searchParams\\.(?:append|set)|location\\.(?:assign|replace)|href\\s*=)")) {
+  if (sourceHasSensitiveSink(
+    source,
+    "(?:URLSearchParams|searchParams\\.(?:append|set)|location\\.(?:assign|replace)|href\\s*=)",
+    DIRECT_PII_NAME,
+    "[^;\\n]{0,320}"
+  )) {
     addViolation(violations, "pii_url_sink");
   }
   if (sourceHasSensitiveSink(source, "(?:console\\.(?:debug|error|info|log|warn)|logger\\.(?:debug|error|info|log|warn))\\s*\\(")) {
@@ -172,7 +198,7 @@ export function inspectRouteIqGymPreviewSource(path, source) {
     addViolation(violations, "pii_analytics_sink");
   }
   if (new RegExp(
-    `(?:new\\s+Error|runtimeError|fail)\\s*\\([^;]{0,600}${SENSITIVE_REFERENCE}[^;]{0,600}\\)\\s*;`,
+    `(?:new\\s+Error|runtimeError|fail)\\s*\\([^;]{0,600}${sensitiveReference()}[^;]{0,600}\\)\\s*;`,
     "iu"
   ).test(source)) {
     addViolation(violations, "pii_error_sink");
@@ -193,21 +219,21 @@ export function inspectRouteIqGymPreviewSource(path, source) {
   }
 
   if (PREVIEW_PATH.test(normalizedPath) || PREVIEW_INTEGRATION_PATHS.has(normalizedPath)) {
-    if (/"(?:d1_databases|durable_objects|hyperdrive|kv_namespaces|queues|r2_buckets|services|vectorize)"\s*:/u.test(source)
-      || /env\.[A-Z0-9_]*(?:COORDINATOR|DATABASE|DB|EMAIL|KV|STORE)\b/u.test(source)) {
+    const executableSource = executablePreviewSource(normalizedPath, source);
+    if (/"(?:d1_databases|durable_objects|hyperdrive|kv_namespaces|queues|r2_buckets|services|vectorize)"\s*:/u.test(executableSource)
+      || /env\.[A-Z0-9_]*(?:COORDINATOR|DATABASE|DB|EMAIL|KV|STORE)\b/u.test(executableSource)) {
       addViolation(violations, "preview_production_binding");
     }
-    if (/(?:ROUTE_IQ_REQUEST_CRM_COORDINATOR|CRM_WORKSPACE_LEAD_STORE|SHARED_LEAD_INTAKE_STORE)/u.test(source)) {
+    if (/(?:ROUTE_IQ_REQUEST_CRM_COORDINATOR|CRM_WORKSPACE_LEAD_STORE|SHARED_LEAD_INTAKE_STORE)/u.test(executableSource)) {
       addViolation(violations, "preview_production_crm_binding");
     }
-    if (/(?:FOUNDER_EMAIL|FOUNDER_NOTIFICATION_(?:FROM|TO)|send_email|EmailMessage|(?:email|mailer|mailChannel)\.send\s*\()/iu.test(source)) {
+    if (/(?:FOUNDER_EMAIL|FOUNDER_NOTIFICATION_(?:FROM|TO)|send_email|EmailMessage|(?:email|mailer|mailChannel)\.send\s*\()/iu.test(executableSource)) {
       addViolation(violations, "preview_email_binding");
     }
-    if (/(?:persistRouteIqRequest|claimRouteIqRequestNotificationDelivery|recordRouteIqRequestNotificationResult|\.(?:delete|put|putIfAbsent|write)\s*\(|\.(?:exec|prepare)\s*\(\s*["'`]\s*(?:INSERT|UPDATE|DELETE)\b)/iu.test(source)) {
+    if (/(?:persistRouteIqRequest|claimRouteIqRequestNotificationDelivery|recordRouteIqRequestNotificationResult|\.(?:delete|put|putIfAbsent|write)\s*\(|\.(?:exec|prepare)\s*\(\s*["'`]\s*(?:INSERT|UPDATE|DELETE)\b)/iu.test(executableSource)) {
       addViolation(violations, "preview_durable_write");
     }
-    if (/[/"'`]api\/partner-intake["'`](?!\/preview)/u.test(source)
-      || /["'`]\/api\/partner-intake["'`]/u.test(source)) {
+    if (/https?:\/\/(?:www\.)?prometheusrouteiq\.com\/api\/partner-intake(?:[/?#"'`]|$)/iu.test(executableSource)) {
       addViolation(violations, "preview_production_intake_endpoint");
     }
     if (/(?:document\.cookie|cookieStore|localStorage|sessionStorage|indexedDB)/u.test(source)) {

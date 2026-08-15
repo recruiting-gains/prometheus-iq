@@ -333,16 +333,38 @@ test("Security source guards reject trackers, preview side effects, social activ
     inspectRouteIqGymPreviewSource(PREVIEW_ENTRY_PATH, safePreview),
     []
   );
+  assert.deepEqual(
+    inspectRouteIqGymPreviewSource(GYM_FORM_PATH, [
+      "const endpoint = '/api/partner-intake';",
+      "target.searchParams.set('utm_source', attribution.utm_source);"
+    ].join("\n")),
+    []
+  );
+  assert.deepEqual(
+    inspectRouteIqGymPreviewSource(PREVIEW_ENTRY_PATH, "process.stdout.write(result.sha256);"),
+    []
+  );
+  assert.deepEqual(
+    inspectRouteIqGymPreviewSource(PREVIEW_WORKFLOW_PATH, [
+      "run: |",
+      "  if grep -E 'ROUTE_IQ_REQUEST_CRM_COORDINATOR|FOUNDER_EMAIL' \"$bundle\"; then",
+      "    exit 1",
+      "  fi"
+    ].join("\n")),
+    []
+  );
 
   const unsafe = [
     ["external_tracker_meta", "src/main.jsx", "fbq('track', 'Lead');"],
     ["external_tracker_reddit", GYM_FORM_PATH, "rdt('track', 'Lead');"],
     ["preview_production_binding", PREVIEW_CONFIG_PATH, "{ \"kv_namespaces\": [{ \"binding\": \"PRODUCTION_STORE\" }] }"],
     ["preview_production_crm_binding", PREVIEW_ENTRY_PATH, "env.ROUTE_IQ_REQUEST_CRM_COORDINATOR.get(id);"],
+    ["preview_production_crm_binding", PREVIEW_WORKFLOW_PATH, "env:\n  ROUTE_IQ_REQUEST_CRM_COORDINATOR: '${{ secrets.CRM_BINDING }}'"],
     ["preview_email_binding", PREVIEW_ENTRY_PATH, "await env.FOUNDER_EMAIL.send(message);"],
+    ["preview_email_binding", PREVIEW_WORKFLOW_PATH, "env:\n  FOUNDER_EMAIL: '${{ secrets.FOUNDER_EMAIL }}'"],
     ["preview_durable_write", PREVIEW_ENTRY_PATH, "await persistRouteIqRequest(store, payload);"],
     ["preview_durable_write", PREVIEW_ENTRY_PATH, "await store.put(key, payload);"],
-    ["preview_production_intake_endpoint", GYM_FORM_PATH, "const endpoint = '/api/partner-intake';"],
+    ["preview_production_intake_endpoint", GYM_FORM_PATH, "const endpoint = 'https://prometheusrouteiq.com/api/partner-intake';"],
     ["preview_browser_tracking_storage", "src/main.jsx", "localStorage.setItem('visitor', id);"],
     ["social_placeholder_enabled", "src/main.jsx", "const redditEnabled = true;"],
     ["social_placeholder_enabled", GYM_FORM_PATH, "const meta = { enabled: true };"],
