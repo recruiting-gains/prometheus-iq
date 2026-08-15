@@ -171,7 +171,7 @@ test("private Workflow v2 composes only the exact gym-preview route-quality sour
     acceptedSha256:
       "6bac7ac80a6ac9b3ef3f1bef4869a61c4f7a76a146bfd2fd7edb4c58fddcbfe2",
     successor
-  }), "15ae949ef9d136ca7f4b3444a9f2f5db0241cfa4092d811e891564dc4afb2e16");
+  }), "29038a1374dc771735c5da91b3113c465c4964dfe4cbfa6b647a97d4202639fa");
   assert.equal(advancePrivateWorkflowV2GymPreviewRouteQualityOwnerHash({
     path: routeQualityPath,
     acceptedSha256:
