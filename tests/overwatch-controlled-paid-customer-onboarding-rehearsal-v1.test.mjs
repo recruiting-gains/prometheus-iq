@@ -167,8 +167,8 @@ test("Overwatch composes only the exact gym-preview route-quality successor", ()
     previousSha256:
       "6bac7ac80a6ac9b3ef3f1bef4869a61c4f7a76a146bfd2fd7edb4c58fddcbfe2"
   }), {
-    commit: "d322a443f12db73171ebffd76a87ae96e46f37ec",
-    sha256: "15ae949ef9d136ca7f4b3444a9f2f5db0241cfa4092d811e891564dc4afb2e16"
+    commit: "54dc041ea3dc1fef681ae5412f80d9cc9dfa52f6",
+    sha256: "29038a1374dc771735c5da91b3113c465c4964dfe4cbfa6b647a97d4202639fa"
   });
   for (const mutate of [
     value => { value.successor.batchId = "BATCH-SUBSTITUTED"; },
