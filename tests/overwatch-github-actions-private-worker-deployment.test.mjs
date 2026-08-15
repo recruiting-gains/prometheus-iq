@@ -7,6 +7,7 @@ import test from "node:test";
 import { fixedCloudflareUnattendedSmokePlan } from
   "../scripts/run-cloudflare-unattended-smoke.mjs";
 import {
+  advancePrivateWorkflowV2DashboardVisualOwnerHash,
   advancePrivateWorkflowV2GovernedLearningOwnerHash,
   advancePrivateWorkflowV2GymPreviewRouteQualityOwnerHash,
   advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash,
@@ -201,6 +202,52 @@ test("private Workflow v2 composes only the exact gym-preview route-quality sour
         path: provenancePath,
         acceptedSha256:
           "6bac7ac80a6ac9b3ef3f1bef4869a61c4f7a76a146bfd2fd7edb4c58fddcbfe2",
+        successor: candidate
+      }));
+  }
+});
+
+test("private Workflow v2 composes only the exact dashboard visual-identity source chain", () => {
+  const successor = verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .dashboardPublicVisualIdentitySuccessor;
+  const provenancePath =
+    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
+  const dashboardPath = "index.html";
+  assert.equal(advancePrivateWorkflowV2DashboardVisualOwnerHash({
+    path: provenancePath,
+    acceptedSha256:
+      "29038a1374dc771735c5da91b3113c465c4964dfe4cbfa6b647a97d4202639fa",
+    successor
+  }), "8fb3b8be0a06d9d176b8ab6cc23625810d69c9719f71a35bfe71cb34ef0ec129");
+  assert.equal(advancePrivateWorkflowV2DashboardVisualOwnerHash({
+    path: dashboardPath,
+    acceptedSha256:
+      "b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604",
+    successor
+  }), "ad138fdbf0a2f06c6226bb1310e575d3db867b256a25db9a03da9d1a2d2380b8");
+  assert.equal(advancePrivateWorkflowV2DashboardVisualOwnerHash({
+    path: "intelligence/provenance/not-governed.mjs",
+    acceptedSha256: "f".repeat(64),
+    successor
+  }), "f".repeat(64));
+  for (const mutate of [
+    value => { value.successor.batchId = "BATCH-SUBSTITUTED"; },
+    value => { value.successor.ownerSubsystem = "Prometheus Overwatch"; },
+    value => { value.successor.behavior.dashboardVisualIdentityAligned = false; },
+    value => { value.successor.behavior.recommendationBehaviorChanged = true; },
+    value => { value.successor.protectedState.collection = "ON"; },
+    value => { value.successor.protectedState.deployments = 1; },
+    value => {
+      value.transitionsByPath.get(provenancePath)[0].previousSha256 = "0".repeat(64);
+    }
+  ]) {
+    const candidate = clone(successor);
+    mutate(candidate);
+    assert.throws(() =>
+      advancePrivateWorkflowV2DashboardVisualOwnerHash({
+        path: provenancePath,
+        acceptedSha256:
+          "29038a1374dc771735c5da91b3113c465c4964dfe4cbfa6b647a97d4202639fa",
         successor: candidate
       }));
   }
