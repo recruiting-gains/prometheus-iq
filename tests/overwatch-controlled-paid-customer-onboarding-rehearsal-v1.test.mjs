@@ -19,6 +19,7 @@ import {
   validateFullSystemHarmonyIntelligenceSuccessor,
   validateFullSystemHarmonyShadowReadinessSuccessor,
   resolveGovernedLearningOwnerSuccessor,
+  resolveDashboardVisualIdentityOwnerSuccessor,
   resolveGymPreviewRouteQualityOwnerSuccessor,
   resolveProspectiveCalibrationOwnerSuccessor,
   validateLiveCanonicalIdentityIntelligenceSuccessor,
@@ -191,6 +192,43 @@ test("Overwatch composes only the exact gym-preview route-quality successor", ()
       path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
       previousSha256:
         "6bac7ac80a6ac9b3ef3f1bef4869a61c4f7a76a146bfd2fd7edb4c58fddcbfe2"
+    }));
+  }
+});
+
+test("Overwatch composes only the exact Dashboard visual-identity successor", () => {
+  const successor = verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .dashboardPublicVisualIdentitySuccessor;
+  assert.deepEqual(resolveDashboardVisualIdentityOwnerSuccessor({
+    successor,
+    path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+    previousSha256:
+      "29038a1374dc771735c5da91b3113c465c4964dfe4cbfa6b647a97d4202639fa"
+  }), {
+    commit: "f9ddaf11fda78f801069de909f6dbd4f782fe22a",
+    sha256: "8fb3b8be0a06d9d176b8ab6cc23625810d69c9719f71a35bfe71cb34ef0ec129"
+  });
+  for (const mutate of [
+    value => { value.successor.batchId = "BATCH-SUBSTITUTED"; },
+    value => { value.successor.ownerSubsystem = "Prometheus Overwatch"; },
+    value => {
+      value.transitionsByPath.delete(
+        "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
+      );
+    },
+    value => {
+      value.transitionsByPath.get(
+        "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
+      )[0].previousSha256 = "0".repeat(64);
+    }
+  ]) {
+    const candidate = clone(successor);
+    mutate(candidate);
+    assert.throws(() => resolveDashboardVisualIdentityOwnerSuccessor({
+      successor: candidate,
+      path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      previousSha256:
+        "29038a1374dc771735c5da91b3113c465c4964dfe4cbfa6b647a97d4202639fa"
     }));
   }
 });
