@@ -23,6 +23,7 @@ import {
   hasFieldSessionReportTypeInfrastructureSuccessor,
   hasGovernedLearningPayloadInfrastructureSuccessor,
   hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor,
+  hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor,
   hasLiveCanonicalIdentityOwnerEvidenceSuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
@@ -1075,6 +1076,16 @@ function verifyCurrentOwnerFiles(governance) {
         })) {
           assert.notEqual(actual, item.sha256,
             `Node 24 action-pin successor did not advance owner evidence: ${item.path}`);
+        } else if (hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+          governance: privateWorkflowGovernance,
+          path: item.path,
+          previousSha256: privateWorkflowGovernance
+            .dashboardVisualDeployParitySuccessor.evidence
+            .find(evidence => evidence.path === item.path)?.previousSha256,
+          currentSha256: actual
+        })) {
+          assert.notEqual(actual, item.sha256,
+            `Dashboard deploy-parity successor did not advance owner evidence: ${item.path}`);
         } else if (hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
           governance: privateWorkflowGovernance,
           fieldSessionReportTypeGovernance,

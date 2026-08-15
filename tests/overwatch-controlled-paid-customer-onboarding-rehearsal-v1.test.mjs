@@ -30,6 +30,7 @@ import {
 import {
   hasGovernedLearningPayloadInfrastructureSuccessor,
   hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor,
+  hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor,
   hasRetentionDeletionPayloadInfrastructureSuccessor,
   hasRetentionDeletionPayloadQualificationInfrastructureSuccessor,
   hasRetentionMaintenancePayloadInfrastructureSuccessor
@@ -418,6 +419,15 @@ test("Overwatch composes the exact retention deletion and maintenance payload su
       readinessSuccessors: currentReadinessSuccessors,
       path,
       previousSha256,
+      currentSha256: privateWorkflowGovernance.outcomeSemanticIntegrityPayloadSuccessor
+        .evidence.find(item => item.path === path).successorSha256
+    }), true);
+    const visualParityEvidence = privateWorkflowGovernance
+      .dashboardVisualDeployParitySuccessor.evidence.find(item => item.path === path);
+    assert.equal(hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor({
+      governance: privateWorkflowGovernance,
+      path,
+      previousSha256: visualParityEvidence.previousSha256,
       currentSha256: createHash("sha256")
         .update(readFileSync(new URL(path, root))).digest("hex")
     }), true);
