@@ -57,6 +57,38 @@
       "tree": "58532736fabf5a49b80ab6bcba5ba6ffc6c307d7",
       "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
       "subject": "intelligence: extend maintenance runtime lineage"
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "6ca95fbfc56ba54354c5bce6faa6ab278d4a098b",
+      "parent": "4debd6fde7794112d49e6970288517861c2d2268",
+      "tree": "8e4226c9fa4d0641bc7db1d62dc25d06aac9993d",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose gym runtime adoption successor"
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "e40f4102b21173b11e8e8f9ba9c7610fb5e67b6a",
+      "parent": "6ca95fbfc56ba54354c5bce6faa6ab278d4a098b",
+      "tree": "b93f13080d8adb7da83b8a78bbdfbce9b934ac3f",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: bind gym runtime adoption regression"
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "7ff311d47199c806295211577d959e09692950a2",
+      "parent": "e40f4102b21173b11e8e8f9ba9c7610fb5e67b6a",
+      "tree": "8e4226c9fa4d0641bc7db1d62dc25d06aac9993d",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: preserve gym runtime source authority"
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "1ccc0c4b158812070f3586b8297ad569870151c3",
+      "parent": "7ff311d47199c806295211577d959e09692950a2",
+      "tree": "9a946e46903c84297a82c42268bf2a2c281a5c49",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "test(intelligence): preserve extensible gym successor order"
     }
   ],
   "protectedSourceTransitions": [
@@ -104,6 +136,33 @@
       "subject": "intelligence: extend maintenance runtime lineage",
       "previousSha256": "fd4d25f1d88fd3500359091e341c8e0702ab7284e315fd842a262a07dd60c029",
       "currentSha256": "15ae949ef9d136ca7f4b3444a9f2f5db0241cfa4092d811e891564dc4afb2e16"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "6ca95fbfc56ba54354c5bce6faa6ab278d4a098b",
+      "tree": "8e4226c9fa4d0641bc7db1d62dc25d06aac9993d",
+      "subject": "intelligence: compose gym runtime adoption successor",
+      "previousSha256": "15ae949ef9d136ca7f4b3444a9f2f5db0241cfa4092d811e891564dc4afb2e16",
+      "currentSha256": "253d36e3344befe32ece26b3d16d234d5f6be18033c6fec0d33c671dac94153a"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "e40f4102b21173b11e8e8f9ba9c7610fb5e67b6a",
+      "tree": "b93f13080d8adb7da83b8a78bbdfbce9b934ac3f",
+      "subject": "intelligence: bind gym runtime adoption regression",
+      "previousSha256": "253d36e3344befe32ece26b3d16d234d5f6be18033c6fec0d33c671dac94153a",
+      "currentSha256": "2eccf1cffa98ea2310a1307df3fee3b3bd42c6f94637eb395b2c18859d70b741"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "7ff311d47199c806295211577d959e09692950a2",
+      "tree": "8e4226c9fa4d0641bc7db1d62dc25d06aac9993d",
+      "subject": "intelligence: preserve gym runtime source authority",
+      "previousSha256": "2eccf1cffa98ea2310a1307df3fee3b3bd42c6f94637eb395b2c18859d70b741",
+      "currentSha256": "253d36e3344befe32ece26b3d16d234d5f6be18033c6fec0d33c671dac94153a"
     }
   ],
   "behavior": {
