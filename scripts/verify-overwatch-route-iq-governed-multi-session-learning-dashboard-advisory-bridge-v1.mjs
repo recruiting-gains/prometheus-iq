@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
+  verifyDashboardPublicVisualIdentitySuccessor,
   verifyGovernedMultiSessionLearningAdvisorySuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 import {
@@ -326,8 +327,23 @@ export function verifyOverwatchRouteIqGovernedLearningAdvisoryBridge() {
     "SOURCE_COMPLETE_UNDEPLOYED_HOSTED_QUALIFICATION_PENDING"
   );
   verifyOwnerCommits(governance);
+  const dashboardVisualIdentity = verifyDashboardPublicVisualIdentitySuccessor();
   for (const pin of governance.criticalPins) {
-    assert.equal(sha256(pin.path), pin.sha256, `Critical source drifted: ${pin.path}`);
+    const transitions = dashboardVisualIdentity.transitionsByPath.get(pin.path);
+    if (transitions) {
+      assert.equal(
+        transitions[0].previousSha256,
+        pin.sha256,
+        `Critical source successor disconnected: ${pin.path}`
+      );
+      assert.equal(
+        sha256(pin.path),
+        transitions.at(-1).currentSha256,
+        `Critical source successor drifted: ${pin.path}`
+      );
+    } else {
+      assert.equal(sha256(pin.path), pin.sha256, `Critical source drifted: ${pin.path}`);
+    }
   }
   verifyGeneratedParity();
   verifyRepositoryBoundaries(governance);
@@ -389,7 +405,8 @@ export function verifyOverwatchRouteIqGovernedLearningAdvisoryBridge() {
     semanticIntegrityBatchId: governance.semanticIntegritySuccessor.batchId,
     successfulRelationships: semanticIntegrity.successfulRelationships,
     followUpRelationships: semanticIntegrity.followUpRelationships,
-    reviewRequiredOutcomes: semanticIntegrity.reviewRequiredOutcomes
+    reviewRequiredOutcomes: semanticIntegrity.reviewRequiredOutcomes,
+    dashboardVisualIdentityBatchId: dashboardVisualIdentity.successor.batchId
   });
 }
 

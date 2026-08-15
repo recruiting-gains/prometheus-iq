@@ -35,7 +35,8 @@ test("Overwatch verifies the owner chain, canonical artifact, and protected stat
     semanticIntegrityBatchId: "BATCH-20260813-001",
     successfulRelationships: 3,
     followUpRelationships: 0,
-    reviewRequiredOutcomes: 1
+    reviewRequiredOutcomes: 1,
+    dashboardVisualIdentityBatchId: "BATCH-20260815-001"
   });
 });
 
