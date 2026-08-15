@@ -73,7 +73,11 @@ test("read-only field-session learning verifier passes against canonical archive
 });
 
 test("approved ZIP and Founder Dashboard output advances only the protected presentation baseline", () => {
-  const { adoption, transitionByPath } =
+  const {
+    adoption,
+    rehearsalSuccessor,
+    transitionByPath
+  } =
     verifyCrossIndustryZipFounderAccessAdoption();
 
   assert.equal(adoption.ownerSubsystem, "Prometheus Intelligence Engine");
@@ -89,6 +93,16 @@ test("approved ZIP and Founder Dashboard output advances only the protected pres
   assert.equal(adoption.intelligenceRuntimeIntegrity.routeOrderingChanged, false);
   assert.equal(adoption.intelligenceRuntimeIntegrity.routeScoringChanged, false);
   assert.equal(adoption.boundaries.recommendationInfluence, "OFF");
+  const shadowContractPath =
+    "intelligence/contracts/shadow-decision-readiness-contracts.json";
+  const calibrationTransition =
+    rehearsalSuccessor.prospectiveCalibrationProductionAdmissionSuccessor
+      .transitionsByPath.get(shadowContractPath).at(-1);
+  assert.equal(
+    transitionByPath.get(shadowContractPath).currentSha256,
+    calibrationTransition.currentSha256
+  );
+  assert.equal(sha256(shadowContractPath), calibrationTransition.currentSha256);
 });
 
 test("approved ZIP and Founder Dashboard adoption rejects matching arbitrary source and mirror drift", () => {

@@ -1587,6 +1587,37 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       transitions: [...existing.transitions, ...remainingTransitions]
     });
   }
+  const prospectiveCalibrationSuccessor =
+    rehearsalSuccessor.prospectiveCalibrationProductionAdmissionSuccessor;
+  for (const [path, transitions] of prospectiveCalibrationSuccessor.transitionsByPath) {
+    const existing = transitionByPath.get(path);
+    if (!existing) {
+      transitionByPath.set(path, {
+        path,
+        previousSha256: transitions[0].previousSha256,
+        currentSha256: transitions.at(-1).currentSha256,
+        transitions
+      });
+      continue;
+    }
+    const currentTransitionIndex = transitions.findIndex(
+      transition => transition.currentSha256 === existing.currentSha256
+    );
+    const remainingTransitions = currentTransitionIndex >= 0
+      ? transitions.slice(currentTransitionIndex + 1)
+      : transitions;
+    if (remainingTransitions.length === 0) continue;
+    assert.equal(
+      remainingTransitions[0].previousSha256,
+      existing.currentSha256,
+      `Broken prospective-calibration adoption chain: ${path}`
+    );
+    transitionByPath.set(path, {
+      ...existing,
+      currentSha256: remainingTransitions.at(-1).currentSha256,
+      transitions: [...existing.transitions, ...remainingTransitions]
+    });
+  }
 
   assert.equal(
     transitionByPath.get("index.html")?.currentSha256,
@@ -1641,14 +1672,8 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
 
   const runtimePaths = adoption.intelligenceRuntimeIntegrity.artifacts.map(({ path }) => path);
   for (const artifact of adoption.intelligenceRuntimeIntegrity.artifacts) {
-    const currentRetentionTransitions =
-      rehearsalSuccessor.retentionMaintenanceConsumerAdmissionSuccessor
-        .transitionsByPath.get(artifact.path);
-    const approvedTransitions = currentRetentionTransitions ||
-      rehearsalSuccessor.fullSystemHarmonySuccessor.transitionsByPath.get(artifact.path);
-    const expectedSha256 = approvedTransitions
-      ? approvedTransitions.at(-1).currentSha256
-      : artifact.sha256;
+    const expectedSha256 = transitionByPath.get(artifact.path)?.currentSha256 ||
+      artifact.sha256;
     assert.equal(sha256(artifact.path), expectedSha256,
       `Intelligence runtime changed during ZIP/Founder adoption: ${artifact.path}`);
   }
@@ -1659,6 +1684,8 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       && !rehearsalSuccessor.retentionMaintenanceConsumerAdmissionSuccessor
         .successorTransitionsByPath.has(path)
       && !rehearsalSuccessor.governedMultiSessionLearningAdvisorySuccessor
+        .transitionsByPath.has(path)
+      && !rehearsalSuccessor.prospectiveCalibrationProductionAdmissionSuccessor
         .transitionsByPath.has(path)
   );
   execFileSync("/usr/bin/git", [
