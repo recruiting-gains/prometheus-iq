@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  hasGymPreviewPublicRollbackBuildSourceSuccessor,
   verifyCloudflareToolchainPackageSuccessor,
   verifyCloudflareToolchainRepositoryContext,
   verifyOverwatchRouteIqCloudflareToolchainRequalification
@@ -39,6 +41,39 @@ test("toolchain qualification follows only the governed package successor", () =
       evidence
     }));
   }
+});
+
+test("toolchain qualification composes only the exact gym preview rollback source", () => {
+  const governance = JSON.parse(readFileSync(
+    new URL(
+      "../overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json",
+      import.meta.url
+    ),
+    "utf8"
+  ));
+  const successor = governance.toolchainReleaseReproducibilitySuccessor;
+  const input = {
+    governance,
+    path: successor.path,
+    previousSha256: successor.previousSha256,
+    currentSha256: successor.currentSha256
+  };
+  assert.equal(hasGymPreviewPublicRollbackBuildSourceSuccessor(input), true);
+  for (const candidate of [
+    { ...input, path: "scripts/unapproved.mjs" },
+    { ...input, previousSha256: "0".repeat(64) },
+    { ...input, currentSha256: "0".repeat(64) },
+    {
+      ...input,
+      governance: {
+        ...governance,
+        toolchainReleaseReproducibilitySuccessor: {
+          ...successor,
+          productionDeploymentAuthorized: true
+        }
+      }
+    }
+  ]) assert.equal(hasGymPreviewPublicRollbackBuildSourceSuccessor(candidate), false);
 });
 
 test("exact hosted detached checkout remains bound to main, SHA, and origin/main", () => {

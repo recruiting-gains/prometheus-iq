@@ -83,6 +83,8 @@ const fieldSessionReportTypeGovernancePath =
   "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json";
 const liveCanonicalIdentityGovernancePath =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
+const gymPreviewGovernancePath =
+  "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -275,6 +277,35 @@ export function verifyCloudflareToolchainPackageSuccessor({
   return true;
 }
 
+export function hasGymPreviewPublicRollbackBuildSourceSuccessor({
+  governance,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const successor = governance?.toolchainReleaseReproducibilitySuccessor;
+  return governance?.batchId === "BATCH-20260814-002"
+    && governance?.ownerSubsystem === "Prometheus Overwatch"
+    && successor?.classification ===
+      "GYM_PREVIEW_PUBLIC_ROLLBACK_BUILD_SOURCE_SUCCESSOR"
+    && successor?.ownerCommit ===
+      "15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac"
+    && successor?.path === path
+    && successor?.previousSha256 === previousSha256
+    && successor?.currentSha256 === currentSha256
+    && successor?.rollbackContractPath ===
+      "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+    && successor?.rollbackContractPreviousSha256 ===
+      "4477ddff8777d95e74023a09f2e9a7895060e1d290eeb5d9b2557ca620d827c7"
+    && successor?.deploymentAssetSha256 ===
+      governance?.releaseIdentities?.deploymentAssetSha256
+    && successor?.rollbackContractSha256 ===
+      governance?.releaseIdentities?.rollbackContractSha256
+    && successor?.rollbackBundleSha256 ===
+      governance?.releaseIdentities?.rollbackBundleSha256
+    && successor?.productionDeploymentAuthorized === false;
+}
+
 export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   const governance = readJson(governancePath);
   const report = readJson(reportPath);
@@ -291,6 +322,7 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
   const liveCanonicalIdentityGovernance = readJson(
     liveCanonicalIdentityGovernancePath
   );
+  const gymPreviewGovernance = readJson(gymPreviewGovernancePath);
   const predecessor = readJson(
     "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json"
   );
@@ -554,8 +586,28 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE);
   assert.equal(governance.releaseReproducibilityRepair.infrastructureCommit,
     rollbackLockAttestationCommit);
-  assert.equal(governance.releaseReproducibilityRepair.changedPathSha256,
-    sha256("scripts/lib/route-iq-public-forward-rollback.mjs"));
+  const rollbackBuildSourcePath = "scripts/lib/route-iq-public-forward-rollback.mjs";
+  const rollbackBuildSourceCurrentSha256 = sha256(rollbackBuildSourcePath);
+  assert.equal(
+    governance.releaseReproducibilityRepair.changedPathSha256 ===
+      rollbackBuildSourceCurrentSha256
+    || hasGymPreviewPublicRollbackBuildSourceSuccessor({
+      governance: gymPreviewGovernance,
+      path: rollbackBuildSourcePath,
+      previousSha256: governance.releaseReproducibilityRepair.changedPathSha256,
+      currentSha256: rollbackBuildSourceCurrentSha256
+    }),
+    true
+  );
+  const gymPreviewRollbackSuccessor =
+    gymPreviewGovernance.toolchainReleaseReproducibilitySuccessor;
+  assert.equal(sha256At(`${gymPreviewRollbackSuccessor.ownerCommit}^`,
+    rollbackBuildSourcePath), gymPreviewRollbackSuccessor.previousSha256);
+  assert.equal(sha256At(gymPreviewRollbackSuccessor.ownerCommit,
+    rollbackBuildSourcePath), gymPreviewRollbackSuccessor.currentSha256);
+  assert.equal(git("show", "-s", "--format=%an <%ae>",
+    gymPreviewRollbackSuccessor.ownerCommit),
+  "Prometheus Infrastructure <infrastructure@prometheus.local>");
   assert.equal(governance.releaseReproducibilityRepair.currentPackageLockSha256,
     sha256("package-lock.json"));
   assert.equal(governance.releaseReproducibilityRepair.publicRollbackArtifactSha256,
@@ -742,7 +794,19 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     "workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json",
     "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
   ];
-  assert.equal(git("diff", "--name-only", startCommit, head, "--", ...protectedReleasePaths), "");
+  const changedProtectedReleasePaths = git(
+    "diff", "--name-only", startCommit, head, "--", ...protectedReleasePaths
+  ).split("\n").filter(Boolean);
+  assert.deepEqual(changedProtectedReleasePaths,
+    [gymPreviewRollbackSuccessor.rollbackContractPath]);
+  assert.equal(sha256At(startCommit,
+    gymPreviewRollbackSuccessor.rollbackContractPath),
+    gymPreviewRollbackSuccessor.rollbackContractPreviousSha256);
+  assert.equal(sha256At(gymPreviewRollbackSuccessor.ownerCommit,
+    gymPreviewRollbackSuccessor.rollbackContractPath),
+    gymPreviewRollbackSuccessor.rollbackContractSha256);
+  assert.equal(sha256(gymPreviewRollbackSuccessor.rollbackContractPath),
+    gymPreviewRollbackSuccessor.rollbackContractSha256);
   assert.deepEqual(git(
     "log", "--format=%H", "--reverse", `${startCommit}..${head}`, "--",
     privateDeploymentContractPath
@@ -784,11 +848,14 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
     augustReadinessPublicVerifierFixtureRepairCommit, "--", ".github/workflows"), "");
   const node24Verification = verifyOverwatchGithubActionsNode24PinSuccessor();
   assert.equal(node24Verification.status, "OFFICIAL_NODE24_ACTION_PIN_OVERWATCH_VERIFIED");
+  assert.equal(node24Verification.successorWorkflowFiles, 1);
+  assert.equal(node24Verification.activeWorkflowFiles, 16);
   const workflowDiff = git("diff", "--name-only",
     augustReadinessPublicVerifierFixtureRepairCommit, head, "--", ".github/workflows");
   assert.deepEqual(
     workflowDiff ? workflowDiff.split("\n").sort() : [],
-    node24Infrastructure.workflows.map(item => item.path).sort()
+    [...node24Infrastructure.workflows.map(item => item.path),
+      gymPreviewGovernance.contracts.workflow.path].sort()
   );
 
   assert.match(packageJson.scripts.pretest, /security:cloudflare-toolchain:check/u);
