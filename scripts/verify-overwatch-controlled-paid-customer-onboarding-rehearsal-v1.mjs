@@ -51,6 +51,8 @@ const toolchainGovernancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
 const activeToolchainRuntimeGuardPath =
   "scripts/verify-cloudflare-unattended-runtime-guard.mjs";
+const gymPreviewRouteQualityGovernancePath =
+  "overwatch/governance/route-iq-gym-preview-route-quality-runtime-surface-successor-v1.json";
 
 const expectedCommits = Object.freeze([
   Object.freeze({
@@ -172,6 +174,31 @@ export function resolveProspectiveCalibrationOwnerSuccessor({
     assert.equal(transitions[index].previousSha256,
       transitions[index - 1].currentSha256,
       `prospective calibration successor chain broke: ${path}`);
+  }
+  const current = transitions.at(-1);
+  return Object.freeze({
+    commit: current.commit,
+    sha256: current.currentSha256
+  });
+}
+
+export function resolveGymPreviewRouteQualityOwnerSuccessor({
+  successor,
+  path,
+  previousSha256
+}) {
+  assert.equal(successor?.successor?.batchId, "BATCH-20260814-002");
+  assert.equal(successor?.successor?.ownerSubsystem,
+    "Prometheus Intelligence Engine");
+  const transitions = successor?.transitionsByPath?.get(path);
+  assert.ok(Array.isArray(transitions) && transitions.length > 0,
+    `gym preview route-quality successor path is absent: ${path}`);
+  assert.equal(transitions[0].previousSha256, previousSha256,
+    `gym preview route-quality predecessor drifted: ${path}`);
+  for (let index = 1; index < transitions.length; index += 1) {
+    assert.equal(transitions[index].previousSha256,
+      transitions[index - 1].currentSha256,
+      `gym preview route-quality successor chain broke: ${path}`);
   }
   const current = transitions.at(-1);
   return Object.freeze({
@@ -733,6 +760,43 @@ function verifyCurrentOwnerFiles(governance) {
   const node24ActionPinInfrastructure = readJson(
     "workers/infrastructure/github-actions-official-node24-pin-successor-v1.json"
   );
+  const gymPreviewRouteQualityGovernance = readJson(
+    gymPreviewRouteQualityGovernancePath
+  );
+  const overwatchIntegration = gymPreviewRouteQualityGovernance.overwatchIntegration;
+  assert.equal(overwatchIntegration.classification,
+    "GYM_PREVIEW_ROUTE_QUALITY_OVERWATCH_INTEGRATION");
+  assert.equal(overwatchIntegration.owner,
+    "Prometheus Overwatch <overwatch@prometheus.local>");
+  assert.equal(overwatchIntegration.productionDeploymentAuthorized, false);
+  const overwatchIntegrationFields = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    overwatchIntegration.commit
+  ]).split("\n");
+  assert.deepEqual(overwatchIntegrationFields, [
+    overwatchIntegration.commit,
+    overwatchIntegration.parent,
+    overwatchIntegration.tree,
+    overwatchIntegration.owner,
+    overwatchIntegration.owner,
+    overwatchIntegration.subject
+  ]);
+  const overwatchIntegrationPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    overwatchIntegration.commit
+  ]).split("\n").filter(Boolean);
+  assert.deepEqual(overwatchIntegrationPaths,
+    overwatchIntegration.evidence.map(item => item.path));
+  const gymPreviewOverwatchSuccessors = new Map();
+  for (const evidence of overwatchIntegration.evidence) {
+    assert.equal(sha256(git([
+      "show", `${overwatchIntegration.parent}:${evidence.path}`
+    ])), evidence.previousSha256);
+    assert.equal(sha256(git([
+      "show", `${overwatchIntegration.commit}:${evidence.path}`
+    ])), evidence.currentSha256);
+    gymPreviewOverwatchSuccessors.set(evidence.path, evidence);
+  }
   const retentionMaintenanceConsumerSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-retention-maintenance-consumer-admission-v1.json"
   );
@@ -874,6 +938,21 @@ function verifyCurrentOwnerFiles(governance) {
       }];
     })
   );
+  const gymPreviewRuntimeSuccessors = new Map(
+    [...intelligenceSuccessors.gymPreviewRouteQualityRuntimeSurfaceSuccessor
+      .transitionsByPath].map(([path, transitions]) => {
+      const previousSha256 = transitions[0].previousSha256;
+      return [path, {
+        previousSha256,
+        ...resolveGymPreviewRouteQualityOwnerSuccessor({
+          successor:
+            intelligenceSuccessors.gymPreviewRouteQualityRuntimeSurfaceSuccessor,
+          path,
+          previousSha256
+        })
+      }];
+    })
+  );
   for (const record of governance.ownership.ownerCommits.slice(1)) {
     for (const item of record.evidence) {
       const laterOwnerRecord = governance.ownership.ownerCommits
@@ -883,6 +962,8 @@ function verifyCurrentOwnerFiles(governance) {
         const actual = sha256(read(item.path));
         const successor = governedSuccessors.get(item.path);
         const prospectiveSuccessor = prospectiveCalibrationSuccessors.get(item.path);
+        const gymPreviewRuntimeSuccessor = gymPreviewRuntimeSuccessors.get(item.path);
+        const gymPreviewOverwatchSuccessor = gymPreviewOverwatchSuccessors.get(item.path);
         if (successor && actual === successor.sha256) {
           assert.equal(git([
             "merge-base", "--is-ancestor", successor.commit, "HEAD"
@@ -905,6 +986,23 @@ function verifyCurrentOwnerFiles(governance) {
           ]).split("\n").filter(Boolean);
           assert.ok(changedPaths.includes(item.path),
             `prospective calibration successor omitted path: ${item.path}`);
+        } else if (gymPreviewRuntimeSuccessor
+          && gymPreviewRuntimeSuccessor.previousSha256 ===
+            (prospectiveSuccessor?.sha256 ?? successor?.sha256 ?? item.sha256)
+          && actual === gymPreviewRuntimeSuccessor.sha256) {
+          assert.equal(git([
+            "merge-base", "--is-ancestor", gymPreviewRuntimeSuccessor.commit, "HEAD"
+          ]), "");
+          const changedPaths = git([
+            "diff-tree", "--no-commit-id", "--name-only", "-r",
+            gymPreviewRuntimeSuccessor.commit
+          ]).split("\n").filter(Boolean);
+          assert.ok(changedPaths.includes(item.path),
+            `gym preview runtime successor omitted path: ${item.path}`);
+        } else if (gymPreviewOverwatchSuccessor
+          && actual === gymPreviewOverwatchSuccessor.currentSha256) {
+          assert.notEqual(actual, item.sha256,
+            `gym preview Overwatch successor did not advance owner evidence: ${item.path}`);
         } else if (controlledRehearsalNode24Evidence.get(item.path)?.previousSha256 ===
           (successor?.sha256 ?? item.sha256)
           && controlledRehearsalNode24Evidence.get(item.path)?.currentSha256 === actual) {
