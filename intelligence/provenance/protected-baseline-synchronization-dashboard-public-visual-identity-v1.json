@@ -1,0 +1,103 @@
+{
+  "version": "route-iq-intelligence-dashboard-public-visual-identity-successor-v1",
+  "batchId": "BATCH-20260815-001",
+  "directive": "Route IQ Public Preview Navigation + Dashboard Visual Identity Alignment v1",
+  "status": "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "predecessors": [
+    {
+      "path": "intelligence/provenance/protected-baseline-synchronization-governed-multi-session-learning-advisory-v1.json",
+      "sha256": "bb72cc124eac466442cd0ce32365f5cd48c8a9c46a794c2352c81311a67ed4f0",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    {
+      "path": "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json",
+      "sha256": "3989e6caf98db93041922b91e298b29a922eae91b379ec19b8c5b55e6bfe3b9a",
+      "remainsHistorical": true,
+      "rewritten": false
+    }
+  ],
+  "websiteImplementation": {
+    "commit": "72d9f99ab75d3716f855835fd84345306de67cd7",
+    "tree": "d0c5e7a1ab7bc0d7ecb0dbeba01696432823a3d4",
+    "identity": "Prometheus Website <website@prometheus.local>",
+    "subject": "website: keep preview navigation inside public routes"
+  },
+  "implementationCommits": [
+    {
+      "commit": "99dbf7b5b83e19842d451e010ce159b17705251b",
+      "parent": "72d9f99ab75d3716f855835fd84345306de67cd7",
+      "tree": "b50fdcd485c8cef43113fb1f3853cdc2b1590e9f",
+      "identity": "Prometheus Dashboard <dashboard@prometheus.local>",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "subject": "dashboard: align private workspace with public identity"
+    },
+    {
+      "commit": "84088bb82cd60b36a721222c6e6632e5be7046d2",
+      "parent": "99dbf7b5b83e19842d451e010ce159b17705251b",
+      "tree": "646a70190ffb7fde216d584a4c52d488be2bb438",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "subject": "infrastructure: bind navigation and dashboard assets"
+    },
+    {
+      "commit": "f9ddaf11fda78f801069de909f6dbd4f782fe22a",
+      "parent": "84088bb82cd60b36a721222c6e6632e5be7046d2",
+      "tree": "200fa1d2113159e9616558edcc182d3f7f483353",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "subject": "intelligence: compose dashboard visual successor"
+    }
+  ],
+  "protectedSourceTransitions": [
+    {
+      "path": "index.html",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "commit": "99dbf7b5b83e19842d451e010ce159b17705251b",
+      "tree": "b50fdcd485c8cef43113fb1f3853cdc2b1590e9f",
+      "subject": "dashboard: align private workspace with public identity",
+      "previousSha256": "b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604",
+      "currentSha256": "ad138fdbf0a2f06c6226bb1310e575d3db867b256a25db9a03da9d1a2d2380b8"
+    },
+    {
+      "path": "deploy/cloudflare-pages/index.html",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "commit": "84088bb82cd60b36a721222c6e6632e5be7046d2",
+      "tree": "646a70190ffb7fde216d584a4c52d488be2bb438",
+      "subject": "infrastructure: bind navigation and dashboard assets",
+      "previousSha256": "b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604",
+      "currentSha256": "ad138fdbf0a2f06c6226bb1310e575d3db867b256a25db9a03da9d1a2d2380b8"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "f9ddaf11fda78f801069de909f6dbd4f782fe22a",
+      "tree": "200fa1d2113159e9616558edcc182d3f7f483353",
+      "subject": "intelligence: compose dashboard visual successor",
+      "previousSha256": "29038a1374dc771735c5da91b3113c465c4964dfe4cbfa6b647a97d4202639fa",
+      "currentSha256": "8fb3b8be0a06d9d176b8ab6cc23625810d69c9719f71a35bfe71cb34ef0ec129"
+    }
+  ],
+  "behavior": {
+    "publicNavigationRemainsInsidePublicRoutes": true,
+    "dashboardVisualIdentityAligned": true,
+    "dashboardWorkflowChanged": false,
+    "intelligenceRuntimeChanged": false,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "businessHoursEligibilityChanged": false,
+    "recommendationBehaviorChanged": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "productionStorageAccess": 0,
+    "deployments": 0,
+    "productionMutationPerformed": false
+  }
+}
