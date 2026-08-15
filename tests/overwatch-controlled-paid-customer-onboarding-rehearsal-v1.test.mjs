@@ -129,8 +129,8 @@ test("Overwatch composes only the exact prospective-calibration owner successors
     previousSha256:
       "bda4488c6015751fe24ddd36dd5dec38a8106a0a2a061a56e3232785b325c911"
   }), {
-    commit: "11c0c413ce00ecafe7d0738bb274a2fa87c703c3",
-    sha256: "d005fc68c00032444c4d9efca3823efcd25fb38e2ff8b624fe1a8191bb10a361"
+    commit: "7df9e1732d1e5fb910d418a10c99ab2f9a8c3bbe",
+    sha256: "f34aeb1606159be45dc97c55da021b3a549eccf2df21d95ccd3b689b00141bb6"
   });
   for (const mutate of [
     value => { value.successor.batchId = "BATCH-SUBSTITUTED"; },

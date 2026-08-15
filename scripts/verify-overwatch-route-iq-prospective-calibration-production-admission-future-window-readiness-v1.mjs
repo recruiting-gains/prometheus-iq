@@ -101,6 +101,7 @@ export async function verifyOverwatchProspectiveCalibrationProductionAdmissionFu
   assert.equal(git("branch", "--show-current"), "main");
 
   for (const record of governance.functionalOwnerCommits) verifyCommit(record);
+  for (const record of governance.qualificationRepairCommits) verifyCommit(record);
   for (const commit of governance.provenanceAndCompatibilityCommits) {
     assert.equal(git("cat-file", "-t", commit), "commit");
     execFileSync("/usr/bin/git", ["merge-base", "--is-ancestor", commit, "HEAD"], {
@@ -191,7 +192,8 @@ export async function verifyOverwatchProspectiveCalibrationProductionAdmissionFu
     status: "PASS",
     batchId: governance.batchId,
     ownerCommitCount: governance.functionalOwnerCommits.length
-      + governance.provenanceAndCompatibilityCommits.length,
+      + governance.provenanceAndCompatibilityCommits.length
+      + governance.qualificationRepairCommits.length,
     criticalPinCount: governance.criticalPins.length,
     focusedTests: 171,
     readiness: "INSUFFICIENT_EVIDENCE",

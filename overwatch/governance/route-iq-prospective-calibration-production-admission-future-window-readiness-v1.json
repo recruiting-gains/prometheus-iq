@@ -46,6 +46,21 @@
     "10950eca3e4e86698ae3b49d1d0360e9ad90f89b",
     "a06b367003c43e937d05fbd3da88040e11f7f9ba"
   ],
+  "qualificationRepairCommits": [
+    {"commit":"aebf0299037f7d73d8cc12fd676857e8ba61bb53","tree":"89330f90936fe97086eec658525645d48da8ebb4","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: qualify calibration admission source successor"},
+    {"commit":"d5ef35f8bc495bc1070cd2766966e6c9180c745c","tree":"5069e7259a84455f5bd4a9079921a3d982b83d96","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: bind calibration infrastructure verification"},
+    {"commit":"78418138840c6f6b69481cf0bb11ccb812d6f0e5","tree":"36f9c59c88c63a0997d3657a4d5e0af5aa3ba378","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: bind calibration package successor"},
+    {"commit":"ef1464258c5886596ce1e3b2582e15060eff35a7","tree":"b67d7a5572a9a0cce54418035cb9ae0925b49bad","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: compose calibration rehearsal successor"},
+    {"commit":"fe86fadd20e240724de0246460be36faff15634f","tree":"1d85c87de91cbc49f15a13a030543a1f48777725","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: compose calibration private source lineage"},
+    {"commit":"2d4d9e1da5f64c4de7977016e58969b0dc5e8951","tree":"3d8626679231404b7a0e5c890394230a68323b10","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: reject unqualified calibration artifact"},
+    {"commit":"ac12b8c27dbab187869d91fb43317c69fd4201fd","tree":"8815c481c1f3dfd52363db2628088484c0723aa0","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: bind calibration qualification guard"},
+    {"commit":"b5374489fb621ea30ad51a2e6e25b5c4b958c55f","tree":"7b33c00e74678591f72eac9c5dd1a27225481b0b","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: compose calibration guard regression"},
+    {"commit":"af5a5d573c63f73e406037496cec40cfbdd167bd","tree":"4b7bc68df3bb7b20c8451869ff7b3fec55e9bcc9","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: synchronize calibration runtime baseline"},
+    {"commit":"7df9e1732d1e5fb910d418a10c99ab2f9a8c3bbe","tree":"79da3e72ec396e8ab6f33c65748e6281fb419aa8","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: compose calibration contract successor"},
+    {"commit":"738eadd7408249f008ed2573ba309e8abe45698c","tree":"339c6ae9cb0bd770fb44d197dbcdb1f2ecfec379","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: test calibration contract lineage"},
+    {"commit":"a27873490110792861f34fdcc9afcd546ae0074d","tree":"dad6fd598d989ae0c6adb6c6f6b44581294f7129","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: bind calibration runtime contract lineage"},
+    {"commit":"787230ff50b2919430673483fae912d4997f3415","tree":"ec49d86233b74a80e9a2784ce5b858311392f35c","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: bind calibration runtime baseline successor"}
+  ],
   "criticalPins": [
     {"path":"data/route-iq-field-sessions-v1/route-iq-prospective-production-retention-admission.mjs","sha256":"aee7ebc4772621081ce405defd56eba3783c35ec5ef3f0919eadba5b9d24628d"},
     {"path":"data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs","sha256":"3e2187a4bdbb3535b115f049d02b30e47dce2a6b68536d641d03642af626d10b"},

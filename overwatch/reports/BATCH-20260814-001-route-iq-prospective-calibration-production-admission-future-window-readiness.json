@@ -17,7 +17,7 @@
     "focusedTotal": "PASS_171_OF_171",
     "lint": "PASS",
     "typecheck": "PASS",
-    "build": "PENDING_FINAL_LOCAL_PREFLIGHT",
+    "build": "PASS",
     "fullHostedExactCommit": "PENDING_EARLY_GITHUB_HANDOFF"
   },
   "truth": {
