@@ -233,6 +233,31 @@ export function resolveDashboardVisualIdentityOwnerSuccessor({
   });
 }
 
+export function resolveDashboardVisualVerifierCompositionOwnerSuccessor({
+  successor,
+  path,
+  previousSha256
+}) {
+  assert.equal(successor?.successor?.batchId, "BATCH-20260815-001");
+  assert.equal(successor?.successor?.ownerSubsystem,
+    "Prometheus Intelligence Engine");
+  const transitions = successor?.transitionsByPath?.get(path);
+  assert.ok(Array.isArray(transitions) && transitions.length > 0,
+    `Dashboard visual verifier-composition path is absent: ${path}`);
+  assert.equal(transitions[0].previousSha256, previousSha256,
+    `Dashboard visual verifier-composition predecessor drifted: ${path}`);
+  for (let index = 1; index < transitions.length; index += 1) {
+    assert.equal(transitions[index].previousSha256,
+      transitions[index - 1].currentSha256,
+      `Dashboard visual verifier-composition chain broke: ${path}`);
+  }
+  const current = transitions.at(-1);
+  return Object.freeze({
+    commit: current.commit,
+    sha256: current.currentSha256
+  });
+}
+
 export const fullSystemHarmonyIntelligenceSuccessor = Object.freeze({
   commit: "2f8992476ca37276b0ee388fe2e33a2158f9d906",
   parent: "9c841ae7833ca51e2dc7a81243ed9fd34f5dcfdc",
@@ -993,6 +1018,21 @@ function verifyCurrentOwnerFiles(governance) {
       }];
     })
   );
+  const dashboardVisualVerifierCompositionSuccessors = new Map(
+    [...intelligenceSuccessors.dashboardPublicVisualVerifierCompositionSuccessor
+      .transitionsByPath].map(([path, transitions]) => {
+      const previousSha256 = transitions[0].previousSha256;
+      return [path, {
+        previousSha256,
+        ...resolveDashboardVisualVerifierCompositionOwnerSuccessor({
+          successor:
+            intelligenceSuccessors.dashboardPublicVisualVerifierCompositionSuccessor,
+          path,
+          previousSha256
+        })
+      }];
+    })
+  );
   for (const record of governance.ownership.ownerCommits.slice(1)) {
     for (const item of record.evidence) {
       const laterOwnerRecord = governance.ownership.ownerCommits
@@ -1005,6 +1045,8 @@ function verifyCurrentOwnerFiles(governance) {
         const gymPreviewRuntimeSuccessor = gymPreviewRuntimeSuccessors.get(item.path);
         const dashboardVisualIdentitySuccessor =
           dashboardVisualIdentitySuccessors.get(item.path);
+        const dashboardVisualVerifierCompositionSuccessor =
+          dashboardVisualVerifierCompositionSuccessors.get(item.path);
         const gymPreviewOverwatchSuccessor = gymPreviewOverwatchSuccessors.get(item.path);
         if (successor && actual === successor.sha256) {
           assert.equal(git([
@@ -1058,6 +1100,24 @@ function verifyCurrentOwnerFiles(governance) {
           ]).split("\n").filter(Boolean);
           assert.ok(changedPaths.includes(item.path),
             `Dashboard visual-identity successor omitted path: ${item.path}`);
+        } else if (dashboardVisualVerifierCompositionSuccessor
+          && dashboardVisualVerifierCompositionSuccessor.previousSha256 ===
+            (dashboardVisualIdentitySuccessor?.sha256
+              ?? gymPreviewRuntimeSuccessor?.sha256
+              ?? prospectiveSuccessor?.sha256
+              ?? successor?.sha256
+              ?? item.sha256)
+          && actual === dashboardVisualVerifierCompositionSuccessor.sha256) {
+          assert.equal(git([
+            "merge-base", "--is-ancestor",
+            dashboardVisualVerifierCompositionSuccessor.commit, "HEAD"
+          ]), "");
+          const changedPaths = git([
+            "diff-tree", "--no-commit-id", "--name-only", "-r",
+            dashboardVisualVerifierCompositionSuccessor.commit
+          ]).split("\n").filter(Boolean);
+          assert.ok(changedPaths.includes(item.path),
+            `Dashboard visual verifier-composition omitted path: ${item.path}`);
         } else if (gymPreviewOverwatchSuccessor
           && actual === gymPreviewOverwatchSuccessor.currentSha256) {
           assert.notEqual(actual, item.sha256,
