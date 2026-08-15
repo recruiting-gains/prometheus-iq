@@ -1090,6 +1090,9 @@ function verifyNoAutomaticDeployment() {
   const gymPreviewGovernance = readJson(
     "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json"
   );
+  const deploymentEnvironmentGovernance = readJson(
+    "overwatch/governance/route-iq-gym-preview-deployment-environment-successor-v1.json"
+  );
   const gymPreviewConfig = readJson("wrangler.prometheusrouteiq-website-gym-preview.jsonc");
   for (const path of workflowPaths) {
     const source = read(path);
@@ -1101,6 +1104,7 @@ function verifyNoAutomaticDeployment() {
         path,
         source,
         governance: gymPreviewGovernance,
+        deploymentEnvironmentGovernance,
         config: gymPreviewConfig
       });
     } else {
