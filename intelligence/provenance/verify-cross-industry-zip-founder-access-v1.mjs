@@ -1431,7 +1431,8 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
       retentionDeletionConsumerAdmissionSuccessor,
       mergeTransitionMaps(
         governedMultiSessionLearningAdvisorySuccessor.transitionsByPath,
-        prospectiveCalibrationProductionAdmissionSuccessor.transitionsByPath
+        prospectiveCalibrationProductionAdmissionSuccessor.transitionsByPath,
+        gymPreviewRouteQualityRuntimeSurfaceSuccessor.transitionsByPath
       )
     );
   for (const protectedTransition of transitionByPath.values()) {
