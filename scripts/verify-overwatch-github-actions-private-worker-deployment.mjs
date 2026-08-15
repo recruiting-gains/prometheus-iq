@@ -2541,6 +2541,51 @@ export function advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash({
   return currentSha256;
 }
 
+export function advancePrivateWorkflowV2GymPreviewRouteQualityOwnerHash({
+  path,
+  acceptedSha256,
+  successor
+}) {
+  if (successor?.successor?.batchId !== "BATCH-20260814-002"
+    || successor?.successor?.status !== "OWNER_IMPLEMENTED_PROTECTED_SUCCESSOR"
+    || successor?.successor?.ownerSubsystem !== "Prometheus Intelligence Engine"
+    || successor?.successor?.behavior?.previousRuntimeFileCount !== 33
+    || successor?.successor?.behavior?.currentRuntimeFileCount !== 34
+    || successor?.successor?.behavior?.addedRuntimeFile !==
+      "src/route-iq-gym-request-form.js"
+    || successor?.successor?.behavior?.liveGoogleApiCalls !== 0
+    || successor?.successor?.behavior?.routeOrderingChanged !== false
+    || successor?.successor?.behavior?.routeScoringChanged !== false
+    || successor?.successor?.behavior?.businessHoursEligibilityChanged !== false
+    || successor?.successor?.protectedState?.collection !== "OFF"
+    || successor?.successor?.protectedState?.activeCohorts !== 0
+    || successor?.successor?.protectedState?.recommendationInfluence !== "OFF"
+    || successor?.successor?.protectedState?.confidencePropagation !== "OFF"
+    || successor?.successor?.protectedState?.providers !== "OFF"
+    || successor?.successor?.protectedState?.scheduler !== "OFF"
+    || successor?.successor?.protectedState?.shadowDecisionVisible !== false
+    || successor?.successor?.protectedState?.productionStorageAccess !== 0
+    || successor?.successor?.protectedState?.cloudflareContacts !== 0
+    || successor?.successor?.protectedState?.deployments !== 0
+    || successor?.successor?.protectedState?.productionMutationPerformed !== false) {
+    throw new Error(
+      "Private Workflow v2 gym-preview route-quality boundary drifted."
+    );
+  }
+  const transitions = successor.transitionsByPath.get(path);
+  if (!transitions) return acceptedSha256;
+  let currentSha256 = acceptedSha256;
+  for (const transition of transitions) {
+    if (transition.previousSha256 !== currentSha256) {
+      throw new Error(
+        `Private Workflow v2 gym-preview route-quality Intelligence chain drifted: ${path}`
+      );
+    }
+    currentSha256 = transition.currentSha256;
+  }
+  return currentSha256;
+}
+
 export function hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor({
   readinessSuccessors,
   path,
@@ -4940,6 +4985,8 @@ function verifyV2OwnerAndGovernance() {
     intelligenceSourceSuccessors.governedMultiSessionLearningAdvisorySuccessor;
   const prospectiveCalibrationIntelligenceSuccessor =
     intelligenceSourceSuccessors.prospectiveCalibrationProductionAdmissionSuccessor;
+  const gymPreviewRouteQualityIntelligenceSuccessor =
+    intelligenceSourceSuccessors.gymPreviewRouteQualityRuntimeSurfaceSuccessor;
 
   const retentionPayloadMetadata = git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
@@ -5910,6 +5957,12 @@ function verifyV2OwnerAndGovernance() {
         acceptedSha256: acceptedCurrentSha256,
         successor: prospectiveCalibrationIntelligenceSuccessor
       });
+    acceptedCurrentSha256 =
+      advancePrivateWorkflowV2GymPreviewRouteQualityOwnerHash({
+        path,
+        acceptedSha256: acceptedCurrentSha256,
+        successor: gymPreviewRouteQualityIntelligenceSuccessor
+      });
     if (sha256(committed) !== expected
       || currentSha256 !== acceptedCurrentSha256
       || recordedIntelligenceEvidence.get(path) !== expected) {
@@ -6180,6 +6233,12 @@ function verifyV2OwnerAndGovernance() {
         path,
         acceptedSha256: acceptedCurrentSha256,
         successor: prospectiveCalibrationIntelligenceSuccessor
+      });
+    acceptedCurrentSha256 =
+      advancePrivateWorkflowV2GymPreviewRouteQualityOwnerHash({
+        path,
+        acceptedSha256: acceptedCurrentSha256,
+        successor: gymPreviewRouteQualityIntelligenceSuccessor
       });
     if (sha256(committed) !== expected
       || sha256(readFileSync(resolve(root, path))) !== acceptedCurrentSha256
@@ -6731,19 +6790,42 @@ function verifyV2OwnerAndGovernance() {
       }
       const prospectiveTransitions = prospectiveCalibrationIntelligenceSuccessor
         .transitionsByPath.get(path);
-      if (!prospectiveTransitions) return false;
-      const prospectivePredecessorSha256 =
-        prospectiveTransitions[0].previousSha256;
-      if (!isGovernedBeforeGovernedLearning(prospectivePredecessorSha256)
-        && prospectivePredecessorSha256 !== governedLearningCurrentSha256) {
+      let prospectiveCurrentSha256 = null;
+      if (prospectiveTransitions) {
+        const prospectivePredecessorSha256 =
+          prospectiveTransitions[0].previousSha256;
+        if (!isGovernedBeforeGovernedLearning(prospectivePredecessorSha256)
+          && prospectivePredecessorSha256 !== governedLearningCurrentSha256) {
+          return false;
+        }
+        try {
+          prospectiveCurrentSha256 =
+            advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash({
+              path,
+              acceptedSha256: prospectivePredecessorSha256,
+              successor: prospectiveCalibrationIntelligenceSuccessor
+            });
+          if (candidateSha256 === prospectiveCurrentSha256) return true;
+        } catch {
+          return false;
+        }
+      }
+      const gymPreviewTransitions = gymPreviewRouteQualityIntelligenceSuccessor
+        .transitionsByPath.get(path);
+      if (!gymPreviewTransitions) return false;
+      const gymPreviewPredecessorSha256 =
+        gymPreviewTransitions[0].previousSha256;
+      if (!isGovernedBeforeGovernedLearning(gymPreviewPredecessorSha256)
+        && gymPreviewPredecessorSha256 !== governedLearningCurrentSha256
+        && gymPreviewPredecessorSha256 !== prospectiveCurrentSha256) {
         return false;
       }
       try {
         return candidateSha256 ===
-          advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash({
+          advancePrivateWorkflowV2GymPreviewRouteQualityOwnerHash({
             path,
-            acceptedSha256: prospectivePredecessorSha256,
-            successor: prospectiveCalibrationIntelligenceSuccessor
+            acceptedSha256: gymPreviewPredecessorSha256,
+            successor: gymPreviewRouteQualityIntelligenceSuccessor
           });
       } catch {
         return false;

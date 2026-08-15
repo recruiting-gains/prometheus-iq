@@ -8,6 +8,7 @@ import { fixedCloudflareUnattendedSmokePlan } from
   "../scripts/run-cloudflare-unattended-smoke.mjs";
 import {
   advancePrivateWorkflowV2GovernedLearningOwnerHash,
+  advancePrivateWorkflowV2GymPreviewRouteQualityOwnerHash,
   advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash,
   controlledRehearsalNode24InfrastructureSuccessor,
   evaluateActivePrivateDeploymentToolchainSuccessor,
@@ -154,6 +155,52 @@ test("private Workflow v2 composes only the exact prospective-calibration source
         path,
         acceptedSha256:
           "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0",
+        successor: candidate
+      }));
+  }
+});
+
+test("private Workflow v2 composes only the exact gym-preview route-quality source chain", () => {
+  const successor = verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .gymPreviewRouteQualityRuntimeSurfaceSuccessor;
+  const provenancePath =
+    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
+  const routeQualityPath = "scripts/lib/route-intelligence-quality-gate.mjs";
+  assert.equal(advancePrivateWorkflowV2GymPreviewRouteQualityOwnerHash({
+    path: provenancePath,
+    acceptedSha256:
+      "6bac7ac80a6ac9b3ef3f1bef4869a61c4f7a76a146bfd2fd7edb4c58fddcbfe2",
+    successor
+  }), "15ae949ef9d136ca7f4b3444a9f2f5db0241cfa4092d811e891564dc4afb2e16");
+  assert.equal(advancePrivateWorkflowV2GymPreviewRouteQualityOwnerHash({
+    path: routeQualityPath,
+    acceptedSha256:
+      "7a37c1d2bfc3c07e38a0e706756c64f69718c9a7d36bd0b1eebc5717a7621468",
+    successor
+  }), "7bda35b46eb577dd89c6cd2617c70cb3c7a0b656faff168543c13db35a01c0b4");
+  assert.equal(advancePrivateWorkflowV2GymPreviewRouteQualityOwnerHash({
+    path: "intelligence/provenance/not-governed.mjs",
+    acceptedSha256: "f".repeat(64),
+    successor
+  }), "f".repeat(64));
+  for (const mutate of [
+    value => { value.successor.batchId = "BATCH-SUBSTITUTED"; },
+    value => { value.successor.ownerSubsystem = "Prometheus Overwatch"; },
+    value => { value.successor.behavior.currentRuntimeFileCount = 33; },
+    value => { value.successor.behavior.routeScoringChanged = true; },
+    value => { value.successor.protectedState.collection = "ON"; },
+    value => { value.successor.protectedState.deployments = 1; },
+    value => {
+      value.transitionsByPath.get(provenancePath)[0].previousSha256 = "0".repeat(64);
+    }
+  ]) {
+    const candidate = clone(successor);
+    mutate(candidate);
+    assert.throws(() =>
+      advancePrivateWorkflowV2GymPreviewRouteQualityOwnerHash({
+        path: provenancePath,
+        acceptedSha256:
+          "6bac7ac80a6ac9b3ef3f1bef4869a61c4f7a76a146bfd2fd7edb4c58fddcbfe2",
         successor: candidate
       }));
   }
