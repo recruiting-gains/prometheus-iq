@@ -125,14 +125,23 @@ test("fresh-attempt deployment guard admits only the exact manual isolated gym p
   const previewGovernance = readJson(
     "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json"
   );
+  const deploymentEnvironmentGovernance = readJson(
+    "overwatch/governance/route-iq-gym-preview-deployment-environment-successor-v1.json"
+  );
   const config = readJson("wrangler.prometheusrouteiq-website-gym-preview.jsonc");
-  const input = { path, source, governance: previewGovernance, config };
+  const input = {
+    path,
+    source,
+    governance: previewGovernance,
+    deploymentEnvironmentGovernance,
+    config
+  };
   assert.equal(verifyManualIsolatedGymPreviewWorkflow(input), true);
 
   const mutateSource = mutation => {
     const changed = structuredClone(input);
     changed.source = mutation(changed.source);
-    changed.governance.founderAttendedAutomaticDeploymentGuardSuccessor.workflowSha256 =
+    changed.deploymentEnvironmentGovernance.currentContracts.workflow.sha256 =
       createHash("sha256").update(changed.source).digest("hex");
     return changed;
   };
@@ -153,6 +162,27 @@ test("fresh-attempt deployment guard admits only the exact manual isolated gym p
       const changed = structuredClone(input);
       changed.governance.founderAttendedAutomaticDeploymentGuardSuccessor
         .productionWorkerDeploymentAllowed = true;
+      return changed;
+    })(),
+    (() => {
+      const changed = structuredClone(input);
+      changed.deploymentEnvironmentGovernance.batchId = "BATCH-STALE";
+      return changed;
+    })(),
+    (() => {
+      const changed = structuredClone(input);
+      changed.deploymentEnvironmentGovernance.implementation.identity =
+        "Prometheus Overwatch <overwatch@prometheus.local>";
+      return changed;
+    })(),
+    (() => {
+      const changed = structuredClone(input);
+      changed.deploymentEnvironmentGovernance.previewBoundary.productionDeploymentAllowed = true;
+      return changed;
+    })(),
+    (() => {
+      const changed = structuredClone(input);
+      changed.deploymentEnvironmentGovernance.protectedState.productionDeployments = 1;
       return changed;
     })()
   ];

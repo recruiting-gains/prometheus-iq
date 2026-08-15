@@ -25,6 +25,8 @@ const reportPath =
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const gymPreviewGovernancePath =
   "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
+const gymPreviewDeploymentEnvironmentGovernancePath =
+  "overwatch/governance/route-iq-gym-preview-deployment-environment-successor-v1.json";
 const gymPreviewConfigPath = "wrangler.prometheusrouteiq-website-gym-preview.jsonc";
 const initialOwnerCommit = "20e367ccd815f059adcdfa241f34a66c0a28675b";
 const initialOwnerParent = "4fbd3030c980a7e17230654dfe2ece0766793436";
@@ -105,6 +107,11 @@ const git = args => execFileSync("/usr/bin/git", args, {
   encoding: "utf8",
   stdio: ["ignore", "pipe", "ignore"]
 }).trim();
+const readAtCommit = (commit, path) => execFileSync(
+  "/usr/bin/git",
+  ["show", `${commit}:${path}`],
+  { cwd: root, stdio: ["ignore", "pipe", "ignore"] }
+);
 
 export function evaluateFounderAttendedFreshAttemptEvidenceRotationGovernance({
   governance,
@@ -472,6 +479,7 @@ export function verifyManualIsolatedGymPreviewWorkflow({
   path,
   source,
   governance,
+  deploymentEnvironmentGovernance,
   config
 }) {
   const successor = governance?.founderAttendedAutomaticDeploymentGuardSuccessor;
@@ -481,8 +489,8 @@ export function verifyManualIsolatedGymPreviewWorkflow({
     || successor?.historicalGuardPath !==
       "scripts/verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs"
     || successor?.workflowPath !== path
-    || successor?.workflowSha256 !== sha256(source)
     || successor?.workflowOwnerCommit !== "919092f0700ac43fb507dc32111ad2e9d1e9d2e0"
+    || successor?.workflowSha256 !== sha256(readAtCommit(successor.workflowOwnerCommit, path))
     || successor?.onlyTrigger !== "workflow_dispatch"
     || successor?.exactWorkerName !== "prometheusrouteiq-website-gym-preview"
     || successor?.exactConfigPath !== gymPreviewConfigPath
@@ -492,6 +500,42 @@ export function verifyManualIsolatedGymPreviewWorkflow({
     || successor?.productionRoutesAllowed !== false
     || successor?.productionDataAccessAllowed !== false) {
     throw new Error("Isolated preview workflow governance drifted.");
+  }
+
+  const deploymentSuccessor = deploymentEnvironmentGovernance;
+  if (deploymentSuccessor?.version !==
+      "route-iq-gym-preview-deployment-environment-successor-v1"
+    || deploymentSuccessor?.batchId !== "BATCH-20260814-002"
+    || deploymentSuccessor?.status !==
+      "INDEPENDENTLY_VERIFIED_NONPRODUCTION_ENVIRONMENT_SUCCESSOR"
+    || deploymentSuccessor?.ownerSubsystem !== "Prometheus Overwatch"
+    || deploymentSuccessor?.predecessor?.path !== gymPreviewGovernancePath
+    || deploymentSuccessor?.predecessor?.sha256 !== sha256(read(gymPreviewGovernancePath))
+    || deploymentSuccessor?.predecessor?.remainsHistorical !== true
+    || deploymentSuccessor?.predecessor?.rewritten !== false
+    || deploymentSuccessor?.implementation?.commit !==
+      "bb19b848976a05926cb214e96667b5b0d083fbc9"
+    || deploymentSuccessor?.implementation?.identity !==
+      "Prometheus Infrastructure <infrastructure@prometheus.local>"
+    || deploymentSuccessor?.implementation?.subject !==
+      "infrastructure: isolate gym preview deployment credentials"
+    || !deploymentSuccessor?.implementation?.changedFiles?.includes(path)
+    || deploymentSuccessor?.currentContracts?.workflow?.path !== path
+    || deploymentSuccessor?.currentContracts?.workflow?.sha256 !== sha256(source)
+    || deploymentSuccessor?.previewBoundary?.worker !== successor.exactWorkerName
+    || deploymentSuccessor?.previewBoundary?.routes?.length !== 0
+    || deploymentSuccessor?.previewBoundary?.customDomains?.length !== 0
+    || deploymentSuccessor?.previewBoundary?.persistenceAllowed !== false
+    || deploymentSuccessor?.previewBoundary?.emailAllowed !== false
+    || deploymentSuccessor?.previewBoundary?.productionDeploymentAllowed !== false
+    || deploymentSuccessor?.protectedState?.productionDeployments !== 0
+    || deploymentSuccessor?.protectedState?.productionDataMutations !== 0) {
+    throw new Error("Isolated preview deployment-environment successor drifted.");
+  }
+  if (sha256(readAtCommit(deploymentSuccessor.implementation.commit, path)) !== sha256(source)
+    || git(["show", "-s", "--format=%an <%ae>", deploymentSuccessor.implementation.commit]) !==
+      deploymentSuccessor.implementation.identity) {
+    throw new Error("Isolated preview deployment-environment ownership drifted.");
   }
 
   const triggerEnd = source.indexOf("permissions:\n");
@@ -560,6 +604,9 @@ function verifyNoAutomaticDeployment() {
   const workflowPaths = git(["ls-files", ".github/workflows"])
     .split("\n").filter(Boolean);
   const gymPreviewGovernance = readJson(gymPreviewGovernancePath);
+  const deploymentEnvironmentGovernance = readJson(
+    gymPreviewDeploymentEnvironmentGovernancePath
+  );
   const gymPreviewConfig = readJson(gymPreviewConfigPath);
   for (const path of workflowPaths) {
     const source = read(path);
@@ -571,6 +618,7 @@ function verifyNoAutomaticDeployment() {
         path,
         source,
         governance: gymPreviewGovernance,
+        deploymentEnvironmentGovernance,
         config: gymPreviewConfig
       });
     } else {
