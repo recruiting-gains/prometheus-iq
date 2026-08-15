@@ -1,0 +1,116 @@
+{
+  "version": "route-iq-august-1-dashboard-visual-readiness-successor-v1",
+  "batchId": "BATCH-20260815-001",
+  "status": "INDEPENDENTLY_VERIFIED_ARTIFACT_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "predecessor": {
+    "path": "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json",
+    "sha256": "0c9a9d90bed52de3b2a6959fdd0c84cdf4709c8891a670f3979c3369934e3527",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "ownerCommits": [
+    {
+      "commit": "72d9f99ab75d3716f855835fd84345306de67cd7",
+      "tree": "d0c5e7a1ab7bc0d7ecb0dbeba01696432823a3d4",
+      "identity": "Prometheus Website <website@prometheus.local>",
+      "subject": "website: keep preview navigation inside public routes",
+      "evidence": [
+        {
+          "path": "tests/website-route-iq-product-focus.test.mjs",
+          "previousSha256": "4132d701b7f7b9a0df3dfc0f76fbc13f6165fabf8615af7d3963f939c5473c82",
+          "successorSha256": "a29b4e66244ed1b37cbb4d6da0daff58049dc0823a4301d263f48f017a638d6a"
+        }
+      ]
+    },
+    {
+      "commit": "99dbf7b5b83e19842d451e010ce159b17705251b",
+      "tree": "b50fdcd485c8cef43113fb1f3853cdc2b1590e9f",
+      "identity": "Prometheus Dashboard <dashboard@prometheus.local>",
+      "subject": "dashboard: align private workspace with public identity",
+      "evidence": [
+        {
+          "path": "index.html",
+          "previousSha256": "b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604",
+          "successorSha256": "ad138fdbf0a2f06c6226bb1310e575d3db867b256a25db9a03da9d1a2d2380b8"
+        },
+        {
+          "path": "manifest-founder.webmanifest",
+          "previousSha256": "6da8943ff8942ab6c9342e48598a83a20459ab9a37d875fbd58408df499c7d51",
+          "successorSha256": "6448436b843d480f3a12b18a66ab14f934a33d5212bc73dec5a041dfeb3bcce9"
+        },
+        {
+          "path": "manifest.webmanifest",
+          "previousSha256": "6afeebcc34788895911d9da79fc9a3170fe62378ef82c678e8c0893d39b2d390",
+          "successorSha256": "b4f567e91b5f708f4cbdce02f2df55dfb652b4f6a9db72dfce9be55d01d086e7"
+        },
+        {
+          "path": "tests/dashboard-route-iq-product-focus.test.mjs",
+          "previousSha256": "1b91ede6effcbf5697fdde6cb81a8489fcb6fbcde1e536a81f8e42e6f922c523",
+          "successorSha256": "53fd0777260dbd49b2b3441bfcc97f8b8f86932fbd37fb8e85f69dbc88187ba1"
+        }
+      ]
+    },
+    {
+      "commit": "84088bb82cd60b36a721222c6e6632e5be7046d2",
+      "tree": "646a70190ffb7fde216d584a4c52d488be2bb438",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "infrastructure: bind navigation and dashboard assets",
+      "evidence": [
+        {
+          "path": "deploy/cloudflare-pages/index.html",
+          "previousSha256": "b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604",
+          "successorSha256": "ad138fdbf0a2f06c6226bb1310e575d3db867b256a25db9a03da9d1a2d2380b8"
+        },
+        {
+          "path": "deploy/cloudflare-pages/manifest-founder.webmanifest",
+          "previousSha256": "6da8943ff8942ab6c9342e48598a83a20459ab9a37d875fbd58408df499c7d51",
+          "successorSha256": "6448436b843d480f3a12b18a66ab14f934a33d5212bc73dec5a041dfeb3bcce9"
+        },
+        {
+          "path": "deploy/cloudflare-pages/manifest.webmanifest",
+          "previousSha256": "6afeebcc34788895911d9da79fc9a3170fe62378ef82c678e8c0893d39b2d390",
+          "successorSha256": "b4f567e91b5f708f4cbdce02f2df55dfb652b4f6a9db72dfce9be55d01d086e7"
+        }
+      ]
+    },
+    {
+      "commit": "441e4f2c829c0eb5d04078711314d9481d4ccbd4",
+      "tree": "1e36c724e4e5508b330ce0558344af9f7d521ac6",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "subject": "infrastructure: regenerate public visual rollback",
+      "evidence": [
+        {
+          "path": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+          "previousSha256": "9fdd92e4ba6313ef992858ea6c377e18854005d6b18f868c6fa956da99fbe5ca",
+          "successorSha256": "168689b3b8beac3eb0ba966737e01c8af3583b18417dd04bc6f4920fcdb5af2c"
+        }
+      ]
+    },
+    {
+      "commit": "0000000000000000000000000000000000000000",
+      "tree": "0000000000000000000000000000000000000000",
+      "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "subject": "overwatch: compose August visual readiness",
+      "evidence": [
+        {
+          "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+          "previousSha256": "1302e2ff565f84b3f2332c5579fc0c4f118b105c85d46b4b5d5c677dabedea7c",
+          "successorSha256": "33c36668bece5ec7394a884dc4f6f18c67f54315c012d7395a6fbc4802a466b1"
+        },
+        {
+          "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+          "previousSha256": "36e7861d5c2a1c6d60fa2ad2f67c7775c19bb11e95e40bc44f9ac9cec47b7c1d",
+          "successorSha256": "b702d8de20c275f78d6cb28b11f85c8e140d9bc6546c345a02943c96b0143788"
+        }
+      ]
+    }
+  ],
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "productionDeployments": 0,
+    "productionDataMutations": 0
+  }
+}

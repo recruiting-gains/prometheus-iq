@@ -18,7 +18,9 @@ import {
   AUGUST_1_GOVERNANCE_REPORT_PATH,
   AUGUST_1_READINESS_MATRIX_PATH,
   AUGUST_1_SUCCESSORS_PATH,
+  AUGUST_1_DASHBOARD_VISUAL_SUCCESSOR_PATH,
   validateAugust1GovernanceReport,
+  validateAugust1DashboardVisualSuccessor,
   validateAugust1ReadinessMatrix,
   validateAugust1ReadinessSuccessors,
   verifyOverwatchRouteIqAugust1LaunchReadiness
@@ -51,6 +53,8 @@ function createPackageFixture(t) {
     AUGUST_1_READINESS_MATRIX_PATH,
     AUGUST_1_GOVERNANCE_REPORT_PATH,
     AUGUST_1_SUCCESSORS_PATH,
+    AUGUST_1_DASHBOARD_VISUAL_SUCCESSOR_PATH,
+    "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json",
     "tests/overwatch-public-deployment-workflow-v2.test.mjs",
     ...contract.artifactPins.map(artifact => artifact.path)
   ]);
@@ -87,6 +91,7 @@ test("authoritative August 1 package passes while launch remains fail-closed", (
   assert.equal(result.totalRequirements, 26);
   assert.equal(result.verifiedRequirements, 20);
   assert.equal(result.readinessPercent, 76.9);
+  assert.equal(result.dashboardVisualSuccessorBatchId, "BATCH-20260815-001");
   assert.deepEqual(result.fixedLaunchContract, {
     productClassification: "PRODUCTION_NOT_BETA",
     prelaunchHumanAcceptanceTester: "cruz",
@@ -100,6 +105,27 @@ test("authoritative August 1 package passes while launch remains fail-closed", (
     anthonyMapped: false,
     activationDefault: "OFF"
   });
+});
+
+test("Dashboard visual readiness successor connects every changed launch artifact", () => {
+  const successor = readJson(ROOT, AUGUST_1_DASHBOARD_VISUAL_SUCCESSOR_PATH);
+  const result = validateAugust1DashboardVisualSuccessor(successor, {
+    root: ROOT,
+    verifyGit: false
+  });
+  assert.equal(result.evidence.length, 11);
+  for (const mutate of [
+    value => { value.protectedState.collection = "ON"; },
+    value => { value.ownerCommits[0].evidence[0].successorSha256 = "0".repeat(64); },
+    value => { value.predecessor.rewritten = true; }
+  ]) {
+    const candidate = clone(successor);
+    mutate(candidate);
+    assert.throws(() => validateAugust1DashboardVisualSuccessor(candidate, {
+      root: ROOT,
+      verifyGit: false
+    }));
+  }
 });
 
 test("August 1 successor evidence preserves historical pins and rejects drift", () => {

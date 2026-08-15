@@ -13,6 +13,8 @@ export const AUGUST_1_GOVERNANCE_REPORT_PATH =
   "overwatch/governance/route-iq-august-1-launch-closeout-v1.json";
 export const AUGUST_1_SUCCESSORS_PATH =
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
+export const AUGUST_1_DASHBOARD_VISUAL_SUCCESSOR_PATH =
+  "overwatch/governance/route-iq-august-1-dashboard-visual-readiness-successor-v1.json";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const STARTING_COMMIT = "d3bda9d86a388462dd5cab0fa789081eee59b541";
@@ -581,7 +583,10 @@ export function validateAugust1GovernanceReport(contract, matrix) {
   return contract;
 }
 
-export function validateAugust1ReadinessSuccessors(successors, { root = ROOT } = {}) {
+export function validateAugust1ReadinessSuccessors(successors, {
+  root = ROOT,
+  additionalCurrentEvidence
+} = {}) {
   assertExactObjectKeys(successors, [
     "governanceId",
     "historicalCloseoutEvidenceRewritten",
@@ -883,6 +888,15 @@ export function validateAugust1ReadinessSuccessors(successors, { root = ROOT } =
     entries.push(item);
     currentEvidenceByPath.set(item.path, entries);
   }
+  const currentVisualEvidence = additionalCurrentEvidence
+    ?? dashboardVisualEvidence(readJson(root, AUGUST_1_DASHBOARD_VISUAL_SUCCESSOR_PATH));
+  for (const item of currentVisualEvidence.filter(entry => (
+    allowedCurrentEvidencePaths.has(entry.path)
+  ))) {
+    const entries = currentEvidenceByPath.get(item.path) ?? [];
+    entries.push(item);
+    currentEvidenceByPath.set(item.path, entries);
+  }
   assert.deepEqual(
     sorted([...currentEvidenceByPath.keys()]),
     sorted([...allowedCurrentEvidencePaths])
@@ -899,11 +913,93 @@ export function validateAugust1ReadinessSuccessors(successors, { root = ROOT } =
   return successors;
 }
 
-function successorEvidenceMap(successors) {
+function dashboardVisualEvidence(successor) {
+  assert.ok(Array.isArray(successor?.ownerCommits));
+  return successor.ownerCommits.flatMap(owner => owner.evidence || []);
+}
+
+export function validateAugust1DashboardVisualSuccessor(successor, {
+  root = ROOT,
+  verifyGit = false
+} = {}) {
+  assertExactObjectKeys(successor, [
+    "batchId", "ownerCommits", "ownerSubsystem", "predecessor", "protectedState",
+    "status", "version"
+  ], "August 1 Dashboard visual successor");
+  assert.equal(successor.version,
+    "route-iq-august-1-dashboard-visual-readiness-successor-v1");
+  assert.equal(successor.batchId, "BATCH-20260815-001");
+  assert.equal(successor.status, "INDEPENDENTLY_VERIFIED_ARTIFACT_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(
+    sha256(read(root, successor.predecessor.path)),
+    successor.predecessor.sha256,
+    "Dashboard visual predecessor drifted"
+  );
+  assert.equal(successor.ownerCommits.length, 5);
+  const evidence = [];
+  const paths = new Set();
+  for (const owner of successor.ownerCommits) {
+    assertExactObjectKeys(owner,
+      ["commit", "evidence", "identity", "subject", "tree"],
+      "Dashboard visual owner commit");
+    assert.match(owner.commit, /^[a-f0-9]{40}$/u);
+    assert.match(owner.tree, /^[a-f0-9]{40}$/u);
+    assert.match(owner.identity, /^Prometheus .+ <[^>]+@prometheus\.local>$/u);
+    assert.ok(typeof owner.subject === "string" && owner.subject.length > 0);
+    if (verifyGit) {
+      assert.equal(git(root, "rev-parse", `${owner.commit}^{tree}`), owner.tree);
+      assert.equal(git(root, "show", "-s", "--format=%an <%ae>", owner.commit),
+        owner.identity);
+      assert.equal(git(root, "show", "-s", "--format=%s", owner.commit), owner.subject);
+      git(root, "merge-base", "--is-ancestor", owner.commit, "HEAD");
+    }
+    for (const item of owner.evidence) {
+      assertExactObjectKeys(item,
+        ["path", "previousSha256", "successorSha256"],
+        "Dashboard visual artifact evidence");
+      assert.equal(paths.has(item.path), false, `Duplicate Dashboard visual path: ${item.path}`);
+      paths.add(item.path);
+      assert.match(item.previousSha256, /^[a-f0-9]{64}$/u);
+      assert.match(item.successorSha256, /^[a-f0-9]{64}$/u);
+      assert.notEqual(item.previousSha256, item.successorSha256);
+      assertRegularFile(root, item.path);
+      assert.equal(sha256(read(root, item.path)), item.successorSha256,
+        `Dashboard visual successor drifted: ${item.path}`);
+      evidence.push(item);
+    }
+  }
+  assert.deepEqual(sorted([...paths]), sorted([
+    "deploy/cloudflare-pages/index.html",
+    "deploy/cloudflare-pages/manifest-founder.webmanifest",
+    "deploy/cloudflare-pages/manifest.webmanifest",
+    "index.html",
+    "manifest-founder.webmanifest",
+    "manifest.webmanifest",
+    "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+    "tests/dashboard-route-iq-product-focus.test.mjs",
+    "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+    "tests/website-route-iq-product-focus.test.mjs",
+    "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+  ]));
+  assert.deepEqual(successor.protectedState, {
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    productionDeployments: 0,
+    productionDataMutations: 0
+  });
+  return Object.freeze({ successor, evidence: Object.freeze(evidence) });
+}
+
+function successorEvidenceMap(successors, additionalEvidence = []) {
   const evidenceByPath = new Map();
   for (const item of [
     ...successors.successors.flatMap(successor => successor.evidence),
-    ...successors.overwatchCurrentEvidence
+    ...successors.overwatchCurrentEvidence,
+    ...additionalEvidence
   ]) {
     const evidence = evidenceByPath.get(item.path) ?? [];
     evidence.push(item);
@@ -961,8 +1057,8 @@ function verifySuccessorOwnerChain(root, successors) {
   }
 }
 
-function verifyArtifactPins(root, contract, successors) {
-  const accepted = successorEvidenceMap(successors);
+function verifyArtifactPins(root, contract, successors, additionalEvidence) {
+  const accepted = successorEvidenceMap(successors, additionalEvidence);
   for (const artifact of contract.artifactPins) {
     assertRegularFile(root, artifact.path);
     const actual = sha256(read(root, artifact.path));
@@ -1291,19 +1387,26 @@ export function verifyOverwatchRouteIqAugust1LaunchReadiness({
   assertRegularFile(root, AUGUST_1_READINESS_MATRIX_PATH);
   assertRegularFile(root, AUGUST_1_GOVERNANCE_REPORT_PATH);
   assertRegularFile(root, AUGUST_1_SUCCESSORS_PATH);
+  assertRegularFile(root, AUGUST_1_DASHBOARD_VISUAL_SUCCESSOR_PATH);
   const matrixBytes = read(root, AUGUST_1_READINESS_MATRIX_PATH);
   const matrix = validateAugust1ReadinessMatrix(JSON.parse(matrixBytes.toString("utf8")));
   const contract = validateAugust1GovernanceReport(
     readJson(root, AUGUST_1_GOVERNANCE_REPORT_PATH),
     matrix
   );
+  const dashboardVisualRecord = readJson(root, AUGUST_1_DASHBOARD_VISUAL_SUCCESSOR_PATH);
+  const dashboardVisualArtifactEvidence = dashboardVisualEvidence(dashboardVisualRecord);
   const successors = validateAugust1ReadinessSuccessors(
     readJson(root, AUGUST_1_SUCCESSORS_PATH),
-    { root }
+    { root, additionalCurrentEvidence: dashboardVisualArtifactEvidence }
   );
   assert.equal(sha256(matrixBytes), contract.matrix.sha256, "Readiness matrix hash drifted.");
   if (verifyGit) verifySuccessorOwnerChain(root, successors);
-  verifyArtifactPins(root, contract, successors);
+  verifyArtifactPins(root, contract, successors, dashboardVisualArtifactEvidence);
+  const dashboardVisualSuccessor = validateAugust1DashboardVisualSuccessor(
+    dashboardVisualRecord,
+    { root, verifyGit }
+  );
   verifyFixedOwnerEvidence(root, matrix, contract);
   const repository = verifyGit ? verifyRepositoryBaseline(root, contract, { requireClean }) : null;
   if (repository) {
@@ -1330,6 +1433,7 @@ export function verifyOverwatchRouteIqAugust1LaunchReadiness({
     launchBlockerIds: Object.freeze(counts.blockerIds),
     founderAttendanceRequirementIds: Object.freeze(counts.founderAttendanceIds),
     fixedLaunchContract: Object.freeze({ ...contract.fixedLaunchContract }),
+    dashboardVisualSuccessorBatchId: dashboardVisualSuccessor.successor.batchId,
     repository,
     externalActionsPerformedByThisVerificationRun: false
   });
