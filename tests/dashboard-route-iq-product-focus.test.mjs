@@ -26,6 +26,22 @@ import {
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
 const source = read("index.html");
+
+test("the private Dashboard uses the shared black, white, and orange product identity", () => {
+  assert.match(source, /<meta name="theme-color" content="#000000">/);
+  assert.match(source, /--paper: #f4f4f4;/);
+  assert.match(source, /--panel: #ffffff;/);
+  assert.match(source, /--command: #000000;/);
+  assert.match(source, /--command-2: #1a1a1a;/);
+  assert.match(source, /--accent: #ff6a00;/);
+  assert.match(source, /background: rgba\(0, 0, 0, \.96\);/);
+  assert.match(source, /linear-gradient\(135deg, rgba\(255, 106, 0, \.24\), rgba\(255, 255, 255, \.04\)\)/);
+  assert.doesNotMatch(source, /--command: #14211e;|--accent: #0f8d69;|background: rgba\(20, 33, 30, \.96\);/);
+
+  for (const semanticStatus of ["green", "yellow", "red", "blue"]) {
+    assert.match(source, new RegExp(`\\.pill\\.${semanticStatus} \\{`));
+  }
+});
 const serviceWorker = read("sw.js");
 const runtimeWorkflowVerifier = read("scripts/verify-dashboard-runtime-workflows.mjs");
 const canonicalFounderSnapshot = JSON.parse(read("intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json"));
