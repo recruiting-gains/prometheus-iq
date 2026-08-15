@@ -374,8 +374,7 @@ function readGymPreviewRouteQualityRuntimeSurfaceSuccessor(
     [...transitionsByPath.keys()].sort(),
     [
       "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
-      "scripts/lib/route-intelligence-quality-gate.mjs",
-      "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+      "scripts/lib/route-intelligence-quality-gate.mjs"
     ]
   );
   assert.deepEqual(successor.behavior, {
