@@ -186,6 +186,14 @@ function verifyGeneratedParity() {
   }
 }
 
+export function governedLearningAdvisoryBatchDiffRange(governance) {
+  assert.equal(typeof governance?.startingRepository?.commit, "string");
+  assert.ok(Array.isArray(governance?.ownerCommits) && governance.ownerCommits.length > 0);
+  const finalOwnerCommit = governance.ownerCommits.at(-1)?.commit;
+  assert.match(finalOwnerCommit, /^[0-9a-f]{40}$/u);
+  return `${governance.startingRepository.commit}..${finalOwnerCommit}`;
+}
+
 function verifyRepositoryBoundaries(governance) {
   assert.equal(
     git(["rev-parse", `${governance.startingRepository.commit}^{tree}`]).trim(),
@@ -204,17 +212,18 @@ function verifyRepositoryBoundaries(governance) {
     originMain,
     environment: process.env
   }), true, "Repository is not the governed main checkout.");
+  const batchDiffRange = governedLearningAdvisoryBatchDiffRange(governance);
   for (const path of governance.unchangedBehaviorPaths) {
     execFileSync("/usr/bin/git", [
-      "diff", "--quiet", `${governance.startingRepository.commit}..HEAD`, "--", path
+      "diff", "--quiet", batchDiffRange, "--", path
     ], { cwd: root, stdio: "ignore" });
   }
   execFileSync("/usr/bin/git", [
-    "diff", "--quiet", `${governance.startingRepository.commit}..HEAD`, "--",
+    "diff", "--quiet", batchDiffRange, "--",
     governance.historicalEvidence.path
   ], { cwd: root, stdio: "ignore" });
   const changed = git([
-    "diff", "--name-only", `${governance.startingRepository.commit}..HEAD`
+    "diff", "--name-only", batchDiffRange
   ]).trim().split("\n").filter(Boolean);
   assert.equal(changed.some(path => path.startsWith(".github/workflows/")), false);
   assert.equal(changed.some(path => /^wrangler(?:\.|\/)/u.test(path)), false);

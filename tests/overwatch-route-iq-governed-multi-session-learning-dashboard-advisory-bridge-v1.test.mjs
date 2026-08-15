@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   canonicalGitHubRepositoryIdentity,
+  governedLearningAdvisoryBatchDiffRange,
   isGovernedMainCheckout,
   verifyOverwatchRouteIqGovernedLearningAdvisoryBridge
 } from "../scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs";
@@ -36,6 +37,13 @@ test("Overwatch verifies the owner chain, canonical artifact, and protected stat
     followUpRelationships: 0,
     reviewRequiredOutcomes: 1
   });
+});
+
+test("historical repository boundaries stop at the batch's exact owner chain", () => {
+  assert.equal(
+    governedLearningAdvisoryBatchDiffRange(governance()),
+    "b7925ea3eee305e0f69e93d2def23b824d24092a..18d317b2ff6d7e7b755ff86d820128a87ac96729"
+  );
 });
 
 test("main checkout accepts local main or exact hosted detached main only", () => {
