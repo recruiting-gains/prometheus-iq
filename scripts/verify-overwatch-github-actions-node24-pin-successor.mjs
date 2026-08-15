@@ -16,6 +16,10 @@ const securityRecordPath =
   "security/github-actions-official-node24-pin-successor-v1.json";
 const predecessorGovernancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
+const gymPreviewInfrastructurePath =
+  "workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json";
+const gymPreviewActionPinOwnerCommit =
+  "48847f0ad89b6198db0668e55e4c876ee27f14c4";
 
 function read(path) {
   return readFileSync(resolve(root, path), "utf8");
@@ -191,6 +195,9 @@ export function verifyOverwatchGithubActionsNode24PinSuccessor() {
   const infrastructure = readJson(infrastructureContractPath);
   const security = readJson(securityRecordPath);
   const predecessorGovernance = readJson(predecessorGovernancePath);
+  const gymPreviewInfrastructure = readJson(gymPreviewInfrastructurePath);
+  const gymPreviewSuccessor =
+    gymPreviewInfrastructure.officialNode24ActionSuccessor;
   const evaluation = evaluateOverwatchGithubActionsNode24PinSuccessor({
     governance,
     infrastructure,
@@ -256,7 +263,9 @@ export function verifyOverwatchGithubActionsNode24PinSuccessor() {
     .filter(path => /\.ya?ml$/u.test(path))
     .map(path => `.github/workflows/${path}`)
     .sort();
-  assert.deepEqual(workflowPaths, infrastructure.workflows.map(item => item.path).sort());
+  const historicalWorkflowPaths = infrastructure.workflows.map(item => item.path).sort();
+  assert.deepEqual(workflowPaths,
+    [...historicalWorkflowPaths, gymPreviewSuccessor.path].sort());
   let checkoutReferences = 0;
   let setupNodeReferences = 0;
   for (const evidence of infrastructure.workflows) {
@@ -281,6 +290,42 @@ export function verifyOverwatchGithubActionsNode24PinSuccessor() {
   assert.equal(checkoutReferences, governance.successor.checkoutReferences);
   assert.equal(setupNodeReferences, governance.successor.setupNodeReferences);
 
+  assert.deepEqual(commitIdentity(gymPreviewActionPinOwnerCommit), {
+    commit: gymPreviewActionPinOwnerCommit,
+    tree: "48395f985a879d25a71b99f9a7e8387446214f8d",
+    parent: "b18c27942cb116b242b8711331154ae7bc7392e3",
+    author: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    committer: "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    subject: "infrastructure: govern gym preview action pins"
+  });
+  assert.deepEqual(git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    gymPreviewActionPinOwnerCommit
+  ]).trim().split("\n").filter(Boolean).sort(), [
+    "scripts/verify-github-actions-official-node24-pin-successor.mjs",
+    "tests/route-iq-gym-website-preview-infrastructure.test.mjs",
+    gymPreviewInfrastructurePath
+  ].sort());
+  const gymPreviewWorkflow = read(gymPreviewSuccessor.path);
+  assert.equal(gymPreviewSuccessor.classification,
+    "NEW_WORKFLOW_OFFICIAL_NODE24_PIN_SUCCESSOR");
+  assert.equal(sha256(gymPreviewWorkflow), gymPreviewSuccessor.sha256);
+  assert.deepEqual(
+    [...gymPreviewWorkflow.matchAll(/uses:\s*actions\/checkout@([^\s]+)/gu)]
+      .map(match => match[1]),
+    Array(gymPreviewSuccessor.checkout.occurrences)
+      .fill(governance.successor.checkout.commit)
+  );
+  assert.deepEqual(
+    [...gymPreviewWorkflow.matchAll(/uses:\s*actions\/setup-node@([^\s]+)/gu)]
+      .map(match => match[1]),
+    Array(gymPreviewSuccessor.setupNode.occurrences)
+      .fill(governance.successor.setupNode.commit)
+  );
+  assert.match(gymPreviewWorkflow, /^permissions:\n  contents: read$/mu);
+  assert.doesNotMatch(gymPreviewWorkflow,
+    /actions\/(?:checkout|setup-node)@v\d|^  (?:pull_request_target|workflow_run):/mu);
+
   for (const evidence of governance.historicalEvidence) {
     const current = readFileSync(resolve(root, evidence.path));
     const baseline = git([
@@ -298,9 +343,13 @@ export function verifyOverwatchGithubActionsNode24PinSuccessor() {
     status: "OFFICIAL_NODE24_ACTION_PIN_OVERWATCH_VERIFIED",
     infrastructureCommit: governance.ownerChain.infrastructure.commit,
     securityCommit: governance.ownerChain.security.commit,
-    workflowFiles: workflowPaths.length,
+    workflowFiles: historicalWorkflowPaths.length,
     checkoutReferences,
     setupNodeReferences,
+    successorWorkflowFiles: 1,
+    activeWorkflowFiles: workflowPaths.length,
+    successorCheckoutReferences: gymPreviewSuccessor.checkout.occurrences,
+    successorSetupNodeReferences: gymPreviewSuccessor.setupNode.occurrences,
     historicalEvidencePreserved: governance.historicalEvidence.length,
     releaseIdentityChanged: false,
     cloudflareContacts: 0,

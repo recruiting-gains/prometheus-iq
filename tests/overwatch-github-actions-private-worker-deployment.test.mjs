@@ -1270,6 +1270,17 @@ test("Overwatch independently verifies the official Node 24 action successor", (
     setupNodeReferences: 39,
     releaseIdentityChanged: false
   });
+  assert.deepEqual({
+    successorWorkflowFiles: result.successorWorkflowFiles,
+    activeWorkflowFiles: result.activeWorkflowFiles,
+    successorCheckoutReferences: result.successorCheckoutReferences,
+    successorSetupNodeReferences: result.successorSetupNodeReferences
+  }, {
+    successorWorkflowFiles: 1,
+    activeWorkflowFiles: 16,
+    successorCheckoutReferences: 2,
+    successorSetupNodeReferences: 2
+  });
 });
 
 test("Node 24 successor governance fails closed on pin, tag, and release drift", () => {

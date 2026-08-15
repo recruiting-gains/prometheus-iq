@@ -19,7 +19,8 @@
     {"commit":"c42576db4330e2ba42373df247e6a6c65172ff55","tree":"b19db314b3b4a1de582d01fdc31494466bb6d082","owner":"Prometheus Website <website@prometheus.local>","subject":"website: build gym-first dual-track preview"},
     {"commit":"15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac","tree":"8f65b4d1b703c0b95e79edf4c4d82c9b540181dd","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: bind gym preview release assets"},
     {"commit":"919092f0700ac43fb507dc32111ad2e9d1e9d2e0","tree":"cce0d299016812863d956710b44a317f9968548e","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: require gym preview oversight gate"},
-    {"commit":"ab382d47da5711b6ff2af7ace438bb3284bd76d2","tree":"c8e24adb6ef9029b11f7f68b3133b3013bb640de","owner":"Prometheus Security <security@prometheus.local>","subject":"security: distinguish isolated preview safeguards"}
+    {"commit":"ab382d47da5711b6ff2af7ace438bb3284bd76d2","tree":"c8e24adb6ef9029b11f7f68b3133b3013bb640de","owner":"Prometheus Security <security@prometheus.local>","subject":"security: distinguish isolated preview safeguards"},
+    {"commit":"48847f0ad89b6198db0668e55e4c876ee27f14c4","tree":"48395f985a879d25a71b99f9a7e8387446214f8d","owner":"Prometheus Infrastructure <infrastructure@prometheus.local>","subject":"infrastructure: govern gym preview action pins"}
   ],
   "founderAssets": [
     {"sourceFilename":"772904932_1493675372780221_5358616428807129112_n 2.jpeg","repositoryPath":"public-site-static/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg","width":2048,"height":1072,"sha256":"0b65a6c611f3ea3d1aa03e819fc231ab63d109cea1027df0688b142cc5fe110d"},
@@ -37,7 +38,7 @@
     "gymIntake": {"path":"crm/route-iq-gym-request-contract-v1.json","version":"route-iq-gym-request.v1","sha256":"70c401492dbd3d385e2b48b3de6fd75b83930b21548cc715ecc269500bccd199"},
     "security": {"path":"security/route-iq-gym-preview-intake-boundary-v1.json","sha256":"536d78afb8f9d8671288a10d0254cb64982af811924b9719572541190b951f9a","emailDisposition":"PROTECTED_CRM_NOTIFICATION_ONLY"},
     "claims": {"path":"patents/route-iq/GYM_PREVIEW_ADVERTISING_CLAIMS_GOVERNANCE_V1.json","sha256":"dc7bbca28bdb2cfde69d012ec2a0171c8e8607063780199cd6529b375cd0191d","truthState":"INSUFFICIENT_EVIDENCE","productionUseAllowed":false},
-    "preview": {"path":"workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json","sha256":"63c1c55963436daf033f446216c77efc845241f806e8b8d940a49fe79329c20b"},
+    "preview": {"path":"workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json","sha256":"2d232444512a008ed8be9bb1a67b1fd887f02250fa5c45c1d6203d3d188a8eba"},
     "workflow": {"path":".github/workflows/preview-prometheus-route-iq-gym-first.yml","sha256":"0d9da8ced5b963a662076404d723823e2331cb8094fa6b10b6e99ec313eaacc5"}
   },
   "releaseIdentities": {

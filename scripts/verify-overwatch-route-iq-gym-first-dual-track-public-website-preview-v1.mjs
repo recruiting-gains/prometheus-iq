@@ -45,7 +45,7 @@ export function validateGymPreviewGovernance(governance) {
     "route-iq-gym-first-dual-track-public-website-preview-v1");
   assert.equal(governance.batchId, "BATCH-20260814-002");
   assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");
-  assert.equal(governance.ownerCommits.length, 8);
+  assert.equal(governance.ownerCommits.length, 9);
   assert.equal(governance.contracts.gymIntake.version, "route-iq-gym-request.v1");
   assert.equal(governance.contracts.security.emailDisposition,
     "PROTECTED_CRM_NOTIFICATION_ONLY");
