@@ -1,0 +1,104 @@
+{
+  "version": "route-iq-gym-request.v1",
+  "owner": "Prometheus CRM",
+  "formId": "route_iq_gym_request",
+  "coexistsWith": "route_iq_request_crm.v1",
+  "workspace": {
+    "workspaceId": "prometheus_route_iq",
+    "operatingProfileId": "route_iq_commercial",
+    "browserMaySelectScope": false,
+    "unknownScopesFailClosed": true
+  },
+  "publicPayload": {
+    "additionalProperties": false,
+    "required": [
+      "version",
+      "formId",
+      "fullName",
+      "gymName",
+      "cityState",
+      "outsideRepCount",
+      "workEmail",
+      "cell",
+      "consent",
+      "submittedAt",
+      "acquisitionSource",
+      "attribution",
+      "websiteUrl"
+    ],
+    "constants": {
+      "version": "route-iq-gym-request.v1",
+      "formId": "route_iq_gym_request",
+      "acquisitionSource": "route_iq_website",
+      "consent": true,
+      "websiteUrl": ""
+    },
+    "outsideRepCount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "attribution": {
+      "additionalProperties": false,
+      "allowedFields": [
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "utm_term",
+        "utm_content"
+      ],
+      "fieldsOptional": true,
+      "emptyValuesOmitted": true,
+      "maximumLengthPerValue": 120,
+      "hostileValuesRejected": true,
+      "secretLikeValuesRejected": true
+    }
+  },
+  "infrastructureAdapter": {
+    "module": "crm/route-iq-gym-intake.mjs",
+    "export": "adaptRouteIqGymRequestForCrm",
+    "signature": "adaptRouteIqGymRequestForCrm(publicPayload, { workspaceId, operatingProfileId }, { now })",
+    "derivesDeterministicIdempotencyKey": true,
+    "dropsValidatedEmptyHoneypot": true,
+    "doesNotInventGeneralRequestFields": true
+  },
+  "internalStorage": {
+    "requestContractDiscriminator": "requestContractVersion",
+    "retainedGymFields": [
+      "formId",
+      "fullName",
+      "gymName",
+      "cityState",
+      "outsideRepCount",
+      "workEmail",
+      "cell",
+      "consent",
+      "submittedAt",
+      "acquisitionSource",
+      "attribution"
+    ],
+    "inventedLegacyFields": [],
+    "exactWorkspaceAndOperatingProfileRequired": true
+  },
+  "durability": {
+    "runtime": "crm/route-iq-request-crm.mjs",
+    "atomicPutIfAbsentRequired": true,
+    "deterministicReceipt": true,
+    "identicalRetryReturnsOriginalReceipt": true,
+    "changedIdempotencyRetryFailsClosed": true,
+    "notificationAfterDurablePersistence": true
+  },
+  "founderAccess": {
+    "listRetrieveAndExportCompatible": true,
+    "contractVersionDistinguished": true,
+    "notificationContainsContactPii": false
+  },
+  "notification": {
+    "afterDurablePersistence": true,
+    "emailFields": ["receiptId", "submittedAt", "requestContractVersion"],
+    "contactPiiAllowed": false,
+    "gymOrAttributionValuesAllowed": false
+  },
+  "historicalGeneralRequestMeaningChanged": false,
+  "productionMutationPerformed": false
+}

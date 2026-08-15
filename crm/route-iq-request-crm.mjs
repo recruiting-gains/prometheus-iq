@@ -1,5 +1,12 @@
 import { createHash } from "node:crypto";
 
+import {
+  RouteIqGymRequestContractError,
+  normalizeRouteIqGymRequestCrmInput,
+  routeIqGymRequestAttributionFields as routeIqGymRequestAttributionCsvHeaders,
+  routeIqGymRequestVersion
+} from "./route-iq-gym-intake.mjs";
+
 export const routeIqRequestCrmVersion = "route-iq-request-crm-v1";
 export const routeIqRequestCrmContract = "route_iq_request_crm.v1";
 export const routeIqRequestCrmStoragePrefix = "crm-route-iq-requests-v1";
@@ -219,13 +226,24 @@ export function normalizeRouteIqRequestInput(input = {}) {
   });
 }
 
+export function normalizeRouteIqRequestCrmInput(input = {}) {
+  if (input?.contractVersion === routeIqGymRequestVersion) {
+    return normalizeRouteIqGymRequestCrmInput(input);
+  }
+  return normalizeRouteIqRequestInput(input);
+}
+
+function requestContractVersion(normalized) {
+  return normalized.contractVersion || routeIqRequestCrmContract;
+}
+
 function contentFrom(normalized) {
   const { idempotencyKey: _idempotencyKey, ...content } = normalized;
   return content;
 }
 
 export function routeIqRequestCrmStorageKeys(normalizedInput) {
-  const normalized = normalizeRouteIqRequestInput(normalizedInput);
+  const normalized = normalizeRouteIqRequestCrmInput(normalizedInput);
   const contentHash = digest(stableJson(contentFrom(normalized)));
   const idempotencyHash = digest(normalized.idempotencyKey);
   const receiptId = `riq_receipt_${contentHash.slice(0, 24)}`;
@@ -270,15 +288,79 @@ async function putIfAbsent(store, key, value, metadata = {}) {
 }
 
 function ensureIdempotencyClaim(claim, normalized, keys) {
-  if (claim.workspaceId !== normalized.workspaceId || claim.idempotencyHash !== keys.idempotencyHash) {
+  const gymRequest = normalized.contractVersion === routeIqGymRequestVersion;
+  if (claim.workspaceId !== normalized.workspaceId
+    || claim.idempotencyHash !== keys.idempotencyHash
+    || (gymRequest && claim.operatingProfileId !== normalized.operatingProfileId)
+    || (claim.operatingProfileId !== undefined && claim.operatingProfileId !== normalized.operatingProfileId)) {
     fail("idempotency_record_invalid", "CRM idempotency record is outside the authorized partition.", 500);
   }
   if (claim.contentHash !== keys.contentHash || claim.receiptId !== keys.receiptId) {
     fail("idempotency_conflict", "The idempotency key was already used for different request content.", 409);
   }
+  const claimContractVersion = claim.requestContractVersion || routeIqRequestCrmContract;
+  if (claimContractVersion !== requestContractVersion(normalized)) {
+    fail("idempotency_conflict", "The idempotency key was already used for a different request contract.", 409);
+  }
+}
+
+function ensureDuplicateIndex(index, normalized, keys) {
+  const gymRequest = normalized.contractVersion === routeIqGymRequestVersion;
+  const indexContractVersion = index?.requestContractVersion || routeIqRequestCrmContract;
+  if (!index
+    || index.workspaceId !== normalized.workspaceId
+    || (gymRequest && index.operatingProfileId !== normalized.operatingProfileId)
+    || (index.operatingProfileId !== undefined && index.operatingProfileId !== normalized.operatingProfileId)
+    || index.contentHash !== keys.contentHash
+    || index.receiptId !== keys.receiptId
+    || index.recordKey !== keys.record
+    || indexContractVersion !== requestContractVersion(normalized)) {
+    fail("duplicate_index_conflict", "CRM duplicate index conflicts with canonical request content.", 409);
+  }
 }
 
 function canonicalRecord(normalized, keys, submittedAt) {
+  if (normalized.contractVersion === routeIqGymRequestVersion) {
+    return {
+      version: routeIqRequestCrmVersion,
+      contract: routeIqRequestCrmContract,
+      requestContractVersion: routeIqGymRequestVersion,
+      receiptId: keys.receiptId,
+      workspace: {
+        workspaceId: normalized.workspaceId,
+        operatingProfileId: normalized.operatingProfileId
+      },
+      request: {
+        formId: normalized.formId,
+        fullName: normalized.fullName,
+        gymName: normalized.gymName,
+        cityState: normalized.cityState,
+        outsideRepCount: normalized.outsideRepCount,
+        workEmail: normalized.workEmail,
+        cell: normalized.cell,
+        consent: {
+          accepted: true,
+          acceptedAt: normalized.submittedAt
+        },
+        submittedAt: normalized.submittedAt,
+        acquisitionSource: normalized.acquisitionSource,
+        attribution: normalized.attribution
+      },
+      integrity: {
+        canonicalPayloadHash: keys.contentHash,
+        hashAlgorithm: "sha256",
+        idempotencyKeyStored: false
+      },
+      status: "accepted",
+      monitoring: {
+        storageStatus: "committed",
+        validationStatus: "passed",
+        notificationStatus: "pending_consumer_delivery",
+        failureCode: null,
+        acceptedAt: submittedAt
+      }
+    };
+  }
   return {
     version: routeIqRequestCrmVersion,
     contract: routeIqRequestCrmContract,
@@ -331,6 +413,10 @@ function validateStoredRecord(record, normalized, keys) {
   if (record.integrity?.canonicalPayloadHash !== keys.contentHash) {
     fail("crm_store_record_invalid", "CRM request content integrity failed.", 500);
   }
+  const storedContractVersion = record.requestContractVersion || routeIqRequestCrmContract;
+  if (storedContractVersion !== requestContractVersion(normalized)) {
+    fail("crm_store_record_invalid", "CRM request contract version does not match its receipt.", 500);
+  }
   return record;
 }
 
@@ -339,7 +425,8 @@ async function ensureRecordAndIndexes(store, normalized, keys, submittedAt) {
   const recordCreated = await putIfAbsent(store, keys.record, proposed, {
     workspaceId: normalized.workspaceId,
     receiptId: keys.receiptId,
-    recordType: "route_iq_request"
+    recordType: "route_iq_request",
+    ...(normalized.contractVersion ? { requestContractVersion: normalized.contractVersion } : {})
   });
   const record = validateStoredRecord(await readJson(store, keys.record), normalized, keys);
 
@@ -348,7 +435,11 @@ async function ensureRecordAndIndexes(store, normalized, keys, submittedAt) {
     workspaceId: normalized.workspaceId,
     contentHash: keys.contentHash,
     receiptId: keys.receiptId,
-    recordKey: keys.record
+    recordKey: keys.record,
+    ...(normalized.contractVersion ? {
+      operatingProfileId: normalized.operatingProfileId,
+      requestContractVersion: normalized.contractVersion
+    } : {})
   };
   await putIfAbsent(store, keys.duplicate, duplicateIndex, {
     workspaceId: normalized.workspaceId,
@@ -356,9 +447,7 @@ async function ensureRecordAndIndexes(store, normalized, keys, submittedAt) {
     recordType: "route_iq_request_duplicate_index"
   });
   const storedDuplicate = await readJson(store, keys.duplicate);
-  if (storedDuplicate?.contentHash !== keys.contentHash || storedDuplicate?.recordKey !== keys.record) {
-    fail("duplicate_index_conflict", "CRM duplicate index conflicts with canonical request content.", 409);
-  }
+  ensureDuplicateIndex(storedDuplicate, normalized, keys);
 
   await put(store, keys.monitoring, record.monitoring, {
     workspaceId: normalized.workspaceId,
@@ -370,7 +459,7 @@ async function ensureRecordAndIndexes(store, normalized, keys, submittedAt) {
 
 export async function persistRouteIqRequest(store, input = {}, options = {}) {
   requireStore(store);
-  const normalized = normalizeRouteIqRequestInput(input);
+  const normalized = normalizeRouteIqRequestCrmInput(input);
   const keys = routeIqRequestCrmStorageKeys(normalized);
   const submittedAt = iso(options.now || new Date());
   const claim = {
@@ -379,7 +468,11 @@ export async function persistRouteIqRequest(store, input = {}, options = {}) {
     idempotencyHash: keys.idempotencyHash,
     contentHash: keys.contentHash,
     receiptId: keys.receiptId,
-    recordKey: keys.record
+    recordKey: keys.record,
+    ...(normalized.contractVersion ? {
+      operatingProfileId: normalized.operatingProfileId,
+      requestContractVersion: normalized.contractVersion
+    } : {})
   };
 
   const existingClaim = await readJson(store, keys.idempotency);
@@ -399,9 +492,7 @@ export async function persistRouteIqRequest(store, input = {}, options = {}) {
   ensureIdempotencyClaim(durableClaim, normalized, keys);
 
   const duplicateIndex = await readJson(store, keys.duplicate);
-  if (duplicateIndex && (duplicateIndex.contentHash !== keys.contentHash || duplicateIndex.recordKey !== keys.record)) {
-    fail("duplicate_index_conflict", "CRM duplicate index conflicts with canonical request content.", 409);
-  }
+  if (duplicateIndex) ensureDuplicateIndex(duplicateIndex, normalized, keys);
 
   const { record, recordCreated } = await ensureRecordAndIndexes(store, normalized, keys, submittedAt);
   const duplicate = !created || Boolean(duplicateIndex) || !recordCreated;
@@ -413,6 +504,7 @@ export function publicRouteIqRequestReceipt(result = {}) {
   return {
     ok: true,
     version: routeIqRequestCrmVersion,
+    ...(result.record.requestContractVersion ? { contractVersion: result.record.requestContractVersion } : {}),
     receiptId: result.receiptId,
     status: result.status,
     duplicate: result.duplicate,
@@ -545,6 +637,17 @@ function requireFounderScope(input = {}) {
   requireWorkspace(input.workspaceId, input.operatingProfileId);
 }
 
+function validateFounderRecordScope(record, input, expectedReceiptId) {
+  if (!record
+    || record.version !== routeIqRequestCrmVersion
+    || record.workspace?.workspaceId !== input.workspaceId
+    || record.workspace?.operatingProfileId !== input.operatingProfileId
+    || record.receiptId !== expectedReceiptId) {
+    fail("crm_store_record_invalid", "CRM request record crossed its authorized scope.", 500);
+  }
+  return record;
+}
+
 export async function retrieveRouteIqRequest(store, input = {}) {
   requireStore(store, { list: true });
   requireFounderScope(input);
@@ -552,10 +655,7 @@ export async function retrieveRouteIqRequest(store, input = {}) {
   const key = `${routeIqRequestCrmStoragePrefix}/workspaces/${input.workspaceId}/requests/${normalizedReceiptId}.json`;
   const record = await readJson(store, key);
   if (!record) return null;
-  if (record.workspace?.workspaceId !== input.workspaceId || record.receiptId !== normalizedReceiptId) {
-    fail("crm_store_record_invalid", "CRM request retrieval crossed a workspace partition.", 500);
-  }
-  return record;
+  return validateFounderRecordScope(record, input, normalizedReceiptId);
 }
 
 export async function listRouteIqRequests(store, input = {}) {
@@ -572,10 +672,8 @@ export async function listRouteIqRequests(store, input = {}) {
       fail("crm_store_list_invalid", "CRM durable list returned an invalid key.", 500);
     }
     const record = await readJson(store, key);
-    if (!record || record.workspace?.workspaceId !== input.workspaceId) {
-      fail("crm_store_record_invalid", "CRM request list crossed a workspace partition.", 500);
-    }
-    records.push(record);
+    const expectedReceiptId = receiptId(key.slice(prefix.length, -".json".length));
+    records.push(validateFounderRecordScope(record, input, expectedReceiptId));
   }
   return records.sort((a, b) => a.request.submittedAt.localeCompare(b.request.submittedAt) || a.receiptId.localeCompare(b.receiptId));
 }
@@ -592,9 +690,10 @@ function receiptIdsFromList(listed, prefix) {
   });
 }
 
-function monitoringReceiptId(record, workspaceId) {
+function monitoringReceiptId(record, input) {
   if (!record
-    || record.workspace?.workspaceId !== workspaceId
+    || record.workspace?.workspaceId !== input.workspaceId
+    || record.workspace?.operatingProfileId !== input.operatingProfileId
     || record.status !== "accepted"
     || record.monitoring?.storageStatus !== "committed") {
     fail("crm_store_record_invalid", "CRM request monitoring found an invalid canonical record.", 500);
@@ -607,7 +706,7 @@ export async function routeIqRequestFounderMonitoringSummary(store, input = {}) 
   requireFounderScope(input);
   const notificationPrefix = `${routeIqRequestNotificationStoragePrefix}/notifications/`;
   const requestReceiptIds = (await listRouteIqRequests(store, input)).map(record => (
-    monitoringReceiptId(record, input.workspaceId)
+    monitoringReceiptId(record, input)
   ));
   const notificationReceiptIds = receiptIdsFromList(await store.list({ prefix: notificationPrefix }), notificationPrefix);
   const requestSet = new Set(requestReceiptIds);
@@ -632,7 +731,7 @@ export async function routeIqRequestFounderReceiptMonitoring(store, input = {}) 
   requireFounderScope(input);
   const normalizedReceiptId = receiptId(input.receiptId);
   const record = await retrieveRouteIqRequest(store, { ...input, receiptId: normalizedReceiptId });
-  if (record) monitoringReceiptId(record, input.workspaceId);
+  if (record) monitoringReceiptId(record, input);
   const notification = await readRouteIqRequestNotificationResult(store, normalizedReceiptId);
   return Object.freeze({
     version: routeIqRequestCrmVersion,
@@ -652,6 +751,14 @@ function csvCell(value) {
   return `"${text.replaceAll('"', '""')}"`;
 }
 
+function storedRequestContractVersion(record) {
+  const value = record?.requestContractVersion || routeIqRequestCrmContract;
+  if (value !== routeIqRequestCrmContract && value !== routeIqGymRequestVersion) {
+    fail("crm_store_record_invalid", "CRM request contract version is unsupported.", 500);
+  }
+  return value;
+}
+
 export async function exportRouteIqRequests(store, input = {}) {
   const records = await listRouteIqRequests(store, input);
   const generatedAt = iso(input.generatedAt || new Date());
@@ -669,7 +776,9 @@ export async function exportRouteIqRequests(store, input = {}) {
   const headers = [
     "receiptId", "submittedAt", "businessName", "contactName", "businessEmail", "phone",
     "businessType", "numberOfLocations", "estimatedUsers", "territory", "primaryProblem",
-    "desiredTimeline", "consent", "acquisitionSource", "status"
+    "desiredTimeline", "consent", "acquisitionSource", "status", "contractVersion", "formId",
+    "fullName", "gymName", "cityState", "outsideRepCount", "workEmail", "cell",
+    ...routeIqGymRequestAttributionCsvHeaders
   ];
   const rows = records.map(record => {
     const request = record.request;
@@ -677,15 +786,21 @@ export async function exportRouteIqRequests(store, input = {}) {
       record.receiptId, request.submittedAt, request.businessName, request.contactName,
       request.businessEmail, request.phone, request.businessType, request.numberOfLocations,
       request.estimatedUsers, request.territory, request.primaryProblem, request.desiredTimeline,
-      request.consent.accepted, request.acquisitionSource, record.status
+      request.consent.accepted, request.acquisitionSource, record.status, storedRequestContractVersion(record),
+      request.formId, request.fullName, request.gymName, request.cityState, request.outsideRepCount,
+      request.workEmail, request.cell,
+      ...routeIqGymRequestAttributionCsvHeaders.map(field => request.attribution?.[field])
     ].map(csvCell).join(",");
   });
   return [headers.map(csvCell).join(","), ...rows].join("\n");
 }
 
 export function routeIqRequestFailureMetadata(error, options = {}) {
-  const code = error instanceof RouteIqRequestCrmError ? error.code : "crm_request_internal_failure";
-  const status = error instanceof RouteIqRequestCrmError ? error.status : 500;
+  const governedContractError = error instanceof RouteIqGymRequestContractError;
+  const code = error instanceof RouteIqRequestCrmError || governedContractError
+    ? error.code
+    : "crm_request_internal_failure";
+  const status = error instanceof RouteIqRequestCrmError || governedContractError ? error.status : 500;
   const attemptId = typeof options.attemptId === "string" && opaqueIdPattern.test(options.attemptId)
     ? options.attemptId
     : "unavailable";
