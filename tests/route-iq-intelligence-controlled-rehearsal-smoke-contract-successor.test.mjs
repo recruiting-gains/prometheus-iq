@@ -79,6 +79,31 @@ test("shadow-readiness adoption composes the historical and current contract", (
   );
 });
 
+test("shadow-readiness adoption composes the exact gym-preview runtime surface", () => {
+  const adoption = verifyCrossIndustryZipFounderAccessAdoption();
+  const routeQuality = adoption.transitionByPath.get(
+    "scripts/lib/route-intelligence-quality-gate.mjs"
+  );
+  assert.equal(
+    routeQuality.previousSha256,
+    "7a37c1d2bfc3c07e38a0e706756c64f69718c9a7d36bd0b1eebc5717a7621468"
+  );
+  assert.equal(
+    routeQuality.currentSha256,
+    "7bda35b46eb577dd89c6cd2617c70cb3c7a0b656faff168543c13db35a01c0b4"
+  );
+  assert.equal(
+    adoption.rehearsalSuccessor.gymPreviewRouteQualityRuntimeSurfaceSuccessor
+      .successor.behavior.currentRuntimeFileCount,
+    34
+  );
+  assert.equal(
+    adoption.rehearsalSuccessor.gymPreviewRouteQualityRuntimeSurfaceSuccessor
+      .successor.behavior.routeScoringChanged,
+    false
+  );
+});
+
 test("paid-customer revenue readiness composes an exact Infrastructure Worker successor", () => {
   const historical = readJson(
     controlledOnboardingRehearsalSmokeContractProvenancePath

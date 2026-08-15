@@ -1725,6 +1725,38 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       transitions: [...existing.transitions, ...remainingTransitions]
     });
   }
+  const gymPreviewRouteQualitySuccessor =
+    rehearsalSuccessor.gymPreviewRouteQualityRuntimeSurfaceSuccessor;
+  for (const [path, transitions] of
+    gymPreviewRouteQualitySuccessor.transitionsByPath) {
+    const existing = transitionByPath.get(path);
+    if (!existing) {
+      transitionByPath.set(path, {
+        path,
+        previousSha256: transitions[0].previousSha256,
+        currentSha256: transitions.at(-1).currentSha256,
+        transitions
+      });
+      continue;
+    }
+    const currentTransitionIndex = transitions.findIndex(
+      transition => transition.currentSha256 === existing.currentSha256
+    );
+    const remainingTransitions = currentTransitionIndex >= 0
+      ? transitions.slice(currentTransitionIndex + 1)
+      : transitions;
+    if (remainingTransitions.length === 0) continue;
+    assert.equal(
+      remainingTransitions[0].previousSha256,
+      existing.currentSha256,
+      `Broken gym-preview route-quality adoption chain: ${path}`
+    );
+    transitionByPath.set(path, {
+      ...existing,
+      currentSha256: remainingTransitions.at(-1).currentSha256,
+      transitions: [...existing.transitions, ...remainingTransitions]
+    });
+  }
 
   assert.equal(
     transitionByPath.get("index.html")?.currentSha256,
@@ -1793,6 +1825,8 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       && !rehearsalSuccessor.governedMultiSessionLearningAdvisorySuccessor
         .transitionsByPath.has(path)
       && !rehearsalSuccessor.prospectiveCalibrationProductionAdmissionSuccessor
+        .transitionsByPath.has(path)
+      && !rehearsalSuccessor.gymPreviewRouteQualityRuntimeSurfaceSuccessor
         .transitionsByPath.has(path)
   );
   execFileSync("/usr/bin/git", [
