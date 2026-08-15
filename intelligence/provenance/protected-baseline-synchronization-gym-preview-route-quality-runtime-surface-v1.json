@@ -1,0 +1,132 @@
+{
+  "version": "route-iq-intelligence-gym-preview-route-quality-runtime-surface-successor-v1",
+  "batchId": "BATCH-20260814-002",
+  "status": "OWNER_IMPLEMENTED_PROTECTED_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "predecessors": [
+    {
+      "path": "intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json",
+      "sha256": "cfeb03951b03e0e9184351749b4aabcc479e2c63229376e585fbd5f6d3b26f2d",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    {
+      "path": "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json",
+      "sha256": "2a35aabd652756422809d2408b4a39065bbd6b9957869dee30db8cfd7004a133",
+      "remainsHistorical": true,
+      "rewritten": false
+    }
+  ],
+  "implementationCommits": [
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "4a23b263ce9de006959c79e3271a78aef90ea8dc",
+      "parent": "d9a57c91eec2ddb1ce6192f2cb8f35bf567f1a96",
+      "tree": "0e3b957eb90346ae2cedfbc7ab74f7283220ebd8",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: include gym form in runtime evidence"
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "1e2378a420bfc39ca1b4715af6db7eb94a0864c5",
+      "parent": "4a23b263ce9de006959c79e3271a78aef90ea8dc",
+      "tree": "5bfe9fdea9c532def01154d03985a02981b8f7e5",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose gym runtime surface successor"
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "a4ed5b1cce7629d9eba6bbb760b40ac50eed3afc",
+      "parent": "1e2378a420bfc39ca1b4715af6db7eb94a0864c5",
+      "tree": "30706d3b25d692e8455dc16ddf38915784cff10e",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose historical runtime predecessor"
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "945e0c9922b14b2efd1f1edeb79a6401edcb96bc",
+      "parent": "a4ed5b1cce7629d9eba6bbb760b40ac50eed3afc",
+      "tree": "70d8210e22716eabd0e7388961c0e1deb6e27bef",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: preserve ordered gym runtime lineage"
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "d322a443f12db73171ebffd76a87ae96e46f37ec",
+      "parent": "945e0c9922b14b2efd1f1edeb79a6401edcb96bc",
+      "tree": "58532736fabf5a49b80ab6bcba5ba6ffc6c307d7",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: extend maintenance runtime lineage"
+    }
+  ],
+  "protectedSourceTransitions": [
+    {
+      "path": "scripts/lib/route-intelligence-quality-gate.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "4a23b263ce9de006959c79e3271a78aef90ea8dc",
+      "tree": "0e3b957eb90346ae2cedfbc7ab74f7283220ebd8",
+      "subject": "intelligence: include gym form in runtime evidence",
+      "previousSha256": "7a37c1d2bfc3c07e38a0e706756c64f69718c9a7d36bd0b1eebc5717a7621468",
+      "currentSha256": "7bda35b46eb577dd89c6cd2617c70cb3c7a0b656faff168543c13db35a01c0b4"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "1e2378a420bfc39ca1b4715af6db7eb94a0864c5",
+      "tree": "5bfe9fdea9c532def01154d03985a02981b8f7e5",
+      "subject": "intelligence: compose gym runtime surface successor",
+      "previousSha256": "6bac7ac80a6ac9b3ef3f1bef4869a61c4f7a76a146bfd2fd7edb4c58fddcbfe2",
+      "currentSha256": "5418ba3c4ee52e203b4fbba80179e349ab071fd84189a9258d119cb4b1ce88cb"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "a4ed5b1cce7629d9eba6bbb760b40ac50eed3afc",
+      "tree": "30706d3b25d692e8455dc16ddf38915784cff10e",
+      "subject": "intelligence: compose historical runtime predecessor",
+      "previousSha256": "5418ba3c4ee52e203b4fbba80179e349ab071fd84189a9258d119cb4b1ce88cb",
+      "currentSha256": "9bc2366eeaa9b884b3efa6cd08a4c40bb58deb68edcb391f86a856405881fef1"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "945e0c9922b14b2efd1f1edeb79a6401edcb96bc",
+      "tree": "70d8210e22716eabd0e7388961c0e1deb6e27bef",
+      "subject": "intelligence: preserve ordered gym runtime lineage",
+      "previousSha256": "9bc2366eeaa9b884b3efa6cd08a4c40bb58deb68edcb391f86a856405881fef1",
+      "currentSha256": "fd4d25f1d88fd3500359091e341c8e0702ab7284e315fd842a262a07dd60c029"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "d322a443f12db73171ebffd76a87ae96e46f37ec",
+      "tree": "58532736fabf5a49b80ab6bcba5ba6ffc6c307d7",
+      "subject": "intelligence: extend maintenance runtime lineage",
+      "previousSha256": "fd4d25f1d88fd3500359091e341c8e0702ab7284e315fd842a262a07dd60c029",
+      "currentSha256": "15ae949ef9d136ca7f4b3444a9f2f5db0241cfa4092d811e891564dc4afb2e16"
+    }
+  ],
+  "behavior": {
+    "previousRuntimeFileCount": 33,
+    "currentRuntimeFileCount": 34,
+    "addedRuntimeFile": "src/route-iq-gym-request-form.js",
+    "liveGoogleApiCalls": 0,
+    "dashboardFetches": 6,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "businessHoursEligibilityChanged": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "shadowDecisionVisible": false,
+    "productionStorageAccess": 0,
+    "cloudflareContacts": 0,
+    "deployments": 0,
+    "productionMutationPerformed": false
+  }
+}
