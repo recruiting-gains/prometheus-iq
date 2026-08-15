@@ -1404,7 +1404,10 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
   );
   const gymPreviewRouteQualityRuntimeSurfaceSuccessor =
     readGymPreviewRouteQualityRuntimeSurfaceSuccessor(
-      preGymPreviewTransitionsByPath
+      mergeTransitionMaps(
+        fieldSessionReportTypeContractProtectedSuccessor.transitionsByPath,
+        preGymPreviewTransitionsByPath
+      )
     );
   const latestTransitionsByPath = mergeTransitionMaps(
     preGymPreviewTransitionsByPath,
