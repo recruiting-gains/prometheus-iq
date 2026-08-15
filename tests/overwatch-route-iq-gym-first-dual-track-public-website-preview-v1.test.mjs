@@ -36,7 +36,7 @@ test("Overwatch verifies the exact gym-first dual-track source and isolated prev
 test("Overwatch rejects a widened gym runtime-surface successor", () => {
   const successor = routeQualitySuccessor();
   assert.equal(successor.implementationCommits.at(-1).commit,
-    "2489b3e44493daded80e6f4d5ea8284642711142");
+    "93e426735a2d9005cc6398b15eb64b14114c47ea");
   assert.ok(successor.changedFiles.includes(
     "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
   ));

@@ -5,7 +5,7 @@
   "ownerSubsystem": "Prometheus Overwatch",
   "implementationProvenance": {
     "path": "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json",
-    "sha256": "599b63d48d13296972ad2e14938beef0bd73edf649cb6772f82b0cfef339c589"
+    "sha256": "3989e6caf98db93041922b91e298b29a922eae91b379ec19b8c5b55e6bfe3b9a"
   },
   "implementationCommits": [
     {
@@ -73,6 +73,18 @@
       "tree": "d94b8ded4925399c7aff7d2318ad5d6d64a09216",
       "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
       "subject": "intelligence: record gym runtime adoption provenance"
+    },
+    {
+      "commit": "54dc041ea3dc1fef681ae5412f80d9cc9dfa52f6",
+      "tree": "2ac627660b2947d1506228acc4e436202d6e492f",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: govern gym preview regression path"
+    },
+    {
+      "commit": "93e426735a2d9005cc6398b15eb64b14114c47ea",
+      "tree": "59432b91debcc5b341238bcaba731711f62888d5",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: record gym regression provenance"
     }
   ],
   "changedFiles": [

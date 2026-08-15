@@ -3,6 +3,10 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 
+import {
+  verifyGymPreviewRouteQualityRuntimeSurfaceSuccessor
+} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
+
 const batchId = "BATCH-20260713-002";
 const fullSystemHarmonyGovernancePath =
   "overwatch/governance/full-system-harmony-audit-v1.json";
@@ -28,6 +32,9 @@ const prospectiveCalibrationGovernancePath =
   "overwatch/governance/route-iq-prospective-calibration-production-admission-future-window-readiness-v1.json";
 const prospectiveCalibrationIntelligenceProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json";
+const gymPreviewRouteQualityIntelligenceProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json";
+let gymPreviewRouteQualityValidationCache = null;
 const prospectiveCalibrationIntelligenceProvenanceSha256 =
   "cfeb03951b03e0e9184351749b4aabcc479e2c63229376e585fbd5f6d3b26f2d";
 const legacyCommit = "049cf583b04900b2cbf38bbffc5f6293252365d0";
@@ -1509,9 +1516,13 @@ export function validateGovernedLearningIntelligenceSuccessorChain(
   for (const [path, transitions] of transitionsByPath) {
     const prospectiveTransitions =
       prospectiveSuccessor.transitionsByPath.get(path);
-    const expectedCurrentSha256 = prospectiveTransitions
-      ? prospectiveTransitions.at(-1).sha256
-      : transitions.at(-1).sha256;
+    const gymTransitions =
+      prospectiveSuccessor.gymTransitionsByPath.get(path);
+    const expectedCurrentSha256 = gymTransitions
+      ? gymTransitions.at(-1).currentSha256
+      : prospectiveTransitions
+        ? prospectiveTransitions.at(-1).sha256
+        : transitions.at(-1).sha256;
     assert.equal(sha256(read(path)), expectedCurrentSha256,
       `Current governed-learning Intelligence successor drifted: ${path}`);
   }
@@ -1524,7 +1535,8 @@ export function validateGovernedLearningIntelligenceSuccessorChain(
     transitionCount: records.length,
     protectedPathCount: transitionsByPath.size,
     transitionsByPath,
-    prospectiveTransitionsByPath: prospectiveSuccessor.transitionsByPath
+    prospectiveTransitionsByPath: prospectiveSuccessor.transitionsByPath,
+    gymTransitionsByPath: prospectiveSuccessor.gymTransitionsByPath
   });
 }
 
@@ -1632,6 +1644,8 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
   const newSourceArtifacts = provenance.newSourceArtifacts.filter(
     artifact => artifact.ownerSubsystem === "Prometheus Intelligence Engine"
   );
+  const gymSuccessor =
+    validateGymPreviewRouteQualityIntelligenceSuccessorChain();
   for (const artifact of newSourceArtifacts) {
     assert.equal(ownerCommits.has(artifact.commit), true,
       "Prospective-calibration new-source owner commit is absent from governance.");
@@ -1642,11 +1656,30 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
       artifact.sha256,
       "Prospective-calibration new-source owner bytes drifted."
     );
-    assert.equal(sha256(read(artifact.path)), artifact.sha256,
+    const gymTransitions = gymSuccessor.transitionsByPath.get(artifact.path);
+    const expectedCurrentSha256 = gymTransitions
+      ? gymTransitions.at(-1).currentSha256
+      : artifact.sha256;
+    if (gymTransitions) {
+      assert.equal(gymTransitions[0].previousSha256, artifact.sha256,
+        `Gym-preview predecessor drifted: ${artifact.path}`);
+    }
+    assert.equal(sha256(read(artifact.path)), expectedCurrentSha256,
       `Current prospective-calibration source drifted: ${artifact.path}`);
   }
   for (const [path, transitions] of transitionsByPath) {
-    assert.equal(sha256(read(path)), transitions.at(-1).sha256,
+    const gymTransitions = gymSuccessor.transitionsByPath.get(path);
+    const expectedCurrentSha256 = gymTransitions
+      ? gymTransitions.at(-1).currentSha256
+      : transitions.at(-1).sha256;
+    if (gymTransitions) {
+      assert.equal(
+        gymTransitions[0].previousSha256,
+        transitions.at(-1).sha256,
+        `Gym-preview predecessor drifted: ${path}`
+      );
+    }
+    assert.equal(sha256(read(path)), expectedCurrentSha256,
       `Current prospective-calibration Intelligence successor drifted: ${path}`);
   }
   const verifierTransition = transitionsByPath.get(
@@ -1659,8 +1692,67 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
     protectedPathCount: transitionsByPath.size,
     newSourceArtifactCount: newSourceArtifacts.length,
     records,
-    transitionsByPath
+    transitionsByPath,
+    gymTransitionsByPath: gymSuccessor.transitionsByPath
   });
+}
+
+export function validateGymPreviewRouteQualityIntelligenceSuccessorChain(
+  candidateTransitions = null
+) {
+  const canonicalTransitions = readJson(
+    gymPreviewRouteQualityIntelligenceProvenancePath
+  ).protectedSourceTransitions;
+  const transitions = candidateTransitions || canonicalTransitions;
+  assert.deepEqual(
+    transitions,
+    canonicalTransitions,
+    "Gym-preview route-quality Intelligence successor chain drifted."
+  );
+  const currentFingerprint = sha256(Buffer.from(JSON.stringify({
+    provenance: sha256(read(gymPreviewRouteQualityIntelligenceProvenancePath)),
+    protectedSources: [...new Set(canonicalTransitions.map(({ path }) => path))]
+      .sort()
+      .map(path => ({ path, sha256: sha256(read(path)) }))
+  })));
+  if (!candidateTransitions
+    && gymPreviewRouteQualityValidationCache?.fingerprint === currentFingerprint) {
+    return gymPreviewRouteQualityValidationCache.result;
+  }
+  const verified = verifyGymPreviewRouteQualityRuntimeSurfaceSuccessor();
+  assert.equal(verified.successor.batchId, "BATCH-20260814-002");
+  assert.equal(verified.successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.deepEqual(verified.successor.protectedState, {
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    confidencePropagation: "OFF",
+    providers: "OFF",
+    scheduler: "OFF",
+    shadowDecisionVisible: false,
+    productionStorageAccess: 0,
+    cloudflareContacts: 0,
+    deployments: 0,
+    productionMutationPerformed: false
+  });
+  const verifierTransitions = verified.transitionsByPath.get(
+    retentionDeletionIntelligenceVerifierPath
+  );
+  const result = Object.freeze({
+    terminalCommit: verifierTransitions.at(-1).commit,
+    terminalSha256: verifierTransitions.at(-1).currentSha256,
+    transitionCount: transitions.length,
+    protectedPathCount: verified.transitionsByPath.size,
+    records: transitions,
+    transitionsByPath: verified.transitionsByPath
+  });
+  if (!candidateTransitions) {
+    gymPreviewRouteQualityValidationCache = Object.freeze({
+      fingerprint: currentFingerprint,
+      result
+    });
+  }
+  return result;
 }
 
 export function validateRetentionDeletionIntelligenceSuccessorChain(
@@ -1821,11 +1913,15 @@ export function validateRetentionDeletionIntelligenceSuccessorChain(
     const governedTransitions = governedLearningSuccessor.transitionsByPath.get(path);
     const prospectiveTransitions =
       governedLearningSuccessor.prospectiveTransitionsByPath.get(path);
-    const expectedCurrentSha256 = prospectiveTransitions
-      ? prospectiveTransitions.at(-1).sha256
-      : governedTransitions
-        ? governedTransitions.at(-1).sha256
-        : transitions.at(-1).sha256;
+    const gymTransitions =
+      governedLearningSuccessor.gymTransitionsByPath.get(path);
+    const expectedCurrentSha256 = gymTransitions
+      ? gymTransitions.at(-1).currentSha256
+      : prospectiveTransitions
+        ? prospectiveTransitions.at(-1).sha256
+        : governedTransitions
+          ? governedTransitions.at(-1).sha256
+          : transitions.at(-1).sha256;
     assert.equal(sha256(read(path)), expectedCurrentSha256,
       `Current retention-deletion Intelligence successor drifted: ${path}`);
   }
@@ -1927,6 +2023,16 @@ function composeCurrentIntelligenceSha256(path, previousSha256) {
       "Prospective-calibration Intelligence composition predecessor drifted."
     );
     expectedSha256 = prospectiveTransitions.at(-1).sha256;
+  }
+  const gymTransitions =
+    governedLearningSuccessor.gymTransitionsByPath.get(path);
+  if (gymTransitions) {
+    assert.equal(
+      expectedSha256,
+      gymTransitions[0].previousSha256,
+      "Gym-preview route-quality Intelligence composition predecessor drifted."
+    );
+    expectedSha256 = gymTransitions.at(-1).currentSha256;
   }
   return expectedSha256;
 }

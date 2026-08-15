@@ -17,6 +17,7 @@ import {
   currentRevenueReadinessIntelligenceSuccessor,
   validateFieldSessionReportTypeDriftRejectionSuccessor,
   validateGovernedLearningIntelligenceSuccessorChain,
+  validateGymPreviewRouteQualityIntelligenceSuccessorChain,
   validateFullSystemHarmonyIntelligenceSuccessor,
   validateFieldSessionReportTypeIntelligenceSuccessor,
   validateFullSystemHarmonyShadowReadinessSuccessor,
@@ -178,6 +179,29 @@ test("release provenance composes the exact prospective-calibration Intelligence
     mutate(candidate);
     assert.throws(() =>
       validateProspectiveCalibrationIntelligenceSuccessorChain(candidate));
+  }
+});
+
+test("release provenance composes the exact gym-preview Intelligence chain", () => {
+  const result = validateGymPreviewRouteQualityIntelligenceSuccessorChain();
+  assert.equal(result.terminalCommit,
+    "54dc041ea3dc1fef681ae5412f80d9cc9dfa52f6");
+  assert.equal(result.terminalSha256,
+    "29038a1374dc771735c5da91b3113c465c4964dfe4cbfa6b647a97d4202639fa");
+  assert.equal(result.transitionCount, 11);
+  assert.equal(result.protectedPathCount, 3);
+  for (const mutate of [
+    value => { value[0].commit = "0".repeat(40); },
+    value => { value[1].tree = "0".repeat(40); },
+    value => { value[0].path = "package.json"; },
+    value => { value[1].previousSha256 = "0".repeat(64); },
+    value => { value[1].currentSha256 = "0".repeat(64); },
+    value => { value.pop(); }
+  ]) {
+    const candidate = structuredClone(result.records);
+    mutate(candidate);
+    assert.throws(() =>
+      validateGymPreviewRouteQualityIntelligenceSuccessorChain(candidate));
   }
 });
 

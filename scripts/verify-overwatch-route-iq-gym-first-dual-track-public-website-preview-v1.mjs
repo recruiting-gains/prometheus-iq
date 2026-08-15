@@ -75,7 +75,7 @@ export function validateGymPreviewRouteQualitySuccessor(governance) {
   assert.equal(governance.batchId, "BATCH-20260814-002");
   assert.equal(governance.status, "INDEPENDENTLY_VERIFIED_PROTECTED_SUCCESSOR");
   assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");
-  assert.equal(governance.implementationCommits.length, 11);
+  assert.equal(governance.implementationCommits.length, 13);
   assert.deepEqual(governance.runtimeSurface, {
     previousFileCount: 33,
     currentFileCount: 34,
