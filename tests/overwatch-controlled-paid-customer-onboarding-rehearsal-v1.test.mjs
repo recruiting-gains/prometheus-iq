@@ -120,8 +120,8 @@ test("Overwatch composes only the exact prospective-calibration owner successors
     previousSha256:
       "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0"
   }), {
-    commit: "496481a97a1a6f728d8c589d127e1df6d73eb60d",
-    sha256: "37cc3509749764dab08d939575ad20dc37a10f0b708c7d11ef3aa0b5dc7ae3af"
+    commit: "a32d404005d2f469512048e94dde929b2c33dff9",
+    sha256: "6bac7ac80a6ac9b3ef3f1bef4869a61c4f7a76a146bfd2fd7edb4c58fddcbfe2"
   });
   assert.deepEqual(resolveProspectiveCalibrationOwnerSuccessor({
     successor,
