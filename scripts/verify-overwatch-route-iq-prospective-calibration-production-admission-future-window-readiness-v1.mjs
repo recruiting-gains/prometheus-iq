@@ -33,6 +33,24 @@ const git = (...args) => execFileSync("/usr/bin/git", args, {
   stdio: ["ignore", "pipe", "ignore"]
 }).trim();
 
+export function isGovernedMainCheckout({
+  branch,
+  head,
+  originMain,
+  environment = {}
+}) {
+  if (branch === "main" && head === originMain) return true;
+  return ["", "HEAD"].includes(branch)
+    && head === originMain
+    && environment.GITHUB_ACTIONS === "true"
+    && environment.GITHUB_REPOSITORY === "PrometheusRouteIQ/prometheus-iq"
+    && environment.GITHUB_REF === "refs/heads/main"
+    && environment.GITHUB_REF_NAME === "main"
+    && environment.GITHUB_REF_TYPE === "branch"
+    && environment.GITHUB_EVENT_NAME === "workflow_dispatch"
+    && environment.GITHUB_SHA === head;
+}
+
 function verifyCommit(record) {
   assert.deepEqual(
     git("show", "-s", "--format=%H%n%T%n%an <%ae>%n%cn <%ce>%n%s", record.commit)
@@ -98,7 +116,14 @@ export async function verifyOverwatchProspectiveCalibrationProductionAdmissionFu
     "5578456b8d5aca8b123708fcec1c1b34bea9f475");
   assert.equal(governance.startingRepository.tree,
     "8d880bdd6fb43bbad9bcc0d73434e1696ed31370");
-  assert.equal(git("branch", "--show-current"), "main");
+  const head = git("rev-parse", "HEAD");
+  const originMain = git("rev-parse", "refs/remotes/origin/main");
+  assert.equal(isGovernedMainCheckout({
+    branch: git("branch", "--show-current"),
+    head,
+    originMain,
+    environment: process.env
+  }), true);
 
   for (const record of governance.functionalOwnerCommits) verifyCommit(record);
   for (const record of governance.qualificationRepairCommits) verifyCommit(record);

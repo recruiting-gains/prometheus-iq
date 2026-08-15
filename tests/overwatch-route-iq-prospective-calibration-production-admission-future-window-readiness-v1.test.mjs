@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  isGovernedMainCheckout,
   verifyOverwatchProspectiveCalibrationProductionAdmissionFutureWindowReadiness
 } from "../scripts/verify-overwatch-route-iq-prospective-calibration-production-admission-future-window-readiness-v1.mjs";
 
@@ -40,6 +41,44 @@ test("the future private lane rejects the predecessor artifact instead of fabric
   assert.equal(handoff.finalManifestSha256,
     "REQUIRES_SEPARATE_PRIVATE_V2_QUALIFICATION");
   assert.equal(handoff.qualificationOrDeploymentDispatchedByThisBatch, false);
+});
+
+test("hosted qualification accepts only the exact detached synchronized main checkout", () => {
+  const head = "a".repeat(40);
+  const environment = {
+    GITHUB_ACTIONS: "true",
+    GITHUB_REPOSITORY: "PrometheusRouteIQ/prometheus-iq",
+    GITHUB_REF: "refs/heads/main",
+    GITHUB_REF_NAME: "main",
+    GITHUB_REF_TYPE: "branch",
+    GITHUB_EVENT_NAME: "workflow_dispatch",
+    GITHUB_SHA: head
+  };
+  assert.equal(isGovernedMainCheckout({
+    branch: "",
+    head,
+    originMain: head,
+    environment
+  }), true);
+  for (const [key, value] of [
+    ["GITHUB_REPOSITORY", "other/repository"],
+    ["GITHUB_REF_NAME", "release"],
+    ["GITHUB_EVENT_NAME", "push"],
+    ["GITHUB_SHA", "b".repeat(40)]
+  ]) {
+    assert.equal(isGovernedMainCheckout({
+      branch: "",
+      head,
+      originMain: head,
+      environment: { ...environment, [key]: value }
+    }), false);
+  }
+  assert.equal(isGovernedMainCheckout({
+    branch: "",
+    head,
+    originMain: "b".repeat(40),
+    environment
+  }), false);
 });
 
 test("the forward revert is source-only, non-destructive, and separately qualified", () => {

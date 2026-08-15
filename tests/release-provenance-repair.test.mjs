@@ -25,6 +25,7 @@ import {
   validateLiveCanonicalIdentityProtectedConsumerCompositionRepair,
   validateLiveCanonicalIdentityShadowReadinessRepair,
   validateProtectedDriftFixtureIntelligenceSuccessor,
+  validateProspectiveCalibrationIntelligenceSuccessorChain,
   validateRetentionDeletionIntelligenceSuccessorChain,
   validateRevenueReadinessIntelligenceSuccessor,
   verifyReleaseProvenanceRepair
@@ -151,6 +152,32 @@ test("release provenance composes the exact governed-learning Intelligence chain
     const candidate = clone(currentGovernedLearningIntelligenceSuccessorChain);
     mutate(candidate);
     assert.throws(() => validateGovernedLearningIntelligenceSuccessorChain(candidate));
+  }
+});
+
+test("release provenance composes the exact prospective-calibration Intelligence chain", () => {
+  const result = validateProspectiveCalibrationIntelligenceSuccessorChain();
+  assert.equal(result.terminalCommit,
+    "a32d404005d2f469512048e94dde929b2c33dff9");
+  assert.equal(result.terminalSha256,
+    "6bac7ac80a6ac9b3ef3f1bef4869a61c4f7a76a146bfd2fd7edb4c58fddcbfe2");
+  assert.equal(result.transitionCount, 17);
+  assert.equal(result.protectedPathCount, 9);
+  assert.equal(result.newSourceArtifactCount, 5);
+  for (const mutate of [
+    value => { value[0].commit = "0".repeat(40); },
+    value => { value[1].parent = "0".repeat(40); },
+    value => { value[2].tree = "0".repeat(40); },
+    value => { value[3].identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value[0].path = "package.json"; },
+    value => { value[1].previousSha256 = "0".repeat(64); },
+    value => { value[2].sha256 = "0".repeat(64); },
+    value => { value.pop(); }
+  ]) {
+    const candidate = structuredClone(result.records);
+    mutate(candidate);
+    assert.throws(() =>
+      validateProspectiveCalibrationIntelligenceSuccessorChain(candidate));
   }
 });
 
