@@ -193,11 +193,53 @@ function applyRouteMetadata(pathname) {
   setMeta('meta[name="twitter:image:alt"]', "content", metadata.imageAlt);
 }
 
-function InternalLink({ href, children, ...props }) {
+const PUBLIC_ROUTE_CHANGE_EVENT = "routeiq:public-route-change";
+const PUBLIC_REACT_PATHS = new Set(["/", "/investors", "/thank-you"]);
+
+function normalizePublicPath(pathname) {
+  if (pathname === "/landing.html") return "/";
+  return pathname.length > 1 ? pathname.replace(/\/+$/u, "") : pathname;
+}
+
+function resolvePublicReactRoute(href) {
+  const url = new URL(href, window.location.href);
+  if (url.origin !== window.location.origin) return null;
+  return PUBLIC_REACT_PATHS.has(normalizePublicPath(url.pathname)) ? url : null;
+}
+
+function navigatePublicRoute(href, { replace = false } = {}) {
+  const url = resolvePublicReactRoute(href);
+  if (!url) return false;
+
+  const nextLocation = `${url.pathname}${url.search}${url.hash}`;
+  window.history[replace ? "replaceState" : "pushState"]({}, "", nextLocation);
+  window.dispatchEvent(new Event(PUBLIC_ROUTE_CHANGE_EVENT));
+  return true;
+}
+
+function InternalLink({ href, children, onClick, ...props }) {
   const resolvedHref = href.startsWith("/")
     ? preserveRouteIqGymAttribution(href, window.location.href)
     : href;
-  return <a href={resolvedHref} {...props}>{children}</a>;
+  const handleClick = (event) => {
+    onClick?.(event);
+    if (
+      event.defaultPrevented
+      || event.button !== 0
+      || event.metaKey
+      || event.ctrlKey
+      || event.shiftKey
+      || event.altKey
+      || props.target
+      || props.download
+    ) return;
+
+    if (navigatePublicRoute(resolvedHref)) {
+      event.preventDefault();
+      event.currentTarget.closest("details")?.removeAttribute("open");
+    }
+  };
+  return <a href={resolvedHref} onClick={handleClick} {...props}>{children}</a>;
 }
 
 function GlobalNav() {
@@ -314,7 +356,7 @@ function GymRequestForm() {
       const result = await submitRouteIqGymRequest({ payload: request.payload });
       const thankYouPath = buildRouteIqGymThankYouPath(result.receiptId);
       if (!result.ok || !thankYouPath) throw new Error("REQUEST_RECEIPT_MISSING");
-      window.location.assign(thankYouPath);
+      if (!navigatePublicRoute(thankYouPath)) window.location.assign(thankYouPath);
     } catch (error) {
       const messages = {
         REQUEST_RATE_LIMITED: "Too many requests were submitted. Please wait before trying again.",
@@ -901,14 +943,41 @@ function InvestorPage() {
   );
 }
 
-const pathname = window.location.pathname.length > 1
-  ? window.location.pathname.replace(/\/+$/u, "")
-  : window.location.pathname;
-applyRouteMetadata(pathname);
-const Page = pathname === "/investors"
-  ? InvestorPage
-  : pathname === "/thank-you"
-    ? ThankYouPage
-    : GymPage;
+function PublicSiteRouter() {
+  const [locationKey, setLocationKey] = useState(() => (
+    `${window.location.pathname}${window.location.search}${window.location.hash}`
+  ));
 
-createRoot(document.getElementById("root")).render(<Page />);
+  useEffect(() => {
+    const updateLocation = () => {
+      setLocationKey(`${window.location.pathname}${window.location.search}${window.location.hash}`);
+    };
+    window.addEventListener("popstate", updateLocation);
+    window.addEventListener(PUBLIC_ROUTE_CHANGE_EVENT, updateLocation);
+    return () => {
+      window.removeEventListener("popstate", updateLocation);
+      window.removeEventListener(PUBLIC_ROUTE_CHANGE_EVENT, updateLocation);
+    };
+  }, []);
+
+  const pathname = normalizePublicPath(window.location.pathname);
+  useEffect(() => {
+    applyRouteMetadata(pathname);
+    window.requestAnimationFrame(() => {
+      const hashTarget = window.location.hash
+        ? document.getElementById(decodeURIComponent(window.location.hash.slice(1)))
+        : null;
+      if (hashTarget) hashTarget.scrollIntoView({ block: "start" });
+      else window.scrollTo({ top: 0, left: 0 });
+    });
+  }, [locationKey, pathname]);
+
+  const Page = pathname === "/investors"
+    ? InvestorPage
+    : pathname === "/thank-you"
+      ? ThankYouPage
+      : GymPage;
+  return <Page />;
+}
+
+createRoot(document.getElementById("root")).render(<PublicSiteRouter />);

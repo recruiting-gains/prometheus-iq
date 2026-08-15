@@ -136,8 +136,28 @@ test("the compact gym form keeps the exact CRM field order and directed controls
   assert.match(form, /I agree that Prometheus\.IQ may use this information to respond to my Route IQ request\./);
   assert.match(form, /Build My Dashboard/);
   assert.match(form, /We manually build it\. You'll get login \+ Loom walkthrough in ∼2 hours\./);
-  assert.match(form, /window\.location\.assign\(thankYouPath\)/);
+  assert.match(form, /navigatePublicRoute\(thankYouPath\)/);
   assert.doesNotMatch(form, /kind: "success"|form\.reset\(\)/);
+});
+
+test("public navigation stays inside the public React experience", () => {
+  const source = read("src/main.jsx");
+  const vite = read("vite.config.js");
+  assert.match(source, /const PUBLIC_REACT_PATHS = new Set\(\["\/", "\/investors", "\/thank-you"\]\)/);
+  assert.match(source, /function navigatePublicRoute\(href, \{ replace = false \} = \{\}\)/);
+  assert.match(source, /window\.history\[replace \? "replaceState" : "pushState"\]/);
+  assert.match(source, /window\.addEventListener\("popstate", updateLocation\)/);
+  assert.match(source, /event\.currentTarget\.closest\("details"\)\?\.removeAttribute\("open"\)/);
+  assert.match(source, /hashTarget\.scrollIntoView\(\{ block: "start" \}\)/);
+  assert.match(source, /function PublicSiteRouter\(\)/);
+  assert.match(source, /render\(<PublicSiteRouter \/>\)/);
+  assert.doesNotMatch(source, /createRoot\([^)]*\)\.render\(<Page \/>\)/);
+
+  for (const route of ["/", "/investors", "/thank-you"]) {
+    assert.match(vite, new RegExp(`\\["${route.replaceAll("/", "\\/")}(?:\\/)?", "\\/landing\\.html"\\]`));
+  }
+  assert.match(vite, /configureServer: installPublicPreviewRoutes/);
+  assert.match(vite, /configurePreviewServer: installPublicPreviewRoutes/);
 });
 
 test("the supplied originals are byte-exact and WebP derivatives are present", () => {
