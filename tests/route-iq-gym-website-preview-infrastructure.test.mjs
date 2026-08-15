@@ -32,9 +32,9 @@ const smokePaths = Object.freeze([
   "/",
   "/investors",
   "/thank-you",
-  "/privacy",
-  "/terms",
-  "/data-deletion"
+  "/privacy/",
+  "/terms/",
+  "/data-deletion/"
 ]);
 
 function gymPayload(overrides = {}) {
@@ -208,9 +208,9 @@ test("preview asset digest is deterministic, mutation-sensitive, and pinned to t
   assert.deepEqual(result, {
     algorithm: PROMETHEUS_ROUTE_IQ_GYM_PREVIEW_ASSET_HASH_ALGORITHM,
     directory: PROMETHEUS_ROUTE_IQ_GYM_PREVIEW_ASSET_DIRECTORY,
-    fileCount: 22,
-    totalBytes: 1922350,
-    sha256: "cecb70da63434b1343049c8b1cdf7c22647f719a67663e18f6256c436b3d189d"
+    fileCount: 26,
+    totalBytes: 2470494,
+    sha256: "4a148051d9deb34f9334c31b216120ce6665d1da30865e33725fcd7de6f7cf3b"
   });
   assert.deepEqual(contract.assetIntegrity, {
     directory: result.directory,

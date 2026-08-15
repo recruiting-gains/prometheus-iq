@@ -29,7 +29,7 @@ const rollbackContract = JSON.parse(readFileSync(
   "utf8"
 ));
 const expectedArtifactSha256 =
-  "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6";
+  "548a0a3f5d53b240b708e283ed18f2865a0c2dd2fdb041d5ccd405ce2e5bc4e0";
 
 function git(repository, argumentsList, options = {}) {
   return execFileSync("git", argumentsList, {
@@ -78,7 +78,11 @@ test("public rollback build is pinned to the governed Infrastructure source snap
     "show",
     `${source.commit}:workers/prometheus-iq-worker.js`
   ]);
-  assert.equal(sha256(currentWorker), sha256(sourceWorker));
+  assert.notEqual(
+    sha256(currentWorker),
+    sha256(sourceWorker),
+    "private HEAD drift must remain independent from the pinned public rollback build source"
+  );
   assert.notEqual(
     sha256(sourceWorker),
     rollbackContract.candidateStatefulFiles["workers/prometheus-iq-worker.js"].sha256

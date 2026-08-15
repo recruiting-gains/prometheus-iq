@@ -1,15 +1,15 @@
 {
   "version": "route-iq-public-forward-rollback-v1",
-  "batchId": "BATCH-20260719-004",
+  "batchId": "BATCH-20260814-002",
   "owner": "Prometheus Infrastructure",
   "target": "prometheusrouteiq-website",
   "strategy": "new_forward_deployment",
   "nativeCloudflareRollbackAllowed": false,
-  "candidateWebsiteCommit": "c4cb9150fb8ad218e34026a63fa577271860c270",
-  "candidateWebsiteTree": "e7870b29540e0fb2fa89dbf691804192e3cf9c1d",
-  "candidateDeploymentAssetsSha256": "93526aca609a237fe26ba69f11d786549623b186fe7f106f3bf998e476dd22cf",
-  "sourceWebsiteCommit": "436d899d371b844585a61f232a7c371e33ef1174",
-  "sourceWebsiteTree": "6bc79df8d6abc36558e989222c6237653f934017",
+  "candidateWebsiteCommit": "c42576db4330e2ba42373df247e6a6c65172ff55",
+  "candidateWebsiteTree": "b19db314b3b4a1de582d01fdc31494466bb6d082",
+  "candidateDeploymentAssetsSha256": "6a6dde7efd17144b91f5f294cd25c7cfaaf2ff1347e637d6e692f5ed66cdab3b",
+  "sourceWebsiteCommit": "c4cb9150fb8ad218e34026a63fa577271860c270",
+  "sourceWebsiteTree": "e7870b29540e0fb2fa89dbf691804192e3cf9c1d",
   "websiteAssetPath": "deploy/prometheusrouteiq-website",
   "candidateStatefulFiles": {
     "wrangler.prometheusrouteiq-website.jsonc": {
@@ -33,23 +33,23 @@
       "sourceOwnerSubsystem": "Prometheus Infrastructure"
     },
     "workers/infrastructure/route-iq-request-crm-runtime.js": {
-      "sha256": "0e85ad567529ea2d747dcc07352f7459801ca9058831e5630896ad94df081dcf",
-      "sourceCommit": "c4cb9150fb8ad218e34026a63fa577271860c270",
+      "sha256": "31f6887ba2e2eaa4c30ebed568049b13fed7968f264aa36969f8a97f7ae8458f",
+      "sourceCommit": "e38bfef992d491eb9d52a1b63518cace6e9a41c5",
       "sourceOwnerSubsystem": "Prometheus Infrastructure"
     },
     "workers/infrastructure/route-iq-request-crm-runtime-v1.json": {
-      "sha256": "7103fba8dacc1fd966b44d6d02d175e46c8842cd802b6d1791952958724d9849",
-      "sourceCommit": "b7ab413a298d62806f7274d5ef63e6cb63bddf2c",
+      "sha256": "53a7ef488244528457fe2c28186c54ff2f1f6517eac8d3d047eba00f09a7e418",
+      "sourceCommit": "e38bfef992d491eb9d52a1b63518cace6e9a41c5",
       "sourceOwnerSubsystem": "Prometheus Infrastructure"
     },
     "crm/route-iq-request-crm.mjs": {
-      "sha256": "05405c79698db0eeb378be37195128adb04c78da0e9720a345b757490d015825",
-      "sourceCommit": "3bea33b463ac941ad9fc7d88a1776d6b5de5d9b5",
+      "sha256": "05ff3a54c94b561b12b539671032fa0dc66dca2dc62e45b01eadf8ae91981e0a",
+      "sourceCommit": "530808f3a730f76be8fc78e6bfa2f8b753741182",
       "sourceOwnerSubsystem": "Prometheus CRM"
     },
     "crm/route-iq-request-crm-contract-v1.json": {
-      "sha256": "fb7ee1af5559f145c5e6eddf73b33e8367d584f748d60e8fe1a5a6651b2b0476",
-      "sourceCommit": "3bea33b463ac941ad9fc7d88a1776d6b5de5d9b5",
+      "sha256": "36f9f5a33e8fd3e6f472a26df1256e3509c450567a4fb56855d045922a948f5b",
+      "sourceCommit": "530808f3a730f76be8fc78e6bfa2f8b753741182",
       "sourceOwnerSubsystem": "Prometheus CRM"
     }
   },

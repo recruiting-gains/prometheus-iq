@@ -305,7 +305,7 @@ jobs:
           PREVIEW_ASSETS_SHA256: ${{ steps.preview-assets.outputs.preview_assets_sha256 }}
         run: |
           set -euo pipefail
-          paths=("/" "/investors" "/thank-you" "/privacy" "/terms" "/data-deletion")
+          paths=("/" "/investors" "/thank-you" "/privacy/" "/terms/" "/data-deletion/")
           methods=("GET" "HEAD")
           smoke_count=0
           for path in "${paths[@]}"; do
