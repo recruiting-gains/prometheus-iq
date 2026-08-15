@@ -10,14 +10,16 @@ import { fileURLToPath } from "node:url";
 import { verifyOverwatchPublicDeploymentIntegrityRepairReadiness } from "./verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs";
 import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
 import { verifyPublicForwardRollbackArtifact } from "./lib/route-iq-public-forward-rollback.mjs";
+import {
+  GYM_PREVIEW_VISUAL_SUCCESSOR_PATH,
+  validateGymPreviewVisualSuccessor
+} from "./verify-overwatch-route-iq-gym-first-dual-track-public-website-preview-v1.mjs";
 
 export const ROUTE_IQ_3D_GOVERNANCE_PATH = "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 const PUBLIC_DEPLOYMENT_GOVERNANCE_PATH =
   "overwatch/governance/public-deployment-workflow-v2.json";
 const LIVE_IDENTITY_GOVERNANCE_PATH =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
-const GYM_PREVIEW_GOVERNANCE_PATH =
-  "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const STARTING_COMMIT = "08b452c4cc187fd3b8bd957e6bedef3aed12ac01";
@@ -473,7 +475,9 @@ export function verifyOverwatchRouteIq3dVisualContinuity({
     governance: readJson(root, LIVE_IDENTITY_GOVERNANCE_PATH),
     historicalRelease: historicalActiveRelease
   });
-  const currentPreview = readJson(root, GYM_PREVIEW_GOVERNANCE_PATH);
+  const currentPreview = validateGymPreviewVisualSuccessor(
+    readJson(root, GYM_PREVIEW_VISUAL_SUCCESSOR_PATH)
+  );
   const commits = verifyOwnership(root, governance);
   verifyWebsiteAndClaims(root);
   verifyCrmAndIsolation(root);
