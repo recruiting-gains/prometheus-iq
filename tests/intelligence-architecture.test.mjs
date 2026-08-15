@@ -13,6 +13,7 @@ import {
   verifyPaidCustomerRevenueReadinessProtectedConsumers
 } from "../intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs";
 import {
+  verifyControlledOnboardingRehearsalSmokeContractSuccessor,
   verifyRetentionDeletionRuntimeProtectedSuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
@@ -428,6 +429,9 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   );
   const retentionDeletionRuntimeSuccessor =
     verifyRetentionDeletionRuntimeProtectedSuccessor();
+  const prospectiveCalibrationSuccessor =
+    verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+      .prospectiveCalibrationProductionAdmissionSuccessor;
   const revenueReadinessConsumers =
     verifyPaidCustomerRevenueReadinessProtectedConsumers();
   assert.equal(
@@ -859,9 +863,13 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   for (const consumer of crossIndustryRetentionSuccessor.intelligenceConsumerTransitions) {
     const retentionDeletionTransitions =
       retentionDeletionRuntimeSuccessor.transitionsByPath.get(consumer.path);
+    const prospectiveCalibrationTransitions =
+      prospectiveCalibrationSuccessor.transitionsByPath.get(consumer.path);
     assert.equal(
       sha256(consumer.path),
-      retentionDeletionTransitions?.at(-1).currentSha256 || consumer.currentSha256,
+      prospectiveCalibrationTransitions?.at(-1).currentSha256
+        || retentionDeletionTransitions?.at(-1).currentSha256
+        || consumer.currentSha256,
       consumer.path,
     );
     assert.notEqual(consumer.previousSha256, consumer.currentSha256, consumer.path);
