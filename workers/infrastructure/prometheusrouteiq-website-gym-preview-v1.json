@@ -19,8 +19,8 @@
     "directory": "deploy/prometheusrouteiq-website",
     "algorithm": "sha256-length-prefixed-relative-path-and-content-v1",
     "fileCount": 26,
-    "totalBytes": 2470494,
-    "sha256": "4a148051d9deb34f9334c31b216120ce6665d1da30865e33725fcd7de6f7cf3b",
+    "totalBytes": 2471832,
+    "sha256": "d65df33306cf699837dfdcf02a58c42eda6004bb242f407536475238edec5324",
     "source": "exact_committed_preview_asset_directory",
     "binding": {
       "commitInput": "candidate_commit",

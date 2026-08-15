@@ -5,8 +5,8 @@
   "start_url": "./index.html?role=founder&rep=cruz",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f7f8f5",
-  "theme_color": "#16201f",
+  "background_color": "#f4f4f4",
+  "theme_color": "#000000",
   "orientation": "portrait-primary",
   "icons": [
     {

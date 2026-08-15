@@ -210,8 +210,8 @@ test("preview asset digest is deterministic, mutation-sensitive, and pinned to t
     algorithm: PROMETHEUS_ROUTE_IQ_GYM_PREVIEW_ASSET_HASH_ALGORITHM,
     directory: PROMETHEUS_ROUTE_IQ_GYM_PREVIEW_ASSET_DIRECTORY,
     fileCount: 26,
-    totalBytes: 2470494,
-    sha256: "4a148051d9deb34f9334c31b216120ce6665d1da30865e33725fcd7de6f7cf3b"
+    totalBytes: 2471832,
+    sha256: "d65df33306cf699837dfdcf02a58c42eda6004bb242f407536475238edec5324"
   });
   assert.deepEqual(contract.assetIntegrity, {
     directory: result.directory,
