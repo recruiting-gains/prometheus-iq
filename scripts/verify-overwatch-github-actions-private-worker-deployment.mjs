@@ -22,6 +22,7 @@ import {
 import { validateAugust1ReadinessSuccessors } from
   "./verify-overwatch-route-iq-august-1-launch-readiness.mjs";
 import {
+  verifyControlledOnboardingRehearsalSmokeContractSuccessor,
   verifyGovernedMultiSessionLearningAdvisorySuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
@@ -2438,6 +2439,50 @@ export function advancePrivateWorkflowV2GovernedLearningOwnerHash({
   return currentSha256;
 }
 
+export function advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash({
+  path,
+  acceptedSha256,
+  successor
+}) {
+  if (successor?.successor?.batchId !== "BATCH-20260814-001"
+    || successor?.successor?.status !== "OWNER_IMPLEMENTED_PROTECTED_SUCCESSOR"
+    || successor?.successor?.ownerSubsystem !== "Prometheus Intelligence Engine"
+    || successor?.successor?.truthState?.governedLearning !==
+      "INSUFFICIENT_EVIDENCE"
+    || successor?.successor?.truthState?.shadowEligibleDecisions !== 0
+    || successor?.successor?.truthState?.newCanonicalEvidenceCreated !== false
+    || successor?.successor?.protectedState?.collection !== "OFF"
+    || successor?.successor?.protectedState?.activeCohorts !== 0
+    || successor?.successor?.protectedState?.recommendationInfluence !== "OFF"
+    || successor?.successor?.protectedState?.confidencePropagation !== "OFF"
+    || successor?.successor?.protectedState?.productionStorageAccess !== 0
+    || successor?.successor?.protectedState?.liveAdmissions !== 0
+    || successor?.successor?.protectedState?.productionMutations !== 0
+    || successor?.successor?.protectedState?.cloudflareEngineeringContacts !== 0
+    || successor?.successor?.protectedState?.deployments !== 0
+    || successor?.successor?.releaseBoundary?.deploymentAuthorized !== false
+    || successor?.successor?.releaseBoundary?.productionMutationAuthorized !== false
+    || successor?.successor?.releaseBoundary?.collectionActivationAuthorized !== false
+    || successor?.successor?.releaseBoundary?.separatePrivateWorkerQualificationRequired !==
+      true) {
+    throw new Error(
+      "Private Workflow v2 prospective-calibration source boundary drifted."
+    );
+  }
+  const transitions = successor.transitionsByPath.get(path);
+  if (!transitions) return acceptedSha256;
+  let currentSha256 = acceptedSha256;
+  for (const transition of transitions) {
+    if (transition.previousSha256 !== currentSha256) {
+      throw new Error(
+        `Private Workflow v2 prospective-calibration Intelligence chain drifted: ${path}`
+      );
+    }
+    currentSha256 = transition.currentSha256;
+  }
+  return currentSha256;
+}
+
 export function hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor({
   readinessSuccessors,
   path,
@@ -4831,8 +4876,12 @@ function verifyV2OwnerAndGovernance() {
   if (!retentionDeletionEvaluation.ok) {
     throw new Error(retentionDeletionEvaluation.failures.join("\n"));
   }
+  const intelligenceSourceSuccessors =
+    verifyControlledOnboardingRehearsalSmokeContractSuccessor();
   const governedLearningIntelligenceSuccessor =
-    verifyGovernedMultiSessionLearningAdvisorySuccessor();
+    intelligenceSourceSuccessors.governedMultiSessionLearningAdvisorySuccessor;
+  const prospectiveCalibrationIntelligenceSuccessor =
+    intelligenceSourceSuccessors.prospectiveCalibrationProductionAdmissionSuccessor;
 
   const retentionPayloadMetadata = git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
@@ -5778,6 +5827,12 @@ function verifyV2OwnerAndGovernance() {
         acceptedSha256: acceptedCurrentSha256,
         successor: governedLearningIntelligenceSuccessor
       });
+    acceptedCurrentSha256 =
+      advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash({
+        path,
+        acceptedSha256: acceptedCurrentSha256,
+        successor: prospectiveCalibrationIntelligenceSuccessor
+      });
     if (sha256(committed) !== expected
       || currentSha256 !== acceptedCurrentSha256
       || recordedIntelligenceEvidence.get(path) !== expected) {
@@ -6042,6 +6097,12 @@ function verifyV2OwnerAndGovernance() {
         path,
         acceptedSha256: acceptedCurrentSha256,
         successor: governedLearningIntelligenceSuccessor
+      });
+    acceptedCurrentSha256 =
+      advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash({
+        path,
+        acceptedSha256: acceptedCurrentSha256,
+        successor: prospectiveCalibrationIntelligenceSuccessor
       });
     if (sha256(committed) !== expected
       || sha256(readFileSync(resolve(root, path))) !== acceptedCurrentSha256
@@ -6570,16 +6631,36 @@ function verifyV2OwnerAndGovernance() {
       }
       const transitions = governedLearningIntelligenceSuccessor
         .transitionsByPath.get(path);
-      if (!transitions
-        || !isGovernedBeforeGovernedLearning(transitions[0].previousSha256)) {
+      let governedLearningCurrentSha256 = null;
+      if (transitions
+        && isGovernedBeforeGovernedLearning(transitions[0].previousSha256)) {
+        try {
+          governedLearningCurrentSha256 =
+            advancePrivateWorkflowV2GovernedLearningOwnerHash({
+              path,
+              acceptedSha256: transitions[0].previousSha256,
+              successor: governedLearningIntelligenceSuccessor
+            });
+          if (candidateSha256 === governedLearningCurrentSha256) return true;
+        } catch {
+          return false;
+        }
+      }
+      const prospectiveTransitions = prospectiveCalibrationIntelligenceSuccessor
+        .transitionsByPath.get(path);
+      if (!prospectiveTransitions) return false;
+      const prospectivePredecessorSha256 =
+        prospectiveTransitions[0].previousSha256;
+      if (!isGovernedBeforeGovernedLearning(prospectivePredecessorSha256)
+        && prospectivePredecessorSha256 !== governedLearningCurrentSha256) {
         return false;
       }
       try {
         return candidateSha256 ===
-          advancePrivateWorkflowV2GovernedLearningOwnerHash({
+          advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash({
             path,
-            acceptedSha256: transitions[0].previousSha256,
-            successor: governedLearningIntelligenceSuccessor
+            acceptedSha256: prospectivePredecessorSha256,
+            successor: prospectiveCalibrationIntelligenceSuccessor
           });
       } catch {
         return false;

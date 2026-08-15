@@ -8,6 +8,7 @@ import { fixedCloudflareUnattendedSmokePlan } from
   "../scripts/run-cloudflare-unattended-smoke.mjs";
 import {
   advancePrivateWorkflowV2GovernedLearningOwnerHash,
+  advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash,
   controlledRehearsalNode24InfrastructureSuccessor,
   evaluateActivePrivateDeploymentToolchainSuccessor,
   evaluateGithubActionsPrivateWorkerDeploymentGovernance,
@@ -36,6 +37,7 @@ import {
   verifyOverwatchGithubActionsNode24PinSuccessor
 } from "../scripts/verify-overwatch-github-actions-node24-pin-successor.mjs";
 import {
+  verifyControlledOnboardingRehearsalSmokeContractSuccessor,
   verifyGovernedMultiSessionLearningAdvisorySuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
@@ -114,6 +116,43 @@ test("private Workflow v2 composes only the exact governed-learning Intelligence
         path,
         acceptedSha256:
           "ce1ab3876750043b251cb6029d0c0709159a8ff9c58c4266411883e6f9542e2c",
+        successor: candidate
+      }));
+  }
+});
+
+test("private Workflow v2 composes only the exact prospective-calibration source chain", () => {
+  const successor = verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .prospectiveCalibrationProductionAdmissionSuccessor;
+  const path =
+    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
+  assert.equal(advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash({
+    path,
+    acceptedSha256:
+      "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0",
+    successor
+  }), "37cc3509749764dab08d939575ad20dc37a10f0b708c7d11ef3aa0b5dc7ae3af");
+  assert.equal(advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash({
+    path: "intelligence/provenance/not-governed.mjs",
+    acceptedSha256: "f".repeat(64),
+    successor
+  }), "f".repeat(64));
+  for (const mutate of [
+    value => { value.successor.batchId = "BATCH-SUBSTITUTED"; },
+    value => { value.successor.ownerSubsystem = "Prometheus Overwatch"; },
+    value => { value.successor.truthState.governedLearning = "SUFFICIENT"; },
+    value => { value.successor.protectedState.collection = "ON"; },
+    value => { value.successor.protectedState.deployments = 1; },
+    value => { value.successor.releaseBoundary.deploymentAuthorized = true; },
+    value => { value.transitionsByPath.get(path)[0].previousSha256 = "0".repeat(64); }
+  ]) {
+    const candidate = clone(successor);
+    mutate(candidate);
+    assert.throws(() =>
+      advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash({
+        path,
+        acceptedSha256:
+          "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0",
         successor: candidate
       }));
   }
