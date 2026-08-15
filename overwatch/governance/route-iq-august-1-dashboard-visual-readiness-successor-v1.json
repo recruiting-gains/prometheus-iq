@@ -88,8 +88,8 @@
       ]
     },
     {
-      "commit": "0000000000000000000000000000000000000000",
-      "tree": "0000000000000000000000000000000000000000",
+      "commit": "da669bbb69ccd7beb4742a6db134b2e74b02fade",
+      "tree": "8dd8adb9894791c79e4a54230f6a18e17bb62fcc",
       "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
       "subject": "overwatch: compose August visual readiness",
       "evidence": [
