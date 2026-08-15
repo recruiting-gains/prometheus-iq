@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "prometheusrouteiq-website-gym-preview",
+  "workers_dev": true,
+  "preview_urls": false,
+  "main": "workers/infrastructure/prometheusrouteiq-website-gym-preview-entry.mjs",
+  "compatibility_date": "2026-08-14",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "assets": {
+    "directory": "./deploy/prometheusrouteiq-website",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "not_found_handling": "single-page-application"
+  }
+}

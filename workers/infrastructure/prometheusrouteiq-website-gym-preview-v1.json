@@ -1,0 +1,107 @@
+{
+  "contractVersion": "prometheusrouteiq-website-gym-preview-v1",
+  "owner": "Prometheus Infrastructure",
+  "batchId": "BATCH-20260814-002",
+  "previewWorker": {
+    "name": "prometheusrouteiq-website-gym-preview",
+    "entrypoint": "workers/infrastructure/prometheusrouteiq-website-gym-preview-entry.mjs",
+    "config": "wrangler.prometheusrouteiq-website-gym-preview.jsonc",
+    "workersDev": true,
+    "previewUrls": false,
+    "allowedBindings": [
+      "ASSETS"
+    ],
+    "assetsDirectory": "deploy/prometheusrouteiq-website",
+    "runWorkerFirst": true,
+    "noIndex": true
+  },
+  "assetIntegrity": {
+    "directory": "deploy/prometheusrouteiq-website",
+    "algorithm": "sha256-length-prefixed-relative-path-and-content-v1",
+    "fileCount": 22,
+    "totalBytes": 1922350,
+    "sha256": "cecb70da63434b1343049c8b1cdf7c22647f719a67663e18f6256c436b3d189d",
+    "source": "exact_committed_preview_asset_directory",
+    "binding": {
+      "commitInput": "candidate_commit",
+      "treeInput": "candidate_tree",
+      "qualificationOutput": "preview_assets_sha256",
+      "deploymentVerification": "recompute_equals_qualification_and_contract"
+    }
+  },
+  "intake": {
+    "path": "/api/partner-intake",
+    "method": "POST",
+    "acceptedPublicVersion": "route-iq-gym-request.v1",
+    "adapter": "adaptRouteIqGymRequestForCrm",
+    "workspaceId": "prometheus_route_iq",
+    "operatingProfileId": "route_iq_commercial",
+    "serverTimeRequired": true,
+    "receiptId": "riq_receipt_000000000000000000000000",
+    "receiptStatus": "synthetic_preview_only",
+    "persistenceAllowed": false,
+    "emailAllowed": false
+  },
+  "workflow": {
+    "path": ".github/workflows/preview-prometheus-route-iq-gym-first.yml",
+    "trigger": "workflow_dispatch",
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "branch": "main",
+    "actor": "PrometheusRouteIQ",
+    "inputs": [
+      "candidate_commit",
+      "candidate_tree",
+      "batch_id"
+    ],
+    "exactBatchId": "BATCH-20260814-002",
+    "runAttempt": 1,
+    "concurrencyGroup": "preview-prometheus-route-iq-gym-first",
+    "protectedEnvironment": "prometheus-public-worker-production",
+    "consumedSecrets": [
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID"
+    ],
+    "deployTarget": "prometheusrouteiq-website-gym-preview",
+    "outputs": [
+      "candidate_commit",
+      "candidate_tree",
+      "preview_url",
+      "version_id",
+      "preview_assets_sha256"
+    ]
+  },
+  "postDeploymentSmoke": {
+    "methods": [
+      "GET",
+      "HEAD"
+    ],
+    "paths": [
+      "/",
+      "/investors",
+      "/thank-you",
+      "/privacy",
+      "/terms",
+      "/data-deletion"
+    ],
+    "expectedStatus": 200,
+    "redirectsAllowed": false,
+    "requiredResponseHeader": {
+      "name": "X-Robots-Tag",
+      "contains": "noindex"
+    },
+    "postAllowed": false
+  },
+  "boundaries": {
+    "durableObjectsAllowed": false,
+    "kvAllowed": false,
+    "emailBindingsAllowed": false,
+    "workerSecretsAllowed": false,
+    "varsAllowed": false,
+    "routesAllowed": false,
+    "customDomainsAllowed": false,
+    "migrationsAllowed": false,
+    "crmBindingAllowed": false,
+    "productionImportsAllowed": false,
+    "productionDeploymentAllowed": false
+  }
+}

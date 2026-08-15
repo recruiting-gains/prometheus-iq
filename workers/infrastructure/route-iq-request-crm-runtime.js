@@ -1,6 +1,11 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
 import {
+  adaptRouteIqGymRequestForCrm,
+  routeIqGymRequestCrmScope,
+  routeIqGymRequestVersion
+} from "../../crm/route-iq-gym-intake.mjs";
+import {
   RouteIqRequestCrmError,
   claimRouteIqRequestNotificationDelivery,
   exportRouteIqRequests,
@@ -303,6 +308,9 @@ async function readPublicBody(request) {
 }
 
 export async function normalizePublicRouteIqRequest(input, { now = new Date() } = {}) {
+  if (input?.version === routeIqGymRequestVersion) {
+    return adaptRouteIqGymRequestForCrm(input, routeIqGymRequestCrmScope, { now });
+  }
   exactObject(input, PUBLIC_FIELDS);
   if (input.version !== PUBLIC_REQUEST_VERSION || input.formId !== PUBLIC_FORM_ID || input.consent !== true) {
     throw runtimeError("route_iq_request_contract_invalid", "Request contract is invalid.", 422);
@@ -462,20 +470,29 @@ async function notifyFounder(env, store, result, now) {
   }
 
   try {
+    const gymRequest = result.record.requestContractVersion === routeIqGymRequestVersion;
     await env.FOUNDER_EMAIL.send({
       to: env.FOUNDER_NOTIFICATION_TO || undefined,
       from: env.FOUNDER_NOTIFICATION_FROM || "intake@prometheusrouteiq.com",
       subject: `New Prometheus Route IQ request ${result.receiptId}`,
-      text: [
-        "A Prometheus Route IQ request was durably accepted for Prometheus.IQ Founder review.",
-        `Receipt: ${result.receiptId}`,
-        `Submitted: ${result.record.request.submittedAt}`,
-        `Business type: ${result.record.request.businessType}`,
-        `Locations: ${result.record.request.numberOfLocations}`,
-        `Estimated users: ${result.record.request.estimatedUsers}`,
-        `Timeline: ${result.record.request.desiredTimeline}`,
-        "Use Founder-only CRM retrieval for contact details."
-      ].join("\n")
+      text: gymRequest
+        ? [
+            "A Prometheus Route IQ gym request was durably accepted for Prometheus.IQ Founder review.",
+            `Receipt: ${result.receiptId}`,
+            `Submitted: ${result.record.request.submittedAt}`,
+            `Request contract: ${result.record.requestContractVersion}`,
+            "Use Founder-only CRM retrieval for request details."
+          ].join("\n")
+        : [
+            "A Prometheus Route IQ request was durably accepted for Prometheus.IQ Founder review.",
+            `Receipt: ${result.receiptId}`,
+            `Submitted: ${result.record.request.submittedAt}`,
+            `Business type: ${result.record.request.businessType}`,
+            `Locations: ${result.record.request.numberOfLocations}`,
+            `Estimated users: ${result.record.request.estimatedUsers}`,
+            `Timeline: ${result.record.request.desiredTimeline}`,
+            "Use Founder-only CRM retrieval for contact details."
+          ].join("\n")
     });
   } catch {
     return (await recordRouteIqRequestNotificationResult(store, result.receiptId, {
@@ -492,13 +509,14 @@ async function notifyFounder(env, store, result, now) {
 
 async function handlePublicPost(request, env, options) {
   const id = attemptId(options.testHooks);
+  const serverNow = options.now ?? new Date();
   let store;
   try {
     const body = await readPublicBody(request);
-    const normalized = await normalizePublicRouteIqRequest(body, { now: options.now || new Date() });
+    const normalized = await normalizePublicRouteIqRequest(body, { now: serverNow });
     store = options.store || createRouteIqRequestCrmDurableStore(env);
-    const result = await persistRouteIqRequest(store, normalized, { now: options.now || new Date() });
-    await notifyFounder(env, store, result, options.now || new Date());
+    const result = await persistRouteIqRequest(store, normalized, { now: serverNow });
+    await notifyFounder(env, store, result, serverNow);
     const receipt = publicRouteIqRequestReceipt(result);
     return response({ ...receipt, timestamp: receipt.submittedAt }, result.duplicate ? 200 : 201);
   } catch (error) {
@@ -506,7 +524,7 @@ async function handlePublicPost(request, env, options) {
     const code = safeCode(error);
     try {
       store ||= options.store || createRouteIqRequestCrmDurableStore(env);
-      await recordFailure(store, error, id, options.now || new Date());
+      await recordFailure(store, error, id, serverNow);
     } catch {
       // Failure monitoring cannot weaken the primary fail-closed response.
     }

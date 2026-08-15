@@ -4,8 +4,19 @@
   "publicIntake": {
     "path": "/api/partner-intake",
     "method": "POST",
+    "publicVersions": [
+      "route-iq-public-request.v1",
+      "route-iq-gym-request.v1"
+    ],
+    "versionDiscriminator": "payload.version",
     "workspaceId": "prometheus_route_iq",
     "operatingProfileId": "route_iq_commercial",
+    "gymAdapter": {
+      "module": "crm/route-iq-gym-intake.mjs",
+      "export": "adaptRouteIqGymRequestForCrm",
+      "serverTimeRequired": true,
+      "persistAdapterOutputUnchanged": true
+    },
     "legacyFitnessRoutingActive": false,
     "legacySmoothieRoutingActive": false
   },
@@ -76,6 +87,11 @@
   "notification": {
     "afterDurablePersistence": true,
     "contactPiiIncluded": false,
+    "gymRequestFields": [
+      "receiptId",
+      "submittedAt",
+      "requestContractVersion"
+    ],
     "deliveryFailureIsMonitored": true,
     "deliveryClaimBeforeSend": true,
     "terminalResultIsIdempotent": true,

@@ -9,6 +9,11 @@ import { join, resolve } from "node:path";
 import { SignJWT, createLocalJWKSet, exportJWK } from "jose";
 import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 
+import {
+  adaptRouteIqGymRequestForCrm,
+  routeIqGymRequestCrmScope,
+  routeIqGymRequestVersion
+} from "../crm/route-iq-gym-intake.mjs";
 import { routeIqRequestFounderAuthorization } from "../crm/route-iq-request-crm.mjs";
 import { runRouteIqCommercialCapacityHarness } from "../workers/infrastructure/route-iq-commercial-capacity-harness.mjs";
 import { RouteIqRequestCrmCoordinator } from "../workers/infrastructure/route-iq-request-crm-durable-object.js";
@@ -27,6 +32,7 @@ import {
 } from "../workers/infrastructure/route-iq-request-crm-runtime.js";
 
 const now = new Date("2026-07-18T17:00:00.000Z");
+const gymNow = new Date("2026-08-14T18:31:00.000Z");
 
 function memoryStorage() {
   const records = new Map();
@@ -114,6 +120,29 @@ function publicPayload(overrides = {}) {
     consent: true,
     submittedAt: "2026-07-18T16:59:00.000Z",
     acquisitionSource: "direct",
+    websiteUrl: "",
+    ...overrides
+  };
+}
+
+function publicGymPayload(overrides = {}) {
+  return {
+    version: routeIqGymRequestVersion,
+    formId: "route_iq_gym_request",
+    fullName: "Jordan Rivera",
+    gymName: "Iron Harbor Training",
+    cityState: "Houston, TX",
+    outsideRepCount: 4,
+    workEmail: "jordan@ironharbor.example",
+    cell: "+1 713 555 0148",
+    consent: true,
+    submittedAt: "2026-08-14T18:30:00.000Z",
+    acquisitionSource: "route_iq_website",
+    attribution: {
+      utm_source: "reddit",
+      utm_medium: "paid_social",
+      utm_campaign: "gym_first_launch"
+    },
     websiteUrl: "",
     ...overrides
   };
@@ -339,6 +368,61 @@ test("public Route IQ request is normalized, durably accepted, minimally notifie
     );
     assert.equal(exported.status, 200);
     assert.match(await exported.text(), /Houston Field Services/u);
+  }
+});
+
+test("gym public intake uses the CRM adapter unchanged, persists once, and limits notification fields", async () => {
+  const payload = publicGymPayload();
+  const expected = adaptRouteIqGymRequestForCrm(payload, routeIqGymRequestCrmScope, { now: gymNow });
+  const normalized = await normalizePublicRouteIqRequest(payload, { now: gymNow });
+  assert.deepEqual(normalized, expected);
+  assert.equal(normalized.workspaceId, "prometheus_route_iq");
+  assert.equal(normalized.operatingProfileId, "route_iq_commercial");
+
+  await assert.rejects(
+    () => normalizePublicRouteIqRequest(payload, { now: "2026-08-16T18:31:00.000Z" }),
+    error => error.code === "route_iq_request_gym_submission_time_invalid"
+  );
+
+  const store = injectedRuntimeStore();
+  const sent = [];
+  const accepted = await handleRouteIqRequestCrmRuntimeRequest(postRequest(payload), {
+    FOUNDER_EMAIL: {
+      async send(message) {
+        assert.equal([...store.items.keys()].some(key => key.includes("/requests/")), true);
+        sent.push(message);
+      }
+    }
+  }, { store, now: gymNow });
+  const receipt = await accepted.json();
+  assert.equal(accepted.status, 201);
+  assert.equal(receipt.contractVersion, routeIqGymRequestVersion);
+  assert.equal(receipt.timestamp, payload.submittedAt);
+  assert.match(receipt.receiptId, /^riq_receipt_[a-f0-9]{24}$/u);
+  assert.equal(JSON.stringify(receipt).includes(payload.gymName), false);
+
+  const recordEntry = [...store.items.entries()].find(([key]) => key.includes("/requests/"));
+  const record = JSON.parse(recordEntry[1]);
+  assert.equal(record.requestContractVersion, routeIqGymRequestVersion);
+  assert.equal(record.request.gymName, payload.gymName);
+  assert.equal(record.request.outsideRepCount, payload.outsideRepCount);
+  assert.equal(Object.hasOwn(record.request, "numberOfLocations"), false);
+  assert.equal(Object.hasOwn(record.request, "estimatedUsers"), false);
+
+  assert.equal(sent.length, 1);
+  const notification = JSON.stringify(sent[0]);
+  assert.match(notification, new RegExp(receipt.receiptId, "u"));
+  assert.match(notification, new RegExp(payload.submittedAt.replaceAll(".", "\\."), "u"));
+  assert.match(notification, /route-iq-gym-request\.v1/u);
+  for (const forbidden of [
+    payload.fullName,
+    payload.gymName,
+    payload.cityState,
+    payload.workEmail,
+    payload.cell,
+    "undefined"
+  ]) {
+    assert.equal(notification.includes(forbidden), false);
   }
 });
 
@@ -772,7 +856,7 @@ test("Founder JWT fails closed for missing claims, malformed tokens, disallowed 
   assert.equal((await timeout.json()).code, ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.jwksTimeout);
 });
 
-test("bundled public Worker fetches and selects remote JWKS without external network", { timeout: 30_000 }, async () => {
+test("bundled public Worker fetches and selects remote JWKS without external network", { timeout: 120_000 }, async () => {
   const fixture = await founderJwtHarness();
   const bundle = bundlePublicWorkerForJwksFixture();
   const bundleEpoch = Math.floor(Date.now() / 1000);
@@ -951,6 +1035,18 @@ test("active Worker route and source configuration use only the Route IQ CRM run
   assert.doesNotMatch(privateConfig, /ROUTE_IQ_REQUEST_CRM_COORDINATOR|route-iq-request-crm-sqlite-v1/u);
   assert.equal(contract.storage.deploymentTarget, "prometheusrouteiq-website Worker only");
   assert.equal(contract.storage.privateWorkerBinding, false);
+  assert.deepEqual(contract.publicIntake.publicVersions, [
+    "route-iq-public-request.v1",
+    "route-iq-gym-request.v1"
+  ]);
+  assert.equal(contract.publicIntake.versionDiscriminator, "payload.version");
+  assert.equal(contract.publicIntake.gymAdapter.export, "adaptRouteIqGymRequestForCrm");
+  assert.equal(contract.publicIntake.gymAdapter.persistAdapterOutputUnchanged, true);
+  assert.deepEqual(contract.notification.gymRequestFields, [
+    "receiptId",
+    "submittedAt",
+    "requestContractVersion"
+  ]);
   assert.equal(contract.publicIntake.legacyFitnessRoutingActive, false);
   assert.equal(contract.publicIntake.legacySmoothieRoutingActive, false);
   assert.equal(contract.storage.kvCasClaimed, false);

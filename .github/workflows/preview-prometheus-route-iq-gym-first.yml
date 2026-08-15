@@ -1,0 +1,367 @@
+name: Preview Prometheus Route IQ Gym First
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_commit:
+        description: Exact current main commit (40 lowercase hex)
+        required: true
+        type: string
+      candidate_tree:
+        description: Exact tree for the current main commit (40 lowercase hex)
+        required: true
+        type: string
+      batch_id:
+        description: Exact Infrastructure batch ID
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-prometheus-route-iq-gym-first
+  cancel-in-progress: false
+
+jobs:
+  qualify:
+    name: Qualify one exact no-write gym preview candidate
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' &&
+        github.repository == 'PrometheusRouteIQ/prometheus-iq' &&
+        github.actor == 'PrometheusRouteIQ' &&
+        github.triggering_actor == 'PrometheusRouteIQ' &&
+        github.ref == 'refs/heads/main' &&
+        github.ref_name == 'main' &&
+        github.ref_type == 'branch' &&
+        github.sha == inputs.candidate_commit &&
+        github.workflow == 'Preview Prometheus Route IQ Gym First' &&
+        github.workflow_ref == 'PrometheusRouteIQ/prometheus-iq/.github/workflows/preview-prometheus-route-iq-gym-first.yml@refs/heads/main' &&
+        inputs.batch_id == 'BATCH-20260814-002' &&
+        github.run_attempt == 1
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    outputs:
+      candidate_commit: ${{ steps.preview-assets.outputs.candidate_commit }}
+      candidate_tree: ${{ steps.preview-assets.outputs.candidate_tree }}
+      preview_assets_sha256: ${{ steps.preview-assets.outputs.preview_assets_sha256 }}
+    steps:
+      - name: Checkout the exact current main commit
+        # actions/checkout v4.3.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: ${{ inputs.candidate_commit }}
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Gate immutable main commit, tree, and batch
+        shell: bash
+        env:
+          CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+          CANDIDATE_TREE: ${{ inputs.candidate_tree }}
+          BATCH_ID: ${{ inputs.batch_id }}
+        run: |
+          set -euo pipefail
+          [[ "$CANDIDATE_COMMIT" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$CANDIDATE_TREE" =~ ^[a-f0-9]{40}$ ]]
+          test "$BATCH_ID" = "BATCH-20260814-002"
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_COMMIT"
+          test "$(git rev-parse HEAD^{tree})" = "$CANDIDATE_TREE"
+          test "$(git rev-parse refs/remotes/origin/main)" = "$CANDIDATE_COMMIT"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+
+      - name: Set up the governed Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "24.4.1"
+
+      - name: Install exact locked dependencies
+        run: npm ci
+
+      - name: Build the exact public SPA assets
+        run: npm run build
+
+      - name: Run gym intake and isolated preview gates
+        run: |
+          node --test tests/crm-route-iq-gym-request-contract.test.mjs
+          node --test tests/route-iq-request-crm-infrastructure.test.mjs
+          node --test tests/route-iq-gym-website-preview-infrastructure.test.mjs
+
+      - name: Run full relevant repository qualification
+        run: |
+          npm audit --omit=dev --audit-level=high
+          npm run lint
+          npm run typecheck
+          npm run security:check
+          npm run security:aegis:verify
+          npm test
+
+      - name: Bind exact committed preview assets to commit and tree
+        id: preview-assets
+        shell: bash
+        env:
+          CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+          CANDIDATE_TREE: ${{ inputs.candidate_tree }}
+        run: |
+          set -euo pipefail
+          candidate_commit="$(git rev-parse HEAD)"
+          candidate_tree="$(git rev-parse HEAD^{tree})"
+          preview_assets_sha256="$(node workers/infrastructure/prometheusrouteiq-website-gym-preview-assets.mjs)"
+          contract_sha256="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; process.stdout.write(JSON.parse(readFileSync("workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json", "utf8")).assetIntegrity.sha256)')"
+          test "$candidate_commit" = "$CANDIDATE_COMMIT"
+          test "$candidate_tree" = "$CANDIDATE_TREE"
+          [[ "$preview_assets_sha256" =~ ^[a-f0-9]{64}$ ]]
+          test "$preview_assets_sha256" = "$contract_sha256"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          printf 'candidate_commit=%s\n' "$candidate_commit" >> "$GITHUB_OUTPUT"
+          printf 'candidate_tree=%s\n' "$candidate_tree" >> "$GITHUB_OUTPUT"
+          printf 'preview_assets_sha256=%s\n' "$preview_assets_sha256" >> "$GITHUB_OUTPUT"
+          {
+            printf '### Qualified Route IQ gym preview assets\n\n'
+            printf -- '- Commit: `%s`\n' "$candidate_commit"
+            printf -- '- Tree: `%s`\n' "$candidate_tree"
+            printf -- '- Preview assets SHA-256: `%s`\n' "$preview_assets_sha256"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Prove the preview-only Wrangler configuration and invocations
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+          import { readFileSync } from "node:fs";
+
+          const configPath = "wrangler.prometheusrouteiq-website-gym-preview.jsonc";
+          const config = JSON.parse(readFileSync(configPath, "utf8"));
+          assert.equal(config.name, "prometheusrouteiq-website-gym-preview");
+          assert.equal(config.workers_dev, true);
+          assert.equal(config.preview_urls, false);
+          assert.equal(config.assets.binding, "ASSETS");
+          assert.deepEqual(Object.keys(config).sort(), [
+            "$schema",
+            "assets",
+            "compatibility_date",
+            "compatibility_flags",
+            "main",
+            "name",
+            "preview_urls",
+            "workers_dev"
+          ].sort());
+
+          const workflow = readFileSync(".github/workflows/preview-prometheus-route-iq-gym-first.yml", "utf8");
+          const invocations = workflow.split(/\r?\n/u)
+            .map(line => line.trim())
+            .filter(line => line.startsWith("npx wrangler deploy "));
+          assert.equal(invocations.length, 2);
+          assert.equal(invocations.filter(line => !line.includes(" --dry-run ")).length, 1);
+          for (const invocation of invocations) {
+            assert.match(invocation, /--config wrangler\.prometheusrouteiq-website-gym-preview\.jsonc/u);
+            assert.match(invocation, /--name prometheusrouteiq-website-gym-preview(?:\s|$)/u);
+            assert.doesNotMatch(invocation, /--config wrangler\.jsonc(?:\s|$)/u);
+            assert.doesNotMatch(invocation, /--config wrangler\.prometheusrouteiq-website\.jsonc(?:\s|$)/u);
+            assert.doesNotMatch(invocation, /--name prometheus-iq(?:\s|$)/u);
+            assert.doesNotMatch(invocation, /--name prometheusrouteiq-website(?:\s|$)/u);
+          }
+          NODE
+
+      - name: Compile and inspect the preview config without upload
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$RUNNER_TEMP/route-iq-gym-preview-dry-run"
+          rm -rf "$output"
+          npx wrangler deploy --dry-run --strict --config wrangler.prometheusrouteiq-website-gym-preview.jsonc --name prometheusrouteiq-website-gym-preview --outdir "$output"
+          bundle="$output/prometheusrouteiq-website-gym-preview-entry.js"
+          test -s "$bundle"
+          if grep -E 'ROUTE_IQ_REQUEST_CRM_COORDINATOR|FOUNDER_EMAIL|AEGIS_RATE_LIMITS|SHARED_LEAD_INTAKE_STORE|CRM_WORKSPACE_LEAD_STORE' "$bundle"; then
+            exit 1
+          fi
+
+      - name: Require unchanged exact qualification source
+        shell: bash
+        env:
+          CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+          CANDIDATE_TREE: ${{ inputs.candidate_tree }}
+        run: |
+          set -euo pipefail
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_COMMIT"
+          test "$(git rev-parse HEAD^{tree})" = "$CANDIDATE_TREE"
+          test "$(git rev-parse refs/remotes/origin/main)" = "$CANDIDATE_COMMIT"
+
+  deploy-preview:
+    name: Deploy the exact isolated gym preview once
+    needs: qualify
+    if: >-
+      ${{
+        needs.qualify.result == 'success' &&
+        github.event_name == 'workflow_dispatch' &&
+        github.repository == 'PrometheusRouteIQ/prometheus-iq' &&
+        github.actor == 'PrometheusRouteIQ' &&
+        github.triggering_actor == 'PrometheusRouteIQ' &&
+        github.ref == 'refs/heads/main' &&
+        github.sha == inputs.candidate_commit &&
+        inputs.batch_id == 'BATCH-20260814-002' &&
+        github.run_attempt == 1
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: prometheus-public-worker-production
+    outputs:
+      candidate_commit: ${{ steps.preview-assets.outputs.candidate_commit }}
+      candidate_tree: ${{ steps.preview-assets.outputs.candidate_tree }}
+      preview_url: ${{ steps.deploy.outputs.preview_url }}
+      version_id: ${{ steps.deploy.outputs.version_id }}
+      preview_assets_sha256: ${{ steps.preview-assets.outputs.preview_assets_sha256 }}
+    steps:
+      - name: Checkout the exact qualified main commit
+        # actions/checkout v4.3.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: ${{ inputs.candidate_commit }}
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Reverify the exact qualified source
+        shell: bash
+        env:
+          CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+          CANDIDATE_TREE: ${{ inputs.candidate_tree }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_COMMIT"
+          test "$(git rev-parse HEAD^{tree})" = "$CANDIDATE_TREE"
+          test "$(git rev-parse refs/remotes/origin/main)" = "$CANDIDATE_COMMIT"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+
+      - name: Set up exact preview deployment tooling
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "24.4.1"
+
+      - name: Install exact locked deployment tooling
+        run: npm ci
+
+      - name: Reverify committed preview assets without rebuilding
+        id: preview-assets
+        shell: bash
+        env:
+          EXPECTED_COMMIT: ${{ needs.qualify.outputs.candidate_commit }}
+          EXPECTED_TREE: ${{ needs.qualify.outputs.candidate_tree }}
+          EXPECTED_PREVIEW_ASSETS_SHA256: ${{ needs.qualify.outputs.preview_assets_sha256 }}
+        run: |
+          set -euo pipefail
+          candidate_commit="$(git rev-parse HEAD)"
+          candidate_tree="$(git rev-parse HEAD^{tree})"
+          preview_assets_sha256="$(node workers/infrastructure/prometheusrouteiq-website-gym-preview-assets.mjs)"
+          contract_sha256="$(node --input-type=module -e 'import { readFileSync } from "node:fs"; process.stdout.write(JSON.parse(readFileSync("workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json", "utf8")).assetIntegrity.sha256)')"
+          test "$candidate_commit" = "$EXPECTED_COMMIT"
+          test "$candidate_tree" = "$EXPECTED_TREE"
+          [[ "$preview_assets_sha256" =~ ^[a-f0-9]{64}$ ]]
+          test "$preview_assets_sha256" = "$EXPECTED_PREVIEW_ASSETS_SHA256"
+          test "$preview_assets_sha256" = "$contract_sha256"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          printf 'candidate_commit=%s\n' "$candidate_commit" >> "$GITHUB_OUTPUT"
+          printf 'candidate_tree=%s\n' "$candidate_tree" >> "$GITHUB_OUTPUT"
+          printf 'preview_assets_sha256=%s\n' "$preview_assets_sha256" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy only the hardcoded preview target
+        id: deploy
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          NO_COLOR: "1"
+          NO_UPDATE_NOTIFIER: "1"
+          WRANGLER_SEND_METRICS: "false"
+        run: |
+          set -euo pipefail
+          deployment_log="$RUNNER_TEMP/route-iq-gym-preview-deploy.log"
+          npx wrangler deploy --strict --config wrangler.prometheusrouteiq-website-gym-preview.jsonc --name prometheusrouteiq-website-gym-preview 2>&1 | tee "$deployment_log"
+          preview_url="$(sed -nE 's|^[[:space:]]*(https://prometheusrouteiq-website-gym-preview\.[A-Za-z0-9.-]+\.workers\.dev)/?[[:space:]]*$|\1|p' "$deployment_log" | tail -n 1)"
+          version_id="$(sed -nE 's/^Current Version ID:[[:space:]]*([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})[[:space:]]*$/\1/p' "$deployment_log" | tail -n 1)"
+          test -n "$preview_url"
+          [[ "$version_id" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]
+          printf 'preview_url=%s\n' "$preview_url" >> "$GITHUB_OUTPUT"
+          printf 'version_id=%s\n' "$version_id" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke exact preview routes with GET and HEAD only
+        id: smoke
+        shell: bash
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
+          VERSION_ID: ${{ steps.deploy.outputs.version_id }}
+          PREVIEW_ASSETS_SHA256: ${{ steps.preview-assets.outputs.preview_assets_sha256 }}
+        run: |
+          set -euo pipefail
+          paths=("/" "/investors" "/thank-you" "/privacy" "/terms" "/data-deletion")
+          methods=("GET" "HEAD")
+          smoke_count=0
+          for path in "${paths[@]}"; do
+            for method in "${methods[@]}"; do
+              case "$method" in
+                GET|HEAD) ;;
+                *) exit 1 ;;
+              esac
+              smoke_count=$((smoke_count + 1))
+              headers_file="$RUNNER_TEMP/route-iq-gym-preview-smoke-${smoke_count}.headers"
+              body_file="$RUNNER_TEMP/route-iq-gym-preview-smoke-${smoke_count}.body"
+              curl_args=(
+                --silent
+                --show-error
+                --proto '=https'
+                --tlsv1.2
+                --connect-timeout 10
+                --max-time 30
+                --dump-header "$headers_file"
+                --output "$body_file"
+                --write-out '%{http_code}'
+              )
+              if test "$method" = "GET"; then
+                status="$(curl "${curl_args[@]}" --request GET "${PREVIEW_URL}${path}")"
+                test -s "$body_file"
+              else
+                status="$(curl "${curl_args[@]}" --head "${PREVIEW_URL}${path}")"
+              fi
+              test "$status" = "200"
+              grep -Eiq '^X-Robots-Tag:[[:space:]]*.*noindex' "$headers_file"
+            done
+          done
+          test "$smoke_count" -eq 12
+          candidate_commit="$(git rev-parse HEAD)"
+          candidate_tree="$(git rev-parse HEAD^{tree})"
+          {
+            printf '### Route IQ gym preview\n\n'
+            printf -- '- URL: [%s](%s)\n' "$PREVIEW_URL" "$PREVIEW_URL"
+            printf -- '- Version: `%s`\n' "$VERSION_ID"
+            printf -- '- Commit: `%s`\n' "$candidate_commit"
+            printf -- '- Tree: `%s`\n' "$candidate_tree"
+            printf -- '- Preview assets SHA-256: `%s`\n' "$PREVIEW_ASSETS_SHA256"
+            printf -- '- Batch: `BATCH-20260814-002`\n'
+            printf -- '- Smoke: `12/12 GET/HEAD noindex checks passed`\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+          printf 'smoke_status=passed\n' >> "$GITHUB_OUTPUT"
+
+      - name: Require unchanged exact source after preview deployment
+        shell: bash
+        env:
+          CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+          CANDIDATE_TREE: ${{ inputs.candidate_tree }}
+        run: |
+          set -euo pipefail
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_COMMIT"
+          test "$(git rev-parse HEAD^{tree})" = "$CANDIDATE_TREE"
