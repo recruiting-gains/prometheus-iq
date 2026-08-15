@@ -59,7 +59,9 @@
     {"commit":"7df9e1732d1e5fb910d418a10c99ab2f9a8c3bbe","tree":"79da3e72ec396e8ab6f33c65748e6281fb419aa8","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: compose calibration contract successor"},
     {"commit":"738eadd7408249f008ed2573ba309e8abe45698c","tree":"339c6ae9cb0bd770fb44d197dbcdb1f2ecfec379","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: test calibration contract lineage"},
     {"commit":"a27873490110792861f34fdcc9afcd546ae0074d","tree":"dad6fd598d989ae0c6adb6c6f6b44581294f7129","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: bind calibration runtime contract lineage"},
-    {"commit":"787230ff50b2919430673483fae912d4997f3415","tree":"ec49d86233b74a80e9a2784ce5b858311392f35c","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: bind calibration runtime baseline successor"}
+    {"commit":"787230ff50b2919430673483fae912d4997f3415","tree":"ec49d86233b74a80e9a2784ce5b858311392f35c","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: bind calibration runtime baseline successor"},
+    {"commit":"a32d404005d2f469512048e94dde929b2c33dff9","tree":"4cfbb96fb511d075dff35b4a78182cbc5047cbe3","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: compose calibration read-only successor"},
+    {"commit":"04a2b2adfc4fdf07e65a8249327c78db89f2b2fa","tree":"c036a706ad70479b4ae0f7cfca103a60cb683860","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: bind read-only calibration successor"}
   ],
   "criticalPins": [
     {"path":"data/route-iq-field-sessions-v1/route-iq-prospective-production-retention-admission.mjs","sha256":"aee7ebc4772621081ce405defd56eba3783c35ec5ef3f0919eadba5b9d24628d"},
@@ -71,7 +73,7 @@
     {"path":"intelligence/route-iq-committed-outcome-evaluation.mjs","sha256":"32d0fd96253721e89766d7103f27f26dd48df96e7f438b5af06c92ecd0777107"},
     {"path":"workers/infrastructure/route-iq-prospective-shadow-retention-admission.js","sha256":"876ab11666ce34a1c7abbeac066e3ca6382000c55ba156d1a7194f9b5c0cab6c"},
     {"path":"workers/infrastructure/route-iq-prospective-shadow-runtime.js","sha256":"a9ab5f19c2059e07320e5735c6a2cd3bd4ee53ca2b14ff01a4a9c6ac876c1e9d"},
-    {"path":"intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json","sha256":"fe363e5fb4a38d357c7beaa6066b456fd2e4a4ae5c91d031bc38c8b099271ab8"},
+    {"path":"intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json","sha256":"dacb9f4111192ea3394367c78e6bf5c6584c381b216ddeab21af02bf7f8e9441"},
     {"path":"workers/infrastructure/route-iq-prospective-calibration-production-admission-forward-revert-v1.json","sha256":"68e2fe0ee894a6ef4c83d9d2d0f32ff3ffdf9e7d7310c7b6472c51b40fbdd4cf"},
     {"path":"tests/route-iq-prospective-production-admission-security.test.mjs","sha256":"1290e3a094b366fce85d1647b2afa83521906acd5ffb5caf8e3f66675853dd21"},
     {"path":"scripts/verify-route-iq-prospective-shadow-infrastructure.mjs","sha256":"0ec49d64e83cac04905a6d22e4f60e23621df2b204e7122c44f81b3980f3c794"}
