@@ -5,7 +5,7 @@
   "ownerSubsystem": "Prometheus Overwatch",
   "implementationProvenance": {
     "path": "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json",
-    "sha256": "db24099b6197b064ce9dc6494625ca4ea47f618e0f60ec40767f63a59421e688"
+    "sha256": "599b63d48d13296972ad2e14938beef0bd73edf649cb6772f82b0cfef339c589"
   },
   "implementationCommits": [
     {
@@ -43,13 +43,44 @@
       "tree": "4a01f55612bad4ad890c146bc69eb242bb4da62b",
       "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
       "subject": "intelligence: record gym runtime surface provenance"
+    },
+    {
+      "commit": "6ca95fbfc56ba54354c5bce6faa6ab278d4a098b",
+      "tree": "8e4226c9fa4d0641bc7db1d62dc25d06aac9993d",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose gym runtime adoption successor"
+    },
+    {
+      "commit": "e40f4102b21173b11e8e8f9ba9c7610fb5e67b6a",
+      "tree": "b93f13080d8adb7da83b8a78bbdfbce9b934ac3f",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: bind gym runtime adoption regression"
+    },
+    {
+      "commit": "7ff311d47199c806295211577d959e09692950a2",
+      "tree": "8e4226c9fa4d0641bc7db1d62dc25d06aac9993d",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: preserve gym runtime source authority"
+    },
+    {
+      "commit": "1ccc0c4b158812070f3586b8297ad569870151c3",
+      "tree": "9a946e46903c84297a82c42268bf2a2c281a5c49",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "test(intelligence): preserve extensible gym successor order"
+    },
+    {
+      "commit": "2489b3e44493daded80e6f4d5ea8284642711142",
+      "tree": "d94b8ded4925399c7aff7d2318ad5d6d64a09216",
+      "owner": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: record gym runtime adoption provenance"
     }
   ],
   "changedFiles": [
     "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json",
     "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
     "scripts/lib/route-intelligence-quality-gate.mjs",
-    "tests/route-intelligence-quality-gate.test.mjs"
+    "tests/route-intelligence-quality-gate.test.mjs",
+    "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
   ],
   "runtimeSurface": {
     "previousFileCount": 33,
