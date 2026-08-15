@@ -14,7 +14,7 @@ test("Overwatch verifies the complete source-only calibration admission successo
     {
       status: "PASS",
       batchId: "BATCH-20260814-001",
-      ownerCommitCount: 35,
+      ownerCommitCount: 37,
       criticalPinCount: 13,
       focusedTests: 171,
       readiness: "INSUFFICIENT_EVIDENCE",
