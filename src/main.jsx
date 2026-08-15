@@ -7,10 +7,19 @@ import {
   resolveAcquisitionSource,
   submitRouteIqRequest
 } from "./route-iq-request-form.js";
+import {
+  ROUTE_IQ_GYM_REQUEST_RECEIPT_PATTERN,
+  buildRouteIqGymRequestPayload,
+  buildRouteIqGymThankYouPath,
+  collectRouteIqGymAttribution,
+  preserveRouteIqGymAttribution,
+  submitRouteIqGymRequest
+} from "./route-iq-gym-request-form.js";
 import "./styles.css";
 
 const contactEmail = "prometheusrouteiq@gmail.com";
 const instagramUrl = "https://www.instagram.com/prometheus.IQ";
+const investorDeckEmail = `mailto:${contactEmail}?subject=Request%20Investor%20Deck`;
 const IntelligenceScene = React.lazy(() => import("./IntelligenceScene.jsx"));
 
 function supportsWebGl() {
@@ -122,6 +131,387 @@ function LogoMark() {
 
 function SectionLabel({ children }) {
   return <p className="eyebrow">{children}</p>;
+}
+
+const routeMetadata = Object.freeze({
+  gym: Object.freeze({
+    title: "Prometheus Route IQ for Gyms | Field Sales Intelligence",
+    description: "Prometheus Route IQ builds field-sales dashboards for U.S. small and independent warehouse-style gyms, with GPS-verified context and people in control.",
+    canonical: "https://prometheusrouteiq.com/",
+    image: "https://prometheusrouteiq.com/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg",
+    imageWidth: "2048",
+    imageHeight: "1072",
+    imageAlt: "Gym owners: 29 members in 48 hours. Zero ad spend."
+  }),
+  investors: Object.freeze({
+    title: "Prometheus Route IQ | Investor Overview",
+    description: "Prometheus Route IQ is field decision intelligence for outside-sales teams, connecting territory, timing, field activity, and governed outcomes.",
+    canonical: "https://prometheusrouteiq.com/investors",
+    image: "https://prometheusrouteiq.com/route-iq-field-operations-social.jpg",
+    imageWidth: "1200",
+    imageHeight: "675",
+    imageAlt: "A synthetic field representative reviewing a Prometheus Route IQ field route in a commercial district"
+  }),
+  thankYou: Object.freeze({
+    title: "Thank You | Prometheus Route IQ",
+    description: "Prometheus Route IQ request receipt.",
+    canonical: "https://prometheusrouteiq.com/thank-you",
+    image: "https://prometheusrouteiq.com/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg",
+    imageWidth: "2048",
+    imageHeight: "1072",
+    imageAlt: "Prometheus Route IQ for gym owners"
+  })
+});
+
+function setMeta(selector, attribute, value) {
+  const element = document.head.querySelector(selector);
+  if (element) element.setAttribute(attribute, value);
+}
+
+function applyRouteMetadata(pathname) {
+  const isThankYou = pathname === "/thank-you" || pathname === "/thank-you/";
+  const metadata = isThankYou
+    ? routeMetadata.thankYou
+    : pathname === "/investors" || pathname === "/investors/"
+      ? routeMetadata.investors
+      : routeMetadata.gym;
+
+  document.title = metadata.title;
+  setMeta('meta[name="description"]', "content", metadata.description);
+  setMeta('meta[name="robots"]', "content", isThankYou ? "noindex,nofollow,noarchive" : "index,follow,max-image-preview:large");
+  setMeta('link[rel="canonical"]', "href", metadata.canonical);
+  setMeta('meta[property="og:title"]', "content", metadata.title);
+  setMeta('meta[property="og:description"]', "content", metadata.description);
+  setMeta('meta[property="og:url"]', "content", metadata.canonical);
+  setMeta('meta[property="og:image"]', "content", metadata.image);
+  setMeta('meta[property="og:image:width"]', "content", metadata.imageWidth);
+  setMeta('meta[property="og:image:height"]', "content", metadata.imageHeight);
+  setMeta('meta[property="og:image:alt"]', "content", metadata.imageAlt);
+  setMeta('meta[name="twitter:title"]', "content", metadata.title);
+  setMeta('meta[name="twitter:description"]', "content", metadata.description);
+  setMeta('meta[name="twitter:image"]', "content", metadata.image);
+  setMeta('meta[name="twitter:image:alt"]', "content", metadata.imageAlt);
+}
+
+function InternalLink({ href, children, ...props }) {
+  const resolvedHref = href.startsWith("/")
+    ? preserveRouteIqGymAttribution(href, window.location.href)
+    : href;
+  return <a href={resolvedHref} {...props}>{children}</a>;
+}
+
+function GlobalNav() {
+  const links = [
+    ["/#gym-form", "For Gym Owners"],
+    ["/investors", "For Investors"],
+    ["/investors#industries", "For Enterprise"]
+  ];
+
+  return (
+    <header className="site-header">
+      <InternalLink className="brand" href="/" aria-label="Prometheus Route IQ home">
+        <span className="brand-wordmark"><strong>PROMETHEUS.IQ</strong><small>ROUTE IQ</small></span>
+      </InternalLink>
+      <nav aria-label="Primary navigation">
+        {links.map(([href, label]) => <InternalLink href={href} key={href}>{label}</InternalLink>)}
+        <InternalLink className="header-action" href="/#gym-form">Get Dashboard</InternalLink>
+      </nav>
+      <details className="mobile-nav">
+        <summary aria-label="Open navigation menu">Menu</summary>
+        <div className="mobile-nav-panel">
+          {links.map(([href, label]) => <InternalLink href={href} key={href}>{label}</InternalLink>)}
+          <InternalLink className="header-action" href="/#gym-form">Get Dashboard</InternalLink>
+        </div>
+      </details>
+    </header>
+  );
+}
+
+function GlobalFooter() {
+  return (
+    <footer className="site-footer">
+      <div className="shell footer-grid">
+        <div className="footer-brand">
+          <span className="brand-wordmark"><strong>PROMETHEUS.IQ</strong><small>ROUTE IQ</small></span>
+          <span>Field decision intelligence for outside-sales teams.</span>
+        </div>
+        <div className="footer-links">
+          <InternalLink href="/#gym-form">For Gym Owners</InternalLink>
+          <InternalLink href="/investors">For Investors</InternalLink>
+          <InternalLink href="/investors#industries">For Enterprise</InternalLink>
+          <InternalLink href="/privacy">Privacy</InternalLink>
+          <InternalLink href="/terms">Terms</InternalLink>
+          <InternalLink href="/data-deletion">Data deletion</InternalLink>
+          <a href={`mailto:${contactEmail}`}>Contact</a>
+          <a href={instagramUrl}>Instagram</a>
+        </div>
+        <p className="footer-note">Route IQ complements the CRM and mapping tools an outside-sales organization already uses. It brings field context, activity, and outcomes together to support better-informed human decisions.</p>
+        <p className="footer-designation"><span>PROMETHEUS ROUTE IQ&trade;</span><span>U.S. PATENT PENDING</span></p>
+      </div>
+    </footer>
+  );
+}
+
+function DisabledMeasurementPlaceholders() {
+  return (
+    <div className="measurement-placeholders" aria-hidden="true">
+      <div id="reddit-measurement-placeholder" data-provider="reddit" data-status="disabled" />
+      <div id="meta-measurement-placeholder" data-provider="meta" data-status="disabled" />
+    </div>
+  );
+}
+
+function MobileGymCta() {
+  const [formVisible, setFormVisible] = useState(false);
+
+  useEffect(() => {
+    const form = document.getElementById("gym-form");
+    if (!form || typeof IntersectionObserver !== "function") return undefined;
+    const observer = new IntersectionObserver(
+      entries => setFormVisible(entries.some(entry => entry.isIntersecting)),
+      { threshold: 0.02 }
+    );
+    observer.observe(form);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <InternalLink
+      className={`mobile-fixed-cta${formVisible ? " is-hidden" : ""}`}
+      href="/#gym-form"
+      aria-hidden={formVisible ? "true" : undefined}
+      tabIndex={formVisible ? -1 : undefined}
+    >
+      Get Dashboard
+    </InternalLink>
+  );
+}
+
+function GymRequestForm() {
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState({ kind: "idle", message: "" });
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (submitting) return;
+
+    const form = event.currentTarget;
+    const formData = Object.fromEntries(new FormData(form).entries());
+    formData.consent = form.elements.consent.checked;
+    const request = buildRouteIqGymRequestPayload({
+      formData,
+      attribution: collectRouteIqGymAttribution(window.location.href)
+    });
+
+    if (!request.ok) {
+      setStatus({ kind: "error", message: request.errors.join(" ") });
+      return;
+    }
+
+    setSubmitting(true);
+    setStatus({ kind: "pending", message: "Submitting your Route IQ request..." });
+    try {
+      const result = await submitRouteIqGymRequest({ payload: request.payload });
+      const thankYouPath = buildRouteIqGymThankYouPath(result.receiptId);
+      if (!result.ok || !thankYouPath) throw new Error("REQUEST_RECEIPT_MISSING");
+      window.location.assign(thankYouPath);
+    } catch (error) {
+      const messages = {
+        REQUEST_RATE_LIMITED: "Too many requests were submitted. Please wait before trying again.",
+        REQUEST_NETWORK_FAILED: "We could not confirm your request. Please try again.",
+        REQUEST_RECEIPT_MISSING: "We could not confirm a receipt. Your request was not shown as complete.",
+        REQUEST_RESPONSE_INVALID: "We could not confirm your request. Please try again.",
+        REQUEST_REJECTED: "Your request was not accepted. Please review the form and try again."
+      };
+      setStatus({
+        kind: "error",
+        message: messages[error?.message] || "We could not confirm your request. Please try again."
+      });
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form id="gym-form" className="gym-request-form" onSubmit={handleSubmit} noValidate aria-labelledby="gym-form-title" aria-describedby="gym-request-note">
+      <div className="gym-form-grid">
+        <label>
+          <span>Full Name</span>
+          <input name="fullName" autoComplete="name" maxLength="120" required />
+        </label>
+        <label>
+          <span>Gym Name</span>
+          <input name="gymName" autoComplete="organization" maxLength="160" required />
+        </label>
+        <label>
+          <span>City, State</span>
+          <input name="cityState" autoComplete="address-level2" maxLength="160" placeholder="Houston, TX" required />
+        </label>
+        <label>
+          <span>Number of Outside Reps</span>
+          <select name="outsideRepCount" defaultValue="" required>
+            <option value="" disabled>Select</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+          </select>
+        </label>
+        <label>
+          <span>Work Email</span>
+          <input name="workEmail" type="email" autoComplete="email" inputMode="email" maxLength="254" required />
+        </label>
+        <label>
+          <span>Cell</span>
+          <input name="cell" type="tel" autoComplete="tel" inputMode="tel" maxLength="24" required />
+        </label>
+      </div>
+      <div className="gym-form-action-row">
+        <label className="gym-consent-field">
+          <input name="consent" type="checkbox" required />
+          <span>I agree that Prometheus.IQ may use this information to respond to my Route IQ request.</span>
+        </label>
+        <button className="button primary gym-request-submit" type="submit" disabled={submitting}>
+          {submitting ? "Building..." : "Build My Dashboard"}
+        </button>
+      </div>
+      <label className="honeypot" aria-hidden="true">
+        <span>Website</span>
+        <input name="websiteUrl" tabIndex="-1" autoComplete="off" />
+      </label>
+      <p id="gym-request-note" className="gym-request-note">We manually build it. You'll get login + Loom walkthrough in ∼2 hours.</p>
+      <div className={`gym-request-status ${status.kind}`} role="status" aria-live="polite" aria-atomic="true">
+        {status.message}
+      </div>
+    </form>
+  );
+}
+
+function GymPage() {
+  return (
+    <main className="gym-page">
+      <a className="skip-link" href="#gym-form">Skip to the gym request form</a>
+      <GlobalNav />
+      <section id="top" className="gym-hero-section" aria-labelledby="gym-hero-heading">
+        <h1 id="gym-hero-heading" className="visually-hidden">Gym Owners: 29 Members In 48 Hours. $0 Ad Spend.</h1>
+        <picture className="gym-hero-picture">
+          <source srcSet="/01-772904932_1493675372780221_5358616428807129112_n-2.webp" type="image/webp" />
+          <img
+            src="/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg"
+            alt="Gym owners: 29 members in 48 hours. Zero ad spend."
+            width="2048"
+            height="1072"
+            decoding="async"
+            fetchPriority="high"
+          />
+        </picture>
+        <div className="shell gym-request-band">
+          <div className="gym-request-copy">
+            <SectionLabel>Prometheus Route IQ for gyms</SectionLabel>
+            <h2 id="gym-form-title">Get Your Gym's Route Dashboard Built In 2 Hours</h2>
+            <div className="gym-hero-offer">
+              <a className="button primary" href="#gym-form">Get My Gym Dashboard</a>
+              <p>Dashboard built in 2 hours.</p>
+            </div>
+          </div>
+          <GymRequestForm />
+        </div>
+      </section>
+
+      <section id="intelligence" className="gym-intelligence-section">
+        <div className="shell gym-intelligence-layout">
+          <picture className="gym-intelligence-picture">
+            <source srcSet="/02-prometheus_route_iq_ad.webp" type="image/webp" />
+            <img
+              src="/02-prometheus_route_iq_ad.jpg"
+              alt="Other route apps give you a map. Prometheus gives you intelligence. GPS verified without surveillance."
+              width="2240"
+              height="1120"
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
+          <div className="gym-intelligence-copy">
+            <SectionLabel>Why Prometheus is different</SectionLabel>
+            <h2>A field system built around what happens beyond the map.</h2>
+            <div className="gym-intelligence-columns">
+              <article>
+                <h3>Know Where To Go</h3>
+                <p>Use territory, timing, and field context to focus the next-stop plan.</p>
+              </article>
+              <article>
+                <h3>Verify The Visit</h3>
+                <strong>GPS Verified Without Surveillance</strong>
+                <p>Confirm approved field visits while people stay in control.</p>
+              </article>
+              <article>
+                <h3>Track The Outcome</h3>
+                <p>Connect each visit to its result so owners can see what field activity produced.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="gym-bridge-section">
+        <div className="shell gym-bridge-layout">
+          <div className="gym-bridge-copy">
+            <h2>The Bigger Vision: The Intelligence Layer For All Outside Sales</h2>
+            <p>Gym sales is our first focused market.</p>
+            <p>Horizontal infrastructure for home services, healthcare, commercial, retail, B2B.</p>
+          </div>
+          <InternalLink className="button secondary" href="/investors">EXPLORE THE FULL PLATFORM</InternalLink>
+        </div>
+      </section>
+      <GlobalFooter />
+      <MobileGymCta />
+      <DisabledMeasurementPlaceholders />
+    </main>
+  );
+}
+
+function ThankYouPage() {
+  const searchParams = new URLSearchParams(window.location.search);
+  const receipt = searchParams.getAll("receipt").length === 1 ? searchParams.get("receipt") || "" : "";
+  const hasCanonicalReceipt = ROUTE_IQ_GYM_REQUEST_RECEIPT_PATTERN.test(receipt);
+
+  return (
+    <main className="thank-you-page">
+      <GlobalNav />
+      <section className="thank-you-section">
+        <div className="shell thank-you-copy">
+          {hasCanonicalReceipt ? (
+            <>
+              <SectionLabel>Route IQ request</SectionLabel>
+              <h1>Got it. Building your dashboard now.</h1>
+              <p>We're building your gym's custom route dashboard. You'll get email with login + Loom walkthrough in ∼2 hours from Prometheusrouteiq@gmail.com. Check spam.</p>
+              <p className="thank-you-receipt">Receipt <strong>{receipt}</strong></p>
+              <ol className="thank-you-steps">
+                <li><strong>We build now</strong></li>
+                <li><strong>You get login</strong></li>
+                <li><strong>Reps get first route today</strong></li>
+              </ol>
+              <InternalLink className="button primary" href="/">Back to Home</InternalLink>
+            </>
+          ) : (
+            <>
+              <SectionLabel>Route IQ request</SectionLabel>
+              <h1>Receipt unavailable.</h1>
+              <p>This page does not confirm a request. Return to the gym request form and wait for a receipt before leaving.</p>
+              <InternalLink className="button primary" href="/#gym-form">Return To Gym Form</InternalLink>
+            </>
+          )}
+        </div>
+      </section>
+      <GlobalFooter />
+      <DisabledMeasurementPlaceholders />
+    </main>
+  );
 }
 
 function ProductView() {
@@ -290,7 +680,7 @@ function RouteIqRequestForm() {
   );
 }
 
-function App() {
+function InvestorPage() {
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();
   const sceneScale = useTransform(scrollYProgress, [0, 0.22], [1, 0.92]);
@@ -321,19 +711,13 @@ function App() {
   ];
 
   return (
-    <main>
+    <main className="investor-page">
       <a className="skip-link" href="#how-it-works">Skip to how Route IQ works</a>
-      <header className="site-header">
-        <a className="brand" href="#top" aria-label="Prometheus Route IQ home">
-          <LogoMark />
-          <span className="brand-lockup"><strong>Prometheus.IQ</strong><small>Prometheus Route IQ</small></span>
-        </a>
-        <nav aria-label="Primary navigation">
-          <a href="#teams">For teams</a>
-          <a href="#different">Why Route IQ</a>
-          <a className="header-action" href="#request">REQUEST ROUTE IQ</a>
-        </nav>
-      </header>
+      <div className="investor-top-line">
+        <span>Built for private onboarding, executive review, and field operating discipline.</span>
+        <a href={investorDeckEmail}>Request Investor Deck</a>
+      </div>
+      <GlobalNav />
 
       <section id="top" className="hero-section">
         <motion.div
@@ -501,24 +885,30 @@ function App() {
         </div>
       </section>
 
-      <footer className="site-footer">
-        <div className="shell footer-grid">
-          <div className="footer-brand"><LogoMark /><div><strong>Prometheus.IQ</strong><span>Company behind Prometheus Route IQ</span></div></div>
-          <div className="footer-links">
-            <a href="#how-it-works">How it works</a>
-            <a href="#request">Request Route IQ</a>
-            <a href="/privacy">Privacy</a>
-            <a href="/terms">Terms</a>
-            <a href="/data-deletion">Data deletion</a>
-            <a href={`mailto:${contactEmail}`}>Contact</a>
-            <a href={instagramUrl}>Instagram</a>
+      <section className="section investor-deck-section" aria-labelledby="investor-deck-title">
+        <div className="shell investor-deck-layout">
+          <div>
+            <SectionLabel>Investor materials</SectionLabel>
+            <h2 id="investor-deck-title">Review the Route IQ investor deck.</h2>
           </div>
-          <p className="footer-note">Route IQ complements the CRM and mapping tools an outside-sales organization already uses. It brings field context, activity, and outcomes together to support better-informed human decisions.</p>
-          <p className="footer-designation"><span>PROMETHEUS ROUTE IQ&trade;</span><span>U.S. PATENT PENDING</span></p>
+          <a className="button primary" href={investorDeckEmail}>Request Investor Deck</a>
         </div>
-      </footer>
+      </section>
+
+      <GlobalFooter />
+      <DisabledMeasurementPlaceholders />
     </main>
   );
 }
 
-createRoot(document.getElementById("root")).render(<App />);
+const pathname = window.location.pathname.length > 1
+  ? window.location.pathname.replace(/\/+$/u, "")
+  : window.location.pathname;
+applyRouteMetadata(pathname);
+const Page = pathname === "/investors"
+  ? InvestorPage
+  : pathname === "/thank-you"
+    ? ThankYouPage
+    : GymPage;
+
+createRoot(document.getElementById("root")).render(<Page />);
