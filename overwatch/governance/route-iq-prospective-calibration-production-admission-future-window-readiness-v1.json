@@ -61,7 +61,9 @@
     {"commit":"a27873490110792861f34fdcc9afcd546ae0074d","tree":"dad6fd598d989ae0c6adb6c6f6b44581294f7129","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: bind calibration runtime contract lineage"},
     {"commit":"787230ff50b2919430673483fae912d4997f3415","tree":"ec49d86233b74a80e9a2784ce5b858311392f35c","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: bind calibration runtime baseline successor"},
     {"commit":"a32d404005d2f469512048e94dde929b2c33dff9","tree":"4cfbb96fb511d075dff35b4a78182cbc5047cbe3","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: compose calibration read-only successor"},
-    {"commit":"04a2b2adfc4fdf07e65a8249327c78db89f2b2fa","tree":"c036a706ad70479b4ae0f7cfca103a60cb683860","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: bind read-only calibration successor"}
+    {"commit":"04a2b2adfc4fdf07e65a8249327c78db89f2b2fa","tree":"c036a706ad70479b4ae0f7cfca103a60cb683860","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: bind read-only calibration successor"},
+    {"commit":"4e66fbc952309dc24c0c10d585b0e54adea56aa4","tree":"d98d1190b188d17f9cb51f0e99b8fdfec5bf6cd1","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: bind calibration read-only repair"},
+    {"commit":"02b2d583592633548874861ddebd04480b201140","tree":"4ecf12da435c3c12c9afa43cdc1032abe239dbb8","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: advance calibration rehearsal successor"}
   ],
   "criticalPins": [
     {"path":"data/route-iq-field-sessions-v1/route-iq-prospective-production-retention-admission.mjs","sha256":"aee7ebc4772621081ce405defd56eba3783c35ec5ef3f0919eadba5b9d24628d"},
