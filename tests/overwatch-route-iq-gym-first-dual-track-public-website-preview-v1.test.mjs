@@ -4,13 +4,18 @@ import test from "node:test";
 
 import {
   GYM_PREVIEW_GOVERNANCE_PATH,
+  GYM_PREVIEW_ENVIRONMENT_SUCCESSOR_PATH,
   GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH,
+  validateGymPreviewEnvironmentSuccessor,
   validateGymPreviewGovernance,
   validateGymPreviewRouteQualitySuccessor,
   verifyOverwatchGymFirstDualTrackPublicWebsitePreview
 } from "../scripts/verify-overwatch-route-iq-gym-first-dual-track-public-website-preview-v1.mjs";
 
 const governance = () => JSON.parse(readFileSync(GYM_PREVIEW_GOVERNANCE_PATH, "utf8"));
+const environmentSuccessor = () => JSON.parse(
+  readFileSync(GYM_PREVIEW_ENVIRONMENT_SUCCESSOR_PATH, "utf8")
+);
 const routeQualitySuccessor = () => JSON.parse(
   readFileSync(GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH, "utf8")
 );
@@ -21,7 +26,7 @@ test("Overwatch verifies the exact gym-first dual-track source and isolated prev
     {
       status: "PASS",
       batchId: "BATCH-20260814-002",
-      ownerCommitCount: 9,
+      ownerCommitCount: 10,
       previewAssetSha256: "4a148051d9deb34f9334c31b216120ce6665d1da30865e33725fcd7de6f7cf3b",
       deploymentAssetSha256: "6a6dde7efd17144b91f5f294cd25c7cfaaf2ff1347e637d6e692f5ed66cdab3b",
       rollbackBundleSha256: "548a0a3f5d53b240b708e283ed18f2865a0c2dd2fdb041d5ccd405ce2e5bc4e0",
@@ -64,6 +69,21 @@ test("preview production bindings, writes, email, and production promotion fail 
     const value = governance();
     mutate(value);
     assert.throws(() => validateGymPreviewGovernance(value));
+  }
+});
+
+test("preview deployment credentials remain scoped to the nonproduction environment", () => {
+  for (const mutate of [
+    value => { value.githubEnvironment.name = "prometheus-public-worker-production"; },
+    value => { value.githubEnvironment.requiredSecretNames.push("FOUNDER_EMAIL"); },
+    value => { value.githubEnvironment.productionEnvironmentChanged = true; },
+    value => { value.previewBoundary.crmBindings.push("ROUTE_IQ_REQUEST_CRM_COORDINATOR"); },
+    value => { value.previewBoundary.productionDeploymentAllowed = true; },
+    value => { value.failedHostedAttempt.productionMutation = true; }
+  ]) {
+    const value = environmentSuccessor();
+    mutate(value);
+    assert.throws(() => validateGymPreviewEnvironmentSuccessor(value));
   }
 });
 

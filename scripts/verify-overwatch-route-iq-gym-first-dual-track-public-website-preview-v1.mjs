@@ -18,6 +18,10 @@ export const GYM_PREVIEW_GOVERNANCE_PATH =
   "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
 export const GYM_PREVIEW_REPORT_PATH =
   "overwatch/reports/BATCH-20260814-002-route-iq-gym-first-dual-track-public-website-preview.json";
+export const GYM_PREVIEW_ENVIRONMENT_SUCCESSOR_PATH =
+  "overwatch/governance/route-iq-gym-preview-deployment-environment-successor-v1.json";
+export const GYM_PREVIEW_ENVIRONMENT_REPORT_PATH =
+  "overwatch/reports/BATCH-20260814-002-gym-preview-environment-successor.json";
 export const GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH =
   "overwatch/governance/route-iq-gym-preview-route-quality-runtime-surface-successor-v1.json";
 
@@ -44,6 +48,26 @@ function verifyCommit(record) {
   });
 }
 
+function verifyImplementationCommit(record) {
+  assert.deepEqual(
+    git("show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", record.commit)
+      .split("\n"),
+    [
+      record.commit,
+      record.parent,
+      record.tree,
+      record.identity,
+      record.identity,
+      record.subject
+    ]
+  );
+  assert.deepEqual(
+    git("diff-tree", "--no-commit-id", "--name-only", "-r", record.commit)
+      .split("\n").filter(Boolean).sort(),
+    [...record.changedFiles].sort()
+  );
+}
+
 export function validateGymPreviewGovernance(governance) {
   assert.equal(governance.governanceVersion,
     "route-iq-gym-first-dual-track-public-website-preview-v1");
@@ -67,6 +91,45 @@ export function validateGymPreviewGovernance(governance) {
   assert.equal(governance.protectedState.activeCohorts, 0);
   assert.equal(governance.protectedState.recommendationInfluence, "OFF");
   return governance;
+}
+
+export function validateGymPreviewEnvironmentSuccessor(successor) {
+  assert.equal(successor.version,
+    "route-iq-gym-preview-deployment-environment-successor-v1");
+  assert.equal(successor.batchId, "BATCH-20260814-002");
+  assert.equal(successor.status,
+    "INDEPENDENTLY_VERIFIED_NONPRODUCTION_ENVIRONMENT_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(successor.predecessor.path, GYM_PREVIEW_GOVERNANCE_PATH);
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(successor.failedHostedAttempt.runId, 31885802657);
+  assert.equal(successor.failedHostedAttempt.qualificationJob, "PASS");
+  assert.equal(successor.failedHostedAttempt.deploymentJob,
+    "FAILED_BEFORE_WORKER_CREATION");
+  assert.equal(successor.failedHostedAttempt.productionMutation, false);
+  assert.equal(successor.failedHostedAttempt.previewWorkerCreated, false);
+  assert.equal(successor.implementation.ownerSubsystem, "Prometheus Infrastructure");
+  assert.equal(successor.githubEnvironment.name, "prometheus-public-worker-preview");
+  assert.deepEqual(successor.githubEnvironment.requiredSecretNames,
+    ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"]);
+  assert.equal(successor.githubEnvironment.mainOnly, true);
+  assert.equal(successor.githubEnvironment.productionEnvironmentChanged, false);
+  assert.equal(successor.githubEnvironment.secretValuesInSourceOrLogs, false);
+  assert.deepEqual(successor.previewBoundary.bindings, ["ASSETS"]);
+  for (const key of [
+    "routes", "customDomains", "kvNamespaces", "durableObjects", "crmBindings",
+    "emailBindings", "workerSecrets"
+  ]) assert.deepEqual(successor.previewBoundary[key], []);
+  assert.equal(successor.previewBoundary.persistenceAllowed, false);
+  assert.equal(successor.previewBoundary.emailAllowed, false);
+  assert.equal(successor.previewBoundary.productionDeploymentAllowed, false);
+  assert.equal(successor.protectedState.collection, "OFF");
+  assert.equal(successor.protectedState.activeCohorts, 0);
+  assert.equal(successor.protectedState.recommendationInfluence, "OFF");
+  assert.equal(successor.protectedState.productionDeployments, 0);
+  assert.equal(successor.protectedState.productionDataMutations, 0);
+  return successor;
 }
 
 export function validateGymPreviewRouteQualitySuccessor(governance) {
@@ -127,16 +190,21 @@ function verifyWebsite(governance) {
   assert.equal((source.match(/<picture/gu) || []).length, 2);
 }
 
-function verifyBoundaries(governance) {
-  const preview = json(governance.contracts.preview.path);
+function verifyBoundaries(governance, environmentSuccessor) {
+  const preview = json(environmentSuccessor.currentContracts.preview.path);
   const security = json(governance.contracts.security.path);
   const claims = json(governance.contracts.claims.path);
   const gym = json(governance.contracts.gymIntake.path);
-  const workflow = text(governance.contracts.workflow.path);
-  for (const contract of Object.values(governance.contracts)) {
+  const workflow = text(environmentSuccessor.currentContracts.workflow.path);
+  for (const key of ["gymIntake", "security", "claims"]) {
+    const contract = governance.contracts[key];
+    assert.equal(sha256(read(contract.path)), contract.sha256, `${contract.path} drifted`);
+  }
+  for (const contract of Object.values(environmentSuccessor.currentContracts)) {
     assert.equal(sha256(read(contract.path)), contract.sha256, `${contract.path} drifted`);
   }
   assert.deepEqual(preview.previewWorker.allowedBindings, ["ASSETS"]);
+  assert.equal(preview.workflow.protectedEnvironment, "prometheus-public-worker-preview");
   assert.equal(preview.boundaries.productionDeploymentAllowed, false);
   assert.equal(preview.boundaries.crmBindingAllowed, false);
   assert.equal(preview.boundaries.emailBindingsAllowed, false);
@@ -145,6 +213,8 @@ function verifyBoundaries(governance) {
   assert.equal(gym.notification.contactPiiAllowed, false);
   assert.match(workflow, /^name: Preview Prometheus Route IQ Gym First$/mu);
   assert.match(workflow, /workflow_dispatch:/u);
+  assert.match(workflow, /name: prometheus-public-worker-preview/u);
+  assert.doesNotMatch(workflow, /name: prometheus-public-worker-production/u);
   assert.match(workflow, /--name prometheusrouteiq-website-gym-preview/u);
   assert.doesNotMatch(workflow, /wrangler\.prometheusrouteiq-website\.jsonc/u);
 }
@@ -153,13 +223,24 @@ export function verifyOverwatchGymFirstDualTrackPublicWebsitePreview({
   requireClean = true
 } = {}) {
   const governance = validateGymPreviewGovernance(json(GYM_PREVIEW_GOVERNANCE_PATH));
+  const environmentSuccessor = validateGymPreviewEnvironmentSuccessor(
+    json(GYM_PREVIEW_ENVIRONMENT_SUCCESSOR_PATH)
+  );
   const routeQualitySuccessor = validateGymPreviewRouteQualitySuccessor(
     json(GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH)
   );
   const report = json(GYM_PREVIEW_REPORT_PATH);
+  const environmentReport = json(GYM_PREVIEW_ENVIRONMENT_REPORT_PATH);
   assert.equal(git("rev-parse", `${governance.startingRepository.commit}^{tree}`),
     governance.startingRepository.tree);
   for (const record of governance.ownerCommits) verifyCommit(record);
+  verifyImplementationCommit(environmentSuccessor.implementation);
+  assert.equal(sha256(read(environmentSuccessor.predecessor.path)),
+    environmentSuccessor.predecessor.sha256);
+  assert.equal(sha256(read(environmentSuccessor.verificationReport.path)),
+    environmentSuccessor.verificationReport.sha256);
+  assert.equal(environmentReport.status,
+    "PREVIEW_ENVIRONMENT_SUCCESSOR_SOURCE_VERIFIED");
   for (const record of routeQualitySuccessor.implementationCommits) verifyCommit(record);
   assert.equal(
     sha256(read(routeQualitySuccessor.implementationProvenance.path)),
@@ -179,11 +260,12 @@ export function verifyOverwatchGymFirstDualTrackPublicWebsitePreview({
       businessHoursEligibilityChanged: false
     }
   );
-  for (const contract of Object.values(governance.contracts)) {
+  for (const key of ["gymIntake", "security", "claims"]) {
+    const contract = governance.contracts[key];
     assert.equal(sha256(read(contract.path)), contract.sha256, `${contract.path} drifted`);
   }
   verifyWebsite(governance);
-  verifyBoundaries(governance);
+  verifyBoundaries(governance, environmentSuccessor);
   const previewAssets = hashPrometheusRouteIqGymPreviewAssets();
   assert.equal(previewAssets.sha256, governance.releaseIdentities.previewAssetSha256);
   assert.equal(previewAssets.fileCount, governance.releaseIdentities.fileCount);
@@ -209,7 +291,7 @@ export function verifyOverwatchGymFirstDualTrackPublicWebsitePreview({
   return Object.freeze({
     status: "PASS",
     batchId: governance.batchId,
-    ownerCommitCount: governance.ownerCommits.length,
+    ownerCommitCount: governance.ownerCommits.length + 1,
     previewAssetSha256: previewAssets.sha256,
     deploymentAssetSha256: deployment.deploymentAssetsSha256,
     rollbackBundleSha256: rollback.artifactSha256,

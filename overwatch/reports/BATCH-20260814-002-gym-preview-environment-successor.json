@@ -1,0 +1,19 @@
+{
+  "reportVersion": "route-iq-gym-preview-environment-successor-report-v1",
+  "batchId": "BATCH-20260814-002",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "status": "PREVIEW_ENVIRONMENT_SUCCESSOR_SOURCE_VERIFIED",
+  "rootCause": "The isolated preview workflow referenced the production GitHub environment, whose Cloudflare credential was rejected before preview Worker creation.",
+  "correction": "The hardcoded preview deployment job now references a dedicated nonproduction GitHub environment while retaining the exact ASSETS-only Worker target and all no-write boundaries.",
+  "implementationCommit": "bb19b848976a05926cb214e96667b5b0d083fbc9",
+  "githubEnvironment": "prometheus-public-worker-preview",
+  "productionEnvironmentChanged": false,
+  "productionWorkerChanged": false,
+  "privateWorkerChanged": false,
+  "previewWorker": "prometheusrouteiq-website-gym-preview",
+  "previewBindings": ["ASSETS"],
+  "previewPersistence": false,
+  "previewEmail": false,
+  "secretValuesRecorded": false,
+  "nextGate": "EXACT_SUCCESSOR_HOSTED_QUALIFICATION_AND_ISOLATED_PREVIEW_DEPLOYMENT"
+}
