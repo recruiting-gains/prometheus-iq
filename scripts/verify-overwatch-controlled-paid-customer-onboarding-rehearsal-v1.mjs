@@ -33,7 +33,7 @@ import {
   hasGithubActionsNode24InfrastructureSuccessor
 } from "./verify-overwatch-github-actions-node24-pin-successor.mjs";
 import {
-  verifyGovernedMultiSessionLearningAdvisorySuccessor
+  verifyControlledOnboardingRehearsalSmokeContractSuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -147,6 +147,31 @@ export function resolveGovernedLearningOwnerSuccessor({
     assert.equal(transitions[index].previousSha256,
       transitions[index - 1].currentSha256,
       `governed learning successor chain broke: ${path}`);
+  }
+  const current = transitions.at(-1);
+  return Object.freeze({
+    commit: current.commit,
+    sha256: current.currentSha256
+  });
+}
+
+export function resolveProspectiveCalibrationOwnerSuccessor({
+  successor,
+  path,
+  previousSha256
+}) {
+  assert.equal(successor?.successor?.batchId, "BATCH-20260814-001");
+  assert.equal(successor?.successor?.ownerSubsystem,
+    "Prometheus Intelligence Engine");
+  const transitions = successor?.transitionsByPath?.get(path);
+  assert.ok(Array.isArray(transitions) && transitions.length > 0,
+    `prospective calibration successor path is absent: ${path}`);
+  assert.equal(transitions[0].previousSha256, previousSha256,
+    `prospective calibration predecessor drifted: ${path}`);
+  for (let index = 1; index < transitions.length; index += 1) {
+    assert.equal(transitions[index].previousSha256,
+      transitions[index - 1].currentSha256,
+      `prospective calibration successor chain broke: ${path}`);
   }
   const current = transitions.at(-1);
   return Object.freeze({
@@ -771,8 +796,10 @@ function verifyCurrentOwnerFiles(governance) {
     "ce1ab3876750043b251cb6029d0c0709159a8ff9c58c4266411883e6f9542e2c");
   assert.equal(retentionMaintenanceConsumerSuccessor.composition.historicalPinsRewritten,
     false);
+  const intelligenceSuccessors =
+    verifyControlledOnboardingRehearsalSmokeContractSuccessor();
   const governedLearningSuccessor =
-    verifyGovernedMultiSessionLearningAdvisorySuccessor();
+    intelligenceSuccessors.governedMultiSessionLearningAdvisorySuccessor;
   const governedLearningWorkerSuccessor = resolveGovernedLearningOwnerSuccessor({
     successor: governedLearningSuccessor,
     path: "workers/prometheus-iq-worker.js",
@@ -832,6 +859,21 @@ function verifyCurrentOwnerFiles(governance) {
       sha256: runtimeGuardToolchainSuccessor.sha256
     }]
   ]);
+  const prospectiveCalibrationSuccessors = new Map(
+    [...intelligenceSuccessors.prospectiveCalibrationProductionAdmissionSuccessor
+      .transitionsByPath].map(([path, transitions]) => {
+      const previousSha256 = transitions[0].previousSha256;
+      return [path, {
+        previousSha256,
+        ...resolveProspectiveCalibrationOwnerSuccessor({
+          successor:
+            intelligenceSuccessors.prospectiveCalibrationProductionAdmissionSuccessor,
+          path,
+          previousSha256
+        })
+      }];
+    })
+  );
   for (const record of governance.ownership.ownerCommits.slice(1)) {
     for (const item of record.evidence) {
       const laterOwnerRecord = governance.ownership.ownerCommits
@@ -840,6 +882,7 @@ function verifyCurrentOwnerFiles(governance) {
       if (!laterOwnerRecord) {
         const actual = sha256(read(item.path));
         const successor = governedSuccessors.get(item.path);
+        const prospectiveSuccessor = prospectiveCalibrationSuccessors.get(item.path);
         if (successor && actual === successor.sha256) {
           assert.equal(git([
             "merge-base", "--is-ancestor", successor.commit, "HEAD"
@@ -850,6 +893,18 @@ function verifyCurrentOwnerFiles(governance) {
           ]).split("\n").filter(Boolean);
           assert.ok(changedPaths.includes(item.path),
             `governed successor omitted path: ${item.path}`);
+        } else if (prospectiveSuccessor
+          && prospectiveSuccessor.previousSha256 === (successor?.sha256 ?? item.sha256)
+          && actual === prospectiveSuccessor.sha256) {
+          assert.equal(git([
+            "merge-base", "--is-ancestor", prospectiveSuccessor.commit, "HEAD"
+          ]), "");
+          const changedPaths = git([
+            "diff-tree", "--no-commit-id", "--name-only", "-r",
+            prospectiveSuccessor.commit
+          ]).split("\n").filter(Boolean);
+          assert.ok(changedPaths.includes(item.path),
+            `prospective calibration successor omitted path: ${item.path}`);
         } else if (controlledRehearsalNode24Evidence.get(item.path)?.previousSha256 ===
           (successor?.sha256 ?? item.sha256)
           && controlledRehearsalNode24Evidence.get(item.path)?.currentSha256 === actual) {

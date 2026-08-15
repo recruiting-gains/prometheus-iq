@@ -19,6 +19,7 @@ import {
   validateFullSystemHarmonyIntelligenceSuccessor,
   validateFullSystemHarmonyShadowReadinessSuccessor,
   resolveGovernedLearningOwnerSuccessor,
+  resolveProspectiveCalibrationOwnerSuccessor,
   validateLiveCanonicalIdentityIntelligenceSuccessor,
   validateControlledRehearsalGovernance,
   validateControlledRehearsalReport,
@@ -35,6 +36,7 @@ import {
   hasGithubActionsNode24InfrastructureSuccessor
 } from "../scripts/verify-overwatch-github-actions-node24-pin-successor.mjs";
 import {
+  verifyControlledOnboardingRehearsalSmokeContractSuccessor,
   verifyGovernedMultiSessionLearningAdvisorySuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
@@ -105,6 +107,52 @@ test("Overwatch composes the exact governed-learning owner successors", () => {
       path: "workers/prometheus-iq-worker.js",
       previousSha256:
         "95eeefa91c1d27f9a3dca1e60c377f8f860d0eb1125d6d915279f82187095051"
+    }));
+  }
+});
+
+test("Overwatch composes only the exact prospective-calibration owner successors", () => {
+  const successor = verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .prospectiveCalibrationProductionAdmissionSuccessor;
+  assert.deepEqual(resolveProspectiveCalibrationOwnerSuccessor({
+    successor,
+    path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+    previousSha256:
+      "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0"
+  }), {
+    commit: "496481a97a1a6f728d8c589d127e1df6d73eb60d",
+    sha256: "37cc3509749764dab08d939575ad20dc37a10f0b708c7d11ef3aa0b5dc7ae3af"
+  });
+  assert.deepEqual(resolveProspectiveCalibrationOwnerSuccessor({
+    successor,
+    path: "scripts/verify-shadow-decision-readiness.mjs",
+    previousSha256:
+      "bda4488c6015751fe24ddd36dd5dec38a8106a0a2a061a56e3232785b325c911"
+  }), {
+    commit: "11c0c413ce00ecafe7d0738bb274a2fa87c703c3",
+    sha256: "d005fc68c00032444c4d9efca3823efcd25fb38e2ff8b624fe1a8191bb10a361"
+  });
+  for (const mutate of [
+    value => { value.successor.batchId = "BATCH-SUBSTITUTED"; },
+    value => { value.successor.ownerSubsystem = "Prometheus Overwatch"; },
+    value => {
+      value.transitionsByPath.delete(
+        "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
+      );
+    },
+    value => {
+      value.transitionsByPath.get(
+        "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
+      )[0].previousSha256 = "0".repeat(64);
+    }
+  ]) {
+    const candidate = clone(successor);
+    mutate(candidate);
+    assert.throws(() => resolveProspectiveCalibrationOwnerSuccessor({
+      successor: candidate,
+      path: "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      previousSha256:
+        "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0"
     }));
   }
 });
