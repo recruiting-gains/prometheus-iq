@@ -132,7 +132,7 @@ test("private Workflow v2 composes only the exact prospective-calibration source
     acceptedSha256:
       "26a52c0699474760913f403aadbacb4c8121c8c380932d4375b071d9f5bb38c0",
     successor
-  }), "37cc3509749764dab08d939575ad20dc37a10f0b708c7d11ef3aa0b5dc7ae3af");
+  }), "6bac7ac80a6ac9b3ef3f1bef4869a61c4f7a76a146bfd2fd7edb4c58fddcbfe2");
   assert.equal(advancePrivateWorkflowV2ProspectiveCalibrationOwnerHash({
     path: "intelligence/provenance/not-governed.mjs",
     acceptedSha256: "f".repeat(64),
