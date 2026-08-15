@@ -28,6 +28,8 @@ export const governedMultiSessionLearningAdvisorySuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-governed-multi-session-learning-advisory-v1.json";
 export const prospectiveCalibrationProductionAdmissionSuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json";
+export const gymPreviewRouteQualityRuntimeSurfaceSuccessorProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json";
 const crossIndustryDashboardRetentionProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json";
 
@@ -310,6 +312,90 @@ function readProspectiveCalibrationProductionAdmissionSuccessor(
     productionMutations: 0,
     cloudflareEngineeringContacts: 0,
     deployments: 0
+  });
+  return Object.freeze({ successor, transitionsByPath });
+}
+
+function readGymPreviewRouteQualityRuntimeSurfaceSuccessor(
+  predecessorTransitionsByPath
+) {
+  const successor = JSON.parse(
+    read(gymPreviewRouteQualityRuntimeSurfaceSuccessorProvenancePath)
+  );
+  assert.equal(
+    successor.version,
+    "route-iq-intelligence-gym-preview-route-quality-runtime-surface-successor-v1"
+  );
+  assert.equal(successor.batchId, "BATCH-20260814-002");
+  assert.equal(successor.status, "OWNER_IMPLEMENTED_PROTECTED_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(successor.predecessors.length, 2);
+  for (const predecessor of successor.predecessors) {
+    assert.equal(sha256(predecessor.path), predecessor.sha256);
+    assert.equal(predecessor.remainsHistorical, true);
+    assert.equal(predecessor.rewritten, false);
+  }
+
+  const commits = new Map();
+  for (const implementation of successor.implementationCommits) {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      implementation.commit
+    ]).trim().split("\n");
+    assert.deepEqual(fields, [
+      implementation.commit,
+      implementation.parent,
+      implementation.tree,
+      implementation.identity,
+      implementation.identity,
+      implementation.subject
+    ]);
+    assert.equal(implementation.identity, expectedIdentity(implementation.ownerSubsystem));
+    commits.set(implementation.commit, implementation);
+  }
+
+  const transitionsByPath = new Map();
+  for (const transition of successor.protectedSourceTransitions) {
+    assert.ok(commits.has(transition.commit));
+    const predecessors = predecessorTransitionsByPath.get(transition.path) || [];
+    assert.ok(predecessors.length > 0);
+    assert.equal(
+      transition.previousSha256,
+      predecessors.at(-1).currentSha256,
+      `Broken gym-preview runtime-surface transition chain: ${transition.path}`
+    );
+    verifyTransition(transition.path, transition);
+    transitionsByPath.set(transition.path, [transition]);
+  }
+  assert.deepEqual(
+    [...transitionsByPath.keys()].sort(),
+    [
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "scripts/lib/route-intelligence-quality-gate.mjs"
+    ]
+  );
+  assert.deepEqual(successor.behavior, {
+    previousRuntimeFileCount: 33,
+    currentRuntimeFileCount: 34,
+    addedRuntimeFile: "src/route-iq-gym-request-form.js",
+    liveGoogleApiCalls: 0,
+    dashboardFetches: 6,
+    routeOrderingChanged: false,
+    routeScoringChanged: false,
+    businessHoursEligibilityChanged: false
+  });
+  assert.deepEqual(successor.protectedState, {
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    confidencePropagation: "OFF",
+    providers: "OFF",
+    scheduler: "OFF",
+    shadowDecisionVisible: false,
+    productionStorageAccess: 0,
+    cloudflareContacts: 0,
+    deployments: 0,
+    productionMutationPerformed: false
   });
   return Object.freeze({ successor, transitionsByPath });
 }
@@ -1312,9 +1398,17 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     readProspectiveCalibrationProductionAdmissionSuccessor(
       predecessorTransitionsByPath
     );
-  const latestTransitionsByPath = mergeTransitionMaps(
+  const preGymPreviewTransitionsByPath = mergeTransitionMaps(
     predecessorTransitionsByPath,
     prospectiveCalibrationProductionAdmissionSuccessor.transitionsByPath
+  );
+  const gymPreviewRouteQualityRuntimeSurfaceSuccessor =
+    readGymPreviewRouteQualityRuntimeSurfaceSuccessor(
+      preGymPreviewTransitionsByPath
+    );
+  const latestTransitionsByPath = mergeTransitionMaps(
+    preGymPreviewTransitionsByPath,
+    gymPreviewRouteQualityRuntimeSurfaceSuccessor.transitionsByPath
   );
   const retentionDeletionRuntimeProtectedSuccessor =
     verifyRetentionDeletionRuntimeProtectedSuccessorAgainst(
@@ -1358,7 +1452,8 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     retentionDeletionConsumerAdmissionSuccessor,
     retentionMaintenanceConsumerAdmissionSuccessor,
     governedMultiSessionLearningAdvisorySuccessor,
-    prospectiveCalibrationProductionAdmissionSuccessor
+    prospectiveCalibrationProductionAdmissionSuccessor,
+    gymPreviewRouteQualityRuntimeSurfaceSuccessor
   });
 }
 
@@ -1400,6 +1495,11 @@ export function verifyRetentionMaintenanceConsumerAdmissionSuccessor() {
 export function verifyGovernedMultiSessionLearningAdvisorySuccessor() {
   return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
     .governedMultiSessionLearningAdvisorySuccessor;
+}
+
+export function verifyGymPreviewRouteQualityRuntimeSurfaceSuccessor() {
+  return verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .gymPreviewRouteQualityRuntimeSurfaceSuccessor;
 }
 
 export function verifyCrossIndustryZipFounderAccessAdoption() {
