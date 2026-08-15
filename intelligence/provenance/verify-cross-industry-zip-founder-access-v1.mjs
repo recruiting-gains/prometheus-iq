@@ -357,7 +357,10 @@ function readGymPreviewRouteQualityRuntimeSurfaceSuccessor(
   const transitionsByPath = new Map();
   for (const transition of successor.protectedSourceTransitions) {
     assert.ok(commits.has(transition.commit));
-    const predecessors = predecessorTransitionsByPath.get(transition.path) || [];
+    const localTransitions = transitionsByPath.get(transition.path) || [];
+    const predecessors = localTransitions.length > 0
+      ? localTransitions
+      : predecessorTransitionsByPath.get(transition.path) || [];
     assert.ok(predecessors.length > 0);
     assert.equal(
       transition.previousSha256,
@@ -365,7 +368,7 @@ function readGymPreviewRouteQualityRuntimeSurfaceSuccessor(
       `Broken gym-preview runtime-surface transition chain: ${transition.path}`
     );
     verifyTransition(transition.path, transition);
-    transitionsByPath.set(transition.path, [transition]);
+    transitionsByPath.set(transition.path, [...localTransitions, transition]);
   }
   assert.deepEqual(
     [...transitionsByPath.keys()].sort(),
