@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
@@ -15,6 +16,9 @@ import {
 } from "../workers/infrastructure/route-iq-retention-maintenance-release-package.mjs";
 
 const readJson = path => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), "utf8"));
+const sha256 = path => createHash("sha256")
+  .update(readFileSync(new URL(`../${path}`, import.meta.url)))
+  .digest("hex");
 
 function records() {
   const governance = readJson(
@@ -176,18 +180,23 @@ test("historical readiness pins are extended through a linear package successor"
   assert.throws(() => validateDormantRetentionMaintenanceReadiness(changed));
 });
 
-test("historical public rollback evidence composes only the exact gym-preview successor", () => {
+test("historical public rollback evidence composes the exact dashboard visual successor", () => {
   const gymPreviewGovernance = readJson(
     "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json"
   );
-  const successor = gymPreviewGovernance.toolchainReleaseReproducibilitySuccessor;
+  const dashboardVisualGovernance = readJson(
+    "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json"
+  );
   const input = {
     historicalArtifactSha256:
       "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6",
     currentBuildSource: PUBLIC_FORWARD_ROLLBACK_BUILD_SOURCE,
-    currentSourceSha256: successor.currentSha256,
-    currentRollbackContractSha256: successor.rollbackContractSha256,
-    gymPreviewGovernance
+    currentSourceSha256: sha256("scripts/lib/route-iq-public-forward-rollback.mjs"),
+    currentRollbackContractSha256: sha256(
+      "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+    ),
+    gymPreviewGovernance,
+    dashboardVisualGovernance
   };
   assert.equal(verifyRetentionMaintenancePublicRollbackSuccessor(input), true);
   for (const mutate of [
@@ -207,7 +216,23 @@ test("historical public rollback evidence composes only the exact gym-preview su
     value => {
       value.gymPreviewGovernance.toolchainReleaseReproducibilitySuccessor
         .productionDeploymentAuthorized = true;
-    }
+    },
+    value => { value.dashboardVisualGovernance.batchId = "BATCH-STALE"; },
+    value => {
+      value.dashboardVisualGovernance.implementationCommits.find(entry =>
+        entry.commit === "441e4f2c829c0eb5d04078711314d9481d4ccbd4"
+      ).identity = "Prometheus Overwatch <overwatch@prometheus.local>";
+    },
+    value => {
+      value.dashboardVisualGovernance.currentContracts.forwardRollback.sha256 = "0".repeat(64);
+    },
+    value => {
+      value.dashboardVisualGovernance.releaseIdentities.rollbackBundleSha256 = "0".repeat(64);
+    },
+    value => {
+      value.dashboardVisualGovernance.releaseBoundary.productionDeploymentAuthorized = true;
+    },
+    value => { value.dashboardVisualGovernance.protectedState.productionDeployments = 1; }
   ]) {
     const changed = structuredClone(input);
     mutate(changed);

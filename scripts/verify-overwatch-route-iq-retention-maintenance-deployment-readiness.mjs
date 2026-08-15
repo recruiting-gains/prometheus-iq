@@ -35,6 +35,8 @@ const toolchainInfrastructureCommit = "da7504352424096869a18b66dc7c4429480393f4"
 const toolchainSecurityPath = "security/npm-high-advisory-triage-batch-20260810-001.json";
 const gymPreviewGovernancePath =
   "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
+const dashboardVisualGovernancePath =
+  "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json";
 
 const ownerCommits = Object.freeze({
   "1511fe6778138c4b662381be5e6b03109e21e43d": Object.freeze({
@@ -145,7 +147,8 @@ export function verifyRetentionMaintenancePublicRollbackSuccessor({
   currentBuildSource,
   currentSourceSha256,
   currentRollbackContractSha256,
-  gymPreviewGovernance
+  gymPreviewGovernance,
+  dashboardVisualGovernance
 }) {
   const successor = gymPreviewGovernance?.toolchainReleaseReproducibilitySuccessor;
   assert.equal(gymPreviewGovernance?.batchId, "BATCH-20260814-002");
@@ -158,16 +161,58 @@ export function verifyRetentionMaintenancePublicRollbackSuccessor({
   assert.equal(successor?.rollbackContractPath,
     "workers/infrastructure/route-iq-public-forward-rollback-v1.json");
   assert.equal(successor?.previousRollbackBundleSha256, historicalArtifactSha256);
-  assert.equal(successor?.currentSha256, currentSourceSha256);
-  assert.equal(successor?.rollbackContractSha256, currentRollbackContractSha256);
+  assert.equal(successor?.previousSha256,
+    sha256(readAtCommit(`${successor.ownerCommit}^`, successor.path)));
+  assert.equal(successor?.currentSha256,
+    sha256(readAtCommit(successor.ownerCommit, successor.path)));
+  assert.equal(successor?.rollbackContractPreviousSha256,
+    sha256(readAtCommit(`${successor.ownerCommit}^`, successor.rollbackContractPath)));
   assert.equal(successor?.rollbackContractSha256,
-    currentBuildSource?.rollbackContractSha256);
-  assert.equal(successor?.rollbackBundleSha256, currentBuildSource?.artifactSha256);
+    sha256(readAtCommit(successor.ownerCommit, successor.rollbackContractPath)));
   assert.equal(successor?.deploymentAssetSha256,
     gymPreviewGovernance?.releaseIdentities?.deploymentAssetSha256);
   assert.equal(successor?.rollbackBundleSha256,
     gymPreviewGovernance?.releaseIdentities?.rollbackBundleSha256);
   assert.equal(successor?.productionDeploymentAuthorized, false);
+
+  assert.equal(dashboardVisualGovernance?.version,
+    "route-iq-overwatch-public-navigation-dashboard-visual-successor-v1");
+  assert.equal(dashboardVisualGovernance?.batchId, "BATCH-20260815-001");
+  assert.equal(dashboardVisualGovernance?.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(dashboardVisualGovernance?.status,
+    "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR");
+  const dashboardRollbackOwner = dashboardVisualGovernance.implementationCommits.find(entry =>
+    entry.commit === "441e4f2c829c0eb5d04078711314d9481d4ccbd4");
+  assert.equal(dashboardRollbackOwner?.identity,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>");
+  assert.equal(dashboardRollbackOwner?.subject,
+    "infrastructure: regenerate public visual rollback");
+  assert.ok(dashboardRollbackOwner?.changedFiles.includes(successor.path));
+  assert.ok(dashboardRollbackOwner?.changedFiles.includes(successor.rollbackContractPath));
+  assert.equal(sha256(readAtCommit(`${dashboardRollbackOwner.commit}^`, successor.path)),
+    successor.currentSha256);
+  assert.equal(sha256(readAtCommit(dashboardRollbackOwner.commit, successor.path)),
+    currentSourceSha256);
+  assert.equal(sha256(readAtCommit(
+    `${dashboardRollbackOwner.commit}^`, successor.rollbackContractPath
+  )), successor.rollbackContractSha256);
+  assert.equal(sha256(readAtCommit(
+    dashboardRollbackOwner.commit, successor.rollbackContractPath
+  )), currentRollbackContractSha256);
+  assert.equal(currentBuildSource?.rollbackContractSha256,
+    currentRollbackContractSha256);
+  assert.equal(currentBuildSource?.artifactSha256,
+    dashboardVisualGovernance?.releaseIdentities?.rollbackBundleSha256);
+  assert.equal(dashboardVisualGovernance?.currentContracts?.forwardRollback?.sha256,
+    currentRollbackContractSha256);
+  assert.equal(dashboardVisualGovernance?.releaseIdentities?.rollbackContractSha256,
+    currentRollbackContractSha256);
+  assert.equal(dashboardVisualGovernance?.releaseBoundary?.productionDeploymentAuthorized,
+    false);
+  assert.equal(dashboardVisualGovernance?.releaseBoundary?.productionStorageAccessAllowed,
+    false);
+  assert.equal(dashboardVisualGovernance?.protectedState?.productionDeployments, 0);
+  assert.equal(dashboardVisualGovernance?.protectedState?.productionDataMutations, 0);
   return true;
 }
 
@@ -505,6 +550,7 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
   const securityTriage = readJson(securityTriagePath);
   const toolchainSecurity = readJson(toolchainSecurityPath);
   const gymPreviewGovernance = readJson(gymPreviewGovernancePath);
+  const dashboardVisualGovernance = readJson(dashboardVisualGovernancePath);
   const intelligenceSuccessor = readJson(intelligenceSuccessorPath);
   const head = git("rev-parse", "HEAD");
   const originMain = git("rev-parse", "refs/remotes/origin/main");
@@ -588,7 +634,8 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
     currentRollbackContractSha256: sha256(read(
       gymPreviewGovernance.toolchainReleaseReproducibilitySuccessor.rollbackContractPath
     )),
-    gymPreviewGovernance
+    gymPreviewGovernance,
+    dashboardVisualGovernance
   }), true);
   const rollbackSuccessor = gymPreviewGovernance.toolchainReleaseReproducibilitySuccessor;
   const rollbackOwner = gymPreviewGovernance.ownerCommits.find(
