@@ -127,6 +127,42 @@ function qualificationInputs() {
   });
 }
 
+function prospectiveCalibrationRequiresSeparateQualification() {
+  const governance = JSON.parse(readFileSync(join(
+    root,
+    "overwatch/governance/route-iq-prospective-calibration-production-admission-future-window-readiness-v1.json"
+  ), "utf8"));
+  assert.equal(governance.batchId, "BATCH-20260814-001");
+  assert.equal(governance.status,
+    "SOURCE_COMPLETE_UNDEPLOYED_HOSTED_QUALIFICATION_PENDING");
+  assert.equal(
+    governance.privateWorkflowV2Handoff.existingQualificationArtifactIncludesNewModules,
+    false
+  );
+  assert.equal(governance.privateWorkflowV2Handoff.existingQualificationArtifactStatus,
+    "STALE_PREDECESSOR_NOT_DEPLOYABLE_FOR_THIS_SOURCE");
+  assert.equal(
+    governance.privateWorkflowV2Handoff.deploymentWorkflowConsumesExactArtifactWithoutRebuild,
+    true
+  );
+  for (const key of [
+    "finalForwardPayloadSha256",
+    "finalRollbackBundleSha256",
+    "finalManifestSha256",
+    "finalContentTreeSha256"
+  ]) {
+    assert.equal(governance.privateWorkflowV2Handoff[key],
+      "REQUIRES_SEPARATE_PRIVATE_V2_QUALIFICATION");
+  }
+  assert.equal(
+    governance.privateWorkflowV2Handoff.qualificationOrDeploymentDispatchedByThisBatch,
+    false
+  );
+  assert.equal(governance.protectedState.deployments, 0);
+  assert.equal(governance.protectedState.productionMutations, 0);
+  return true;
+}
+
 test("outcome semantic integrity rotates only the forward payload identity", () => {
   const contract = JSON.parse(readFileSync(
     join(root, PRIVATE_WORKFLOW_V2_POLICY.contractPath),
@@ -907,11 +943,27 @@ test("binding transition permits only qualified additions plus guard settings", 
   }
 });
 
-test("qualified artifact contains actual no-bundle forward payload and rollback and detects tampering", () => {
+test("qualified artifact contains actual no-bundle forward payload and rollback and detects tampering or rejects an unqualified source successor", () => {
   const temporary = mkdtempSync(join(tmpdir(), "prometheus-private-v2-artifact-test-"));
   const release = join(temporary, "release");
   let runtimeWorkspace;
   try {
+    if (prospectiveCalibrationRequiresSeparateQualification()) {
+      assert.throws(() => buildQualifiedPrivateRelease(root, {
+        outputDirectory: release,
+        inputs: qualificationInputs(),
+        runtimeIdentity,
+        temporaryRoot: temporary,
+        rollbackBuilder: options => buildRouteIqPrivateForwardRollbackCandidateV3({
+          ...options,
+          sourceRef: "WORKTREE"
+        }),
+        verifyRepositoryBoundary: false
+      }), error => error instanceof PrivateWorkflowV2Error
+        && error.code === PRIVATE_WORKFLOW_V2_FAILURE.MANIFEST_MISMATCH);
+      assert.equal(existsSync(release), false);
+      return;
+    }
     const result = buildQualifiedPrivateRelease(root, {
       outputDirectory: release,
       inputs: qualificationInputs(),
