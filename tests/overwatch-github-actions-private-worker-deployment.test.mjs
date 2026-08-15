@@ -1616,6 +1616,9 @@ test("private Workflow v2 composes the exact ordered retention payload successor
       currentSha256: governanceV2.outcomeSemanticIntegrityPayloadSuccessor.evidence
         .find(item => item.path === path).previousSha256
     }), true);
+    const outcomeSemanticSuccessorSha256 =
+      governanceV2.outcomeSemanticIntegrityPayloadSuccessor.evidence
+        .find(item => item.path === path).successorSha256;
     assert.equal(hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor({
       governance: governanceV2,
       fieldSessionReportTypeGovernance,
@@ -1623,8 +1626,16 @@ test("private Workflow v2 composes the exact ordered retention payload successor
       readinessSuccessors: currentReadinessSuccessors,
       path,
       previousSha256,
-      currentSha256: sha256(read(path))
+      currentSha256: outcomeSemanticSuccessorSha256
     }), true);
+    const currentSha256 = sha256(read(path));
+    if (currentSha256 !== outcomeSemanticSuccessorSha256) {
+      assert.equal(hasProspectiveCalibrationSourceQualificationGuardSuccessor({
+        path,
+        previousSha256: outcomeSemanticSuccessorSha256,
+        currentSha256
+      }), true);
+    }
   }
   const changed = clone(governanceV2);
   changed.retentionDeletionPayloadSuccessor.evidence[0].previousSha256 =
