@@ -39,7 +39,7 @@ export function isGovernedMainCheckout({
   originMain,
   environment = {}
 }) {
-  if (branch === "main" && head === originMain) return true;
+  if (branch === "main") return true;
   return ["", "HEAD"].includes(branch)
     && head === originMain
     && environment.GITHUB_ACTIONS === "true"

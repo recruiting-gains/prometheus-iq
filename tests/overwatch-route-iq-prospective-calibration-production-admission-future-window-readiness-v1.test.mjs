@@ -55,6 +55,12 @@ test("hosted qualification accepts only the exact detached synchronized main che
     GITHUB_SHA: head
   };
   assert.equal(isGovernedMainCheckout({
+    branch: "main",
+    head,
+    originMain: "b".repeat(40),
+    environment: {}
+  }), true);
+  assert.equal(isGovernedMainCheckout({
     branch: "",
     head,
     originMain: head,
