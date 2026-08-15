@@ -65,7 +65,10 @@
     {"commit":"4e66fbc952309dc24c0c10d585b0e54adea56aa4","tree":"d98d1190b188d17f9cb51f0e99b8fdfec5bf6cd1","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: bind calibration read-only repair"},
     {"commit":"02b2d583592633548874861ddebd04480b201140","tree":"4ecf12da435c3c12c9afa43cdc1032abe239dbb8","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: advance calibration rehearsal successor"},
     {"commit":"9e84d051dce63b560a27503ae501e933a39aaf31","tree":"26172840ce172ad6b80d0873e9488de68cc87944","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: reconcile calibration rehearsal fixture"},
-    {"commit":"b837bf39676732f75fec599b8c939c387f213eef","tree":"e137e4e363ca83e0d3c38249541620a1bb812e42","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: advance calibration private lineage"}
+    {"commit":"b837bf39676732f75fec599b8c939c387f213eef","tree":"e137e4e363ca83e0d3c38249541620a1bb812e42","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: advance calibration private lineage"},
+    {"commit":"4d5b9e22ee4e4ba72064c88d694c8e663b06732e","tree":"275976b88aedbc5d2b1e4de9bdc4fc5b6778e2ca","owner":"Prometheus Overwatch <overwatch@prometheus.local>","subject":"overwatch: reconcile calibration private fixture"},
+    {"commit":"4a9537b8e65d109fea53032f1782996ec655faa3","tree":"3e972938e5336ac34b8d50bfca485b6a37e559fe","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: compose calibration architecture successor"},
+    {"commit":"8c722dd4927b8f281d115f665bf1b6865269f93e","tree":"d1ae35adf50c5092f6b7e1c79225d9681a580da1","owner":"Prometheus Intelligence Engine <intelligence@prometheus.local>","subject":"intelligence: bind calibration architecture lineage"}
   ],
   "criticalPins": [
     {"path":"data/route-iq-field-sessions-v1/route-iq-prospective-production-retention-admission.mjs","sha256":"aee7ebc4772621081ce405defd56eba3783c35ec5ef3f0919eadba5b9d24628d"},
@@ -77,7 +80,7 @@
     {"path":"intelligence/route-iq-committed-outcome-evaluation.mjs","sha256":"32d0fd96253721e89766d7103f27f26dd48df96e7f438b5af06c92ecd0777107"},
     {"path":"workers/infrastructure/route-iq-prospective-shadow-retention-admission.js","sha256":"876ab11666ce34a1c7abbeac066e3ca6382000c55ba156d1a7194f9b5c0cab6c"},
     {"path":"workers/infrastructure/route-iq-prospective-shadow-runtime.js","sha256":"a9ab5f19c2059e07320e5735c6a2cd3bd4ee53ca2b14ff01a4a9c6ac876c1e9d"},
-    {"path":"intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json","sha256":"dacb9f4111192ea3394367c78e6bf5c6584c381b216ddeab21af02bf7f8e9441"},
+    {"path":"intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json","sha256":"cfeb03951b03e0e9184351749b4aabcc479e2c63229376e585fbd5f6d3b26f2d"},
     {"path":"workers/infrastructure/route-iq-prospective-calibration-production-admission-forward-revert-v1.json","sha256":"68e2fe0ee894a6ef4c83d9d2d0f32ff3ffdf9e7d7310c7b6472c51b40fbdd4cf"},
     {"path":"tests/route-iq-prospective-production-admission-security.test.mjs","sha256":"1290e3a094b366fce85d1647b2afa83521906acd5ffb5caf8e3f66675853dd21"},
     {"path":"scripts/verify-route-iq-prospective-shadow-infrastructure.mjs","sha256":"0ec49d64e83cac04905a6d22e4f60e23621df2b204e7122c44f81b3980f3c794"}
