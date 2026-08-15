@@ -132,7 +132,7 @@ test("command-line verification is read-only and observes the current runtime su
   const output = JSON.parse(result.stdout);
   assert.equal(output.mode, "read_only_verification");
   assert.equal(output.canonicalReportWritten, false);
-  assert.equal(output.checkedRuntimeFiles, 33);
+  assert.equal(output.checkedRuntimeFiles, 34);
   assert.equal(output.dashboardFetches, 6);
   assert.equal(readFileSync(reportPath, "utf8"), before);
 });
