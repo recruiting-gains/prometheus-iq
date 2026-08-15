@@ -519,31 +519,47 @@ function readDashboardPublicVisualVerifierCompositionSuccessor(
   assert.equal(successor.predecessor.remainsHistorical, true);
   assert.equal(successor.predecessor.rewritten, false);
 
-  const implementation = successor.implementation;
-  const transition = successor.protectedSourceTransition;
-  assert.deepEqual(implementation, {
-    commit: transition.commit,
-    parent: transition.parent,
-    tree: transition.tree,
-    identity: expectedIdentity(transition.ownerSubsystem),
-    subject: transition.subject,
-    changedPaths: [transition.path]
-  });
-  assert.deepEqual(
-    git([
-      "diff-tree", "--no-commit-id", "--name-only", "-r",
-      implementation.commit
-    ]).trim().split("\n").filter(Boolean),
-    implementation.changedPaths
+  assert.equal(successor.implementations.length, 2);
+  assert.equal(successor.protectedSourceTransitions.length, 2);
+  const implementations = new Map(
+    successor.implementations.map(implementation => [
+      implementation.commit,
+      implementation
+    ])
   );
-  const predecessors = predecessorTransitionsByPath.get(transition.path) || [];
-  assert.ok(predecessors.length > 0);
-  assert.equal(
-    transition.previousSha256,
-    predecessors.at(-1).currentSha256,
-    "Broken Dashboard visual verifier-composition chain."
-  );
-  verifyTransition(transition.path, transition);
+  const transitionsByPath = new Map();
+  for (const transition of successor.protectedSourceTransitions) {
+    const implementation = implementations.get(transition.commit);
+    assert.deepEqual(implementation, {
+      commit: transition.commit,
+      parent: transition.parent,
+      tree: transition.tree,
+      identity: expectedIdentity(transition.ownerSubsystem),
+      subject: transition.subject,
+      changedPaths: [transition.path]
+    });
+    assert.deepEqual(
+      git([
+        "diff-tree", "--no-commit-id", "--name-only", "-r",
+        implementation.commit
+      ]).trim().split("\n").filter(Boolean),
+      implementation.changedPaths
+    );
+    const prior = transitionsByPath.get(transition.path)
+      || predecessorTransitionsByPath.get(transition.path)
+      || [];
+    assert.ok(prior.length > 0);
+    assert.equal(
+      transition.previousSha256,
+      prior.at(-1).currentSha256,
+      "Broken Dashboard visual verifier-composition chain."
+    );
+    verifyTransition(transition.path, transition);
+    transitionsByPath.set(transition.path, [
+      ...(transitionsByPath.get(transition.path) || []),
+      transition
+    ]);
+  }
   assert.deepEqual(successor.behavior, {
     currentSourceChecksComposeVisualSuccessor: true,
     historicalVisualRecordRewritten: false,
@@ -562,10 +578,7 @@ function readDashboardPublicVisualVerifierCompositionSuccessor(
     deployments: 0,
     productionMutationPerformed: false
   });
-  return Object.freeze({
-    successor,
-    transitionsByPath: new Map([[transition.path, [transition]]])
-  });
+  return Object.freeze({ successor, transitionsByPath });
 }
 
 function verifyPaidCustomerRevenueReadinessWorkerSuccessorAgainst(
@@ -1762,6 +1775,14 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       rehearsalSuccessor.governedMultiSessionLearningAdvisorySuccessor
         .transitionsByPath
         .get(successor.path) || [];
+    const prospectiveCalibrationTransitions =
+      rehearsalSuccessor.prospectiveCalibrationProductionAdmissionSuccessor
+        .transitionsByPath
+        .get(successor.path) || [];
+    const gymPreviewRouteQualityTransitions =
+      rehearsalSuccessor.gymPreviewRouteQualityRuntimeSurfaceSuccessor
+        .transitionsByPath
+        .get(successor.path) || [];
     const dashboardVisualIdentityTransitions =
       rehearsalSuccessor.dashboardPublicVisualIdentitySuccessor
         .transitionsByPath
@@ -1783,16 +1804,23 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       ...revenueReadinessTransitions,
       ...retentionConsumerTransitions,
       ...retentionMaintenanceTransitions,
-      ...governedLearningTransitions,
-      ...dashboardVisualIdentityTransitions,
-      ...dashboardVisualVerifierCompositionTransitions
+      ...governedLearningTransitions
     ];
     const currentSuccessor = {
       ...successor,
       currentSha256: successorTransitions.at(-1).currentSha256,
       transitions: successorTransitions
     };
-    assert.equal(sha256(successor.path), currentSuccessor.currentSha256,
+    const laterProtectedTransitions = [
+      ...prospectiveCalibrationTransitions,
+      ...gymPreviewRouteQualityTransitions,
+      ...dashboardVisualIdentityTransitions,
+      ...dashboardVisualVerifierCompositionTransitions
+    ];
+    const currentProtectedSha256 =
+      laterProtectedTransitions.at(-1)?.currentSha256 ||
+      currentSuccessor.currentSha256;
+    assert.equal(sha256(successor.path), currentProtectedSha256,
       `Current ZIP/Founder protected source changed: ${successor.path}`);
     transitionByPath.set(successor.path, currentSuccessor);
   }
