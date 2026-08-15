@@ -89,6 +89,30 @@
       "ownerSubsystem": "Prometheus Intelligence Engine",
       "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
       "subject": "intelligence: verify latest calibration successors"
+    },
+    {
+      "commit": "af5a5d573c63f73e406037496cec40cfbdd167bd",
+      "parent": "b5374489fb621ea30ad51a2e6e25b5c4b958c55f",
+      "tree": "4b7bc68df3bb7b20c8451869ff7b3fec55e9bcc9",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: synchronize calibration runtime baseline"
+    },
+    {
+      "commit": "7df9e1732d1e5fb910d418a10c99ab2f9a8c3bbe",
+      "parent": "af5a5d573c63f73e406037496cec40cfbdd167bd",
+      "tree": "79da3e72ec396e8ab6f33c65748e6281fb419aa8",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose calibration contract successor"
+    },
+    {
+      "commit": "738eadd7408249f008ed2573ba309e8abe45698c",
+      "parent": "7df9e1732d1e5fb910d418a10c99ab2f9a8c3bbe",
+      "tree": "339c6ae9cb0bd770fb44d197dbcdb1f2ecfec379",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: test calibration contract lineage"
     }
   ],
   "protectedSourceTransitions": [
@@ -199,6 +223,51 @@
       "subject": "intelligence: verify latest calibration successors",
       "previousSha256": "0a06c2dd853d4fe3ab53f0b0d70312ca0dc2680f1765842a62682b95b78c1319",
       "currentSha256": "d005fc68c00032444c4d9efca3823efcd25fb38e2ff8b624fe1a8191bb10a361"
+    },
+    {
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "af5a5d573c63f73e406037496cec40cfbdd167bd",
+      "tree": "4b7bc68df3bb7b20c8451869ff7b3fec55e9bcc9",
+      "subject": "intelligence: synchronize calibration runtime baseline",
+      "previousSha256": "15995f73e9e8b1b28099f921d2a2f9ac6f3fc93390c17c960cd58e748c9c81d5",
+      "currentSha256": "63c9d53349ae7d48ddef9bc07e5c9167a2284674b1399f27c09ea06e270c88f2"
+    },
+    {
+      "path": "scripts/verify-shadow-decision-readiness.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "af5a5d573c63f73e406037496cec40cfbdd167bd",
+      "tree": "4b7bc68df3bb7b20c8451869ff7b3fec55e9bcc9",
+      "subject": "intelligence: synchronize calibration runtime baseline",
+      "previousSha256": "d005fc68c00032444c4d9efca3823efcd25fb38e2ff8b624fe1a8191bb10a361",
+      "currentSha256": "0982ba1efabeba25b7b9fbe43dde42907c9504e8537a73648c79af76e8388585"
+    },
+    {
+      "path": "tests/shadow-decision-readiness.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "af5a5d573c63f73e406037496cec40cfbdd167bd",
+      "tree": "4b7bc68df3bb7b20c8451869ff7b3fec55e9bcc9",
+      "subject": "intelligence: synchronize calibration runtime baseline",
+      "previousSha256": "90bf943f8296d8c7e5ab14e57b5a2f02801260ebf2968f5bbbd4ce8b42af9d88",
+      "currentSha256": "77afc3b24a108eae86acbe9a9632658292d2aecb7af082ef03167ed5c175b412"
+    },
+    {
+      "path": "scripts/verify-shadow-decision-readiness.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "7df9e1732d1e5fb910d418a10c99ab2f9a8c3bbe",
+      "tree": "79da3e72ec396e8ab6f33c65748e6281fb419aa8",
+      "subject": "intelligence: compose calibration contract successor",
+      "previousSha256": "0982ba1efabeba25b7b9fbe43dde42907c9504e8537a73648c79af76e8388585",
+      "currentSha256": "f34aeb1606159be45dc97c55da021b3a549eccf2df21d95ccd3b689b00141bb6"
+    },
+    {
+      "path": "tests/shadow-decision-readiness.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "738eadd7408249f008ed2573ba309e8abe45698c",
+      "tree": "339c6ae9cb0bd770fb44d197dbcdb1f2ecfec379",
+      "subject": "intelligence: test calibration contract lineage",
+      "previousSha256": "77afc3b24a108eae86acbe9a9632658292d2aecb7af082ef03167ed5c175b412",
+      "currentSha256": "f5d9ce8cab00886e2aa844c95689e2657339fb91452bfbb1e733b2661c2a49c5"
     }
   ],
   "newSourceArtifacts": [
