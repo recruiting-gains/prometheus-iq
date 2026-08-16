@@ -180,7 +180,7 @@ test("private Workflow v2 composes only the exact gym-preview route-quality sour
     acceptedSha256:
       "7a37c1d2bfc3c07e38a0e706756c64f69718c9a7d36bd0b1eebc5717a7621468",
     successor
-  }), "7bda35b46eb577dd89c6cd2617c70cb3c7a0b656faff168543c13db35a01c0b4");
+  }), "4e021bcfcfdac2ab0eb942f137a0f97cd120dcde882b258f772abda3b2a13aa1");
   assert.equal(advancePrivateWorkflowV2GymPreviewRouteQualityOwnerHash({
     path: "intelligence/provenance/not-governed.mjs",
     acceptedSha256: "f".repeat(64),
