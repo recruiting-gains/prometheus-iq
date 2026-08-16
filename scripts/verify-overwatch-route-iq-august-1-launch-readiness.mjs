@@ -15,6 +15,8 @@ export const AUGUST_1_SUCCESSORS_PATH =
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 export const AUGUST_1_DASHBOARD_VISUAL_SUCCESSOR_PATH =
   "overwatch/governance/route-iq-august-1-dashboard-visual-readiness-successor-v1.json";
+export const AUGUST_1_DASHBOARD_VISUAL_VERIFIER_SUCCESSOR_PATH =
+  "overwatch/governance/route-iq-august-1-dashboard-visual-verifier-successor-v1.json";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const STARTING_COMMIT = "d3bda9d86a388462dd5cab0fa789081eee59b541";
@@ -124,6 +126,21 @@ function git(root, ...args) {
     maxBuffer: 8 * 1024 * 1024,
     timeout: 30_000
   }).trim();
+}
+
+function gitBytes(root, ...args) {
+  return execFileSync("git", args, {
+    cwd: root,
+    encoding: null,
+    env: {
+      PATH: process.env.PATH,
+      HOME: process.env.HOME,
+      GIT_CONFIG_NOSYSTEM: "1",
+      GIT_TERMINAL_PROMPT: "0"
+    },
+    maxBuffer: 8 * 1024 * 1024,
+    timeout: 30_000
+  });
 }
 
 function requirementById(matrix, id) {
@@ -888,8 +905,14 @@ export function validateAugust1ReadinessSuccessors(successors, {
     entries.push(item);
     currentEvidenceByPath.set(item.path, entries);
   }
-  const currentVisualEvidence = additionalCurrentEvidence
-    ?? dashboardVisualEvidence(readJson(root, AUGUST_1_DASHBOARD_VISUAL_SUCCESSOR_PATH));
+  const currentVisualEvidence = additionalCurrentEvidence ?? [
+    ...dashboardVisualEvidence(
+      readJson(root, AUGUST_1_DASHBOARD_VISUAL_SUCCESSOR_PATH)
+    ),
+    ...dashboardVisualVerifierEvidence(
+      readJson(root, AUGUST_1_DASHBOARD_VISUAL_VERIFIER_SUCCESSOR_PATH)
+    )
+  ];
   for (const item of currentVisualEvidence.filter(entry => (
     allowedCurrentEvidencePaths.has(entry.path)
   ))) {
@@ -918,6 +941,113 @@ function dashboardVisualEvidence(successor) {
   return successor.ownerCommits.flatMap(owner => owner.evidence || []);
 }
 
+function dashboardVisualVerifierEvidence(successor) {
+  assert.ok(Array.isArray(successor?.ownerCommits));
+  return successor.ownerCommits.flatMap(owner => owner.evidence || []);
+}
+
+export function validateAugust1DashboardVisualVerifierSuccessor(successor, {
+  root = ROOT,
+  verifyGit = false
+} = {}) {
+  assertExactObjectKeys(successor, [
+    "batchId", "directive", "ownerCommits", "ownerSubsystem", "predecessors",
+    "protectedState", "status", "version"
+  ], "August 1 Dashboard visual verifier successor");
+  assert.equal(successor.version,
+    "route-iq-august-1-dashboard-visual-verifier-successor-v1");
+  assert.equal(successor.batchId, "BATCH-20260815-001");
+  assert.equal(successor.status, "INDEPENDENTLY_VERIFIED_VERIFIER_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(successor.predecessors.length, 2);
+  for (const predecessor of successor.predecessors) {
+    assertExactObjectKeys(predecessor,
+      ["path", "remainsHistorical", "rewritten", "sha256"],
+      "Dashboard visual verifier predecessor");
+    assert.equal(predecessor.remainsHistorical, true);
+    assert.equal(predecessor.rewritten, false);
+    assert.equal(
+      sha256(read(root, predecessor.path)),
+      predecessor.sha256,
+      `Dashboard visual verifier predecessor drifted: ${predecessor.path}`
+    );
+  }
+  assert.equal(successor.ownerCommits.length, 2);
+  const evidence = [];
+  const paths = new Set();
+  for (const owner of successor.ownerCommits) {
+    assertExactObjectKeys(owner,
+      ["commit", "evidence", "identity", "parent", "subject", "tree"],
+      "Dashboard visual verifier owner commit");
+    assert.match(owner.commit, /^[a-f0-9]{40}$/u);
+    assert.match(owner.parent, /^[a-f0-9]{40}$/u);
+    assert.match(owner.tree, /^[a-f0-9]{40}$/u);
+    assert.equal(owner.identity, "Prometheus Overwatch <overwatch@prometheus.local>");
+    assert.ok(typeof owner.subject === "string" && owner.subject.length > 0);
+    if (verifyGit) {
+      assert.deepEqual(git(
+        root,
+        "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+        owner.commit
+      ).split("\n"), [
+        owner.commit,
+        owner.parent,
+        owner.tree,
+        owner.identity,
+        owner.identity,
+        owner.subject
+      ]);
+      const changedPaths = git(
+        root,
+        "diff-tree", "--no-commit-id", "--name-only", "-r", owner.commit
+      ).split("\n").filter(Boolean).sort();
+      assert.deepEqual(changedPaths, owner.evidence.map(item => item.path).sort());
+      git(root, "merge-base", "--is-ancestor", owner.commit, "HEAD");
+    }
+    for (const item of owner.evidence) {
+      assertExactObjectKeys(item,
+        ["path", "previousSha256", "successorSha256"],
+        "Dashboard visual verifier artifact evidence");
+      assert.equal(paths.has(item.path), false,
+        `Duplicate Dashboard visual verifier path: ${item.path}`);
+      paths.add(item.path);
+      assert.match(item.previousSha256, /^[a-f0-9]{64}$/u);
+      assert.match(item.successorSha256, /^[a-f0-9]{64}$/u);
+      assert.notEqual(item.previousSha256, item.successorSha256);
+      if (verifyGit) {
+        assert.equal(
+          sha256(gitBytes(root, "show", `${owner.parent}:${item.path}`)),
+          item.previousSha256
+        );
+        assert.equal(
+          sha256(gitBytes(root, "show", `${owner.commit}:${item.path}`)),
+          item.successorSha256
+        );
+      }
+      assertRegularFile(root, item.path);
+      assert.equal(sha256(read(root, item.path)), item.successorSha256,
+        `Dashboard visual verifier successor drifted: ${item.path}`);
+      evidence.push(item);
+    }
+  }
+  assert.deepEqual(sorted([...paths]), sorted([
+    "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+    "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+    "scripts/verify-overwatch-route-iq-prospective-calibration-production-admission-future-window-readiness-v1.mjs",
+    "scripts/verify-release-provenance-repair.mjs",
+    "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+    "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
+  ]));
+  assert.deepEqual(successor.protectedState, {
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    productionDeployments: 0,
+    productionDataMutations: 0
+  });
+  return Object.freeze({ successor, evidence: Object.freeze(evidence) });
+}
+
 export function validateAugust1DashboardVisualSuccessor(successor, {
   root = ROOT,
   verifyGit = false
@@ -939,6 +1069,9 @@ export function validateAugust1DashboardVisualSuccessor(successor, {
     "Dashboard visual predecessor drifted"
   );
   assert.equal(successor.ownerCommits.length, 5);
+  const verifierEvidence = dashboardVisualVerifierEvidence(
+    readJson(root, AUGUST_1_DASHBOARD_VISUAL_VERIFIER_SUCCESSOR_PATH)
+  );
   const evidence = [];
   const paths = new Set();
   for (const owner of successor.ownerCommits) {
@@ -966,7 +1099,11 @@ export function validateAugust1DashboardVisualSuccessor(successor, {
       assert.match(item.successorSha256, /^[a-f0-9]{64}$/u);
       assert.notEqual(item.previousSha256, item.successorSha256);
       assertRegularFile(root, item.path);
-      assert.equal(sha256(read(root, item.path)), item.successorSha256,
+      const terminalSha256 = assertLinearSuccessorChain([
+        item,
+        ...verifierEvidence.filter(entry => entry.path === item.path)
+      ], item.path);
+      assert.equal(sha256(read(root, item.path)), terminalSha256,
         `Dashboard visual successor drifted: ${item.path}`);
       evidence.push(item);
     }
@@ -1388,6 +1525,7 @@ export function verifyOverwatchRouteIqAugust1LaunchReadiness({
   assertRegularFile(root, AUGUST_1_GOVERNANCE_REPORT_PATH);
   assertRegularFile(root, AUGUST_1_SUCCESSORS_PATH);
   assertRegularFile(root, AUGUST_1_DASHBOARD_VISUAL_SUCCESSOR_PATH);
+  assertRegularFile(root, AUGUST_1_DASHBOARD_VISUAL_VERIFIER_SUCCESSOR_PATH);
   const matrixBytes = read(root, AUGUST_1_READINESS_MATRIX_PATH);
   const matrix = validateAugust1ReadinessMatrix(JSON.parse(matrixBytes.toString("utf8")));
   const contract = validateAugust1GovernanceReport(
@@ -1395,7 +1533,14 @@ export function verifyOverwatchRouteIqAugust1LaunchReadiness({
     matrix
   );
   const dashboardVisualRecord = readJson(root, AUGUST_1_DASHBOARD_VISUAL_SUCCESSOR_PATH);
-  const dashboardVisualArtifactEvidence = dashboardVisualEvidence(dashboardVisualRecord);
+  const dashboardVisualVerifierRecord = readJson(
+    root,
+    AUGUST_1_DASHBOARD_VISUAL_VERIFIER_SUCCESSOR_PATH
+  );
+  const dashboardVisualArtifactEvidence = [
+    ...dashboardVisualEvidence(dashboardVisualRecord),
+    ...dashboardVisualVerifierEvidence(dashboardVisualVerifierRecord)
+  ];
   const successors = validateAugust1ReadinessSuccessors(
     readJson(root, AUGUST_1_SUCCESSORS_PATH),
     { root, additionalCurrentEvidence: dashboardVisualArtifactEvidence }
@@ -1407,6 +1552,11 @@ export function verifyOverwatchRouteIqAugust1LaunchReadiness({
     dashboardVisualRecord,
     { root, verifyGit }
   );
+  const dashboardVisualVerifierSuccessor =
+    validateAugust1DashboardVisualVerifierSuccessor(
+      dashboardVisualVerifierRecord,
+      { root, verifyGit }
+    );
   verifyFixedOwnerEvidence(root, matrix, contract);
   const repository = verifyGit ? verifyRepositoryBaseline(root, contract, { requireClean }) : null;
   if (repository) {
@@ -1434,6 +1584,8 @@ export function verifyOverwatchRouteIqAugust1LaunchReadiness({
     founderAttendanceRequirementIds: Object.freeze(counts.founderAttendanceIds),
     fixedLaunchContract: Object.freeze({ ...contract.fixedLaunchContract }),
     dashboardVisualSuccessorBatchId: dashboardVisualSuccessor.successor.batchId,
+    dashboardVisualVerifierSuccessorBatchId:
+      dashboardVisualVerifierSuccessor.successor.batchId,
     repository,
     externalActionsPerformedByThisVerificationRun: false
   });
