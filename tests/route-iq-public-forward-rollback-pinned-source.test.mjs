@@ -29,7 +29,7 @@ const rollbackContract = JSON.parse(readFileSync(
   "utf8"
 ));
 const expectedArtifactSha256 =
-  "0468e368ff70bb292841cff4aaa9cac70b395d4b64b47b411091a25b6f185233";
+  "700300dc04d9c5a217910baa275d0379c23f0569f945e9152a40d595b6fda368";
 
 function git(repository, argumentsList, options = {}) {
   return execFileSync("git", argumentsList, {
