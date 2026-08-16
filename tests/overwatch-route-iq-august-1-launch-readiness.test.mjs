@@ -51,6 +51,10 @@ function createPackageFixture(t) {
   const fixture = mkdtempSync(resolve(tmpdir(), "route-iq-august-1-overwatch-"));
   t.after(() => rmSync(fixture, { recursive: true, force: true }));
   const { contract } = packageSource();
+  const visualVerifierSuccessor = readJson(
+    ROOT,
+    AUGUST_1_DASHBOARD_VISUAL_VERIFIER_SUCCESSOR_PATH
+  );
   const paths = new Set([
     AUGUST_1_READINESS_MATRIX_PATH,
     AUGUST_1_GOVERNANCE_REPORT_PATH,
@@ -59,6 +63,9 @@ function createPackageFixture(t) {
     AUGUST_1_DASHBOARD_VISUAL_VERIFIER_SUCCESSOR_PATH,
     "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json",
     "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+    ...visualVerifierSuccessor.ownerCommits.flatMap(owner => (
+      owner.evidence.map(item => item.path)
+    )),
     ...contract.artifactPins.map(artifact => artifact.path)
   ]);
   for (const path of paths) {
@@ -142,7 +149,7 @@ test("Dashboard visual verifier successor composes later owner-approved checks",
     root: ROOT,
     verifyGit: false
   });
-  assert.equal(result.evidence.length, 6);
+  assert.equal(result.evidence.length, 8);
   for (const mutate of [
     value => { value.protectedState.collection = "ON"; },
     value => { value.ownerCommits[0].evidence[0].successorSha256 = "0".repeat(64); },

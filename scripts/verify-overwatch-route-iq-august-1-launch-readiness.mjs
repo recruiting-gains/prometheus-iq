@@ -972,7 +972,7 @@ export function validateAugust1DashboardVisualVerifierSuccessor(successor, {
       `Dashboard visual verifier predecessor drifted: ${predecessor.path}`
     );
   }
-  assert.equal(successor.ownerCommits.length, 2);
+  assert.equal(successor.ownerCommits.length, 3);
   const evidence = [];
   const paths = new Set();
   for (const owner of successor.ownerCommits) {
@@ -1008,8 +1008,6 @@ export function validateAugust1DashboardVisualVerifierSuccessor(successor, {
       assertExactObjectKeys(item,
         ["path", "previousSha256", "successorSha256"],
         "Dashboard visual verifier artifact evidence");
-      assert.equal(paths.has(item.path), false,
-        `Duplicate Dashboard visual verifier path: ${item.path}`);
       paths.add(item.path);
       assert.match(item.previousSha256, /^[a-f0-9]{64}$/u);
       assert.match(item.successorSha256, /^[a-f0-9]{64}$/u);
@@ -1025,8 +1023,6 @@ export function validateAugust1DashboardVisualVerifierSuccessor(successor, {
         );
       }
       assertRegularFile(root, item.path);
-      assert.equal(sha256(read(root, item.path)), item.successorSha256,
-        `Dashboard visual verifier successor drifted: ${item.path}`);
       evidence.push(item);
     }
   }
@@ -1038,6 +1034,14 @@ export function validateAugust1DashboardVisualVerifierSuccessor(successor, {
     "tests/overwatch-public-deployment-workflow-v2.test.mjs",
     "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
   ]));
+  for (const path of paths) {
+    const terminalSha256 = assertLinearSuccessorChain(
+      evidence.filter(item => item.path === path),
+      path
+    );
+    assert.equal(sha256(read(root, path)), terminalSha256,
+      `Dashboard visual verifier successor drifted: ${path}`);
+  }
   assert.deepEqual(successor.protectedState, {
     collection: "OFF",
     activeCohorts: 0,
