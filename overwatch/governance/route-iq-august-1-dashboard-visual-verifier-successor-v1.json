@@ -1,0 +1,97 @@
+{
+  "version": "route-iq-august-1-dashboard-visual-verifier-successor-v1",
+  "batchId": "BATCH-20260815-001",
+  "directive": "Route IQ Public Preview Navigation + Dashboard Visual Identity Alignment v1",
+  "status": "INDEPENDENTLY_VERIFIED_VERIFIER_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "predecessors": [
+    {
+      "path": "overwatch/governance/route-iq-august-1-dashboard-visual-readiness-successor-v1.json",
+      "sha256": "50c23f860677b4da48b874062c60bb93c9a03552dea592f7a2d8bb73c5087b2d",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    {
+      "path": "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json",
+      "sha256": "0c9a9d90bed52de3b2a6959fdd0c84cdf4709c8891a670f3979c3369934e3527",
+      "remainsHistorical": true,
+      "rewritten": false
+    }
+  ],
+  "ownerCommits": [
+    {
+      "commit": "c9b3e9b626cae6a061f4de1ebb46060a72cb71c7",
+      "parent": "0b74c6d5b7e750791640ef68a9cd361b989cbc61",
+      "tree": "e093b8e9ee1b5889e489421c45a98e4fdebc451b",
+      "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "subject": "overwatch: compose visual release successors",
+      "evidence": [
+        {
+          "path": "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "previousSha256": "894eac30aa0f9ae9d646dcb9d03860fbfa32787cfc1aa14403dec0a6381f51e4",
+          "successorSha256": "a5ea357ada29ae0cec2a7b6996fab1e099271270bde1c09f7345aad718d3bdf3"
+        },
+        {
+          "path": "scripts/verify-overwatch-route-iq-prospective-calibration-production-admission-future-window-readiness-v1.mjs",
+          "previousSha256": "30671231dfabbd78457ccef95ea338e0b3dc1f726adff026733aec2d4bc4ab9e",
+          "successorSha256": "44bd71c418c43f46eb23061a7483b45dab878b6132022009e9113c14ac38e149"
+        },
+        {
+          "path": "scripts/verify-release-provenance-repair.mjs",
+          "previousSha256": "ecce0465715364da9043acad912adb9ea663124cb71886a09dbf55c75a77caf5",
+          "successorSha256": "79b2a34cacf0c20dddbf45b76e134316b61b0345aa2ec4d6afb7106a88ccce1f"
+        },
+        {
+          "path": "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+          "previousSha256": "65243e3c525bac1ea41849228acfdc8f6952610fff838dfee5835b973c3f9a1c",
+          "successorSha256": "78cd950424074ef82c74680588587e1780548af494113038083e1ece69233022"
+        }
+      ]
+    },
+    {
+      "commit": "13bba7b13d07eecbc10657f88f14036d73f48efb",
+      "parent": "c9b3e9b626cae6a061f4de1ebb46060a72cb71c7",
+      "tree": "851ef3fa4c738094baaa97459ee421a08207c259",
+      "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "subject": "overwatch: compose visual verifier readiness",
+      "evidence": [
+        {
+          "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+          "previousSha256": "33c36668bece5ec7394a884dc4f6f18c67f54315c012d7395a6fbc4802a466b1",
+          "successorSha256": "b9a0d8cdcaac998fd8c2e06cbf299405d9798ff2c836c519d79b3b3fb73049ca"
+        },
+        {
+          "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+          "previousSha256": "b702d8de20c275f78d6cb28b11f85c8e140d9bc6546c345a02943c96b0143788",
+          "successorSha256": "c8f8df157a93f1f90c211b89c94e997ef406e304a6614b615333e4c7c838c45d"
+        }
+      ]
+    },
+    {
+      "commit": "90a819eb2d76d37d4e4c7dc542c36e081721943d",
+      "parent": "13bba7b13d07eecbc10657f88f14036d73f48efb",
+      "tree": "fa55276fb48d23bbcf12f2fec06623a4324dfaa9",
+      "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "subject": "overwatch: preserve visual verifier chain",
+      "evidence": [
+        {
+          "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+          "previousSha256": "b9a0d8cdcaac998fd8c2e06cbf299405d9798ff2c836c519d79b3b3fb73049ca",
+          "successorSha256": "f6642c1afb9cd0604b4ffb2f683d8a935a0d171d75589b8a5100df77aa7df2e3"
+        },
+        {
+          "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+          "previousSha256": "c8f8df157a93f1f90c211b89c94e997ef406e304a6614b615333e4c7c838c45d",
+          "successorSha256": "01a75eee60d49de0ffc74a840c7130510ab61a9984777dd91eee58ea712bca52"
+        }
+      ]
+    }
+  ],
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "productionDeployments": 0,
+    "productionDataMutations": 0
+  }
+}
