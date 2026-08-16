@@ -22,6 +22,10 @@ const LIVE_CANONICAL_IDENTITY_GOVERNANCE_PATH =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
 const DASHBOARD_VISUAL_SUCCESSOR_GOVERNANCE_PATH =
   "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json";
+const REPRESENTATIVE_INTELLIGENCE_SUCCESSOR_GOVERNANCE_PATH =
+  "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json";
+const DASHBOARD_VISUAL_SUCCESSOR_GOVERNANCE_COMMIT =
+  "b917079123b86883ce581b5629a85be0abc0cb89";
 const CURRENT_READINESS_SUCCESSORS_PATH =
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 const HISTORICAL_READINESS_GOVERNANCE_PATH =
@@ -1467,19 +1471,73 @@ function verifyRouteIqWebsitePositioningSuccessor(governance) {
 }
 
 function verifyDashboardVisualReleaseSuccessor() {
-  const successor = readJson(DASHBOARD_VISUAL_SUCCESSOR_GOVERNANCE_PATH);
+  const historicalSuccessor = readJson(DASHBOARD_VISUAL_SUCCESSOR_GOVERNANCE_PATH);
   assert.equal(
-    successor.version,
+    historicalSuccessor.version,
     "route-iq-overwatch-public-navigation-dashboard-visual-successor-v1"
   );
-  assert.equal(successor.batchId, "BATCH-20260815-001");
-  assert.equal(successor.status, "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR");
-  assert.equal(successor.ownerSubsystem, "Prometheus Overwatch");
-  for (const predecessor of successor.predecessors) {
+  assert.equal(historicalSuccessor.batchId, "BATCH-20260815-001");
+  assert.equal(historicalSuccessor.status, "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR");
+  assert.equal(historicalSuccessor.ownerSubsystem, "Prometheus Overwatch");
+  for (const predecessor of historicalSuccessor.predecessors) {
     assert.equal(sha256(read(predecessor.path)), predecessor.sha256);
     assert.equal(predecessor.remainsHistorical, true);
     assert.equal(predecessor.rewritten, false);
   }
+  for (const implementation of historicalSuccessor.implementationCommits) {
+    const identity = commitIdentity(implementation.commit);
+    assert.equal(identity.author, implementation.identity);
+    assert.equal(identity.committer, implementation.identity);
+    assert.deepEqual(identity.parents, [implementation.parent]);
+    assert.equal(identity.tree, implementation.tree);
+    assert.equal(
+      git(["show", "-s", "--format=%s", implementation.commit]),
+      implementation.subject
+    );
+    assert.deepEqual(
+      commitPaths(implementation.commit).sort(),
+      [...implementation.changedFiles].sort()
+    );
+    assert.doesNotThrow(() => git([
+      "merge-base", "--is-ancestor", implementation.commit, "HEAD"
+    ]));
+  }
+  assert.equal(
+    sha256(read(historicalSuccessor.intelligenceProvenance.path)),
+    historicalSuccessor.intelligenceProvenance.sha256
+  );
+  for (const contract of Object.values(historicalSuccessor.currentContracts)) {
+    assert.equal(
+      sha256(readAtCommit(DASHBOARD_VISUAL_SUCCESSOR_GOVERNANCE_COMMIT, contract.path)),
+      contract.sha256
+    );
+  }
+  assert.equal(
+    git(["show", "-s", "--format=%T", historicalSuccessor.releaseIdentities.websiteCommit]),
+    historicalSuccessor.releaseIdentities.websiteTree
+  );
+  assert.equal(historicalSuccessor.releaseBoundary.productionDeploymentAuthorized, false);
+  assert.equal(historicalSuccessor.releaseBoundary.productionStorageAccessAllowed, false);
+  assert.equal(historicalSuccessor.protectedState.collection, "OFF");
+  assert.equal(historicalSuccessor.protectedState.activeCohorts, 0);
+  assert.equal(historicalSuccessor.protectedState.recommendationInfluence, "OFF");
+  assert.equal(historicalSuccessor.protectedState.productionDeployments, 0);
+  assert.equal(historicalSuccessor.protectedState.productionDataMutations, 0);
+
+  const successor = readJson(REPRESENTATIVE_INTELLIGENCE_SUCCESSOR_GOVERNANCE_PATH);
+  assert.equal(
+    successor.version,
+    "route-iq-representative-intelligence-public-experience-successor-v1"
+  );
+  assert.equal(successor.batchId, "BATCH-20260815-002");
+  assert.equal(successor.status, "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Overwatch");
+  assert.deepEqual(successor.predecessors, [{
+    path: DASHBOARD_VISUAL_SUCCESSOR_GOVERNANCE_PATH,
+    sha256: sha256(read(DASHBOARD_VISUAL_SUCCESSOR_GOVERNANCE_PATH)),
+    remainsHistorical: true,
+    rewritten: false
+  }]);
   for (const implementation of successor.implementationCommits) {
     const identity = commitIdentity(implementation.commit);
     assert.equal(identity.author, implementation.identity);

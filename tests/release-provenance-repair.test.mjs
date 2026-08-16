@@ -27,6 +27,7 @@ import {
   validateLiveCanonicalIdentityShadowReadinessRepair,
   validateProtectedDriftFixtureIntelligenceSuccessor,
   validateProspectiveCalibrationIntelligenceSuccessorChain,
+  validateRepresentativeIntelligenceRuntimeSurfaceSuccessor,
   validateRetentionDeletionIntelligenceSuccessorChain,
   validateRevenueReadinessIntelligenceSuccessor,
   verifyReleaseProvenanceRepair
@@ -203,6 +204,43 @@ test("release provenance composes the exact gym-preview Intelligence chain", () 
     assert.throws(() =>
       validateGymPreviewRouteQualityIntelligenceSuccessorChain(candidate));
   }
+});
+
+test("release provenance composes the representative Intelligence runtime successor", () => {
+  const result = validateRepresentativeIntelligenceRuntimeSurfaceSuccessor();
+  assert.equal(
+    result.successor.version,
+    "route-iq-intelligence-representative-runtime-surface-successor-v1"
+  );
+  assert.equal(result.successor.batchId, "BATCH-20260815-002");
+  assert.equal(result.successor.behavior.previousRuntimeFileCount, 34);
+  assert.equal(result.successor.behavior.currentRuntimeFileCount, 35);
+  assert.equal(result.transitionsByPath.size, 4);
+  assert.equal(
+    result.transitionsByPath
+      .get("scripts/lib/route-intelligence-quality-gate.mjs")
+      .at(-1).currentSha256,
+    "4e021bcfcfdac2ab0eb942f137a0f97cd120dcde882b258f772abda3b2a13aa1"
+  );
+  assert.equal(
+    result.transitionsByPath
+      .get("intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs")
+      .at(-1).currentSha256,
+    "3452082846df5b429310c6a67c5b18b437c798121720d51a505033948a429fe3"
+  );
+  assert.deepEqual(result.successor.protectedState, {
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    confidencePropagation: "OFF",
+    providers: "OFF",
+    scheduler: "OFF",
+    shadowDecisionVisible: false,
+    productionStorageAccess: 0,
+    cloudflareContacts: 0,
+    deployments: 0,
+    productionMutationPerformed: false
+  });
 });
 
 test("Overwatch verifies Route IQ release provenance repair", () => {

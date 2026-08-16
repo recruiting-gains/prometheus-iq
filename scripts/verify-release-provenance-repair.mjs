@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 
 import {
+  verifyControlledOnboardingRehearsalSmokeContractSuccessor,
   verifyGymPreviewRouteQualityRuntimeSurfaceSuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
@@ -34,6 +35,8 @@ const prospectiveCalibrationIntelligenceProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json";
 const gymPreviewRouteQualityIntelligenceProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json";
+const representativeIntelligenceRuntimeSurfaceProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-representative-intelligence-runtime-surface-v1.json";
 const dashboardVisualProtectedConsumerProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-protected-consumers-v1.json";
 const dashboardVisualIdentityProvenancePath =
@@ -41,6 +44,7 @@ const dashboardVisualIdentityProvenancePath =
 const dashboardVisualVerifierCompositionProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-verifier-composition-v1.json";
 let gymPreviewRouteQualityValidationCache = null;
+let representativeIntelligenceRuntimeSurfaceValidationCache = null;
 let dashboardVisualOwnerTransitionCache = null;
 const prospectiveCalibrationIntelligenceProvenanceSha256 =
   "cfeb03951b03e0e9184351749b4aabcc479e2c63229376e585fbd5f6d3b26f2d";
@@ -1527,6 +1531,8 @@ export function validateGovernedLearningIntelligenceSuccessorChain(
       prospectiveSuccessor.gymTransitionsByPath.get(path);
     const visualTransitions =
       prospectiveSuccessor.visualTransitionsByPath.get(path);
+    const representativeTransitions =
+      prospectiveSuccessor.representativeTransitionsByPath.get(path);
     const preVisualSha256 = gymTransitions
       ? gymTransitions.at(-1).currentSha256
       : prospectiveTransitions
@@ -1536,9 +1542,19 @@ export function validateGovernedLearningIntelligenceSuccessorChain(
       assert.equal(visualTransitions[0].previousSha256, preVisualSha256,
         `Dashboard visual predecessor drifted: ${path}`);
     }
-    const expectedCurrentSha256 = visualTransitions
+    const preRepresentativeSha256 = visualTransitions
       ? visualTransitions.at(-1).currentSha256
       : preVisualSha256;
+    if (representativeTransitions) {
+      assert.equal(
+        representativeTransitions[0].previousSha256,
+        preRepresentativeSha256,
+        `Representative runtime predecessor drifted: ${path}`
+      );
+    }
+    const expectedCurrentSha256 = representativeTransitions
+      ? representativeTransitions.at(-1).currentSha256
+      : preRepresentativeSha256;
     assert.equal(sha256(read(path)), expectedCurrentSha256,
       `Current governed-learning Intelligence successor drifted: ${path}`);
   }
@@ -1553,7 +1569,9 @@ export function validateGovernedLearningIntelligenceSuccessorChain(
     transitionsByPath,
     prospectiveTransitionsByPath: prospectiveSuccessor.transitionsByPath,
     gymTransitionsByPath: prospectiveSuccessor.gymTransitionsByPath,
-    visualTransitionsByPath: prospectiveSuccessor.visualTransitionsByPath
+    visualTransitionsByPath: prospectiveSuccessor.visualTransitionsByPath,
+    representativeTransitionsByPath:
+      prospectiveSuccessor.representativeTransitionsByPath
   });
 }
 
@@ -1664,6 +1682,8 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
   const gymSuccessor =
     validateGymPreviewRouteQualityIntelligenceSuccessorChain();
   const visualSuccessor = validateDashboardVisualProtectedConsumerSuccessor();
+  const representativeSuccessor =
+    validateRepresentativeIntelligenceRuntimeSurfaceSuccessor();
   for (const artifact of newSourceArtifacts) {
     assert.equal(ownerCommits.has(artifact.commit), true,
       "Prospective-calibration new-source owner commit is absent from governance.");
@@ -1676,6 +1696,8 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
     );
     const gymTransitions = gymSuccessor.transitionsByPath.get(artifact.path);
     const visualTransitions = visualSuccessor.transitionsByPath.get(artifact.path);
+    const representativeTransitions =
+      representativeSuccessor.transitionsByPath.get(artifact.path);
     const preVisualSha256 = gymTransitions
       ? gymTransitions.at(-1).currentSha256
       : artifact.sha256;
@@ -1687,15 +1709,27 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
       assert.equal(visualTransitions[0].previousSha256, preVisualSha256,
         `Dashboard visual predecessor drifted: ${artifact.path}`);
     }
-    const expectedCurrentSha256 = visualTransitions
+    const preRepresentativeSha256 = visualTransitions
       ? visualTransitions.at(-1).currentSha256
       : preVisualSha256;
+    if (representativeTransitions) {
+      assert.equal(
+        representativeTransitions[0].previousSha256,
+        preRepresentativeSha256,
+        `Representative runtime predecessor drifted: ${artifact.path}`
+      );
+    }
+    const expectedCurrentSha256 = representativeTransitions
+      ? representativeTransitions.at(-1).currentSha256
+      : preRepresentativeSha256;
     assert.equal(sha256(read(artifact.path)), expectedCurrentSha256,
       `Current prospective-calibration source drifted: ${artifact.path}`);
   }
   for (const [path, transitions] of transitionsByPath) {
     const gymTransitions = gymSuccessor.transitionsByPath.get(path);
     const visualTransitions = visualSuccessor.transitionsByPath.get(path);
+    const representativeTransitions =
+      representativeSuccessor.transitionsByPath.get(path);
     const preVisualSha256 = gymTransitions
       ? gymTransitions.at(-1).currentSha256
       : transitions.at(-1).sha256;
@@ -1713,9 +1747,19 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
         `Dashboard visual predecessor drifted: ${path}`
       );
     }
-    const expectedCurrentSha256 = visualTransitions
+    const preRepresentativeSha256 = visualTransitions
       ? visualTransitions.at(-1).currentSha256
       : preVisualSha256;
+    if (representativeTransitions) {
+      assert.equal(
+        representativeTransitions[0].previousSha256,
+        preRepresentativeSha256,
+        `Representative runtime predecessor drifted: ${path}`
+      );
+    }
+    const expectedCurrentSha256 = representativeTransitions
+      ? representativeTransitions.at(-1).currentSha256
+      : preRepresentativeSha256;
     assert.equal(sha256(read(path)), expectedCurrentSha256,
       `Current prospective-calibration Intelligence successor drifted: ${path}`);
   }
@@ -1731,7 +1775,8 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
     records,
     transitionsByPath,
     gymTransitionsByPath: gymSuccessor.transitionsByPath,
-    visualTransitionsByPath: visualSuccessor.transitionsByPath
+    visualTransitionsByPath: visualSuccessor.transitionsByPath,
+    representativeTransitionsByPath: representativeSuccessor.transitionsByPath
   });
 }
 
@@ -1773,16 +1818,28 @@ export function validateGymPreviewRouteQualityIntelligenceSuccessorChain(
     deployments: 0,
     productionMutationPerformed: false
   });
-  const verifierTransitions = verified.transitionsByPath.get(
+  const canonicalCommits = new Set(
+    canonicalTransitions.map(transition => transition.commit)
+  );
+  const historicalTransitionsByPath = new Map();
+  for (const [path, pathTransitions] of verified.transitionsByPath) {
+    const historicalTransitions = pathTransitions.filter(
+      transition => canonicalCommits.has(transition.commit)
+    );
+    if (historicalTransitions.length > 0) {
+      historicalTransitionsByPath.set(path, historicalTransitions);
+    }
+  }
+  const verifierTransitions = historicalTransitionsByPath.get(
     retentionDeletionIntelligenceVerifierPath
   );
   const result = Object.freeze({
     terminalCommit: verifierTransitions.at(-1).commit,
     terminalSha256: verifierTransitions.at(-1).currentSha256,
     transitionCount: transitions.length,
-    protectedPathCount: verified.transitionsByPath.size,
+    protectedPathCount: historicalTransitionsByPath.size,
     records: transitions,
-    transitionsByPath: verified.transitionsByPath
+    transitionsByPath: historicalTransitionsByPath
   });
   if (!candidateTransitions) {
     gymPreviewRouteQualityValidationCache = Object.freeze({
@@ -1791,6 +1848,42 @@ export function validateGymPreviewRouteQualityIntelligenceSuccessorChain(
     });
   }
   return result;
+}
+
+export function validateRepresentativeIntelligenceRuntimeSurfaceSuccessor() {
+  if (representativeIntelligenceRuntimeSurfaceValidationCache) {
+    return representativeIntelligenceRuntimeSurfaceValidationCache;
+  }
+  const canonicalSuccessor = readJson(
+    representativeIntelligenceRuntimeSurfaceProvenancePath
+  );
+  const verified = verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+    .representativeIntelligenceRuntimeSurfaceSuccessor;
+  assert.deepEqual(verified.successor, canonicalSuccessor);
+  assert.equal(
+    canonicalSuccessor.version,
+    "route-iq-intelligence-representative-runtime-surface-successor-v1"
+  );
+  assert.equal(canonicalSuccessor.batchId, "BATCH-20260815-002");
+  assert.equal(canonicalSuccessor.status, "OWNER_IMPLEMENTED_PROTECTED_SUCCESSOR");
+  assert.equal(canonicalSuccessor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(canonicalSuccessor.behavior.previousRuntimeFileCount, 34);
+  assert.equal(canonicalSuccessor.behavior.currentRuntimeFileCount, 35);
+  assert.equal(canonicalSuccessor.behavior.routeOrderingChanged, false);
+  assert.equal(canonicalSuccessor.behavior.routeScoringChanged, false);
+  assert.equal(canonicalSuccessor.behavior.businessHoursEligibilityChanged, false);
+  assert.equal(canonicalSuccessor.behavior.recommendationBehaviorChanged, false);
+  assert.equal(canonicalSuccessor.protectedState.collection, "OFF");
+  assert.equal(canonicalSuccessor.protectedState.activeCohorts, 0);
+  assert.equal(canonicalSuccessor.protectedState.recommendationInfluence, "OFF");
+  assert.equal(canonicalSuccessor.protectedState.productionStorageAccess, 0);
+  assert.equal(canonicalSuccessor.protectedState.deployments, 0);
+  assert.equal(canonicalSuccessor.protectedState.productionMutationPerformed, false);
+  representativeIntelligenceRuntimeSurfaceValidationCache = Object.freeze({
+    successor: canonicalSuccessor,
+    transitionsByPath: verified.transitionsByPath
+  });
+  return representativeIntelligenceRuntimeSurfaceValidationCache;
 }
 
 function validateDashboardVisualOwnerTransitions() {
@@ -2128,6 +2221,8 @@ export function validateRetentionDeletionIntelligenceSuccessorChain(
       governedLearningSuccessor.gymTransitionsByPath.get(path);
     const visualTransitions =
       governedLearningSuccessor.visualTransitionsByPath.get(path);
+    const representativeTransitions =
+      governedLearningSuccessor.representativeTransitionsByPath.get(path);
     const preVisualSha256 = gymTransitions
       ? gymTransitions.at(-1).currentSha256
       : prospectiveTransitions
@@ -2135,9 +2230,19 @@ export function validateRetentionDeletionIntelligenceSuccessorChain(
         : governedTransitions
           ? governedTransitions.at(-1).sha256
           : transitions.at(-1).sha256;
-    const expectedCurrentSha256 = visualTransitions
+    const preRepresentativeSha256 = visualTransitions
       ? visualTransitions.at(-1).currentSha256
       : preVisualSha256;
+    if (representativeTransitions) {
+      assert.equal(
+        representativeTransitions[0].previousSha256,
+        preRepresentativeSha256,
+        `Representative runtime predecessor drifted: ${path}`
+      );
+    }
+    const expectedCurrentSha256 = representativeTransitions
+      ? representativeTransitions.at(-1).currentSha256
+      : preRepresentativeSha256;
     assert.equal(sha256(read(path)), expectedCurrentSha256,
       `Current retention-deletion Intelligence successor drifted: ${path}`);
   }
@@ -2259,6 +2364,16 @@ function composeCurrentIntelligenceSha256(path, previousSha256) {
       "Dashboard visual Intelligence composition predecessor drifted."
     );
     expectedSha256 = visualTransitions.at(-1).currentSha256;
+  }
+  const representativeTransitions =
+    governedLearningSuccessor.representativeTransitionsByPath.get(path);
+  if (representativeTransitions) {
+    assert.equal(
+      expectedSha256,
+      representativeTransitions[0].previousSha256,
+      "Representative runtime Intelligence composition predecessor drifted."
+    );
+    expectedSha256 = representativeTransitions.at(-1).currentSha256;
   }
   return expectedSha256;
 }
