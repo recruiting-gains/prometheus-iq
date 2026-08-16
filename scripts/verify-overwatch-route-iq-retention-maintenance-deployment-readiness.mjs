@@ -212,6 +212,8 @@ export function verifyRetentionMaintenancePublicRollbackSuccessor({
     dashboardRollbackContractSha256);
   assert.equal(dashboardVisualGovernance?.releaseIdentities?.rollbackContractSha256,
     dashboardRollbackContractSha256);
+  assert.equal(dashboardVisualGovernance?.releaseIdentities?.rollbackBundleSha256,
+    "0468e368ff70bb292841cff4aaa9cac70b395d4b64b47b411091a25b6f185233");
   assert.equal(dashboardVisualGovernance?.releaseBoundary?.productionDeploymentAuthorized,
     false);
   assert.equal(dashboardVisualGovernance?.releaseBoundary?.productionStorageAccessAllowed,
