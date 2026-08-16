@@ -1,0 +1,185 @@
+{
+  "version": "route-iq-representative-intelligence-public-experience-successor-v1",
+  "batchId": "BATCH-20260815-002",
+  "directive": "Route IQ Representative Intelligence Public Experience + Unified Orange Brand v1",
+  "status": "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "predecessors": [
+    {
+      "path": "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json",
+      "sha256": "0c9a9d90bed52de3b2a6959fdd0c84cdf4709c8891a670f3979c3369934e3527",
+      "remainsHistorical": true,
+      "rewritten": false
+    }
+  ],
+  "implementationCommits": [
+    {
+      "commit": "07377e7a115cb86e3671787ac89350c78cede46a",
+      "parent": "7c4d9a56a9354ae1661142f64e9e0cafbe82f742",
+      "tree": "8356f29b3714cef5c27bc9b17707b402ea7ea9ed",
+      "identity": "Prometheus Website <website@prometheus.local>",
+      "ownerSubsystem": "Prometheus Website",
+      "subject": "website: center representative intelligence experience",
+      "changedFiles": [
+        "icons/prometheus-company-icon-orange-v2.png",
+        "landing.html",
+        "package.json",
+        "public-site-static/prometheus-company-apple-touch-20260701-brand-v2.png",
+        "public-site-static/prometheus-company-apple-touch.png",
+        "public-site-static/prometheus-company-icon-512-20260701-brand-v2.png",
+        "public-site-static/prometheus-company-icon-512.png",
+        "public-site-static/site-20260701-brand-v2.webmanifest",
+        "public-site-static/site.webmanifest",
+        "src/main.jsx",
+        "src/route-iq-representative-style-preview.js",
+        "src/styles.css",
+        "tests/route-iq-representative-style-preview.test.mjs",
+        "tests/website-route-iq-3d-visual-continuity.test.mjs",
+        "tests/website-route-iq-product-focus.test.mjs"
+      ]
+    },
+    {
+      "commit": "fa3a416891e3f964e2085dc44bcd779a4a48de15",
+      "parent": "07377e7a115cb86e3671787ac89350c78cede46a",
+      "tree": "8c449a5567db7c3bf17cae199ae9366f0667201d",
+      "identity": "Prometheus Dashboard <dashboard@prometheus.local>",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "subject": "dashboard: retire green application icon",
+      "changedFiles": [
+        "icons/prometheus.svg",
+        "tests/dashboard-route-iq-product-focus.test.mjs"
+      ]
+    },
+    {
+      "commit": "64ae9602af90c12022b936a6c70e7297d01dd19d",
+      "parent": "fa3a416891e3f964e2085dc44bcd779a4a48de15",
+      "tree": "0a33abb3338b72234e5acaf631859b02d13da5f2",
+      "identity": "Prometheus Website <website@prometheus.local>",
+      "ownerSubsystem": "Prometheus Website",
+      "subject": "website: align public icon release identity",
+      "changedFiles": [
+        "icons/prometheus-company-icon-512-orange-v2.png",
+        "icons/prometheus-company-icon-orange-v2.png",
+        "src/main.jsx",
+        "tests/route-iq-representative-style-preview.test.mjs"
+      ]
+    },
+    {
+      "commit": "e1248a556f5683763e8aeda15903e16fb9aa33e3",
+      "parent": "64ae9602af90c12022b936a6c70e7297d01dd19d",
+      "tree": "d64183f9820e06c17a047d5a3c8c0442403debcd",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "subject": "infrastructure: bind representative intelligence release assets",
+      "changedFiles": [
+        "deploy/cloudflare-pages/icons/prometheus.svg",
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-DUONdOlD.js",
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-lvifE82o.js",
+        "deploy/prometheusrouteiq-website/assets/landing-B9ZhfHwS.css",
+        "deploy/prometheusrouteiq-website/assets/landing-BOzyl4oV.js",
+        "deploy/prometheusrouteiq-website/assets/landing-CNaozCQc.css",
+        "deploy/prometheusrouteiq-website/assets/landing-Da2k4e4y.js",
+        "deploy/prometheusrouteiq-website/assets/prometheus-company-icon-512-Dq1atHWc.png",
+        "deploy/prometheusrouteiq-website/assets/prometheus-company-icon-512-orange-v2-BHPjgKxH.png",
+        "deploy/prometheusrouteiq-website/index.html",
+        "deploy/prometheusrouteiq-website/prometheus-company-apple-touch-20260701-brand-v2.png",
+        "deploy/prometheusrouteiq-website/prometheus-company-apple-touch.png",
+        "deploy/prometheusrouteiq-website/prometheus-company-icon-512-20260701-brand-v2.png",
+        "deploy/prometheusrouteiq-website/prometheus-company-icon-512.png",
+        "deploy/prometheusrouteiq-website/site-20260701-brand-v2.webmanifest",
+        "deploy/prometheusrouteiq-website/site.webmanifest",
+        "scripts/lib/route-iq-public-forward-rollback.mjs",
+        "tests/github-actions-public-worker-workflow-v2.test.mjs",
+        "tests/route-iq-gym-website-preview-infrastructure.test.mjs",
+        "tests/route-iq-public-forward-rollback-pinned-source.test.mjs",
+        "workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json",
+        "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+      ]
+    }
+  ],
+  "intelligenceProvenance": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-identity-v1.json",
+    "sha256": "f263570a78693b998c5f18535861170f1b4345d700bb83bf7661ccb5cf4f5cf9"
+  },
+  "currentContracts": {
+    "preview": {
+      "path": "workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json",
+      "sha256": "8b0fd288568fc91652c5b1b267fbbe3d79e048ba4d50993e38cc66f4969c4830"
+    },
+    "workflow": {
+      "path": ".github/workflows/preview-prometheus-route-iq-gym-first.yml",
+      "sha256": "fa0efa259d006527d500e714b4f92f7c1c76df06f7cc7973c448aaa0d45006d9"
+    },
+    "forwardRollback": {
+      "path": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+      "sha256": "78f930c02ac61079015704e62e92c7a4d8399d7c5e7a22d68a59ecd70e691446"
+    }
+  },
+  "releaseIdentities": {
+    "websiteCommit": "64ae9602af90c12022b936a6c70e7297d01dd19d",
+    "websiteTree": "0a33abb3338b72234e5acaf631859b02d13da5f2",
+    "previewAssetSha256": "f528d4013f7790723b8529edab5a630d9f83cc87f7a67cf1305b3681bd76624b",
+    "previewFileCount": 26,
+    "previewTotalBytes": 2825872,
+    "deploymentAssetSha256": "6c8361e0402a05a26002ad27f6b8af78cfc3fbacca46a1618871d8a8d814d4ec",
+    "rollbackContractSha256": "78f930c02ac61079015704e62e92c7a4d8399d7c5e7a22d68a59ecd70e691446",
+    "rollbackBundleSha256": "700300dc04d9c5a217910baa275d0379c23f0569f945e9152a40d595b6fda368",
+    "initialCriticalBytes": 610852,
+    "lazy3dBytes": 892213,
+    "publicLogoSha256": "a797298c8ecd9df71373d36082d76294f3ff3b5c453f2b3168c5d74bac60145b",
+    "dashboardLogoSha256": "69fca7a1e3e0ff00eefd5b41ccc58af934475e07d39bc832cf2f7b6d915e54a8"
+  },
+  "navigationContract": {
+    "publicRoutes": [
+      "/",
+      "/investors",
+      "/thank-you"
+    ],
+    "legalRoutesRemainPublic": true,
+    "sectionAnchorsRemainPublic": true,
+    "browserHistorySupported": true,
+    "dashboardFallbackProhibited": true
+  },
+  "dashboardVisualContract": {
+    "command": "#000000",
+    "commandSecondary": "#1a1a1a",
+    "accent": "#ff6a00",
+    "themeColor": "#000000",
+    "operationalStatusColorsPreserved": true,
+    "dashboardBehaviorChanged": false,
+    "retiredGreenLogoAbsent": true
+  },
+  "representativeLearningBoundary": {
+    "version": "route-iq-representative-style-preview.v1",
+    "questionIds": [
+      "languages",
+      "conversationStyle",
+      "fieldEnvironment",
+      "energyWindow",
+      "interests",
+      "conversationPace"
+    ],
+    "storage": "memory_only",
+    "publicCrmTransmission": false,
+    "productionRecommendationInfluence": false,
+    "declaredPreferencesAreHypotheses": true,
+    "authorizedFieldEvidenceRequiredBeforeInfluence": true
+  },
+  "releaseBoundary": {
+    "productionDeploymentAuthorized": false,
+    "productionStorageAccessAllowed": false,
+    "publicPreviewOnly": true
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "shadowDecisionVisible": false,
+    "truthState": "INSUFFICIENT_EVIDENCE",
+    "productionDeployments": 0,
+    "productionDataMutations": 0
+  }
+}

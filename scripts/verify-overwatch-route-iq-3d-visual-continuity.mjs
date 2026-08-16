@@ -322,9 +322,11 @@ function verifyWebsiteAndClaims(root) {
     "data-visual-fallback=\"field-operations\"",
     ">REQUEST ROUTE IQ<",
     "U.S. PATENT PENDING TECHNOLOGY",
-    "Field decision intelligence for outside-sales teams.",
+    "The representative intelligence layer for outside sales.",
+    "Route IQ learns the representative, not just the road.",
+    "these answers stay in this browser tab. They are not stored, sent with your request, or passed into production recommendations.",
     "organizes context so a person can compare approved opportunities",
-    "When evidence quality and coverage support it"
+    "Only authorized evidence with sufficient quality and coverage can strengthen a pattern."
   ]) assert.ok(`${source}\n${styles}`.includes(value), `Website invariant missing: ${value}`);
 
   for (const value of [
@@ -350,7 +352,7 @@ function verifyWebsiteAndClaims(root) {
   assert.doesNotMatch(`${source}\n${landing}`, /causal uplift|recommendation superiority/iu);
 
   assert.doesNotMatch(landing, /<link[^>]+rel="preload"[^>]+route-iq-field-operations\.jpg/iu);
-  assert.match(landing, /Prometheus Route IQ for Gyms \| Field Sales Intelligence/u);
+  assert.match(landing, /Prometheus Route IQ for Gyms \| Representative Intelligence/u);
   assert.match(landing, /01-772904932_1493675372780221_5358616428807129112_n-2\.jpeg/u);
   assert.match(source, /Built for private onboarding, executive review, and field operating discipline\./u);
   assert.match(source, /Request Investor Deck/u);

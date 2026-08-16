@@ -25,7 +25,7 @@ export const GYM_PREVIEW_ENVIRONMENT_REPORT_PATH =
 export const GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH =
   "overwatch/governance/route-iq-gym-preview-route-quality-runtime-surface-successor-v1.json";
 export const GYM_PREVIEW_VISUAL_SUCCESSOR_PATH =
-  "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json";
+  "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json";
 
 const read = path => readFileSync(resolve(root, path));
 const text = path => read(path).toString("utf8");
@@ -163,11 +163,11 @@ export function validateGymPreviewRouteQualitySuccessor(governance) {
 
 export function validateGymPreviewVisualSuccessor(successor) {
   assert.equal(successor.version,
-    "route-iq-overwatch-public-navigation-dashboard-visual-successor-v1");
-  assert.equal(successor.batchId, "BATCH-20260815-001");
+    "route-iq-representative-intelligence-public-experience-successor-v1");
+  assert.equal(successor.batchId, "BATCH-20260815-002");
   assert.equal(successor.status, "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR");
   assert.equal(successor.ownerSubsystem, "Prometheus Overwatch");
-  assert.equal(successor.implementationCommits.length, 6);
+  assert.equal(successor.implementationCommits.length, 4);
   assert.deepEqual(successor.navigationContract.publicRoutes,
     ["/", "/investors", "/thank-you"]);
   assert.equal(successor.navigationContract.legalRoutesRemainPublic, true);
@@ -180,8 +180,17 @@ export function validateGymPreviewVisualSuccessor(successor) {
     accent: "#ff6a00",
     themeColor: "#000000",
     operationalStatusColorsPreserved: true,
-    dashboardBehaviorChanged: false
+    dashboardBehaviorChanged: false,
+    retiredGreenLogoAbsent: true
   });
+  assert.deepEqual(successor.representativeLearningBoundary.questionIds, [
+    "languages", "conversationStyle", "fieldEnvironment", "energyWindow",
+    "interests", "conversationPace"
+  ]);
+  assert.equal(successor.representativeLearningBoundary.storage, "memory_only");
+  assert.equal(successor.representativeLearningBoundary.publicCrmTransmission, false);
+  assert.equal(successor.representativeLearningBoundary.productionRecommendationInfluence, false);
+  assert.equal(successor.representativeLearningBoundary.declaredPreferencesAreHypotheses, true);
   assert.equal(successor.releaseBoundary.productionDeploymentAuthorized, false);
   assert.equal(successor.releaseBoundary.productionStorageAccessAllowed, false);
   assert.equal(successor.releaseBoundary.publicPreviewOnly, true);
@@ -196,16 +205,31 @@ export function validateGymPreviewVisualSuccessor(successor) {
 function verifyWebsite(governance) {
   const landing = text("landing.html");
   const source = text("src/main.jsx");
+  const representativeStyle = text("src/route-iq-representative-style-preview.js");
   const scene = text("src/IntelligenceScene.jsx");
-  assert.match(landing, /Prometheus Route IQ for Gyms \| Field Sales Intelligence/u);
+  assert.match(landing, /Prometheus Route IQ for Gyms \| Representative Intelligence/u);
   for (const phrase of [
-    "Get Your Gym's Route Dashboard Built In 2 Hours",
-    "The Bigger Vision: The Intelligence Layer For All Outside Sales",
+    "Route IQ learns the representative, not just the road.",
+    "Request a Route IQ dashboard built around your field operation.",
+    "The Bigger Vision: A Representative Intelligence Layer For All Outside Sales",
     "Built for private onboarding, executive review, and field operating discipline.",
     "Request Investor Deck",
-    "Got it. Building your dashboard now.",
+    "Got it. Your Route IQ request is stored.",
+    "these answers stay in this browser tab. They are not stored, sent with your request, or passed into production recommendations.",
     "Gym sales is our first focused market."
   ]) assert.ok(source.includes(phrase), `Website phrase missing: ${phrase}`);
+  for (const phrase of [
+    "Which languages can you confidently use in a sales conversation?",
+    "Where do you naturally build the strongest rapport?",
+    "Which field environment brings out your best work?",
+    "When do you usually feel most effective in the field?",
+    "What do you genuinely enjoy outside work?",
+    "Only authorized field evidence can confirm, challenge, or strengthen it"
+  ]) assert.ok(representativeStyle.includes(phrase), `Representative profile invariant missing: ${phrase}`);
+  assert.doesNotMatch(source.slice(
+    source.indexOf("function RepresentativeStylePreview()"),
+    source.indexOf("function GymRequestForm()")
+  ), /fetch\(|localStorage|sessionStorage|indexedDB|document\.cookie/iu);
   for (const phrase of [
     "React.lazy(() => import(\"./IntelligenceScene.jsx\"))",
     "useScroll()",
@@ -336,8 +360,11 @@ export function verifyOverwatchGymFirstDualTrackPublicWebsitePreview({
   assert.deepEqual(protectedChanges, [
     "index.html",
     "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-identity-v1.json",
+    "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-protected-consumers-v1.json",
+    "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-verifier-composition-v1.json",
     "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json",
-    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs"
+    "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+    "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs"
   ]);
   assert.equal(report.verdict, "SOURCE_COMPLETE_ISOLATED_PREVIEW_QUALIFICATION_PENDING");
   if (requireClean) assert.equal(git("status", "--porcelain"), "");
