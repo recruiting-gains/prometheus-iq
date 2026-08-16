@@ -20,6 +20,8 @@ const FULL_SYSTEM_HARMONY_GOVERNANCE_PATH =
   "overwatch/governance/full-system-harmony-audit-v1.json";
 const LIVE_CANONICAL_IDENTITY_GOVERNANCE_PATH =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
+const DASHBOARD_VISUAL_SUCCESSOR_GOVERNANCE_PATH =
+  "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json";
 const CURRENT_READINESS_SUCCESSORS_PATH =
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
 const HISTORICAL_READINESS_GOVERNANCE_PATH =
@@ -88,14 +90,6 @@ const LIVE_CANONICAL_IDENTITY_PUBLIC_ASSET_COMMIT =
   "c4cb9150fb8ad218e34026a63fa577271860c270";
 const LIVE_CANONICAL_IDENTITY_PUBLIC_ASSET_TREE =
   "e7870b29540e0fb2fa89dbf691804192e3cf9c1d";
-const GYM_PREVIEW_CURRENT_DEPLOYMENT_ASSET_SHA256 =
-  "6a6dde7efd17144b91f5f294cd25c7cfaaf2ff1347e637d6e692f5ed66cdab3b";
-const GYM_PREVIEW_CURRENT_ROLLBACK_ARTIFACT_SHA256 =
-  "548a0a3f5d53b240b708e283ed18f2865a0c2dd2fdb041d5ccd405ce2e5bc4e0";
-const GYM_PREVIEW_CURRENT_PUBLIC_ASSET_COMMIT =
-  "c42576db4330e2ba42373df247e6a6c65172ff55";
-const GYM_PREVIEW_CURRENT_PUBLIC_ASSET_TREE =
-  "b19db314b3b4a1de582d01fdc31494466bb6d082";
 const UNATTENDED_GOVERNANCE_ID = "cloudflare-unattended-deployment-access-governance-v1";
 const ROUTE_IQ_3D_GOVERNANCE_ID = "route-iq-3d-visual-continuity-v1";
 const PACKAGE_PATH = "package.json";
@@ -1472,6 +1466,59 @@ function verifyRouteIqWebsitePositioningSuccessor(governance) {
   verifyExactCommit(ROUTE_IQ_WEBSITE_POSITIONING_SUCCESSOR.infrastructure);
 }
 
+function verifyDashboardVisualReleaseSuccessor() {
+  const successor = readJson(DASHBOARD_VISUAL_SUCCESSOR_GOVERNANCE_PATH);
+  assert.equal(
+    successor.version,
+    "route-iq-overwatch-public-navigation-dashboard-visual-successor-v1"
+  );
+  assert.equal(successor.batchId, "BATCH-20260815-001");
+  assert.equal(successor.status, "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Overwatch");
+  for (const predecessor of successor.predecessors) {
+    assert.equal(sha256(read(predecessor.path)), predecessor.sha256);
+    assert.equal(predecessor.remainsHistorical, true);
+    assert.equal(predecessor.rewritten, false);
+  }
+  for (const implementation of successor.implementationCommits) {
+    const identity = commitIdentity(implementation.commit);
+    assert.equal(identity.author, implementation.identity);
+    assert.equal(identity.committer, implementation.identity);
+    assert.deepEqual(identity.parents, [implementation.parent]);
+    assert.equal(identity.tree, implementation.tree);
+    assert.equal(
+      git(["show", "-s", "--format=%s", implementation.commit]),
+      implementation.subject
+    );
+    assert.deepEqual(
+      commitPaths(implementation.commit).sort(),
+      [...implementation.changedFiles].sort()
+    );
+    assert.doesNotThrow(() => git([
+      "merge-base", "--is-ancestor", implementation.commit, "HEAD"
+    ]));
+  }
+  assert.equal(
+    sha256(read(successor.intelligenceProvenance.path)),
+    successor.intelligenceProvenance.sha256
+  );
+  for (const contract of Object.values(successor.currentContracts)) {
+    assert.equal(sha256(read(contract.path)), contract.sha256);
+  }
+  assert.equal(
+    git(["show", "-s", "--format=%T", successor.releaseIdentities.websiteCommit]),
+    successor.releaseIdentities.websiteTree
+  );
+  assert.equal(successor.releaseBoundary.productionDeploymentAuthorized, false);
+  assert.equal(successor.releaseBoundary.productionStorageAccessAllowed, false);
+  assert.equal(successor.protectedState.collection, "OFF");
+  assert.equal(successor.protectedState.activeCohorts, 0);
+  assert.equal(successor.protectedState.recommendationInfluence, "OFF");
+  assert.equal(successor.protectedState.productionDeployments, 0);
+  assert.equal(successor.protectedState.productionDataMutations, 0);
+  return successor;
+}
+
 export function verifyOverwatchPublicDeploymentWorkflowV2() {
   const governance = readJson(GOVERNANCE_PATH);
   const ownerContract = readJson(OWNER_CONTRACT_PATH);
@@ -1667,27 +1714,28 @@ export function verifyOverwatchPublicDeploymentWorkflowV2() {
     liveCanonicalIdentity.releasePreparation?.publicRollback?.artifactSha256,
     LIVE_CANONICAL_IDENTITY_ROLLBACK_ARTIFACT_SHA256
   );
+  const dashboardVisualSuccessor = verifyDashboardVisualReleaseSuccessor();
   const assets = verifyRouteIqPublicDeploymentAssets({ build: false });
   assert.equal(
     assets.deploymentAssetsSha256,
-    GYM_PREVIEW_CURRENT_DEPLOYMENT_ASSET_SHA256
+    dashboardVisualSuccessor.releaseIdentities.deploymentAssetSha256
   );
   assert.equal(
     assets.candidateWebsiteCommit,
-    GYM_PREVIEW_CURRENT_PUBLIC_ASSET_COMMIT
+    dashboardVisualSuccessor.releaseIdentities.websiteCommit
   );
   assert.equal(
     assets.candidateWebsiteTree,
-    GYM_PREVIEW_CURRENT_PUBLIC_ASSET_TREE
+    dashboardVisualSuccessor.releaseIdentities.websiteTree
   );
   const rollback = verifyPublicForwardRollbackArtifact(root);
   assert.equal(
     rollback.artifactSha256,
-    GYM_PREVIEW_CURRENT_ROLLBACK_ARTIFACT_SHA256
+    dashboardVisualSuccessor.releaseIdentities.rollbackBundleSha256
   );
   assert.equal(
     rollback.candidateDeploymentAssetsSha256,
-    GYM_PREVIEW_CURRENT_DEPLOYMENT_ASSET_SHA256
+    dashboardVisualSuccessor.releaseIdentities.deploymentAssetSha256
   );
   return Object.freeze({ status: "OVERWATCH_PUBLIC_DEPLOYMENT_WORKFLOW_V2_VERIFIED" });
 }

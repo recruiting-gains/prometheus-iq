@@ -370,6 +370,8 @@ test("historical gates accept only an exact governed Workflow v2 package success
 });
 
 test("historical verifier successors preserve path ownership across unrelated owner commits", () => {
+  const verifierPath = "scripts/verify-overwatch-cloudflare-unattended-access.mjs";
+  const currentVerifierSha256 = sha256(read(verifierPath));
   const laterInfrastructureCommits = execFileSync("/usr/bin/git", [
     "log",
     "--format=%H",
@@ -378,9 +380,9 @@ test("historical verifier successors preserve path ownership across unrelated ow
   ], { encoding: "utf8" }).trim().split("\n").filter(Boolean);
   assert.ok(laterInfrastructureCommits.length > 0);
   assert.equal(hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
-    path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+    path: verifierPath,
     historicalSha256: "766abafe2ef2d8d30b862b8b635424d622faad526732eb4893f1645b3186bf94",
-    successorSha256: "b67044f12e6ec19782f1e34e1a009b8a8cb6fc1d84f1c4d11bea45a381107cc8"
+    successorSha256: currentVerifierSha256
   }), true);
   for (const patch of [
     { path: "src/App.jsx" },
@@ -389,9 +391,9 @@ test("historical verifier successors preserve path ownership across unrelated ow
     { successorSha256: "f".repeat(64) }
   ]) {
     assert.equal(hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
-      path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+      path: verifierPath,
       historicalSha256: "766abafe2ef2d8d30b862b8b635424d622faad526732eb4893f1645b3186bf94",
-      successorSha256: "b67044f12e6ec19782f1e34e1a009b8a8cb6fc1d84f1c4d11bea45a381107cc8",
+      successorSha256: currentVerifierSha256,
       ...patch
     }), false);
   }

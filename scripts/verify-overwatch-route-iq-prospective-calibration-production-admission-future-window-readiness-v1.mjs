@@ -21,6 +21,8 @@ const governancePath =
   "overwatch/governance/route-iq-prospective-calibration-production-admission-future-window-readiness-v1.json";
 const reportPath =
   "overwatch/reports/BATCH-20260814-001-route-iq-prospective-calibration-production-admission-future-window-readiness.json";
+const privateWorkflowGovernancePath =
+  "overwatch/governance/github-actions-private-worker-deployment-v2.json";
 
 const read = path => readFileSync(resolve(root, path));
 const readText = path => read(path).toString("utf8");
@@ -81,7 +83,50 @@ function verifyWorkflowPins(governance) {
     /actions\/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02/u);
   assert.match(deployment,
     /actions\/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0/u);
-  assert.equal(sha256(read(handoff.workflowContract.path)), handoff.workflowContract.sha256);
+  const privateWorkflowGovernance = readJson(privateWorkflowGovernancePath);
+  const visualSuccessor = privateWorkflowGovernance.dashboardVisualDeployParitySuccessor;
+  assert.equal(visualSuccessor.authorization, "BATCH-20260815-001");
+  assert.equal(visualSuccessor.historicalContinuityRewritten, false);
+  assert.equal(visualSuccessor.productionMutationAuthorized, false);
+  assert.equal(visualSuccessor.deploymentAuthorized, false);
+  assert.deepEqual(git(
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    visualSuccessor.implementationCommit
+  ).split("\n"), [
+    visualSuccessor.implementationCommit,
+    visualSuccessor.implementationParent,
+    visualSuccessor.implementationTree,
+    visualSuccessor.implementationOwner,
+    visualSuccessor.implementationOwner,
+    visualSuccessor.implementationSubject
+  ]);
+  assert.deepEqual(
+    git(
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      visualSuccessor.implementationCommit
+    ).split("\n").filter(Boolean).sort(),
+    visualSuccessor.evidence.map(({ path }) => path).sort()
+  );
+  const workflowContractSuccessor = visualSuccessor.evidence.find(
+    ({ path }) => path === handoff.workflowContract.path
+  );
+  assert.ok(workflowContractSuccessor,
+    "Dashboard visual private-workflow contract successor is absent.");
+  assert.equal(
+    workflowContractSuccessor.previousSha256,
+    handoff.workflowContract.sha256
+  );
+  assert.equal(
+    sha256(read(handoff.workflowContract.path)),
+    workflowContractSuccessor.successorSha256
+  );
+  assert.deepEqual(visualSuccessor.protectedState, {
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    productionDeployments: 0,
+    productionMutations: 0
+  });
   assert.equal(sha256(read(handoff.privateRollbackContractSource.path)),
     handoff.privateRollbackContractSource.sha256);
   assert.equal(sha256(read(handoff.privateRollbackWranglerSource.path)),
