@@ -42,6 +42,11 @@ const dashboardVisualGovernance = () => JSON.parse(readFileSync(
   "utf8"
 ));
 
+const representativeIntelligenceGovernance = () => JSON.parse(readFileSync(
+  "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json",
+  "utf8"
+));
+
 test("Overwatch verifies the exact owner chain and dormant deletion release boundary", () => {
   assert.deepEqual(verifyOverwatchRouteIqRetentionDeletionRuntime(), {
     status: "PASS",
@@ -237,18 +242,30 @@ test("retention composes only the exact governed protected-runtime successors", 
     "deploy/cloudflare-pages/manifest-founder.webmanifest",
     "deploy/cloudflare-pages/manifest.webmanifest"
   ];
+  const representativeIntelligenceRecord = representativeIntelligenceGovernance();
+  const representativeSuccessorPaths = representativeIntelligenceRecord
+    .implementationCommits.at(-1).changedFiles.filter(isProtectedRuntimePath);
+  const preRepresentativePaths = [...new Set([
+    ...node24WorkflowPaths,
+    ...governedLearningPaths,
+    ...dashboardVisualPaths
+  ])];
+  const representativeFinalPaths = [...new Set([
+    ...preRepresentativePaths,
+    ...representativeSuccessorPaths
+  ])];
   const input = {
-    protectedRuntimeChanges: [...new Set([
-      ...node24WorkflowPaths,
-      ...governedLearningPaths,
-      ...dashboardVisualPaths
-    ])],
+    protectedRuntimeChanges: [...representativeFinalPaths],
     node24WorkflowPaths,
     governedLearning: governedLearningVerification,
     gymPreviewGovernance: gymPreviewRecord,
     gymPreviewProtectedRuntimeChanges: gymPreviewPaths,
     dashboardVisualGovernance: dashboardVisualRecord,
-    dashboardVisualProtectedRuntimeChanges: dashboardVisualPaths
+    dashboardVisualProtectedRuntimeChanges: dashboardVisualPaths,
+    representativeIntelligenceGovernance: representativeIntelligenceRecord,
+    representativeSuccessorProtectedRuntimeChanges: representativeSuccessorPaths,
+    preRepresentativeProtectedRuntimeChanges: preRepresentativePaths,
+    representativeFinalProtectedRuntimeChanges: representativeFinalPaths
   };
   assert.equal(verifyRetentionProtectedRuntimeSuccessors(input), true);
   for (const mutate of [
@@ -286,7 +303,21 @@ test("retention composes only the exact governed protected-runtime successors", 
       value.dashboardVisualGovernance.releaseBoundary.productionDeploymentAuthorized = true;
     },
     value => { value.dashboardVisualGovernance.protectedState.productionDeployments = 1; },
-    value => { value.dashboardVisualProtectedRuntimeChanges.pop(); }
+    value => { value.dashboardVisualProtectedRuntimeChanges.pop(); },
+    value => { value.representativeIntelligenceGovernance.batchId = "BATCH-STALE"; },
+    value => {
+      value.representativeIntelligenceGovernance.implementationCommits.at(-1).changedFiles.pop();
+    },
+    value => {
+      value.representativeIntelligenceGovernance.releaseBoundary.productionDeploymentAuthorized = true;
+    },
+    value => {
+      value.representativeIntelligenceGovernance.representativeLearningBoundary
+        .productionRecommendationInfluence = true;
+    },
+    value => { value.representativeSuccessorProtectedRuntimeChanges.pop(); },
+    value => { value.preRepresentativeProtectedRuntimeChanges.pop(); },
+    value => { value.representativeFinalProtectedRuntimeChanges.pop(); }
   ]) {
     const candidate = structuredClone(input);
     mutate(candidate);
