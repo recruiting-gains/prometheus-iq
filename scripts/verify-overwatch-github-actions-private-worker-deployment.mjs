@@ -22,6 +22,7 @@ import {
 import { validateAugust1ReadinessSuccessors } from
   "./verify-overwatch-route-iq-august-1-launch-readiness.mjs";
 import {
+  verifyDashboardPublicVisualIdentitySuccessor,
   verifyControlledOnboardingRehearsalSmokeContractSuccessor,
   verifyGovernedMultiSessionLearningAdvisorySuccessor
 } from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
@@ -1222,6 +1223,24 @@ const v2GovernedLearningProtectedConsumerCompositionEvidence = Object.freeze({
   })
 });
 
+const v2DashboardVisualProtectedConsumerCompositionCommit =
+  "9ac2bbad0f75a5a4d714905483576f0da8929c9c";
+const v2DashboardVisualProtectedConsumerCompositionParent =
+  "09e86b246fbbc0bd7ac3693e0d6abe080b2a228d";
+const v2DashboardVisualProtectedConsumerCompositionTree =
+  "8548d49023cfd7cedc854011ab05a88f146591f8";
+const v2DashboardVisualProtectedConsumerCompositionEvidence = Object.freeze({
+  "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs":
+    Object.freeze({
+      previousSha256: "27d87421ad191d86599524a6e4dac966b8741ffc7a5a8b065eb0cc7caf3dc3d9",
+      currentSha256: "78a502b562ca7eb6c21800f616418a551656728367a7e523ed7e4ef7c42cd828"
+    }),
+  "tests/intelligence-architecture.test.mjs": Object.freeze({
+    previousSha256: "917f8a4fb2f6cf13dc0f545f8ed2cea1e0f128234ab8ef3f8212ae5e0bcb8807",
+    currentSha256: "b35f6bb9d978113170f987fd10cc273fbc176343ed330e079deb1cdad83c0223"
+  })
+});
+
 const v2LiveCanonicalIdentityOffRouteBaselineRepairHashes = Object.freeze({
   "tests/off-route-learning-intelligence.test.mjs":
     "5c24ea2615105a3e9403450ee4e68747c8508257eec4ca844a070b8a6b9395e0"
@@ -1896,6 +1915,60 @@ export function hasGovernedLearningProtectedConsumerCompositionSuccessor({
       ])
       && equal(paths,
         Object.keys(v2GovernedLearningProtectedConsumerCompositionEvidence).sort())
+      && sha256(previous) === previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
+
+export function hasDashboardVisualProtectedConsumerCompositionSuccessor({
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const evidence = v2DashboardVisualProtectedConsumerCompositionEvidence[path];
+  if (!evidence
+    || evidence.previousSha256 !== previousSha256
+    || evidence.currentSha256 !== currentSha256) {
+    return false;
+  }
+  try {
+    const visualSuccessor = verifyDashboardPublicVisualIdentitySuccessor();
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      v2DashboardVisualProtectedConsumerCompositionCommit
+    ]).split("\n");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r",
+      v2DashboardVisualProtectedConsumerCompositionCommit
+    ]).split("\n").filter(Boolean);
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${v2DashboardVisualProtectedConsumerCompositionParent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${v2DashboardVisualProtectedConsumerCompositionCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor",
+      v2DashboardVisualProtectedConsumerCompositionCommit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return visualSuccessor.successor.version ===
+        "route-iq-intelligence-dashboard-public-visual-identity-successor-v1"
+      && visualSuccessor.successor.behavior.intelligenceRuntimeChanged === false
+      && visualSuccessor.successor.protectedState.collection === "OFF"
+      && visualSuccessor.successor.protectedState.activeCohorts === 0
+      && visualSuccessor.successor.protectedState.recommendationInfluence === "OFF"
+      && equal(fields, [
+        v2DashboardVisualProtectedConsumerCompositionCommit,
+        v2DashboardVisualProtectedConsumerCompositionParent,
+        v2DashboardVisualProtectedConsumerCompositionTree,
+        intelligenceIdentity,
+        intelligenceIdentity,
+        "intelligence: compose dashboard visual protected consumers"
+      ])
+      && equal(paths,
+        Object.keys(v2DashboardVisualProtectedConsumerCompositionEvidence).sort())
       && sha256(previous) === previousSha256
       && sha256(current) === currentSha256;
   } catch {
@@ -6959,6 +7032,11 @@ function verifyV2OwnerAndGovernance() {
         currentSha256: candidateSha256
       })
       || hasGovernedLearningProtectedConsumerCompositionSuccessor({
+        path,
+        previousSha256: expected,
+        currentSha256: candidateSha256
+      })
+      || hasDashboardVisualProtectedConsumerCompositionSuccessor({
         path,
         previousSha256: expected,
         currentSha256: candidateSha256

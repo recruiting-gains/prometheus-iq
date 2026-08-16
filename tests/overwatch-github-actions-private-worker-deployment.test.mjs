@@ -22,6 +22,7 @@ import {
   hasActivePrivateDeploymentToolchainInfrastructureSuccessor,
   hasCloudflareToolchainInfrastructureSuccessor,
   hasControlledRehearsalNode24InfrastructureSuccessor,
+  hasDashboardVisualProtectedConsumerCompositionSuccessor,
   hasFieldSessionReportTypeInfrastructureSuccessor,
   hasGovernedLearningProtectedConsumerCompositionSuccessor,
   hasGovernedLearningPayloadInfrastructureSuccessor,
@@ -616,7 +617,8 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
     path: protectedConsumerPath,
     previousSha256:
       "da7660a5e7e846f772ee9ef59d8bae502a2c43942a2eeec65639d4df9ba687cb",
-    currentSha256: sha256(readFileSync(resolve(root, protectedConsumerPath)))
+    currentSha256:
+      "27d87421ad191d86599524a6e4dac966b8741ffc7a5a8b065eb0cc7caf3dc3d9"
   }), true);
   assert.equal(hasGovernedLearningProtectedConsumerCompositionSuccessor({
     path: protectedConsumerPath,
@@ -624,6 +626,25 @@ test("private Workflow v2 accepts only owner-proven canonical identity assets", 
       "da7660a5e7e846f772ee9ef59d8bae502a2c43942a2eeec65639d4df9ba687cb",
     currentSha256: "0".repeat(64)
   }), false);
+  assert.equal(hasDashboardVisualProtectedConsumerCompositionSuccessor({
+    path: protectedConsumerPath,
+    previousSha256:
+      "27d87421ad191d86599524a6e4dac966b8741ffc7a5a8b065eb0cc7caf3dc3d9",
+    currentSha256: sha256(readFileSync(resolve(root, protectedConsumerPath)))
+  }), true);
+  assert.equal(hasDashboardVisualProtectedConsumerCompositionSuccessor({
+    path: protectedConsumerPath,
+    previousSha256:
+      "27d87421ad191d86599524a6e4dac966b8741ffc7a5a8b065eb0cc7caf3dc3d9",
+    currentSha256: "0".repeat(64)
+  }), false);
+  const protectedConsumerTestPath = "tests/intelligence-architecture.test.mjs";
+  assert.equal(hasDashboardVisualProtectedConsumerCompositionSuccessor({
+    path: protectedConsumerTestPath,
+    previousSha256:
+      "917f8a4fb2f6cf13dc0f545f8ed2cea1e0f128234ab8ef3f8212ae5e0bcb8807",
+    currentSha256: sha256(readFileSync(resolve(root, protectedConsumerTestPath)))
+  }), true);
 
   const changed = clone(currentReadinessSuccessors);
   changed.successors.find(item => item.commit.startsWith("c4cb9150"))
