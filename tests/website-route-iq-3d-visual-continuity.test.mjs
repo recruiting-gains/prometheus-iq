@@ -76,10 +76,11 @@ test("current product claims, synthetic ProductView, and CRM request UX remain i
   const source = read("src/main.jsx");
 
   assert.match(source, /U\.S\. PATENT PENDING TECHNOLOGY/);
-  assert.match(source, /Prometheus\.IQ Field Decision Intelligence/);
-  assert.match(source, /Field decision intelligence for outside-sales teams/);
-  assert.match(source, /outside-sales leaders and representatives/);
-  assert.match(source, /More than businesses on a map/);
+  assert.match(source, /Prometheus\.IQ Representative Intelligence/);
+  assert.match(source, /The representative intelligence layer for outside sales/);
+  assert.match(source, /what representatives or leaders need to understand more clearly/);
+  assert.match(source, /A map treats representatives as interchangeable/);
+  assert.match(source, /Preferences are hypotheses, not proof/);
   assert.match(source, /Synthetic product view\. No customer or representative data is shown\./);
   assert.match(source, /<SectionLabel>Cross-industry configuration<\/SectionLabel>/);
   assert.match(source, /Success appears only after durable acceptance/);

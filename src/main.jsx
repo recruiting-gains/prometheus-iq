@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import prometheusLogoUrl from "../icons/prometheus-company-icon-512.png";
+import prometheusLogoUrl from "../icons/prometheus-company-icon-orange-v2.png";
 import {
   buildRouteIqRequestPayload,
   resolveAcquisitionSource,
@@ -15,6 +15,10 @@ import {
   preserveRouteIqGymAttribution,
   submitRouteIqGymRequest
 } from "./route-iq-gym-request-form.js";
+import {
+  buildRouteIqRepresentativeStylePreview,
+  routeIqRepresentativeStyleQuestions
+} from "./route-iq-representative-style-preview.js";
 import "./styles.css";
 
 const contactEmail = "prometheusrouteiq@gmail.com";
@@ -135,8 +139,8 @@ function SectionLabel({ children }) {
 
 const routeMetadata = Object.freeze({
   gym: Object.freeze({
-    title: "Prometheus Route IQ for Gyms | Field Sales Intelligence",
-    description: "Prometheus Route IQ builds field-sales dashboards for U.S. small and independent warehouse-style gyms, with GPS-verified context and people in control.",
+    title: "Prometheus Route IQ for Gyms | Representative Intelligence",
+    description: "Prometheus Route IQ connects representative working style, territory context, timing, and governed field outcomes to human-directed advisory routes for gym sales teams.",
     canonical: "https://prometheusrouteiq.com/",
     image: "https://prometheusrouteiq.com/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg",
     imageWidth: "2048",
@@ -145,7 +149,7 @@ const routeMetadata = Object.freeze({
   }),
   investors: Object.freeze({
     title: "Prometheus Route IQ | Investor Overview",
-    description: "Prometheus Route IQ is field decision intelligence for outside-sales teams, connecting territory, timing, field activity, and governed outcomes.",
+    description: "Prometheus Route IQ is representative intelligence for outside-sales teams, connecting how a person works with territory, timing, field activity, and governed outcomes.",
     canonical: "https://prometheusrouteiq.com/investors",
     image: "https://prometheusrouteiq.com/route-iq-field-operations-social.jpg",
     imageWidth: "1200",
@@ -245,27 +249,36 @@ function InternalLink({ href, children, onClick, ...props }) {
 function GlobalNav() {
   const links = [
     ["/#gym-form", "For Gym Owners"],
+    ["/#field-style", "How It Learns"],
     ["/investors", "For Investors"],
     ["/investors#industries", "For Enterprise"]
   ];
+  const investorRoute = normalizePublicPath(window.location.pathname) === "/investors";
 
   return (
-    <header className="site-header">
-      <InternalLink className="brand" href="/" aria-label="Prometheus Route IQ home">
-        <span className="brand-wordmark"><strong>PROMETHEUS.IQ</strong><small>ROUTE IQ</small></span>
-      </InternalLink>
-      <nav aria-label="Primary navigation">
-        {links.map(([href, label]) => <InternalLink href={href} key={href}>{label}</InternalLink>)}
-        <InternalLink className="header-action" href="/#gym-form">Get Dashboard</InternalLink>
-      </nav>
-      <details className="mobile-nav">
-        <summary aria-label="Open navigation menu">Menu</summary>
-        <div className="mobile-nav-panel">
+    <>
+      <div className="patent-banner" role="note" aria-label="Prometheus Route IQ patent designation">
+        <strong>U.S. PATENT PENDING</strong>
+        <span>{investorRoute ? "Built for private onboarding, executive review, and field operating discipline." : "Representative intelligence for outside sales"}</span>
+      </div>
+      <header className="site-header">
+        <InternalLink className="brand" href="/" aria-label="Prometheus Route IQ home">
+          <LogoMark />
+          <span className="brand-wordmark"><strong>PROMETHEUS.IQ</strong><small>ROUTE IQ</small></span>
+        </InternalLink>
+        <nav aria-label="Primary navigation">
           {links.map(([href, label]) => <InternalLink href={href} key={href}>{label}</InternalLink>)}
-          <InternalLink className="header-action" href="/#gym-form">Get Dashboard</InternalLink>
-        </div>
-      </details>
-    </header>
+          <InternalLink className="header-action" href="/#gym-form">Request Route IQ</InternalLink>
+        </nav>
+        <details className="mobile-nav">
+          <summary aria-label="Open navigation menu">Menu</summary>
+          <div className="mobile-nav-panel">
+            {links.map(([href, label]) => <InternalLink href={href} key={href}>{label}</InternalLink>)}
+            <InternalLink className="header-action" href="/#gym-form">Request Route IQ</InternalLink>
+          </div>
+        </details>
+      </header>
+    </>
   );
 }
 
@@ -275,10 +288,11 @@ function GlobalFooter() {
       <div className="shell footer-grid">
         <div className="footer-brand">
           <span className="brand-wordmark"><strong>PROMETHEUS.IQ</strong><small>ROUTE IQ</small></span>
-          <span>Field decision intelligence for outside-sales teams.</span>
+          <span>Human-directed representative intelligence for outside-sales teams.</span>
         </div>
         <div className="footer-links">
           <InternalLink href="/#gym-form">For Gym Owners</InternalLink>
+          <InternalLink href="/#field-style">How It Learns</InternalLink>
           <InternalLink href="/investors">For Investors</InternalLink>
           <InternalLink href="/investors#industries">For Enterprise</InternalLink>
           <InternalLink href="/privacy">Privacy</InternalLink>
@@ -287,7 +301,7 @@ function GlobalFooter() {
           <a href={`mailto:${contactEmail}`}>Contact</a>
           <a href={instagramUrl}>Instagram</a>
         </div>
-        <p className="footer-note">Route IQ complements the CRM and mapping tools an outside-sales organization already uses. It brings field context, activity, and outcomes together to support better-informed human decisions.</p>
+        <p className="footer-note">Route IQ complements the CRM and mapping tools an outside-sales organization already uses. It connects declared representative context with governed field activity and outcomes so evidence can support better-informed human decisions.</p>
         <p className="footer-designation"><span>PROMETHEUS ROUTE IQ&trade;</span><span>U.S. PATENT PENDING</span></p>
       </div>
     </footer>
@@ -324,8 +338,99 @@ function MobileGymCta() {
       aria-hidden={formVisible ? "true" : undefined}
       tabIndex={formVisible ? -1 : undefined}
     >
-      Get Dashboard
+      Request Route IQ
     </InternalLink>
+  );
+}
+
+function RepresentativeStylePreview() {
+  const [answers, setAnswers] = useState(() => Object.fromEntries(
+    routeIqRepresentativeStyleQuestions.map(question => [question.id, question.mode === "multiple" ? [] : ""])
+  ));
+  const preview = buildRouteIqRepresentativeStylePreview(answers);
+
+  const choose = (question, value) => {
+    setAnswers(current => {
+      if (question.mode === "single") return { ...current, [question.id]: value };
+
+      const selected = Array.isArray(current[question.id]) ? current[question.id] : [];
+      if (value === "prefer_not_to_say") {
+        return { ...current, [question.id]: selected.includes(value) ? [] : [value] };
+      }
+      const withoutDecline = selected.filter(item => item !== "prefer_not_to_say");
+      const next = withoutDecline.includes(value)
+        ? withoutDecline.filter(item => item !== value)
+        : [...withoutDecline, value];
+      return { ...current, [question.id]: next };
+    });
+  };
+
+  const reset = () => setAnswers(Object.fromEntries(
+    routeIqRepresentativeStyleQuestions.map(question => [question.id, question.mode === "multiple" ? [] : ""])
+  ));
+
+  return (
+    <section id="field-style" className="field-style-section" aria-labelledby="field-style-title">
+      <div className="shell field-style-intro">
+        <div>
+          <SectionLabel>Representative learning preview</SectionLabel>
+          <h2 id="field-style-title">Route IQ learns the representative, not just the road.</h2>
+        </div>
+        <div className="field-style-intro-copy">
+          <p>Start with how a person communicates, where they build rapport, when their energy is strongest, and which communities they understand naturally.</p>
+          <p>Those answers create hypotheses. Governed visit and outcome evidence must confirm or challenge them before they can influence an advisory route. The representative remains in control.</p>
+        </div>
+      </div>
+
+      <div className="shell field-style-tool" data-storage="memory-only">
+        <div className="field-style-questions" aria-describedby="field-style-privacy">
+          {routeIqRepresentativeStyleQuestions.map((question, index) => (
+            <fieldset key={question.id}>
+              <legend><span>{String(index + 1).padStart(2, "0")}</span>{question.legend}</legend>
+              <div className="field-style-options">
+                {question.options.map(option => {
+                  const current = answers[question.id];
+                  const selected = Array.isArray(current) ? current.includes(option.value) : current === option.value;
+                  return (
+                    <button
+                      type="button"
+                      className={selected ? "is-selected" : ""}
+                      aria-pressed={selected}
+                      onClick={() => choose(question, option.value)}
+                      key={option.value}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ))}
+          <p id="field-style-privacy" className="field-style-privacy"><strong>Private preview:</strong> these answers stay in this browser tab. They are not stored, sent with your request, or passed into production recommendations.</p>
+        </div>
+
+        <aside className="field-style-result" aria-live="polite" aria-atomic="true">
+          <div className="field-style-result-head">
+            <span>Field-style hypothesis</span>
+            <strong>{preview.answeredCount}/{preview.totalQuestions} signals</strong>
+          </div>
+          <h3>{preview.complete ? "A starting profile, ready to test against evidence." : "Your representative profile is taking shape."}</h3>
+          <dl>
+            {preview.signals.map(signal => (
+              <div key={signal.label}>
+                <dt>{signal.label}</dt>
+                <dd>{signal.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="field-style-boundary">{preview.boundary}</p>
+          <div className="field-style-actions">
+            <a className="button primary" href="#gym-form">Request Route IQ</a>
+            <button className="field-style-reset" type="button" onClick={reset}>Reset profile</button>
+          </div>
+        </aside>
+      </div>
+    </section>
   );
 }
 
@@ -419,14 +524,14 @@ function GymRequestForm() {
           <span>I agree that Prometheus.IQ may use this information to respond to my Route IQ request.</span>
         </label>
         <button className="button primary gym-request-submit" type="submit" disabled={submitting}>
-          {submitting ? "Building..." : "Build My Dashboard"}
+          {submitting ? "Submitting..." : "Request My Dashboard"}
         </button>
       </div>
       <label className="honeypot" aria-hidden="true">
         <span>Website</span>
         <input name="websiteUrl" tabIndex="-1" autoComplete="off" />
       </label>
-      <p id="gym-request-note" className="gym-request-note">We manually build it. You'll get login + Loom walkthrough in ∼2 hours.</p>
+      <p id="gym-request-note" className="gym-request-note">Success appears only after durable acceptance. Your private field-style preview is not included with this request.</p>
       <div className={`gym-request-status ${status.kind}`} role="status" aria-live="polite" aria-atomic="true">
         {status.message}
       </div>
@@ -437,7 +542,7 @@ function GymRequestForm() {
 function GymPage() {
   return (
     <main className="gym-page">
-      <a className="skip-link" href="#gym-form">Skip to the gym request form</a>
+      <a className="skip-link" href="#field-style">Skip to the representative learning preview</a>
       <GlobalNav />
       <section id="top" className="gym-hero-section" aria-labelledby="gym-hero-heading">
         <h1 id="gym-hero-heading" className="visually-hidden">Gym Owners: 29 Members In 48 Hours. $0 Ad Spend.</h1>
@@ -452,14 +557,29 @@ function GymPage() {
             fetchPriority="high"
           />
         </picture>
+        <div className="shell gym-positioning-band">
+          <div>
+            <SectionLabel>Prometheus Route IQ for gyms</SectionLabel>
+            <h2>Outside-sales intelligence built around the person doing the work.</h2>
+          </div>
+          <div className="gym-positioning-copy">
+            <p>Route IQ starts with how each representative communicates, where they build rapport, and when they perform at their best. Governed field outcomes can then test those hypotheses over time.</p>
+            <div className="gym-hero-actions">
+              <a className="button primary" href="#field-style">Build My Field Style</a>
+              <a className="button secondary" href="#gym-form">Request Route IQ</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <RepresentativeStylePreview />
+
+      <section className="gym-request-section" aria-labelledby="gym-form-title">
         <div className="shell gym-request-band">
           <div className="gym-request-copy">
-            <SectionLabel>Prometheus Route IQ for gyms</SectionLabel>
-            <h2 id="gym-form-title">Get Your Gym's Route Dashboard Built In 2 Hours</h2>
-            <div className="gym-hero-offer">
-              <a className="button primary" href="#gym-form">Get My Gym Dashboard</a>
-              <p>Dashboard built in 2 hours.</p>
-            </div>
+            <SectionLabel>Bring Route IQ to your team</SectionLabel>
+            <h2 id="gym-form-title">Request a Route IQ dashboard built around your field operation.</h2>
+            <p>Share only the business contact details needed for Founder review. Representative profile answers belong in governed onboarding, not a public lead form.</p>
           </div>
           <GymRequestForm />
         </div>
@@ -480,20 +600,20 @@ function GymPage() {
           </picture>
           <div className="gym-intelligence-copy">
             <SectionLabel>Why Prometheus is different</SectionLabel>
-            <h2>A field system built around what happens beyond the map.</h2>
+            <h2>A representative intelligence loop built around what happens beyond the map.</h2>
             <div className="gym-intelligence-columns">
               <article>
-                <h3>Know Where To Go</h3>
-                <p>Use territory, timing, and field context to focus the next-stop plan.</p>
+                <h3>Learn The Rep</h3>
+                <p>Begin with declared language, conversation style, environment, timing, and affinity context instead of treating every representative the same.</p>
               </article>
               <article>
-                <h3>Verify The Visit</h3>
-                <strong>GPS Verified Without Surveillance</strong>
-                <p>Confirm approved field visits while people stay in control.</p>
+                <h3>Test The Context</h3>
+                <strong>Governed evidence, not guesswork</strong>
+                <p>Compare authorized visits and outcomes with those starting hypotheses while review requirements and human control remain intact.</p>
               </article>
               <article>
-                <h3>Track The Outcome</h3>
-                <p>Connect each visit to its result so owners can see what field activity produced.</p>
+                <h3>Explain The Next Move</h3>
+                <p>Show why an approved opportunity fits the current context without claiming that proximity alone, a preference, or generic AI advice proves the answer.</p>
               </article>
             </div>
           </div>
@@ -503,9 +623,9 @@ function GymPage() {
       <section className="gym-bridge-section">
         <div className="shell gym-bridge-layout">
           <div className="gym-bridge-copy">
-            <h2>The Bigger Vision: The Intelligence Layer For All Outside Sales</h2>
+            <h2>The Bigger Vision: A Representative Intelligence Layer For All Outside Sales</h2>
             <p>Gym sales is our first focused market.</p>
-            <p>Horizontal infrastructure for home services, healthcare, commercial, retail, B2B.</p>
+            <p>The same governed loop can adapt to home services, healthcare, commercial, retail, and B2B through operating profiles, evidence rules, and human control.</p>
           </div>
           <InternalLink className="button secondary" href="/investors">EXPLORE THE FULL PLATFORM</InternalLink>
         </div>
@@ -530,13 +650,13 @@ function ThankYouPage() {
           {hasCanonicalReceipt ? (
             <>
               <SectionLabel>Route IQ request</SectionLabel>
-              <h1>Got it. Building your dashboard now.</h1>
-              <p>We're building your gym's custom route dashboard. You'll get email with login + Loom walkthrough in ∼2 hours from Prometheusrouteiq@gmail.com. Check spam.</p>
+              <h1>Got it. Your Route IQ request is stored.</h1>
+              <p>Prometheus.IQ will review your gym, field operation, and requested dashboard. If the request is a fit, the Founder will follow up with next steps.</p>
               <p className="thank-you-receipt">Receipt <strong>{receipt}</strong></p>
               <ol className="thank-you-steps">
-                <li><strong>We build now</strong></li>
-                <li><strong>You get login</strong></li>
-                <li><strong>Reps get first route today</strong></li>
+                <li><strong>Request stored</strong><span>Your receipt proves durable acceptance.</span></li>
+                <li><strong>Founder review</strong><span>Prometheus.IQ checks the operating fit and next step.</span></li>
+                <li><strong>Governed onboarding</strong><span>No representative profile or route is activated by this public request.</span></li>
               </ol>
               <InternalLink className="button primary" href="/">Back to Home</InternalLink>
             </>
@@ -544,8 +664,8 @@ function ThankYouPage() {
             <>
               <SectionLabel>Route IQ request</SectionLabel>
               <h1>Receipt unavailable.</h1>
-              <p>This page does not confirm a request. Return to the gym request form and wait for a receipt before leaving.</p>
-              <InternalLink className="button primary" href="/#gym-form">Return To Gym Form</InternalLink>
+              <p>This page does not confirm a request. Return to the Route IQ request form and wait for a receipt before leaving.</p>
+              <InternalLink className="button primary" href="/#gym-form">Return To Request Form</InternalLink>
             </>
           )}
         </div>
@@ -728,17 +848,17 @@ function InvestorPage() {
   const sceneScale = useTransform(scrollYProgress, [0, 0.22], [1, 0.92]);
   const sceneOpacity = useTransform(scrollYProgress, [0, 0.28], [1, 0.58]);
   const intelligenceLoop = [
-    ["01", "Observe", "Capture approved opportunity context, timing, field activity, and outcomes as the work happens."],
-    ["02", "Connect", "Keep each action connected to the representative, territory, conditions, and result that shaped it."],
-    ["03", "Learn", "When evidence quality and coverage support it, governed outcomes can contribute to authorized patterns over time."],
-    ["04", "Support", "Make approved field context easier to compare while keeping the representative and leader in control."]
+    ["01", "Understand", "Start with the representative's declared language, conversation style, field environment, timing, and operating constraints."],
+    ["02", "Observe", "Connect authorized field activity and outcomes to the representative, territory, conditions, and result that shaped them."],
+    ["03", "Learn", "Let sufficient governed evidence confirm, challenge, or retire a representative-specific hypothesis over time."],
+    ["04", "Explain", "Present advisory context and its evidence boundary while keeping the representative and leader in control."]
   ];
 
   const capabilities = [
     ["Opportunity focus", "Bring approved opportunities and the context needed to choose among them into one field workflow."],
     ["Timing and availability", "Help representatives avoid wasted stops by keeping operating windows and visit timing visible."],
     ["Territory awareness", "Connect field activity to the territory, account context, and local conditions surrounding it."],
-    ["Representative context", "Keep representative-specific evidence isolated so authorized patterns can be evaluated over time when quality and coverage support them."],
+    ["Representative context", "Keep each person's declared working style and authorized evidence isolated so patterns can be evaluated without treating representatives as interchangeable."],
     ["Fast outcome capture", "Record what happened while the visit is still fresh, with the context needed to learn from it later."],
     ["Leadership visibility", "Show field coverage, outcomes, and emerging patterns without turning the product into employee surveillance."]
   ];
@@ -755,10 +875,6 @@ function InvestorPage() {
   return (
     <main className="investor-page">
       <a className="skip-link" href="#how-it-works">Skip to how Route IQ works</a>
-      <div className="investor-top-line">
-        <span>Built for private onboarding, executive review, and field operating discipline.</span>
-        <a href={investorDeckEmail}>Request Investor Deck</a>
-      </div>
       <GlobalNav />
 
       <section id="top" className="hero-section">
@@ -779,20 +895,20 @@ function InvestorPage() {
           transition={{ duration: prefersReducedMotion ? 0 : 0.72 }}
         >
           <p className="patent-label">U.S. PATENT PENDING TECHNOLOGY</p>
-          <SectionLabel>Prometheus.IQ Field Decision Intelligence</SectionLabel>
+          <SectionLabel>Prometheus.IQ Representative Intelligence</SectionLabel>
           <h1>Prometheus Route IQ</h1>
-          <p className="hero-statement">Field decision intelligence for outside-sales teams.</p>
-          <p className="hero-detail">Route IQ brings approved business context, territory, timing, availability, field activity, and governed outcome context together so outside-sales leaders and representatives can compare opportunities with better information.</p>
-          <p className="hero-difference">More than businesses on a map, Route IQ supports the action between one CRM record and the next while keeping people in control.</p>
+          <p className="hero-statement">The representative intelligence layer for outside sales.</p>
+          <p className="hero-detail">Route IQ connects how each representative works with approved business context, territory, timing, availability, field activity, and governed outcomes so advisory routes can become more personally relevant as evidence earns trust.</p>
+          <p className="hero-difference">A map treats representatives as interchangeable. Route IQ begins with the person, tests hypotheses against authorized evidence, explains the context, and keeps the human decision in control.</p>
           <div className="hero-actions">
             <a className="button primary" href="#request">REQUEST ROUTE IQ</a>
             <a className="button secondary" href="#how-it-works">See How Route IQ Works</a>
           </div>
         </motion.div>
         <div className="hero-proof" aria-label="Route IQ customer value">
-          <span><b>Representatives</b> get clearer field context</span>
-          <span><b>Leaders</b> see execution patterns</span>
-          <span><b>People</b> make the decision</span>
+          <span><b>Profile</b> how the representative works</span>
+          <span><b>Evidence</b> tests each hypothesis</span>
+          <span><b>People</b> keep decision control</span>
         </div>
       </section>
 
@@ -800,11 +916,11 @@ function InvestorPage() {
         <div className="shell problem-layout">
           <div>
             <SectionLabel>The operating problem</SectionLabel>
-            <h2>The most important field decision often happens between systems.</h2>
+            <h2>The map knows the road. It does not know the representative.</h2>
           </div>
           <div className="problem-copy">
-            <p>A CRM preserves account history. A map shows locations. A route planner can shorten the drive. The representative still has to compare approved opportunities and decide what to do next.</p>
-            <p>Route IQ brings field context and outcomes together so representatives can act with better information and leaders can understand what execution is teaching the organization.</p>
+            <p>A CRM preserves account history. A map shows locations. A route planner can shorten the drive. None of those systems begins with how this person communicates, where they build rapport, or when their field energy is strongest.</p>
+            <p>Route IQ connects representative context with governed field outcomes so people can compare approved opportunities with better information and leaders can understand what execution is actually teaching the organization.</p>
           </div>
         </div>
       </section>
@@ -841,8 +957,8 @@ function InvestorPage() {
       <section className="section intelligence-loop-section">
         <div className="shell section-intro compact-intro">
           <SectionLabel>The intelligence loop</SectionLabel>
-          <h2>Governed field outcomes can improve the context available over time.</h2>
-          <p>Route IQ connects what the representative saw, what they did, and what happened next. When authorized evidence has sufficient quality and coverage, it can contribute to patterns that help the organization understand field execution.</p>
+          <h2>Know the representative. Test the context. Learn only when the evidence supports it.</h2>
+          <p>Route IQ begins with declared working style, then connects what the representative saw, what they did, and what happened next. Preferences are hypotheses, not proof. Only authorized evidence with sufficient quality and coverage can strengthen a pattern.</p>
         </div>
         <div className="shell intelligence-loop-grid">
           {intelligenceLoop.map(([number, title, body], index) => (
@@ -878,9 +994,9 @@ function InvestorPage() {
       <section id="different" className="section difference-section">
         <div className="shell difference-layout">
           <div className="difference-heading">
-            <SectionLabel>Why Route IQ</SectionLabel>
-            <h2>Field action intelligence, not another place to store the same data.</h2>
-            <p>Route IQ complements the systems an outside-sales organization already uses. Its job is to make the next field decision more informed and the resulting execution easier to understand.</p>
+          <SectionLabel>Why Route IQ</SectionLabel>
+            <h2>Representative intelligence, not another route line on a map.</h2>
+            <p>Route IQ complements the systems an outside-sales organization already uses. Its job is to understand the operating context around the person, make the next field decision more informed, and make the resulting execution easier to understand.</p>
           </div>
           <div className="comparison-table" role="table" aria-label="Route IQ product differentiation">
             {differences.map(([category, categoryPurpose, routeIqPurpose]) => (

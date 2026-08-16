@@ -60,13 +60,15 @@ function filesUnder(directory) {
   return result.sort();
 }
 
-test("the gym homepage follows the founder image, request, intelligence, bridge, and footer order", () => {
+test("the gym homepage follows the founder image, representative profile, request, intelligence, bridge, and footer order", () => {
   const source = read("src/main.jsx");
   const gymPage = source.slice(source.indexOf("function GymPage()"), source.indexOf("function ThankYouPage()"));
   const markers = [
     'className="gym-hero-picture"',
-    "Get Your Gym's Route Dashboard Built In 2 Hours",
-    "Get My Gym Dashboard",
+    "Build My Field Style",
+    "<RepresentativeStylePreview />",
+    'className="gym-request-section"',
+    "Request a Route IQ dashboard built around your field operation.",
     "<GymRequestForm />",
     'id="intelligence"',
     'className="gym-intelligence-picture"',
@@ -97,23 +99,25 @@ test("the shared nav, gym CTA, intelligence columns, and bridge use the directed
   const gymPage = source.slice(source.indexOf("function GymPage()"), source.indexOf("function ThankYouPage()"));
   for (const [href, label] of [
     ["/#gym-form", "For Gym Owners"],
+    ["/#field-style", "How It Learns"],
     ["/investors", "For Investors"],
     ["/investors#industries", "For Enterprise"]
   ]) {
     assert.match(nav, new RegExp(`\\["${href}", "${label}"\\]`));
   }
   assert.equal((nav.match(/links\.map\(\(\[href, label\]\)/gu) || []).length, 2);
-  assert.equal((nav.match(/className="header-action" href="\/#gym-form">Get Dashboard/gu) || []).length, 2);
+  assert.equal((nav.match(/className="header-action" href="\/#gym-form">Request Route IQ/gu) || []).length, 2);
+  assert.match(nav, /className="patent-banner"[\s\S]*U\.S\. PATENT PENDING[\s\S]*<header className="site-header">/);
+  assert.match(nav, /<LogoMark \/>[\s\S]*PROMETHEUS\.IQ/);
   assert.match(gymPage, /<h1 id="gym-hero-heading" className="visually-hidden">Gym Owners: 29 Members In 48 Hours\. \$0 Ad Spend\.<\/h1>/);
-  assert.match(gymPage, /Get My Gym Dashboard/);
-  assert.match(gymPage, /Dashboard built in 2 hours\./);
-  assert.match(gymPage, /<h3>Know Where To Go<\/h3>/);
-  assert.match(gymPage, /<h3>Verify The Visit<\/h3>[\s\S]*GPS Verified Without Surveillance/);
-  assert.match(gymPage, /<h3>Track The Outcome<\/h3>/);
-  assert.match(gymPage, /The Bigger Vision: The Intelligence Layer For All Outside Sales/);
+  assert.match(gymPage, /Route IQ starts with how each representative communicates/);
+  assert.match(gymPage, /<h3>Learn The Rep<\/h3>/);
+  assert.match(gymPage, /<h3>Test The Context<\/h3>[\s\S]*Governed evidence, not guesswork/);
+  assert.match(gymPage, /<h3>Explain The Next Move<\/h3>/);
+  assert.match(gymPage, /The Bigger Vision: A Representative Intelligence Layer For All Outside Sales/);
   assert.match(gymPage, /Gym sales is our first focused market\./);
-  assert.match(gymPage, /Horizontal infrastructure for home services, healthcare, commercial, retail, B2B\./);
-  assert.match(source, /function MobileGymCta\(\)[\s\S]*className={`mobile-fixed-cta\$\{formVisible \? " is-hidden" : ""\}`}[\s\S]*href="\/#gym-form"[\s\S]*Get Dashboard/);
+  assert.match(gymPage, /adapt to home services, healthcare, commercial, retail, and B2B/);
+  assert.match(source, /function MobileGymCta\(\)[\s\S]*className={`mobile-fixed-cta\$\{formVisible \? " is-hidden" : ""\}`}[\s\S]*href="\/#gym-form"[\s\S]*Request Route IQ/);
   assert.match(nav, /<details className="mobile-nav">[\s\S]*Open navigation menu[\s\S]*className="mobile-nav-panel"/);
 });
 
@@ -134,8 +138,8 @@ test("the compact gym form keeps the exact CRM field order and directed controls
   assert.match(form, /<select name="outsideRepCount" defaultValue="" required>/);
   assert.deepEqual([...form.matchAll(/<option value="(\d+)">\d+<\/option>/gu)].map(match => Number(match[1])), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   assert.match(form, /I agree that Prometheus\.IQ may use this information to respond to my Route IQ request\./);
-  assert.match(form, /Build My Dashboard/);
-  assert.match(form, /We manually build it\. You'll get login \+ Loom walkthrough in ∼2 hours\./);
+  assert.match(form, /Request My Dashboard/);
+  assert.match(form, /Success appears only after durable acceptance\. Your private field-style preview is not included with this request\./);
   assert.match(form, /navigatePublicRoute\(thankYouPath\)/);
   assert.doesNotMatch(form, /kind: "success"|form\.reset\(\)/);
 });
@@ -287,16 +291,16 @@ test("thank-you is refreshable, noindex, and never invents accepted state", () =
   const page = source.slice(source.indexOf("function ThankYouPage()"), source.indexOf("function RouteIqRequestForm()"));
   assert.match(page, /new URLSearchParams\(window\.location\.search\)/);
   assert.match(page, /ROUTE_IQ_GYM_REQUEST_RECEIPT_PATTERN\.test\(receipt\)/);
-  assert.match(page, /Got it\. Building your dashboard now\./);
-  assert.match(page, /We're building your gym's custom route dashboard\. You'll get email with login \+ Loom walkthrough in ∼2 hours from Prometheusrouteiq@gmail\.com\. Check spam\./);
+  assert.match(page, /Got it\. Your Route IQ request is stored\./);
+  assert.match(page, /Prometheus\.IQ will review your gym, field operation, and requested dashboard\./);
   assert.equal((page.match(/<li>/gu) || []).length, 3);
-  assert.match(page, /We build now/);
-  assert.match(page, /You get login/);
-  assert.match(page, /Reps get first route today/);
+  assert.match(page, /Request stored/);
+  assert.match(page, /Founder review/);
+  assert.match(page, /Governed onboarding/);
   assert.match(page, /Back to Home/);
   assert.match(page, /This page does not confirm a request\./);
-  assert.match(page, /Return To Gym Form/);
-  assert.doesNotMatch(page, /localStorage|sessionStorage|accepted|stored/iu);
+  assert.match(page, /Return To Request Form/);
+  assert.doesNotMatch(page, /localStorage|sessionStorage/iu);
   assert.match(source, /noindex,nofollow,noarchive/);
 });
 
@@ -304,10 +308,10 @@ test("metadata, canonical, and social images are selected by route", () => {
   const source = read("src/main.jsx");
   const metadata = read("landing.html");
   assert.match(metadata, /<link rel="canonical" href="https:\/\/prometheusrouteiq\.com\/">/);
-  assert.match(metadata, /Prometheus Route IQ for Gyms \| Field Sales Intelligence/);
-  assert.match(metadata, /U\.S\. small and independent warehouse-style gyms/);
+  assert.match(metadata, /Prometheus Route IQ for Gyms \| Representative Intelligence/);
+  assert.match(metadata, /representative working style, territory context, timing, and governed field outcomes/);
   assert.match(metadata, /01-772904932_1493675372780221_5358616428807129112_n-2\.jpeg/);
-  assert.match(source, /U\.S\. small and independent warehouse-style gyms/);
+  assert.match(source, /human-directed advisory routes for gym sales teams/);
   assert.match(source, /canonical: "https:\/\/prometheusrouteiq\.com\/investors"/);
   assert.match(source, /canonical: "https:\/\/prometheusrouteiq\.com\/thank-you"/);
   assert.match(source, /pathname === "\/investors"/);
@@ -350,14 +354,16 @@ test("the public Website palette and disabled measurement placeholders stay boun
   assert.doesNotMatch(publicSource, /connect\.facebook\.net|facebook\.com\/tr|redditstatic\.com|events\.reddit\.com/iu);
 });
 
-test("the gym initial viewport and mobile fixed CTA have stable responsive constraints", () => {
+test("the representative profile and mobile fixed CTA have stable responsive constraints", () => {
   const source = read("src/main.jsx");
   const styles = read("src/styles.css");
-  assert.match(source, /<h2 id="gym-form-title">Get Your Gym's Route Dashboard Built In 2 Hours<\/h2>[\s\S]*<GymRequestForm \/>/);
+  assert.match(source, /<h2 id="field-style-title">Route IQ learns the representative, not just the road\.<\/h2>[\s\S]*<h2 id="gym-form-title">Request a Route IQ dashboard built around your field operation\.<\/h2>[\s\S]*<GymRequestForm \/>/);
   assert.match(source, /<form id="gym-form"[\s\S]*<input name="fullName"/);
-  assert.match(styles, /\.gym-hero-section \{[\s\S]*min-height: 100svh;[\s\S]*padding: 72px 0 14px;/);
+  assert.match(styles, /\.gym-hero-section \{[\s\S]*padding: 112px 0 54px;/);
+  assert.match(styles, /\.field-style-tool \{[\s\S]*grid-template-columns: minmax\(0, 1\.28fr\) minmax\(330px, 0\.72fr\)/);
   assert.match(styles, /\.gym-form-grid \{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@media \(max-width: 700px\)[\s\S]*\.gym-form-grid \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /@media \(max-width: 700px\)[\s\S]*\.field-style-options \{ display: grid; grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(styles, /\.mobile-fixed-cta \{[\s\S]*bottom: max\(10px, env\(safe-area-inset-bottom\)\)/);
   assert.match(styles, /\.mobile-fixed-cta\.is-hidden \{[\s\S]*pointer-events: none/);
   assert.match(styles, /@media \(max-width: 980px\)[\s\S]*\.mobile-nav \{ display: block; \}/);
@@ -386,7 +392,7 @@ test("the investor route retains every prior section in order, 3D motion, and a 
   assert.match(source, /React\.lazy\(\(\) => import\("\.\/IntelligenceScene\.jsx"\)\)/);
   assert.match(investor, /<HeroVisual \/>/);
   assert.match(investor, /whileInView=/);
-  assert.match(investor, /Built for private onboarding, executive review, and field operating discipline\./);
+  assert.match(source, /Built for private onboarding, executive review, and field operating discipline\./);
   assert.match(investor, /Request Investor Deck/);
   assert.match(source, /mailto:\$\{contactEmail\}\?subject=Request%20Investor%20Deck/);
 });
@@ -405,6 +411,7 @@ test("a fresh build emits both founder assets and the lazy investor scene", () =
   const entry = read(`dist-public/${entryPath}`);
   assert.match(entry, /Gym sales is our first focused market/);
   assert.match(entry, /Built for private onboarding, executive review, and field operating discipline/);
+  assert.match(entry, /Route IQ learns the representative, not just the road/);
   assert.match(entry, /\/thank-you\?receipt=/);
   assert.match(entry, /route-iq-gym-request\.v1/);
 });
