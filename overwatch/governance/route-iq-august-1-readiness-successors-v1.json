@@ -137,6 +137,16 @@
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "previousSha256": "a3f9ad9d817d884c13ae7bf161666a00a534f9ddbf111f92df6cfa9018d337d6",
       "successorSha256": "1302e2ff565f84b3f2332c5579fc0c4f118b105c85d46b4b5d5c677dabedea7c"
+    },
+    {
+      "path": "package.json",
+      "previousSha256": "279131b040ea4db64e1f4081a6a6fb072b00070d05fa434d880d16a95b6d0582",
+      "successorSha256": "c6c9afd80f88960145e0c60cf77528a18878ec3a0f9e9c435d972c0ba4602968"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "f6642c1afb9cd0604b4ffb2f683d8a935a0d171d75589b8a5100df77aa7df2e3",
+      "successorSha256": "2dcccacc52512fa77df391b6ec887a1e0778750ac92d1d5a44be7538bbb59609"
     }
   ],
   "successors": [
@@ -515,6 +525,45 @@
           "path": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
           "previousSha256": "4477ddff8777d95e74023a09f2e9a7895060e1d290eeb5d9b2557ca620d827c7",
           "successorSha256": "9fdd92e4ba6313ef992858ea6c377e18854005d6b18f868c6fa956da99fbe5ca"
+        }
+      ]
+    },
+    {
+      "commit": "07377e7a115cb86e3671787ac89350c78cede46a",
+      "tree": "8356f29b3714cef5c27bc9b17707b402ea7ea9ed",
+      "owner": "Prometheus Website <website@prometheus.local>",
+      "reason": "The Website owner adds representative-intelligence messaging and regression coverage while preserving public CRM, evidence, recommendation, and production-deployment boundaries.",
+      "evidence": [
+        {
+          "path": "tests/website-route-iq-product-focus.test.mjs",
+          "previousSha256": "a29b4e66244ed1b37cbb4d6da0daff58049dc0823a4301d263f48f017a638d6a",
+          "successorSha256": "a2e9fbb6b923a43b58de523905ab2e4f9b75c2a02b6e6dd7c63a09767023d06c"
+        }
+      ]
+    },
+    {
+      "commit": "fa3a416891e3f964e2085dc44bcd779a4a48de15",
+      "tree": "8c449a5567db7c3bf17cae199ae9366f0667201d",
+      "owner": "Prometheus Dashboard <dashboard@prometheus.local>",
+      "reason": "The Dashboard owner retires the green application icon and adds exact palette regression coverage without changing private workflow, role, tenant, or recommendation behavior.",
+      "evidence": [
+        {
+          "path": "tests/dashboard-route-iq-product-focus.test.mjs",
+          "previousSha256": "53fd0777260dbd49b2b3441bfcc97f8b8f86932fbd37fb8e85f69dbc88187ba1",
+          "successorSha256": "a875e7e916d987408f82f5a50ecd43df26087ef653e93f6f627cd31983460ec9"
+        }
+      ]
+    },
+    {
+      "commit": "e1248a556f5683763e8aeda15903e16fb9aa33e3",
+      "tree": "d64183f9820e06c17a047d5a3c8c0442403debcd",
+      "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "reason": "Infrastructure regenerates the exact public assets and forward-compatible rollback evidence for the representative-intelligence source while withholding production deployment authority.",
+      "evidence": [
+        {
+          "path": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+          "previousSha256": "168689b3b8beac3eb0ba966737e01c8af3583b18417dd04bc6f4920fcdb5af2c",
+          "successorSha256": "78f930c02ac61079015704e62e92c7a4d8399d7c5e7a22d68a59ecd70e691446"
         }
       ]
     }

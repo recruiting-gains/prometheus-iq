@@ -615,7 +615,7 @@ export function validateAugust1ReadinessSuccessors(successors, {
     "route-iq-august-1-readiness-successors-v1");
   assert.equal(successors.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(successors.historicalCloseoutEvidenceRewritten, false);
-  assert.equal(successors.successors.length, 21);
+  assert.equal(successors.successors.length, 24);
   const infrastructureSuccessor = successors.successors[0];
   assert.equal(infrastructureSuccessor.commit,
     "96c8210b94c3b0214dede252aba3d6d46121cd05");
@@ -712,7 +712,10 @@ export function validateAugust1ReadinessSuccessors(successors, {
       "530808f3a730f76be8fc78e6bfa2f8b753741182",
       "e38bfef992d491eb9d52a1b63518cace6e9a41c5",
       "c42576db4330e2ba42373df247e6a6c65172ff55",
-      "15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac"
+      "15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac",
+      "07377e7a115cb86e3671787ac89350c78cede46a",
+      "fa3a416891e3f964e2085dc44bcd779a4a48de15",
+      "e1248a556f5683763e8aeda15903e16fb9aa33e3"
     ]
   );
   for (const successor of successors.successors.slice(4)) {
@@ -946,6 +949,29 @@ function dashboardVisualVerifierEvidence(successor) {
   return successor.ownerCommits.flatMap(owner => owner.evidence || []);
 }
 
+function currentReadinessEvidence(root) {
+  const successors = readJson(root, AUGUST_1_SUCCESSORS_PATH);
+  return [
+    ...successors.successors.flatMap(successor => successor.evidence || []),
+    ...successors.overwatchCurrentEvidence
+  ];
+}
+
+function appendCurrentContinuations(baseEvidence, availableEvidence, path) {
+  const continuations = [];
+  let terminalSha256 = assertLinearSuccessorChain(baseEvidence, path);
+  while (true) {
+    const candidates = availableEvidence.filter(item => (
+      item.path === path && item.previousSha256 === terminalSha256
+    ));
+    assert.ok(candidates.length <= 1, `Current successor evidence branches: ${path}`);
+    if (candidates.length === 0) break;
+    continuations.push(candidates[0]);
+    terminalSha256 = candidates[0].successorSha256;
+  }
+  return [...baseEvidence, ...continuations];
+}
+
 export function validateAugust1DashboardVisualVerifierSuccessor(successor, {
   root = ROOT,
   verifyGit = false
@@ -1035,10 +1061,11 @@ export function validateAugust1DashboardVisualVerifierSuccessor(successor, {
     "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
   ]));
   for (const path of paths) {
-    const terminalSha256 = assertLinearSuccessorChain(
+    const terminalSha256 = assertLinearSuccessorChain(appendCurrentContinuations(
       evidence.filter(item => item.path === path),
+      currentReadinessEvidence(root),
       path
-    );
+    ), path);
     assert.equal(sha256(read(root, path)), terminalSha256,
       `Dashboard visual verifier successor drifted: ${path}`);
   }
@@ -1103,10 +1130,10 @@ export function validateAugust1DashboardVisualSuccessor(successor, {
       assert.match(item.successorSha256, /^[a-f0-9]{64}$/u);
       assert.notEqual(item.previousSha256, item.successorSha256);
       assertRegularFile(root, item.path);
-      const terminalSha256 = assertLinearSuccessorChain([
+      const terminalSha256 = assertLinearSuccessorChain(appendCurrentContinuations([
         item,
         ...verifierEvidence.filter(entry => entry.path === item.path)
-      ], item.path);
+      ], currentReadinessEvidence(root), item.path), item.path);
       assert.equal(sha256(read(root, item.path)), terminalSha256,
         `Dashboard visual successor drifted: ${item.path}`);
       evidence.push(item);
