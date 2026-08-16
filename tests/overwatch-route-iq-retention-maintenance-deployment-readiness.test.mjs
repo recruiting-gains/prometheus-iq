@@ -180,12 +180,15 @@ test("historical readiness pins are extended through a linear package successor"
   assert.throws(() => validateDormantRetentionMaintenanceReadiness(changed));
 });
 
-test("historical public rollback evidence composes the exact dashboard visual successor", () => {
+test("historical public rollback evidence composes the exact representative-intelligence successor", () => {
   const gymPreviewGovernance = readJson(
     "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json"
   );
   const dashboardVisualGovernance = readJson(
     "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json"
+  );
+  const representativeIntelligenceGovernance = readJson(
+    "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json"
   );
   const input = {
     historicalArtifactSha256:
@@ -196,7 +199,8 @@ test("historical public rollback evidence composes the exact dashboard visual su
       "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
     ),
     gymPreviewGovernance,
-    dashboardVisualGovernance
+    dashboardVisualGovernance,
+    representativeIntelligenceGovernance
   };
   assert.equal(verifyRetentionMaintenancePublicRollbackSuccessor(input), true);
   for (const mutate of [
@@ -232,7 +236,28 @@ test("historical public rollback evidence composes the exact dashboard visual su
     value => {
       value.dashboardVisualGovernance.releaseBoundary.productionDeploymentAuthorized = true;
     },
-    value => { value.dashboardVisualGovernance.protectedState.productionDeployments = 1; }
+    value => { value.dashboardVisualGovernance.protectedState.productionDeployments = 1; },
+    value => { value.representativeIntelligenceGovernance.batchId = "BATCH-STALE"; },
+    value => {
+      value.representativeIntelligenceGovernance.implementationCommits.find(entry =>
+        entry.commit === "e1248a556f5683763e8aeda15903e16fb9aa33e3"
+      ).identity = "Prometheus Overwatch <overwatch@prometheus.local>";
+    },
+    value => {
+      value.representativeIntelligenceGovernance.currentContracts.forwardRollback.sha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.representativeIntelligenceGovernance.releaseIdentities.rollbackBundleSha256 =
+        "0".repeat(64);
+    },
+    value => {
+      value.representativeIntelligenceGovernance.releaseBoundary.productionDeploymentAuthorized =
+        true;
+    },
+    value => {
+      value.representativeIntelligenceGovernance.protectedState.productionDeployments = 1;
+    }
   ]) {
     const changed = structuredClone(input);
     mutate(changed);
