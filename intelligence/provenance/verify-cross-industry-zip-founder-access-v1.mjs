@@ -34,6 +34,8 @@ export const dashboardPublicVisualIdentitySuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-identity-v1.json";
 export const dashboardPublicVisualVerifierCompositionSuccessorProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-verifier-composition-v1.json";
+export const representativeIntelligenceRuntimeSurfaceSuccessorProvenancePath =
+  "intelligence/provenance/protected-baseline-synchronization-representative-intelligence-runtime-surface-v1.json";
 const crossIndustryDashboardRetentionProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-cross-industry-dashboard-retention-successor-v1.json";
 
@@ -575,6 +577,117 @@ function readDashboardPublicVisualVerifierCompositionSuccessor(
     providers: "OFF",
     scheduler: "OFF",
     productionStorageAccess: 0,
+    deployments: 0,
+    productionMutationPerformed: false
+  });
+  return Object.freeze({ successor, transitionsByPath });
+}
+
+function readRepresentativeIntelligenceRuntimeSurfaceSuccessor(
+  predecessorTransitionsByPath
+) {
+  const successor = JSON.parse(
+    read(representativeIntelligenceRuntimeSurfaceSuccessorProvenancePath)
+  );
+  assert.equal(
+    successor.version,
+    "route-iq-intelligence-representative-runtime-surface-successor-v1"
+  );
+  assert.equal(successor.batchId, "BATCH-20260815-002");
+  assert.equal(successor.status, "OWNER_IMPLEMENTED_PROTECTED_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.deepEqual(
+    successor.predecessors.map(predecessor => predecessor.path),
+    [
+      gymPreviewRouteQualityRuntimeSurfaceSuccessorProvenancePath,
+      "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json"
+    ]
+  );
+  for (const predecessor of successor.predecessors) {
+    assert.equal(sha256(predecessor.path), predecessor.sha256);
+    assert.equal(predecessor.remainsHistorical, true);
+    assert.equal(predecessor.rewritten, false);
+  }
+
+  assert.equal(successor.implementationCommits.length, 2);
+  const commits = new Map();
+  for (const implementation of successor.implementationCommits) {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      implementation.commit
+    ]).trim().split("\n");
+    assert.deepEqual(fields, [
+      implementation.commit,
+      implementation.parent,
+      implementation.tree,
+      implementation.identity,
+      implementation.identity,
+      implementation.subject
+    ]);
+    assert.equal(implementation.identity, expectedIdentity(implementation.ownerSubsystem));
+    assert.deepEqual(
+      git([
+        "diff-tree", "--no-commit-id", "--name-only", "-r",
+        implementation.commit
+      ]).trim().split("\n").filter(Boolean),
+      implementation.changedPaths
+    );
+    commits.set(implementation.commit, implementation);
+  }
+
+  const transitionsByPath = new Map();
+  for (const transition of successor.protectedSourceTransitions) {
+    const implementation = commits.get(transition.commit);
+    assert.ok(implementation);
+    assert.ok(implementation.changedPaths.includes(transition.path));
+    const prior = predecessorTransitionsByPath.get(transition.path) || [];
+    if (prior.length > 0) {
+      assert.equal(
+        transition.previousSha256,
+        prior.at(-1).currentSha256,
+        `Broken representative runtime-surface transition chain: ${transition.path}`
+      );
+    } else {
+      assert.equal(
+        transition.path,
+        "tests/route-intelligence-quality-gate.test.mjs",
+        `Ungoverned representative runtime-surface predecessor: ${transition.path}`
+      );
+    }
+    verifyTransition(transition.path, transition);
+    transitionsByPath.set(transition.path, [transition]);
+  }
+  assert.deepEqual(
+    [...transitionsByPath.keys()].sort(),
+    [
+      "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "scripts/lib/route-intelligence-quality-gate.mjs",
+      "tests/route-intelligence-quality-gate.test.mjs",
+      "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+    ]
+  );
+  assert.deepEqual(successor.behavior, {
+    previousRuntimeFileCount: 34,
+    currentRuntimeFileCount: 35,
+    addedRuntimeFile: "src/route-iq-representative-style-preview.js",
+    runtimeEvidenceOnly: true,
+    liveGoogleApiCalls: 0,
+    dashboardFetches: 6,
+    routeOrderingChanged: false,
+    routeScoringChanged: false,
+    businessHoursEligibilityChanged: false,
+    recommendationBehaviorChanged: false
+  });
+  assert.deepEqual(successor.protectedState, {
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
+    confidencePropagation: "OFF",
+    providers: "OFF",
+    scheduler: "OFF",
+    shadowDecisionVisible: false,
+    productionStorageAccess: 0,
+    cloudflareContacts: 0,
     deployments: 0,
     productionMutationPerformed: false
   });
@@ -1609,10 +1722,44 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
         dashboardPublicVisualIdentitySuccessor.transitionsByPath
       )
     );
+  const representativeIntelligenceRuntimeSurfaceSuccessor =
+    readRepresentativeIntelligenceRuntimeSurfaceSuccessor(
+      mergeTransitionMaps(
+        fieldSessionReportTypeContractProtectedSuccessor.transitionsByPath,
+        latestTransitionsByPath,
+        dashboardPublicVisualIdentitySuccessor.transitionsByPath,
+        dashboardPublicVisualVerifierCompositionSuccessor.transitionsByPath
+      )
+    );
+  const representativeGymTransitionsByPath = new Map(
+    [...representativeIntelligenceRuntimeSurfaceSuccessor.transitionsByPath]
+      .filter(([path]) => path === "scripts/lib/route-intelligence-quality-gate.mjs"
+        || path === "tests/route-intelligence-quality-gate.test.mjs")
+  );
+  const representativeVerifierTransitionsByPath = new Map(
+    [...representativeIntelligenceRuntimeSurfaceSuccessor.transitionsByPath]
+      .filter(([path]) => path !== "scripts/lib/route-intelligence-quality-gate.mjs"
+        && path !== "tests/route-intelligence-quality-gate.test.mjs")
+  );
+  const composedGymPreviewRouteQualityRuntimeSurfaceSuccessor = Object.freeze({
+    ...gymPreviewRouteQualityRuntimeSurfaceSuccessor,
+    transitionsByPath: mergeTransitionMaps(
+      gymPreviewRouteQualityRuntimeSurfaceSuccessor.transitionsByPath,
+      representativeGymTransitionsByPath
+    )
+  });
+  const composedDashboardPublicVisualVerifierCompositionSuccessor = Object.freeze({
+    ...dashboardPublicVisualVerifierCompositionSuccessor,
+    transitionsByPath: mergeTransitionMaps(
+      dashboardPublicVisualVerifierCompositionSuccessor.transitionsByPath,
+      representativeVerifierTransitionsByPath
+    )
+  });
   const currentTransitionsByPath = mergeTransitionMaps(
-    latestTransitionsByPath,
+    preGymPreviewTransitionsByPath,
+    composedGymPreviewRouteQualityRuntimeSurfaceSuccessor.transitionsByPath,
     dashboardPublicVisualIdentitySuccessor.transitionsByPath,
-    dashboardPublicVisualVerifierCompositionSuccessor.transitionsByPath
+    composedDashboardPublicVisualVerifierCompositionSuccessor.transitionsByPath
   );
   const retentionDeletionRuntimeProtectedSuccessor =
     verifyRetentionDeletionRuntimeProtectedSuccessorAgainst(
@@ -1630,9 +1777,9 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
       mergeTransitionMaps(
         governedMultiSessionLearningAdvisorySuccessor.transitionsByPath,
         prospectiveCalibrationProductionAdmissionSuccessor.transitionsByPath,
-        gymPreviewRouteQualityRuntimeSurfaceSuccessor.transitionsByPath,
+        composedGymPreviewRouteQualityRuntimeSurfaceSuccessor.transitionsByPath,
         dashboardPublicVisualIdentitySuccessor.transitionsByPath,
-        dashboardPublicVisualVerifierCompositionSuccessor.transitionsByPath
+        composedDashboardPublicVisualVerifierCompositionSuccessor.transitionsByPath
       )
     );
   for (const protectedTransition of transitionByPath.values()) {
@@ -1660,9 +1807,12 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
     retentionMaintenanceConsumerAdmissionSuccessor,
     governedMultiSessionLearningAdvisorySuccessor,
     prospectiveCalibrationProductionAdmissionSuccessor,
-    gymPreviewRouteQualityRuntimeSurfaceSuccessor,
+    gymPreviewRouteQualityRuntimeSurfaceSuccessor:
+      composedGymPreviewRouteQualityRuntimeSurfaceSuccessor,
     dashboardPublicVisualIdentitySuccessor,
-    dashboardPublicVisualVerifierCompositionSuccessor
+    dashboardPublicVisualVerifierCompositionSuccessor:
+      composedDashboardPublicVisualVerifierCompositionSuccessor,
+    representativeIntelligenceRuntimeSurfaceSuccessor
   });
 }
 

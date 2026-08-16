@@ -93,7 +93,7 @@ test("shadow-readiness adoption composes the exact gym-preview runtime surface",
   assert.ok(gymTransition);
   assert.equal(
     routeQuality.currentSha256,
-    "7bda35b46eb577dd89c6cd2617c70cb3c7a0b656faff168543c13db35a01c0b4"
+    "4e021bcfcfdac2ab0eb942f137a0f97cd120dcde882b258f772abda3b2a13aa1"
   );
   assert.equal(
     adoption.rehearsalSuccessor.gymPreviewRouteQualityRuntimeSurfaceSuccessor
@@ -104,6 +104,11 @@ test("shadow-readiness adoption composes the exact gym-preview runtime surface",
     adoption.rehearsalSuccessor.gymPreviewRouteQualityRuntimeSurfaceSuccessor
       .successor.behavior.routeScoringChanged,
     false
+  );
+  assert.equal(
+    adoption.rehearsalSuccessor.representativeIntelligenceRuntimeSurfaceSuccessor
+      .successor.behavior.currentRuntimeFileCount,
+    35
   );
 });
 
