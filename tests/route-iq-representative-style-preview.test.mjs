@@ -105,7 +105,7 @@ test("field-style answers remain local to the React preview and are excluded fro
 test("the public brand uses the no-green orange icon and places the patent designation above navigation", () => {
   const source = read("src/main.jsx");
   const styles = read("src/styles.css");
-  assert.match(source, /prometheus-company-icon-orange-v2\.png/);
+  assert.match(source, /prometheus-company-icon-512-orange-v2\.png/);
   assert.doesNotMatch(source, /prometheus-company-icon-512\.png/);
   assert.match(source, /className="patent-banner"[\s\S]*U\.S\. PATENT PENDING[\s\S]*<header className="site-header">/);
   assert.match(styles, /\.patent-banner \{[\s\S]*background: var\(--orange\);[\s\S]*color: var\(--black\)/);

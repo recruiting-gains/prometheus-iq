@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import prometheusLogoUrl from "../icons/prometheus-company-icon-orange-v2.png";
+import prometheusLogoUrl from "../icons/prometheus-company-icon-512-orange-v2.png";
 import {
   buildRouteIqRequestPayload,
   resolveAcquisitionSource,
