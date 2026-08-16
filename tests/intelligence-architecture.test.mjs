@@ -440,11 +440,11 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   );
   assert.equal(
     revenueReadinessConsumers.consumerByPath.get("index.html").transitions.length,
-    6,
+    7,
   );
   assert.equal(
     revenueReadinessConsumers.consumerByPath.get("index.html").currentSha256,
-    "b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604",
+    "ad138fdbf0a2f06c6226bb1310e575d3db867b256a25db9a03da9d1a2d2380b8",
   );
   assert.equal(
     revenueReadinessConsumers.liveCanonicalIdentityProtectedSuccessor.successor.version,
@@ -453,6 +453,10 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   assert.equal(
     revenueReadinessConsumers.governedLearningAdvisorySuccessor.successor.version,
     "route-iq-intelligence-governed-multi-session-learning-advisory-successor-v1",
+  );
+  assert.equal(
+    revenueReadinessConsumers.dashboardPublicVisualIdentitySuccessor.successor.version,
+    "route-iq-intelligence-dashboard-public-visual-identity-successor-v1",
   );
   const coordinatorSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
