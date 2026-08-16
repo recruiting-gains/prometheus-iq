@@ -35,6 +35,8 @@ const gymPreviewGovernancePath =
   "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json";
 const dashboardVisualGovernancePath =
   "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json";
+const representativeIntelligenceGovernancePath =
+  "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json";
 const activeToolchainOwnerCommit = "d55a983134be40bf10777df293ca593e7583f138";
 const activeToolchainOwnerTree = "fcc850958e92d1f75eece476d6047b58972249d0";
 const activeToolchainOwnerParent = "3d646bffde28b1ef995ae03af5976a6db1105430";
@@ -384,6 +386,101 @@ export function validateDashboardVisualPublicLaneSuccessor({
   return Object.freeze({ assetTransitions, publicOwnerCommits });
 }
 
+export function validateRepresentativeIntelligencePublicLaneSuccessor({
+  governance,
+  predecessorGovernance,
+  historicalChangedPaths,
+  changedPaths
+}) {
+  assert.equal(governance?.version,
+    "route-iq-representative-intelligence-public-experience-successor-v1");
+  assert.equal(governance?.batchId, "BATCH-20260815-002");
+  assert.equal(governance?.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(governance?.status, "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR");
+  const predecessor = governance.predecessors.find(item =>
+    item.path === dashboardVisualGovernancePath);
+  assert.ok(predecessor);
+  assert.equal(predecessor.sha256, sha256(read(dashboardVisualGovernancePath)));
+  assert.equal(predecessor.remainsHistorical, true);
+  assert.equal(predecessor.rewritten, false);
+  assert.equal(predecessorGovernance.batchId, "BATCH-20260815-001");
+
+  for (const entry of governance.implementationCommits) {
+    assert.deepEqual(git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      entry.commit
+    ]).split("\n"), [
+      entry.commit,
+      entry.parent,
+      entry.tree,
+      entry.identity,
+      entry.identity,
+      entry.subject
+    ]);
+    assert.deepEqual(git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r", entry.commit
+    ]).split("\n").filter(Boolean).sort(), [...entry.changedFiles].sort());
+    assert.equal(git(["merge-base", "--is-ancestor", entry.commit, "HEAD"]), "");
+  }
+
+  const publicOwnerCommits = governance.implementationCommits
+    .filter(entry => entry.changedFiles.some(path => (
+      paidCustomerPublicPaths.some(publicPath => (
+        path === publicPath || path.startsWith(`${publicPath}/`)
+      ))
+    )))
+    .map(entry => entry.commit);
+  assert.deepEqual(publicOwnerCommits, [
+    "07377e7a115cb86e3671787ac89350c78cede46a",
+    "64ae9602af90c12022b936a6c70e7297d01dd19d",
+    "e1248a556f5683763e8aeda15903e16fb9aa33e3"
+  ]);
+  assert.equal(governance.releaseIdentities.websiteCommit, publicOwnerCommits[1]);
+
+  const assetTransitions = [
+    {
+      previousPath:
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-DUONdOlD.js",
+      successorPath:
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-lvifE82o.js"
+    },
+    {
+      previousPath: "deploy/prometheusrouteiq-website/assets/landing-B9ZhfHwS.css",
+      successorPath: "deploy/prometheusrouteiq-website/assets/landing-CNaozCQc.css"
+    },
+    {
+      previousPath: "deploy/prometheusrouteiq-website/assets/landing-BOzyl4oV.js",
+      successorPath: "deploy/prometheusrouteiq-website/assets/landing-Da2k4e4y.js"
+    }
+  ];
+  const previousPaths = new Set(assetTransitions.map(item => item.previousPath));
+  const expectedChangedPaths = [
+    ...historicalChangedPaths.filter(path => !previousPaths.has(path)),
+    ...assetTransitions.map(item => item.successorPath),
+    "deploy/prometheusrouteiq-website/assets/prometheus-company-icon-512-Dq1atHWc.png",
+    "deploy/prometheusrouteiq-website/assets/prometheus-company-icon-512-orange-v2-BHPjgKxH.png",
+    "deploy/prometheusrouteiq-website/prometheus-company-apple-touch-20260701-brand-v2.png",
+    "deploy/prometheusrouteiq-website/prometheus-company-apple-touch.png",
+    "deploy/prometheusrouteiq-website/prometheus-company-icon-512-20260701-brand-v2.png",
+    "deploy/prometheusrouteiq-website/prometheus-company-icon-512.png",
+    "src/route-iq-representative-style-preview.js"
+  ].sort();
+  assert.deepEqual(changedPaths, expectedChangedPaths);
+  assert.equal(governance.navigationContract.dashboardFallbackProhibited, true);
+  assert.equal(governance.dashboardVisualContract.retiredGreenLogoAbsent, true);
+  assert.equal(governance.representativeLearningBoundary.storage, "memory_only");
+  assert.equal(governance.representativeLearningBoundary.publicCrmTransmission, false);
+  assert.equal(
+    governance.representativeLearningBoundary.productionRecommendationInfluence,
+    false
+  );
+  assert.equal(governance.releaseBoundary.productionDeploymentAuthorized, false);
+  assert.equal(governance.releaseBoundary.productionStorageAccessAllowed, false);
+  assert.equal(governance.protectedState.productionDeployments, 0);
+  assert.equal(governance.protectedState.productionDataMutations, 0);
+  return Object.freeze({ assetTransitions, publicOwnerCommits });
+}
+
 export function validateActiveToolchainPublicLaneSuccessor({
   governance,
   additionalChangedPaths
@@ -451,6 +548,9 @@ function verifyPublicLaneCompatibility(baselineCommit) {
   const node24ActionPinInfrastructure = readJson(node24ActionPinInfrastructurePath);
   const gymPreviewGovernance = readJson(gymPreviewGovernancePath);
   const dashboardVisualGovernance = readJson(dashboardVisualGovernancePath);
+  const representativeIntelligenceGovernance = readJson(
+    representativeIntelligenceGovernancePath
+  );
   const node24Paths = node24ActionPinInfrastructure.workflows
     .map(item => item.path)
     .filter(path => paidCustomerPublicPaths.includes(path));
@@ -477,7 +577,7 @@ function verifyPublicLaneCompatibility(baselineCommit) {
     "diff",
     "--name-only",
     gymPreviewGovernance.startingRepository.commit,
-    "HEAD",
+    "441e4f2c829c0eb5d04078711314d9481d4ccbd4",
     "--",
     ...paidCustomerPublicPaths
   ]).split("\n").filter(Boolean);
@@ -486,6 +586,21 @@ function verifyPublicLaneCompatibility(baselineCommit) {
     gymPreviewSuccessor,
     changedPaths: dashboardVisualChangedPaths
   });
+  const currentRepresentativeChangedPaths = git([
+    "diff",
+    "--name-only",
+    gymPreviewGovernance.startingRepository.commit,
+    "HEAD",
+    "--",
+    ...paidCustomerPublicPaths
+  ]).split("\n").filter(Boolean);
+  const representativeIntelligenceSuccessor =
+    validateRepresentativeIntelligencePublicLaneSuccessor({
+      governance: representativeIntelligenceGovernance,
+      predecessorGovernance: dashboardVisualGovernance,
+      historicalChangedPaths: dashboardVisualChangedPaths,
+      changedPaths: currentRepresentativeChangedPaths
+    });
   const reconciliation = validateGovernedPublicLaneSuccessor({
     governance,
     baselineCommit,
@@ -516,6 +631,9 @@ function verifyPublicLaneCompatibility(baselineCommit) {
   for (const commit of dashboardVisualSuccessor.publicOwnerCommits) {
     assert.equal(git(["merge-base", "--is-ancestor", commit, "HEAD"]), "");
   }
+  for (const commit of representativeIntelligenceSuccessor.publicOwnerCommits) {
+    assert.equal(git(["merge-base", "--is-ancestor", commit, "HEAD"]), "");
+  }
   assert.deepEqual(git([
     "log",
     "--format=%H",
@@ -523,6 +641,9 @@ function verifyPublicLaneCompatibility(baselineCommit) {
     "--",
     ...paidCustomerPublicPaths
   ]).split("\n").filter(Boolean), [
+    "e1248a556f5683763e8aeda15903e16fb9aa33e3",
+    "64ae9602af90c12022b936a6c70e7297d01dd19d",
+    "07377e7a115cb86e3671787ac89350c78cede46a",
     "441e4f2c829c0eb5d04078711314d9481d4ccbd4",
     "84088bb82cd60b36a721222c6e6632e5be7046d2",
     "72d9f99ab75d3716f855835fd84345306de67cd7",
@@ -575,7 +696,7 @@ function verifyPublicLaneCompatibility(baselineCommit) {
     "--name-status",
     "--find-renames",
     gymPreviewSuccessor.ownerCommits.at(-1),
-    "HEAD",
+    "441e4f2c829c0eb5d04078711314d9481d4ccbd4",
     "--",
     "deploy/prometheusrouteiq-website/assets"
   ]).split("\n").filter(Boolean);
@@ -591,6 +712,28 @@ function verifyPublicLaneCompatibility(baselineCommit) {
     assert.ok(renamed || replaced,
       `Dashboard visual asset transition is not governed: ${transition.previousPath}`);
     assert.ok(dashboardVisualChangedPaths.includes(transition.successorPath));
+  }
+  const representativeIntelligenceTransitions = git([
+    "diff",
+    "--name-status",
+    "--find-renames",
+    "441e4f2c829c0eb5d04078711314d9481d4ccbd4",
+    "HEAD",
+    "--",
+    "deploy/prometheusrouteiq-website/assets"
+  ]).split("\n").filter(Boolean);
+  for (const transition of representativeIntelligenceSuccessor.assetTransitions) {
+    const renamed = representativeIntelligenceTransitions.some(line => {
+      const [status, previousPath, successorPath] = line.split("\t");
+      return status.startsWith("R") && previousPath === transition.previousPath &&
+        successorPath === transition.successorPath;
+    });
+    const replaced =
+      representativeIntelligenceTransitions.includes(`D\t${transition.previousPath}`) &&
+      representativeIntelligenceTransitions.includes(`A\t${transition.successorPath}`);
+    assert.ok(renamed || replaced,
+      `Representative-intelligence asset transition is not governed: ${transition.previousPath}`);
+    assert.ok(currentRepresentativeChangedPaths.includes(transition.successorPath));
   }
   assert.deepEqual(git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",

@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   hasDashboardVisualPublicRollbackBuildSourceSuccessor,
   hasGymPreviewPublicRollbackBuildSourceSuccessor,
+  hasRepresentativeIntelligencePublicRollbackBuildSourceSuccessor,
   verifyCloudflareToolchainPackageSuccessor,
   verifyCloudflareToolchainRepositoryContext,
   verifyOverwatchRouteIqCloudflareToolchainRequalification
@@ -113,6 +114,48 @@ test("toolchain qualification composes only the exact Dashboard visual rollback 
   }
 });
 
+test("toolchain qualification composes only the representative-intelligence rollback source", () => {
+  const governance = JSON.parse(readFileSync(
+    new URL(
+      "../overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json",
+      import.meta.url
+    ),
+    "utf8"
+  ));
+  const input = {
+    governance,
+    path: "scripts/lib/route-iq-public-forward-rollback.mjs",
+    previousSha256:
+      "f6b56aed5ee2ff0251c501db24910944fb354dd5f30811f3c1efac806aab78ba",
+    currentSha256:
+      "c7b232391bad94141f14c5e7b3a87a94f125d71fb1f74ac2c55386f5e62b2d3a"
+  };
+  assert.equal(
+    hasRepresentativeIntelligencePublicRollbackBuildSourceSuccessor(input),
+    true
+  );
+  for (const candidate of [
+    { ...input, path: "scripts/unapproved.mjs" },
+    { ...input, previousSha256: "0".repeat(64) },
+    { ...input, currentSha256: "0".repeat(64) },
+    {
+      ...input,
+      governance: {
+        ...governance,
+        releaseBoundary: {
+          ...governance.releaseBoundary,
+          productionDeploymentAuthorized: true
+        }
+      }
+    }
+  ]) {
+    assert.equal(
+      hasRepresentativeIntelligencePublicRollbackBuildSourceSuccessor(candidate),
+      false
+    );
+  }
+});
+
 test("exact hosted detached checkout remains bound to main, SHA, and origin/main", () => {
   const head = "a".repeat(40);
   assert.doesNotThrow(() => verifyCloudflareToolchainRepositoryContext({
@@ -190,7 +233,7 @@ test("Overwatch binds the exact zero-high toolchain owner chain and release cont
     "e3330c71600364e4e22404d005902bdcf07e5ec12fe9aa098febd01e18a3b2c6");
   assert.equal(result.augustReadinessPackageSuccessorCurrent, true);
   assert.equal(result.currentPackageSha256,
-    "279131b040ea4db64e1f4081a6a6fb072b00070d05fa434d880d16a95b6d0582");
+    "c6c9afd80f88960145e0c60cf77528a18878ec3a0f9e9c435d972c0ba4602968");
   assert.equal(result.cloudflareContactCount, 0);
   assert.equal(result.deploymentCount, 0);
   assert.equal(result.productionMutationCount, 0);
