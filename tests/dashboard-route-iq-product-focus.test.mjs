@@ -26,6 +26,7 @@ import {
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
 const source = read("index.html");
+const appIcon = read("icons/prometheus.svg");
 
 test("the private Dashboard uses the shared black, white, and orange product identity", () => {
   assert.match(source, /<meta name="theme-color" content="#000000">/);
@@ -41,6 +42,13 @@ test("the private Dashboard uses the shared black, white, and orange product ide
   for (const semanticStatus of ["green", "yellow", "red", "blue"]) {
     assert.match(source, new RegExp(`\\.pill\\.${semanticStatus} \\{`));
   }
+});
+
+test("the private Dashboard icon uses the shared orange identity without the retired green treatment", () => {
+  assert.match(appIcon, /orange ember flame inside a black rounded square/);
+  assert.match(appIcon, /stop-color="#ff6a00"/);
+  assert.match(appIcon, /stop-color="#000000"/);
+  assert.doesNotMatch(appIcon, /deep green|#223a34|#14211e|#0f1816|#0f8d69|#07100e/i);
 });
 const serviceWorker = read("sw.js");
 const runtimeWorkflowVerifier = read("scripts/verify-dashboard-runtime-workflows.mjs");
