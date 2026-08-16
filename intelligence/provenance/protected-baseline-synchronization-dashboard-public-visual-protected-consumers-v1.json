@@ -1,0 +1,63 @@
+{
+  "version": "route-iq-intelligence-dashboard-public-visual-protected-consumer-successor-v1",
+  "batchId": "BATCH-20260815-001",
+  "directive": "Route IQ Public Preview Navigation + Dashboard Visual Identity Alignment v1",
+  "status": "OWNER_REVIEWED_PROTECTED_CONSUMER_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "predecessors": [
+    {
+      "path": "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-identity-v1.json",
+      "sha256": "f263570a78693b998c5f18535861170f1b4345d700bb83bf7661ccb5cf4f5cf9",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    {
+      "path": "intelligence/provenance/protected-consumer-synchronization-paid-customer-revenue-readiness-v1.json",
+      "sha256": "8ca23319afef363698589b40e7f734abb1ac43838499ede5b16c491658f39a7a",
+      "remainsHistorical": true,
+      "rewritten": false
+    }
+  ],
+  "implementation": {
+    "commit": "9ac2bbad0f75a5a4d714905483576f0da8929c9c",
+    "parent": "09e86b246fbbc0bd7ac3693e0d6abe080b2a228d",
+    "tree": "8548d49023cfd7cedc854011ab05a88f146591f8",
+    "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "subject": "intelligence: compose dashboard visual protected consumers",
+    "changedPaths": [
+      "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs",
+      "tests/intelligence-architecture.test.mjs"
+    ]
+  },
+  "protectedSourceTransitions": [
+    {
+      "path": "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs",
+      "previousSha256": "27d87421ad191d86599524a6e4dac966b8741ffc7a5a8b065eb0cc7caf3dc3d9",
+      "currentSha256": "78a502b562ca7eb6c21800f616418a551656728367a7e523ed7e4ef7c42cd828"
+    },
+    {
+      "path": "tests/intelligence-architecture.test.mjs",
+      "previousSha256": "917f8a4fb2f6cf13dc0f545f8ed2cea1e0f128234ab8ef3f8212ae5e0bcb8807",
+      "currentSha256": "b35f6bb9d978113170f987fd10cc273fbc176343ed330e079deb1cdad83c0223"
+    }
+  ],
+  "behavior": {
+    "dashboardVisualSuccessorComposed": true,
+    "historicalEvidenceRewritten": false,
+    "intelligenceRuntimeChanged": false,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "recommendationBehaviorChanged": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "productionStorageAccess": 0,
+    "deployments": 0,
+    "productionMutationPerformed": false
+  }
+}
