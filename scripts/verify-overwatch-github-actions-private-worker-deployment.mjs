@@ -2730,6 +2730,48 @@ export function advancePrivateWorkflowV2DashboardVisualOwnerHash({
   return currentSha256;
 }
 
+export function advancePrivateWorkflowV2DashboardVisualVerifierCompositionOwnerHash({
+  path,
+  acceptedSha256,
+  successor
+}) {
+  if (successor?.successor?.batchId !== "BATCH-20260815-001"
+    || successor?.successor?.status !==
+      "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR"
+    || successor?.successor?.ownerSubsystem !== "Prometheus Intelligence Engine"
+    || successor?.successor?.behavior
+      ?.currentSourceChecksComposeVisualSuccessor !== true
+    || successor?.successor?.behavior?.historicalVisualRecordRewritten !== false
+    || successor?.successor?.behavior?.dashboardWorkflowChanged !== false
+    || successor?.successor?.behavior?.intelligenceRuntimeChanged !== false
+    || successor?.successor?.behavior?.recommendationBehaviorChanged !== false
+    || successor?.successor?.protectedState?.collection !== "OFF"
+    || successor?.successor?.protectedState?.activeCohorts !== 0
+    || successor?.successor?.protectedState?.recommendationInfluence !== "OFF"
+    || successor?.successor?.protectedState?.confidencePropagation !== "OFF"
+    || successor?.successor?.protectedState?.providers !== "OFF"
+    || successor?.successor?.protectedState?.scheduler !== "OFF"
+    || successor?.successor?.protectedState?.productionStorageAccess !== 0
+    || successor?.successor?.protectedState?.deployments !== 0
+    || successor?.successor?.protectedState?.productionMutationPerformed !== false) {
+    throw new Error(
+      "Private Workflow v2 dashboard visual verifier-composition boundary drifted."
+    );
+  }
+  const transitions = successor.transitionsByPath.get(path);
+  if (!transitions) return acceptedSha256;
+  let currentSha256 = acceptedSha256;
+  for (const transition of transitions) {
+    if (transition.previousSha256 !== currentSha256) {
+      throw new Error(
+        `Private Workflow v2 dashboard visual verifier-composition chain drifted: ${path}`
+      );
+    }
+    currentSha256 = transition.currentSha256;
+  }
+  return currentSha256;
+}
+
 export function hasPrivateWorkflowV2GovernedLearningInfrastructureSuccessor({
   readinessSuccessors,
   path,
@@ -5182,6 +5224,8 @@ function verifyV2OwnerAndGovernance() {
     intelligenceSourceSuccessors.gymPreviewRouteQualityRuntimeSurfaceSuccessor;
   const dashboardVisualIntelligenceSuccessor =
     intelligenceSourceSuccessors.dashboardPublicVisualIdentitySuccessor;
+  const dashboardVisualVerifierCompositionIntelligenceSuccessor =
+    intelligenceSourceSuccessors.dashboardPublicVisualVerifierCompositionSuccessor;
 
   const retentionPayloadMetadata = git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
@@ -6185,6 +6229,12 @@ function verifyV2OwnerAndGovernance() {
         acceptedSha256: acceptedCurrentSha256,
         successor: dashboardVisualIntelligenceSuccessor
       });
+    acceptedCurrentSha256 =
+      advancePrivateWorkflowV2DashboardVisualVerifierCompositionOwnerHash({
+        path,
+        acceptedSha256: acceptedCurrentSha256,
+        successor: dashboardVisualVerifierCompositionIntelligenceSuccessor
+      });
     if (sha256(committed) !== expected
       || currentSha256 !== acceptedCurrentSha256
       || recordedIntelligenceEvidence.get(path) !== expected) {
@@ -6467,6 +6517,12 @@ function verifyV2OwnerAndGovernance() {
         path,
         acceptedSha256: acceptedCurrentSha256,
         successor: dashboardVisualIntelligenceSuccessor
+      });
+    acceptedCurrentSha256 =
+      advancePrivateWorkflowV2DashboardVisualVerifierCompositionOwnerHash({
+        path,
+        acceptedSha256: acceptedCurrentSha256,
+        successor: dashboardVisualVerifierCompositionIntelligenceSuccessor
       });
     if (sha256(committed) !== expected
       || sha256(readFileSync(resolve(root, path))) !== acceptedCurrentSha256
@@ -7079,12 +7135,33 @@ function verifyV2OwnerAndGovernance() {
         && dashboardVisualPredecessorSha256 !== gymPreviewCurrentSha256) {
         return false;
       }
+      let dashboardVisualCurrentSha256;
       try {
-        return candidateSha256 ===
+        dashboardVisualCurrentSha256 =
           advancePrivateWorkflowV2DashboardVisualOwnerHash({
             path,
             acceptedSha256: dashboardVisualPredecessorSha256,
             successor: dashboardVisualIntelligenceSuccessor
+          });
+        if (candidateSha256 === dashboardVisualCurrentSha256) return true;
+      } catch {
+        return false;
+      }
+      const verifierCompositionTransitions =
+        dashboardVisualVerifierCompositionIntelligenceSuccessor
+          .transitionsByPath.get(path);
+      if (!verifierCompositionTransitions
+        || verifierCompositionTransitions[0].previousSha256 !==
+          dashboardVisualCurrentSha256) {
+        return false;
+      }
+      try {
+        return candidateSha256 ===
+          advancePrivateWorkflowV2DashboardVisualVerifierCompositionOwnerHash({
+            path,
+            acceptedSha256: dashboardVisualCurrentSha256,
+            successor:
+              dashboardVisualVerifierCompositionIntelligenceSuccessor
           });
       } catch {
         return false;
