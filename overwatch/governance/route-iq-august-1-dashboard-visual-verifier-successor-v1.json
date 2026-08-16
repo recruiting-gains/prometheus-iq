@@ -85,6 +85,30 @@
           "successorSha256": "01a75eee60d49de0ffc74a840c7130510ab61a9984777dd91eee58ea712bca52"
         }
       ]
+    },
+    {
+      "commit": "cebdbf90a079fb54a596f4c202a4d3ad87945498",
+      "parent": "fdb76d327f1cdd37f1df0bad3647d58a6ce9e97f",
+      "tree": "8784177560c1199ce6aef692292c316530fb3713",
+      "identity": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "subject": "overwatch: compose representative release successors",
+      "evidence": [
+        {
+          "path": "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "previousSha256": "a5ea357ada29ae0cec2a7b6996fab1e099271270bde1c09f7345aad718d3bdf3",
+          "successorSha256": "4bc22e31df05416e6f2c2f3ee754374b92d29b0b9cc726fe0648279236fafd1d"
+        },
+        {
+          "path": "scripts/verify-release-provenance-repair.mjs",
+          "previousSha256": "79b2a34cacf0c20dddbf45b76e134316b61b0345aa2ec4d6afb7106a88ccce1f",
+          "successorSha256": "406e25a8b77f0bf80ae7bfd33b1f450c2694f08845f510208d26931b4f257e04"
+        },
+        {
+          "path": "tests/release-provenance-repair.test.mjs",
+          "previousSha256": "8b5e4e22722510dd5b1cf2422301a651a5f5362f127d240e9f47e680db5005a7",
+          "successorSha256": "ad79561bf1dc81719c6e7eb3949f8bb638bf812bdb67fb8dc7ec9ce71caf1b9d"
+        }
+      ]
     }
   ],
   "protectedState": {

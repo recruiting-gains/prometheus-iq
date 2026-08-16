@@ -149,7 +149,7 @@ test("Dashboard visual verifier successor composes later owner-approved checks",
     root: ROOT,
     verifyGit: false
   });
-  assert.equal(result.evidence.length, 8);
+  assert.equal(result.evidence.length, 11);
   for (const mutate of [
     value => { value.protectedState.collection = "ON"; },
     value => { value.ownerCommits[0].evidence[0].successorSha256 = "0".repeat(64); },

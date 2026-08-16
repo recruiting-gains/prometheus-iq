@@ -998,7 +998,7 @@ export function validateAugust1DashboardVisualVerifierSuccessor(successor, {
       `Dashboard visual verifier predecessor drifted: ${predecessor.path}`
     );
   }
-  assert.equal(successor.ownerCommits.length, 3);
+  assert.equal(successor.ownerCommits.length, 4);
   const evidence = [];
   const paths = new Set();
   for (const owner of successor.ownerCommits) {
@@ -1058,7 +1058,8 @@ export function validateAugust1DashboardVisualVerifierSuccessor(successor, {
     "scripts/verify-overwatch-route-iq-prospective-calibration-production-admission-future-window-readiness-v1.mjs",
     "scripts/verify-release-provenance-repair.mjs",
     "tests/overwatch-public-deployment-workflow-v2.test.mjs",
-    "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs"
+    "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+    "tests/release-provenance-repair.test.mjs"
   ]));
   for (const path of paths) {
     const terminalSha256 = assertLinearSuccessorChain(appendCurrentContinuations(
