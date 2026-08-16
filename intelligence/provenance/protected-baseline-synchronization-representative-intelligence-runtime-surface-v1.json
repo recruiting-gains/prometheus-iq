@@ -1,0 +1,111 @@
+{
+  "version": "route-iq-intelligence-representative-runtime-surface-successor-v1",
+  "batchId": "BATCH-20260815-002",
+  "directive": "Route IQ Representative Intelligence Public Experience v1",
+  "status": "OWNER_IMPLEMENTED_PROTECTED_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Admit the representative-style preview module into exact runtime-surface evidence without changing route ordering, scoring, business-hours eligibility, recommendation behavior, or protected production state.",
+  "predecessors": [
+    {
+      "path": "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json",
+      "sha256": "3989e6caf98db93041922b91e298b29a922eae91b379ec19b8c5b55e6bfe3b9a",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    {
+      "path": "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json",
+      "sha256": "28096aa9d9faaac1ba43fe54c685dd0f07242e3fd74b75263eb3cf293bf3274d",
+      "remainsHistorical": true,
+      "rewritten": false
+    }
+  ],
+  "implementationCommits": [
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "1cdfee8c7766b01d064e87e329851b471e21f4d2",
+      "parent": "ef5278fa05af4412df4d05c0e9f8640ca718707d",
+      "tree": "7817964eb2599a8aeb54da1054fb8b1dc702d924",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: advance representative runtime evidence",
+      "changedPaths": [
+        "scripts/lib/route-intelligence-quality-gate.mjs",
+        "tests/route-intelligence-quality-gate.test.mjs"
+      ]
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "cb99cb911c7859de59f4aa6c4823f717129c5d0f",
+      "parent": "1cdfee8c7766b01d064e87e329851b471e21f4d2",
+      "tree": "2b2209c3899b3aff2e32dfe11e42728b9fe72d77",
+      "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+      "subject": "intelligence: compose representative runtime successor",
+      "changedPaths": [
+        "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+        "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs"
+      ]
+    }
+  ],
+  "protectedSourceTransitions": [
+    {
+      "path": "scripts/lib/route-intelligence-quality-gate.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "1cdfee8c7766b01d064e87e329851b471e21f4d2",
+      "tree": "7817964eb2599a8aeb54da1054fb8b1dc702d924",
+      "subject": "intelligence: advance representative runtime evidence",
+      "previousSha256": "7bda35b46eb577dd89c6cd2617c70cb3c7a0b656faff168543c13db35a01c0b4",
+      "currentSha256": "4e021bcfcfdac2ab0eb942f137a0f97cd120dcde882b258f772abda3b2a13aa1"
+    },
+    {
+      "path": "tests/route-intelligence-quality-gate.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "1cdfee8c7766b01d064e87e329851b471e21f4d2",
+      "tree": "7817964eb2599a8aeb54da1054fb8b1dc702d924",
+      "subject": "intelligence: advance representative runtime evidence",
+      "previousSha256": "98f419c258c22a0f88221b8889a7b2ddd38232116258bf26dac14485f7f59291",
+      "currentSha256": "7bec37346fe3e0edb307385a261b16e5df0a1ce8ef35d795a3b8215ec49d0ee8"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "cb99cb911c7859de59f4aa6c4823f717129c5d0f",
+      "tree": "2b2209c3899b3aff2e32dfe11e42728b9fe72d77",
+      "subject": "intelligence: compose representative runtime successor",
+      "previousSha256": "56aed13677b2c24b806a6a3acc7c0cfe7c6e4453f99896778d14e2cb73439e2a",
+      "currentSha256": "3452082846df5b429310c6a67c5b18b437c798121720d51a505033948a429fe3"
+    },
+    {
+      "path": "tests/route-iq-intelligence-controlled-rehearsal-smoke-contract-successor.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "cb99cb911c7859de59f4aa6c4823f717129c5d0f",
+      "tree": "2b2209c3899b3aff2e32dfe11e42728b9fe72d77",
+      "subject": "intelligence: compose representative runtime successor",
+      "previousSha256": "9a5d478b84dfb18396e899213f5d78a856b3f4b3693b1727aaa35fa0d1b1315f",
+      "currentSha256": "09f832420122ba7d497ebe2a548bae64d9b8b1409e5cfadba5024f418cfba4dd"
+    }
+  ],
+  "behavior": {
+    "previousRuntimeFileCount": 34,
+    "currentRuntimeFileCount": 35,
+    "addedRuntimeFile": "src/route-iq-representative-style-preview.js",
+    "runtimeEvidenceOnly": true,
+    "liveGoogleApiCalls": 0,
+    "dashboardFetches": 6,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "businessHoursEligibilityChanged": false,
+    "recommendationBehaviorChanged": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "shadowDecisionVisible": false,
+    "productionStorageAccess": 0,
+    "cloudflareContacts": 0,
+    "deployments": 0,
+    "productionMutationPerformed": false
+  }
+}
