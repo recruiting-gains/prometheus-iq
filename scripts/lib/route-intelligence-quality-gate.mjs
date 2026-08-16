@@ -46,7 +46,7 @@ export const defaultPaths = {
   workspaceBusinessManifestRegistry: "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json"
 };
 
-const expectedRuntimeFileCount = 34;
+const expectedRuntimeFileCount = 35;
 const expectedDashboardFetchCount = 6;
 const christianBrothersPlaceId = "ChIJiduac7LCQIYR-sGBtIAjKR0";
 
