@@ -19,6 +19,10 @@ const reportPath =
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const toolchainGovernancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
+const representativeIntelligenceGovernancePath =
+  "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json";
+const representativeIntelligenceGovernanceSha256 =
+  "28096aa9d9faaac1ba43fe54c685dd0f07242e3fd74b75263eb3cf293bf3274d";
 const ownerCommit = "8fa8d6943431c68b9f5a556499243e9838378440";
 const ownerParent = "845973727b3e5fe3923c45b6b90c41134355c60f";
 const ownerTree = "e1cc6516c568d28e0d7f3078f41590ba8f6a994d";
@@ -248,6 +252,15 @@ const expectedOverwatchPaths = Object.freeze([
 const infrastructureIdentity =
   "Prometheus Infrastructure <infrastructure@prometheus.local>";
 const overwatchIdentity = "Prometheus Overwatch <overwatch@prometheus.local>";
+const representativeIntelligenceSuccessorIdentities = Object.freeze({
+  "07377e7a115cb86e3671787ac89350c78cede46a":
+    "Prometheus Website <website@prometheus.local>",
+  "fa3a416891e3f964e2085dc44bcd779a4a48de15":
+    "Prometheus Dashboard <dashboard@prometheus.local>",
+  "64ae9602af90c12022b936a6c70e7297d01dd19d":
+    "Prometheus Website <website@prometheus.local>",
+  "e1248a556f5683763e8aeda15903e16fb9aa33e3": infrastructureIdentity
+});
 const infrastructureOwnedPaths = new Set([
   ...Object.keys(ownerHashes),
   ...ownerImplementationSuccessors.map(item => item.path),
@@ -280,6 +293,14 @@ function protectedPathOwner(path) {
 export function evaluateCloudflareUnattendedKeychainSuccessorOwnership(commits) {
   const failures = [];
   for (const commit of commits) {
+    const exactSuccessorIdentity =
+      representativeIntelligenceSuccessorIdentities[commit.commit];
+    if (exactSuccessorIdentity) {
+      if (commit.author !== exactSuccessorIdentity || commit.committer !== exactSuccessorIdentity) {
+        failures.push(`Protected successor ownership drifted: ${commit.commit}`);
+      }
+      continue;
+    }
     const protectedOwners = new Set(
       commit.paths.map(path => (
         commit.commit === activeToolchainLauncherSuccessor.ownerCommit
@@ -302,6 +323,47 @@ export function evaluateCloudflareUnattendedKeychainSuccessorOwnership(commits) 
     ok: failures.length === 0,
     failures: Object.freeze(failures)
   });
+}
+
+function verifyRepresentativeIntelligenceSuccessorOwnership() {
+  const governance = readJson(representativeIntelligenceGovernancePath);
+  if (sha256(read(representativeIntelligenceGovernancePath))
+    !== representativeIntelligenceGovernanceSha256) {
+    throw new Error("Representative-intelligence governance hash drifted.");
+  }
+  if (governance.version
+    !== "route-iq-representative-intelligence-public-experience-successor-v1"
+    || governance.batchId !== "BATCH-20260815-002"
+    || governance.ownerSubsystem !== "Prometheus Overwatch"
+    || governance.status !== "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR") {
+    throw new Error("Representative-intelligence governance identity drifted.");
+  }
+  const expectedCommits = Object.keys(representativeIntelligenceSuccessorIdentities);
+  if (!equal(governance.implementationCommits.map(entry => entry.commit), expectedCommits)) {
+    throw new Error("Representative-intelligence owner chain drifted.");
+  }
+  for (const entry of governance.implementationCommits) {
+    const identity = representativeIntelligenceSuccessorIdentities[entry.commit];
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", entry.commit
+    ]).split("\n");
+    if (!equal(fields, [
+      entry.commit,
+      entry.parent,
+      entry.tree,
+      identity,
+      identity,
+      entry.subject
+    ])) {
+      throw new Error(`Representative-intelligence owner metadata drifted: ${entry.commit}`);
+    }
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r", entry.commit
+    ]).split("\n").filter(Boolean);
+    if (!equal(paths, entry.changedFiles)) {
+      throw new Error(`Representative-intelligence owner file set drifted: ${entry.commit}`);
+    }
+  }
 }
 
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -852,6 +914,7 @@ function statusPaths() {
 }
 
 function verifyOverwatchOwnership() {
+  verifyRepresentativeIntelligenceSuccessorOwnership();
   const head = git(["rev-parse", "HEAD"]);
   if (head === ownerCommit) {
     const paths = statusPaths();

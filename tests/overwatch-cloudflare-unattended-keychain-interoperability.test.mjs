@@ -191,6 +191,15 @@ test("Historical ownership gate ignores unrelated subsystem successors", () => {
     ]
   }]);
   assert.equal(governedToolchain.ok, true);
+
+  const representativeWebsite =
+    evaluateCloudflareUnattendedKeychainSuccessorOwnership([{
+      commit: "07377e7a115cb86e3671787ac89350c78cede46a",
+      author: "Prometheus Website <website@prometheus.local>",
+      committer: "Prometheus Website <website@prometheus.local>",
+      paths: ["package.json", "src/main.jsx"]
+    }]);
+  assert.equal(representativeWebsite.ok, true);
 });
 
 test("Historical ownership gate rejects protected cross-owner successors", () => {
@@ -223,6 +232,15 @@ test("Historical ownership gate rejects protected cross-owner successors", () =>
         "package.json",
         "scripts/lib/cloudflare-unattended-launcher.mjs"
       ]
-    }]);
+  }]);
   assert.equal(ungovernedSharedPackageCommit.ok, false);
+
+  const representativeWebsiteWrongOwner =
+    evaluateCloudflareUnattendedKeychainSuccessorOwnership([{
+      commit: "07377e7a115cb86e3671787ac89350c78cede46a",
+      author: "Prometheus Overwatch <overwatch@prometheus.local>",
+      committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+      paths: ["package.json", "src/main.jsx"]
+    }]);
+  assert.equal(representativeWebsiteWrongOwner.ok, false);
 });
