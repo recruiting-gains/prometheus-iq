@@ -13,6 +13,9 @@ import {
   hasOutcomeSemanticIntegrityPayloadInfrastructureSuccessor,
   hasPrivateWorkflowV2DashboardVisualDeployParitySuccessor
 } from "./verify-overwatch-github-actions-private-worker-deployment.mjs";
+import {
+  hasClaimSafePublicInfrastructureSuccessor
+} from "./verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const infrastructurePath = "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json";
@@ -33,6 +36,8 @@ const liveCanonicalIdentityGovernancePath =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
 const augustReadinessSuccessorsPath =
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json";
+const claimSafePublicGovernancePath =
+  "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json";
 const activeToolchainOwnerCommit = "d55a983134be40bf10777df293ca593e7583f138";
 const activeToolchainOwnerTree = "fcc850958e92d1f75eece476d6047b58972249d0";
 
@@ -462,7 +467,8 @@ export function isActiveCloudflareToolchainEvidenceAccepted({
   privateWorkflowGovernance,
   fieldSessionReportTypeGovernance,
   liveCanonicalIdentityGovernance,
-  readinessSuccessors
+  readinessSuccessors,
+  claimSafePublicGovernance
 }) {
   const visualParityEvidence = privateWorkflowGovernance
     ?.dashboardVisualDeployParitySuccessor?.evidence?.find(
@@ -502,6 +508,12 @@ export function isActiveCloudflareToolchainEvidenceAccepted({
       path,
       previousSha256: expectedSha256,
       currentSha256
+    })
+    || hasClaimSafePublicInfrastructureSuccessor({
+      governance: claimSafePublicGovernance,
+      path,
+      previousSha256: expectedSha256,
+      currentSha256
     });
 }
 
@@ -522,6 +534,7 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     liveCanonicalIdentityGovernancePath
   );
   const readinessSuccessors = readJson(augustReadinessSuccessorsPath);
+  const claimSafePublicGovernance = readJson(claimSafePublicGovernancePath);
   const packageJson = readJson("package.json");
   const packageLock = readJson("package-lock.json");
   const workflow = read(".github/workflows/security-gates.yml");
@@ -564,7 +577,8 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
       privateWorkflowGovernance,
       fieldSessionReportTypeGovernance,
       liveCanonicalIdentityGovernance,
-      readinessSuccessors
+      readinessSuccessors,
+      claimSafePublicGovernance
     })) {
       failures.push(`Active Cloudflare toolchain evidence drifted: ${path}`);
     }

@@ -41,6 +41,9 @@ const liveCanonicalIdentityGovernance = readJson(
 const readinessSuccessors = readJson(
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
 );
+const claimSafePublicGovernance = readJson(
+  "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json"
+);
 const packageJson = readJson("package.json");
 const packageLock = readJson("package-lock.json");
 const sha256 = path => createHash("sha256")
@@ -123,7 +126,8 @@ test("unattended access composes the exact dashboard visual parity successor cha
     privateWorkflowGovernance,
     fieldSessionReportTypeGovernance,
     liveCanonicalIdentityGovernance,
-    readinessSuccessors
+    readinessSuccessors,
+    claimSafePublicGovernance
   };
   assert.notEqual(values.currentSha256, expectedSha256);
   assert.equal(isActiveCloudflareToolchainEvidenceAccepted(values), true);
@@ -142,6 +146,40 @@ test("unattended access composes the exact dashboard visual parity successor cha
   brokenVisualParity.privateWorkflowGovernance.dashboardVisualDeployParitySuccessor.evidence
     .find(item => item.path === path).successorSha256 = "0".repeat(64);
   assert.equal(isActiveCloudflareToolchainEvidenceAccepted(brokenVisualParity), false);
+});
+
+test("unattended access composes only the claim-safe public Infrastructure successor", () => {
+  const path = "tests/github-actions-public-worker-deployment.test.mjs";
+  const values = {
+    path,
+    expectedSha256: toolchainGovernance.activeDeploymentPolicySuccessor
+      .currentEvidence[path],
+    currentSha256: sha256(path),
+    privateWorkflowGovernance,
+    fieldSessionReportTypeGovernance,
+    liveCanonicalIdentityGovernance,
+    readinessSuccessors,
+    claimSafePublicGovernance
+  };
+  assert.notEqual(values.currentSha256, values.expectedSha256);
+  assert.equal(isActiveCloudflareToolchainEvidenceAccepted(values), true);
+
+  for (const mutate of [
+    next => { next.claimSafePublicGovernance.batchId = "BATCH-STALE"; },
+    next => {
+      next.claimSafePublicGovernance.implementationCommits.find(entry =>
+        entry.commit === "6c4f452723c831b1a2e3e1574eeff713fcde6682"
+      ).identity = "Prometheus Overwatch <overwatch@prometheus.local>";
+    },
+    next => {
+      next.claimSafePublicGovernance.releaseBoundary.privateWorkerMutationAllowed = true;
+    },
+    next => { next.currentSha256 = "0".repeat(64); }
+  ]) {
+    const changed = clone(values);
+    mutate(changed);
+    assert.equal(isActiveCloudflareToolchainEvidenceAccepted(changed), false);
+  }
 });
 
 test("paused unattended access accepts only explicit owner-authored commercial successors", () => {
