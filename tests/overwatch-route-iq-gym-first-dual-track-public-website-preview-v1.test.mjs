@@ -30,11 +30,11 @@ test("Overwatch verifies the exact gym-first dual-track source and isolated prev
     verifyOverwatchGymFirstDualTrackPublicWebsitePreview({ requireClean: false }),
     {
       status: "PASS",
-      batchId: "BATCH-20260815-002",
-      ownerCommitCount: 4,
-      previewAssetSha256: "f528d4013f7790723b8529edab5a630d9f83cc87f7a67cf1305b3681bd76624b",
-      deploymentAssetSha256: "6c8361e0402a05a26002ad27f6b8af78cfc3fbacca46a1618871d8a8d814d4ec",
-      rollbackBundleSha256: "700300dc04d9c5a217910baa275d0379c23f0569f945e9152a40d595b6fda368",
+      batchId: "BATCH-20260819-001",
+      ownerCommitCount: 2,
+      previewAssetSha256: "174501cfb59101bb85d401fdd091cd96f1b64caa30c5c8e347c1b47df5ad2384",
+      deploymentAssetSha256: "94def2bbd52b6ffa85a40dbc4c51166fcdffdcc364ffdc99a678ddd91d2ed779",
+      rollbackBundleSha256: "a2cb4150124ff7569aa09cd50d60a12160ba52f2ef97b29967d92f494cb17f71",
       emailDisposition: "PROTECTED_CRM_NOTIFICATION_ONLY",
       truthState: "INSUFFICIENT_EVIDENCE",
       runtimeFileCount: 34,
@@ -50,7 +50,7 @@ test("navigation and Dashboard visual changes remain an isolated source successo
     record => { record.navigationContract.dashboardFallbackProhibited = false; },
     record => { record.dashboardVisualContract.accent = "#5b5fc7"; },
     record => { record.dashboardVisualContract.dashboardBehaviorChanged = true; },
-    record => { record.releaseBoundary.productionDeploymentAuthorized = true; },
+    record => { record.releaseBoundary.productionDeploymentAuthorized = false; },
     record => { record.protectedState.collection = "ON"; }
   ]) {
     const candidate = visualSuccessor();

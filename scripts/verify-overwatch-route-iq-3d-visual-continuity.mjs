@@ -353,7 +353,10 @@ function verifyWebsiteAndClaims(root) {
 
   assert.doesNotMatch(landing, /<link[^>]+rel="preload"[^>]+route-iq-field-operations\.jpg/iu);
   assert.match(landing, /Prometheus Route IQ for Gyms \| Representative Intelligence/u);
-  assert.match(landing, /01-772904932_1493675372780221_5358616428807129112_n-2\.jpeg/u);
+  assert.match(source,
+    /BUILT IN THE FIELD\.\s*<span>DESIGNED TO LEARN HOW EACH REP SELLS\.<\/span>/u);
+  assert.doesNotMatch(`${source}\n${landing}`,
+    /GYM OWNERS:\s*29 MEMBERS IN 48 HOURS\.\s*\$0 AD SPEND\./iu);
   assert.match(source, /Built for private onboarding, executive review, and field operating discipline\./u);
   assert.match(source, /Request Investor Deck/u);
   for (const removed of [

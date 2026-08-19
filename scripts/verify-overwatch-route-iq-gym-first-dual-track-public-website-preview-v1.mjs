@@ -25,7 +25,7 @@ export const GYM_PREVIEW_ENVIRONMENT_REPORT_PATH =
 export const GYM_PREVIEW_ROUTE_QUALITY_SUCCESSOR_PATH =
   "overwatch/governance/route-iq-gym-preview-route-quality-runtime-surface-successor-v1.json";
 export const GYM_PREVIEW_VISUAL_SUCCESSOR_PATH =
-  "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json";
+  "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json";
 
 const read = path => readFileSync(resolve(root, path));
 const text = path => read(path).toString("utf8");
@@ -163,11 +163,11 @@ export function validateGymPreviewRouteQualitySuccessor(governance) {
 
 export function validateGymPreviewVisualSuccessor(successor) {
   assert.equal(successor.version,
-    "route-iq-representative-intelligence-public-experience-successor-v1");
-  assert.equal(successor.batchId, "BATCH-20260815-002");
-  assert.equal(successor.status, "INDEPENDENTLY_VERIFIED_SOURCE_SUCCESSOR");
+    "route-iq-claim-safe-public-deployment-successor-v1");
+  assert.equal(successor.batchId, "BATCH-20260819-001");
+  assert.equal(successor.status, "INDEPENDENTLY_VERIFIED_RELEASE_SUCCESSOR");
   assert.equal(successor.ownerSubsystem, "Prometheus Overwatch");
-  assert.equal(successor.implementationCommits.length, 4);
+  assert.equal(successor.implementationCommits.length, 2);
   assert.deepEqual(successor.navigationContract.publicRoutes,
     ["/", "/investors", "/thank-you"]);
   assert.equal(successor.navigationContract.legalRoutesRemainPublic, true);
@@ -191,9 +191,15 @@ export function validateGymPreviewVisualSuccessor(successor) {
   assert.equal(successor.representativeLearningBoundary.publicCrmTransmission, false);
   assert.equal(successor.representativeLearningBoundary.productionRecommendationInfluence, false);
   assert.equal(successor.representativeLearningBoundary.declaredPreferencesAreHypotheses, true);
-  assert.equal(successor.releaseBoundary.productionDeploymentAuthorized, false);
+  assert.equal(successor.claimBoundary.approvedHeadline,
+    "BUILT IN THE FIELD. DESIGNED TO LEARN HOW EACH REP SELLS.");
+  assert.equal(successor.claimBoundary.blockedClaimProductionUseAllowed, false);
+  assert.equal(successor.releaseBoundary.productionDeploymentAuthorized, true);
   assert.equal(successor.releaseBoundary.productionStorageAccessAllowed, false);
-  assert.equal(successor.releaseBoundary.publicPreviewOnly, true);
+  assert.equal(successor.releaseBoundary.publicPreviewOnly, false);
+  assert.equal(successor.releaseBoundary.publicWorkerOnly, true);
+  assert.equal(successor.releaseBoundary.privateWorkerMutationAllowed, false);
+  assert.equal(successor.releaseBoundary.crmSubmissionAllowed, false);
   assert.equal(successor.protectedState.collection, "OFF");
   assert.equal(successor.protectedState.activeCohorts, 0);
   assert.equal(successor.protectedState.recommendationInfluence, "OFF");
@@ -218,6 +224,8 @@ function verifyWebsite(governance) {
     "these answers stay in this browser tab. They are not stored, sent with your request, or passed into production recommendations.",
     "Gym sales is our first focused market."
   ]) assert.ok(source.includes(phrase), `Website phrase missing: ${phrase}`);
+  assert.match(source,
+    /BUILT IN THE FIELD\.\s*<span>DESIGNED TO LEARN HOW EACH REP SELLS\.<\/span>/u);
   for (const phrase of [
     "Which languages can you confidently use in a sales conversation?",
     "Where do you naturally build the strongest rapport?",
@@ -240,12 +248,13 @@ function verifyWebsite(governance) {
     assert.ok(scene.includes(phrase), `3D scene invariant missing: ${phrase}`);
   for (const pattern of [
     /\bGaia\b/u, /\bAthena\b/u, /Fitness Connection/iu,
-    /franchise(?:e|ing)? expansion/iu, /recommendation superiority/iu
+    /franchise(?:e|ing)? expansion/iu, /recommendation superiority/iu,
+    /GYM OWNERS:\s*29 MEMBERS IN 48 HOURS\.\s*\$0 AD SPEND\./iu
   ]) assert.doesNotMatch(`${landing}\n${source}`, pattern);
   for (const asset of governance.founderAssets) {
     assert.equal(sha256(read(asset.repositoryPath)), asset.sha256);
   }
-  assert.equal((source.match(/<picture/gu) || []).length, 2);
+  assert.equal((source.match(/<picture/gu) || []).length, 1);
 }
 
 function verifyBoundaries(governance, environmentSuccessor, visualSuccessor) {
@@ -363,6 +372,7 @@ export function verifyOverwatchGymFirstDualTrackPublicWebsitePreview({
     "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-protected-consumers-v1.json",
     "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-verifier-composition-v1.json",
     "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json",
+    "intelligence/provenance/protected-baseline-synchronization-representative-intelligence-runtime-surface-v1.json",
     "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
     "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs"
   ]);

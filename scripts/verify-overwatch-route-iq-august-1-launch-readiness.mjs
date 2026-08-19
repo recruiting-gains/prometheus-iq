@@ -615,7 +615,7 @@ export function validateAugust1ReadinessSuccessors(successors, {
     "route-iq-august-1-readiness-successors-v1");
   assert.equal(successors.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(successors.historicalCloseoutEvidenceRewritten, false);
-  assert.equal(successors.successors.length, 24);
+  assert.equal(successors.successors.length, 26);
   const infrastructureSuccessor = successors.successors[0];
   assert.equal(infrastructureSuccessor.commit,
     "96c8210b94c3b0214dede252aba3d6d46121cd05");
@@ -715,7 +715,9 @@ export function validateAugust1ReadinessSuccessors(successors, {
       "15f1d58d4d0fcf689d2ead9591a6f3c4a6598bac",
       "07377e7a115cb86e3671787ac89350c78cede46a",
       "fa3a416891e3f964e2085dc44bcd779a4a48de15",
-      "e1248a556f5683763e8aeda15903e16fb9aa33e3"
+      "e1248a556f5683763e8aeda15903e16fb9aa33e3",
+      "1fbfc42eadc1bad486f92bcf0b8bd93a7d0236fd",
+      "6c4f452723c831b1a2e3e1574eeff713fcde6682"
     ]
   );
   for (const successor of successors.successors.slice(4)) {

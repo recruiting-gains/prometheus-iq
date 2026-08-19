@@ -1,0 +1,141 @@
+{
+  "version": "route-iq-claim-safe-public-deployment-successor-v1",
+  "batchId": "BATCH-20260819-001",
+  "directive": "Route IQ Claim-Safe Public Website Release v1",
+  "status": "INDEPENDENTLY_VERIFIED_RELEASE_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "predecessors": [
+    {
+      "path": "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json",
+      "sha256": "28096aa9d9faaac1ba43fe54c685dd0f07242e3fd74b75263eb3cf293bf3274d",
+      "remainsHistorical": true,
+      "rewritten": false
+    }
+  ],
+  "implementationCommits": [
+    {
+      "commit": "1fbfc42eadc1bad486f92bcf0b8bd93a7d0236fd",
+      "parent": "b9edbc244976de943668ee3a0dce3533f16aa742",
+      "tree": "a147ed936aaa36422b01e1e997f1b5407a64468a",
+      "identity": "Prometheus Website <website@prometheus.local>",
+      "ownerSubsystem": "Prometheus Website",
+      "subject": "website: replace preview claim with representative intelligence hero",
+      "changedFiles": [
+        "landing.html",
+        "src/main.jsx",
+        "src/styles.css",
+        "tests/website-route-iq-product-focus.test.mjs",
+        "vite.config.js"
+      ]
+    },
+    {
+      "commit": "6c4f452723c831b1a2e3e1574eeff713fcde6682",
+      "parent": "1fbfc42eadc1bad486f92bcf0b8bd93a7d0236fd",
+      "tree": "269aa01a64c6926ea1ea6cca49479a79daa75f92",
+      "identity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "subject": "infrastructure: bind claim-safe public release assets",
+      "changedFiles": [
+        "deploy/prometheusrouteiq-website/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg",
+        "deploy/prometheusrouteiq-website/01-772904932_1493675372780221_5358616428807129112_n-2.webp",
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-Cah5hUqr.js",
+        "deploy/prometheusrouteiq-website/assets/IntelligenceScene-lvifE82o.js",
+        "deploy/prometheusrouteiq-website/assets/landing-BLoBJtzT.js",
+        "deploy/prometheusrouteiq-website/assets/landing-CNaozCQc.css",
+        "deploy/prometheusrouteiq-website/assets/landing-Da2k4e4y.js",
+        "deploy/prometheusrouteiq-website/assets/landing-qke0YpSi.css",
+        "deploy/prometheusrouteiq-website/index.html",
+        "scripts/lib/route-iq-public-forward-rollback.mjs",
+        "tests/github-actions-public-worker-deployment.test.mjs",
+        "tests/github-actions-public-worker-workflow-v2.test.mjs",
+        "tests/route-iq-gym-website-preview-infrastructure.test.mjs",
+        "tests/route-iq-public-forward-rollback-pinned-source.test.mjs",
+        "workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json",
+        "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+      ]
+    }
+  ],
+  "intelligenceProvenance": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-dashboard-public-visual-identity-v1.json",
+    "sha256": "f263570a78693b998c5f18535861170f1b4345d700bb83bf7661ccb5cf4f5cf9"
+  },
+  "currentContracts": {
+    "preview": {
+      "path": "workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json",
+      "sha256": "f29437037db413bfa618233301427e4f64956887c42ad2d5a341a0178c562346"
+    },
+    "workflow": {
+      "path": ".github/workflows/preview-prometheus-route-iq-gym-first.yml",
+      "sha256": "fa0efa259d006527d500e714b4f92f7c1c76df06f7cc7973c448aaa0d45006d9"
+    },
+    "forwardRollback": {
+      "path": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+      "sha256": "0bb6b68da599d1d89a3e95f688ea9106ed9e5031454c1e6f706d0afabdefcb28"
+    }
+  },
+  "releaseIdentities": {
+    "websiteCommit": "1fbfc42eadc1bad486f92bcf0b8bd93a7d0236fd",
+    "websiteTree": "a147ed936aaa36422b01e1e997f1b5407a64468a",
+    "infrastructureCommit": "6c4f452723c831b1a2e3e1574eeff713fcde6682",
+    "infrastructureTree": "269aa01a64c6926ea1ea6cca49479a79daa75f92",
+    "previewAssetSha256": "174501cfb59101bb85d401fdd091cd96f1b64caa30c5c8e347c1b47df5ad2384",
+    "previewFileCount": 24,
+    "previewTotalBytes": 2578781,
+    "deploymentAssetSha256": "94def2bbd52b6ffa85a40dbc4c51166fcdffdcc364ffdc99a678ddd91d2ed779",
+    "rollbackContractSha256": "0bb6b68da599d1d89a3e95f688ea9106ed9e5031454c1e6f706d0afabdefcb28",
+    "rollbackBundleSha256": "a2cb4150124ff7569aa09cd50d60a12160ba52f2ef97b29967d92f494cb17f71",
+    "initialCriticalBytes": 612003,
+    "lazy3dBytes": 892213
+  },
+  "claimBoundary": {
+    "approvedHeadline": "BUILT IN THE FIELD. DESIGNED TO LEARN HOW EACH REP SELLS.",
+    "blockedUnverifiedClaim": "GYM OWNERS: 29 MEMBERS IN 48 HOURS. $0 AD SPEND.",
+    "blockedClaimProductionUseAllowed": false,
+    "blockedClaimEvidenceStatus": "UNVERIFIED_PRIVATE_INFORMATION_UNAVAILABLE"
+  },
+  "navigationContract": {
+    "publicRoutes": ["/", "/investors", "/thank-you"],
+    "legalRoutesRemainPublic": true,
+    "sectionAnchorsRemainPublic": true,
+    "browserHistorySupported": true,
+    "dashboardFallbackProhibited": true
+  },
+  "dashboardVisualContract": {
+    "command": "#000000",
+    "commandSecondary": "#1a1a1a",
+    "accent": "#ff6a00",
+    "themeColor": "#000000",
+    "operationalStatusColorsPreserved": true,
+    "dashboardBehaviorChanged": false,
+    "retiredGreenLogoAbsent": true
+  },
+  "representativeLearningBoundary": {
+    "version": "route-iq-representative-style-preview.v1",
+    "questionIds": ["languages", "conversationStyle", "fieldEnvironment", "energyWindow", "interests", "conversationPace"],
+    "storage": "memory_only",
+    "publicCrmTransmission": false,
+    "productionRecommendationInfluence": false,
+    "declaredPreferencesAreHypotheses": true,
+    "authorizedFieldEvidenceRequiredBeforeInfluence": true
+  },
+  "releaseBoundary": {
+    "productionDeploymentAuthorized": true,
+    "productionStorageAccessAllowed": false,
+    "publicPreviewOnly": false,
+    "publicWorkerOnly": true,
+    "privateWorkerMutationAllowed": false,
+    "crmSubmissionAllowed": false
+  },
+  "protectedState": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "confidencePropagation": "OFF",
+    "providers": "OFF",
+    "scheduler": "OFF",
+    "shadowDecisionVisible": false,
+    "truthState": "INSUFFICIENT_EVIDENCE",
+    "productionDeployments": 0,
+    "productionDataMutations": 0
+  }
+}

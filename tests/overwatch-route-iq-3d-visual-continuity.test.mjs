@@ -16,11 +16,11 @@ test("Overwatch verifies the owned 3D successor, generated assets, CRM boundary,
   assert.equal(result.status, "ROUTE_IQ_3D_VISUAL_CONTINUITY_VERIFIED");
   assert.equal(result.batchId, "BATCH-20260719-006");
   assert.equal(result.ownerCommits.length, 7);
-  assert.equal(result.deploymentAssetsSha256, "6c8361e0402a05a26002ad27f6b8af78cfc3fbacca46a1618871d8a8d814d4ec");
+  assert.equal(result.deploymentAssetsSha256, "94def2bbd52b6ffa85a40dbc4c51166fcdffdcc364ffdc99a678ddd91d2ed779");
   assert.equal(result.historicalDeploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
-  assert.equal(result.rollbackArtifactSha256, "700300dc04d9c5a217910baa275d0379c23f0569f945e9152a40d595b6fda368");
+  assert.equal(result.rollbackArtifactSha256, "a2cb4150124ff7569aa09cd50d60a12160ba52f2ef97b29967d92f494cb17f71");
   assert.equal(result.historicalRollbackArtifactSha256, "381b471ed3fa0a1fdab0b612600be2f2b6e77b45d3b9c02418a056e0eb500b5a");
-  assert.equal(result.initialCriticalBytes, 610852);
+  assert.equal(result.initialCriticalBytes, 612003);
   assert.equal(result.lazy3dBytes, 892213);
   assert.equal(result.recommendationInfluence, "OFF");
   assert.equal(result.prospectiveCollection, "OFF");

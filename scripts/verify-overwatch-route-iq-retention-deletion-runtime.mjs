@@ -21,6 +21,8 @@ const dashboardVisualGovernancePath =
   "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json";
 const representativeIntelligenceGovernancePath =
   "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json";
+const claimSafePublicGovernancePath =
+  "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json";
 const startCommit = "0ae9b3752476bc782b067a2a47fd388e4c3791ef";
 const startTree = "3b6778b25c731e75c489b738dc00256868522d22";
 const acceptedCommit = "78ec6ceecf7c0420b6da7d9f3e7bbbd62b48ae2e";
@@ -266,7 +268,9 @@ export function verifyRetentionProtectedRuntimeSuccessors({
   representativeIntelligenceGovernance,
   representativeSuccessorProtectedRuntimeChanges,
   preRepresentativeProtectedRuntimeChanges,
-  representativeFinalProtectedRuntimeChanges
+  claimSafePublicGovernance,
+  claimSafeSuccessorProtectedRuntimeChanges,
+  claimSafeFinalProtectedRuntimeChanges
 }) {
   assert.equal(governedLearning?.status, "PASS");
   assert.equal(governedLearning?.batchId, "BATCH-20260812-001");
@@ -390,10 +394,53 @@ export function verifyRetentionProtectedRuntimeSuccessors({
   assert.equal(representativeIntelligenceGovernance.protectedState.collection, "OFF");
   assert.equal(representativeIntelligenceGovernance.protectedState.activeCohorts, 0);
   assert.equal(representativeIntelligenceGovernance.protectedState.recommendationInfluence, "OFF");
+  assert.equal(claimSafePublicGovernance?.version,
+    "route-iq-claim-safe-public-deployment-successor-v1");
+  assert.equal(claimSafePublicGovernance?.batchId, "BATCH-20260819-001");
+  assert.equal(claimSafePublicGovernance?.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(claimSafePublicGovernance?.status,
+    "INDEPENDENTLY_VERIFIED_RELEASE_SUCCESSOR");
+  assert.equal(
+    claimSafePublicGovernance.predecessors[0].path,
+    representativeIntelligenceGovernancePath
+  );
+  assert.equal(
+    claimSafePublicGovernance.predecessors[0].sha256,
+    sha256(read(representativeIntelligenceGovernancePath))
+  );
+  assert.deepEqual(
+    claimSafePublicGovernance.implementationCommits.map(entry => entry.commit),
+    [
+      "1fbfc42eadc1bad486f92bcf0b8bd93a7d0236fd",
+      "6c4f452723c831b1a2e3e1574eeff713fcde6682"
+    ]
+  );
+  for (const entry of claimSafePublicGovernance.implementationCommits) {
+    assert.deepEqual(changedPaths(entry.commit), [...entry.changedFiles].sort());
+  }
+  const claimSafeInfrastructure = claimSafePublicGovernance.implementationCommits.at(-1);
+  assert.equal(claimSafeInfrastructure.identity,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>");
+  assert.deepEqual(
+    [...claimSafeSuccessorProtectedRuntimeChanges].sort(),
+    claimSafeInfrastructure.changedFiles.filter(isProtectedRuntimePath).sort()
+  );
+  assert.equal(claimSafePublicGovernance.releaseIdentities.deploymentAssetSha256,
+    "94def2bbd52b6ffa85a40dbc4c51166fcdffdcc364ffdc99a678ddd91d2ed779");
+  assert.equal(claimSafePublicGovernance.releaseIdentities.rollbackContractSha256,
+    "0bb6b68da599d1d89a3e95f688ea9106ed9e5031454c1e6f706d0afabdefcb28");
+  assert.equal(claimSafePublicGovernance.releaseIdentities.rollbackBundleSha256,
+    "a2cb4150124ff7569aa09cd50d60a12160ba52f2ef97b29967d92f494cb17f71");
+  assert.equal(claimSafePublicGovernance.releaseBoundary.productionDeploymentAuthorized, true);
+  assert.equal(claimSafePublicGovernance.releaseBoundary.publicWorkerOnly, true);
+  assert.equal(claimSafePublicGovernance.releaseBoundary.privateWorkerMutationAllowed, false);
+  assert.equal(claimSafePublicGovernance.protectedState.collection, "OFF");
+  assert.equal(claimSafePublicGovernance.protectedState.activeCohorts, 0);
+  assert.equal(claimSafePublicGovernance.protectedState.recommendationInfluence, "OFF");
   assert.deepEqual(
     [...protectedRuntimeChanges].sort(),
-    [...representativeFinalProtectedRuntimeChanges].sort(),
-    `Protected runtime paths changed after the representative-intelligence successor: ${protectedRuntimeChanges.join(", ")}`
+    [...claimSafeFinalProtectedRuntimeChanges].sort(),
+    `Protected runtime paths changed after the claim-safe public successor: ${protectedRuntimeChanges.join(", ")}`
   );
   assert.deepEqual(
     [...preRepresentativeProtectedRuntimeChanges].sort(),
@@ -684,10 +731,20 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
     "--name-only",
     `${startCommit}..${representativeBaselineCommit}`
   ).split("\n").filter(Boolean).filter(isProtectedRuntimePath);
-  const representativeFinalProtectedRuntimeChanges = git(
+  const claimSafePublicGovernance = readJson(claimSafePublicGovernancePath);
+  const claimSafeImplementationCommits = claimSafePublicGovernance.implementationCommits;
+  const claimSafeBaselineCommit = claimSafeImplementationCommits[0].parent;
+  const claimSafeInfrastructureCommit = claimSafeImplementationCommits.at(-1).commit;
+  const claimSafeSuccessorProtectedRuntimeChanges = git(
+    "diff",
+    "--no-renames",
+    "--name-only",
+    `${claimSafeBaselineCommit}..${claimSafeInfrastructureCommit}`
+  ).split("\n").filter(Boolean).filter(isProtectedRuntimePath);
+  const claimSafeFinalProtectedRuntimeChanges = git(
     "diff",
     "--name-only",
-    `${startCommit}..${representativeInfrastructureCommit}`
+    `${startCommit}..${claimSafeInfrastructureCommit}`
   ).split("\n").filter(Boolean).filter(isProtectedRuntimePath);
   const node24Verification = verifyOverwatchGithubActionsNode24PinSuccessor();
   assert.equal(node24Verification.status, "OFFICIAL_NODE24_ACTION_PIN_OVERWATCH_VERIFIED");
@@ -702,7 +759,9 @@ export function verifyOverwatchRouteIqRetentionDeletionRuntime() {
     representativeIntelligenceGovernance,
     representativeSuccessorProtectedRuntimeChanges,
     preRepresentativeProtectedRuntimeChanges,
-    representativeFinalProtectedRuntimeChanges
+    claimSafePublicGovernance,
+    claimSafeSuccessorProtectedRuntimeChanges,
+    claimSafeFinalProtectedRuntimeChanges
   }), true);
   assert.equal(
     git("rev-parse", `${startCommit}:data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions`),

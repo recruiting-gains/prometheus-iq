@@ -154,6 +154,11 @@
       "successorSha256": "af5b6c5f99587862c199d71c34f456bd1f00ded749ba4245206f687ca75ddbdd"
     },
     {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "af5b6c5f99587862c199d71c34f456bd1f00ded749ba4245206f687ca75ddbdd",
+      "successorSha256": "4f54d0fc61552ea80ba40370333ddd84b5f85f1a7014e2689e13b5deeac4668e"
+    },
+    {
       "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
       "previousSha256": "01a75eee60d49de0ffc74a840c7130510ab61a9984777dd91eee58ea712bca52",
       "successorSha256": "f8f38f5e0a929a094aafc402e3abda88e52b37966ea077ba4d697f0024f72e42"
@@ -574,6 +579,32 @@
           "path": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
           "previousSha256": "168689b3b8beac3eb0ba966737e01c8af3583b18417dd04bc6f4920fcdb5af2c",
           "successorSha256": "78f930c02ac61079015704e62e92c7a4d8399d7c5e7a22d68a59ecd70e691446"
+        }
+      ]
+    },
+    {
+      "commit": "1fbfc42eadc1bad486f92bcf0b8bd93a7d0236fd",
+      "tree": "a147ed936aaa36422b01e1e997f1b5407a64468a",
+      "owner": "Prometheus Website <website@prometheus.local>",
+      "reason": "The Website owner replaces an unverified private performance claim with the Founder-approved representative-intelligence headline while preserving the public CRM and protected operating boundaries.",
+      "evidence": [
+        {
+          "path": "tests/website-route-iq-product-focus.test.mjs",
+          "previousSha256": "a2e9fbb6b923a43b58de523905ab2e4f9b75c2a02b6e6dd7c63a09767023d06c",
+          "successorSha256": "2cda3ee79f7a5b34dabb6088822398138b7754d133070cae598b57cfc40188d6"
+        }
+      ]
+    },
+    {
+      "commit": "6c4f452723c831b1a2e3e1574eeff713fcde6682",
+      "tree": "269aa01a64c6926ea1ea6cca49479a79daa75f92",
+      "owner": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "reason": "Infrastructure binds the exact claim-safe Website bundle to deterministic deployment and forward-compatible rollback identities without changing CRM storage, bindings, migrations, or private runtime state.",
+      "evidence": [
+        {
+          "path": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+          "previousSha256": "78f930c02ac61079015704e62e92c7a4d8399d7c5e7a22d68a59ecd70e691446",
+          "successorSha256": "0bb6b68da599d1d89a3e95f688ea9106ed9e5031454c1e6f706d0afabdefcb28"
         }
       ]
     }

@@ -47,6 +47,11 @@ const representativeIntelligenceGovernance = () => JSON.parse(readFileSync(
   "utf8"
 ));
 
+const claimSafePublicGovernance = () => JSON.parse(readFileSync(
+  "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json",
+  "utf8"
+));
+
 test("Overwatch verifies the exact owner chain and dormant deletion release boundary", () => {
   assert.deepEqual(verifyOverwatchRouteIqRetentionDeletionRuntime(), {
     status: "PASS",
@@ -254,8 +259,15 @@ test("retention composes only the exact governed protected-runtime successors", 
     ...preRepresentativePaths,
     ...representativeSuccessorPaths
   ])];
+  const claimSafePublicRecord = claimSafePublicGovernance();
+  const claimSafeSuccessorPaths = claimSafePublicRecord
+    .implementationCommits.at(-1).changedFiles.filter(isProtectedRuntimePath);
+  const claimSafeFinalPaths = [...new Set([
+    ...representativeFinalPaths,
+    ...claimSafeSuccessorPaths
+  ])];
   const input = {
-    protectedRuntimeChanges: [...representativeFinalPaths],
+    protectedRuntimeChanges: [...claimSafeFinalPaths],
     node24WorkflowPaths,
     governedLearning: governedLearningVerification,
     gymPreviewGovernance: gymPreviewRecord,
@@ -265,7 +277,9 @@ test("retention composes only the exact governed protected-runtime successors", 
     representativeIntelligenceGovernance: representativeIntelligenceRecord,
     representativeSuccessorProtectedRuntimeChanges: representativeSuccessorPaths,
     preRepresentativeProtectedRuntimeChanges: preRepresentativePaths,
-    representativeFinalProtectedRuntimeChanges: representativeFinalPaths
+    claimSafePublicGovernance: claimSafePublicRecord,
+    claimSafeSuccessorProtectedRuntimeChanges: claimSafeSuccessorPaths,
+    claimSafeFinalProtectedRuntimeChanges: claimSafeFinalPaths
   };
   assert.equal(verifyRetentionProtectedRuntimeSuccessors(input), true);
   for (const mutate of [
@@ -317,7 +331,12 @@ test("retention composes only the exact governed protected-runtime successors", 
     },
     value => { value.representativeSuccessorProtectedRuntimeChanges.pop(); },
     value => { value.preRepresentativeProtectedRuntimeChanges.pop(); },
-    value => { value.representativeFinalProtectedRuntimeChanges.pop(); }
+    value => { value.claimSafePublicGovernance.batchId = "BATCH-STALE"; },
+    value => {
+      value.claimSafePublicGovernance.releaseBoundary.productionDeploymentAuthorized = false;
+    },
+    value => { value.claimSafeSuccessorProtectedRuntimeChanges.pop(); },
+    value => { value.claimSafeFinalProtectedRuntimeChanges.pop(); }
   ]) {
     const candidate = structuredClone(input);
     mutate(candidate);
