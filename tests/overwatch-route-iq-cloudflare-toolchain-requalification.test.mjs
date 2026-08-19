@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  hasClaimSafePublicInfrastructureSuccessor,
+  hasClaimSafePublicRollbackBuildSourceSuccessor,
   hasDashboardVisualPublicRollbackBuildSourceSuccessor,
   hasGymPreviewPublicRollbackBuildSourceSuccessor,
   hasRepresentativeIntelligencePublicRollbackBuildSourceSuccessor,
@@ -153,6 +155,50 @@ test("toolchain qualification composes only the representative-intelligence roll
       hasRepresentativeIntelligencePublicRollbackBuildSourceSuccessor(candidate),
       false
     );
+  }
+});
+
+test("toolchain qualification composes only the claim-safe rollback source", () => {
+  const governance = JSON.parse(readFileSync(
+    new URL(
+      "../overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json",
+      import.meta.url
+    ),
+    "utf8"
+  ));
+  const input = {
+    governance,
+    path: "scripts/lib/route-iq-public-forward-rollback.mjs",
+    previousSha256:
+      "c7b232391bad94141f14c5e7b3a87a94f125d71fb1f74ac2c55386f5e62b2d3a",
+    currentSha256:
+      "ba91aef7015464556446dad24fff542a7c7ac58382255a12a1cb77102ba41292"
+  };
+  assert.equal(hasClaimSafePublicRollbackBuildSourceSuccessor(input), true);
+  assert.equal(hasClaimSafePublicInfrastructureSuccessor({
+    governance,
+    path: "tests/github-actions-public-worker-deployment.test.mjs",
+    previousSha256:
+      "13bbe882a8b3b3708d536cab26fbd5f99d8706b74f0a70df05af9608609091ee",
+    currentSha256:
+      "6258cfa2186cf5c111e3d788b85e01b138d6490950cf5e2dc940d7031c5dc620"
+  }), true);
+  for (const candidate of [
+    { ...input, path: "scripts/unapproved.mjs" },
+    { ...input, previousSha256: "0".repeat(64) },
+    { ...input, currentSha256: "0".repeat(64) },
+    {
+      ...input,
+      governance: {
+        ...governance,
+        releaseBoundary: {
+          ...governance.releaseBoundary,
+          privateWorkerMutationAllowed: true
+        }
+      }
+    }
+  ]) {
+    assert.equal(hasClaimSafePublicRollbackBuildSourceSuccessor(candidate), false);
   }
 });
 
