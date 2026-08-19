@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   validateActiveToolchainPublicLaneSuccessor,
+  validateClaimSafePublicLaneSuccessor,
   validateDashboardVisualPublicLaneSuccessor,
   validateGovernedPublicLaneSuccessor,
   validateGymPreviewPublicLaneSuccessor,
@@ -146,6 +147,45 @@ test("paid-customer public lane composes the exact navigation and visual success
     governance: deployable,
     gymPreviewSuccessor,
     changedPaths
+  }));
+});
+
+test("paid-customer public lane composes the exact claim-safe deployment successor", () => {
+  const predecessor = readJson(
+    "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json"
+  );
+  const governance = readJson(
+    "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json"
+  );
+  const changedPaths = [
+    "deploy/prometheusrouteiq-website/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg",
+    "deploy/prometheusrouteiq-website/01-772904932_1493675372780221_5358616428807129112_n-2.webp",
+    "deploy/prometheusrouteiq-website/assets/IntelligenceScene-Cah5hUqr.js",
+    "deploy/prometheusrouteiq-website/assets/landing-BLoBJtzT.js",
+    "deploy/prometheusrouteiq-website/assets/landing-CNaozCQc.css",
+    "deploy/prometheusrouteiq-website/assets/landing-qke0YpSi.css",
+    "deploy/prometheusrouteiq-website/index.html",
+    "src/main.jsx",
+    "src/styles.css",
+    "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+  ];
+  assert.equal(validateClaimSafePublicLaneSuccessor({
+    governance,
+    predecessorGovernance: predecessor,
+    changedPaths
+  }), governance.releaseIdentities);
+
+  const weakened = clone(governance);
+  weakened.claimBoundary.blockedClaimProductionUseAllowed = true;
+  assert.throws(() => validateClaimSafePublicLaneSuccessor({
+    governance: weakened,
+    predecessorGovernance: predecessor,
+    changedPaths
+  }));
+  assert.throws(() => validateClaimSafePublicLaneSuccessor({
+    governance,
+    predecessorGovernance: predecessor,
+    changedPaths: [...changedPaths, "src/unapproved-public-change.js"]
   }));
 });
 

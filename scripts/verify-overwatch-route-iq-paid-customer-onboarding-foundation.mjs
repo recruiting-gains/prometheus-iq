@@ -37,6 +37,8 @@ const dashboardVisualGovernancePath =
   "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json";
 const representativeIntelligenceGovernancePath =
   "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json";
+const claimSafePublicGovernancePath =
+  "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json";
 const activeToolchainOwnerCommit = "d55a983134be40bf10777df293ca593e7583f138";
 const activeToolchainOwnerTree = "fcc850958e92d1f75eece476d6047b58972249d0";
 const activeToolchainOwnerParent = "3d646bffde28b1ef995ae03af5976a6db1105430";
@@ -481,6 +483,82 @@ export function validateRepresentativeIntelligencePublicLaneSuccessor({
   return Object.freeze({ assetTransitions, publicOwnerCommits });
 }
 
+export function validateClaimSafePublicLaneSuccessor({
+  governance,
+  predecessorGovernance,
+  changedPaths
+}) {
+  assert.equal(governance?.version,
+    "route-iq-claim-safe-public-deployment-successor-v1");
+  assert.equal(governance?.batchId, "BATCH-20260819-001");
+  assert.equal(governance?.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(governance?.status, "INDEPENDENTLY_VERIFIED_RELEASE_SUCCESSOR");
+  const predecessor = governance.predecessors.find(item =>
+    item.path === representativeIntelligenceGovernancePath);
+  assert.ok(predecessor);
+  assert.equal(predecessor.sha256,
+    sha256(read(representativeIntelligenceGovernancePath)));
+  assert.equal(predecessor.remainsHistorical, true);
+  assert.equal(predecessor.rewritten, false);
+  assert.equal(predecessorGovernance.batchId, "BATCH-20260815-002");
+
+  assert.deepEqual(governance.implementationCommits.map(entry => entry.commit), [
+    "1fbfc42eadc1bad486f92bcf0b8bd93a7d0236fd",
+    "6c4f452723c831b1a2e3e1574eeff713fcde6682"
+  ]);
+  for (const entry of governance.implementationCommits) {
+    assert.deepEqual(git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      entry.commit
+    ]).split("\n"), [
+      entry.commit,
+      entry.parent,
+      entry.tree,
+      entry.identity,
+      entry.identity,
+      entry.subject
+    ]);
+    assert.deepEqual(git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r", entry.commit
+    ]).split("\n").filter(Boolean).sort(), [...entry.changedFiles].sort());
+    assert.equal(git(["merge-base", "--is-ancestor", entry.commit, "HEAD"]), "");
+  }
+
+  assert.equal(governance.releaseIdentities.websiteCommit,
+    governance.implementationCommits[0].commit);
+  assert.equal(governance.releaseIdentities.infrastructureCommit,
+    governance.implementationCommits[1].commit);
+  assert.match(governance.releaseIdentities.deploymentAssetSha256, /^[0-9a-f]{64}$/u);
+  assert.match(governance.releaseIdentities.rollbackContractSha256, /^[0-9a-f]{64}$/u);
+  assert.match(governance.releaseIdentities.rollbackBundleSha256, /^[0-9a-f]{64}$/u);
+  assert.deepEqual(changedPaths, git([
+    "diff", "--name-only",
+    governance.implementationCommits[0].parent,
+    governance.releaseIdentities.infrastructureCommit,
+    "--",
+    ...paidCustomerPublicPaths
+  ]).split("\n").filter(Boolean));
+  assert.equal(changedPaths.includes(
+    "deploy/prometheusrouteiq-website/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg"
+  ), true);
+  assert.equal(fs.existsSync(new URL(
+    "deploy/prometheusrouteiq-website/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg",
+    rootUrl
+  )), false);
+  assert.equal(governance.claimBoundary.approvedHeadline,
+    "BUILT IN THE FIELD. DESIGNED TO LEARN HOW EACH REP SELLS.");
+  assert.equal(governance.claimBoundary.blockedClaimProductionUseAllowed, false);
+  assert.equal(governance.releaseBoundary.productionDeploymentAuthorized, true);
+  assert.equal(governance.releaseBoundary.publicWorkerOnly, true);
+  assert.equal(governance.releaseBoundary.privateWorkerMutationAllowed, false);
+  assert.equal(governance.releaseBoundary.crmSubmissionAllowed, false);
+  assert.equal(governance.protectedState.collection, "OFF");
+  assert.equal(governance.protectedState.activeCohorts, 0);
+  assert.equal(governance.protectedState.recommendationInfluence, "OFF");
+  assert.equal(governance.protectedState.productionDataMutations, 0);
+  return governance.releaseIdentities;
+}
+
 export function validateActiveToolchainPublicLaneSuccessor({
   governance,
   additionalChangedPaths
@@ -551,6 +629,7 @@ function verifyPublicLaneCompatibility(baselineCommit) {
   const representativeIntelligenceGovernance = readJson(
     representativeIntelligenceGovernancePath
   );
+  const claimSafePublicGovernance = readJson(claimSafePublicGovernancePath);
   const node24Paths = node24ActionPinInfrastructure.workflows
     .map(item => item.path)
     .filter(path => paidCustomerPublicPaths.includes(path));
@@ -590,7 +669,7 @@ function verifyPublicLaneCompatibility(baselineCommit) {
     "diff",
     "--name-only",
     gymPreviewGovernance.startingRepository.commit,
-    "HEAD",
+    representativeIntelligenceGovernance.implementationCommits.at(-1).commit,
     "--",
     ...paidCustomerPublicPaths
   ]).split("\n").filter(Boolean);
@@ -601,6 +680,27 @@ function verifyPublicLaneCompatibility(baselineCommit) {
       historicalChangedPaths: dashboardVisualChangedPaths,
       changedPaths: currentRepresentativeChangedPaths
     });
+  const claimSafeChangedPaths = git([
+    "diff",
+    "--name-only",
+    representativeIntelligenceGovernance.implementationCommits.at(-1).commit,
+    claimSafePublicGovernance.releaseIdentities.infrastructureCommit,
+    "--",
+    ...paidCustomerPublicPaths
+  ]).split("\n").filter(Boolean);
+  const claimSafeSuccessor = validateClaimSafePublicLaneSuccessor({
+    governance: claimSafePublicGovernance,
+    predecessorGovernance: representativeIntelligenceGovernance,
+    changedPaths: claimSafeChangedPaths
+  });
+  assert.deepEqual(git([
+    "diff",
+    "--name-only",
+    claimSafeSuccessor.infrastructureCommit,
+    "HEAD",
+    "--",
+    ...paidCustomerPublicPaths
+  ]).split("\n").filter(Boolean), []);
   const reconciliation = validateGovernedPublicLaneSuccessor({
     governance,
     baselineCommit,
@@ -634,6 +734,9 @@ function verifyPublicLaneCompatibility(baselineCommit) {
   for (const commit of representativeIntelligenceSuccessor.publicOwnerCommits) {
     assert.equal(git(["merge-base", "--is-ancestor", commit, "HEAD"]), "");
   }
+  for (const entry of claimSafePublicGovernance.implementationCommits) {
+    assert.equal(git(["merge-base", "--is-ancestor", entry.commit, "HEAD"]), "");
+  }
   assert.deepEqual(git([
     "log",
     "--format=%H",
@@ -641,6 +744,8 @@ function verifyPublicLaneCompatibility(baselineCommit) {
     "--",
     ...paidCustomerPublicPaths
   ]).split("\n").filter(Boolean), [
+    "6c4f452723c831b1a2e3e1574eeff713fcde6682",
+    "1fbfc42eadc1bad486f92bcf0b8bd93a7d0236fd",
     "e1248a556f5683763e8aeda15903e16fb9aa33e3",
     "64ae9602af90c12022b936a6c70e7297d01dd19d",
     "07377e7a115cb86e3671787ac89350c78cede46a",
@@ -718,7 +823,7 @@ function verifyPublicLaneCompatibility(baselineCommit) {
     "--name-status",
     "--find-renames",
     "441e4f2c829c0eb5d04078711314d9481d4ccbd4",
-    "HEAD",
+    representativeIntelligenceGovernance.implementationCommits.at(-1).commit,
     "--",
     "deploy/prometheusrouteiq-website/assets"
   ]).split("\n").filter(Boolean);
