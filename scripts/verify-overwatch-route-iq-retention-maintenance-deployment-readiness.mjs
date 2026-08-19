@@ -39,6 +39,8 @@ const dashboardVisualGovernancePath =
   "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json";
 const representativeIntelligenceGovernancePath =
   "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json";
+const claimSafePublicGovernancePath =
+  "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json";
 
 const ownerCommits = Object.freeze({
   "1511fe6778138c4b662381be5e6b03109e21e43d": Object.freeze({
@@ -151,7 +153,8 @@ export function verifyRetentionMaintenancePublicRollbackSuccessor({
   currentRollbackContractSha256,
   gymPreviewGovernance,
   dashboardVisualGovernance,
-  representativeIntelligenceGovernance
+  representativeIntelligenceGovernance,
+  claimSafePublicGovernance
 }) {
   const successor = gymPreviewGovernance?.toolchainReleaseReproducibilitySuccessor;
   assert.equal(gymPreviewGovernance?.batchId, "BATCH-20260814-002");
@@ -236,28 +239,66 @@ export function verifyRetentionMaintenancePublicRollbackSuccessor({
   assert.ok(representativeRollbackOwner?.changedFiles.includes(successor.rollbackContractPath));
   assert.equal(sha256(readAtCommit(`${representativeRollbackOwner.commit}^`, successor.path)),
     dashboardSourceSha256);
-  assert.equal(sha256(readAtCommit(representativeRollbackOwner.commit, successor.path)),
-    currentSourceSha256);
+  const representativeSourceSha256 = sha256(readAtCommit(
+    representativeRollbackOwner.commit, successor.path
+  ));
   assert.equal(sha256(readAtCommit(
     `${representativeRollbackOwner.commit}^`, successor.rollbackContractPath
   )), dashboardRollbackContractSha256);
-  assert.equal(sha256(readAtCommit(
+  const representativeRollbackContractSha256 = sha256(readAtCommit(
     representativeRollbackOwner.commit, successor.rollbackContractPath
-  )), currentRollbackContractSha256);
-  assert.equal(currentBuildSource?.rollbackContractSha256,
-    currentRollbackContractSha256);
-  assert.equal(currentBuildSource?.artifactSha256,
-    representativeIntelligenceGovernance?.releaseIdentities?.rollbackBundleSha256);
+  ));
   assert.equal(representativeIntelligenceGovernance?.currentContracts?.forwardRollback?.sha256,
-    currentRollbackContractSha256);
+    representativeRollbackContractSha256);
   assert.equal(representativeIntelligenceGovernance?.releaseIdentities?.rollbackContractSha256,
-    currentRollbackContractSha256);
+    representativeRollbackContractSha256);
+  assert.equal(representativeIntelligenceGovernance?.releaseIdentities?.rollbackBundleSha256,
+    "700300dc04d9c5a217910baa275d0379c23f0569f945e9152a40d595b6fda368");
   assert.equal(
     representativeIntelligenceGovernance?.releaseBoundary?.productionDeploymentAuthorized,
     false
   );
   assert.equal(representativeIntelligenceGovernance?.protectedState?.productionDeployments, 0);
   assert.equal(representativeIntelligenceGovernance?.protectedState?.productionDataMutations, 0);
+
+  assert.equal(claimSafePublicGovernance?.version,
+    "route-iq-claim-safe-public-deployment-successor-v1");
+  assert.equal(claimSafePublicGovernance?.batchId, "BATCH-20260819-001");
+  assert.equal(claimSafePublicGovernance?.ownerSubsystem, "Prometheus Overwatch");
+  assert.equal(claimSafePublicGovernance?.status,
+    "INDEPENDENTLY_VERIFIED_RELEASE_SUCCESSOR");
+  const claimSafeRollbackOwner = claimSafePublicGovernance.implementationCommits.find(entry =>
+    entry.commit === "6c4f452723c831b1a2e3e1574eeff713fcde6682");
+  assert.equal(claimSafeRollbackOwner?.identity,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>");
+  assert.equal(claimSafeRollbackOwner?.subject,
+    "infrastructure: bind claim-safe public release assets");
+  assert.ok(claimSafeRollbackOwner?.changedFiles.includes(successor.path));
+  assert.ok(claimSafeRollbackOwner?.changedFiles.includes(successor.rollbackContractPath));
+  assert.equal(sha256(readAtCommit(`${claimSafeRollbackOwner.commit}^`, successor.path)),
+    representativeSourceSha256);
+  assert.equal(sha256(readAtCommit(claimSafeRollbackOwner.commit, successor.path)),
+    currentSourceSha256);
+  assert.equal(sha256(readAtCommit(
+    `${claimSafeRollbackOwner.commit}^`, successor.rollbackContractPath
+  )), representativeRollbackContractSha256);
+  assert.equal(sha256(readAtCommit(
+    claimSafeRollbackOwner.commit, successor.rollbackContractPath
+  )), currentRollbackContractSha256);
+  assert.equal(currentBuildSource?.rollbackContractSha256,
+    currentRollbackContractSha256);
+  assert.equal(currentBuildSource?.artifactSha256,
+    claimSafePublicGovernance?.releaseIdentities?.rollbackBundleSha256);
+  assert.equal(claimSafePublicGovernance?.currentContracts?.forwardRollback?.sha256,
+    currentRollbackContractSha256);
+  assert.equal(claimSafePublicGovernance?.releaseIdentities?.rollbackContractSha256,
+    currentRollbackContractSha256);
+  assert.equal(claimSafePublicGovernance?.releaseBoundary?.productionDeploymentAuthorized, true);
+  assert.equal(claimSafePublicGovernance?.releaseBoundary?.publicWorkerOnly, true);
+  assert.equal(claimSafePublicGovernance?.releaseBoundary?.privateWorkerMutationAllowed, false);
+  assert.equal(claimSafePublicGovernance?.releaseBoundary?.crmSubmissionAllowed, false);
+  assert.equal(claimSafePublicGovernance?.protectedState?.productionDeployments, 0);
+  assert.equal(claimSafePublicGovernance?.protectedState?.productionDataMutations, 0);
   return true;
 }
 
@@ -599,6 +640,7 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
   const representativeIntelligenceGovernance = readJson(
     representativeIntelligenceGovernancePath
   );
+  const claimSafePublicGovernance = readJson(claimSafePublicGovernancePath);
   const intelligenceSuccessor = readJson(intelligenceSuccessorPath);
   const head = git("rev-parse", "HEAD");
   const originMain = git("rev-parse", "refs/remotes/origin/main");
@@ -684,7 +726,8 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
     )),
     gymPreviewGovernance,
     dashboardVisualGovernance,
-    representativeIntelligenceGovernance
+    representativeIntelligenceGovernance,
+    claimSafePublicGovernance
   }), true);
   const rollbackSuccessor = gymPreviewGovernance.toolchainReleaseReproducibilitySuccessor;
   const rollbackOwner = gymPreviewGovernance.ownerCommits.find(

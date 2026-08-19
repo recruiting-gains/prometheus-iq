@@ -180,7 +180,7 @@ test("historical readiness pins are extended through a linear package successor"
   assert.throws(() => validateDormantRetentionMaintenanceReadiness(changed));
 });
 
-test("historical public rollback evidence composes the exact representative-intelligence successor", () => {
+test("historical public rollback evidence composes the exact claim-safe successor", () => {
   const gymPreviewGovernance = readJson(
     "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json"
   );
@@ -189,6 +189,9 @@ test("historical public rollback evidence composes the exact representative-inte
   );
   const representativeIntelligenceGovernance = readJson(
     "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json"
+  );
+  const claimSafePublicGovernance = readJson(
+    "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json"
   );
   const input = {
     historicalArtifactSha256:
@@ -200,7 +203,8 @@ test("historical public rollback evidence composes the exact representative-inte
     ),
     gymPreviewGovernance,
     dashboardVisualGovernance,
-    representativeIntelligenceGovernance
+    representativeIntelligenceGovernance,
+    claimSafePublicGovernance
   };
   assert.equal(verifyRetentionMaintenancePublicRollbackSuccessor(input), true);
   for (const mutate of [
@@ -257,6 +261,24 @@ test("historical public rollback evidence composes the exact representative-inte
     },
     value => {
       value.representativeIntelligenceGovernance.protectedState.productionDeployments = 1;
+    },
+    value => { value.claimSafePublicGovernance.batchId = "BATCH-STALE"; },
+    value => {
+      value.claimSafePublicGovernance.implementationCommits.find(entry =>
+        entry.commit === "6c4f452723c831b1a2e3e1574eeff713fcde6682"
+      ).identity = "Prometheus Overwatch <overwatch@prometheus.local>";
+    },
+    value => {
+      value.claimSafePublicGovernance.currentContracts.forwardRollback.sha256 = "0".repeat(64);
+    },
+    value => {
+      value.claimSafePublicGovernance.releaseIdentities.rollbackBundleSha256 = "0".repeat(64);
+    },
+    value => {
+      value.claimSafePublicGovernance.releaseBoundary.privateWorkerMutationAllowed = true;
+    },
+    value => {
+      value.claimSafePublicGovernance.protectedState.productionDeployments = 1;
     }
   ]) {
     const changed = structuredClone(input);
