@@ -21,6 +21,7 @@ import {
   evaluateGithubActionsPrivateWorkerWorkflow,
   hasActivePrivateDeploymentToolchainInfrastructureSuccessor,
   hasCloudflareToolchainInfrastructureSuccessor,
+  hasClaimSafePublicDeploymentInfrastructureSuccessor,
   hasControlledRehearsalNode24InfrastructureSuccessor,
   hasDashboardVisualProtectedConsumerCompositionSuccessor,
   hasFieldSessionReportTypeInfrastructureSuccessor,
@@ -90,6 +91,9 @@ const node24ActionPinInfrastructure = readJson(
 );
 const node24ActionPinSecurity = readJson(
   "security/github-actions-official-node24-pin-successor-v1.json"
+);
+const claimSafePublicGovernance = readJson(
+  "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json"
 );
 
 test("private Workflow v2 composes only the exact governed-learning Intelligence chain", () => {
@@ -569,6 +573,33 @@ test("private deployment composes only the exact active Wrangler successor", () 
     ...transition,
     governance: changedGovernance
   }), false);
+
+  const publicTestPath = "tests/github-actions-public-worker-deployment.test.mjs";
+  const claimSafeTransition = {
+    governance: claimSafePublicGovernance,
+    path: publicTestPath,
+    previousSha256: toolchainGovernance.activeDeploymentPolicySuccessor
+      .currentEvidence[publicTestPath],
+    currentSha256: sha256(read(publicTestPath))
+  };
+  assert.equal(
+    hasClaimSafePublicDeploymentInfrastructureSuccessor(claimSafeTransition),
+    true
+  );
+  for (const mutate of [
+    next => { next.governance.batchId = "BATCH-STALE"; },
+    next => {
+      next.governance.implementationCommits.find(entry =>
+        entry.commit === "6c4f452723c831b1a2e3e1574eeff713fcde6682"
+      ).identity = "Prometheus Overwatch <overwatch@prometheus.local>";
+    },
+    next => { next.governance.releaseBoundary.privateWorkerMutationAllowed = true; },
+    next => { next.currentSha256 = "0".repeat(64); }
+  ]) {
+    const changed = clone(claimSafeTransition);
+    mutate(changed);
+    assert.equal(hasClaimSafePublicDeploymentInfrastructureSuccessor(changed), false);
+  }
 
   const harnessPath = "tests/cloudflare-unattended-runtime-guard.test.mjs";
   const harnessTransition = {

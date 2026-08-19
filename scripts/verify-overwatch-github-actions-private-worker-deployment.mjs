@@ -56,6 +56,8 @@ const retentionDeletionGovernancePath =
   "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json";
 const toolchainGovernancePath =
   "overwatch/governance/route-iq-wrangler-miniflare-major-transition-requalification-v1.json";
+const claimSafePublicGovernancePath =
+  "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json";
 const activeToolchainOwnerCommit = "d55a983134be40bf10777df293ca593e7583f138";
 const activeToolchainOwnerTree = "fcc850958e92d1f75eece476d6047b58972249d0";
 const activeToolchainOwnerParent = "3d646bffde28b1ef995ae03af5976a6db1105430";
@@ -1578,6 +1580,65 @@ const git = args => execFileSync("/usr/bin/git", args, {
   encoding: "utf8",
   stdio: ["ignore", "pipe", "ignore"]
 }).trim();
+
+export function hasClaimSafePublicDeploymentInfrastructureSuccessor({
+  governance,
+  path,
+  previousSha256,
+  currentSha256
+}) {
+  const ownerCommit = governance?.implementationCommits?.find(entry =>
+    entry.commit === "6c4f452723c831b1a2e3e1574eeff713fcde6682");
+  if (governance?.version !== "route-iq-claim-safe-public-deployment-successor-v1"
+    || governance?.batchId !== "BATCH-20260819-001"
+    || governance?.ownerSubsystem !== "Prometheus Overwatch"
+    || governance?.status !== "INDEPENDENTLY_VERIFIED_RELEASE_SUCCESSOR"
+    || ownerCommit?.identity !==
+      "Prometheus Infrastructure <infrastructure@prometheus.local>"
+    || ownerCommit?.subject !== "infrastructure: bind claim-safe public release assets"
+    || !ownerCommit?.changedFiles?.includes(path)
+    || governance?.currentContracts?.forwardRollback?.sha256 !==
+      governance?.releaseIdentities?.rollbackContractSha256
+    || governance?.releaseBoundary?.productionDeploymentAuthorized !== true
+    || governance?.releaseBoundary?.publicWorkerOnly !== true
+    || governance?.releaseBoundary?.privateWorkerMutationAllowed !== false
+    || governance?.releaseBoundary?.crmSubmissionAllowed !== false
+    || governance?.protectedState?.productionDeployments !== 0
+    || governance?.protectedState?.productionDataMutations !== 0) {
+    return false;
+  }
+  try {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+      ownerCommit.commit
+    ]).split("\n");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r", ownerCommit.commit
+    ]).split("\n").filter(Boolean).sort();
+    const previous = execFileSync("/usr/bin/git", [
+      "show", `${ownerCommit.parent}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const current = execFileSync("/usr/bin/git", [
+      "show", `${ownerCommit.commit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("/usr/bin/git", [
+      "merge-base", "--is-ancestor", ownerCommit.commit, "HEAD"
+    ], { cwd: root, stdio: "ignore" });
+    return equal(fields, [
+      ownerCommit.commit,
+      ownerCommit.parent,
+      ownerCommit.tree,
+      ownerCommit.identity,
+      ownerCommit.identity,
+      ownerCommit.subject
+    ])
+      && equal(paths, [...ownerCommit.changedFiles].sort())
+      && sha256(previous) === previousSha256
+      && sha256(current) === currentSha256;
+  } catch {
+    return false;
+  }
+}
 
 export function hasActivePrivateDeploymentToolchainInfrastructureSuccessor({
   governance,
@@ -5189,6 +5250,7 @@ function verifyOwnerHistory(governance) {
 
 function verifyActivePrivateDeploymentToolchainSuccessor() {
   const governance = readJson(toolchainGovernancePath);
+  const claimSafePublicGovernance = readJson(claimSafePublicGovernancePath);
   const privateWorkflowGovernance = readJson(governanceV2Path);
   const fieldSessionReportTypeGovernance = readJson(
     fieldSessionReportTypeGovernancePath
@@ -5247,6 +5309,12 @@ function verifyActivePrivateDeploymentToolchainSuccessor() {
         path,
         previousSha256:
           v2DashboardVisualDeployParitySuccessorEvidence[path]?.previousSha256,
+        currentSha256
+      })
+      && !hasClaimSafePublicDeploymentInfrastructureSuccessor({
+        governance: claimSafePublicGovernance,
+        path,
+        previousSha256: expected,
         currentSha256
       })) {
       throw new Error(`Active private deployment toolchain evidence drifted: ${path}`);
