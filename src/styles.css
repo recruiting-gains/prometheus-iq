@@ -187,12 +187,55 @@ nav a:hover { color: var(--white); }
   padding: 112px 0 54px;
   background: var(--black);
 }
-.gym-hero-picture {
-  width: min(920px, calc(100% - 32px));
-  display: block;
+.gym-hero-creative {
+  width: min(1180px, calc(100% - 32px));
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   margin: 0 auto;
+  border-block: 1px solid var(--line-on-black);
+  padding: 64px 0;
 }
-.gym-hero-picture img,
+.gym-hero-brandline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 34px;
+  color: var(--white);
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 900;
+}
+.gym-hero-mark { width: 54px; height: 54px; object-fit: contain; }
+.gym-hero-kicker {
+  width: fit-content;
+  margin: 0 0 22px;
+  border-left: 4px solid var(--orange);
+  padding: 4px 0 4px 12px;
+  color: var(--orange);
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.gym-hero-creative h1 {
+  max-width: 1120px;
+  margin: 0;
+  color: var(--white);
+  font-size: 76px;
+  line-height: 0.98;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+.gym-hero-creative h1 span { display: block; color: var(--orange); }
+.gym-hero-support {
+  max-width: 720px;
+  margin: 30px 0 0;
+  color: var(--muted-on-black);
+  font-size: 16px;
+  line-height: 1.55;
+}
 .gym-intelligence-picture img {
   width: 100%;
   height: auto;
@@ -599,7 +642,11 @@ section[id] { scroll-margin-top: 98px; }
   .site-header > nav { display: none; }
   .mobile-nav summary { min-height: 38px; padding-inline: 11px; font-size: 11px; }
   .gym-hero-section { justify-content: flex-start; gap: 24px; padding: 104px 0 42px; }
-  .gym-hero-picture { width: calc(100% - 20px); }
+  .gym-hero-creative { width: calc(100% - 20px); min-height: 500px; padding: 46px 0; }
+  .gym-hero-brandline { margin-bottom: 28px; }
+  .gym-hero-mark { width: 46px; height: 46px; }
+  .gym-hero-creative h1 { font-size: 43px; line-height: 1; }
+  .gym-hero-support { margin-top: 24px; font-size: 14px; }
   .gym-positioning-band, .gym-request-band { gap: 20px; }
   .gym-positioning-band h2 { font-size: 34px; }
   .gym-positioning-copy p, .gym-request-copy > p { font-size: 14px; line-height: 1.55; }

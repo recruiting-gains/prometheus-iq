@@ -1,8 +1,12 @@
-import { existsSync, renameSync } from "node:fs";
+import { existsSync, renameSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 
 const outputDirectory = resolve(import.meta.dirname, "dist-public");
+const previewOnlyAssets = Object.freeze([
+  "01-772904932_1493675372780221_5358616428807129112_n-2.jpeg",
+  "01-772904932_1493675372780221_5358616428807129112_n-2.webp"
+]);
 const publicPreviewRoutes = new Map([
   ["/", "/landing.html"],
   ["/investors", "/landing.html"],
@@ -40,6 +44,7 @@ export default defineConfig({
     closeBundle() {
       const landing = resolve(outputDirectory, "landing.html");
       if (existsSync(landing)) renameSync(landing, resolve(outputDirectory, "index.html"));
+      for (const asset of previewOnlyAssets) rmSync(resolve(outputDirectory, asset), { force: true });
     }
   }]
 });

@@ -64,7 +64,7 @@ test("the gym homepage follows the founder image, representative profile, reques
   const source = read("src/main.jsx");
   const gymPage = source.slice(source.indexOf("function GymPage()"), source.indexOf("function ThankYouPage()"));
   const markers = [
-    'className="gym-hero-picture"',
+    'className="gym-hero-creative"',
     "Build My Field Style",
     "<RepresentativeStylePreview />",
     'className="gym-request-section"',
@@ -83,13 +83,13 @@ test("the gym homepage follows the founder image, representative profile, reques
     position = next;
   }
 
-  assert.equal((gymPage.match(/<picture/gu) || []).length, 2);
+  assert.equal((gymPage.match(/<picture/gu) || []).length, 1);
   assert.equal((gymPage.match(/<img/gu) || []).length, 2);
-  assert.match(gymPage, /01-772904932_1493675372780221_5358616428807129112_n-2\.webp/);
+  assert.doesNotMatch(gymPage, /01-772904932_1493675372780221_5358616428807129112_n-2/);
   assert.match(gymPage, /02-prometheus_route_iq_ad\.webp/);
   assert.match(gymPage, /fetchPriority="high"/);
   assert.match(gymPage, /loading="lazy"/);
-  assert.match(gymPage, /width="2048"[\s\S]*height="1072"/);
+  assert.match(gymPage, /width="512"[\s\S]*height="512"/);
   assert.match(gymPage, /width="2240"[\s\S]*height="1120"/);
 });
 
@@ -109,7 +109,7 @@ test("the shared nav, gym CTA, intelligence columns, and bridge use the directed
   assert.equal((nav.match(/className="header-action" href="\/#gym-form">Request Route IQ/gu) || []).length, 2);
   assert.match(nav, /className="patent-banner"[\s\S]*U\.S\. PATENT PENDING[\s\S]*<header className="site-header">/);
   assert.match(nav, /<LogoMark \/>[\s\S]*PROMETHEUS\.IQ/);
-  assert.match(gymPage, /<h1 id="gym-hero-heading" className="visually-hidden">Gym Owners: 29 Members In 48 Hours\. \$0 Ad Spend\.<\/h1>/);
+  assert.match(gymPage, /<h1 id="gym-hero-heading">[\s\S]*BUILT IN THE FIELD\. <span>DESIGNED TO LEARN HOW EACH REP SELLS\.<\/span>[\s\S]*<\/h1>/);
   assert.match(gymPage, /Route IQ starts with how each representative communicates/);
   assert.match(gymPage, /<h3>Learn The Rep<\/h3>/);
   assert.match(gymPage, /<h3>Test The Context<\/h3>[\s\S]*Governed evidence, not guesswork/);
@@ -310,7 +310,8 @@ test("metadata, canonical, and social images are selected by route", () => {
   assert.match(metadata, /<link rel="canonical" href="https:\/\/prometheusrouteiq\.com\/">/);
   assert.match(metadata, /Prometheus Route IQ for Gyms \| Representative Intelligence/);
   assert.match(metadata, /representative working style, territory context, timing, and governed field outcomes/);
-  assert.match(metadata, /01-772904932_1493675372780221_5358616428807129112_n-2\.jpeg/);
+  assert.match(metadata, /prometheus-company-icon-512-20260701-brand-v2\.png/);
+  assert.doesNotMatch(metadata, /29 members|zero ad spend/iu);
   assert.match(source, /human-directed advisory routes for gym sales teams/);
   assert.match(source, /canonical: "https:\/\/prometheusrouteiq\.com\/investors"/);
   assert.match(source, /canonical: "https:\/\/prometheusrouteiq\.com\/thank-you"/);
@@ -360,6 +361,7 @@ test("the representative profile and mobile fixed CTA have stable responsive con
   assert.match(source, /<h2 id="field-style-title">Route IQ learns the representative, not just the road\.<\/h2>[\s\S]*<h2 id="gym-form-title">Request a Route IQ dashboard built around your field operation\.<\/h2>[\s\S]*<GymRequestForm \/>/);
   assert.match(source, /<form id="gym-form"[\s\S]*<input name="fullName"/);
   assert.match(styles, /\.gym-hero-section \{[\s\S]*padding: 112px 0 54px;/);
+  assert.match(styles, /\.gym-hero-creative \{[\s\S]*min-height: 520px;/);
   assert.match(styles, /\.field-style-tool \{[\s\S]*grid-template-columns: minmax\(0, 1\.28fr\) minmax\(330px, 0\.72fr\)/);
   assert.match(styles, /\.gym-form-grid \{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@media \(max-width: 700px\)[\s\S]*\.gym-form-grid \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
@@ -401,10 +403,15 @@ test("a fresh build emits both founder assets and the lazy investor scene", () =
   ensureFreshBuild();
   const generated = filesUnder("dist-public");
   assert.ok(generated.includes("index.html"));
-  assert.ok(generated.includes("01-772904932_1493675372780221_5358616428807129112_n-2.jpeg"));
-  assert.ok(generated.includes("01-772904932_1493675372780221_5358616428807129112_n-2.webp"));
+  assert.equal(generated.includes("01-772904932_1493675372780221_5358616428807129112_n-2.jpeg"), false);
+  assert.equal(generated.includes("01-772904932_1493675372780221_5358616428807129112_n-2.webp"), false);
   assert.ok(generated.includes("02-prometheus_route_iq_ad.jpg"));
   assert.ok(generated.includes("02-prometheus_route_iq_ad.webp"));
+  const deployableText = filesUnder("dist-public")
+    .filter(path => /\.(?:html|css|js|json|xml|txt)$/u.test(path))
+    .map(path => read(`dist-public/${path}`))
+    .join("\n");
+  assert.doesNotMatch(deployableText, /29 members|\$0 ad spend|zero ad spend/iu);
   assert.ok(generated.some(path => /^assets\/landing-.+\.js$/u.test(path)));
   assert.ok(generated.some(path => /^assets\/IntelligenceScene-.+\.js$/u.test(path)));
   const entryPath = generated.find(path => /^assets\/landing-.+\.js$/u.test(path));

@@ -142,10 +142,10 @@ const routeMetadata = Object.freeze({
     title: "Prometheus Route IQ for Gyms | Representative Intelligence",
     description: "Prometheus Route IQ connects representative working style, territory context, timing, and governed field outcomes to human-directed advisory routes for gym sales teams.",
     canonical: "https://prometheusrouteiq.com/",
-    image: "https://prometheusrouteiq.com/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg",
-    imageWidth: "2048",
-    imageHeight: "1072",
-    imageAlt: "Gym owners: 29 members in 48 hours. Zero ad spend."
+    image: "https://prometheusrouteiq.com/prometheus-company-icon-512-20260701-brand-v2.png",
+    imageWidth: "512",
+    imageHeight: "512",
+    imageAlt: "Prometheus Route IQ flame intelligence mark"
   }),
   investors: Object.freeze({
     title: "Prometheus Route IQ | Investor Overview",
@@ -160,10 +160,10 @@ const routeMetadata = Object.freeze({
     title: "Thank You | Prometheus Route IQ",
     description: "Prometheus Route IQ request receipt.",
     canonical: "https://prometheusrouteiq.com/thank-you",
-    image: "https://prometheusrouteiq.com/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg",
-    imageWidth: "2048",
-    imageHeight: "1072",
-    imageAlt: "Prometheus Route IQ for gym owners"
+    image: "https://prometheusrouteiq.com/prometheus-company-icon-512-20260701-brand-v2.png",
+    imageWidth: "512",
+    imageHeight: "512",
+    imageAlt: "Prometheus Route IQ flame intelligence mark"
   })
 });
 
@@ -545,18 +545,25 @@ function GymPage() {
       <a className="skip-link" href="#field-style">Skip to the representative learning preview</a>
       <GlobalNav />
       <section id="top" className="gym-hero-section" aria-labelledby="gym-hero-heading">
-        <h1 id="gym-hero-heading" className="visually-hidden">Gym Owners: 29 Members In 48 Hours. $0 Ad Spend.</h1>
-        <picture className="gym-hero-picture">
-          <source srcSet="/01-772904932_1493675372780221_5358616428807129112_n-2.webp" type="image/webp" />
-          <img
-            src="/01-772904932_1493675372780221_5358616428807129112_n-2.jpeg"
-            alt="Gym owners: 29 members in 48 hours. Zero ad spend."
-            width="2048"
-            height="1072"
-            decoding="async"
-            fetchPriority="high"
-          />
-        </picture>
+        <div className="gym-hero-creative">
+          <div className="gym-hero-brandline" aria-hidden="true">
+            <img
+              className="gym-hero-mark"
+              src={prometheusLogoUrl}
+              alt=""
+              width="512"
+              height="512"
+              decoding="async"
+              fetchPriority="high"
+            />
+            <span>PROMETHEUS ROUTE IQ</span>
+          </div>
+          <p className="gym-hero-kicker">Why Prometheus is different</p>
+          <h1 id="gym-hero-heading">
+            BUILT IN THE FIELD. <span>DESIGNED TO LEARN HOW EACH REP SELLS.</span>
+          </h1>
+          <p className="gym-hero-support">Representative intelligence shaped by working style, territory context, timing, and governed field outcomes.</p>
+        </div>
         <div className="shell gym-positioning-band">
           <div>
             <SectionLabel>Prometheus Route IQ for gyms</SectionLabel>
