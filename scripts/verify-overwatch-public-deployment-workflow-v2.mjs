@@ -24,6 +24,8 @@ const DASHBOARD_VISUAL_SUCCESSOR_GOVERNANCE_PATH =
   "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json";
 const REPRESENTATIVE_INTELLIGENCE_SUCCESSOR_GOVERNANCE_PATH =
   "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json";
+const CLAIM_SAFE_PUBLIC_DEPLOYMENT_SUCCESSOR_GOVERNANCE_PATH =
+  "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json";
 const DASHBOARD_VISUAL_SUCCESSOR_GOVERNANCE_COMMIT =
   "b917079123b86883ce581b5629a85be0abc0cb89";
 const CURRENT_READINESS_SUCCESSORS_PATH =
@@ -1560,8 +1562,15 @@ function verifyDashboardVisualReleaseSuccessor() {
     sha256(read(successor.intelligenceProvenance.path)),
     successor.intelligenceProvenance.sha256
   );
+  const representativeInfrastructureCommit = successor.implementationCommits.find(
+    implementation => implementation.ownerSubsystem === "Prometheus Infrastructure"
+  );
+  assert.ok(representativeInfrastructureCommit);
   for (const contract of Object.values(successor.currentContracts)) {
-    assert.equal(sha256(read(contract.path)), contract.sha256);
+    assert.equal(
+      sha256(readAtCommit(representativeInfrastructureCommit.commit, contract.path)),
+      contract.sha256
+    );
   }
   assert.equal(
     git(["show", "-s", "--format=%T", successor.releaseIdentities.websiteCommit]),
@@ -1574,7 +1583,84 @@ function verifyDashboardVisualReleaseSuccessor() {
   assert.equal(successor.protectedState.recommendationInfluence, "OFF");
   assert.equal(successor.protectedState.productionDeployments, 0);
   assert.equal(successor.protectedState.productionDataMutations, 0);
-  return successor;
+  return validateClaimSafePublicDeploymentSuccessor(undefined, successor);
+}
+
+export function validateClaimSafePublicDeploymentSuccessor(
+  governance = readJson(CLAIM_SAFE_PUBLIC_DEPLOYMENT_SUCCESSOR_GOVERNANCE_PATH),
+  predecessor = readJson(REPRESENTATIVE_INTELLIGENCE_SUCCESSOR_GOVERNANCE_PATH)
+) {
+  assert.equal(governance.version, "route-iq-claim-safe-public-deployment-successor-v1");
+  assert.equal(governance.batchId, "BATCH-20260819-001");
+  assert.equal(governance.status, "INDEPENDENTLY_VERIFIED_RELEASE_SUCCESSOR");
+  assert.equal(governance.ownerSubsystem, "Prometheus Overwatch");
+  assert.deepEqual(governance.predecessors, [{
+    path: REPRESENTATIVE_INTELLIGENCE_SUCCESSOR_GOVERNANCE_PATH,
+    sha256: sha256(read(REPRESENTATIVE_INTELLIGENCE_SUCCESSOR_GOVERNANCE_PATH)),
+    remainsHistorical: true,
+    rewritten: false
+  }]);
+  assert.deepEqual(
+    governance.implementationCommits.map(implementation => implementation.commit),
+    [
+      "1fbfc42eadc1bad486f92bcf0b8bd93a7d0236fd",
+      "6c4f452723c831b1a2e3e1574eeff713fcde6682"
+    ]
+  );
+  for (const implementation of governance.implementationCommits) {
+    const identity = commitIdentity(implementation.commit);
+    assert.equal(identity.author, implementation.identity);
+    assert.equal(identity.committer, implementation.identity);
+    assert.deepEqual(identity.parents, [implementation.parent]);
+    assert.equal(identity.tree, implementation.tree);
+    assert.equal(
+      git(["show", "-s", "--format=%s", implementation.commit]),
+      implementation.subject
+    );
+    assert.deepEqual(
+      commitPaths(implementation.commit).sort(),
+      [...implementation.changedFiles].sort()
+    );
+    assert.doesNotThrow(() => git([
+      "merge-base", "--is-ancestor", implementation.commit, "HEAD"
+    ]));
+  }
+
+  const infrastructure = governance.implementationCommits[1];
+  for (const [name, contract] of Object.entries(governance.currentContracts)) {
+    assert.equal(sha256(read(contract.path)), contract.sha256);
+    assert.equal(
+      sha256(readAtCommit(infrastructure.commit, contract.path)),
+      contract.sha256
+    );
+    assert.equal(
+      sha256(readAtCommit(infrastructure.parent, contract.path)),
+      predecessor.currentContracts[name].sha256
+    );
+  }
+  assert.equal(
+    git(["show", "-s", "--format=%T", governance.releaseIdentities.websiteCommit]),
+    governance.releaseIdentities.websiteTree
+  );
+  assert.equal(
+    git(["show", "-s", "--format=%T", governance.releaseIdentities.infrastructureCommit]),
+    governance.releaseIdentities.infrastructureTree
+  );
+  assert.equal(
+    governance.currentContracts.forwardRollback.sha256,
+    governance.releaseIdentities.rollbackContractSha256
+  );
+  assert.equal(governance.releaseBoundary.productionDeploymentAuthorized, true);
+  assert.equal(governance.releaseBoundary.productionStorageAccessAllowed, false);
+  assert.equal(governance.releaseBoundary.publicWorkerOnly, true);
+  assert.equal(governance.releaseBoundary.privateWorkerMutationAllowed, false);
+  assert.equal(governance.releaseBoundary.crmSubmissionAllowed, false);
+  assert.equal(governance.protectedState.collection, "OFF");
+  assert.equal(governance.protectedState.activeCohorts, 0);
+  assert.equal(governance.protectedState.recommendationInfluence, "OFF");
+  assert.equal(governance.protectedState.productionDeployments, 0);
+  assert.equal(governance.protectedState.productionDataMutations, 0);
+  return governance;
 }
 
 export function verifyOverwatchPublicDeploymentWorkflowV2() {

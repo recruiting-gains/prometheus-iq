@@ -12,6 +12,7 @@ import {
   isGovernedPublicDeploymentWorkflowV2VerifierCommit,
   liveCanonicalIdentityPackageSuccessor,
   validateCurrentCanonicalPackageSuccessor,
+  validateClaimSafePublicDeploymentSuccessor,
   validateFullSystemHarmonyPackageSuccessor,
   validateLiveCanonicalIdentityPackageSuccessor,
   verifyOverwatchPublicDeploymentWorkflowV2
@@ -29,6 +30,9 @@ const sources = Object.freeze({
 const currentReadinessSuccessors = JSON.parse(read(
   "overwatch/governance/route-iq-august-1-readiness-successors-v1.json"
 ));
+const claimSafePublicSuccessor = JSON.parse(read(
+  "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json"
+));
 
 function evaluate(changes = {}) {
   return evaluatePublicDeploymentWorkflowV2Governance({ ...sources, ...changes });
@@ -37,6 +41,31 @@ function evaluate(changes = {}) {
 test("canonical Public Deployment Workflow v2 governance verifies", () => {
   assert.equal(evaluate().ok, true);
   assert.equal(verifyOverwatchPublicDeploymentWorkflowV2().status, "OVERWATCH_PUBLIC_DEPLOYMENT_WORKFLOW_V2_VERIFIED");
+});
+
+test("current public workflow composes the exact claim-safe release successor", () => {
+  const successor = validateClaimSafePublicDeploymentSuccessor(claimSafePublicSuccessor);
+  assert.equal(
+    successor.releaseIdentities.deploymentAssetSha256,
+    "94def2bbd52b6ffa85a40dbc4c51166fcdffdcc364ffdc99a678ddd91d2ed779"
+  );
+  assert.equal(
+    successor.releaseIdentities.rollbackBundleSha256,
+    "a2cb4150124ff7569aa09cd50d60a12160ba52f2ef97b29967d92f494cb17f71"
+  );
+  for (const mutate of [
+    value => { value.batchId = "BATCH-STALE"; },
+    value => { value.ownerSubsystem = "Prometheus Infrastructure"; },
+    value => { value.predecessors[0].sha256 = "0".repeat(64); },
+    value => { value.implementationCommits[1].identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.currentContracts.preview.sha256 = "0".repeat(64); },
+    value => { value.releaseBoundary.privateWorkerMutationAllowed = true; },
+    value => { value.protectedState.productionDataMutations = 1; }
+  ]) {
+    const candidate = structuredClone(claimSafePublicSuccessor);
+    mutate(candidate);
+    assert.throws(() => validateClaimSafePublicDeploymentSuccessor(candidate));
+  }
 });
 
 test("current package composes the exact Full-System Harmony and canonical identity successors", () => {
