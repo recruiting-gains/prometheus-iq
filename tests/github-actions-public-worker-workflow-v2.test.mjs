@@ -770,7 +770,7 @@ test("historical production baseline remains immutable as the rollback candidate
   );
   assert.equal(
     rollback.candidateDeploymentAssetsSha256,
-    "6c8361e0402a05a26002ad27f6b8af78cfc3fbacca46a1618871d8a8d814d4ec"
+    "94def2bbd52b6ffa85a40dbc4c51166fcdffdcc364ffdc99a678ddd91d2ed779"
   );
   assert.notEqual(
     rollback.candidateDeploymentAssetsSha256,

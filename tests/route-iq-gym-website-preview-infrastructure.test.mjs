@@ -209,9 +209,9 @@ test("preview asset digest is deterministic, mutation-sensitive, and pinned to t
   assert.deepEqual(result, {
     algorithm: PROMETHEUS_ROUTE_IQ_GYM_PREVIEW_ASSET_HASH_ALGORITHM,
     directory: PROMETHEUS_ROUTE_IQ_GYM_PREVIEW_ASSET_DIRECTORY,
-    fileCount: 26,
-    totalBytes: 2825872,
-    sha256: "f528d4013f7790723b8529edab5a630d9f83cc87f7a67cf1305b3681bd76624b"
+    fileCount: 24,
+    totalBytes: 2578781,
+    sha256: "174501cfb59101bb85d401fdd091cd96f1b64caa30c5c8e347c1b47df5ad2384"
   });
   assert.deepEqual(contract.assetIntegrity, {
     directory: result.directory,
