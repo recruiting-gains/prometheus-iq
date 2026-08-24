@@ -4,8 +4,8 @@ import fs from "node:fs";
 const policyPath = "overwatch/governance/verified-engineering-batch-auto-push-v1.json";
 const policyDocumentationPath = "overwatch/governance/verified-engineering-batch-auto-push-v1.md";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
-const systemMapPath = "PROMETHEUS_SYSTEM_MAP.md";
-const masterStatePath = "PROMETHEUS_MASTER_ENGINEERING_STATE.md";
+const architecturePath = "README.md";
+const testReleaseMapPath = "docs/TEST_RELEASE_MAP.md";
 const packagePath = "package.json";
 const securityWorkflowPath = ".github/workflows/security-gates.yml";
 
@@ -259,8 +259,8 @@ export function verifyAutomaticCommitPushGovernance() {
   const registry = readJson(registryPath);
   const packageJson = readJson(packagePath);
   const documentation = read(policyDocumentationPath);
-  const systemMap = read(systemMapPath);
-  const masterState = read(masterStatePath);
+  const architecture = read(architecturePath);
+  const testReleaseMap = read(testReleaseMapPath);
   const securityWorkflow = read(securityWorkflowPath);
 
   assert.equal(policy.policyId, "verified-engineering-batch-automatic-commit-push-governance-v1");
@@ -414,8 +414,8 @@ export function verifyAutomaticCommitPushGovernance() {
   assert.equal(registration.failClosedIfMissing, true);
 
   assert.equal(packageJson.scripts["overwatch:auto-push-governance:check"], "node scripts/verify-overwatch-auto-push-governance.mjs");
-  assert.match(packageJson.scripts["test:overwatch"], /tests\/overwatch-auto-push-governance\.test\.mjs/);
-  assert.match(packageJson.scripts.test, /overwatch:auto-push-governance:check/);
+  assert.equal(packageJson.scripts["test:release"], "node scripts/run-test-suite.mjs release");
+  assert.match(packageJson.scripts.test, /test:release/);
 
   assert.match(documentation, /Production deployment always requires separate Founder approval/);
   assert.match(documentation, /INSUFFICIENT_EVIDENCE/);
@@ -428,9 +428,9 @@ export function verifyAutomaticCommitPushGovernance() {
   assert.match(documentation, /does not return an intermediate `HOLD` for a fixable engineering failure/);
   assert.match(documentation, /does not request deployment authorization while the candidate is still changing/);
   assert.match(documentation, /temporary runner or external infrastructure failure before the production mutation boundary does not invalidate/);
-  assert.match(systemMap, /Verified Engineering Batch Automatic Commit \+ Push Governance v1/);
-  assert.match(masterState, /Automatic Commit and Push Governance/);
-  assert.match(masterState, /Production deployment always requires separate Founder approval/);
+  assert.match(architecture, /Git `main` is source authority/);
+  assert.match(testReleaseMap, /exact hosted-qualified artifact/);
+  assert.match(testReleaseMap, /forward rollback/);
 
   assert.doesNotMatch(
     securityWorkflow,

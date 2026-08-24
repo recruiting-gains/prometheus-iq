@@ -509,7 +509,7 @@ Impact on Prometheus: Company knowledge became organized into repeatable systems
 Related folder:
 
 - `PROMETHEUS OPERATING SYSTEM/`
-- `PROMETHEUS_OPERATING_SYSTEM_README.md`
+- `overwatch/retirement/phase-1-retirement-manifest.json` (exact Git recovery evidence)
 
 ## Top 25 Most Important Moments In Prometheus History
 
