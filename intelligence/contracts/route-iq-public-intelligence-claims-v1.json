@@ -27,7 +27,7 @@
     },
     {
       "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
-      "sha256": "c814acf7d0d1c08dbc42c24ca1231135b7123397c0c5b2698d3898ca0b3e9ab6",
+      "sha256": "63c9d53349ae7d48ddef9bc07e5c9167a2284674b1399f27c09ea06e270c88f2",
       "supports": [
         "versioned_probability_methodology",
         "founder_only_shadow_boundary",
