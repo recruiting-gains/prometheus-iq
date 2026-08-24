@@ -7,10 +7,10 @@ Owner: Prometheus Social Media
 
 Existing Social Media sources reviewed:
 
-- `PROMETHEUS_CONSTITUTION.md`
-- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
-- `PROMETHEUS_SYSTEM_MAP.md`
-- `PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md`
+- `AGENTS.md`
+- `README.md`
+- `docs/TEST_RELEASE_MAP.md`
+- `PRODUCT_VISION.md`
 - `PROMETHEUS OPERATING SYSTEM/07 Marketing & Social Media/README.md`
 - `.founder-review/final-green-repository-checkpoint-v1/untracked/social-media/`
 - `social-media/env.example`
