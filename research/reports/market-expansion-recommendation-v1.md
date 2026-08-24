@@ -433,7 +433,7 @@ Fitness should remain the proof environment. Prometheus must expand beyond it to
 
 | ID | Source | Use |
 | --- | --- | --- |
-| S1 | `COMPANY_IDENTITY.md` | Prometheus identity, outside-sales operating-system thesis, and fitness-as-validation rule. |
+| S1 | `PRODUCT_VISION.md` | Prometheus identity, outside-sales operating-system thesis, and fitness-as-validation rule. |
 | S2 | `PRODUCT_VISION.md` | Product expansion categories, AI strategy, customer hierarchy, and outside-sales focus. |
 | S3 | `research/registers/market-intelligence-model.json` | Market scoring model and protected-subsystem gates. |
 | S4 | [BLS Occupational Outlook Handbook: Wholesale and Manufacturing Sales Representatives](https://www.bls.gov/ooh/sales/wholesale-and-manufacturing-sales-representatives.htm) | Broad B2B field-sales workforce context. |

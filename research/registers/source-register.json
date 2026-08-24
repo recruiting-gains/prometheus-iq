@@ -109,7 +109,7 @@
       "id": "internal-company-identity",
       "title": "Prometheus Company Identity v1",
       "publisher": "Prometheus",
-      "sourceRef": "COMPANY_IDENTITY.md",
+      "sourceRef": "PRODUCT_VISION.md",
       "trustTier": "Tier 1",
       "categories": ["Enterprise", "Sales", "Opportunities"],
       "usage": "Canonical company mission, vision, values, positioning, and permanent identity decisions.",
@@ -129,11 +129,11 @@
       "id": "internal-company-manual",
       "title": "Prometheus Company Manual",
       "publisher": "Prometheus",
-      "sourceRef": "docs/prometheus-company-manual.md",
+      "sourceRef": "PRODUCT_VISION.md",
       "trustTier": "Tier 1",
       "categories": ["Enterprise", "Risks"],
       "usage": "Company operating context and certified milestone reference.",
-      "limitations": "Operational context source; company identity is now governed by COMPANY_IDENTITY.md."
+      "limitations": "Operational context source; company identity is now governed by PRODUCT_VISION.md."
     },
     {
       "id": "internal-research-foundation",
