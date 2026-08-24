@@ -1,6 +1,19 @@
 # Prometheus Product Vision v1
 
-Purpose: define the canonical product direction for the Prometheus.IQ platform. This document is the single source of truth for product vision across Prometheus.IQ, Prometheus Route IQ, Companion, and future products. `COMPANY_IDENTITY.md` remains the canonical company identity source.
+Purpose: define the canonical company identity, product direction, brand, messaging, and durable claims for Prometheus.IQ, Prometheus Route IQ, Companion, and future products.
+
+## Canonical Company Identity
+
+- Company: Prometheus.IQ
+- Flagship product: Prometheus Route IQ
+- Operator: Cruz Garza, sole proprietor
+- Product shorthand: Route IQ may be used only after Prometheus Route IQ has been established in the surface or context.
+
+Prometheus is building the AI operating system for outside sales. It is not a route-planning commodity, CRM clone, GPS tracker, surveillance product, gym-only application, or generic AI wrapper. Prometheus Route IQ is the first expression of that larger outside-sales intelligence vision.
+
+Core values are field reality over boardroom theory, intelligence before activity, proof without surveillance, compounding learning, enterprise trust, and founder-led courage. The system should make a representative feel directed and supported, a manager feel informed without becoming intrusive, and an executive feel that field execution is measurable without becoming mechanical.
+
+Prometheus began with lived field-sales experience: wasted miles, dead zones, unclear priorities, inconsistent follow-up, and the instruction to "go generate business" without intelligent direction. Gym sales provides an early real-world validation environment with route pressure and measurable outcomes; it is not the company category.
 
 ## 1. Mission
 
@@ -24,7 +37,7 @@ Prometheus should not merely record outside sales after the fact. It should help
 - Companion is the founder executive operating system.
 - Gym and fitness sales are the first production validation environment only, not the company category.
 
-Company identity decisions remain governed by `COMPANY_IDENTITY.md`. This product vision translates that identity into product direction, product hierarchy, customer hierarchy, roadmap priorities, and decision rules.
+This document governs identity and translates it into product hierarchy, customer hierarchy, roadmap priorities, and decision rules.
 
 ## 4. Product Hierarchy
 
@@ -334,3 +347,9 @@ Decision: Prometheus.IQ is the company and Prometheus Route IQ is the flagship p
 Reasoning: The public launch established one company/product identity that must remain consistent across the Website, private workspace, intake, CRM, notifications, and current governance.
 
 Historical preservation: The 2026-07-01 entry remains dated evidence of the prior naming decision and is superseded for current identity use.
+
+### 2026-08-23: Company Identity Consolidation
+
+Decision: fold the enduring company identity into Product Vision and retire the duplicate `COMPANY_IDENTITY.md` authority.
+
+Permanent boundaries: Prometheus.IQ remains the company; Prometheus Route IQ remains the flagship product; Route IQ remains permitted shorthand only after establishment; the market is outside-sales organizations rather than gyms; human judgment, non-surveillance, field reality, enterprise trust, and compounding evidence remain durable principles.
