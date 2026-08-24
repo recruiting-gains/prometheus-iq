@@ -1825,7 +1825,8 @@ export function verifyControlledOnboardingRehearsalSmokeContractSuccessor() {
         prospectiveCalibrationProductionAdmissionSuccessor.transitionsByPath,
         composedGymPreviewRouteQualityRuntimeSurfaceSuccessor.transitionsByPath,
         dashboardPublicVisualIdentitySuccessor.transitionsByPath,
-        composedDashboardPublicVisualVerifierCompositionSuccessor.transitionsByPath
+        composedDashboardPublicVisualVerifierCompositionSuccessor.transitionsByPath,
+        leanPhase1ProtectedSuccessor.transitionsByPath
       )
     );
   for (const protectedTransition of transitionByPath.values()) {
