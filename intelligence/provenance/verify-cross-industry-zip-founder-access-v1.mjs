@@ -223,16 +223,26 @@ function readLeanPhase1ProtectedSuccessor() {
   });
   const transitionsByPath = new Map();
   for (const transition of successor.protectedSourceTransitions) {
-    assert.ok(!transitionsByPath.has(transition.path),
-      `Duplicate lean Phase 1 protected path: ${transition.path}`);
+    const transitions = transitionsByPath.get(transition.path) || [];
+    if (transitions.length > 0) {
+      assert.equal(
+        transition.previousSha256,
+        transitions.at(-1).currentSha256,
+        `Broken lean Phase 1 protected chain: ${transition.path}`
+      );
+    }
     verifyTransition(transition.path, transition);
-    assert.equal(sha256(transition.path), transition.currentSha256,
-      `Lean Phase 1 protected source changed: ${transition.path}`);
-    transitionsByPath.set(transition.path, [transition]);
+    transitions.push(transition);
+    transitionsByPath.set(transition.path, transitions);
+  }
+  for (const [path, transitions] of transitionsByPath) {
+    assert.equal(sha256(path), transitions.at(-1).currentSha256,
+      `Lean Phase 1 protected source changed: ${path}`);
   }
   assert.deepEqual([...transitionsByPath.keys()].sort(), [
     "intelligence/README.md",
     "intelligence/contracts/field-learning-loop-contracts.json",
+    "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
     "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
     "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs",
     "scripts/validate-intelligence-architecture.mjs",
@@ -2248,6 +2258,37 @@ export function verifyCrossIndustryZipFounderAccessAdoption() {
       remainingTransitions[0].previousSha256,
       existing.currentSha256,
       `Broken Dashboard visual verifier-composition adoption chain: ${path}`
+    );
+    transitionByPath.set(path, {
+      ...existing,
+      currentSha256: remainingTransitions.at(-1).currentSha256,
+      transitions: [...existing.transitions, ...remainingTransitions]
+    });
+  }
+
+  const leanPhase1Successor = rehearsalSuccessor.leanPhase1ProtectedSuccessor;
+  for (const [path, transitions] of leanPhase1Successor.transitionsByPath) {
+    const existing = transitionByPath.get(path);
+    if (!existing) {
+      transitionByPath.set(path, {
+        path,
+        previousSha256: transitions[0].previousSha256,
+        currentSha256: transitions.at(-1).currentSha256,
+        transitions
+      });
+      continue;
+    }
+    const currentTransitionIndex = transitions.findIndex(
+      transition => transition.currentSha256 === existing.currentSha256
+    );
+    const remainingTransitions = currentTransitionIndex >= 0
+      ? transitions.slice(currentTransitionIndex + 1)
+      : transitions;
+    if (remainingTransitions.length === 0) continue;
+    assert.equal(
+      remainingTransitions[0].previousSha256,
+      existing.currentSha256,
+      `Broken lean Phase 1 adoption chain: ${path}`
     );
     transitionByPath.set(path, {
       ...existing,
