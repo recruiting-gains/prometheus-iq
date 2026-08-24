@@ -61,7 +61,7 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 
 ## Existing Sources Reused
 
-- `COMPANY_IDENTITY.md`: company identity and outside-sales operating-system mission.
+- `PRODUCT_VISION.md`: company identity and outside-sales operating-system mission.
 - `PRODUCT_VISION.md`: canonical product vision and long-term platform direction.
 - `RESEARCH_FOUNDATION.md`, `research/README.md`, and `research/architecture.md`: Research foundation and source policy.
 - `sales/README.md` and Sales foundation documents: Sales foundation fallback because root `SALES_FOUNDATION.md` is absent.

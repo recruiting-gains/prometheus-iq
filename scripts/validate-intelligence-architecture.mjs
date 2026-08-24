@@ -73,7 +73,7 @@ const requiredFiles = [
   "scripts/verify-discovery-mode-intelligence-v2.mjs",
   "scripts/verify-nearby-context-intelligence-v2.mjs",
   "scripts/verify-recommendation-explainability-engine.mjs",
-  "COMPANY_IDENTITY.md",
+  "PRODUCT_VISION.md",
   "PRODUCT_VISION.md",
   "RESEARCH_FOUNDATION.md",
   "research/README.md",
@@ -114,7 +114,7 @@ const contractsDoc = read("intelligence/subsystem-contracts.md");
 const handoffs = read("intelligence/future-subsystem-handoffs.md");
 const fieldHandoffs = read("intelligence/field-learning-loop-handoffs.md");
 const readme = read("intelligence/README.md");
-const systemMap = read("PROMETHEUS_SYSTEM_MAP.md");
+const systemMap = read("README.md");
 const contracts = readJson("intelligence/contracts/adaptive-intelligence-contracts.json");
 const fieldContracts = readJson("intelligence/contracts/field-learning-loop-contracts.json");
 const readOnlyFieldSessionLearningContracts = readJson("intelligence/contracts/read-only-field-session-learning-contracts.json");
