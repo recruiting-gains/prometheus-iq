@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
+import { isAbsolute, relative, resolve } from "node:path";
 
 import {
   authorizeConfiguredUserFromRegistry,
@@ -83,6 +84,103 @@ function currentRepositoryFiles() {
     "--others",
     "--exclude-standard"
   ], { encoding: "utf8" }).split("\n").filter(Boolean).sort();
+}
+
+const pathKeyPattern = /paths?$/iu;
+const pinnedGitPathPattern = /^git:([0-9a-f]{40}):(.+)$/u;
+
+function contractPathValues(value, { pathContext = false } = {}, values = []) {
+  if (typeof value === "string") {
+    if (
+      pathContext
+      && (value.includes("/") || /\.[a-z0-9]{1,8}$/iu.test(value) || /^(?:external|git):/u.test(value))
+    ) values.push(value);
+    return values;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) contractPathValues(item, { pathContext }, values);
+    return values;
+  }
+  if (!value || typeof value !== "object") return values;
+  for (const [key, child] of Object.entries(value)) {
+    contractPathValues(child, { pathContext: pathContext || pathKeyPattern.test(key) }, values);
+  }
+  return values;
+}
+
+export function verifyCanonicalContractPaths(contract, {
+  repositoryRoot = process.cwd(),
+  contractLabel = "artifact contract",
+  allowedMissingPaths = []
+} = {}) {
+  const failures = [];
+  const root = resolve(repositoryRoot);
+  const allowedMissing = new Set(allowedMissingPaths);
+  for (const value of [...new Set(contractPathValues(contract))]) {
+    if (value === "*" || value.startsWith("/")) continue;
+    if (value.startsWith("external:")) {
+      if (!/^external:[a-z0-9][a-z0-9._-]{2,127}$/u.test(value)) {
+        failures.push(`${contractLabel} has an invalid external identifier: ${value}`);
+      }
+      continue;
+    }
+    if (value.startsWith("git:")) {
+      const match = pinnedGitPathPattern.exec(value);
+      if (!match) {
+        failures.push(`${contractLabel} has a non-exact Git evidence reference: ${value}`);
+        continue;
+      }
+      try {
+        execFileSync("/usr/bin/git", ["cat-file", "-e", `${match[1]}:${match[2]}`], {
+          cwd: root,
+          stdio: "ignore"
+        });
+      } catch {
+        failures.push(`${contractLabel} Git evidence is unavailable: ${value}`);
+      }
+      continue;
+    }
+    if (/^[a-z][a-z0-9+.-]*:\/\//iu.test(value)) continue;
+    const candidate = resolve(root, value);
+    if (allowedMissing.has(value)) continue;
+    if (isAbsolute(value) || relative(root, candidate).startsWith("..") || !fs.existsSync(candidate)) {
+      failures.push(`${contractLabel} repository-local path is missing: ${value}`);
+    }
+  }
+  return Object.freeze(failures);
+}
+
+function registeredFailClosedJsonContracts(registry) {
+  const paths = new Set();
+  function visit(value) {
+    if (!value || typeof value !== "object") return;
+    if (
+      value.failClosedIfMissing === true
+      && typeof value.path === "string"
+      && value.path.endsWith(".json")
+    ) paths.add(value.path);
+    for (const child of Object.values(value)) visit(child);
+  }
+  visit(registry);
+  return [...paths].sort();
+}
+
+function exactHistoricalContractAllowance(contractPath, retirementManifest) {
+  const evidence = retirementManifest.historicalEvidenceFiles?.find(item => item.path === contractPath);
+  if (!evidence || evidence.baselineCommit !== retirementManifest.baseline.commit) return [];
+  try {
+    const currentBlob = execFileSync("/usr/bin/git", ["hash-object", contractPath], {
+      encoding: "utf8"
+    }).trim();
+    const baselineBlob = execFileSync("/usr/bin/git", [
+      "rev-parse",
+      `${evidence.baselineCommit}:${contractPath}`
+    ], { encoding: "utf8" }).trim();
+    if (currentBlob !== evidence.baselineBlobHash || baselineBlob !== evidence.baselineBlobHash) return [];
+    return retirementManifest.entries.map(entry => entry.originalPath);
+  } catch {
+    return [];
+  }
 }
 
 function validateArtifactRegistry(registry, failures) {
@@ -297,8 +395,25 @@ export function verifyCrossSubsystemArtifactContracts() {
   const complianceAudit = readJson(paths.complianceAudit);
   const configuration = readJson(paths.configuration);
   const manifestRegistry = readJson(paths.manifestRegistry);
+  const retirementManifest = readJson("overwatch/retirement/phase-1-retirement-manifest.json");
 
   validateArtifactRegistry(registry, failures);
+  failures.push(...verifyCanonicalContractPaths(registry, {
+    contractLabel: paths.registry
+  }));
+  for (const contractPath of registeredFailClosedJsonContracts(registry)) {
+    let contract;
+    try {
+      contract = readJson(contractPath);
+    } catch {
+      failures.push(`Registered fail-closed contract is unreadable: ${contractPath}`);
+      continue;
+    }
+    failures.push(...verifyCanonicalContractPaths(contract, {
+      contractLabel: contractPath,
+      allowedMissingPaths: exactHistoricalContractAllowance(contractPath, retirementManifest)
+    }));
+  }
   validateConfigurationAndManifests(configuration, manifestRegistry, failures);
   validateDataAndEligibility(configuration, failures);
   validateConsumerContracts(failures);

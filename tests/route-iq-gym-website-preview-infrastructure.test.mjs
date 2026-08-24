@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   appendFileSync,
@@ -29,6 +29,11 @@ import {
 const root = resolve(import.meta.dirname, "..");
 const now = new Date("2026-08-14T18:31:00.000Z");
 const noIndex = "noindex, nofollow, noarchive, nosnippet";
+const retiredPreviewWorkflowReference = "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:.github/workflows/preview-prometheus-route-iq-gym-first.yml";
+const retiredPreviewWorkflowMatch = retiredPreviewWorkflowReference.match(/^git:([0-9a-f]{40}):(.+)$/u);
+assert.ok(retiredPreviewWorkflowMatch);
+const retiredPreviewWorkflowCommit = retiredPreviewWorkflowMatch[1];
+const retiredPreviewWorkflowPath = retiredPreviewWorkflowMatch[2];
 const smokePaths = Object.freeze([
   "/",
   "/investors",
@@ -37,6 +42,14 @@ const smokePaths = Object.freeze([
   "/terms/",
   "/data-deletion/"
 ]);
+
+function readGitEvidence(commit, path) {
+  return execFileSync("git", ["show", `${commit}:${path}`], {
+    cwd: root,
+    encoding: "utf8",
+    maxBuffer: 4 * 1024 * 1024
+  });
+}
 
 function gymPayload(overrides = {}) {
   return {
@@ -329,14 +342,19 @@ test("preview config and entrypoint expose only ASSETS and contain no production
   assert.doesNotMatch(entry, /persistRouteIqRequest|FOUNDER_EMAIL|send_email|waitUntil/u);
 });
 
-test("manual workflow binds one exact Founder main run to the preview target and only two secrets", () => {
+test("retired preview workflow remains exact Git evidence while the current lane only qualifies public artifacts", () => {
   const contract = JSON.parse(readFileSync(
     resolve(root, "workers/infrastructure/prometheusrouteiq-website-gym-preview-v1.json"),
     "utf8"
   ));
-  const workflow = readFileSync(
-    resolve(root, ".github/workflows/preview-prometheus-route-iq-gym-first.yml"),
+  const workflow = readGitEvidence(retiredPreviewWorkflowCommit, retiredPreviewWorkflowPath);
+  const currentQualification = readFileSync(
+    resolve(root, ".github/workflows/qualify-prometheus-public-worker.yml"),
     "utf8"
+  );
+  assert.equal(
+    createHash("sha256").update(workflow).digest("hex"),
+    "fa0efa259d006527d500e714b4f92f7c1c76df06f7cc7973c448aaa0d45006d9"
   );
   assert.match(workflow, /^name: Preview Prometheus Route IQ Gym First$/mu);
   assert.match(workflow, /^on:\n  workflow_dispatch:\n    inputs:/mu);
@@ -417,16 +435,20 @@ test("manual workflow binds one exact Founder main run to the preview target and
     },
     postAllowed: false
   });
-  assert.deepEqual(contract.workflow.outputs, [
+  assert.deepEqual(contract.retiredPreviewWorkflowEvidence.outputs, [
     "candidate_commit",
     "candidate_tree",
     "preview_url",
     "version_id",
     "preview_assets_sha256"
   ]);
+  assert.equal(contract.retiredPreviewWorkflowEvidence.active, false);
+  assert.equal(contract.retiredPreviewWorkflowEvidence.reference, retiredPreviewWorkflowReference);
+  assert.equal(contract.retiredPreviewWorkflowEvidence.sha256, createHash("sha256").update(workflow).digest("hex"));
   assert.deepEqual(contract.officialNode24ActionSuccessor, {
-    classification: "NEW_WORKFLOW_OFFICIAL_NODE24_PIN_SUCCESSOR",
-    path: ".github/workflows/preview-prometheus-route-iq-gym-first.yml",
+    classification: "RETIRED_WORKFLOW_EXACT_GIT_EVIDENCE",
+    active: false,
+    reference: retiredPreviewWorkflowReference,
     sha256: createHash("sha256").update(workflow).digest("hex"),
     absentAtNode24MigrationBaseline: true,
     checkout: {
@@ -443,6 +465,48 @@ test("manual workflow binds one exact Founder main run to the preview target and
     thirdPartyActions: 0,
     cacheInputs: 0
   });
+  assert.deepEqual(contract.currentPublicQualificationLane, {
+    path: ".github/workflows/qualify-prometheus-public-worker.yml",
+    name: "Qualify Prometheus Public Worker",
+    trigger: "workflow_dispatch",
+    repository: "PrometheusRouteIQ/prometheus-iq",
+    branch: "main",
+    actor: "PrometheusRouteIQ",
+    inputs: [
+      "candidate_commit",
+      "candidate_tree",
+      "batch_id",
+      "current_public_version",
+      "current_private_version",
+      "rollback_artifact_sha256"
+    ],
+    buildsImmutableArtifact: true,
+    previewDeploymentAllowed: false,
+    productionDeploymentAllowed: false,
+    workerDeploymentPerformed: false
+  });
+  assert.match(currentQualification, /^name: Qualify Prometheus Public Worker$/mu);
+  assert.match(currentQualification, /^on:\n  workflow_dispatch:\n    inputs:/mu);
+  assert.doesNotMatch(currentQualification, /^  (?:push|pull_request|schedule|workflow_call|repository_dispatch):/mu);
+  for (const input of contract.currentPublicQualificationLane.inputs) {
+    assert.match(currentQualification, new RegExp(`^      ${input}:$`, "mu"));
+  }
+  for (const control of [
+    "github.actor == 'PrometheusRouteIQ'",
+    "github.triggering_actor == 'PrometheusRouteIQ'",
+    "github.ref == 'refs/heads/main'",
+    "github.run_attempt == 1",
+    "npm ci",
+    "npm run build",
+    "npm run test:core",
+    "npm run test:public",
+    "npm run test:security",
+    "npm run test:release",
+    "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
+  ]) {
+    assert.equal(currentQualification.includes(control), true, `Missing current qualification control: ${control}`);
+  }
+  assert.doesNotMatch(currentQualification, /wrangler deploy|prometheus-public-worker-preview|prometheusrouteiq-website-gym-preview/u);
   assert.equal((workflow.match(
     /uses: actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1/gu
   ) || []).length, 2);

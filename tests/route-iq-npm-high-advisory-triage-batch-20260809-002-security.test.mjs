@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -6,11 +7,18 @@ import test from "node:test";
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
+const historicalCommit = "de7b3fb7ad28c621d10edb40b7225c2a2ce0b4c1";
+const readAt = path => execFileSync(
+  "git",
+  ["show", `${historicalCommit}:${path}`],
+  { cwd: root, encoding: "utf8" }
+);
+const readJsonAt = path => JSON.parse(readAt(path));
 
 const evidencePath = "security/npm-high-advisory-triage-batch-20260809-002.json";
 const evidence = readJson(evidencePath);
-const packageJson = readJson("package.json");
-const packageLock = readJson("package-lock.json");
+const packageJson = readJsonAt("package.json");
+const packageLock = readJsonAt("package-lock.json");
 
 const expectedVersions = Object.freeze({
   miniflare: "4.20260708.1",
@@ -143,6 +151,7 @@ test("Remediation accepted only safe patches and rejected the breaking audit can
 
 test("The Miniflare major transition remains bound to every known direct harness", () => {
   const importPattern = /import\s*\{\s*Miniflare\s*\}\s*from\s*["']miniflare["']/u;
+  const currentImportPattern = /import\s*\{[^}]*\bMiniflare\b[^}]*\}\s*from\s*["']miniflare["']/u;
   assert.equal(
     evidence.findings.find(finding => finding.package === "miniflare").semverRisk,
     "HIGHER_THAN_PATCH_REQUIRES_ALL_MINIFLARE_HARNESSES"
@@ -154,7 +163,8 @@ test("The Miniflare major transition remains bound to every known direct harness
     "tests/route-iq-request-crm-infrastructure.test.mjs"
   ]);
   for (const path of evidence.runtimeCallSites.miniflare) {
-    assert.match(read(path), importPattern, path);
+    assert.match(readAt(path), importPattern, `${path} historical evidence`);
+    assert.match(read(path), currentImportPattern, `${path} current harness`);
   }
   for (const name of ["wrangler", "sharp", "undici", "postcss", "nanoid"]) {
     assert.deepEqual(evidence.runtimeCallSites[name], [], name);

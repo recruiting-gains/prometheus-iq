@@ -54,6 +54,21 @@ export function validateTestSuiteConfiguration({
   }
   const duplicates = classified.filter((file, index) => classified.indexOf(file) !== index);
   if (duplicates.length > 0) throw new Error(`TEST_CLASSIFICATION_DUPLICATE:${duplicates[0]}`);
+  const isolatedSuites = configuration.isolatedFiles || {};
+  for (const name of Object.keys(isolatedSuites)) {
+    if (!suiteNames.includes(name)) throw new Error(`TEST_ISOLATION_SUITE_INVALID:${name}`);
+    const files = isolatedSuites[name];
+    if (!Array.isArray(files) || files.length === 0 || files.some(file => typeof file !== "string")) {
+      throw new Error(`TEST_ISOLATION_INVALID:${name}`);
+    }
+    if (JSON.stringify(files) !== JSON.stringify([...files].sort())) {
+      throw new Error(`TEST_ISOLATION_ORDER_INVALID:${name}`);
+    }
+    const duplicate = files.find((file, index) => files.indexOf(file) !== index);
+    if (duplicate) throw new Error(`TEST_ISOLATION_DUPLICATE:${duplicate}`);
+    const outsideSuite = files.find(file => !configuration.suites[name].includes(file));
+    if (outsideSuite) throw new Error(`TEST_ISOLATION_OUTSIDE_SUITE:${outsideSuite}`);
+  }
   const actual = trackedTests(repositoryRoot);
   if (JSON.stringify([...classified].sort()) !== JSON.stringify(actual)) {
     const classifiedSet = new Set(classified);
@@ -71,21 +86,40 @@ export function validateTestSuiteConfiguration({
   });
 }
 
+export function testSuiteExecutionGroups(name, configuration) {
+  if (!suiteNames.includes(name)) throw new Error("TEST_SUITE_NAME_INVALID");
+  const isolated = new Set(configuration.isolatedFiles?.[name] || []);
+  const concurrent = configuration.suites[name].filter(file => !isolated.has(file));
+  return Object.freeze([
+    ...(concurrent.length > 0
+      ? [Object.freeze({ concurrency: 4, files: Object.freeze(concurrent) })]
+      : []),
+    ...(isolated.size > 0
+      ? [Object.freeze({ concurrency: 1, files: Object.freeze([...isolated]) })]
+      : [])
+  ]);
+}
+
 export function runTestSuite(name, { repositoryRoot = root } = {}) {
   if (!suiteNames.includes(name)) throw new Error("TEST_SUITE_NAME_INVALID");
   const configuration = JSON.parse(readFileSync(configurationPath, "utf8"));
   validateTestSuiteConfiguration({ repositoryRoot, configuration });
-  const result = spawnSync(process.execPath, [
-    "--test",
-    "--test-concurrency=4",
-    ...configuration.suites[name]
-  ], {
-    cwd: repositoryRoot,
-    stdio: "inherit",
-    env: { ...process.env, PROMETHEUS_TEST_SUITE: name }
-  });
-  if (result.status !== 0) process.exitCode = result.status || 1;
-  return result.status;
+  for (const group of testSuiteExecutionGroups(name, configuration)) {
+    const result = spawnSync(process.execPath, [
+      "--test",
+      `--test-concurrency=${group.concurrency}`,
+      ...group.files
+    ], {
+      cwd: repositoryRoot,
+      stdio: "inherit",
+      env: { ...process.env, PROMETHEUS_TEST_SUITE: name }
+    });
+    if (result.status !== 0) {
+      process.exitCode = result.status || 1;
+      return result.status;
+    }
+  }
+  return 0;
 }
 
 const isMain = process.argv[1]

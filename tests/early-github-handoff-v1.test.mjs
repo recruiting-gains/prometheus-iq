@@ -77,6 +77,42 @@ test("exact commit and tree are injected and conflicting inputs are rejected", (
   );
 });
 
+test("missing commit or tree and a mismatched repository tree fail closed", () => {
+  for (const field of ["commit", "tree"]) {
+    const request = { ...baseRequest };
+    delete request[field];
+    assert.throws(
+      () => validateEarlyGithubHandoffRequest(request),
+      error => error.code === EARLY_GITHUB_HANDOFF_FAILURE.INPUT_INVALID
+    );
+  }
+  assert.throws(
+    () => verifyEarlyGithubHandoffRepository({
+      cwd: "/synthetic",
+      branch: "main",
+      commit,
+      tree,
+      git: (_cwd, args) => ({
+        "rev-parse HEAD": commit,
+        "rev-parse HEAD^{tree}": "c".repeat(40),
+        "branch --show-current": "main",
+        "rev-parse refs/remotes/origin/main": commit,
+        "status --porcelain=v1 --untracked-files=all": "",
+        "config --list": "remote.origin.url=git@github.com:PrometheusRouteIQ/prometheus-iq.git"
+      })[args.join(" ")]
+    }),
+    error => error.code === EARLY_GITHUB_HANDOFF_FAILURE.REPOSITORY_INVALID
+  );
+});
+
+test("valid exact commit and tree arguments are accepted", () => {
+  const validated = validateEarlyGithubHandoffRequest(baseRequest);
+  assert.equal(validated.commit, commit);
+  assert.equal(validated.tree, tree);
+  assert.equal(validated.inputs.candidate_commit, commit);
+  assert.equal(validated.inputs.candidate_tree, tree);
+});
+
 test("successful dispatch returns one exact registered run and close status", async () => {
   const result = await dispatchEarlyGithubHandoff({
     request: baseRequest,

@@ -4,9 +4,10 @@ Owner: Prometheus Infrastructure
 
 The governed dispatcher minimizes Founder laptop time without changing any
 accepted qualification, deployment, rollback, evidence, or protected-state
-control. It requires a clean synchronized branch, binds the workflow input to
-the exact commit SHA, dispatches through the GitHub Actions API, and locates the
-result using the exact commit SHA, branch, workflow identity, and dispatch timestamp.
+control. It requires a clean synchronized branch, binds the workflow inputs to
+the exact commit SHA and tree, dispatches through the GitHub Actions API, and
+locates the result using the exact commit SHA, branch, workflow identity, and
+dispatch timestamp.
 
 ## Usage
 
@@ -14,18 +15,20 @@ The default no-secret repository qualification is:
 
 ```sh
 node scripts/run-early-github-handoff-v1.mjs \
-  --commit "$(git rev-parse HEAD)"
+  --commit "$(git rev-parse HEAD)" \
+  --tree "$(git rev-parse HEAD^{tree})"
 ```
 
 For another already governed manual workflow, provide `--workflow` and a
-nonsecret JSON input file. The dispatcher always injects `candidate_commit`
-and rejects a conflicting value.
+nonsecret JSON input file. The dispatcher always injects `candidate_commit` and
+`candidate_tree` and rejects a conflicting value for either identity.
 
 ```sh
 node scripts/run-early-github-handoff-v1.mjs \
   --workflow governed-workflow.yml \
   --branch main \
   --commit "$(git rev-parse HEAD)" \
+  --tree "$(git rev-parse HEAD^{tree})" \
   --inputs-json /absolute/path/to/nonsecret-inputs.json
 ```
 

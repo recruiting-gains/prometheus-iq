@@ -124,6 +124,7 @@
       "tests/lean-control-plane.test.mjs",
       "tests/overwatch-auto-push-governance.test.mjs",
       "tests/production-release-current-dashboard-contract.test.mjs",
+      "tests/repository-integrity.test.mjs",
       "tests/route-iq-forward-rollback-candidate.test.mjs",
       "tests/route-iq-private-dashboard-deploy-assets.test.mjs",
       "tests/route-iq-private-forward-rollback-candidate-v3.test.mjs",
@@ -156,6 +157,11 @@
       "tests/route-iq-paid-customer-administration-controlled-rehearsal.test.mjs",
       "tests/route-iq-private-forward-rollback-candidate-v2.test.mjs",
       "tests/shadow-decision-readiness-runtime.test.mjs"
+    ]
+  },
+  "isolatedFiles": {
+    "release": [
+      "tests/github-actions-public-worker-deployment.test.mjs"
     ]
   }
 }

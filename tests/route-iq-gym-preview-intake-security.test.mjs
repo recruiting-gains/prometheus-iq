@@ -40,7 +40,7 @@ const SUBMITTED_AT = "2026-08-14T18:30:00.000Z";
 const GYM_FORM_PATH = "src/route-iq-gym-request-form.js";
 const PREVIEW_ENTRY_PATH = "workers/infrastructure/prometheusrouteiq-website-gym-preview-entry.mjs";
 const PREVIEW_CONFIG_PATH = "wrangler.prometheusrouteiq-website-gym-preview.jsonc";
-const PREVIEW_WORKFLOW_PATH = ".github/workflows/preview-prometheus-route-iq-gym-first.yml";
+const SYNTHETIC_PREVIEW_WORKFLOW_PATH = ".github/workflows/synthetic-gym-preview-security-fixture.yml";
 const PII_VALUES = Object.freeze([
   "Security Canary Person",
   "Security Canary Gym",
@@ -345,7 +345,7 @@ test("Security source guards reject trackers, preview side effects, social activ
     []
   );
   assert.deepEqual(
-    inspectRouteIqGymPreviewSource(PREVIEW_WORKFLOW_PATH, [
+    inspectRouteIqGymPreviewSource(SYNTHETIC_PREVIEW_WORKFLOW_PATH, [
       "run: |",
       "  if grep -E 'ROUTE_IQ_REQUEST_CRM_COORDINATOR|FOUNDER_EMAIL' \"$bundle\"; then",
       "    exit 1",
@@ -359,9 +359,9 @@ test("Security source guards reject trackers, preview side effects, social activ
     ["external_tracker_reddit", GYM_FORM_PATH, "rdt('track', 'Lead');"],
     ["preview_production_binding", PREVIEW_CONFIG_PATH, "{ \"kv_namespaces\": [{ \"binding\": \"PRODUCTION_STORE\" }] }"],
     ["preview_production_crm_binding", PREVIEW_ENTRY_PATH, "env.ROUTE_IQ_REQUEST_CRM_COORDINATOR.get(id);"],
-    ["preview_production_crm_binding", PREVIEW_WORKFLOW_PATH, "env:\n  ROUTE_IQ_REQUEST_CRM_COORDINATOR: '${{ secrets.CRM_BINDING }}'"],
+    ["preview_production_crm_binding", SYNTHETIC_PREVIEW_WORKFLOW_PATH, "env:\n  ROUTE_IQ_REQUEST_CRM_COORDINATOR: '${{ secrets.CRM_BINDING }}'"],
     ["preview_email_binding", PREVIEW_ENTRY_PATH, "await env.FOUNDER_EMAIL.send(message);"],
-    ["preview_email_binding", PREVIEW_WORKFLOW_PATH, "env:\n  FOUNDER_EMAIL: '${{ secrets.FOUNDER_EMAIL }}'"],
+    ["preview_email_binding", SYNTHETIC_PREVIEW_WORKFLOW_PATH, "env:\n  FOUNDER_EMAIL: '${{ secrets.FOUNDER_EMAIL }}'"],
     ["preview_durable_write", PREVIEW_ENTRY_PATH, "await persistRouteIqRequest(store, payload);"],
     ["preview_durable_write", PREVIEW_ENTRY_PATH, "await store.put(key, payload);"],
     ["preview_production_intake_endpoint", GYM_FORM_PATH, "const endpoint = 'https://prometheusrouteiq.com/api/partner-intake';"],
@@ -376,7 +376,7 @@ test("Security source guards reject trackers, preview side effects, social activ
     ["pii_log_sink", PREVIEW_ENTRY_PATH, "console.log(payload.fullName);"],
     ["pii_analytics_sink", "src/main.jsx", "analytics.track('lead', payload.gymName);"],
     ["pii_error_sink", PREVIEW_ENTRY_PATH, "throw new Error(`bad ${payload.cell}`);"],
-    ["pii_github_actions_sink", PREVIEW_WORKFLOW_PATH, "jobs:\n  leak:\n    steps:\n      - run: echo '${{ inputs.workEmail }}'"],
+    ["pii_github_actions_sink", SYNTHETIC_PREVIEW_WORKFLOW_PATH, "jobs:\n  leak:\n    steps:\n      - run: echo '${{ inputs.workEmail }}'"],
     ["origin_policy_expanded", PREVIEW_ENTRY_PATH, "headers: { 'Access-Control-Allow-Origin': '*' }"],
     ["notification_contains_forbidden_request_field", "workers/infrastructure/route-iq-request-crm-runtime.js", "async function notifyFounder() { return record.request.utm_campaign; }\nasync function next() {}"]
   ];

@@ -1,10 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
-import { validateTestSuiteConfiguration } from "../scripts/run-test-suite.mjs";
+import {
+  testSuiteExecutionGroups,
+  validateTestSuiteConfiguration,
+} from "../scripts/run-test-suite.mjs";
 import { verifyPublicRepositoryIntegrity } from "../scripts/lib/github-actions-public-worker-deployment.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -61,7 +65,7 @@ test("exactly seven nondeploying-or-protected workflow lanes remain pinned", () 
 
 test("every tracked test and top-level script has exactly one explicit disposition", () => {
   const testResult = validateTestSuiteConfiguration({ repositoryRoot: root });
-  assert.equal(testResult.total, 144);
+  assert.equal(testResult.total, 145);
   const scriptConfiguration = readJson("scripts/script-entrypoints.v1.json");
   const categories = Object.values(scriptConfiguration.categories);
   const classified = categories.flat();
@@ -73,11 +77,26 @@ test("every tracked test and top-level script has exactly one explicit dispositi
   assert.deepEqual(scriptConfiguration.unclassified, []);
 });
 
+test("the real public Workerd release harness runs once without competing release workers", () => {
+  const configuration = readJson("tests/test-suites.v1.json");
+  const groups = testSuiteExecutionGroups("release", configuration);
+  const workerdHarness = "tests/github-actions-public-worker-deployment.test.mjs";
+  assert.equal(groups.length, 2);
+  assert.equal(groups[0].concurrency, 4);
+  assert.equal(groups[0].files.includes(workerdHarness), false);
+  assert.deepEqual(groups[1], {
+    concurrency: 1,
+    files: [workerdHarness],
+  });
+  assert.equal(groups.flatMap(group => group.files)
+    .filter(file => file === workerdHarness).length, 1);
+});
+
 test("retired paths are absent and recoverable at their exact baseline blobs", () => {
   const manifest = readJson("overwatch/retirement/phase-1-retirement-manifest.json");
   assert.equal(manifest.baseline.commit, "c7119fcee140ab8a130cdb888439277fdcbeb6b0");
-  assert.equal(manifest.entries.length, 202);
-  assert.equal(new Set(manifest.entries.map(entry => entry.originalPath)).size, 202);
+  assert.equal(manifest.entries.length, 199);
+  assert.equal(new Set(manifest.entries.map(entry => entry.originalPath)).size, 199);
   for (const entry of manifest.entries) {
     assert.equal(existsSync(resolve(root, entry.originalPath)), false, entry.originalPath);
     const blob = execFileSync("git", [
@@ -87,29 +106,110 @@ test("retired paths are absent and recoverable at their exact baseline blobs", (
     assert.equal(blob, entry.baselineBlobHash, entry.originalPath);
     assert.match(entry.restorationCommand, /^git restore --source=c7119f/u);
   }
+  assert.equal(existsSync(resolve(root, "scripts/build-qualified-prospect-routes.mjs")), true);
+  assert.equal(
+    execFileSync("git", ["hash-object", "scripts/build-qualified-prospect-routes.mjs"], {
+      cwd: root,
+      encoding: "utf8"
+    }).trim(),
+    "d786fd7bfa6ceec2e408c618286446ce3bbc10a5"
+  );
 });
 
-test("active executables and tests contain no unresolved retired-path dependency", () => {
+test("all surviving tracked text closes every retired path through live migration or exact evidence", () => {
   const manifest = readJson("overwatch/retirement/phase-1-retirement-manifest.json");
-  const suites = readJson("tests/test-suites.v1.json").suites;
-  const scripts = readJson("scripts/script-entrypoints.v1.json").categories;
-  const activeFiles = new Set([
-    "README.md",
-    "AGENTS.md",
-    "PRODUCT_VISION.md",
-    "docs/TEST_RELEASE_MAP.md",
-    "package.json",
-    ".github/dependabot.yml",
-    ...retainedWorkflows,
-    ...Object.entries(suites).filter(([name]) => name !== "historical").flatMap(([, files]) => files),
-    ...Object.entries(scripts).filter(([name]) => name !== "historicalManual").flatMap(([, files]) => files)
-  ]);
-  for (const file of activeFiles) {
-    if (file === "tests/lean-control-plane.test.mjs") continue;
-    const source = read(file);
+  const manifestPath = "overwatch/retirement/phase-1-retirement-manifest.json";
+  const intentional = new Set(manifest.intentionalAbsenceEvidencePaths);
+  const historical = new Map(manifest.historicalEvidenceFiles.map(item => [item.path, item]));
+  assert.equal(historical.size, manifest.historicalEvidenceFiles.length);
+  for (const evidence of historical.values()) {
+    assert.equal(evidence.baselineCommit, manifest.baseline.commit, evidence.path);
+    const baselineBlob = execFileSync("git", [
+      "rev-parse",
+      `${evidence.baselineCommit}:${evidence.path}`
+    ], { cwd: root, encoding: "utf8" }).trim();
+    const currentBlob = execFileSync("git", ["hash-object", evidence.path], {
+      cwd: root,
+      encoding: "utf8"
+    }).trim();
+    assert.equal(baselineBlob, evidence.baselineBlobHash, evidence.path);
+    assert.equal(currentBlob, evidence.baselineBlobHash, evidence.path);
+  }
+
+  const actionable = [];
+  for (const file of gitLines(["ls-files"])) {
+    if (file === manifestPath || !existsSync(resolve(root, file))) continue;
+    const bytes = readFileSync(resolve(root, file));
+    if (bytes.includes(0)) continue;
+    let source = bytes.toString("utf8");
     for (const entry of manifest.entries) {
-      assert.equal(source.includes(entry.originalPath), false, `${file} still references ${entry.originalPath}`);
+      const escaped = entry.originalPath.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+      const pinnedPattern = new RegExp(`git:([0-9a-f]{40}):${escaped}`, "gu");
+      source = source.replace(pinnedPattern, (reference, commit) => {
+        execFileSync("git", ["cat-file", "-e", `${commit}:${entry.originalPath}`], {
+          cwd: root,
+          stdio: "ignore"
+        });
+        return "";
+      });
+      if (
+        source.includes(entry.originalPath)
+        && !intentional.has(file)
+        && !historical.has(file)
+      ) actionable.push(`${file} -> ${entry.originalPath}`);
     }
+  }
+  assert.deepEqual(actionable, []);
+});
+
+test("the restored prospect route builder remains a bounded manual operational data tool", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "prometheus-route-builder-"));
+  const input = join(fixture, "prospects.csv");
+  const output = join(fixture, "route.json");
+  const headers = [
+    "business_name", "full_address", "notes", "source_type", "quality_status",
+    "access_type", "recommendation_for_anthony", "rep_status",
+    "estimated_distance_miles", "category"
+  ];
+  const categories = ["Auto", "Tire", "Car Wash", "Barber", "Salon", "Restaurant"];
+  const rows = categories.map((category, index) => [
+    `Synthetic Business ${index + 1}`,
+    `${100 + index} Test Ave Example TX`,
+    "synthetic fixture",
+    "governed_fixture",
+    "verified",
+    "Walk-in ready",
+    "yes",
+    "Anthony unvisited",
+    String(index + 1),
+    category
+  ]);
+  rows.push([
+    "Synthetic Placeholder", "999 Test Ave Example TX", "synthetic fixture",
+    "placeholder", "placeholder", "Do not recommend", "no", "unassigned", "2", "Other Storefront"
+  ]);
+  try {
+    writeFileSync(input, [headers, ...rows].map(row => row.join(",")).join("\n"), "utf8");
+    const result = spawnSync(process.execPath, [
+      resolve(root, "scripts/build-qualified-prospect-routes.mjs"), input, output
+    ], { cwd: root, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+    const route = JSON.parse(readFileSync(output, "utf8"));
+    assert.equal(route.first_route_count, 6);
+    assert.equal(route.backup_queue_count, 0);
+    assert.equal(route.excluded_records, 1);
+    assert.equal(new Set(route.first_route.map(record => record.category)).size, 6);
+    const entrypoints = readJson("scripts/script-entrypoints.v1.json");
+  assert.deepEqual(entrypoints.categories.manualOperationalDataTool, [
+    "scripts/build-qualified-prospect-routes.mjs"
+  ]);
+  assert.deepEqual(entrypoints.generatedOperationalOutputs, {
+    "scripts/build-route-intelligence-quality-engine.mjs": [
+      "prometheus-route-intelligence-quality-report.md"
+    ]
+  });
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
   }
 });
 

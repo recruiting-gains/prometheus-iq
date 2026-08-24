@@ -1,12 +1,12 @@
 {
   "contractId": "fitness-connection-social-media-analytics-attribution-artifact-contract-v1",
-  "schema": "SocialMediaAnalyticsAttributionArtifactContractV1",
-  "version": "1.2.0",
+  "schema": "SocialMediaTechnicalAttributionArtifactContractV2",
+  "version": "2.0.0",
   "status": "active",
   "owningSubsystem": "Prometheus Social Media",
   "workspaceId": "fitness_connection",
   "operatingProfileId": "fitness",
-  "purpose": "Register Social Media-owned analytics, reporting, campaign, content-calendar, and attribution artifacts for Fitness Connection through the Prometheus Integration Contract Layer.",
+  "purpose": "Register the repository-owned Instagram runtime, technical analytics, security, CRM attribution, Website attribution, and claims-control surfaces. Ordinary social content creation and social push remain externally operated by Meta AI.",
   "canonicalRouteArtifacts": {
     "socialAccountSnapshot": {
       "method": "GET",
@@ -40,16 +40,14 @@
     "metaInstagramSetup": "social-media/docs/meta-instagram-setup.md",
     "sampleAnalyticsFixture": "social-media/samples/marketing-analytics.sample.json"
   },
-  "canonicalCampaignArtifactPaths": {
-    "founderMarketingOperatingSystem": "social-media/founder-marketing-operating-system/founder-marketing-operating-system.v1.json",
-    "campaignKpiAttributionFramework": "social-media/founder-marketing-operating-system/campaign-kpi-attribution-framework.md",
-    "campaignBriefTemplate": "social-media/founder-marketing-operating-system/templates/campaign-brief.template.md",
-    "platformStrategyAndCadence": "social-media/founder-marketing-operating-system/platform-strategy-and-cadence.md",
-    "brandAndGrowthStrategy": "social-media/founder-marketing-operating-system/brand-and-growth-strategy.md",
-    "founderContentWorkflow": "social-media/founder-marketing-operating-system/founder-content-workflow.md"
-  },
-  "canonicalContentCalendarArtifactPaths": {
-    "contentCalendar": "social-media/founder-marketing-operating-system/content-calendar.md"
+  "externalOperatingOwnership": {
+    "owner": "Meta AI",
+    "identifier": "external:meta-ai-social-content-and-push",
+    "ordinaryContentCreation": true,
+    "ordinarySocialPush": true,
+    "repositoryCampaignPlanningAuthority": false,
+    "repositoryContentCalendarAuthority": false,
+    "repositoryManualPushAuthority": false
   },
   "canonicalWebsiteAttributionPaths": {
     "websiteReferralUtmContract": null,
@@ -62,9 +60,10 @@
     "sharedLeadIntakeContract": "integrations/shared-workspace-lead-intake-contract.js"
   },
   "attributionFlow": {
-    "sourceOfTruth": "Prometheus Social Media",
+    "sourceOfTruth": "Prometheus Social Media technical attribution runtime",
     "steps": [
-      "Social Media owns campaign descriptors, content calendar artifacts, normalized social metrics, and canonical Instagram reports.",
+      "Meta AI externally owns ordinary social content creation and social push; those operating artifacts are not repository dependencies.",
+      "Prometheus Social Media owns provider-safe runtime controls, normalized social metrics, and canonical Instagram reports.",
       "Website may attach only a bounded acquisition-source label through the registered active acquisition-source module and must not track visitors or sessions or retain raw URLs or referrers.",
       "CRM may consume lead-source attribution, campaign attribution, and conversion provenance through the registered CRM handoff paths only.",
       "Dashboard may display analytics only from canonical Social Media reports and must not read provider output or raw Website/CRM attribution directly.",
@@ -141,8 +140,7 @@
       "consumerSubsystem": "Prometheus Website",
       "mayConsumeAttributionMetadataOnlyThroughContract": true,
       "allowedReadPaths": [
-        "social-media/contracts/social-media-contract.js",
-        "social-media/founder-marketing-operating-system/campaign-kpi-attribution-framework.md"
+        "social-media/contracts/social-media-contract.js"
       ],
       "allowedWritePaths": ["src/route-iq-request-form.js"],
       "mayReadRawProviderOutputs": false,
@@ -187,7 +185,8 @@
       "allowedReadPaths": ["*"],
       "validationScript": "scripts/verify-cross-subsystem-artifact-contracts.mjs",
       "mustVerifySocialMediaReportPathsRegistered": true,
-      "mustVerifyCampaignArtifactPathsRegistered": true,
+      "mustVerifyCampaignArtifactPathsRegistered": false,
+      "mustVerifyExternalOperatingOwnership": true,
       "mustVerifyWebsiteAttributionPathRegistered": false,
       "mustVerifyRetiredWebsiteAttributionAbsent": true,
       "mustVerifyActiveAcquisitionSourceModuleRegistered": true,

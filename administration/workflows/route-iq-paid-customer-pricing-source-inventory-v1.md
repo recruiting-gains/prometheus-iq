@@ -45,10 +45,10 @@ email, or provider object can override this model.
 | `sales/enterprise-pilot-sales-package.md` | Sales proposal guidance | `HYPOTHESIS` | Proposes $500-$15,000 setup and $49-$99/user monthly ranges; conflicts with other hypotheses and cannot bind Prometheus. |
 | `docs/fitness-connection-pitch-plan.md` | Fitness Connection proposal history | `HISTORICAL` | Monthly/per-club/per-rep ideas and a referenced third-party CRM cost are historical positioning, not Route IQ pricing authority. |
 | `docs/investor-readiness-plan.md` | Investor planning | `HISTORICAL` | Paid-pilot/subscription and exclusivity concepts are not approved customer terms. |
-| `PROMETHEUS OPERATING SYSTEM/03 Pricing & Revenue/README.md` | Historical operating index | `HISTORICAL` | Points to strategy materials; cannot approve them. |
-| `PROMETHEUS EXECUTIVE PACKAGE/03 Pilot Proposal/README.md` | Historical executive package | `HISTORICAL` | Pricing-proposal placeholder only. |
-| `PROMETHEUS EXECUTIVE PACKAGE/04 Pilot Approval Package/README.md` | Historical approval package | `HISTORICAL` | Pilot governance context, not commercial authority. |
-| `SENDABLE LEADERSHIP PACKET/03 Pilot Approval Package/prometheus-iq-pilot-approval-package.md` | Historical sendable package | `HISTORICAL` | Retained provenance; no current paid-customer terms. |
+| `git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:PROMETHEUS OPERATING SYSTEM/03 Pricing & Revenue/README.md` | Historical operating index | `HISTORICAL` | Exact baseline evidence points to strategy materials; it cannot approve them. |
+| `git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:PROMETHEUS EXECUTIVE PACKAGE/03 Pilot Proposal/README.md` | Historical executive package | `HISTORICAL` | Exact baseline pricing-proposal placeholder only. |
+| `git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:PROMETHEUS EXECUTIVE PACKAGE/04 Pilot Approval Package/README.md` | Historical approval package | `HISTORICAL` | Exact baseline pilot-governance context, not commercial authority. |
+| `git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:SENDABLE LEADERSHIP PACKET/03 Pilot Approval Package/prometheus-iq-pilot-approval-package.md` | Historical sendable package | `HISTORICAL` | Exact baseline provenance; no current paid-customer terms. |
 | `legal/build_prometheus_pilot_agreement.py` | Legacy agreement generator | `HISTORICAL` | Uses fee placeholders and a $1,000 liability floor; neither is an approved Route IQ commercial term. |
 | `legal/Prometheus_IQ_Pilot_Confidentiality_Agreement_DRAFT.docx` | Legacy agreement artifact | `HISTORICAL` | Draft binary retained for provenance; not a current agreement or pricing source. |
 | `sales/route-iq-customer-onboarding-v1.md` | Onboarding process | `NOT_COMMERCIAL_AUTHORITY` | Describes governed onboarding and retention boundaries, not price or billing approval. |
@@ -59,7 +59,7 @@ email, or provider object can override this model.
 | `workers/infrastructure/route-iq-paid-customer-onboarding-runtime-v1.json` | Runtime configuration | `NOT_COMMERCIAL_AUTHORITY` | Runtime lifecycle contract only; no customer pricing authority. |
 | `workers/infrastructure/route-iq-private-forward-rollback-candidate-v3.json` | Deployment cost metadata | `TECHNICAL_COST_ONLY` | Incremental infrastructure-cost estimate; not customer pricing. |
 | `docs/route-iq-business-availability-infrastructure-v1.md` | Infrastructure cost analysis | `TECHNICAL_COST_ONLY` | Cloudflare/Durable Object cost estimates cannot become a Route IQ price. |
-| `.github/workflows/controlled-paid-customer-onboarding-rehearsal-v1.yml` | Qualification environment/workflow | `TEST_ONLY` | Rehearsal and deployment controls contain no authority to set commercial terms. |
+| `git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:.github/workflows/controlled-paid-customer-onboarding-rehearsal-v1.yml` | Historical qualification environment/workflow | `TEST_ONLY` | Exact baseline rehearsal and deployment controls contain no authority to set commercial terms. |
 | `public-site-static/index.html` | Public website source | `NOT_COMMERCIAL_AUTHORITY` | No approved public price or plan; public copy cannot establish one. |
 | `public-site-static/terms/index.html` | Public terms source | `NOT_COMMERCIAL_AUTHORITY` | General website terms are not an executed customer agreement or order form. |
 | `deploy/prometheusrouteiq-website/index.html` | Generated public deployment asset | `NOT_COMMERCIAL_AUTHORITY` | Generated copy cannot supersede the authoritative model. |

@@ -42,8 +42,10 @@
     "persistenceAllowed": false,
     "emailAllowed": false
   },
-  "workflow": {
-    "path": ".github/workflows/preview-prometheus-route-iq-gym-first.yml",
+  "retiredPreviewWorkflowEvidence": {
+    "active": false,
+    "reference": "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:.github/workflows/preview-prometheus-route-iq-gym-first.yml",
+    "sha256": "fa0efa259d006527d500e714b4f92f7c1c76df06f7cc7973c448aaa0d45006d9",
     "trigger": "workflow_dispatch",
     "repository": "PrometheusRouteIQ/prometheus-iq",
     "branch": "main",
@@ -70,9 +72,30 @@
       "preview_assets_sha256"
     ]
   },
+  "currentPublicQualificationLane": {
+    "path": ".github/workflows/qualify-prometheus-public-worker.yml",
+    "name": "Qualify Prometheus Public Worker",
+    "trigger": "workflow_dispatch",
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "branch": "main",
+    "actor": "PrometheusRouteIQ",
+    "inputs": [
+      "candidate_commit",
+      "candidate_tree",
+      "batch_id",
+      "current_public_version",
+      "current_private_version",
+      "rollback_artifact_sha256"
+    ],
+    "buildsImmutableArtifact": true,
+    "previewDeploymentAllowed": false,
+    "productionDeploymentAllowed": false,
+    "workerDeploymentPerformed": false
+  },
   "officialNode24ActionSuccessor": {
-    "classification": "NEW_WORKFLOW_OFFICIAL_NODE24_PIN_SUCCESSOR",
-    "path": ".github/workflows/preview-prometheus-route-iq-gym-first.yml",
+    "classification": "RETIRED_WORKFLOW_EXACT_GIT_EVIDENCE",
+    "active": false,
+    "reference": "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:.github/workflows/preview-prometheus-route-iq-gym-first.yml",
     "sha256": "fa0efa259d006527d500e714b4f92f7c1c76df06f7cc7973c448aaa0d45006d9",
     "absentAtNode24MigrationBaseline": true,
     "checkout": {

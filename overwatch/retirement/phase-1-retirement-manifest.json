@@ -36,6 +36,40 @@
     }
   },
   "globalRecovery": "git restore --source=c7119fcee140ab8a130cdb888439277fdcbeb6b0 --pathspec-from-file=<manifest-derived-path-list>",
+  "historicalEvidenceFiles": [
+    { "path": "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "c583617c529b4818c0bfcb84849027c7e779c4eb" },
+    { "path": "overwatch/governance/cloudflare-founder-attended-live-create-receipt-safe-provisioning-repair-v2.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "e77334f047638dc227fde8e48ebf260d4887d1d9" },
+    { "path": "overwatch/governance/cloudflare-founder-attended-service-token-response-contract-repair-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "1d0df930c1d6eae67010332a0ea82da9920cab25" },
+    { "path": "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "2e16dcf241129fad2207b055e3b04f201f0eb109" },
+    { "path": "overwatch/governance/field-session-report-type-contract-drift-repair-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "2d8a0c2b71c8f02e13f57233adf06b7badc11401" },
+    { "path": "overwatch/governance/github-actions-private-worker-deployment-v2.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "19667195314dd7de61be83508a3e2f8521e70a5c" },
+    { "path": "overwatch/governance/live-canonical-identity-migration-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "84035f772278865b4c9721e9051c14a4318fefa4" },
+    { "path": "overwatch/governance/public-deployment-workflow-v2.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "02893befd3925264798688d322519dedcec07a4a" },
+    { "path": "overwatch/governance/route-iq-3d-visual-continuity-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "c28715f13acb657ba6903b2ce0ca8ad00bb7a2f7" },
+    { "path": "overwatch/governance/route-iq-august-1-dashboard-visual-readiness-successor-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "8117342a848d2f1f664beaa3a670f35260921717" },
+    { "path": "overwatch/governance/route-iq-august-1-dashboard-visual-verifier-successor-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "e21ce6bf57f7fed34765da4f4c8d9653c7091562" },
+    { "path": "overwatch/governance/route-iq-august-1-launch-closeout-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "572fcbcfe6ad43b9a15031710c1a80b13c3bc34b" },
+    { "path": "overwatch/governance/route-iq-august-1-readiness-matrix-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "6d3f76d010401d86b94ef178c7745ca4a7fb29c3" },
+    { "path": "overwatch/governance/route-iq-august-1-readiness-successors-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "d7fb07478e65bb377c228134cc9226da19096782" },
+    { "path": "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "4e161b06795a1cf1381f5bb36818c3433bb4dad9" },
+    { "path": "overwatch/governance/route-iq-commercial-readiness-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "ecf7bd51cff418f56a659d50b0a2815cf35d3840" },
+    { "path": "overwatch/governance/route-iq-cross-industry-dashboard-regression-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "dbcfbb03d5c30f4c0ed928eb3d99ef39de434d47" },
+    { "path": "overwatch/governance/route-iq-dormant-retention-maintenance-deployment-readiness-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "b4fdd20eb655d1473576aefeccefe6a2b0ba780f" },
+    { "path": "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "458791d3cb2c1b99f91e941cb7845a678d58a97f" },
+    { "path": "overwatch/governance/route-iq-gym-preview-route-quality-runtime-surface-successor-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "62977a5fb295cddaa0ed6e8d20e626018acdd7fa" },
+    { "path": "overwatch/governance/route-iq-private-dashboard-founder-review-repairs-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "3eef525e200228db8b02ea550fdb2b5a21979149" },
+    { "path": "overwatch/governance/route-iq-public-crm-founder-access-deployment-readiness-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "61a9fac8dc9f6ba89819813ce35253be16629b09" },
+    { "path": "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "9f15ed2fbd68f7f848435b80557053e8af39e815" },
+    { "path": "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "31ad8212503e3e510c187c6afa3b2178e4ef3811" },
+    { "path": "overwatch/governance/route-iq-retention-expiry-deletion-runtime-v1.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "a68441e767f84d3ad3b6ba59fd4ccf5dad5c77cc" },
+    { "path": "overwatch/reports/BATCH-20260713-001-route-iq-shadow-decision-readiness.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "1adccf36436f13950416e9e7d6d3d2cacf76fc3a" },
+    { "path": "overwatch/reports/BATCH-20260713-004-route-iq-prospective-shadow-runtime.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "9ca92fbc390710b2b18e9263d892fb55ea8613bc" },
+    { "path": "overwatch/reports/BATCH-20260714-003-route-iq-prospective-collection-activation-readiness.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "dd4be24ed01206ad1926a0757a8f35be16550072" },
+    { "path": "overwatch/reports/BATCH-20260714-004-route-iq-prospective-evidence-retention.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "d6caf7edf89f859512d3c49adc27880f0b41b4d0" }
+  ],
+  "intentionalAbsenceEvidencePaths": [
+    "tests/lean-control-plane.test.mjs"
+  ],
   "entries": [
     {
       "originalPath": ".github/workflows/controlled-paid-customer-onboarding-rehearsal-v1.yml",
@@ -2193,49 +2227,6 @@
       "finalDisposition": "REMOVED_FROM_ACTIVE_MAIN_RECOVERABLE_VIA_GIT"
     },
     {
-      "originalPath": "overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json",
-      "owner": "Prometheus Overwatch",
-      "classification": "retired_one_time_governance_record",
-      "reason": "Superseded control-plane or completed one-time lane; active protections migrated to the lean authority and explicit suites.",
-      "replacement": [
-        "NO_REPLACEMENT_REQUIRED"
-      ],
-      "baselineBlobHash": "458791d3cb2c1b99f91e941cb7845a678d58a97f",
-      "baselineSha256": "2a35aabd652756422809d2408b4a39065bbd6b9957869dee30db8cfd7004a133",
-      "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0",
-      "dependenciesFound": {
-        "count": 15,
-        "paths": [
-          "intelligence/provenance/protected-baseline-synchronization-gym-preview-route-quality-runtime-surface-v1.json",
-          "overwatch/governance/route-iq-gym-preview-deployment-environment-successor-v1.json",
-          "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json",
-          "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
-          "scripts/verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs",
-          "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
-          "scripts/verify-overwatch-route-iq-gym-first-dual-track-public-website-preview-v1.mjs",
-          "scripts/verify-overwatch-route-iq-paid-customer-onboarding-foundation.mjs",
-          "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
-          "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
-          "tests/overwatch-cloudflare-founder-attended-create-receipt-v2.test.mjs",
-          "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs",
-          "tests/overwatch-route-iq-paid-customer-onboarding-foundation.test.mjs",
-          "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
-          "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
-        ]
-      },
-      "dependenciesMigrated": {
-        "activeReferencesMustResolveTo": [
-          "NO_REPLACEMENT_REQUIRED"
-        ],
-        "historicalEvidenceMayRetainCommitPinnedReference": true
-      },
-      "restorationCommand": "git restore --source=c7119fcee140ab8a130cdb888439277fdcbeb6b0 -- 'overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json'",
-      "protectedEvidenceReferences": [
-        "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:overwatch/governance/route-iq-gym-first-dual-track-public-website-preview-v1.json"
-      ],
-      "finalDisposition": "REMOVED_FROM_ACTIVE_MAIN_RECOVERABLE_VIA_GIT"
-    },
-    {
       "originalPath": "overwatch/governance/route-iq-gym-preview-deployment-environment-successor-v1.json",
       "owner": "Prometheus Overwatch",
       "classification": "retired_one_time_governance_record",
@@ -2869,38 +2860,6 @@
       "finalDisposition": "REMOVED_FROM_ACTIVE_MAIN_RECOVERABLE_VIA_GIT"
     },
     {
-      "originalPath": "prometheus-route-intelligence-quality-report.md",
-      "owner": "Prometheus Overwatch",
-      "classification": "retired_operational_document",
-      "reason": "Superseded control-plane or completed one-time lane; active protections migrated to the lean authority and explicit suites.",
-      "replacement": [
-        "NO_REPLACEMENT_REQUIRED"
-      ],
-      "baselineBlobHash": "73705936235c2a1366a7609ceba47bf05e1bba06",
-      "baselineSha256": "37e87bb72e00a6d4a7f37d8ce307f46b1397480ebabcf8f584be1c43dbd594f1",
-      "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0",
-      "dependenciesFound": {
-        "count": 4,
-        "paths": [
-          "PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md",
-          "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
-          "docs/route-intelligence-v2-architecture.md",
-          "scripts/build-route-intelligence-quality-engine.mjs"
-        ]
-      },
-      "dependenciesMigrated": {
-        "activeReferencesMustResolveTo": [
-          "NO_REPLACEMENT_REQUIRED"
-        ],
-        "historicalEvidenceMayRetainCommitPinnedReference": true
-      },
-      "restorationCommand": "git restore --source=c7119fcee140ab8a130cdb888439277fdcbeb6b0 -- 'prometheus-route-intelligence-quality-report.md'",
-      "protectedEvidenceReferences": [
-        "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:prometheus-route-intelligence-quality-report.md"
-      ],
-      "finalDisposition": "REMOVED_FROM_ACTIVE_MAIN_RECOVERABLE_VIA_GIT"
-    },
-    {
       "originalPath": "prometheus-worktree-audit-report.md",
       "owner": "Prometheus Overwatch",
       "classification": "retired_operational_document",
@@ -2926,38 +2885,6 @@
       "restorationCommand": "git restore --source=c7119fcee140ab8a130cdb888439277fdcbeb6b0 -- 'prometheus-worktree-audit-report.md'",
       "protectedEvidenceReferences": [
         "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:prometheus-worktree-audit-report.md"
-      ],
-      "finalDisposition": "REMOVED_FROM_ACTIVE_MAIN_RECOVERABLE_VIA_GIT"
-    },
-    {
-      "originalPath": "scripts/build-qualified-prospect-routes.mjs",
-      "owner": "Prometheus Overwatch",
-      "classification": "retired_one_time_verifier_or_runner",
-      "reason": "Superseded control-plane or completed one-time lane; active protections migrated to the lean authority and explicit suites.",
-      "replacement": [
-        "NO_REPLACEMENT_REQUIRED"
-      ],
-      "baselineBlobHash": "d786fd7bfa6ceec2e408c618286446ce3bbc10a5",
-      "baselineSha256": "f1e10ec9cc3bfe41b2b96f0039d32bb5e690d2eaacbc9eeb09467dc2092fd7ba",
-      "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0",
-      "dependenciesFound": {
-        "count": 4,
-        "paths": [
-          "PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md",
-          "constitution-compliance-report.md",
-          "data/qualified-prospects/README.md",
-          "docs/anthony-qualified-prospect-seed-plan.md"
-        ]
-      },
-      "dependenciesMigrated": {
-        "activeReferencesMustResolveTo": [
-          "NO_REPLACEMENT_REQUIRED"
-        ],
-        "historicalEvidenceMayRetainCommitPinnedReference": true
-      },
-      "restorationCommand": "git restore --source=c7119fcee140ab8a130cdb888439277fdcbeb6b0 -- 'scripts/build-qualified-prospect-routes.mjs'",
-      "protectedEvidenceReferences": [
-        "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:scripts/build-qualified-prospect-routes.mjs"
       ],
       "finalDisposition": "REMOVED_FROM_ACTIVE_MAIN_RECOVERABLE_VIA_GIT"
     },

@@ -17,10 +17,11 @@ import {
   writeFileSync
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve, sep } from "node:path";
+import { dirname, extname, join, relative, resolve, sep } from "node:path";
 
 import {
   PRIVATE_WORKFLOW_V2_FAILURE,
+  PRIVATE_WORKFLOW_V2_GOVERNED_IMPORT_ROOT_PATHS,
   PRIVATE_WORKFLOW_V2_POLICY,
   PRIVATE_WORKFLOW_V2_RUNTIME_GUARD_BINDINGS,
   PrivateWorkflowV2Error,
@@ -32,6 +33,7 @@ import {
   createPrivateV2RuntimeRelease,
   createPrivateV2RuntimeWorkspace,
   formatPrivateWorkflowV2Failure,
+  privateWorkflowV2GovernedSourcePaths,
   privateWorkflowV2SecretEnvironmentNames,
   privateV2PredeploymentSmokeMarkerPolicy,
   qualifiedPrivateConfigForArtifact,
@@ -116,6 +118,41 @@ const RETENTION_MAINTENANCE_DEPLOY_PARITY_SHA256 =
   "a9c8837fb8978ee43f372f229f7b08286d8ebd2efce93e76971e8a39f47730f9";
 const PRESERVED_ROLLBACK_BUNDLE_SHA256 =
   "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028";
+
+test("private workflow governed hashes include the complete deployment-control import closure", () => {
+  const governed = privateWorkflowV2GovernedSourcePaths(root);
+  const governedSet = new Set(governed);
+  assert.deepEqual(governed, [...governed].sort((left, right) => left.localeCompare(right)));
+  assert.equal(governedSet.size, governed.length);
+  for (const required of [
+    "scripts/lib/github-actions-private-worker-deployment.mjs",
+    "scripts/lib/github-actions-public-worker-deployment.mjs"
+  ]) {
+    assert.equal(governedSet.has(required), true, required);
+  }
+
+  const visited = new Set();
+  const pending = [...PRIVATE_WORKFLOW_V2_GOVERNED_IMPORT_ROOT_PATHS];
+  const importPattern = /(?:^|\n)[\t ]*(?:import|export)[\t ]+(?:(?:[^;]*?)\bfrom[\t\r\n ]+)?(["'])(\.\.?\/[^"']+)\1[\t ]*(?:with[\t ]*\{[^}]*\})?[\t ]*;?/gu;
+  while (pending.length > 0) {
+    const path = pending.shift();
+    if (visited.has(path)) continue;
+    visited.add(path);
+    const source = readFileSync(resolve(root, path), "utf8");
+    if (![".js", ".mjs"].includes(extname(path))) continue;
+    for (const match of source.matchAll(importPattern)) {
+      const unresolved = resolve(root, dirname(path), match[2]);
+      const candidates = extname(unresolved)
+        ? [unresolved]
+        : [unresolved, `${unresolved}.mjs`, `${unresolved}.js`, `${unresolved}.json`];
+      const matches = candidates.filter(candidate => existsSync(candidate) && lstatSync(candidate).isFile());
+      assert.equal(matches.length, 1, `${path}:${match[2]}`);
+      const importedPath = relative(root, matches[0]).split(sep).join("/");
+      assert.equal(governedSet.has(importedPath), true, `${path} -> ${importedPath}`);
+      pending.push(importedPath);
+    }
+  }
+});
 
 function qualificationInputs() {
   return Object.freeze({

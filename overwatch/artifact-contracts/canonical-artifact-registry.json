@@ -624,10 +624,10 @@
         },
         {
           "artifactId": "fitness_connection_social_media_artifact_contract",
-          "artifactType": "social_media_attribution_contract",
+          "artifactType": "social_media_technical_attribution_contract",
           "ownerSubsystem": "Prometheus Social Media",
           "path": "overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json",
-          "schema": "RouteIqSocialMediaAttributionContractV1",
+          "schema": "RouteIqSocialMediaTechnicalAttributionContractV2",
           "writeAllowed": [
             "Prometheus Social Media"
           ],

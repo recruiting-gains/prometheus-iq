@@ -17,6 +17,11 @@ export const ROUTE_IQ_GYM_PREVIEW_SECURITY_POLICY = Object.freeze({
   formId: "route_iq_gym_request",
   workspaceId: "prometheus_route_iq",
   operatingProfileId: "route_iq_commercial",
+  retiredPreviewWorkflowEvidence: Object.freeze({
+    active: false,
+    reference: "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:.github/workflows/preview-prometheus-route-iq-gym-first.yml",
+    sha256: "fa0efa259d006527d500e714b4f92f7c1c76df06f7cc7973c448aaa0d45006d9"
+  }),
   notificationFields: Object.freeze([
     "receiptId",
     "submittedAt",
@@ -61,7 +66,7 @@ export const ROUTE_IQ_GYM_PREVIEW_SECURITY_POLICY = Object.freeze({
     "src/route-iq-gym-request-form.js",
     "workers/infrastructure/prometheusrouteiq-website-gym-preview-entry.mjs",
     "wrangler.prometheusrouteiq-website-gym-preview.jsonc",
-    ".github/workflows/preview-prometheus-route-iq-gym-first.yml"
+    ".github/workflows/qualify-prometheus-public-worker.yml"
   ])
 });
 
@@ -377,6 +382,7 @@ function verifyRecord(record) {
   assert.ok(Object.values(record.socialPlaceholders).slice(2).every(value => value === false));
   assert.ok(Object.values(record.preservedControls).every(value => value === true));
   assert.deepEqual(record.expectedFuturePaths, [...policy.expectedFuturePaths]);
+  assert.deepEqual(record.retiredPreviewWorkflowEvidence, policy.retiredPreviewWorkflowEvidence);
   assert.equal(record.disposition.status, "SECURITY_GOVERNANCE_RECORDED_UNDEPLOYED");
   assert.equal(record.disposition.integrationAdmission, "SECURITY_TEST_PASS_REQUIRED");
   assert.equal(record.disposition.productionAuthorized, false);

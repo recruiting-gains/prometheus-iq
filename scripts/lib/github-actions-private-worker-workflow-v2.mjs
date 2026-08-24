@@ -15,7 +15,7 @@ import {
   writeFileSync
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { basename, dirname, extname, isAbsolute, join, relative, resolve } from "node:path";
 
 import {
   DeploymentPolicyError,
@@ -231,7 +231,7 @@ const PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSIONS = new Set(
 const PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIAGNOSTICS = new Set(
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIAGNOSTICS
 );
-const GOVERNED_SOURCE_PATHS = Object.freeze([
+const GOVERNED_SOURCE_ROOT_PATHS = Object.freeze([
   PRIVATE_WORKFLOW_V2_POLICY.contractPath,
   PRIVATE_WORKFLOW_V2_POLICY.qualificationWorkflowPath,
   PRIVATE_WORKFLOW_V2_POLICY.deploymentWorkflowPath,
@@ -248,6 +248,16 @@ const GOVERNED_SOURCE_PATHS = Object.freeze([
   PRIVATE_WORKFLOW_V2_POLICY.verifierPath,
   PRIVATE_WORKFLOW_V2_POLICY.testPath,
   PRIVATE_WORKFLOW_V2_POLICY.runtimeGuardTestPath
+]);
+export const PRIVATE_WORKFLOW_V2_GOVERNED_IMPORT_ROOT_PATHS = Object.freeze([
+  PRIVATE_WORKFLOW_V2_POLICY.qualificationRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.deploymentRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.productionIdentityRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.smokeRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.metadataRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.libraryPath,
+  PRIVATE_WORKFLOW_V2_POLICY.verifierPath
 ]);
 
 export class PrivateWorkflowV2Error extends Error {
@@ -1215,8 +1225,86 @@ function exactReleaseRoot(directory) {
   }
 }
 
+function relativeModuleSpecifiers(source) {
+  const specifiers = new Set();
+  const staticImport = /(?:^|\n)[\t ]*(?:import|export)[\t ]+(?:(?:[^;]*?)\bfrom[\t\r\n ]+)?(["'])(\.\.?\/[^"']+)\1[\t ]*(?:with[\t ]*\{[^}]*\})?[\t ]*;?/gu;
+  for (const match of source.matchAll(staticImport)) specifiers.add(match[2]);
+  return [...specifiers].sort((left, right) => left.localeCompare(right));
+}
+
+function resolveGovernedRelativeImport(repositoryRoot, importingPath, specifier) {
+  if (!specifier.startsWith(".") || specifier.includes("\\") || /[?#\0]/u.test(specifier)) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+  }
+  const unresolved = resolve(repositoryRoot, dirname(importingPath), specifier);
+  const candidates = extname(unresolved)
+    ? [unresolved]
+    : [
+        unresolved,
+        `${unresolved}.mjs`,
+        `${unresolved}.js`,
+        `${unresolved}.json`,
+        join(unresolved, "index.mjs"),
+        join(unresolved, "index.js"),
+        join(unresolved, "index.json")
+      ];
+  const matches = candidates.filter(path => {
+    if (!existsSync(path)) return false;
+    const stats = lstatSync(path);
+    return stats.isFile() && !stats.isSymbolicLink();
+  });
+  if (matches.length !== 1) fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+  const repositoryRealPath = realpathSync(repositoryRoot);
+  const importedRealPath = realpathSync(matches[0]);
+  const importedPath = safeRelativeName(repositoryRealPath, importedRealPath);
+  if (importedPath.startsWith("node_modules/")) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+  }
+  return importedPath;
+}
+
+export function privateWorkflowV2GovernedSourcePaths(repositoryRoot) {
+  const rootPath = realpathSync(repositoryRoot);
+  const governed = new Set(GOVERNED_SOURCE_ROOT_PATHS);
+  const visited = new Set();
+  const pending = [...PRIVATE_WORKFLOW_V2_GOVERNED_IMPORT_ROOT_PATHS]
+    .sort((left, right) => left.localeCompare(right));
+
+  while (pending.length > 0) {
+    const path = pending.shift();
+    if (visited.has(path)) continue;
+    visited.add(path);
+    governed.add(path);
+    const absolute = resolve(rootPath, path);
+    if (!existsSync(absolute)) fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+    const stats = lstatSync(absolute);
+    if (!stats.isFile() || stats.isSymbolicLink()) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+    }
+    if (![".js", ".mjs"].includes(extname(path))) continue;
+    const source = readFileSync(absolute, "utf8");
+    for (const specifier of relativeModuleSpecifiers(source)) {
+      const importedPath = resolveGovernedRelativeImport(rootPath, path, specifier);
+      governed.add(importedPath);
+      if (!visited.has(importedPath)) pending.push(importedPath);
+    }
+    pending.sort((left, right) => left.localeCompare(right));
+  }
+
+  for (const path of governed) {
+    const absolute = resolve(rootPath, path);
+    if (!existsSync(absolute)) fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+    const stats = lstatSync(absolute);
+    if (!stats.isFile() || stats.isSymbolicLink()) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+    }
+    safeRelativeName(rootPath, realpathSync(absolute));
+  }
+  return Object.freeze([...governed].sort((left, right) => left.localeCompare(right)));
+}
+
 function governedSourceHashes(root) {
-  return Object.freeze(Object.fromEntries(GOVERNED_SOURCE_PATHS.map(path => [
+  return Object.freeze(Object.fromEntries(privateWorkflowV2GovernedSourcePaths(root).map(path => [
     path,
     sha256PrivateWorkflowFile(resolve(root, path))
   ])));

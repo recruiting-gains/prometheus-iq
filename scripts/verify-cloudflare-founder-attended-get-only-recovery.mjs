@@ -36,7 +36,6 @@ export const CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_INFRASTRUCTURE_PREDECESSOR_PAT
   "scripts/lib/cloudflare-founder-attended-service-token.mjs",
   "scripts/lib/cloudflare-founder-attended-tty.mjs",
   "scripts/run-cloudflare-founder-attended-service-token.mjs",
-  "scripts/verify-cloudflare-founder-attended-service-token.mjs",
   "workers/infrastructure/cloudflare-founder-attended-service-token-v1.json"
 ]);
 export const CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_OVERWATCH_RELEASE_WIRING_PATHS =

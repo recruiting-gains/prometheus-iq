@@ -254,7 +254,7 @@ Related files:
 - `prometheus-os/reasoning-pipeline.js`
 - `mac-companion/PrometheusCompanion.swift`
 - `scripts/verify-prometheus-companion-ui-path.mjs`
-- `prometheus-intelligence-orchestrator-routing-fix-report.md`
+- `git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:prometheus-intelligence-orchestrator-routing-fix-report.md` (exact baseline evidence)
 
 ### June 20, 2026: Cloudflare Access Protection Added
 

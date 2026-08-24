@@ -143,6 +143,9 @@
       "scripts/run-cloudflare-unattended-launcher.mjs",
       "scripts/run-github-actions-public-worker-deployment.mjs"
     ],
+    "manualOperationalDataTool": [
+      "scripts/build-qualified-prospect-routes.mjs"
+    ],
     "historicalManual": [
       "scripts/build-route-intelligence-quality-engine.mjs",
       "scripts/test-runtime-pool-governance.mjs",
@@ -162,6 +165,11 @@
       "scripts/verify-route-iq-public-claims-data.mjs",
       "scripts/verify-route-iq-public-forward-rollback.mjs",
       "scripts/verify-route-iq-request-crm-infrastructure.mjs"
+    ]
+  },
+  "generatedOperationalOutputs": {
+    "scripts/build-route-intelligence-quality-engine.mjs": [
+      "prometheus-route-intelligence-quality-report.md"
     ]
   },
   "unclassified": []

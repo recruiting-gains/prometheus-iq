@@ -11,6 +11,7 @@ import {
   currentLiveCanonicalIdentityOffRouteBaselineRepair,
   currentLiveCanonicalIdentityProtectedConsumerCompositionRepair,
   currentLiveCanonicalIdentityShadowReadinessRepair,
+  currentLeanPhase1ActiveArchitectureDecoupling,
   currentProtectedDriftFixtureIntelligenceSuccessor,
   currentRetentionDeletionIntelligenceSuccessorChain,
   currentRetentionMaintenanceIntelligenceSuccessor,
@@ -25,6 +26,7 @@ import {
   validateLiveCanonicalIdentityOffRouteBaselineRepair,
   validateLiveCanonicalIdentityProtectedConsumerCompositionRepair,
   validateLiveCanonicalIdentityShadowReadinessRepair,
+  validateLeanPhase1ActiveArchitectureDecoupling,
   validateProtectedDriftFixtureIntelligenceSuccessor,
   validateProspectiveCalibrationIntelligenceSuccessorChain,
   validateRepresentativeIntelligenceRuntimeSurfaceSuccessor,
@@ -34,6 +36,27 @@ import {
 } from "../scripts/verify-release-provenance-repair.mjs";
 
 const clone = value => structuredClone(value);
+
+test("release provenance preserves exact active architecture decoupling", () => {
+  const result = validateLeanPhase1ActiveArchitectureDecoupling();
+  assert.equal(result.path, "tests/intelligence-architecture.test.mjs");
+  assert.equal(result.suite, "core");
+  for (const mutate of [
+    value => { value.path = "package.json"; },
+    value => { value.suite = "historical"; },
+    value => { value.closure.commit = "0".repeat(40); },
+    value => { value.closure.parent = "0".repeat(40); },
+    value => { value.closure.tree = "0".repeat(40); },
+    value => { value.closure.identity = "Prometheus Overwatch <overwatch@prometheus.local>"; },
+    value => { value.closure.subject = "intelligence: substitute architecture closure"; },
+    value => { value.previousSha256 = "0".repeat(64); },
+    value => { value.decoupledSha256 = "0".repeat(64); }
+  ]) {
+    const candidate = clone(currentLeanPhase1ActiveArchitectureDecoupling);
+    mutate(candidate);
+    assert.throws(() => validateLeanPhase1ActiveArchitectureDecoupling(candidate));
+  }
+});
 
 test("release provenance rejects revenue-readiness successor substitution", () => {
   assert.equal(validateRevenueReadinessIntelligenceSuccessor(

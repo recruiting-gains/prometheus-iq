@@ -465,6 +465,20 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     successor: prospectiveCalibration,
     transitionsByPath: transitionMap(prospectiveCalibration.protectedSourceTransitions),
   };
+  const leanPhase1ProtectedSuccessor = readJson(
+    "overwatch/retirement/phase-1-intelligence-protected-successor.json",
+  );
+  assert.equal(
+    leanPhase1ProtectedSuccessor.version,
+    "prometheus-lean-phase-1-intelligence-protected-successor-v1",
+  );
+  assert.equal(
+    leanPhase1ProtectedSuccessor.status,
+    "INDEPENDENTLY_VERIFIED_SOURCE_ONLY_SUCCESSOR",
+  );
+  const leanPhase1Transitions = transitionMap(
+    leanPhase1ProtectedSuccessor.protectedSourceTransitions,
+  );
   const revenueReadinessConsumers =
     verifyPaidCustomerRevenueReadinessProtectedConsumers();
   assert.equal(
@@ -902,11 +916,27 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
       retentionDeletionRuntimeSuccessor.transitionsByPath.get(consumer.path);
     const prospectiveCalibrationTransitions =
       prospectiveCalibrationSuccessor.transitionsByPath.get(consumer.path);
+    const leanTransitions = leanPhase1Transitions.get(consumer.path);
+    const predecessor = prospectiveCalibrationTransitions?.at(-1)
+      || retentionDeletionTransitions?.at(-1)
+      || consumer;
+    if (leanTransitions) {
+      assert.equal(
+        leanTransitions[0].previousSha256,
+        predecessor.currentSha256,
+        `Broken lean Phase 1 consumer chain: ${consumer.path}`,
+      );
+      for (let index = 1; index < leanTransitions.length; index += 1) {
+        assert.equal(
+          leanTransitions[index].previousSha256,
+          leanTransitions[index - 1].currentSha256,
+          `Broken lean Phase 1 consumer chain: ${consumer.path}`,
+        );
+      }
+    }
     assert.equal(
       sha256(consumer.path),
-      prospectiveCalibrationTransitions?.at(-1).currentSha256
-        || retentionDeletionTransitions?.at(-1).currentSha256
-        || consumer.currentSha256,
+      leanTransitions?.at(-1).currentSha256 || predecessor.currentSha256,
       consumer.path,
     );
     assert.notEqual(consumer.previousSha256, consumer.currentSha256, consumer.path);

@@ -2,74 +2,52 @@
 
 ## Purpose
 
-Prometheus Social Media owns marketing systems, social media architecture, social analytics, attribution, campaign planning, and public brand intelligence.
+The repository Social Media subsystem owns technical Instagram runtime controls,
+provider and security contracts, normalized analytics, Founder reporting, UTM and
+Website attribution, CRM attribution, and approved-claims boundaries.
 
-This subsystem connects marketing activity to:
+Meta AI owns ordinary Instagram, Facebook, LinkedIn, and other social content
+creation and social push outside this repository. The repository does not own a
+campaign calendar, content-production schedule, campaign-planning system, or
+manual social-push operating system.
 
-- Instagram Business analytics.
-- Website attribution.
-- CRM attribution.
-- Beta attribution.
-- Founder marketing analytics.
-- Campaign performance reporting.
+## Technical Surface
 
-## Current Status
+- `contracts/social-media-contract.js`: normalized analytics and attribution contract.
+- `providers/social-provider-registry.js`: supported provider registry.
+- `providers/instagram-business-provider.js`: backend-only Instagram analytics adapter.
+- `infrastructure/instagram-runtime-controls.js`: backend-only secret and runtime checks.
+- `infrastructure/meta-instagram-oauth-workflow.js`: OAuth connection and token lifecycle.
+- `social-media-analytics-service.js`: normalized analytics snapshot service.
+- `reporting/founder-instagram-analytics-reporting-view.js`: read-only Founder report.
+- `docs/meta-instagram-setup.md`: external Meta setup and permission requirements.
 
-Social Media / Marketing Analytics Architecture v1 is implemented as a provider-neutral foundation with Instagram Business as the first concrete provider adapter.
-
-Live provider calls pass through the verified Instagram runtime controls. Meta Graph API reads are blocked unless backend setup, token, permissions, and verification metadata are all present. When connected, the Instagram provider consumes account/profile data, account insights, and available content-level insights without enabling posting, DMs, comment automation, scraping, or token exposure.
-
-## Source Files
-
-- `contracts/social-media-contract.js`: official Social Media analytics and attribution contract.
-- `providers/social-provider-registry.js`: supported provider registry for Instagram, Facebook, LinkedIn, X, TikTok, and YouTube.
-- `providers/instagram-business-provider.js`: backend-only Instagram Business analytics provider adapter.
-- `infrastructure/instagram-runtime-controls.js`: backend-only Instagram/Meta secret and runtime state validation.
-- `infrastructure/meta-instagram-oauth-workflow.js`: backend-only Meta Instagram OAuth connection, long-lived token exchange, token verification, and refresh workflow.
-- `social-media-analytics-service.js`: normalized marketing analytics snapshot service.
-- `reporting/founder-instagram-analytics-reporting-view.js`: read-only executive reporting view over normalized Instagram, Website attribution, and CRM attribution inputs.
-- `samples/marketing-analytics.sample.json`: explicit mock/sample analytics fixture.
-- `docs/social-media-marketing-analytics-architecture-v1.md`: architecture and subsystem contracts.
-- `docs/meta-instagram-setup.md`: required Meta app setup, scopes, permissions, and external configuration.
-
-## Read-Only Production Report Route
-
-- `GET /api/social/instagram/report`
-
-This route returns the Founder Instagram Analytics Reporting View from the existing normalized Instagram snapshot path. It does not expose tokens, post content, send messages, automate comments, scrape, or mutate Website/CRM attribution.
+The read-only production report route is `GET /api/social/instagram/report`. It
+does not expose tokens, publish content, send messages, automate comments, scrape,
+or mutate Website or CRM attribution.
 
 ## Hard Rules
 
-- Do not implement scraping.
-- Do not automate browsers.
-- Do not store social account passwords.
-- Do not put tokens in frontend code.
-- Do not implement live posting.
-- Do not report mock/sample analytics as live analytics.
-- Keep secrets backend-only through environment variables or Infrastructure-owned secret storage.
-- Do not configure non-Instagram providers until their owning subsystem explicitly requests that work.
+- Use supported provider APIs only; no scraping or password login.
+- Keep tokens and credentials backend-only.
+- Never report sample analytics as live analytics.
+- No repository-owned posting, messaging, comment, campaign-calendar, or content-schedule operation.
+- No browser automation for social account actions.
 - Do not call Meta unless the Instagram runtime state is `connected`.
-- Do not enable posting, messaging, DMs, comment automation, browser automation, or password storage through the OAuth workflow.
 
-## Instagram Runtime States
-
-- `not_configured`
-- `configured`
-- `permission_required`
-- `token_missing`
-- `token_expired`
-- `verification_pending`
-- `connected`
-- `error`
-
-## Contract Consumers
-
-Website, CRM, Dashboard or beta intake, Founder analytics, Integrations, and Infrastructure should consume the Social Media contracts instead of rebuilding provider or attribution logic.
+Founder-attended Reddit assistance is research-only: a Founder starts each
+session, selects the discussion or bounded search, and receives at most five
+advisory talking points with community-rule, affiliation, promotion, disclosure,
+and claims-risk review. The repository stores no Reddit login and performs no
+posting, commenting, replying, voting, following, messaging, scheduling,
+monitoring, quota, or unattended account action.
 
 ## Verification
 
 ```bash
-npm run test:social-media
+npm run test:security
+npm run test:public
+npm run overwatch:artifact-contracts:check
 npm run security:check
 npm run build
 ```

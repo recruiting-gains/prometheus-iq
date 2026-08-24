@@ -1,168 +1,64 @@
-# Social Media / Marketing Analytics Architecture v1
+# Social Media Technical Analytics Architecture v2
 
-Date: 2026-06-30
 Owner: Prometheus Social Media
 
-## Audit Summary
+## Ownership Boundary
 
-Existing Social Media sources reviewed:
+The repository owns only the technical social layer: provider-safe Instagram
+callback and token runtime, normalized analytics and reporting, security,
+Website and UTM attribution, CRM attribution, and approved-claims controls.
 
-- `AGENTS.md`
-- `README.md`
-- `docs/TEST_RELEASE_MAP.md`
-- `PRODUCT_VISION.md`
-- `PROMETHEUS OPERATING SYSTEM/07 Marketing & Social Media/README.md`
-- `.founder-review/final-green-repository-checkpoint-v1/untracked/social-media/`
-- `social-media/env.example`
-
-Findings:
-
-- The live `social-media/` folder only retained an ignored environment example.
-- A previous Instagram-focused Companion Social Media Manager existed only as preserved checkpoint material.
-- Meta/Instagram setup was blocked by external Meta account/app configuration.
-- No committed provider-neutral Social Media analytics foundation existed before this work.
-
-## Architecture
-
-Social Media owns normalization and reporting for marketing performance. Other subsystems should send or consume normalized contract records instead of implementing their own attribution model.
+Meta AI is the external owner for ordinary social content creation and social
+push. Campaign calendars, content-production schedules, campaign planning, and
+manual posting operations are not canonical repository artifacts.
 
 ```mermaid
 flowchart LR
-  Provider["Supported social provider APIs"] --> Social["Prometheus Social Media contracts"]
-  Social --> Website["Website attribution contract"]
-  Social --> CRM["CRM attribution contract"]
-  Social --> Beta["Beta attribution contract"]
-  Social --> Founder["Founder marketing analytics"]
-  Social --> Growth["Campaign performance reporting"]
+  Provider["Supported provider APIs"] --> Runtime["Technical provider runtime"]
+  Runtime --> Report["Normalized analytics and Founder report"]
+  Website["Website UTM attribution"] --> Attribution["Technical attribution contract"]
+  CRM["CRM lead attribution"] --> Attribution
+  Attribution --> Report
+  MetaAI["Meta AI: external content creation and push"] -. no repository write authority .-> Runtime
 ```
 
-## Provider Architecture
+## Provider And Security Rules
 
-Provider adapters must use supported APIs only.
+Instagram uses supported Meta APIs through backend-only runtime controls. Other
+providers remain unconfigured until separately governed. Password login,
+scraping, social account browser automation, frontend tokens, live posting,
+messaging, comments, and DMs are prohibited repository capabilities.
 
-Active provider target:
+Infrastructure owns production secret storage, OAuth redirect configuration,
+token lifecycle protection, backend route protection, and deployment settings.
+Integrations may own approved OAuth connection, refresh, webhook, or polling
+flows. Neither boundary grants content-production or posting authority.
 
-- Instagram: Meta Graph API with Instagram Business or Professional account analytics.
+## Technical Contracts
 
-Future provider targets, not configured in Instagram Runtime Controls v1:
+The canonical contract is `social-media/contracts/social-media-contract.js`.
+It normalizes provider state, social metrics, attribution events, and analytics
+snapshots. Website and CRM may exchange bounded attribution metadata through the
+registered contracts; Dashboard and Research may consume canonical reports but
+must not read raw provider output, fabricate metrics, or cross workspaces.
 
-- Facebook: Meta Graph API Page insights.
-- LinkedIn: LinkedIn Marketing API and Organization analytics.
-- X: X API analytics where the account tier and API product allow it.
-- TikTok: TikTok for Developers or TikTok Business APIs.
-- YouTube: YouTube Data API plus YouTube Analytics API.
+The current implementation includes the Instagram provider adapter, backend
+runtime checks, OAuth lifecycle, normalized analytics service, and read-only
+Founder report. Sample analytics remain explicitly nonproduction.
 
-Unsupported provider methods:
+## Reddit Research Boundary
 
-- Password login.
-- Browser automation.
-- Scraping.
-- Live posting.
-- Frontend token usage.
-
-## Contracts Created
-
-Official contract file:
-
-- `social-media/contracts/social-media-contract.js`
-
-Contract version:
-
-- `social-media-marketing-analytics-contract.v1`
-
-Primary normalized records:
-
-- Provider status.
-- Campaign descriptor.
-- Social metric.
-- Attribution event.
-- Marketing analytics snapshot.
-
-Attribution targets:
-
-- `website_traffic`
-- `crm_lead`
-- `beta_signup`
-- `founder_analytics`
-- `campaign_performance`
-
-## Downstream Handoff Contracts
-
-Website should provide website attribution events with:
-
-- `utm_source`
-- `utm_medium`
-- `utm_campaign`
-- `utm_content`
-- `landing_path`
-- `referrer`
-- `occurred_at`
-- privacy-safe visitor/session identifier if approved
-
-CRM should provide lead attribution events with:
-
-- `lead_id`
-- `source`
-- `campaign_id`
-- `created_at`
-- lifecycle status
-- revenue or opportunity value only when CRM policy allows it
-
-Beta intake should provide beta attribution events with:
-
-- `beta_participant_id`
-- `campaign_id`
-- `signup_at`
-- beta source
-- privacy-safe participant metadata only
-
-Founder analytics should consume:
-
-- provider status
-- campaign summaries
-- account-level metrics
-- campaign attribution summary
-- clear sample/live source labels
-
-Infrastructure should own:
-
-- production secret storage
-- OAuth redirect URLs
-- token rotation
-- backend route protection
-- deployment environment configuration
-- Instagram runtime state validation before any live provider call
-
-Integrations should own:
-
-- OAuth app connection flows
-- token refresh workflows
-- provider webhook or polling jobs if approved
-
-## Current Implementation
-
-Implemented:
-
-- Provider-neutral contract.
-- Provider registry for Instagram, Facebook, LinkedIn, X, TikTok, and YouTube.
-- Instagram Business provider adapter.
-- Instagram-only backend runtime controls for environment validation and safe connection states.
-- Live Instagram Business account/profile analytics consumption through the verified runtime path.
-- Available content-level Instagram insights normalized as provider API metrics with content metadata.
-- Explicit mock/sample fallback.
-- Founder marketing sample analytics service.
-- Tests for contract validation, secret redaction, provider registry, Instagram fallback, and mocked provider fetch.
-
-Not implemented:
-
-- Browser automation.
-- Scraping.
-- Live posting.
-- Downstream Website, CRM, Dashboard, beta, Infrastructure, or Integrations code changes.
-- Facebook posting, X, YouTube, TikTok, LinkedIn, messaging, comments automation, DMs, or password storage.
+Reddit assistance is Founder-attended research only. The Founder initiates each
+session and performs every account action. Assistance is limited to a bounded
+search or Founder-selected discussion, no more than five advisory talking
+points, and a review of community rules, affiliation, promotion, disclosure,
+and claims risk. No credentials, autonomous monitoring, posting, commenting,
+replying, voting, following, messaging, scheduling, or recurring quota is stored
+or operated by the repository.
 
 ## Duplicate Prevention
 
-Do not rebuild Social Media provider abstraction, attribution event normalization, campaign descriptor normalization, or marketing analytics snapshots in Website, CRM, Dashboard, Companion, Infrastructure, Integrations, Intelligence Engine, or Data.
-
-Those subsystems should consume `social-media/contracts/social-media-contract.js` or request a documented contract extension from Social Media.
+Other subsystems consume the registered technical contracts instead of
+rebuilding provider, attribution, or reporting logic. Missing canonical local
+paths fail closed; explicit external ownership uses an `external:` identifier,
+and historical evidence uses an exact commit-pinned `git:` reference.

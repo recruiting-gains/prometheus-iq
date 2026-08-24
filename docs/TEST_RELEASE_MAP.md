@@ -49,6 +49,6 @@ Dependabot configuration is not an executable workflow. Routine compatible minor
 - Public and private release lanes remain independent. A workflow may never target the other Worker.
 - Deployment downloads the exact hosted-qualified artifact by run and artifact identity, verifies manifest/content/transport hashes, preserves bindings and migrations, and does not rebuild.
 - Current and immediately prior rollback artifacts remain protected. Critical rollback is forward-compatible and application-specific.
-- Security Gates owns active repository-integrity coverage; no standalone integrity workflow is required.
+- Security Gates owns focused security coverage. Exact-SHA Early Handoff and applicable release qualifiers own full-history repository-integrity verification through the release suite; no standalone integrity workflow is required.
 - A test may occur in only one active suite. A verifier may not launch that same test again.
 - Production smoke checks are read-only unless a separate authorization explicitly permits a controlled write.

@@ -160,7 +160,6 @@ test("package release wiring is delegated without removing any Infrastructure pr
     "scripts/lib/cloudflare-founder-attended-service-token.mjs",
     "scripts/lib/cloudflare-founder-attended-tty.mjs",
     "scripts/run-cloudflare-founder-attended-service-token.mjs",
-    "scripts/verify-cloudflare-founder-attended-service-token.mjs",
     "workers/infrastructure/cloudflare-founder-attended-service-token-v1.json"
   ]);
 });

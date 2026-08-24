@@ -21,8 +21,8 @@ Yes. Current Route Intelligence learns outcomes and rotates recommendations, but
 - `index.html`: current dashboard, route scoring, profile storage, localStorage state, route rendering, copy/export, visit logging, recommendation history, Google-qualified route behavior.
 - `deploy/cloudflare-pages/index.html`: deployed package copy of the dashboard.
 - `docs/prometheus-enterprise-product-audit-2026-06-22.md`: prior Route Intelligence audit and exploration/exploitation design notes.
-- `dashboard-intelligence-report.md`: dashboard intelligence and recommendation explanation work.
-- `prometheus-route-intelligence-quality-report.md`: Google Places quality and field-sales route quality analysis.
+- `git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:dashboard-intelligence-report.md`: exact baseline dashboard intelligence and recommendation explanation evidence.
+- `git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:prometheus-route-intelligence-quality-report.md`: exact baseline Google Places quality and field-sales route quality evidence.
 - `data/qualified-prospects/README.md`: Google discovery and qualified prospect process.
 - `scripts/lib/qualified-prospect-routing.mjs`: qualified prospect route scoring support.
 

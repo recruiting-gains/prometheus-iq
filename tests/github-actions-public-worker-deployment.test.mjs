@@ -349,7 +349,7 @@ export default { fetch() { return new Response("healthy handler"); } };
       runPublicWorkerWorkerdStartupPreflightForTest({
         root: fixtureRoot,
         configPath: "wrangler.jsonc",
-        timeoutMs: 10_000,
+        timeoutMs: PUBLIC_WORKER_DEPLOYMENT_POLICY.startupTimeoutMs,
         outputByteLimit: 64 * 1024
       }),
       error => error instanceof PublicDeploymentPolicyError
@@ -375,7 +375,7 @@ export default { fetch() { return new Response("unreachable"); } };
       runPublicWorkerWorkerdStartupPreflightForTest({
         root: fixtureRoot,
         configPath: "wrangler.jsonc",
-        timeoutMs: 10_000,
+        timeoutMs: PUBLIC_WORKER_DEPLOYMENT_POLICY.startupTimeoutMs,
         outputByteLimit: 64 * 1024
       }),
       error => error instanceof PublicDeploymentPolicyError

@@ -28,7 +28,7 @@ Do not use historical engineering reports, superseded governance records, or dep
 
 **Source:** `src/`, `workers/`, `dashboard/`, `data/`, `intelligence/`, `crm/`, `administration/`, `security/`, `integrations/`, `social-media/`, `scripts/`, and active configuration at the repository root.
 
-**Derived deployment mirrors:** `dist-public/` and `deploy/cloudflare-pages/`. Read or modify them only for build, qualification, packaging, rollback, or production-impact work. They are not independent product authority.
+**Derived deployment mirrors:** `dist-public/`, `deploy/prometheusrouteiq-website/`, and `deploy/cloudflare-pages/`. Read or modify them only for build, qualification, packaging, rollback, or production-impact work. They are not independent product authority.
 
 **Deferred dead entrypoint:** `landing.js` and its GSAP lock remain preserved because the current verified public forward-rollback build is pinned to that exact dependency graph. They are not the Vite entrypoint; removal requires a successor rollback package.
 
