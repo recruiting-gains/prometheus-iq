@@ -32,10 +32,10 @@ test("Intelligence corroboration pins the exact owner successor", () => {
   );
   assert.deepEqual(source, {
     ownerSubsystem: "Prometheus Intelligence Engine",
-    ownerCommit: "5215ad7f261590f5901dc84a3b8e59d9bde6ce8b",
-    ownerTree: "0812759b11d783b845cdaf9db3ce0a7c166452c0",
+    ownerCommit: "e4823b1b6d700510564c67d44edff3b2fa0c5ed0",
+    ownerTree: "abd8479e7fdf780709cfce85bad801b464da8679",
     path: "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
-    sha256: "47594574fada334693f5cecf4f44b594bd8b4ebbfaa56ec23738dfbb0bbd702c",
+    sha256: "a7288081d6dbdccabbd6d8428f9d1e6e5dbfd410c65db568297fad173cf027ae",
     corroborationResult: "COMPATIBLE_ONLY_WITH_EXPLICIT_QUALIFICATIONS"
   });
 });
