@@ -350,6 +350,6 @@ Historical preservation: The 2026-07-01 entry remains dated evidence of the prio
 
 ### 2026-08-23: Company Identity Consolidation
 
-Decision: fold the enduring company identity into Product Vision and retire the duplicate `COMPANY_IDENTITY.md` authority.
+Decision: fold the enduring company identity into Product Vision and retire the duplicate standalone company-identity authority.
 
 Permanent boundaries: Prometheus.IQ remains the company; Prometheus Route IQ remains the flagship product; Route IQ remains permitted shorthand only after establishment; the market is outside-sales organizations rather than gyms; human judgment, non-surveillance, field reality, enterprise trust, and compounding evidence remain durable principles.
