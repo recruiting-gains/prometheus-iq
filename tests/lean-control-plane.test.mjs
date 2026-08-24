@@ -78,19 +78,23 @@ test("every tracked test and top-level script has exactly one explicit dispositi
   assert.deepEqual(scriptConfiguration.unclassified, []);
 });
 
-test("the real public Workerd release harness runs once without competing release workers", () => {
+test("the heavyweight Worker release harnesses run once without competing release workers", () => {
   const configuration = readJson("tests/test-suites.v1.json");
   const groups = testSuiteExecutionGroups("release", configuration);
+  const privateWorkflowHarness = "tests/github-actions-private-worker-workflow-v2.test.mjs";
   const workerdHarness = "tests/github-actions-public-worker-deployment.test.mjs";
   assert.equal(groups.length, 2);
   assert.equal(groups[0].concurrency, 4);
+  assert.equal(groups[0].files.includes(privateWorkflowHarness), false);
   assert.equal(groups[0].files.includes(workerdHarness), false);
   assert.deepEqual(groups[1], {
     concurrency: 1,
-    files: [workerdHarness],
+    files: [privateWorkflowHarness, workerdHarness],
   });
-  assert.equal(groups.flatMap(group => group.files)
-    .filter(file => file === workerdHarness).length, 1);
+  for (const harness of [privateWorkflowHarness, workerdHarness]) {
+    assert.equal(groups.flatMap(group => group.files)
+      .filter(file => file === harness).length, 1);
+  }
 });
 
 test("retired paths are absent and recoverable at their exact baseline blobs", () => {

@@ -161,6 +161,7 @@
   },
   "isolatedFiles": {
     "release": [
+      "tests/github-actions-private-worker-workflow-v2.test.mjs",
       "tests/github-actions-public-worker-deployment.test.mjs"
     ]
   }
