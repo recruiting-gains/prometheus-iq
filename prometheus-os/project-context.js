@@ -2,9 +2,7 @@ export const safeProjectContext = {
   operatingSystem: {
     summary: "Prometheus is the governed AI operating system for outside sales. Route IQ is operational and the company is executing deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement.",
     safeFiles: [
-      "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
-      "PROMETHEUS_SYSTEM_MAP.md",
-      "COMPANY_IDENTITY.md",
+      "README.md",
       "PRODUCT_VISION.md",
       "overwatch/reports/prometheus-architectural-evolution-report-v1.md"
     ]

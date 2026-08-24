@@ -414,7 +414,7 @@ const infrastructureTimelineFixture = {
     limitations: ["GitHub enterprise security controls remain plan gated"],
     latestVerifiedAt: "2026-07-10 (date precision; time not recorded)",
     recommendedNextAction: "Verify founder-controlled MFA and recovery actions.",
-    sources: ["PROMETHEUS_MASTER_ENGINEERING_STATE.md", "PROMETHEUS_SYSTEM_MAP.md", "docs/aegis-phase-ii-account-level-completion.md"]
+    sources: ["README.md", "docs/aegis-phase-ii-account-level-completion.md"]
   }
 };
 

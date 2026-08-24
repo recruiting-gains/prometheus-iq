@@ -12,7 +12,7 @@ export const memoryEvents = [
     tags: ["route-iq", "patent", "governance"],
     status: "completed",
     impact: "Established the current Patent Pending status and invention-documentation obligation.",
-    source: "PROMETHEUS_MASTER_ENGINEERING_STATE.md"
+    source: "README.md"
   },
   {
     id: "route-iq-operational",
@@ -23,7 +23,7 @@ export const memoryEvents = [
     tags: ["route-iq", "operations", "overwatch"],
     status: "completed",
     impact: "Moved the company into deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement.",
-    source: "PROMETHEUS_MASTER_ENGINEERING_STATE.md"
+    source: "README.md"
   },
   {
     id: "aegis-phase-two-account-controls",
@@ -34,7 +34,7 @@ export const memoryEvents = [
     tags: ["security", "enterprise-hardening", "overwatch"],
     status: "in-progress",
     impact: "Keeps account-owner security work visible during enterprise hardening.",
-    source: "PROMETHEUS_MASTER_ENGINEERING_STATE.md"
+    source: "README.md"
   },
   {
     id: "crm-workspace-lead-persistence",
