@@ -6,7 +6,7 @@ Task: Operation Aegis Phase II Account-Level Completion
 
 ## Source Of Truth
 
-This completion pass uses the current Overwatch operational reset recorded in `PROMETHEUS_MASTER_ENGINEERING_STATE.md` and `PROMETHEUS_SYSTEM_MAP.md`:
+This completion pass uses the current Overwatch operational reset recorded in `README.md`:
 
 - Field validation is complete.
 - Pilot phase is complete.
