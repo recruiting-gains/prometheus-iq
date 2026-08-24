@@ -66,6 +66,8 @@ function sha256Bytes(content) {
   return crypto.createHash("sha256").update(content).digest("hex");
 }
 
+const npmRun = (commandName) => ["npm", "run", commandName].join(" ");
+
 test("Integrations owner-adoption provenance discloses the legacy commit without retroactive ownership", () => {
   const record = JSON.parse(fs.readFileSync(provenancePath, "utf8"));
 
@@ -136,12 +138,40 @@ test("Integrations provenance preserves four legacy-identical paths and one exac
     "Prometheus Infrastructure <infrastructure@prometheus.local>",
   );
   assert.equal(readme.successorSource.committer, readme.successorSource.author);
-  assert.match(readme.successorSource.change, /infrastructure:intake-contract:check/u);
-  assert.match(readme.successorSource.change, /test:public/u);
+  assert.equal(
+    readme.successorSource.change,
+    "Replaced the obsolete package command with the current explicit public test suite.",
+  );
+  assert.equal(
+    readme.successorSource.obsoleteCommandName,
+    "infrastructure:intake-contract:check",
+  );
+  assert.equal(readme.successorSource.replacementCommandName, "test:public");
   assert.match(readme.successorSource.impact, /Documentation and verification routing only/u);
   assert.match(readme.successorSource.impact, /no Worker runtime or production change/u);
   assert.match(readme.successorSource.impact, /no deployment required/u);
+  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"));
+  assert.equal(
+    Object.hasOwn(packageJson.scripts, readme.successorSource.obsoleteCommandName),
+    false,
+  );
+  assert.equal(
+    packageJson.scripts[readme.successorSource.replacementCommandName],
+    "node scripts/run-test-suite.mjs public",
+  );
   const currentReadme = fs.readFileSync(path.join(repoRoot, readme.path), "utf8");
-  assert.match(currentReadme, /npm run test:public/u);
-  assert.doesNotMatch(currentReadme, /npm run infrastructure:intake-contract:check/u);
+  assert.equal(
+    currentReadme.includes(npmRun(readme.successorSource.replacementCommandName)),
+    true,
+  );
+  assert.equal(
+    currentReadme.includes(npmRun(readme.successorSource.obsoleteCommandName)),
+    false,
+  );
+  assert.equal(
+    fs.readFileSync(provenancePath, "utf8").includes(
+      npmRun(readme.successorSource.obsoleteCommandName),
+    ),
+    false,
+  );
 });
