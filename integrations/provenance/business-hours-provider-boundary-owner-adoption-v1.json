@@ -1,13 +1,18 @@
 {
   "evidenceVersion": "prometheus-integrations-owner-adoption-v1",
-  "status": "LEGACY_LOCAL_COMMIT_ADOPTED_UNCHANGED",
+  "status": "LEGACY_LOCAL_COMMIT_WITH_OWNER_ACCEPTED_SUCCESSOR",
   "legacyCommit": "cae2d9705a36291b5404dd0820ff15933c8b503d",
   "legacyCommitAuthor": "PrometheusRouteIQ <prometheusrouteiq@gmail.com>",
   "canonicalOwner": "Prometheus Integrations",
   "canonicalOwnerEmail": "integrations@prometheus.local",
-  "ownershipStatement": "This evidence names a legacy local commit with a non-authoritative author identity. It does not claim retroactive Integrations ownership, does not rewrite history, and records that the current Integrations-owned files are adopted unchanged.",
+  "ownershipStatement": "This evidence names a legacy local commit with a non-authoritative author identity. It does not claim retroactive Integrations ownership and does not rewrite history. Four current Integrations-owned files remain adopted unchanged, while integrations/README.md is the sole Integrations-accepted documentation successor to an Infrastructure-authored source repair.",
   "historyRewriteAllowed": false,
-  "currentFilesAdoptedUnchanged": true,
+  "currentFilesAdoptedUnchanged": false,
+  "lineage": {
+    "adoptedUnchangedPathCount": 4,
+    "ownerAcceptedSuccessorPathCount": 1,
+    "ownerAcceptedSuccessorPath": "integrations/README.md"
+  },
   "behaviorAudit": {
     "integrationsReadme": "Documents the governed shared workspace lead intake contract and the default-OFF business-hours provider boundary.",
     "businessHoursProviderAdapter": [
@@ -30,9 +35,22 @@
   "paths": [
     {
       "path": "integrations/README.md",
+      "legacyGitBlob": "08d7e07aad1dac14dcc69735d4ecb9e71c8f4ae5",
       "legacyCommitRawSha256": "ed1a1bd5103e54d8885ed5a5af908d3b8d0e0a65967b6ec199da5a10116f3be9",
-      "currentRawSha256": "ed1a1bd5103e54d8885ed5a5af908d3b8d0e0a65967b6ec199da5a10116f3be9",
-      "adoptedUnchanged": true
+      "currentGitBlob": "c7948d6e7d3b4074101baf22d3993f6b9a2402be",
+      "currentRawSha256": "d647dadb0743c904af9534f0aeb873a1d3e7ddec4f04188ee4d90e8dc8a69e02",
+      "adoptedUnchanged": false,
+      "disposition": "OWNER_ACCEPTED_SUCCESSOR",
+      "successorSource": {
+        "commit": "93429ca65a9b48219b0ccd633f3436e2029ba825",
+        "tree": "2876679d8e276e5489330b3e7eeb88554f427817",
+        "parent": "46afabde3b0ad6678c98018ebbc31609dbc4a97a",
+        "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+        "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+        "change": "Replaced npm run infrastructure:intake-contract:check with npm run test:public.",
+        "reason": "The former package command no longer exists after lean test-suite consolidation; test:public is the current explicit suite covering the active public intake contract.",
+        "impact": "Documentation and verification routing only; no Worker runtime or production change and no deployment required."
+      }
     },
     {
       "path": "integrations/business-hours-provider-adapter.js",
