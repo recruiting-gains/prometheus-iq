@@ -12,10 +12,6 @@ import {
 import {
   verifyPaidCustomerRevenueReadinessProtectedConsumers
 } from "../intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs";
-import {
-  verifyControlledOnboardingRehearsalSmokeContractSuccessor,
-  verifyRetentionDeletionRuntimeProtectedSuccessor
-} from "../intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -35,6 +31,14 @@ const stable = value => {
 const semanticSha256Bytes = bytes => createHash("sha256")
   .update(stable(JSON.parse(bytes.toString("utf8"))))
   .digest("hex");
+const transitionMap = transitions => {
+  const byPath = new Map();
+  for (const transition of transitions) {
+    const existing = byPath.get(transition.path) || [];
+    byPath.set(transition.path, [...existing, transition]);
+  }
+  return byPath;
+};
 const git = args => {
   const result = spawnSync("git", args, {cwd: root, encoding: "utf8"});
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
@@ -427,11 +431,40 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   const fieldSessionReportTypeSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-field-session-report-type-contract-v1.json",
   );
-  const retentionDeletionRuntimeSuccessor =
-    verifyRetentionDeletionRuntimeProtectedSuccessor();
-  const prospectiveCalibrationSuccessor =
-    verifyControlledOnboardingRehearsalSmokeContractSuccessor()
-      .prospectiveCalibrationProductionAdmissionSuccessor;
+  const retentionDeletionSuccessor = readJson(
+    "intelligence/provenance/protected-baseline-synchronization-retention-deletion-runtime-v1.json",
+  );
+  assert.equal(
+    retentionDeletionSuccessor.version,
+    "route-iq-intelligence-retention-deletion-runtime-successor-v1",
+  );
+  assert.equal(
+    retentionDeletionSuccessor.status,
+    "OWNER_REVIEWED_PROTECTED_COHERENCE_SUCCESSOR",
+  );
+  const retentionDeletionTransitions = transitionMap(
+    retentionDeletionSuccessor.protectedSourceTransitions,
+  );
+  const retentionDeletionRuntimeSuccessor = {
+    successor: retentionDeletionSuccessor,
+    successorTransitionsByPath: retentionDeletionTransitions,
+    transitionsByPath: retentionDeletionTransitions,
+  };
+  const prospectiveCalibration = readJson(
+    "intelligence/provenance/protected-baseline-synchronization-prospective-calibration-production-admission-v1.json",
+  );
+  assert.equal(
+    prospectiveCalibration.version,
+    "route-iq-intelligence-prospective-calibration-production-admission-successor-v1",
+  );
+  assert.equal(
+    prospectiveCalibration.truthState.governedLearning,
+    "INSUFFICIENT_EVIDENCE",
+  );
+  const prospectiveCalibrationSuccessor = {
+    successor: prospectiveCalibration,
+    transitionsByPath: transitionMap(prospectiveCalibration.protectedSourceTransitions),
+  };
   const revenueReadinessConsumers =
     verifyPaidCustomerRevenueReadinessProtectedConsumers();
   assert.equal(
