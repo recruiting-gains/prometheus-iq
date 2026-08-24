@@ -86,36 +86,44 @@ function currentRepositoryFiles() {
   ], { encoding: "utf8" }).split("\n").filter(Boolean).sort();
 }
 
-const pathKeyPattern = /paths?$/iu;
+const pathKeyPattern = /(?:paths?|verifiers?|tests?|workflows?|references?|contracts?|documentation|artifacts?|scripts?)$/iu;
 const pinnedGitPathPattern = /^git:([0-9a-f]{40}):(.+)$/u;
 
-function contractPathValues(value, { pathContext = false } = {}, values = []) {
+function contractPathValues(value, {
+  pathContext = false,
+  pathContainer = false
+} = {}, values = []) {
   if (typeof value === "string") {
     if (
-      pathContext
+      (pathContext || pathContainer)
+      && !/\s/u.test(value)
       && (value.includes("/") || /\.[a-z0-9]{1,8}$/iu.test(value) || /^(?:external|git):/u.test(value))
     ) values.push(value);
     return values;
   }
   if (Array.isArray(value)) {
-    for (const item of value) contractPathValues(item, { pathContext }, values);
+    for (const item of value) {
+      contractPathValues(item, { pathContext, pathContainer }, values);
+    }
     return values;
   }
   if (!value || typeof value !== "object") return values;
   for (const [key, child] of Object.entries(value)) {
-    contractPathValues(child, { pathContext: pathContext || pathKeyPattern.test(key) }, values);
+    const childContainer = pathContainer || /paths$/iu.test(key);
+    contractPathValues(child, {
+      pathContext: childContainer || pathKeyPattern.test(key),
+      pathContainer: childContainer
+    }, values);
   }
   return values;
 }
 
 export function verifyCanonicalContractPaths(contract, {
   repositoryRoot = process.cwd(),
-  contractLabel = "artifact contract",
-  allowedMissingPaths = []
+  contractLabel = "artifact contract"
 } = {}) {
   const failures = [];
   const root = resolve(repositoryRoot);
-  const allowedMissing = new Set(allowedMissingPaths);
   for (const value of [...new Set(contractPathValues(contract))]) {
     if (value === "*" || value.startsWith("/")) continue;
     if (value.startsWith("external:")) {
@@ -142,7 +150,6 @@ export function verifyCanonicalContractPaths(contract, {
     }
     if (/^[a-z][a-z0-9+.-]*:\/\//iu.test(value)) continue;
     const candidate = resolve(root, value);
-    if (allowedMissing.has(value)) continue;
     if (isAbsolute(value) || relative(root, candidate).startsWith("..") || !fs.existsSync(candidate)) {
       failures.push(`${contractLabel} repository-local path is missing: ${value}`);
     }
@@ -165,21 +172,28 @@ function registeredFailClosedJsonContracts(registry) {
   return [...paths].sort();
 }
 
-function exactHistoricalContractAllowance(contractPath, retirementManifest) {
-  const evidence = retirementManifest.historicalEvidenceFiles?.find(item => item.path === contractPath);
-  if (!evidence || evidence.baselineCommit !== retirementManifest.baseline.commit) return [];
-  try {
-    const currentBlob = execFileSync("/usr/bin/git", ["hash-object", contractPath], {
-      encoding: "utf8"
-    }).trim();
-    const baselineBlob = execFileSync("/usr/bin/git", [
-      "rev-parse",
-      `${evidence.baselineCommit}:${contractPath}`
-    ], { encoding: "utf8" }).trim();
-    if (currentBlob !== evidence.baselineBlobHash || baselineBlob !== evidence.baselineBlobHash) return [];
-    return retirementManifest.entries.map(entry => entry.originalPath);
-  } catch {
-    return [];
+function validateActiveNpmCommands(failures) {
+  const packageScripts = new Set(Object.keys(readJson("package.json").scripts || {}));
+  const commandPattern = /\bnpm run ([a-z0-9](?:[a-z0-9:_-]*[a-z0-9])?)(?=$|[\s`'"),;&|])/giu;
+  const activePath = path => path === "README.md"
+    || path === "AGENTS.md"
+    || path.startsWith("docs/")
+    || path.startsWith("integrations/")
+    || path.startsWith("research/")
+    || path.startsWith("scripts/")
+    || path.startsWith(".github/workflows/");
+  for (const path of currentRepositoryFiles().filter(activePath)) {
+    let source;
+    try {
+      source = read(path);
+    } catch {
+      continue;
+    }
+    for (const match of source.matchAll(commandPattern)) {
+      if (!packageScripts.has(match[1])) {
+        failures.push(`Active npm command is undeclared: ${path} -> npm run ${match[1]}`);
+      }
+    }
   }
 }
 
@@ -208,8 +222,6 @@ function validateArtifactRegistry(registry, failures) {
       assert(fs.existsSync(artifact.documentationPath), `${artifact.artifactId} governance documentation is missing.`, failures);
     }
   }
-  assert(governanceIds.has("route-iq-cross-industry-dashboard-regression-governance-v1"), "Cross-industry release governance is unregistered.", failures);
-
   const workspaceIds = registry.workspaces?.map(workspace => workspace.workspaceId) || [];
   assert(JSON.stringify(workspaceIds) === JSON.stringify(expectedWorkspaces.map(workspace => workspace.workspaceId)), "Canonical registry must contain exactly the Founder-research and synthetic outside-sales workspaces.", failures);
 
@@ -240,7 +252,6 @@ function validateArtifactRegistry(registry, failures) {
     "fitness_connection_route_business_hours_intelligence_consumer_contract",
     "fitness_connection_route_iq_prospective_retention_policy",
     "fitness_connection_route_iq_collection_activation_governance",
-    "fitness_connection_route_iq_collection_activation_batch_record",
     "fitness_connection_release_provenance_repair_mapping",
     "route_iq_cross_industry_administration_configuration",
     "route_iq_workspace_business_manifest_registry"
@@ -396,12 +407,22 @@ export function verifyCrossSubsystemArtifactContracts() {
   const configuration = readJson(paths.configuration);
   const manifestRegistry = readJson(paths.manifestRegistry);
   const retirementManifest = readJson("overwatch/retirement/phase-1-retirement-manifest.json");
+  const registeredContracts = registeredFailClosedJsonContracts(registry);
+  const historicalContracts = new Set(
+    retirementManifest.historicalEvidenceFiles?.map(item => item.path) || []
+  );
+  const activeHistoricalOverlap = registeredContracts.filter(path => historicalContracts.has(path));
 
   validateArtifactRegistry(registry, failures);
+  assert(
+    activeHistoricalOverlap.length === 0,
+    `Active fail-closed contracts are also classified as historical evidence: ${activeHistoricalOverlap.join(", ")}`,
+    failures
+  );
   failures.push(...verifyCanonicalContractPaths(registry, {
     contractLabel: paths.registry
   }));
-  for (const contractPath of registeredFailClosedJsonContracts(registry)) {
+  for (const contractPath of registeredContracts) {
     let contract;
     try {
       contract = readJson(contractPath);
@@ -410,10 +431,10 @@ export function verifyCrossSubsystemArtifactContracts() {
       continue;
     }
     failures.push(...verifyCanonicalContractPaths(contract, {
-      contractLabel: contractPath,
-      allowedMissingPaths: exactHistoricalContractAllowance(contractPath, retirementManifest)
+      contractLabel: contractPath
     }));
   }
+  validateActiveNpmCommands(failures);
   validateConfigurationAndManifests(configuration, manifestRegistry, failures);
   validateDataAndEligibility(configuration, failures);
   validateConsumerContracts(failures);
@@ -433,6 +454,7 @@ export function verifyCrossSubsystemArtifactContracts() {
     manifestRegistrySha256: sha256(read(paths.manifestRegistry)),
     businessHoursSha256: sha256(read(paths.businessHours)),
     workspaces: Object.freeze(expectedWorkspaces.map(workspace => workspace.workspaceId)),
+    activeHistoricalOverlap: Object.freeze(activeHistoricalOverlap),
     dataState: Object.freeze({ active: 0, reserve: 0, quarantine: 398 }),
     collection: "OFF",
     activeCohorts: 0,

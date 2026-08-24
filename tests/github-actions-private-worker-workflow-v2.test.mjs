@@ -45,6 +45,8 @@ import {
   validatePrivateV2DeploymentInputs,
   validatePrivateV2QualificationInputs,
   verifyPrivateQualificationArtifactMetadata,
+  verifyPrivateV2ApprovedToolingSource,
+  verifyPrivateV2InstalledTooling,
   verifyPrivateV2RuntimeRelease,
   verifyQualifiedPrivateRelease
 } from "../scripts/lib/github-actions-private-worker-workflow-v2.mjs";
@@ -119,12 +121,170 @@ const RETENTION_MAINTENANCE_DEPLOY_PARITY_SHA256 =
 const PRESERVED_ROLLBACK_BUNDLE_SHA256 =
   "ab76b6c7ffa0d3899e008c3f92fc41e61139f9a23d40c31d22609d80df919028";
 
+function runToolingFixtureGit(repositoryRoot, argumentsList) {
+  const result = spawnSync("git", argumentsList, {
+    cwd: repositoryRoot,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      GIT_AUTHOR_NAME: "Prometheus Infrastructure",
+      GIT_AUTHOR_EMAIL: "infrastructure@prometheus.invalid",
+      GIT_COMMITTER_NAME: "Prometheus Infrastructure",
+      GIT_COMMITTER_EMAIL: "infrastructure@prometheus.invalid",
+      GIT_CONFIG_NOSYSTEM: "1",
+      GIT_TERMINAL_PROMPT: "0"
+    }
+  });
+  assert.equal(result.status, 0, String(result.stderr || "git fixture failed"));
+  return String(result.stdout || "").trim();
+}
+
+function createApprovedToolingFixture(mutator = () => {}) {
+  const repositoryRoot = mkdtempSync(join(tmpdir(), "private-v2-tooling-source-"));
+  const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+  const packageLock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
+  mutator(packageJson, packageLock);
+  writeFileSync(join(repositoryRoot, "package.json"), `${JSON.stringify(packageJson, null, 2)}\n`);
+  writeFileSync(
+    join(repositoryRoot, "package-lock.json"),
+    `${JSON.stringify(packageLock, null, 2)}\n`
+  );
+  runToolingFixtureGit(repositoryRoot, ["init", "--initial-branch=main"]);
+  runToolingFixtureGit(repositoryRoot, ["add", "package.json", "package-lock.json"]);
+  runToolingFixtureGit(repositoryRoot, ["commit", "-m", "tooling fixture"]);
+  const approvedCommit = runToolingFixtureGit(repositoryRoot, ["rev-parse", "HEAD"]);
+  const approvedTree = runToolingFixtureGit(repositoryRoot, ["rev-parse", "HEAD^{tree}"]);
+  runToolingFixtureGit(repositoryRoot, [
+    "update-ref",
+    "refs/remotes/origin/main",
+    approvedCommit
+  ]);
+  return { repositoryRoot, approvedCommit, approvedTree };
+}
+
+function assertPrivateWorkflowFailure(callback, code) {
+  assert.throws(callback, error => (
+    error instanceof PrivateWorkflowV2Error && error.code === code
+  ));
+}
+
+test("private deployment tooling is bound to the exact approved package source before install", async t => {
+  const valid = createApprovedToolingFixture();
+  t.after(() => rmSync(valid.repositoryRoot, { recursive: true, force: true }));
+  assert.equal(
+    verifyPrivateV2ApprovedToolingSource(valid).status,
+    "PRIVATE_WORKER_V2_APPROVED_TOOLING_SOURCE_VERIFIED"
+  );
+  writeFileSync(join(valid.repositoryRoot, "later-main-control.txt"), "later main\n");
+  runToolingFixtureGit(valid.repositoryRoot, ["add", "later-main-control.txt"]);
+  runToolingFixtureGit(valid.repositoryRoot, ["commit", "-m", "later main control"]);
+  const laterMain = runToolingFixtureGit(valid.repositoryRoot, ["rev-parse", "HEAD"]);
+  runToolingFixtureGit(valid.repositoryRoot, [
+    "update-ref",
+    "refs/remotes/origin/main",
+    laterMain
+  ]);
+  runToolingFixtureGit(valid.repositoryRoot, ["checkout", "--detach", valid.approvedCommit]);
+  const ancestorResult = verifyPrivateV2ApprovedToolingSource(valid);
+  assert.equal(ancestorResult.originMain, laterMain);
+  assert.equal(ancestorResult.approvedCommit, valid.approvedCommit);
+  assertPrivateWorkflowFailure(
+    () => verifyPrivateV2ApprovedToolingSource({
+      ...valid,
+      approvedTree: "f".repeat(40)
+    }),
+    PRIVATE_WORKFLOW_V2_FAILURE.REPOSITORY_INVALID
+  );
+
+  const invalidCases = [
+    ["package dependency drift", (packageJson) => {
+      packageJson.dependencies.react = "^99.0.0";
+    }],
+    ["lock dependency drift", (_packageJson, packageLock) => {
+      packageLock.packages[""].dependencies.react = "^99.0.0";
+    }],
+    ["dependency integrity drift", (_packageJson, packageLock) => {
+      packageLock.packages["node_modules/react"].integrity = "sha512-invalid!";
+    }],
+    ["root lifecycle script", (packageJson) => {
+      packageJson.scripts.preinstall = "node unexpected-install-hook.mjs";
+    }],
+    ["package override", (packageJson) => {
+      packageJson.overrides = { react: "99.0.0" };
+    }],
+  ];
+  for (const [name, mutate] of invalidCases) {
+    await t.test(name, () => {
+      const fixture = createApprovedToolingFixture(mutate);
+      try {
+        assertPrivateWorkflowFailure(
+          () => verifyPrivateV2ApprovedToolingSource(fixture),
+          PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH
+        );
+      } finally {
+        rmSync(fixture.repositoryRoot, { recursive: true, force: true });
+      }
+    });
+  }
+});
+
+test("installed package tree and Wrangler executable must match the governed lock", () => {
+  const fixtureRoot = mkdtempSync(join(tmpdir(), "private-v2-installed-tooling-"));
+  const nodeModules = join(fixtureRoot, "node_modules");
+  const binDirectory = join(nodeModules, ".bin");
+  mkdirSync(binDirectory, { recursive: true });
+  writeFileSync(join(fixtureRoot, "package.json"), readFileSync(join(root, "package.json")));
+  writeFileSync(
+    join(fixtureRoot, "package-lock.json"),
+    readFileSync(join(root, "package-lock.json"))
+  );
+  const installedLockPath = join(nodeModules, ".package-lock.json");
+  const installedLockBytes = readFileSync(join(root, "node_modules/.package-lock.json"));
+  writeFileSync(installedLockPath, installedLockBytes);
+  symlinkSync(join(root, "node_modules/wrangler"), join(nodeModules, "wrangler"));
+  symlinkSync("../wrangler/bin/wrangler.js", join(binDirectory, "wrangler"));
+  try {
+    assert.equal(
+      verifyPrivateV2InstalledTooling({ repositoryRoot: fixtureRoot }).status,
+      "PRIVATE_WORKER_V2_INSTALLED_TOOLING_VERIFIED"
+    );
+
+    const tamperedInstalledLock = JSON.parse(installedLockBytes.toString("utf8"));
+    tamperedInstalledLock.packages["node_modules/wrangler"].integrity = "sha512-invalid!";
+    writeFileSync(installedLockPath, `${JSON.stringify(tamperedInstalledLock, null, 2)}\n`);
+    assertPrivateWorkflowFailure(
+      () => verifyPrivateV2InstalledTooling({ repositoryRoot: fixtureRoot }),
+      PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH
+    );
+    writeFileSync(installedLockPath, installedLockBytes);
+
+    unlinkSync(join(nodeModules, "wrangler"));
+    mkdirSync(join(nodeModules, "wrangler/bin"), { recursive: true });
+    writeFileSync(join(nodeModules, "wrangler/package.json"), JSON.stringify({
+      version: PRIVATE_WORKFLOW_V2_POLICY.wranglerVersion,
+      bin: { wrangler: "./bin/wrangler.js" }
+    }));
+    writeFileSync(
+      join(nodeModules, "wrangler/bin/wrangler.js"),
+      "process.stdout.write('4.120.0\\n');\n"
+    );
+    assertPrivateWorkflowFailure(
+      () => verifyPrivateV2InstalledTooling({ repositoryRoot: fixtureRoot }),
+      PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH
+    );
+  } finally {
+    rmSync(fixtureRoot, { recursive: true, force: true });
+  }
+});
+
 test("private workflow governed hashes include the complete deployment-control import closure", () => {
   const governed = privateWorkflowV2GovernedSourcePaths(root);
   const governedSet = new Set(governed);
   assert.deepEqual(governed, [...governed].sort((left, right) => left.localeCompare(right)));
   assert.equal(governedSet.size, governed.length);
   for (const required of [
+    "package.json",
+    "package-lock.json",
     "scripts/lib/github-actions-private-worker-deployment.mjs",
     "scripts/lib/github-actions-public-worker-deployment.mjs"
   ]) {

@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import {
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
   writeFileSync
 } from "node:fs";
@@ -123,6 +124,53 @@ test("standalone Infrastructure owner verifier passes at the current repository 
   assert.equal(verifyCloudflareFounderAttendedResponseContractRepair().status, "passed");
   assert.equal(verifyCloudflareFounderAttendedFreshAttemptEvidenceRotation().status, "passed");
   assert.equal(verifyCloudflareFounderAttendedCreateReceiptV2().status, "passed");
+});
+
+test("active Founder-attended verification is pinned to its exact Infrastructure successor", () => {
+  const scriptPath = "scripts/verify-cloudflare-founder-attended-service-token.mjs";
+  const baseline = "c7119fcee140ab8a130cdb888439277fdcbeb6b0";
+  const successor = "b01d1851def2ef771d8f7c5936df8f51f120010f";
+  assert.equal(
+    git(repositoryRoot, ["rev-parse", `${baseline}:${scriptPath}`]),
+    "8c9d8dab6de93f32a45ab278f8695ce33af32ed3"
+  );
+  assert.equal(
+    git(repositoryRoot, ["rev-parse", `${successor}:${scriptPath}`]),
+    "dc0d00f537ac8246beaebe661f0ea3dea206842a"
+  );
+  assert.equal(
+    git(repositoryRoot, ["hash-object", scriptPath]),
+    "dc0d00f537ac8246beaebe661f0ea3dea206842a"
+  );
+  assert.doesNotThrow(() => git(repositoryRoot, [
+    "merge-base", "--is-ancestor", successor, "HEAD"
+  ]));
+  assert.deepEqual(
+    git(repositoryRoot, [
+      "show", "-s", "--format=%an%x00%ae%x00%cn%x00%ce", successor
+    ]).split("\0"),
+    [
+      "Prometheus Infrastructure",
+      "infrastructure@prometheus.local",
+      "Prometheus Infrastructure",
+      "infrastructure@prometheus.local"
+    ]
+  );
+
+  const packageJson = JSON.parse(readFileSync(join(repositoryRoot, "package.json"), "utf8"));
+  assert.equal(
+    packageJson.scripts["infrastructure:cloudflare-founder-attended:check"],
+    `node ${scriptPath}`
+  );
+  const securitySource = readFileSync(join(repositoryRoot, "scripts/security-check.mjs"), "utf8");
+  assert.match(
+    securitySource,
+    /verifyCloudflareFounderAttendedServiceTokenArchitecture[\s\S]*from "\.\/verify-cloudflare-founder-attended-service-token\.mjs"/u
+  );
+  assert.match(
+    securitySource,
+    /verifyCloudflareFounderAttendedServiceTokenArchitecture\(\);/u
+  );
 });
 
 test("response-contract verifier pins the exact Keychain CI portability successor", () => {

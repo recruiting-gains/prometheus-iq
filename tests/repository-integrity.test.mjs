@@ -287,3 +287,12 @@ test("malformed object diagnostics remain fatal and sanitized", () => {
     rmSync(fixture, { recursive: true, force: true });
   }
 });
+
+test("unclassified preflight failures are not mislabeled as repository-integrity failures", () => {
+  const output = formatPublicDeploymentFailure(new Error("synthetic"), "verify");
+  assert.deepEqual(output, [
+    "PREFLIGHT_FAILED",
+    "PREFLIGHT_DIAGNOSTIC=UNCLASSIFIED_INTERNAL_FAILURE"
+  ]);
+  assert.equal(output.includes("REPOSITORY_INTEGRITY_FAILED"), false);
+});

@@ -50,7 +50,7 @@ Briefs may add optional sections, but these required sections cannot be omitted.
 7. State the impact on Prometheus using the company identity and product vision.
 8. Identify opportunities, risks, and founder actions.
 9. Prepare future handoff recommendations only when evidence justifies them.
-10. Run `npm run research:validate`.
+10. Run `npm run test:core`.
 
 ## Relationship To Adaptive Intelligence
 

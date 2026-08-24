@@ -55,6 +55,12 @@ test("active contract paths accept local, explicit external, and exact Git-pinne
       /repository-local path is missing/u
     );
     assert.match(
+      verifyCanonicalContractPaths({
+        releaseBlockingGate: { verifier: "missing-verifier.mjs" }
+      }, { repositoryRoot: fixture })[0],
+      /repository-local path is missing/u
+    );
+    assert.match(
       verifyCanonicalContractPaths({ canonicalPaths: { historical: "git:short:missing.json" } }, {
         repositoryRoot: fixture
       })[0],
@@ -68,6 +74,25 @@ test("active contract paths accept local, explicit external, and exact Git-pinne
       historical: "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:README.md"
     }
   }), []);
+});
+
+test("active fail-closed contracts never overlap immutable historical evidence", () => {
+  const registry = readJson("overwatch/artifact-contracts/canonical-artifact-registry.json");
+  const retirement = readJson("overwatch/retirement/phase-1-retirement-manifest.json");
+  const active = new Set();
+  const visit = value => {
+    if (!value || typeof value !== "object") return;
+    if (
+      value.failClosedIfMissing === true
+      && typeof value.path === "string"
+      && value.path.endsWith(".json")
+    ) active.add(value.path);
+    for (const child of Object.values(value)) visit(child);
+  };
+  visit(registry);
+  const historical = new Set(retirement.historicalEvidenceFiles.map(item => item.path));
+  assert.deepEqual([...active].filter(path => historical.has(path)).sort(), []);
+  assert.deepEqual(verifyCrossSubsystemArtifactContracts().activeHistoricalOverlap, []);
 });
 
 test("Fitness Founder research and synthetic outside sales share one strict configuration schema", () => {

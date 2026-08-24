@@ -68,6 +68,8 @@
     { "path": "overwatch/reports/BATCH-20260714-004-route-iq-prospective-evidence-retention.json", "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0", "baselineBlobHash": "d6caf7edf89f859512d3c49adc27880f0b41b4d0" }
   ],
   "intentionalAbsenceEvidencePaths": [
+    "scripts/build-route-intelligence-quality-engine.mjs",
+    "scripts/script-entrypoints.v1.json",
     "tests/lean-control-plane.test.mjs"
   ],
   "entries": [
@@ -2856,6 +2858,39 @@
       "restorationCommand": "git restore --source=c7119fcee140ab8a130cdb888439277fdcbeb6b0 -- 'prometheus-reasoning-engine-report.md'",
       "protectedEvidenceReferences": [
         "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:prometheus-reasoning-engine-report.md"
+      ],
+      "finalDisposition": "REMOVED_FROM_ACTIVE_MAIN_RECOVERABLE_VIA_GIT"
+    },
+    {
+      "originalPath": "prometheus-route-intelligence-quality-report.md",
+      "owner": "Prometheus Intelligence Engine",
+      "classification": "retired_generated_quality_report",
+      "reason": "Superseded generated quality evidence; the manual generator remains classified but its historical output is not active control-plane authority.",
+      "replacement": [
+        "NO_REPLACEMENT_REQUIRED"
+      ],
+      "baselineBlobHash": "73705936235c2a1366a7609ceba47bf05e1bba06",
+      "baselineSha256": "37e87bb72e00a6d4a7f37d8ce307f46b1397480ebabcf8f584be1c43dbd594f1",
+      "baselineBytes": 32721,
+      "baselineCommit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0",
+      "dependenciesFound": {
+        "count": 4,
+        "paths": [
+          "PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md",
+          "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+          "docs/route-intelligence-v2-architecture.md",
+          "scripts/build-route-intelligence-quality-engine.mjs"
+        ]
+      },
+      "dependenciesMigrated": {
+        "activeReferencesMustResolveTo": [
+          "NO_REPLACEMENT_REQUIRED"
+        ],
+        "historicalEvidenceMayRetainCommitPinnedReference": true
+      },
+      "restorationCommand": "git restore --source=c7119fcee140ab8a130cdb888439277fdcbeb6b0 -- 'prometheus-route-intelligence-quality-report.md'",
+      "protectedEvidenceReferences": [
+        "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:prometheus-route-intelligence-quality-report.md"
       ],
       "finalDisposition": "REMOVED_FROM_ACTIVE_MAIN_RECOVERABLE_VIA_GIT"
     },

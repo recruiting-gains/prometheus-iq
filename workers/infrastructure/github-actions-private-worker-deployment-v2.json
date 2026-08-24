@@ -54,7 +54,23 @@
     "strict": true,
     "workerNameOverrideAllowed": false,
     "forwardDeploymentAttempts": 1,
-    "automaticRetryAllowed": false
+    "automaticRetryAllowed": false,
+    "toolingSourceBinding": {
+      "checkoutRef": "approved_commit",
+      "approvedCommitMustRemainAncestorOfMain": true,
+      "approvedTreeVerifiedBeforeInstall": true,
+      "installCommand": "npm ci --ignore-scripts",
+      "lifecycleScriptsAllowed": false,
+      "packageOverridesAllowed": false,
+      "governedSourcePaths": [
+        "package.json",
+        "package-lock.json"
+      ],
+      "installedPackageTreeVerified": true,
+      "installedWranglerIdentityVerified": true,
+      "verificationBeforeArtifactExecution": true,
+      "laterMainToolingAllowed": false
+    }
   },
   "productionIdentityInspection": {
     "workflow": ".github/workflows/inspect-prometheus-worker-production-identity.yml",

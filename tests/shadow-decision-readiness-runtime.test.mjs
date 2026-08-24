@@ -6,15 +6,29 @@ import { DatabaseSync } from "node:sqlite";
 import { resolve } from "node:path";
 
 import {
+  computeRouteIqCandidateManifestDigests,
   initializeRouteIqProspectiveCoordinatorSchema,
   openRouteIqProspectiveCoordinator,
+  routeIqCandidateManifestSchemaVersion,
+  routeIqCandidateProducerContractVersion,
+  routeIqCandidateProducerEnvelopeVersion,
+  routeIqCandidateSourceSchemaVersion,
+  routeIqCandidateSourceVersion,
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
+import {
+  routeIqChronologicalEvidenceProjectionVersion,
+} from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
 import {
   buildCandidateManifestCoordinatorClaims,
   buildFounderShadowReadinessAggregate,
+  buildShadowDecisionSealCoordinatorClaims,
+  buildSnapshotSealCoordinatorClaims,
   computeShadowDecisionRuntimeSha256,
+  createImmutableAcceptedCandidateSnapshot,
   produceRouteIqNextStopCandidateManifest,
   produceShadowDecisionFromAcceptedSnapshot,
+  shadowDecisionProspectiveDispositionSchemaVersion,
+  shadowDecisionRankingBasisVersion,
   shadowDecisionRuntimeReasonCodes,
 } from "../intelligence/shadow-decision-readiness-runtime.mjs";
 
@@ -74,6 +88,133 @@ function sourceArtifacts() {
       return [kind, { path, rawText: JSON.stringify(hours) }];
     }),
   );
+}
+
+function syntheticManifestSourceRecords(opportunity) {
+  const descriptors = [
+    {
+      key: "territory",
+      sourceRecordSha256: opportunity.territorySource.sourceRecordSha256,
+      availableAt: opportunity.territorySource.availableAt,
+    },
+    ...Object.keys(SOURCE_PATHS).map((kind) => ({
+      key: kind,
+      sourceRecordSha256: digest(`synthetic-shadow-source:${kind}`),
+      availableAt: iso(-3_600_000),
+    })),
+  ];
+  return descriptors
+    .map((source) => ({
+      sourceRecordId: `riq_source_${digest({
+        key: source.key,
+        sourceRecordSha256: source.sourceRecordSha256,
+      })}`,
+      sourceSchemaVersion: routeIqCandidateSourceSchemaVersion,
+      sourceVersion: routeIqCandidateSourceVersion,
+      sourceRecordSha256: source.sourceRecordSha256,
+      availableAt: source.availableAt,
+    }))
+    .sort((left, right) => left.sourceRecordId.localeCompare(right.sourceRecordId));
+}
+
+function syntheticManifestCandidateDefinitions(opportunity) {
+  return Array.from({ length: 16 }, (_, index) => {
+    const sourceOrdinal = index + 1;
+    return {
+      candidateId: `riq_candidate_${digest({
+        territoryId: opportunity.canonicalContext.territoryId,
+        sourceOrdinal,
+        fixtureVersion: "synthetic-shadow-manifest-ready-v1",
+      })}`,
+      sourcePool: index < 15 ? "active" : "full",
+      sourceOrdinal,
+      recommendationScore: 100 - index,
+      hoursStatus: "OPEN_VERIFIED",
+    };
+  });
+}
+
+function buildSyntheticManifestReadyFixture(opportunity, { completedCandidateIds = [] } = {}) {
+  const sourceManifest = syntheticManifestSourceRecords(opportunity);
+  const sourceRecordIds = sourceManifest.map((source) => source.sourceRecordId);
+  const completed = new Set(completedCandidateIds);
+  const selected = syntheticManifestCandidateDefinitions(opportunity)
+    .filter((candidate) => !completed.has(candidate.candidateId))
+    .slice(0, 15);
+  const totalScore = selected.reduce(
+    (sum, candidate) => sum + candidate.recommendationScore,
+    0,
+  );
+  const candidates = selected.map((candidate, index) => ({
+    candidateId: candidate.candidateId,
+    sourceRecordIds,
+    eligibility: {
+      status: "eligible",
+      reasonCodes: [
+        "business_hours_eligible",
+        "canonical_candidate_source_complete",
+        candidate.sourcePool === "active"
+          ? "governed_active_pool_member"
+          : "governed_full_pool_fallback",
+        "territory_permitted",
+      ].sort(),
+      evaluatedAt: iso(500),
+    },
+    rankingContext: {
+      producerSubsystem: "Prometheus Intelligence Engine",
+      ordinal: index + 1,
+      probability: candidate.recommendationScore / totalScore,
+      basisVersion: shadowDecisionRankingBasisVersion,
+    },
+  }));
+  const digestInput = {
+    territoryId: opportunity.canonicalContext.territoryId,
+    evidenceCutoff: iso(1_000),
+    envelopeVersion: routeIqCandidateProducerEnvelopeVersion,
+    producerSubsystem: "Prometheus Intelligence Engine",
+    producerContractVersion: routeIqCandidateProducerContractVersion,
+    schemaVersion: routeIqCandidateManifestSchemaVersion,
+    dataProjectionVersion: routeIqChronologicalEvidenceProjectionVersion,
+    candidates,
+    sourceManifest,
+  };
+  const digests = computeRouteIqCandidateManifestDigests(digestInput);
+  const producerClaims = {
+    purpose: "candidate_manifest",
+    ...opportunity.scope,
+    ...structuredClone(opportunity.canonicalContext),
+    ...digestInput,
+    candidateCount: digests.candidateCount,
+    sourceCount: digests.sourceCount,
+    candidateManifestSha256: digests.candidateManifestSha256,
+    sourceManifestSha256: digests.sourceManifestSha256,
+    completeManifestSha256: digests.completeManifestSha256,
+  };
+  return Object.freeze({
+    schemaVersion: shadowDecisionProspectiveDispositionSchemaVersion,
+    disposition: "MANIFEST_READY",
+    opportunityId: opportunity.opportunityId,
+    producerClaims,
+    operationExpectations: {
+      expectedCandidateCount: digests.candidateCount,
+      expectedSourceCount: digests.sourceCount,
+      expectedCompleteManifestSha256: digests.completeManifestSha256,
+    },
+    governedAudit: {
+      fixtureVersion: "synthetic-shadow-manifest-ready-v1",
+      targetSize: 15,
+      eligibleSourceCandidateCount: 16 - completed.size,
+      completedCandidateCount: completed.size,
+      candidateDefinitions: selected.map((candidate, index) => ({
+        ...candidate,
+        manifestOrdinal: index + 1,
+      })),
+      scoresChanged: false,
+      recommendationInfluence: "OFF",
+    },
+    canonicalProductionEvidenceEligible: false,
+    recommendationInfluence: "OFF",
+  });
 }
 
 function knownTerritoryContext(suffix = "runtime") {
@@ -227,6 +368,18 @@ async function openHarness(suffix = "runtime") {
   return { repository, authority, territoryContext, coordinator, allocation };
 }
 
+async function acceptManifest(harness, opportunity, result, at = iso(2_000)) {
+  const claims = buildCandidateManifestCoordinatorClaims({
+    canonicalOpportunity: opportunity,
+    manifestResult: result,
+    authoritativeRecordTime: at,
+  });
+  return harness.coordinator.acceptCandidateManifest({
+    authorityEnvelope: harness.authority.sign(claims.operationClaims),
+    producerEnvelope: harness.authority.sign(claims.producerClaims, "producer"),
+  });
+}
+
 test("the frozen historical source set is deterministically excluded by current admission", async () => {
   const harness = await openHarness("real-sources");
   const opportunity = canonicalOpportunity(harness.allocation, harness.territoryContext);
@@ -241,6 +394,74 @@ test("the frozen historical source set is deterministically excluded by current 
   ]);
   assert.equal(first.canonicalProductionEvidenceEligible, false);
   assert.equal(first.recommendationInfluence, "OFF");
+});
+
+test("synthetic governed admission produces a complete deterministic success manifest", async () => {
+  const harness = await openHarness("synthetic-success");
+  const opportunity = canonicalOpportunity(harness.allocation, harness.territoryContext);
+  const first = buildSyntheticManifestReadyFixture(opportunity);
+  const replay = buildSyntheticManifestReadyFixture(opportunity);
+
+  assert.deepEqual(replay, first);
+  assert.equal(first.disposition, "MANIFEST_READY");
+  assert.equal(first.producerClaims.candidateCount, 15);
+  assert.equal(first.producerClaims.sourceCount, 5);
+  assert.equal(first.governedAudit.eligibleSourceCandidateCount, 16);
+  assert.equal(first.governedAudit.scoresChanged, false);
+  assert.equal(first.recommendationInfluence, "OFF");
+  assert.equal(
+    first.producerClaims.candidates.every(
+      (candidate) => candidate.sourceRecordIds.length === 5,
+    ),
+    true,
+  );
+
+  const expectedArtifactHashes = new Set(
+    [
+      harness.territoryContext.sourceRecordSha256,
+      ...Object.keys(SOURCE_PATHS).map(
+        (kind) => digest(`synthetic-shadow-source:${kind}`),
+      ),
+    ],
+  );
+  const actualHashes = new Set(
+    first.producerClaims.sourceManifest.map((source) => source.sourceRecordSha256),
+  );
+  for (const expected of expectedArtifactHashes) assert.equal(actualHashes.has(expected), true);
+  assert.equal(actualHashes.has(harness.territoryContext.sourceRecordSha256), true);
+
+  const sourceDefinitions = syntheticManifestCandidateDefinitions(opportunity);
+  for (const definition of first.governedAudit.candidateDefinitions) {
+    const source = sourceDefinitions.find(
+      (candidate) => candidate.sourceOrdinal === definition.sourceOrdinal,
+    );
+    assert.equal(definition.recommendationScore, source.recommendationScore);
+    assert.equal(definition.hoursStatus, "OPEN_VERIFIED");
+  }
+  const definitions = first.governedAudit.candidateDefinitions;
+  assert.equal(
+    definitions.every(
+      (candidate, index) => index === 0
+        || definitions[index - 1].recommendationScore >= candidate.recommendationScore,
+    ),
+    true,
+  );
+
+  const completed = definitions[0].candidateId;
+  const refilled = buildSyntheticManifestReadyFixture(opportunity, {
+    completedCandidateIds: [completed],
+  });
+  assert.equal(refilled.producerClaims.candidateCount, 15);
+  assert.equal(
+    refilled.producerClaims.candidates.some(
+      (candidate) => candidate.candidateId === completed,
+    ),
+    false,
+  );
+  assert.equal(
+    new Set(refilled.producerClaims.candidates.map((candidate) => candidate.candidateId)).size,
+    15,
+  );
 });
 
 test("missing territory, candidate sources, future sources, and historical origins yield exclusions", async () => {
@@ -314,6 +535,105 @@ test("SQLite coordinator rejects the excluded historical manifest without lifecy
     ).count,
     0,
   );
+});
+
+test("SQLite coordinator accepts, seals, and idempotently replays one governed shadow decision", async () => {
+  const harness = await openHarness("synthetic-sealed");
+  const opportunity = canonicalOpportunity(harness.allocation, harness.territoryContext);
+  const manifest = buildSyntheticManifestReadyFixture(opportunity);
+  const accepted = await acceptManifest(harness, opportunity, manifest);
+  assert.equal(accepted.state, "SNAPSHOT_PENDING_SEAL");
+
+  const snapshotClaims = buildSnapshotSealCoordinatorClaims({
+    canonicalOpportunity: opportunity,
+    manifestResult: manifest,
+    candidateManifestReceipt: accepted,
+    sealedAt: iso(3_000),
+  });
+  const snapshotSeal = await harness.coordinator.sealSnapshot({
+    authorityEnvelope: harness.authority.sign(snapshotClaims.operationClaims),
+    sealEnvelope: harness.authority.sign(snapshotClaims.sealClaims),
+  });
+  assert.equal(snapshotSeal.state, "SNAPSHOT_SEALED");
+
+  const acceptedSnapshot = createImmutableAcceptedCandidateSnapshot({
+    canonicalOpportunity: opportunity,
+    manifestResult: manifest,
+    candidateManifestReceipt: accepted,
+    snapshotSealReceipt: snapshotSeal,
+  });
+  const decision = produceShadowDecisionFromAcceptedSnapshot(acceptedSnapshot);
+  assert.deepEqual(produceShadowDecisionFromAcceptedSnapshot(acceptedSnapshot), decision);
+  assert.equal(decision.rankedCandidates.length, 15);
+  assert.equal(decision.recommendationInfluence, "OFF");
+
+  const decisionClaims = buildShadowDecisionSealCoordinatorClaims({
+    canonicalOpportunity: opportunity,
+    acceptedSnapshot,
+    shadowDecision: decision,
+    snapshotSealReceipt: snapshotSeal,
+    sealedAt: iso(4_000),
+  });
+  const sealed = await harness.coordinator.sealShadowDecision({
+    authorityEnvelope: harness.authority.sign(decisionClaims.operationClaims),
+    sealEnvelope: harness.authority.sign(decisionClaims.sealClaims),
+  });
+  const retry = await harness.coordinator.sealShadowDecision({
+    authorityEnvelope: harness.authority.sign(decisionClaims.operationClaims),
+    sealEnvelope: harness.authority.sign(decisionClaims.sealClaims),
+  });
+  assert.deepEqual(retry, sealed);
+  assert.equal(sealed.state, "SHADOW_DECISION_SEALED");
+  assert.equal(
+    harness.repository.one(
+      "SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'SHADOW_DECISION_SEALED'",
+    ).count,
+    1,
+  );
+  assert.equal(
+    harness.repository.one(
+      "SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'EXCLUSION_RECORDED'",
+    ).count,
+    0,
+  );
+});
+
+test("accepted-snapshot decisions reject action, outcome, future, and decision-source contamination", async () => {
+  const harness = await openHarness("synthetic-contamination");
+  const opportunity = canonicalOpportunity(harness.allocation, harness.territoryContext);
+  const manifest = buildSyntheticManifestReadyFixture(opportunity);
+  const accepted = await acceptManifest(harness, opportunity, manifest);
+  const snapshotClaims = buildSnapshotSealCoordinatorClaims({
+    canonicalOpportunity: opportunity,
+    manifestResult: manifest,
+    candidateManifestReceipt: accepted,
+    sealedAt: iso(3_000),
+  });
+  const snapshotSeal = await harness.coordinator.sealSnapshot({
+    authorityEnvelope: harness.authority.sign(snapshotClaims.operationClaims),
+    sealEnvelope: harness.authority.sign(snapshotClaims.sealClaims),
+  });
+  const snapshot = createImmutableAcceptedCandidateSnapshot({
+    canonicalOpportunity: opportunity,
+    manifestResult: manifest,
+    candidateManifestReceipt: accepted,
+    snapshotSealReceipt: snapshotSeal,
+  });
+
+  for (const contamination of [
+    { action: "visited" },
+    { outcome: 1 },
+    { futureEvidence: { score: 999 } },
+    { decisionSource: "route_iq_recommendation" },
+  ]) {
+    assert.throws(
+      () => produceShadowDecisionFromAcceptedSnapshot({
+        ...structuredClone(snapshot),
+        ...contamination,
+      }),
+      /route_iq_shadow_decision_input_contaminated/,
+    );
+  }
 });
 
 test("future/action/outcome/Decision Source contamination fails before snapshot admission", () => {

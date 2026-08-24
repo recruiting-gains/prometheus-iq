@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -95,16 +96,52 @@ test("the real public Workerd release harness runs once without competing releas
 test("retired paths are absent and recoverable at their exact baseline blobs", () => {
   const manifest = readJson("overwatch/retirement/phase-1-retirement-manifest.json");
   assert.equal(manifest.baseline.commit, "c7119fcee140ab8a130cdb888439277fdcbeb6b0");
-  assert.equal(manifest.entries.length, 199);
-  assert.equal(new Set(manifest.entries.map(entry => entry.originalPath)).size, 199);
+  const deletedPaths = gitLines([
+    "diff",
+    "--name-only",
+    "--diff-filter=D",
+    manifest.baseline.commit,
+    "HEAD"
+  ]).sort();
+  const manifestPaths = manifest.entries.map(entry => entry.originalPath).sort();
+  assert.equal(deletedPaths.length, 200);
+  assert.equal(manifest.entries.length, 200);
+  assert.equal(new Set(manifestPaths).size, 200);
+  assert.deepEqual(manifestPaths, deletedPaths);
   for (const entry of manifest.entries) {
     assert.equal(existsSync(resolve(root, entry.originalPath)), false, entry.originalPath);
-    const blob = execFileSync("git", [
-      "rev-parse",
-      `${manifest.baseline.commit}:${entry.originalPath}`
-    ], { cwd: root, encoding: "utf8" }).trim();
+    const source = `${manifest.baseline.commit}:${entry.originalPath}`;
+    const blob = execFileSync("git", ["rev-parse", source], {
+      cwd: root,
+      encoding: "utf8"
+    }).trim();
+    const baselineBytes = execFileSync("git", ["show", source], {
+      cwd: root,
+      encoding: null
+    });
     assert.equal(blob, entry.baselineBlobHash, entry.originalPath);
-    assert.match(entry.restorationCommand, /^git restore --source=c7119f/u);
+    assert.equal(
+      createHash("sha256").update(baselineBytes).digest("hex"),
+      entry.baselineSha256,
+      entry.originalPath
+    );
+    if (entry.baselineBytes !== undefined) {
+      assert.equal(baselineBytes.length, entry.baselineBytes, entry.originalPath);
+    }
+    assert.equal(entry.baselineCommit, manifest.baseline.commit, entry.originalPath);
+    assert.equal(
+      entry.restorationCommand,
+      `git restore --source=${manifest.baseline.commit} -- '${entry.originalPath}'`,
+      entry.originalPath
+    );
+    assert.deepEqual(entry.protectedEvidenceReferences, [
+      `git:${manifest.baseline.commit}:${entry.originalPath}`
+    ], entry.originalPath);
+    assert.equal(
+      entry.finalDisposition,
+      "REMOVED_FROM_ACTIVE_MAIN_RECOVERABLE_VIA_GIT",
+      entry.originalPath
+    );
   }
   assert.equal(existsSync(resolve(root, "scripts/build-qualified-prospect-routes.mjs")), true);
   assert.equal(

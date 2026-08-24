@@ -9,7 +9,7 @@ This is the current routing authority for Prometheus repository verification. `t
 | `test:core` | Product subsystem owners | Shared CRM, data, intelligence, administration, integrations, and cross-industry behavior used by live products. |
 | `test:public` | Website / CRM / Infrastructure | Public website, gym landing page, intake, attribution, public Worker, public workflow, and public rollback boundaries. |
 | `test:private` | Dashboard / Intelligence / Infrastructure | Authenticated workspace, roles, field sessions, private Worker, private workflow v2, and private rollback boundaries. |
-| `test:security` | Security / Aegis | Access, tenant isolation, secrets, callback security, repository integrity, dependency/toolchain, and fail-closed controls. |
+| `test:security` | Security / Aegis | Access, tenant isolation, secrets, callback security, dependency/toolchain, and fail-closed controls. |
 | `test:release` | Infrastructure / Overwatch | Exact identity, provenance, artifact, active workflow, production-readiness, and rollback contracts. |
 | `test:historical` | Historical owners | Dormant-feature and historical evidence tests excluded from normal qualification. Run only for work that intentionally changes their preserved source or evidence. |
 

@@ -527,6 +527,15 @@ test("the Node 24 Infrastructure successor has exact ownership and immutable evi
 });
 
 test("every active workflow uses only the accepted Node 24 pins without permission drift", () => {
+  const expectedCounts = new Map([
+    [".github/workflows/deploy-prometheus-private-worker-v2.yml", [2, 2]],
+    [".github/workflows/deploy-prometheus-public-worker.yml", [2, 2]],
+    [".github/workflows/early-github-handoff-v1.yml", [1, 1]],
+    [".github/workflows/inspect-prometheus-worker-production-identity.yml", [2, 2]],
+    [".github/workflows/qualify-prometheus-private-worker-v2.yml", [1, 1]],
+    [".github/workflows/qualify-prometheus-public-worker.yml", [1, 1]],
+    [".github/workflows/security-gates.yml", [1, 1]]
+  ]);
   let checkout = 0;
   let setupNode = 0;
   const workflowPaths = git(["ls-files", ".github/workflows/*.yml"])
@@ -544,6 +553,11 @@ test("every active workflow uses only the accepted Node 24 pins without permissi
       actionPinSecurityRecord.upstreamVerification.checkout.tagTarget));
     assert.ok(setupNodePins.every(pin => pin ===
       actionPinSecurityRecord.upstreamVerification.setupNode.tagTarget));
+    assert.deepEqual(
+      [checkoutPins.length, setupNodePins.length],
+      expectedCounts.get(workflowPath),
+      workflowPath
+    );
     assert.match(source, /^permissions:\n  contents: read/mu);
     assert.doesNotMatch(source, /^  contents: write$/mu);
     assert.doesNotMatch(source, /ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION/u);
@@ -551,8 +565,8 @@ test("every active workflow uses only the accepted Node 24 pins without permissi
     checkout += checkoutPins.length;
     setupNode += setupNodePins.length;
   }
-  assert.ok(checkout > 0);
-  assert.ok(setupNode > 0);
+  assert.equal(checkout, 10);
+  assert.equal(setupNode, 10);
   assert.deepEqual(actionPinSecurityRecord.securityProperties, {
     fullImmutableShaPins: true,
     movingTags: 0,

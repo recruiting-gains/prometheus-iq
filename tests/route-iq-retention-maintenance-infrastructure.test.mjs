@@ -397,7 +397,13 @@ test("unsigned, stale, replayed, and cross-environment admission evidence fails 
       && error.code === "route_iq_retention_maintenance_admission_replayed"
   );
 
-  const unsigned = { ...envelope, signature: `${envelope.signature.slice(0, -1)}x` };
+  const mutatedSignature = `${envelope.signature[0] === "A" ? "B" : "A"}${envelope.signature.slice(1)}`;
+  assert.notEqual(mutatedSignature, envelope.signature);
+  assert.notDeepEqual(
+    Buffer.from(mutatedSignature, "base64url"),
+    Buffer.from(envelope.signature, "base64url")
+  );
+  const unsigned = { ...envelope, signature: mutatedSignature };
   await assert.rejects(
     verifyRouteIqRetentionMaintenanceProductionAdmission(unsigned, {
       env: AUTHORITY_ENV,
