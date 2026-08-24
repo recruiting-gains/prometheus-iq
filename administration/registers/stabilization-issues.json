@@ -19,7 +19,7 @@
       "status": "subsystem_handoff_received",
       "regressionVerified": {
         "status": "passed",
-        "source": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "source": "overwatch/retirement/phase-1-retirement-manifest.json",
         "notes": "Dashboard workflow coverage added for Anthony first launch, PWA reopen, and refresh preserving Rep-only UI."
       },
       "resolvedVersion": "2026-06-30-rep-session-enforcement-v1",
@@ -45,7 +45,7 @@
       "status": "subsystem_handoff_received",
       "regressionVerified": {
         "status": "passed",
-        "source": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "source": "overwatch/retirement/phase-1-retirement-manifest.json",
         "notes": "Dashboard regression coverage passed for Anthony mobile pin-drop logging reachability."
       },
       "resolvedVersion": "dbda8c6e-a353-40e6-b27e-a03c52aeb3e3",
@@ -71,7 +71,7 @@
       "status": "subsystem_handoff_received",
       "regressionVerified": {
         "status": "passed",
-        "source": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "source": "overwatch/retirement/phase-1-retirement-manifest.json",
         "notes": "Regression harness coverage passed for empty state, location acquisition, Active Pool query, rendering, Rep behavior, and console/runtime errors."
       },
       "resolvedVersion": "29ad70e",
@@ -97,7 +97,7 @@
       "status": "subsystem_handoff_received",
       "regressionVerified": {
         "status": "passed",
-        "source": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "source": "overwatch/retirement/phase-1-retirement-manifest.json",
         "notes": "Dashboard workflow, lint, typecheck, and build passed for performance stabilization."
       },
       "resolvedVersion": "fa05bdf",
@@ -123,7 +123,7 @@
       "status": "subsystem_handoff_received",
       "regressionVerified": {
         "status": "passed",
-        "source": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "source": "overwatch/retirement/phase-1-retirement-manifest.json",
         "notes": "Residential-house barber shop recommendation was assigned to Data and completed as a quarantine/removal task."
       },
       "resolvedVersion": "data-route-quality-quarantine-completed",
@@ -149,7 +149,7 @@
       "status": "subsystem_handoff_received",
       "regressionVerified": {
         "status": "passed",
-        "source": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "source": "overwatch/retirement/phase-1-retirement-manifest.json",
         "notes": "Active Pool Asset Synchronization v1 synchronized deploy Active Pool to 297 records / 594 route records and sanitized full fallback to remove the three quarantined residential place IDs."
       },
       "resolvedVersion": "2026-07-01-active-pool-asset-sync-v1",
