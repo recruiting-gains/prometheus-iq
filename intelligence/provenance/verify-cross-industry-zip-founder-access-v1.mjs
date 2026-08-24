@@ -236,6 +236,7 @@ function readLeanPhase1ProtectedSuccessor() {
     "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
     "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs",
     "scripts/validate-intelligence-architecture.mjs",
+    "tests/read-only-field-session-learning.test.mjs",
     "tests/shadow-decision-readiness.test.mjs"
   ]);
   assert.deepEqual(successor.invariants, {

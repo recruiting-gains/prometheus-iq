@@ -1842,14 +1842,14 @@ test("prospective retention admission remains fail closed and inactive", () => {
   });
 });
 
-test("aggregate npm test runs both shadow verifier and focused suite", () => {
-  const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
-  assert.match(
-    packageJson.scripts.test,
-    /npm run intelligence:shadow-readiness:check/,
-  );
-  assert.match(
-    packageJson.scripts.test,
-    /npm run test:intelligence:shadow-readiness/,
+test("the active private suite runs shadow readiness exactly once", () => {
+  const suites = JSON.parse(
+    readFileSync("tests/test-suites.v1.json", "utf8"),
+  ).suites;
+  assert.equal(
+    suites.private.filter(
+      (file) => file === "tests/shadow-decision-readiness.test.mjs",
+    ).length,
+    1,
   );
 });
