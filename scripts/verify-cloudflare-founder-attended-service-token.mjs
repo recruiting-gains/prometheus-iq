@@ -44,6 +44,7 @@ const read = path => readFileSync(resolve(root, path), "utf8");
 export function verifyCloudflareFounderAttendedServiceTokenArchitecture() {
   const contract = JSON.parse(read("workers/infrastructure/cloudflare-founder-attended-service-token-v1.json"));
   const packageJson = JSON.parse(read("package.json"));
+  const testSuites = JSON.parse(read("tests/test-suites.v1.json")).suites;
   const helper = readFileSync(CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_HELPER, "utf8");
   const controlSource = read("scripts/lib/cloudflare-founder-attended-control.mjs");
   const keychainSource = read("scripts/lib/cloudflare-founder-attended-keychain.mjs");
@@ -295,7 +296,7 @@ export function verifyCloudflareFounderAttendedServiceTokenArchitecture() {
   for (const forbidden of ["authorize", "provision", "cleanup"]) {
     assert.equal(packageJson.scripts[`infrastructure:cloudflare-founder-attended:${forbidden}`], undefined);
   }
-  assert.match(packageJson.scripts.test, /infrastructure:cloudflare-founder-attended:check/u);
+  assert.ok(testSuites.historical.includes("tests/cloudflare-founder-attended-service-token.test.mjs"));
   assert.match(securitySource, /verifyCloudflareFounderAttendedServiceTokenArchitecture/u);
   for (const command of ["presence", "provision-attended", "cleanup-temp"]) {
     assert.match(runbook, new RegExp(`infrastructure:cloudflare-founder-attended:${command}`, "u"));

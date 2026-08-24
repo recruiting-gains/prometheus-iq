@@ -14,17 +14,20 @@ import {
 } from "../scripts/lib/early-github-handoff-v1.mjs";
 
 const commit = "a".repeat(40);
+const tree = "b".repeat(40);
 const baseRequest = Object.freeze({
   repository: "PrometheusRouteIQ/prometheus-iq",
   workflow: "early-github-handoff-v1.yml",
   branch: "main",
   commit,
+  tree,
   inputs: {},
   registrationTimeoutMs: 10,
   pollIntervalMs: 5
 });
 const repositoryState = Object.freeze({
   head: commit,
+  tree,
   origin: commit,
   branch: "main",
   clean: true,
@@ -49,15 +52,26 @@ function expectCode(promise, code) {
     error instanceof EarlyGithubHandoffError && error.code === code);
 }
 
-test("exact commit is injected and conflicting input is rejected", () => {
+test("exact commit and tree are injected and conflicting inputs are rejected", () => {
   assert.equal(
     validateEarlyGithubHandoffRequest(baseRequest).inputs.candidate_commit,
     commit
+  );
+  assert.equal(
+    validateEarlyGithubHandoffRequest(baseRequest).inputs.candidate_tree,
+    tree
   );
   assert.throws(
     () => validateEarlyGithubHandoffRequest({
       ...baseRequest,
       inputs: { candidate_commit: "b".repeat(40) }
+    }),
+    error => error.code === EARLY_GITHUB_HANDOFF_FAILURE.INPUT_INVALID
+  );
+  assert.throws(
+    () => validateEarlyGithubHandoffRequest({
+      ...baseRequest,
+      inputs: { candidate_tree: "c".repeat(40) }
     }),
     error => error.code === EARLY_GITHUB_HANDOFF_FAILURE.INPUT_INVALID
   );
@@ -159,6 +173,7 @@ test("local work or unsynchronized origin prohibits premature close status", asy
 
   const responses = new Map([
     ["rev-parse HEAD", commit],
+    ["rev-parse HEAD^{tree}", tree],
     ["branch --show-current", "main"],
     ["rev-parse refs/remotes/origin/main", "b".repeat(40)],
     ["status --porcelain=v1 --untracked-files=all", ""],
@@ -169,6 +184,7 @@ test("local work or unsynchronized origin prohibits premature close status", asy
       cwd: "/synthetic",
       branch: "main",
       commit,
+      tree,
       git: (_cwd, args) => responses.get(args.join(" "))
     }),
     error => error.code === EARLY_GITHUB_HANDOFF_FAILURE.REPOSITORY_INVALID

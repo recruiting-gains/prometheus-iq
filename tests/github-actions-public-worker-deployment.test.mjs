@@ -262,7 +262,10 @@ test("qualification prepares source then builds one artifact while deployment ne
     join(root, ".github", "workflows", "deploy-prometheus-public-worker.yml"),
     "utf8"
   );
-  assert.equal([...qualification.matchAll(/^\s*run: npm test$/gmu)].length, 1);
+  for (const suite of ["core", "public", "security", "release"]) {
+    assert.equal([...qualification.matchAll(new RegExp(`^          npm run test:${suite}$`, "gmu"))].length, 1);
+  }
+  assert.equal([...qualification.matchAll(/npm test/gmu)].length, 0);
   assert.equal(
     [...qualification.matchAll(/^\s*run: node scripts\/run-github-actions-public-worker-qualification\.mjs build$/gmu)].length,
     1

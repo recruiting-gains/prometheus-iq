@@ -80,10 +80,13 @@ jobs:
       - name: Install exact locked deployment tooling
         run: npm ci
 
-      - name: Build deterministic source and run complete no-secret verification
+      - name: Build deterministic source and run private-scoped no-secret verification once
         run: |
           npm run build
-          npm test
+          npm run test:core
+          npm run test:private
+          npm run test:security
+          npm run test:release
           npm run lint
           npm run typecheck
           npm run security:check
@@ -91,7 +94,6 @@ jobs:
           npm run security:aegis:verify
           node scripts/verify-cross-subsystem-artifact-contracts.mjs
           node scripts/verify-github-actions-private-worker-workflow-v2.mjs
-          node --test tests/github-actions-private-worker-workflow-v2.test.mjs
 
       - name: Build and freeze the private deployment and rollback artifact exactly once
         id: freeze

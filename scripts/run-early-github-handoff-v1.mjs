@@ -29,12 +29,13 @@ function parseArguments(argv) {
     else if (name === "--workflow") values.workflow = value;
     else if (name === "--branch") values.branch = value;
     else if (name === "--commit") values.commit = value;
+    else if (name === "--tree") values.tree = value;
     else if (name === "--inputs-json") values.inputsPath = value;
     else if (name === "--registration-timeout-ms") values.registrationTimeoutMs = Number(value);
     else if (name === "--poll-interval-ms") values.pollIntervalMs = Number(value);
     else throw new Error("arguments_invalid");
   }
-  if (!values.commit) throw new Error("arguments_invalid");
+  if (!values.commit || !values.tree) throw new Error("arguments_invalid");
   return values;
 }
 
@@ -59,6 +60,7 @@ export async function runEarlyGithubHandoffCommand({
     workflow: parsed.workflow,
     branch: parsed.branch,
     commit: parsed.commit,
+    tree: parsed.tree,
     inputs: readInputs(parsed.inputsPath),
     registrationTimeoutMs: parsed.registrationTimeoutMs,
     pollIntervalMs: parsed.pollIntervalMs
@@ -66,7 +68,8 @@ export async function runEarlyGithubHandoffCommand({
   const repositoryState = verifyEarlyGithubHandoffRepository({
     cwd,
     branch: request.branch,
-    commit: request.commit
+    commit: request.commit,
+    tree: request.tree
   });
   const api = createGithubActionsApi({
     token: environment.GH_TOKEN || environment.GITHUB_TOKEN

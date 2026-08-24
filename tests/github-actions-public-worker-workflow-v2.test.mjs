@@ -332,7 +332,10 @@ test("qualification and deployment accept only exact pinned contexts and identic
     assert.ok(deployment.includes(marker));
   }
   assert.equal([...qualification.matchAll(/^        run: npm run build$/gmu)].length, 1);
-  assert.equal([...qualification.matchAll(/^        run: npm test$/gmu)].length, 1);
+  for (const suite of ["core", "public", "security", "release"]) {
+    assert.equal([...qualification.matchAll(new RegExp(`^          npm run test:${suite}$`, "gmu"))].length, 1);
+  }
+  assert.doesNotMatch(qualification, /npm test/u);
   assert.doesNotMatch(deployment, /npm run build|npm test|vite build/u);
 });
 

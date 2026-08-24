@@ -204,6 +204,10 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     2
   );
   assert.equal(count(qualification, /^        run: npm ci$/gmu), 1);
+  for (const suite of ["core", "private", "security", "release"]) {
+    assert.equal(count(qualification, new RegExp(`^          npm run test:${suite}$`, "gmu")), 1);
+  }
+  assert.equal(count(qualification, /npm test/gmu), 0);
   assert.equal(count(deployment, /^        run: npm ci$/gmu), 2);
   assert.match(qualification, /group: qualify-prometheus-private-worker-v2-\$\{\{ inputs\.candidate_commit \}\}/u);
   assert.match(deployment, /group: deploy-prometheus-private-worker-v2/u);

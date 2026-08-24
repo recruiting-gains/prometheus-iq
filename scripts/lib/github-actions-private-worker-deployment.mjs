@@ -3,14 +3,14 @@ import { lstatSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 export const PRIVATE_WORKER_DEPLOYMENT_POLICY = Object.freeze({
-  contractVersion: "github-actions-founder-triggered-private-worker-deployment-v1",
+  contractVersion: "github-actions-private-worker-deployment-v2",
   repository: "PrometheusRouteIQ/prometheus-iq",
   repositoryUrl: "https://github.com/PrometheusRouteIQ/prometheus-iq",
   founderActor: "PrometheusRouteIQ",
   founderAuthorization: "I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT",
-  workflowName: "Deploy Prometheus Private Worker",
-  workflowPath: ".github/workflows/deploy-prometheus-private-worker.yml",
-  workflowRef: "PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-private-worker.yml@refs/heads/main",
+  workflowName: "Deploy Prometheus Private Worker v2",
+  workflowPath: ".github/workflows/deploy-prometheus-private-worker-v2.yml",
+  workflowRef: "PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-private-worker-v2.yml@refs/heads/main",
   branch: "main",
   ref: "refs/heads/main",
   refType: "branch",
@@ -20,7 +20,7 @@ export const PRIVATE_WORKER_DEPLOYMENT_POLICY = Object.freeze({
   publicWorker: "prometheusrouteiq-website",
   privateConfig: "wrangler.jsonc",
   publicConfig: "wrangler.prometheusrouteiq-website.jsonc",
-  contractPath: "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json",
+  contractPath: "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
   activationTemplatePath: "workers/infrastructure/route-iq-prospective-shadow-activation-template-v1.json",
   wranglerVersion: "4.120.1",
   wranglerModule: "node_modules/wrangler/bin/wrangler.js",
@@ -372,22 +372,19 @@ export function verifyStaticDeploymentPolicy(root) {
 
   if (!isPlainObject(contract)
     || contract.contractVersion !== PRIVATE_WORKER_DEPLOYMENT_POLICY.contractVersion
-    || contract.batchId !== "BATCH-20260715-011"
     || contract.owner !== "Prometheus Infrastructure"
-    || contract.implementationStatus !== "PRIVATE_REPOSITORY_COMPATIBILITY_IMPLEMENTED_NOT_EXECUTED"
-    || contract.deploymentPerformed !== false
-    || contract.productionMutationPerformed !== false
+    || contract.status !== "IMPLEMENTED_NOT_QUALIFIED_NOT_DEPLOYED"
     || contract.target?.repository !== PRIVATE_WORKER_DEPLOYMENT_POLICY.repository
     || contract.target?.branch !== PRIVATE_WORKER_DEPLOYMENT_POLICY.branch
     || contract.target?.privateWorker !== PRIVATE_WORKER_DEPLOYMENT_POLICY.privateWorker
     || contract.target?.publicWorker !== PRIVATE_WORKER_DEPLOYMENT_POLICY.publicWorker
-    || contract.target?.publicWorkerDeploymentAllowed !== false
-    || contract.founderAuthorization?.actor !== PRIVATE_WORKER_DEPLOYMENT_POLICY.founderActor
-    || contract.founderAuthorization?.triggeringActor !== PRIVATE_WORKER_DEPLOYMENT_POLICY.founderActor
-    || contract.founderAuthorization?.exactPhrase !== PRIVATE_WORKER_DEPLOYMENT_POLICY.founderAuthorization
-    || contract.founderAuthorization?.rerunAllowed !== false
-    || contract.founderAuthorization?.environmentJobRequiresSuccessfulPreflight !== true
-    || contract.runtimeBoundaries?.collection !== "OFF"
+    || contract.target?.publicWorkerMutationAllowed !== false
+    || contract.authorization?.exactConfirmation !== PRIVATE_WORKER_DEPLOYMENT_POLICY.founderAuthorization
+    || contract.authorization?.consumedAt !== "forward_wrangler_process_spawn_confirmed"
+    || contract.releaseBoundary?.deploymentAuthorized !== false
+    || contract.releaseBoundary?.productionContactAuthorized !== false
+    || contract.runtimeBoundaries?.publicWorkerDeploymentAllowed !== false
+    || contract.runtimeBoundaries?.prospectiveCollection !== "OFF"
     || contract.runtimeBoundaries?.activeCohortCount !== 0
     || contract.runtimeBoundaries?.recommendationInfluence !== "OFF"
     || activationTemplate.collection !== "OFF"

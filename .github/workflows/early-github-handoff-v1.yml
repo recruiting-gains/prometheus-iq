@@ -7,6 +7,10 @@ on:
         description: Exact synchronized main commit to qualify
         required: true
         type: string
+      candidate_tree:
+        description: Exact tree for the synchronized main commit
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -49,6 +53,7 @@ jobs:
         run: |
           set -eu
           test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
           test "$(git rev-parse refs/remotes/origin/main)" = "${{ inputs.candidate_commit }}"
           test -z "$(git status --porcelain=v1 --untracked-files=all)"
 
@@ -64,10 +69,20 @@ jobs:
         run: |
           node scripts/verify-early-github-handoff-v1.mjs
           node scripts/verify-overwatch-early-github-handoff-v1.mjs
-          node --test tests/early-github-handoff-v1.test.mjs
 
-      - name: Run complete repository qualification
+      - name: Build runtime once for drift-sensitive tests
+        run: npm run build
+
+      - name: Run each active test exactly once
         run: npm test
+
+      - name: Run explicit static, security, Aegis, and contract gates
+        run: |
+          npm run lint
+          npm run typecheck
+          npm run security:check
+          npm run security:aegis:verify
+          node scripts/verify-cross-subsystem-artifact-contracts.mjs
 
       - name: Require unchanged hosted checkout
         shell: bash
@@ -77,3 +92,4 @@ jobs:
           git diff --cached --exit-code
           test -z "$(git status --porcelain=v1 --untracked-files=all)"
           test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"

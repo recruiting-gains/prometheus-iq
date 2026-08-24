@@ -32,6 +32,7 @@ export function verifyCloudflareUnattendedAccessArchitecture({ requireReady = fa
   const documentation = read(documentationPath);
   const authenticatedVerification = read(authenticatedVerificationPath);
   const packageJson = readJson("package.json");
+  const testSuites = readJson("tests/test-suites.v1.json").suites;
   const packageLock = readJson("package-lock.json");
   const installedWrangler = readJson("node_modules/wrangler/package.json");
   const gitignore = read(".gitignore");
@@ -194,13 +195,13 @@ export function verifyCloudflareUnattendedAccessArchitecture({ requireReady = fa
 
   assert.equal(
     packageJson.scripts["infrastructure:cloudflare-unattended-access:check"],
-    "node scripts/verify-cloudflare-unattended-access-architecture.mjs && node scripts/check-cloudflare-unattended-secret-presence.mjs && node --test tests/cloudflare-unattended-access-architecture.test.mjs"
+    "node scripts/verify-cloudflare-unattended-access-architecture.mjs && node scripts/check-cloudflare-unattended-secret-presence.mjs"
   );
   assert.equal(
     packageJson.scripts["infrastructure:cloudflare-unattended-access:preflight"],
     "node scripts/verify-cloudflare-unattended-access-architecture.mjs --require-ready && node scripts/check-cloudflare-unattended-secret-presence.mjs --source=both --require-present"
   );
-  assert.ok(packageJson.scripts.test.includes("npm run infrastructure:cloudflare-unattended-access:check"));
+  assert.ok(testSuites.security.includes("tests/cloudflare-unattended-access-architecture.test.mjs"));
   assert.match(securityCheck, /scanTrackedRepository/u);
   assert.match(securityCheck, /verifyLocalSecretArtifacts/u);
 

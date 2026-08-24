@@ -28,8 +28,6 @@ export const PUBLIC_WORKER_DEPLOYMENT_POLICY = Object.freeze({
   workflowName: "Deploy Prometheus Public Worker",
   workflowPath: ".github/workflows/deploy-prometheus-public-worker.yml",
   integrityWorkflowName: "Verify Prometheus Public Repository Integrity",
-  integrityWorkflowPath: ".github/workflows/verify-prometheus-public-repository-integrity.yml",
-  integrityContractPath: "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
   workflowRef: "PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-public-worker.yml@refs/heads/main",
   environmentName: "prometheus-public-worker-production",
   branch: "main",

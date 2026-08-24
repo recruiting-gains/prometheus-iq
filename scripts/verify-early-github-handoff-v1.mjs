@@ -10,7 +10,7 @@ const workflow = read(".github/workflows/early-github-handoff-v1.yml");
 const runbook = read("docs/early-github-handoff-v1.md");
 const autoPush = read("overwatch/governance/verified-engineering-batch-auto-push-v1.md");
 
-assert.match(agents, /^## Early GitHub Handoff — Mandatory$/mu);
+assert.match(agents, /^## Early GitHub Handoff — Mandatory When Routed$/mu);
 for (const required of [
   "Minimize how long the Founder’s Mac must remain connected.",
   "GITHUB HANDOFF CONFIRMED",
@@ -20,10 +20,12 @@ for (const required of [
 ]) assert.match(agents, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u"));
 
 assert.match(workflow, /^on:\n  workflow_dispatch:\n    inputs:\n      candidate_commit:/mu);
+assert.match(workflow, /candidate_tree:/u);
 assert.doesNotMatch(workflow, /^  (?:push|pull_request|schedule|repository_dispatch|workflow_call|workflow_run):/mu);
 assert.match(workflow, /github\.sha == inputs\.candidate_commit/u);
 assert.match(workflow, /github\.ref == 'refs\/heads\/main'/u);
 assert.match(workflow, /git rev-parse HEAD/u);
+assert.match(workflow, /git rev-parse HEAD\^\{tree\}/u);
 assert.match(workflow, /npm test/u);
 assert.doesNotMatch(workflow, /environment:|CLOUDFLARE_|wrangler deploy|git push/u);
 

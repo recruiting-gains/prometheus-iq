@@ -79,7 +79,10 @@ export function verifyGithubActionsPublicWorkerWorkflowV2() {
   assert.equal(count(deployment, /^          node-version: "24\.4\.1"$/gmu), 2);
   assert.equal(count(qualification, /^        run: npm ci$/gmu), 1);
   assert.equal(count(deployment, /^        run: npm ci$/gmu), 2);
-  assert.equal(count(qualification, /^        run: npm test$/gmu), 1);
+  for (const suite of ["core", "public", "security", "release"]) {
+    assert.equal(count(qualification, new RegExp(`^          npm run test:${suite}$`, "gmu")), 1);
+  }
+  assert.equal(count(qualification, /npm test/gmu), 0);
   assert.equal(count(qualification, /^        run: npm run build$/gmu), 1);
   assert.equal(count(
     qualification,

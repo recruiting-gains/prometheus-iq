@@ -29,6 +29,7 @@ const contractPath =
 const contract = readJson(contractPath);
 const packageJson = readJson("package.json");
 const packageLock = readJson("package-lock.json");
+const testSuites = readJson("tests/test-suites.v1.json").suites;
 
 const selectedVersions = Object.fromEntries(
   contract.selectedGraph.map(entry => [entry.package, entry.version])
@@ -85,10 +86,6 @@ test("every active Infrastructure deployment consumer shares the governed Wrangl
       contract => contract.auditedKeychainLauncher.pinnedWranglerVersion
     ],
     [
-      "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json",
-      contract => contract.wranglerDeployment.version
-    ],
-    [
       "workers/infrastructure/github-actions-private-worker-deployment-v2.json",
       contract => contract.qualification.wranglerVersion
     ],
@@ -107,7 +104,6 @@ test("every active Infrastructure deployment consumer shares the governed Wrangl
 
   for (const path of [
     "docs/cloudflare-unattended-deployment-access-v1.md",
-    "docs/github-actions-founder-triggered-private-worker-deployment-v1.md",
     "docs/github-actions-public-worker-deployment-v2.md",
     "docs/route-iq-prospective-shadow-infrastructure-v1.md",
     "scripts/verify-cloudflare-unattended-access-architecture.mjs",
@@ -241,7 +237,7 @@ test("Node 24 action migration is classified and fail-closed outside this owners
   assert.equal(contract.node24ActionMigration.workflowFilesChanged, false);
 });
 
-test("the hosted full suite has a direct local-only batch compatibility gate", () => {
+test("the hosted suites retain the exact toolchain gate and governed harness", () => {
   const harnessScript = packageJson.scripts["infrastructure:cloudflare-toolchain-harness:check"];
   const batchScript = packageJson.scripts["infrastructure:cloudflare-toolchain-compatibility:check"];
   assert.equal(harnessScript, contract.compatibilityCommand);
@@ -249,10 +245,13 @@ test("the hosted full suite has a direct local-only batch compatibility gate", (
     batchScript,
     "node --test tests/route-iq-cloudflare-toolchain-compatibility.test.mjs && npm run infrastructure:cloudflare-toolchain-harness:check"
   );
-  assert.match(
-    packageJson.scripts.test,
-    /npm run infrastructure:cloudflare-toolchain-compatibility:check/u
-  );
+  assert.ok(testSuites.security.includes("tests/route-iq-cloudflare-toolchain-compatibility.test.mjs"));
+  for (const file of [
+    "tests/cloudflare-unattended-runtime-guard.test.mjs",
+    "tests/route-iq-business-availability-infrastructure.test.mjs",
+    "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
+    "tests/route-iq-request-crm-infrastructure.test.mjs"
+  ]) assert.equal(Object.values(testSuites).flat().filter(candidate => candidate === file).length, 1);
   assert.equal(contract.compatibilityGroup.governedExistingTests, 121);
   assert.equal(contract.compatibilityGroup.requiredPasses, 121);
   assert.equal(contract.productionBoundary.cloudflareContactCount, 0);

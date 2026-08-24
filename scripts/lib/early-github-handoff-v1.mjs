@@ -7,6 +7,7 @@ export const EARLY_GITHUB_HANDOFF_POLICY = Object.freeze({
   workflow: "early-github-handoff-v1.yml",
   workflowPath: ".github/workflows/early-github-handoff-v1.yml",
   commitInput: "candidate_commit",
+  treeInput: "candidate_tree",
   registrationTimeoutMs: 30_000,
   pollIntervalMs: 2_000,
   timestampToleranceMs: 5_000
@@ -50,7 +51,7 @@ function exactObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function validateInputs(inputs, commit) {
+function validateInputs(inputs, commit, tree) {
   if (!exactObject(inputs)) fail(EARLY_GITHUB_HANDOFF_FAILURE.INPUT_INVALID);
   const normalized = {};
   for (const [name, value] of Object.entries(inputs)) {
@@ -67,7 +68,12 @@ function validateInputs(inputs, commit) {
     && normalized[EARLY_GITHUB_HANDOFF_POLICY.commitInput] !== commit) {
     fail(EARLY_GITHUB_HANDOFF_FAILURE.INPUT_INVALID);
   }
+  if (normalized[EARLY_GITHUB_HANDOFF_POLICY.treeInput] !== undefined
+    && normalized[EARLY_GITHUB_HANDOFF_POLICY.treeInput] !== tree) {
+    fail(EARLY_GITHUB_HANDOFF_FAILURE.INPUT_INVALID);
+  }
   normalized[EARLY_GITHUB_HANDOFF_POLICY.commitInput] = commit;
+  normalized[EARLY_GITHUB_HANDOFF_POLICY.treeInput] = tree;
   return Object.freeze(normalized);
 }
 
@@ -77,6 +83,7 @@ export function validateEarlyGithubHandoffRequest(value) {
     || !SAFE_WORKFLOW.test(value.workflow || "")
     || !SAFE_BRANCH.test(value.branch || "")
     || !SHA40.test(value.commit || "")
+    || !SHA40.test(value.tree || "")
     || !Number.isInteger(value.registrationTimeoutMs)
     || value.registrationTimeoutMs < 0
     || value.registrationTimeoutMs > 120_000
@@ -90,7 +97,8 @@ export function validateEarlyGithubHandoffRequest(value) {
     workflow: value.workflow,
     branch: value.branch,
     commit: value.commit,
-    inputs: validateInputs(value.inputs || {}, value.commit),
+    tree: value.tree,
+    inputs: validateInputs(value.inputs || {}, value.commit, value.tree),
     registrationTimeoutMs: value.registrationTimeoutMs,
     pollIntervalMs: value.pollIntervalMs
   });
@@ -110,9 +118,11 @@ export function verifyEarlyGithubHandoffRepository({
   cwd,
   branch,
   commit,
+  tree: expectedTree,
   git = runGit
 }) {
   const head = git(cwd, ["rev-parse", "HEAD"]);
+  const tree = git(cwd, ["rev-parse", "HEAD^{tree}"]);
   const currentBranch = git(cwd, ["branch", "--show-current"]);
   const origin = git(cwd, ["rev-parse", `refs/remotes/origin/${branch}`]);
   const status = git(cwd, ["status", "--porcelain=v1", "--untracked-files=all"]);
@@ -120,12 +130,13 @@ export function verifyEarlyGithubHandoffRepository({
   const pushRefspec = gitConfiguration.split("\n")
     .filter(line => line.startsWith("remote.origin.push="))
     .join("\n");
-  if (head !== commit || currentBranch !== branch || origin !== commit
+  if (head !== commit || tree !== expectedTree || currentBranch !== branch || origin !== commit
     || status !== "" || /(?:--all|--mirror|refs\/heads\/\*:|refs\/\*)/u.test(pushRefspec)) {
     fail(EARLY_GITHUB_HANDOFF_FAILURE.REPOSITORY_INVALID);
   }
   return Object.freeze({
     head,
+    tree,
     branch: currentBranch,
     origin,
     clean: true,
@@ -234,6 +245,7 @@ export async function dispatchEarlyGithubHandoff({
   if (repositoryState?.localWorkRemaining !== false
     || repositoryState?.clean !== true
     || repositoryState?.head !== validated.commit
+    || repositoryState?.tree !== validated.tree
     || repositoryState?.origin !== validated.commit
     || repositoryState?.branch !== validated.branch) {
     fail(EARLY_GITHUB_HANDOFF_FAILURE.REPOSITORY_INVALID);
