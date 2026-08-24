@@ -157,45 +157,6 @@ test("autonomous predeployment closure persists across sessions without granting
   assert.equal(closure.founderReturnConditions.length, 5);
 });
 
-test("master engineering state preserves intake history while current CRM truth cannot regress", () => {
-  const state = readFileSync("PROMETHEUS_MASTER_ENGINEERING_STATE.md", "utf8");
-  const duplicateRegister = state.slice(state.indexOf("## Duplicate Prevention Register"));
-  const nextTask = state.slice(state.lastIndexOf("## Next Recommended Engineering Task"));
-
-  assert.match(state, /### 2026-07-02: Prometheus Website - Enterprise Lead Intake/u);
-  assert.match(state, /### 2026-07-03: Prometheus Website - Lead Submission Trace/u);
-  assert.match(state, /Historical record as of 2026-07-02\.[\s\S]*superseded/u);
-  assert.match(state, /Historical record as of 2026-07-03\.[\s\S]*superseded/u);
-  assert.match(state, /### 2026-08-07: Founder Notification Reconciliation \+ Master-State Supersession v1/u);
-  assert.match(state, /`POST \/api\/partner-intake`/u);
-  assert.match(state, /RouteIqRequestCrmCoordinator/u);
-  assert.match(state, /notification result is terminally classified `failed`/u);
-  assert.match(state, /missing external Cloudflare email-destination configuration/u);
-  assert.match(state, /### 2026-08-07: Email Routing Domain Onboarding \+ Final Founder Delivery Acceptance v1/u);
-  assert.match(state, /`riq_receipt_e74e57903a211291a9f1f37a` remains terminal `failed`/u);
-  assert.match(state, /`riq_receipt_b06adcc8fb2a58449ecf52a3` remains terminal `delivery_ambiguous`/u);
-  assert.match(state, /`riq_receipt_ba75a444905b0f6e78624b30`/u);
-  assert.match(state, /final delivery classification is `delivered_inbox`/u);
-  assert.match(state, /SPF `pass`, DKIM `pass`, and DMARC `not-reported`/u);
-  assert.match(state, /No DMARC record, active routing rule, catch-all forwarding rule, paid Email Sending domain/u);
-  assert.match(state, /Founder notification delivery is production-proven/u);
-
-  assert.match(duplicateRegister, /Current production accepts validated `POST \/api\/partner-intake` requests into durable CRM storage/u);
-  assert.match(duplicateRegister, /production-proven through the verified Cloudflare Email destination/u);
-  assert.match(duplicateRegister, /preserve both earlier terminal failure records as immutable evidence/u);
-  assert.doesNotMatch(duplicateRegister, /current production flow is browser-local `localStorage` plus `mailto:` only/u);
-  assert.match(nextTask, /Complete external Founder decisions for pricing, contracts, business banking, tax configuration, and Stripe Live eligibility/u);
-  assert.match(nextTask, /prepare a separate Private Worker v2 deployment-readiness successor for `BATCH-20260814-001`/u);
-  assert.match(nextTask, /Complete external Founder decisions for pricing, contracts, business banking, tax configuration, and Stripe Live eligibility/u);
-  assert.match(nextTask, /It must not deploy or activate collection without separate Founder authorization/u);
-  assert.match(nextTask, /must not be inferred or reused/u);
-  assert.doesNotMatch(nextTask, /prepare a separate Founder-reviewed dormant retention-maintenance deployment package/u);
-  assert.match(nextTask, /notification path and first-customer evidence boundary are controlled/u);
-  assert.doesNotMatch(nextTask, /email-routing engineering is (?:the )?current constraint/u);
-  assert.match(nextTask, /first-customer evidence/u);
-  assert.doesNotMatch(nextTask, /Current active highest-priority task:\s+Operation Aegis Phase II/u);
-});
-
 test("A complete Founder-authorized batch is auto-push eligible", () => {
   assert.deepEqual(evaluateAutomaticPushEligibility(passingManifest()), {
     status: "AUTO_PUSH_ELIGIBLE",

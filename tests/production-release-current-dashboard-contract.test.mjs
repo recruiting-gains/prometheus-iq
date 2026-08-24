@@ -80,6 +80,26 @@ test("production release verifier accepts the governed configuration-driven Dash
   assert.match(result.stdout, /"legacyRuntimePoolReferencePresent": false/u);
 });
 
+test("production release verifier declares only current mandatory gates and fails closed if one is absent", () => {
+  const source = readFileSync(verifierPath, "utf8");
+  assert.match(source, /\["existing security gate", "security:check"\]/u);
+  assert.match(
+    source,
+    /\["current private runtime and workflow suite", "test:private"\]/u
+  );
+  assert.match(
+    source,
+    /\["existing zero live Google API gate", "verify:zero-google-api"\]/u
+  );
+  assert.doesNotMatch(
+    source,
+    /dashboard:runtime-pool:check|dashboard:runtime-workflows:check|intelligence:adaptive-route-replenishment:check/u
+  );
+  assert.match(source, /if \(!scripts\[scriptName\]\)/u);
+  assert.match(source, /Required npm script is missing: \$\{scriptName\}/u);
+  assert.doesNotMatch(source, /if \(scripts\[scriptName\]\)\s*runExistingGate/u);
+});
+
 test("production release verifier rejects restored legacy runtime-pool selection", () => {
   const result = runFixture(fixture => {
     mutateBothIndexes(fixture, source => source.replace(

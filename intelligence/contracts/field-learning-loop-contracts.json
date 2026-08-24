@@ -12,9 +12,9 @@
   "anthonyBetaChanged": false,
   "productionLearningActive": false,
   "requiredSourceFiles": {
-    "constitution": "PROMETHEUS_CONSTITUTION.md",
-    "masterEngineeringState": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
-    "companyIdentity": "COMPANY_IDENTITY.md",
+    "constitution": "AGENTS.md",
+    "masterEngineeringState": "README.md",
+    "companyIdentity": "PRODUCT_VISION.md",
     "productVision": "PRODUCT_VISION.md",
     "researchFoundation": "RESEARCH_FOUNDATION.md",
     "salesFoundationFallback": "sales/README.md",

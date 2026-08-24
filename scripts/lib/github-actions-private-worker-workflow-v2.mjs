@@ -8,6 +8,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readlinkSync,
   readdirSync,
   realpathSync,
   rmSync,
@@ -15,7 +16,7 @@ import {
   writeFileSync
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { basename, dirname, extname, isAbsolute, join, relative, resolve } from "node:path";
 
 import {
   DeploymentPolicyError,
@@ -231,7 +232,9 @@ const PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIMENSIONS = new Set(
 const PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIAGNOSTICS = new Set(
   ROUTE_IQ_PRIVATE_BROWSER_ACCEPTANCE_FAILURE_DIAGNOSTICS
 );
-const GOVERNED_SOURCE_PATHS = Object.freeze([
+const GOVERNED_SOURCE_ROOT_PATHS = Object.freeze([
+  "package.json",
+  "package-lock.json",
   PRIVATE_WORKFLOW_V2_POLICY.contractPath,
   PRIVATE_WORKFLOW_V2_POLICY.qualificationWorkflowPath,
   PRIVATE_WORKFLOW_V2_POLICY.deploymentWorkflowPath,
@@ -248,6 +251,16 @@ const GOVERNED_SOURCE_PATHS = Object.freeze([
   PRIVATE_WORKFLOW_V2_POLICY.verifierPath,
   PRIVATE_WORKFLOW_V2_POLICY.testPath,
   PRIVATE_WORKFLOW_V2_POLICY.runtimeGuardTestPath
+]);
+export const PRIVATE_WORKFLOW_V2_GOVERNED_IMPORT_ROOT_PATHS = Object.freeze([
+  PRIVATE_WORKFLOW_V2_POLICY.qualificationRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.deploymentRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.productionIdentityRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.browserAcceptanceRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.smokeRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.metadataRunnerPath,
+  PRIVATE_WORKFLOW_V2_POLICY.libraryPath,
+  PRIVATE_WORKFLOW_V2_POLICY.verifierPath
 ]);
 
 export class PrivateWorkflowV2Error extends Error {
@@ -969,6 +982,244 @@ function runGit(root, argumentsList, { allowExitOne = false } = {}) {
   return String(result.stdout || "").trim();
 }
 
+function runGitBuffer(root, argumentsList) {
+  const result = spawnSync("git", argumentsList, {
+    cwd: root,
+    encoding: null,
+    stdio: ["ignore", "pipe", "pipe"],
+    maxBuffer: 4 * 1024 * 1024,
+    timeout: 30_000,
+    env: {
+      PATH: process.env.PATH,
+      HOME: process.env.HOME,
+      GIT_CONFIG_NOSYSTEM: "1",
+      GIT_TERMINAL_PROMPT: "0"
+    }
+  });
+  if (result.status !== 0 || result.error || result.signal) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.REPOSITORY_INVALID);
+  }
+  return Buffer.from(result.stdout || []);
+}
+
+function sha256PrivateWorkflowBytes(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function readPrivateV2ToolingFile(path) {
+  try {
+    const stats = lstatSync(path);
+    if (!stats.isFile() || stats.isSymbolicLink() || stats.size > MAX_FILE_BYTES) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+    }
+    return readFileSync(path);
+  } catch (error) {
+    if (error instanceof PrivateWorkflowV2Error) throw error;
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+  }
+}
+
+function parseToolingJson(value) {
+  try {
+    const parsed = JSON.parse(Buffer.isBuffer(value) ? value.toString("utf8") : value);
+    if (!isPlainObject(parsed)) fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+    return parsed;
+  } catch (error) {
+    if (error instanceof PrivateWorkflowV2Error) throw error;
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+  }
+}
+
+function sameCanonicalJson(left, right) {
+  return canonicalPrivateWorkflowJson(left) === canonicalPrivateWorkflowJson(right);
+}
+
+function validatePrivateV2ToolingDocuments(packageJson, packageLock) {
+  const rootLock = packageLock?.packages?.[""];
+  const lifecycleScripts = ["preinstall", "install", "postinstall", "prepare"];
+  if (packageLock.lockfileVersion !== 3
+    || packageLock.requires !== true
+    || !isPlainObject(packageLock.packages)
+    || !isPlainObject(rootLock)
+    || !isPlainObject(packageJson.scripts)
+    || lifecycleScripts.some(name => Object.hasOwn(packageJson.scripts, name))
+    || Object.hasOwn(packageJson, "overrides")
+    || packageJson.name !== rootLock.name
+    || packageJson.version !== rootLock.version
+    || !sameCanonicalJson(packageJson.dependencies || {}, rootLock.dependencies || {})
+    || !sameCanonicalJson(packageJson.devDependencies || {}, rootLock.devDependencies || {})
+    || packageJson.devDependencies?.wrangler !== PRIVATE_WORKFLOW_V2_POLICY.wranglerVersion
+    || rootLock.devDependencies?.wrangler !== PRIVATE_WORKFLOW_V2_POLICY.wranglerVersion) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+  }
+
+  const packageEntries = Object.entries(packageLock.packages).filter(([path]) => path !== "");
+  for (const [path, entry] of packageEntries) {
+    if (!path.startsWith("node_modules/")
+      || !isPlainObject(entry)
+      || typeof entry.version !== "string"
+      || !/^sha512-[A-Za-z0-9+/]+={0,2}$/u.test(entry.integrity || "")) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+    }
+    try {
+      const resolvedUrl = new URL(entry.resolved);
+      if (resolvedUrl.protocol !== "https:"
+        || resolvedUrl.hostname !== "registry.npmjs.org"
+        || resolvedUrl.username
+        || resolvedUrl.password
+        || resolvedUrl.port
+        || resolvedUrl.hash) {
+        fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+      }
+    } catch (error) {
+      if (error instanceof PrivateWorkflowV2Error) throw error;
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+    }
+  }
+
+  const wrangler = packageLock.packages["node_modules/wrangler"];
+  if (!isPlainObject(wrangler)
+    || wrangler.version !== PRIVATE_WORKFLOW_V2_POLICY.wranglerVersion
+    || wrangler.resolved
+      !== `https://registry.npmjs.org/wrangler/-/wrangler-${PRIVATE_WORKFLOW_V2_POLICY.wranglerVersion}.tgz`
+    || !/^sha512-[A-Za-z0-9+/]+={0,2}$/u.test(wrangler.integrity || "")
+    || wrangler.bin?.wrangler !== "bin/wrangler.js") {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+  }
+  return Object.freeze({ packageJson, packageLock });
+}
+
+export function verifyPrivateV2ApprovedToolingSource({
+  repositoryRoot,
+  approvedCommit,
+  approvedTree
+} = {}) {
+  if (typeof repositoryRoot !== "string"
+    || !SHA40.test(approvedCommit || "")
+    || !SHA40.test(approvedTree || "")) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.REPOSITORY_INVALID);
+  }
+  const rootPath = realpathSync(repositoryRoot);
+  const head = runGit(rootPath, ["rev-parse", "HEAD"]);
+  const headTree = runGit(rootPath, ["rev-parse", "HEAD^{tree}"]);
+  const approvedCommitTree = runGit(rootPath, ["rev-parse", `${approvedCommit}^{tree}`]);
+  const originMain = runGit(rootPath, ["rev-parse", "refs/remotes/origin/main"]);
+  if (head !== approvedCommit
+    || headTree !== approvedTree
+    || approvedCommitTree !== approvedTree) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.REPOSITORY_INVALID);
+  }
+  runGit(rootPath, ["merge-base", "--is-ancestor", approvedCommit, originMain]);
+
+  const packagePath = resolve(rootPath, "package.json");
+  const lockPath = resolve(rootPath, "package-lock.json");
+  const packageBytes = readPrivateV2ToolingFile(packagePath);
+  const lockBytes = readPrivateV2ToolingFile(lockPath);
+  const approvedPackageBytes = runGitBuffer(rootPath, [
+    "show",
+    `${approvedCommit}:package.json`
+  ]);
+  const approvedLockBytes = runGitBuffer(rootPath, [
+    "show",
+    `${approvedCommit}:package-lock.json`
+  ]);
+  if (!packageBytes.equals(approvedPackageBytes) || !lockBytes.equals(approvedLockBytes)) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+  }
+  validatePrivateV2ToolingDocuments(
+    parseToolingJson(packageBytes),
+    parseToolingJson(lockBytes)
+  );
+  if (runGit(rootPath, ["status", "--porcelain=v1", "--untracked-files=all"]) !== "") {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.REPOSITORY_INVALID);
+  }
+  return Object.freeze({
+    status: "PRIVATE_WORKER_V2_APPROVED_TOOLING_SOURCE_VERIFIED",
+    approvedCommit,
+    approvedTree,
+    originMain,
+    packageJsonSha256: sha256PrivateWorkflowBytes(packageBytes),
+    packageLockSha256: sha256PrivateWorkflowBytes(lockBytes)
+  });
+}
+
+export function verifyPrivateV2InstalledTooling({ repositoryRoot } = {}) {
+  if (typeof repositoryRoot !== "string") {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+  }
+  const rootPath = realpathSync(repositoryRoot);
+  const packageBytes = readPrivateV2ToolingFile(resolve(rootPath, "package.json"));
+  const lockBytes = readPrivateV2ToolingFile(resolve(rootPath, "package-lock.json"));
+  const { packageLock } = validatePrivateV2ToolingDocuments(
+    parseToolingJson(packageBytes),
+    parseToolingJson(lockBytes)
+  );
+  const installedLockPath = resolve(rootPath, "node_modules/.package-lock.json");
+  const installedLock = parseToolingJson(readPrivateV2ToolingFile(installedLockPath));
+  if (installedLock.lockfileVersion !== 3
+    || installedLock.name !== packageLock.name
+    || installedLock.version !== packageLock.version
+    || installedLock.requires !== true
+    || !isPlainObject(installedLock.packages)
+    || Object.hasOwn(installedLock.packages, "")) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+  }
+
+  const installedEntries = Object.entries(installedLock.packages);
+  for (const [path, entry] of installedEntries) {
+    if (!Object.hasOwn(packageLock.packages, path)
+      || !sameCanonicalJson(entry, packageLock.packages[path])) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+    }
+  }
+  const requiredInstalledPaths = Object.entries(packageLock.packages)
+    .filter(([path, entry]) => path !== "" && entry.optional !== true)
+    .map(([path]) => path)
+    .sort((left, right) => left.localeCompare(right));
+  if (requiredInstalledPaths.some(path => !Object.hasOwn(installedLock.packages, path))) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+  }
+
+  const installedWranglerPath = resolve(rootPath, "node_modules/wrangler/package.json");
+  const installedWrangler = parseToolingJson(
+    readPrivateV2ToolingFile(installedWranglerPath)
+  );
+  const wranglerBinPath = resolve(rootPath, "node_modules/.bin/wrangler");
+  const wranglerTargetPath = resolve(rootPath, "node_modules/wrangler/bin/wrangler.js");
+  const binStats = lstatSync(wranglerBinPath);
+  if (installedWrangler.version !== PRIVATE_WORKFLOW_V2_POLICY.wranglerVersion
+    || String(installedWrangler.bin?.wrangler || "").replace(/^\.\//u, "") !== "bin/wrangler.js"
+    || !binStats.isSymbolicLink()
+    || resolve(dirname(wranglerBinPath), readlinkSync(wranglerBinPath)) !== wranglerTargetPath
+    || !lstatSync(wranglerTargetPath).isFile()
+    || runVersion(rootPath, process.execPath, [wranglerTargetPath, "--version"])
+      !== PRIVATE_WORKFLOW_V2_POLICY.wranglerVersion) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+  }
+
+  const installedPackageTreeSha256 = sha256PrivateWorkflowBytes(
+    canonicalPrivateWorkflowJson(installedLock.packages)
+  );
+  const expectedInstalledPackages = Object.fromEntries(
+    Object.keys(installedLock.packages)
+      .sort((left, right) => left.localeCompare(right))
+      .map(path => [path, packageLock.packages[path]])
+  );
+  if (installedPackageTreeSha256 !== sha256PrivateWorkflowBytes(
+    canonicalPrivateWorkflowJson(expectedInstalledPackages)
+  )) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.TOOLCHAIN_MISMATCH);
+  }
+  return Object.freeze({
+    status: "PRIVATE_WORKER_V2_INSTALLED_TOOLING_VERIFIED",
+    packageJsonSha256: sha256PrivateWorkflowBytes(packageBytes),
+    packageLockSha256: sha256PrivateWorkflowBytes(lockBytes),
+    installedPackageTreeSha256,
+    installedWranglerPackageSha256: sha256PrivateWorkflowFile(installedWranglerPath),
+    wranglerVersion: installedWrangler.version
+  });
+}
+
 export function verifyPrivateV2RepositoryBoundary(root, candidateCommit, candidateTree, {
   qualification = false
 } = {}) {
@@ -977,18 +1228,21 @@ export function verifyPrivateV2RepositoryBoundary(root, candidateCommit, candida
   }
   const actualTree = runGit(root, ["rev-parse", `${candidateCommit}^{tree}`]);
   const head = runGit(root, ["rev-parse", "HEAD"]);
+  const headTree = runGit(root, ["rev-parse", "HEAD^{tree}"]);
   const originMain = runGit(root, ["rev-parse", "refs/remotes/origin/main"]);
   const branch = runGit(root, ["branch", "--show-current"]);
   const status = runGit(root, ["status", "--porcelain=v1", "--untracked-files=all"]);
-  runGit(root, ["merge-base", "--is-ancestor", candidateCommit, "HEAD"]);
+  runGit(root, ["merge-base", "--is-ancestor", candidateCommit, originMain]);
   if (actualTree !== candidateTree
-    || head !== originMain
-    || branch !== PRIVATE_WORKFLOW_V2_POLICY.branch
+    || headTree !== candidateTree
+    || head !== candidateCommit
     || status !== ""
-    || (qualification && head !== candidateCommit)) {
+    || (qualification && (
+      head !== originMain || branch !== PRIVATE_WORKFLOW_V2_POLICY.branch
+    ))) {
     fail(PRIVATE_WORKFLOW_V2_FAILURE.REPOSITORY_INVALID);
   }
-  return Object.freeze({ head, originMain, candidateCommit, candidateTree });
+  return Object.freeze({ head, headTree, originMain, candidateCommit, candidateTree });
 }
 
 function runVersion(root, command, argumentsList) {
@@ -1215,8 +1469,86 @@ function exactReleaseRoot(directory) {
   }
 }
 
+function relativeModuleSpecifiers(source) {
+  const specifiers = new Set();
+  const staticImport = /(?:^|\n)[\t ]*(?:import|export)[\t ]+(?:(?:[^;]*?)\bfrom[\t\r\n ]+)?(["'])(\.\.?\/[^"']+)\1[\t ]*(?:with[\t ]*\{[^}]*\})?[\t ]*;?/gu;
+  for (const match of source.matchAll(staticImport)) specifiers.add(match[2]);
+  return [...specifiers].sort((left, right) => left.localeCompare(right));
+}
+
+function resolveGovernedRelativeImport(repositoryRoot, importingPath, specifier) {
+  if (!specifier.startsWith(".") || specifier.includes("\\") || /[?#\0]/u.test(specifier)) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+  }
+  const unresolved = resolve(repositoryRoot, dirname(importingPath), specifier);
+  const candidates = extname(unresolved)
+    ? [unresolved]
+    : [
+        unresolved,
+        `${unresolved}.mjs`,
+        `${unresolved}.js`,
+        `${unresolved}.json`,
+        join(unresolved, "index.mjs"),
+        join(unresolved, "index.js"),
+        join(unresolved, "index.json")
+      ];
+  const matches = candidates.filter(path => {
+    if (!existsSync(path)) return false;
+    const stats = lstatSync(path);
+    return stats.isFile() && !stats.isSymbolicLink();
+  });
+  if (matches.length !== 1) fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+  const repositoryRealPath = realpathSync(repositoryRoot);
+  const importedRealPath = realpathSync(matches[0]);
+  const importedPath = safeRelativeName(repositoryRealPath, importedRealPath);
+  if (importedPath.startsWith("node_modules/")) {
+    fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+  }
+  return importedPath;
+}
+
+export function privateWorkflowV2GovernedSourcePaths(repositoryRoot) {
+  const rootPath = realpathSync(repositoryRoot);
+  const governed = new Set(GOVERNED_SOURCE_ROOT_PATHS);
+  const visited = new Set();
+  const pending = [...PRIVATE_WORKFLOW_V2_GOVERNED_IMPORT_ROOT_PATHS]
+    .sort((left, right) => left.localeCompare(right));
+
+  while (pending.length > 0) {
+    const path = pending.shift();
+    if (visited.has(path)) continue;
+    visited.add(path);
+    governed.add(path);
+    const absolute = resolve(rootPath, path);
+    if (!existsSync(absolute)) fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+    const stats = lstatSync(absolute);
+    if (!stats.isFile() || stats.isSymbolicLink()) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+    }
+    if (![".js", ".mjs"].includes(extname(path))) continue;
+    const source = readFileSync(absolute, "utf8");
+    for (const specifier of relativeModuleSpecifiers(source)) {
+      const importedPath = resolveGovernedRelativeImport(rootPath, path, specifier);
+      governed.add(importedPath);
+      if (!visited.has(importedPath)) pending.push(importedPath);
+    }
+    pending.sort((left, right) => left.localeCompare(right));
+  }
+
+  for (const path of governed) {
+    const absolute = resolve(rootPath, path);
+    if (!existsSync(absolute)) fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+    const stats = lstatSync(absolute);
+    if (!stats.isFile() || stats.isSymbolicLink()) {
+      fail(PRIVATE_WORKFLOW_V2_FAILURE.ARTIFACT_INVALID);
+    }
+    safeRelativeName(rootPath, realpathSync(absolute));
+  }
+  return Object.freeze([...governed].sort((left, right) => left.localeCompare(right)));
+}
+
 function governedSourceHashes(root) {
-  return Object.freeze(Object.fromEntries(GOVERNED_SOURCE_PATHS.map(path => [
+  return Object.freeze(Object.fromEntries(privateWorkflowV2GovernedSourcePaths(root).map(path => [
     path,
     sha256PrivateWorkflowFile(resolve(root, path))
   ])));

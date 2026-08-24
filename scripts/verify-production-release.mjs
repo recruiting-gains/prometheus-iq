@@ -696,13 +696,15 @@ if (!skipExistingGates) {
   const scripts = JSON.parse(read("package.json")).scripts || {};
   const gates = [
     ["existing security gate", "security:check"],
-    ["existing active runtime pool gate", "dashboard:runtime-pool:check"],
-    ["existing dashboard runtime workflows gate", "dashboard:runtime-workflows:check"],
-    ["continuous adaptive route replenishment gate", "intelligence:adaptive-route-replenishment:check"],
+    ["current private runtime and workflow suite", "test:private"],
     ["existing zero live Google API gate", "verify:zero-google-api"]
   ];
   for (const [name, scriptName] of gates) {
-    if (scripts[scriptName]) runExistingGate(name, "npm", ["run", scriptName]);
+    if (!scripts[scriptName]) {
+      addCheck(name, "failed", { error: `Required npm script is missing: ${scriptName}` });
+      continue;
+    }
+    runExistingGate(name, "npm", ["run", scriptName]);
   }
 }
 

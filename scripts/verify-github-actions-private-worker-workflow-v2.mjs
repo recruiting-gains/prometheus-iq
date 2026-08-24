@@ -15,7 +15,9 @@ import {
 import {
   PRIVATE_WORKFLOW_V2_FAILURE,
   PRIVATE_WORKFLOW_V2_POLICY,
-  buildQualifiedPrivateWranglerInvocation
+  buildQualifiedPrivateWranglerInvocation,
+  verifyPrivateV2ApprovedToolingSource,
+  verifyPrivateV2InstalledTooling
 } from "./lib/github-actions-private-worker-workflow-v2.mjs";
 import {
   CLOUDFLARE_UNATTENDED_SMOKE_PROPAGATION,
@@ -204,7 +206,63 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
     2
   );
   assert.equal(count(qualification, /^        run: npm ci$/gmu), 1);
-  assert.equal(count(deployment, /^        run: npm ci$/gmu), 2);
+  for (const suite of ["core", "private", "security", "release"]) {
+    assert.equal(count(qualification, new RegExp(`^          npm run test:${suite}$`, "gmu")), 1);
+  }
+  assert.equal(count(qualification, /npm test/gmu), 0);
+  assert.equal(count(deployment, /^          ref: \$\{\{ inputs\.approved_commit \}\}$/gmu), 2);
+  assert.equal(count(deployment, /^          ref: main$/gmu), 0);
+  assert.equal(count(deployment, /^        run: npm ci --ignore-scripts$/gmu), 2);
+  assert.equal(count(deployment, /^        run: npm ci$/gmu), 0);
+  assert.equal(
+    count(
+      deployment,
+      /^        run: node scripts\/verify-github-actions-private-worker-workflow-v2\.mjs verify-approved-tooling-source$/gmu
+    ),
+    2
+  );
+  assert.equal(
+    count(
+      deployment,
+      /^        run: node scripts\/verify-github-actions-private-worker-workflow-v2\.mjs verify-installed-tooling$/gmu
+    ),
+    2
+  );
+  for (const jobSource of [deploymentPreflight, deploymentJob]) {
+    const setup = jobSource.indexOf("Set up exact qualification and deployment Node runtime");
+    const sourceVerification = jobSource.indexOf(
+      "Verify exact approved tooling source before installation"
+    );
+    const install = jobSource.indexOf("Install exact locked deployment tooling");
+    const installedVerification = jobSource.indexOf(
+      "Verify installed deployment tooling identity"
+    );
+    const artifactDownload = jobSource.indexOf(
+      "Download only the Founder-pinned private qualification artifact"
+    );
+    assert.ok(
+      setup >= 0
+        && setup < sourceVerification
+        && sourceVerification < install
+        && install < installedVerification
+        && installedVerification < artifactDownload
+    );
+  }
+  assert.equal(
+    count(deployment, /test "\$\(git rev-parse HEAD\)" = "\$\{\{ inputs\.approved_commit \}\}"/gmu),
+    2
+  );
+  assert.equal(
+    count(deployment, /test "\$\(git rev-parse 'HEAD\^\{tree\}'\)" = "\$\{\{ inputs\.approved_tree \}\}"/gmu),
+    2
+  );
+  assert.equal(
+    count(
+      deployment,
+      /git merge-base --is-ancestor "\$\{\{ inputs\.approved_commit \}\}" refs\/remotes\/origin\/main/gmu
+    ),
+    2
+  );
   assert.match(qualification, /group: qualify-prometheus-private-worker-v2-\$\{\{ inputs\.candidate_commit \}\}/u);
   assert.match(deployment, /group: deploy-prometheus-private-worker-v2/u);
   assert.match(qualification, /cancel-in-progress: false/u);
@@ -330,6 +388,19 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
   assert.equal(contract.deployment.workerNameOverrideAllowed, false);
   assert.equal(contract.deployment.forwardDeploymentAttempts, 1);
   assert.equal(contract.deployment.automaticRetryAllowed, false);
+  assert.deepEqual(contract.deployment.toolingSourceBinding, {
+    checkoutRef: "approved_commit",
+    approvedCommitMustRemainAncestorOfMain: true,
+    approvedTreeVerifiedBeforeInstall: true,
+    installCommand: "npm ci --ignore-scripts",
+    lifecycleScriptsAllowed: false,
+    packageOverridesAllowed: false,
+    governedSourcePaths: ["package.json", "package-lock.json"],
+    installedPackageTreeVerified: true,
+    installedWranglerIdentityVerified: true,
+    verificationBeforeArtifactExecution: true,
+    laterMainToolingAllowed: false
+  });
   assert.deepEqual(contract.productionIdentityInspection, {
     workflow: PRIVATE_WORKFLOW_V2_POLICY.productionIdentityWorkflowPath,
     runner: PRIVATE_WORKFLOW_V2_POLICY.productionIdentityRunnerPath,
@@ -794,5 +865,20 @@ export function verifyGithubActionsPrivateWorkerWorkflowV2() {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  process.stdout.write(`${verifyGithubActionsPrivateWorkerWorkflowV2().status}\n`);
+  const mode = process.argv[2] || "verify-workflow";
+  let result;
+  if (mode === "verify-approved-tooling-source") {
+    result = verifyPrivateV2ApprovedToolingSource({
+      repositoryRoot: root,
+      approvedCommit: process.env.PROMETHEUS_APPROVED_COMMIT,
+      approvedTree: process.env.PROMETHEUS_APPROVED_TREE
+    });
+  } else if (mode === "verify-installed-tooling") {
+    result = verifyPrivateV2InstalledTooling({ repositoryRoot: root });
+  } else if (mode === "verify-workflow") {
+    result = verifyGithubActionsPrivateWorkerWorkflowV2();
+  } else {
+    throw new Error("PRIVATE_WORKER_V2_VERIFIER_MODE_INVALID");
+  }
+  process.stdout.write(`${result.status}\n`);
 }

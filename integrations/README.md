@@ -29,7 +29,7 @@ Infrastructure validates, protects, routes, persists, and prepares handoff packe
 Verification:
 
 ```bash
-npm run infrastructure:intake-contract:check
+npm run test:public
 ```
 
 ## Business Hours Provider Adapter v1

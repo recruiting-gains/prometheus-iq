@@ -65,24 +65,24 @@
     {
       "sourceId": "prospective_retention_policy",
       "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
-      "sha256": "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601"
+      "sha256": "a0a60f3ffb693d9fadd2b1637d22fc6f6f035f8fa2533af96dc3a0c1644e1a9f"
     }
   ],
   "crossOwnerCorroborationSources": [
     {
       "ownerSubsystem": "Prometheus Route IQ",
-      "ownerCommit": "4d53a8a32766f8c7c88f2daa9593f7c262a8f33b",
-      "ownerTree": "3c684bec02163e5f08a6e4336b62c78bbbc926fd",
+      "ownerCommit": "25f4ad75f8f550ae9bcdb864fe1a6f7acb4db96c",
+      "ownerTree": "b517a1ef3ed850b114621e533ec7195f17954c05",
       "path": "docs/route-iq-public-positioning-claims-contract-v1.json",
-      "sha256": "bc58a923de66d27e67a99f8a8f12891814f7d12e65b53cab7f4d1ffcd77b3958",
+      "sha256": "064f3212f2a493aa500549305b1fc02e638e4dfdf9dc286925ae095e7112c6af",
       "corroborationResult": "COMPATIBLE_ONLY_WITH_EXPLICIT_QUALIFICATIONS"
     },
     {
       "ownerSubsystem": "Prometheus Intelligence Engine",
-      "ownerCommit": "5215ad7f261590f5901dc84a3b8e59d9bde6ce8b",
-      "ownerTree": "0812759b11d783b845cdaf9db3ce0a7c166452c0",
+      "ownerCommit": "e4823b1b6d700510564c67d44edff3b2fa0c5ed0",
+      "ownerTree": "abd8479e7fdf780709cfce85bad801b464da8679",
       "path": "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
-      "sha256": "47594574fada334693f5cecf4f44b594bd8b4ebbfaa56ec23738dfbb0bbd702c",
+      "sha256": "a7288081d6dbdccabbd6d8428f9d1e6e5dbfd410c65db568297fad173cf027ae",
       "corroborationResult": "COMPATIBLE_ONLY_WITH_EXPLICIT_QUALIFICATIONS"
     }
   ],

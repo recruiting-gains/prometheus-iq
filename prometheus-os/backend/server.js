@@ -150,7 +150,7 @@ function canonicalProjectRoot(version = {}) {
   const configured = String(version?.paths?.projectRoot || "").trim();
   if (configured) {
     const candidate = normalize(configured);
-    if (existsSync(join(candidate, "PROMETHEUS_MASTER_ENGINEERING_STATE.md"))) return candidate;
+    if (existsSync(join(candidate, "README.md"))) return candidate;
   }
   return PROJECT_ROOT;
 }
@@ -303,8 +303,7 @@ function infrastructureTimelineState({ masterState, systemMap, aegisReport, proj
         ? `Finish and verify ${activeWork[0]}.`
         : "No verified Infrastructure action is currently required.",
     sources: [
-      "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
-      systemMap ? "PROMETHEUS_SYSTEM_MAP.md" : null,
+      "README.md",
       aegisReport ? "docs/aegis-phase-ii-account-level-completion.md" : null
     ].filter(Boolean),
     presentationOnly: true,
@@ -316,10 +315,10 @@ async function founderTimeline() {
   const version = await readCompanionVersion();
   const projectRoot = canonicalProjectRoot(version);
   const report = await readTextIfPresent(join(projectRoot, "mac-companion/reports/latest-companion-verification-report.md"));
-  const masterState = await readTextIfPresent(join(projectRoot, "PROMETHEUS_MASTER_ENGINEERING_STATE.md"));
-  const systemMap = await readTextIfPresent(join(projectRoot, "PROMETHEUS_SYSTEM_MAP.md"));
+  const masterState = await readTextIfPresent(join(projectRoot, "README.md"));
+  const systemMap = await readTextIfPresent(join(projectRoot, "README.md"));
   const productVision = await readTextIfPresent(join(projectRoot, "PRODUCT_VISION.md"));
-  const companyIdentity = await readTextIfPresent(join(projectRoot, "COMPANY_IDENTITY.md"));
+  const companyIdentity = await readTextIfPresent(join(projectRoot, "PRODUCT_VISION.md"));
   const aegisReport = await readTextIfPresent(join(projectRoot, "docs/aegis-phase-ii-account-level-completion.md"));
   const resultMatch = /^Result:\s*(.+)$/m.exec(report);
 

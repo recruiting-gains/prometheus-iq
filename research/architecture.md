@@ -359,9 +359,8 @@ Existing research-related documents must be reused:
 - `docs/competitor-pricing-revenue.md`
 - `docs/prometheus-iq-competitive-differentiation.md`
 - `RESEARCH_FOUNDATION.md`
-- `COMPANY_IDENTITY.md`
 - `PRODUCT_VISION.md`
-- `docs/prometheus-company-manual.md`
+- `README.md`
 - `research/briefing-system.md`
 - `research/market-intelligence-engine.md`
 - `research/executive-intelligence-platform.md`

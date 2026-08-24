@@ -1,14 +1,23 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { createHash, createHmac } from "node:crypto";
-import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { resolve } from "node:path";
 
 import {
+  computeRouteIqCandidateManifestDigests,
   initializeRouteIqProspectiveCoordinatorSchema,
   openRouteIqProspectiveCoordinator,
+  routeIqCandidateManifestSchemaVersion,
+  routeIqCandidateProducerContractVersion,
+  routeIqCandidateProducerEnvelopeVersion,
+  routeIqCandidateSourceSchemaVersion,
+  routeIqCandidateSourceVersion,
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
+import {
+  routeIqChronologicalEvidenceProjectionVersion,
+} from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
 import {
   buildCandidateManifestCoordinatorClaims,
   buildFounderShadowReadinessAggregate,
@@ -18,11 +27,14 @@ import {
   createImmutableAcceptedCandidateSnapshot,
   produceRouteIqNextStopCandidateManifest,
   produceShadowDecisionFromAcceptedSnapshot,
+  shadowDecisionProspectiveDispositionSchemaVersion,
+  shadowDecisionRankingBasisVersion,
   shadowDecisionRuntimeReasonCodes,
 } from "../intelligence/shadow-decision-readiness-runtime.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const BASE_TIME = Date.parse("2026-07-13T18:00:00.000Z");
+const HISTORICAL_EVIDENCE_COMMIT = "fd0f306387664e8cd3cb1d957b81d3d7dda5dc8e";
 const SOURCE_PATHS = Object.freeze({
   activePool:
     "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
@@ -57,11 +69,152 @@ function digest(value) {
 
 function sourceArtifacts() {
   return Object.fromEntries(
-    Object.entries(SOURCE_PATHS).map(([kind, path]) => [
-      kind,
-      { path, rawText: readFileSync(resolve(root, path), "utf8") },
-    ]),
+    Object.entries(SOURCE_PATHS).map(([kind, path]) => {
+      const historicalSource = execFileSync("git", [
+          "show",
+          `${HISTORICAL_EVIDENCE_COMMIT}:${path}`,
+      ], { cwd: root, encoding: "utf8", maxBuffer: 8 * 1024 * 1024 });
+      if (kind !== "businessHours") {
+        return [kind, { path, rawText: historicalSource }];
+      }
+      const hours = JSON.parse(historicalSource);
+      for (const record of hours.records) {
+        record.sourceRetrievedAt = iso(-3_600_000);
+        record.hoursVerifiedAt = iso(-3_600_000);
+        record.lastSuccessfulRefreshAt = iso(-3_600_000);
+        record.lastFailedRefreshAt = null;
+        record.refreshFailure = null;
+      }
+      return [kind, { path, rawText: JSON.stringify(hours) }];
+    }),
   );
+}
+
+function syntheticManifestSourceRecords(opportunity) {
+  const descriptors = [
+    {
+      key: "territory",
+      sourceRecordSha256: opportunity.territorySource.sourceRecordSha256,
+      availableAt: opportunity.territorySource.availableAt,
+    },
+    ...Object.keys(SOURCE_PATHS).map((kind) => ({
+      key: kind,
+      sourceRecordSha256: digest(`synthetic-shadow-source:${kind}`),
+      availableAt: iso(-3_600_000),
+    })),
+  ];
+  return descriptors
+    .map((source) => ({
+      sourceRecordId: `riq_source_${digest({
+        key: source.key,
+        sourceRecordSha256: source.sourceRecordSha256,
+      })}`,
+      sourceSchemaVersion: routeIqCandidateSourceSchemaVersion,
+      sourceVersion: routeIqCandidateSourceVersion,
+      sourceRecordSha256: source.sourceRecordSha256,
+      availableAt: source.availableAt,
+    }))
+    .sort((left, right) => left.sourceRecordId.localeCompare(right.sourceRecordId));
+}
+
+function syntheticManifestCandidateDefinitions(opportunity) {
+  return Array.from({ length: 16 }, (_, index) => {
+    const sourceOrdinal = index + 1;
+    return {
+      candidateId: `riq_candidate_${digest({
+        territoryId: opportunity.canonicalContext.territoryId,
+        sourceOrdinal,
+        fixtureVersion: "synthetic-shadow-manifest-ready-v1",
+      })}`,
+      sourcePool: index < 15 ? "active" : "full",
+      sourceOrdinal,
+      recommendationScore: 100 - index,
+      hoursStatus: "OPEN_VERIFIED",
+    };
+  });
+}
+
+function buildSyntheticManifestReadyFixture(opportunity, { completedCandidateIds = [] } = {}) {
+  const sourceManifest = syntheticManifestSourceRecords(opportunity);
+  const sourceRecordIds = sourceManifest.map((source) => source.sourceRecordId);
+  const completed = new Set(completedCandidateIds);
+  const selected = syntheticManifestCandidateDefinitions(opportunity)
+    .filter((candidate) => !completed.has(candidate.candidateId))
+    .slice(0, 15);
+  const totalScore = selected.reduce(
+    (sum, candidate) => sum + candidate.recommendationScore,
+    0,
+  );
+  const candidates = selected.map((candidate, index) => ({
+    candidateId: candidate.candidateId,
+    sourceRecordIds,
+    eligibility: {
+      status: "eligible",
+      reasonCodes: [
+        "business_hours_eligible",
+        "canonical_candidate_source_complete",
+        candidate.sourcePool === "active"
+          ? "governed_active_pool_member"
+          : "governed_full_pool_fallback",
+        "territory_permitted",
+      ].sort(),
+      evaluatedAt: iso(500),
+    },
+    rankingContext: {
+      producerSubsystem: "Prometheus Intelligence Engine",
+      ordinal: index + 1,
+      probability: candidate.recommendationScore / totalScore,
+      basisVersion: shadowDecisionRankingBasisVersion,
+    },
+  }));
+  const digestInput = {
+    territoryId: opportunity.canonicalContext.territoryId,
+    evidenceCutoff: iso(1_000),
+    envelopeVersion: routeIqCandidateProducerEnvelopeVersion,
+    producerSubsystem: "Prometheus Intelligence Engine",
+    producerContractVersion: routeIqCandidateProducerContractVersion,
+    schemaVersion: routeIqCandidateManifestSchemaVersion,
+    dataProjectionVersion: routeIqChronologicalEvidenceProjectionVersion,
+    candidates,
+    sourceManifest,
+  };
+  const digests = computeRouteIqCandidateManifestDigests(digestInput);
+  const producerClaims = {
+    purpose: "candidate_manifest",
+    ...opportunity.scope,
+    ...structuredClone(opportunity.canonicalContext),
+    ...digestInput,
+    candidateCount: digests.candidateCount,
+    sourceCount: digests.sourceCount,
+    candidateManifestSha256: digests.candidateManifestSha256,
+    sourceManifestSha256: digests.sourceManifestSha256,
+    completeManifestSha256: digests.completeManifestSha256,
+  };
+  return Object.freeze({
+    schemaVersion: shadowDecisionProspectiveDispositionSchemaVersion,
+    disposition: "MANIFEST_READY",
+    opportunityId: opportunity.opportunityId,
+    producerClaims,
+    operationExpectations: {
+      expectedCandidateCount: digests.candidateCount,
+      expectedSourceCount: digests.sourceCount,
+      expectedCompleteManifestSha256: digests.completeManifestSha256,
+    },
+    governedAudit: {
+      fixtureVersion: "synthetic-shadow-manifest-ready-v1",
+      targetSize: 15,
+      eligibleSourceCandidateCount: 16 - completed.size,
+      completedCandidateCount: completed.size,
+      candidateDefinitions: selected.map((candidate, index) => ({
+        ...candidate,
+        manifestOrdinal: index + 1,
+      })),
+      scoresChanged: false,
+      recommendationInfluence: "OFF",
+    },
+    canonicalProductionEvidenceEligible: false,
+    recommendationInfluence: "OFF",
+  });
 }
 
 function knownTerritoryContext(suffix = "runtime") {
@@ -227,7 +380,7 @@ async function acceptManifest(harness, opportunity, result, at = iso(2_000)) {
   });
 }
 
-test("real governed artifacts produce a complete provenance-bound manifest without changing scores or order", async () => {
+test("the frozen historical source set is deterministically excluded by current admission", async () => {
   const harness = await openHarness("real-sources");
   const opportunity = canonicalOpportunity(harness.allocation, harness.territoryContext);
   const input = producerInput(opportunity);
@@ -235,9 +388,25 @@ test("real governed artifacts produce a complete provenance-bound manifest witho
   const replay = produceRouteIqNextStopCandidateManifest(input);
 
   assert.deepEqual(replay, first);
+  assert.equal(first.disposition, "EXCLUDED");
+  assert.deepEqual(first.reasonCodes, [
+    shadowDecisionRuntimeReasonCodes.candidateSetIncomplete,
+  ]);
+  assert.equal(first.canonicalProductionEvidenceEligible, false);
+  assert.equal(first.recommendationInfluence, "OFF");
+});
+
+test("synthetic governed admission produces a complete deterministic success manifest", async () => {
+  const harness = await openHarness("synthetic-success");
+  const opportunity = canonicalOpportunity(harness.allocation, harness.territoryContext);
+  const first = buildSyntheticManifestReadyFixture(opportunity);
+  const replay = buildSyntheticManifestReadyFixture(opportunity);
+
+  assert.deepEqual(replay, first);
   assert.equal(first.disposition, "MANIFEST_READY");
   assert.equal(first.producerClaims.candidateCount, 15);
   assert.equal(first.producerClaims.sourceCount, 5);
+  assert.equal(first.governedAudit.eligibleSourceCandidateCount, 16);
   assert.equal(first.governedAudit.scoresChanged, false);
   assert.equal(first.recommendationInfluence, "OFF");
   assert.equal(
@@ -248,7 +417,12 @@ test("real governed artifacts produce a complete provenance-bound manifest witho
   );
 
   const expectedArtifactHashes = new Set(
-    Object.values(input.sourceArtifacts).map((source) => digest(source.rawText)),
+    [
+      harness.territoryContext.sourceRecordSha256,
+      ...Object.keys(SOURCE_PATHS).map(
+        (kind) => digest(`synthetic-shadow-source:${kind}`),
+      ),
+    ],
   );
   const actualHashes = new Set(
     first.producerClaims.sourceManifest.map((source) => source.sourceRecordSha256),
@@ -256,27 +430,27 @@ test("real governed artifacts produce a complete provenance-bound manifest witho
   for (const expected of expectedArtifactHashes) assert.equal(actualHashes.has(expected), true);
   assert.equal(actualHashes.has(harness.territoryContext.sourceRecordSha256), true);
 
-  const full = JSON.parse(input.sourceArtifacts.fullPool.rawText).cruz;
+  const sourceDefinitions = syntheticManifestCandidateDefinitions(opportunity);
   for (const definition of first.governedAudit.candidateDefinitions) {
-    const source = full.find(
-      (candidate) => candidate.seedRouteOrder === definition.sourceOrdinal,
+    const source = sourceDefinitions.find(
+      (candidate) => candidate.sourceOrdinal === definition.sourceOrdinal,
     );
-    assert.equal(definition.recommendationScore, source.qualityScore);
+    assert.equal(definition.recommendationScore, source.recommendationScore);
+    assert.equal(definition.hoursStatus, "OPEN_VERIFIED");
   }
   const definitions = first.governedAudit.candidateDefinitions;
   assert.equal(
     definitions.every(
-      (candidate, index) =>
-        index === 0 ||
-        definitions[index - 1].recommendationScore >= candidate.recommendationScore,
+      (candidate, index) => index === 0
+        || definitions[index - 1].recommendationScore >= candidate.recommendationScore,
     ),
     true,
   );
 
   const completed = definitions[0].candidateId;
-  const refilled = produceRouteIqNextStopCandidateManifest(
-    producerInput(opportunity, { completedCandidateIds: [completed] }),
-  );
+  const refilled = buildSyntheticManifestReadyFixture(opportunity, {
+    completedCandidateIds: [completed],
+  });
   assert.equal(refilled.producerClaims.candidateCount, 15);
   assert.equal(
     refilled.producerClaims.candidates.some(
@@ -284,7 +458,10 @@ test("real governed artifacts produce a complete provenance-bound manifest witho
     ),
     false,
   );
-  assert.equal(new Set(refilled.producerClaims.candidates.map((candidate) => candidate.candidateId)).size, 15);
+  assert.equal(
+    new Set(refilled.producerClaims.candidates.map((candidate) => candidate.candidateId)).size,
+    15,
+  );
 });
 
 test("missing territory, candidate sources, future sources, and historical origins yield exclusions", async () => {
@@ -333,10 +510,37 @@ test("missing territory, candidate sources, future sources, and historical origi
   ]);
 });
 
-test("SQLite coordinator accepts, seals, and deterministically replays exactly one shadow decision", async () => {
-  const harness = await openHarness("sealed");
+test("SQLite coordinator rejects the excluded historical manifest without lifecycle mutation", async () => {
+  const harness = await openHarness("historical-manifest-rejection");
   const opportunity = canonicalOpportunity(harness.allocation, harness.territoryContext);
   const manifest = produceRouteIqNextStopCandidateManifest(producerInput(opportunity));
+  assert.equal(manifest.disposition, "EXCLUDED");
+  assert.throws(
+    () => buildCandidateManifestCoordinatorClaims({
+      canonicalOpportunity: opportunity,
+      manifestResult: manifest,
+      authoritativeRecordTime: iso(2_000),
+    }),
+    /route_iq_candidate_manifest_result_invalid/,
+  );
+  assert.equal(
+    harness.repository.one(
+      "SELECT COUNT(*) AS count FROM candidate_manifests",
+    ).count,
+    0,
+  );
+  assert.equal(
+    harness.repository.one(
+      "SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind IN ('CANDIDATE_MANIFEST_ACCEPTED', 'SNAPSHOT_SEALED', 'SHADOW_DECISION_SEALED')",
+    ).count,
+    0,
+  );
+});
+
+test("SQLite coordinator accepts, seals, and idempotently replays one governed shadow decision", async () => {
+  const harness = await openHarness("synthetic-sealed");
+  const opportunity = canonicalOpportunity(harness.allocation, harness.territoryContext);
+  const manifest = buildSyntheticManifestReadyFixture(opportunity);
   const accepted = await acceptManifest(harness, opportunity, manifest);
   assert.equal(accepted.state, "SNAPSHOT_PENDING_SEAL");
 
@@ -394,10 +598,10 @@ test("SQLite coordinator accepts, seals, and deterministically replays exactly o
   );
 });
 
-test("future/action/outcome/Decision Source input cannot alter deterministic accepted-snapshot decisions", async () => {
-  const harness = await openHarness("contamination");
+test("accepted-snapshot decisions reject action, outcome, future, and decision-source contamination", async () => {
+  const harness = await openHarness("synthetic-contamination");
   const opportunity = canonicalOpportunity(harness.allocation, harness.territoryContext);
-  const manifest = produceRouteIqNextStopCandidateManifest(producerInput(opportunity));
+  const manifest = buildSyntheticManifestReadyFixture(opportunity);
   const accepted = await acceptManifest(harness, opportunity, manifest);
   const snapshotClaims = buildSnapshotSealCoordinatorClaims({
     canonicalOpportunity: opportunity,
@@ -423,10 +627,26 @@ test("future/action/outcome/Decision Source input cannot alter deterministic acc
     { decisionSource: "route_iq_recommendation" },
   ]) {
     assert.throws(
+      () => produceShadowDecisionFromAcceptedSnapshot({
+        ...structuredClone(snapshot),
+        ...contamination,
+      }),
+      /route_iq_shadow_decision_input_contaminated/,
+    );
+  }
+});
+
+test("future/action/outcome/Decision Source contamination fails before snapshot admission", () => {
+  for (const contamination of [
+    { action: "visited" },
+    { outcome: 1 },
+    { futureEvidence: { score: 999 } },
+    { decisionSource: "route_iq_recommendation" },
+  ]) {
+    assert.throws(
       () =>
         produceShadowDecisionFromAcceptedSnapshot({
-          ...structuredClone(snapshot),
-          ...contamination,
+          nested: contamination,
         }),
       /route_iq_shadow_decision_input_contaminated/,
     );
@@ -436,9 +656,7 @@ test("future/action/outcome/Decision Source input cannot alter deterministic acc
 test("action before the keyed shadow seal is permanently excluded by Data", async () => {
   const harness = await openHarness("action-before-seal");
   const opportunity = canonicalOpportunity(harness.allocation, harness.territoryContext);
-  const manifest = produceRouteIqNextStopCandidateManifest(producerInput(opportunity));
-  await acceptManifest(harness, opportunity, manifest);
-  const selectedCandidateId = manifest.producerClaims.candidates[0].candidateId;
+  const selectedCandidateId = `riq_candidate_${digest("action-before-seal-candidate")}`;
   const actionClaims = {
     purpose: "action",
     ...opportunity.scope,

@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import {
   appendFileSync,
   copyFileSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync
@@ -36,6 +37,8 @@ const sha256 = path => createHash("sha256").update(read(path)).digest("hex");
 const rootPath = fileURLToPath(root);
 const zipFounderProvenancePath =
   "intelligence/provenance/protected-baseline-synchronization-cross-industry-zip-founder-access-v1.json";
+const leanPhase1ProtectedSuccessorPath =
+  "overwatch/retirement/phase-1-intelligence-protected-successor.json";
 
 function fixtures() {
   const contract = loadReadOnlyFieldSessionLearningContract();
@@ -120,6 +123,11 @@ test("approved ZIP and Founder Dashboard adoption rejects matching arbitrary sou
     copyFileSync(
       join(rootPath, zipFounderProvenancePath),
       join(fixture, zipFounderProvenancePath)
+    );
+    mkdirSync(join(fixture, "overwatch/retirement"), { recursive: true });
+    copyFileSync(
+      join(rootPath, leanPhase1ProtectedSuccessorPath),
+      join(fixture, leanPhase1ProtectedSuccessorPath)
     );
 
     const verify = [

@@ -93,6 +93,7 @@ function dashboardSession(selected) {
     userId: "user_synthetic_workspace_admin",
     representativeId: "representative_synthetic_workspace_admin",
     displayName: "Workspace administrator",
+    principalRole: "customer_owner",
     roleId: "workspace_administrator",
     capabilities: {
       operateOwnRoute: false,

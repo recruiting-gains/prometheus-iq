@@ -33,9 +33,8 @@ Every Sales artifact must answer four questions:
 
 ## Existing Assets To Reuse
 
-- `PRODUCT_VISION.md`: canonical product vision, product promise, and long-term category.
-- `COMPANY_IDENTITY.md`: canonical company mission, vision, values, positioning, and permanent identity decisions.
-- `docs/prometheus-company-manual.md`: company operating context.
+- `PRODUCT_VISION.md`: canonical company identity, product vision, product promise, positioning, and long-term category.
+- `README.md`: current technical and operating context.
 - `docs/business-pilot-discovery-and-demo-dashboard-process.md`: current customer discovery and demo-dashboard process.
 - `docs/prometheus-pilot-execution-playbook.md`: current controlled pilot operations.
 - `docs/prometheus-iq-pilot-success-metrics-framework.md`: current pilot measurement.

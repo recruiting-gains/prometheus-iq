@@ -131,8 +131,13 @@
     "src/route-iq-gym-request-form.js",
     "workers/infrastructure/prometheusrouteiq-website-gym-preview-entry.mjs",
     "wrangler.prometheusrouteiq-website-gym-preview.jsonc",
-    ".github/workflows/preview-prometheus-route-iq-gym-first.yml"
+    ".github/workflows/qualify-prometheus-public-worker.yml"
   ],
+  "retiredPreviewWorkflowEvidence": {
+    "active": false,
+    "reference": "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:.github/workflows/preview-prometheus-route-iq-gym-first.yml",
+    "sha256": "fa0efa259d006527d500e714b4f92f7c1c76df06f7cc7973c448aaa0d45006d9"
+  },
   "disposition": {
     "status": "SECURITY_GOVERNANCE_RECORDED_UNDEPLOYED",
     "integrationAdmission": "SECURITY_TEST_PASS_REQUIRED",

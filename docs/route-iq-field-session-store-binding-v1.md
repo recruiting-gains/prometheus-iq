@@ -31,7 +31,7 @@ The repository's existing Wrangler convention declares production namespace IDs 
 Local contract and runtime validation:
 
 ```bash
-npm run infrastructure:field-session-store:check
+npm run test:private
 ```
 
 Disposable production namespace probe:

@@ -1,11 +1,22 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import test from "node:test";
 
-const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url));
+const root = resolve(import.meta.dirname, "..");
+const read = (path) => readFileSync(resolve(root, path));
 const json = (path) => JSON.parse(read(path).toString("utf8"));
+const readAt = (commit, path) => execFileSync(
+  "git",
+  ["show", `${commit}:${path}`],
+  { cwd: root }
+);
+const jsonAt = (commit, path) => JSON.parse(readAt(commit, path).toString("utf8"));
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const dataOwnerCommit = "85850c74564798889ba50cb15c7a7b0406a521fd";
+const intelligenceOwnerCommit = "b065d069bdb3439a0541074d80862494e1d8a9bc";
 
 const provenancePath =
   "intelligence/provenance/protected-baseline-synchronization-batch-20260719-006-data-route-quality-successor-v1.json";
@@ -19,10 +30,13 @@ const contractPath =
 const publicClaimsPath =
   "intelligence/contracts/route-iq-public-intelligence-claims-v1.json";
 
-const provenance = json(provenancePath);
-const contract = json(contractPath);
-const publicClaims = json(publicClaimsPath);
-const report = json(reportPath);
+const provenance = jsonAt(intelligenceOwnerCommit, provenancePath);
+const contract = jsonAt(intelligenceOwnerCommit, contractPath);
+const publicClaims = jsonAt(intelligenceOwnerCommit, publicClaimsPath);
+const report = jsonAt(dataOwnerCommit, reportPath);
+const currentContract = json(contractPath);
+const currentPublicClaims = json(publicClaimsPath);
+const currentReport = json(reportPath);
 
 test("Data route-quality successor is mapped by exact owner evidence", () => {
   assert.equal(provenance.batchId, "BATCH-20260719-006");
@@ -43,15 +57,15 @@ test("Data route-quality successor is mapped by exact owner evidence", () => {
     "tests/route-intelligence-quality-gate.test.mjs",
   ]);
   assert.equal(
-    sha256(read(gatePath)),
+    sha256(readAt(dataOwnerCommit, gatePath)),
     provenance.dataOwnerTransition.routeQualityGate.currentSha256,
   );
   assert.equal(
-    sha256(read(reportPath)),
+    sha256(readAt(dataOwnerCommit, reportPath)),
     provenance.dataOwnerTransition.canonicalRouteQualityReport.currentSha256,
   );
   assert.equal(
-    sha256(read("tests/route-intelligence-quality-gate.test.mjs")),
+    sha256(readAt(dataOwnerCommit, "tests/route-intelligence-quality-gate.test.mjs")),
     provenance.dataOwnerTransition.routeQualityRegression.currentSha256,
   );
 });
@@ -60,7 +74,7 @@ test("shadow readiness protects the Data successor and preserves its predecessor
   const baseline = contract.protectedBehaviorBaselines.routeQualityGate;
   assert.equal(contract.artifacts.routeQualityDataSuccessor, provenancePath);
   assert.equal(baseline.provenanceSuccessor, provenancePath);
-  assert.equal(baseline.sha256, sha256(read(gatePath)));
+  assert.equal(baseline.sha256, sha256(readAt(dataOwnerCommit, gatePath)));
   assert.equal(baseline.sourceCommit, provenance.dataOwnerTransition.commit);
   assert.equal(baseline.sourceOwnerSubsystem, "Prometheus Data");
   assert.equal(
@@ -70,11 +84,11 @@ test("shadow readiness protects the Data successor and preserves its predecessor
   assert.equal(baseline.predecessor.remainsHistorical, true);
   assert.equal(baseline.predecessor.rewritten, false);
   assert.equal(
-    sha256(read(predecessorPath)),
+    sha256(readAt(intelligenceOwnerCommit, predecessorPath)),
     provenance.predecessor.sha256,
   );
   assert.equal(
-    sha256(read(contractPath)),
+    sha256(readAt(intelligenceOwnerCommit, contractPath)),
     provenance.protectedReferenceAudit.affectedIntelligenceReferences[0]
       .currentConsumerSha256,
   );
@@ -87,9 +101,10 @@ test("public Intelligence claims consume the synchronized shadow contract withou
   const affectedReference =
     provenance.protectedReferenceAudit.affectedIntelligenceReferences[1];
   assert.ok(shadowEvidence);
-  assert.equal(shadowEvidence.sha256, sha256(read(contractPath)));
+  assert.equal(shadowEvidence.sha256, sha256(readAt(intelligenceOwnerCommit, contractPath)));
   assert.equal(affectedReference.consumerPath, publicClaimsPath);
-  assert.equal(affectedReference.currentConsumerSha256, sha256(read(publicClaimsPath)));
+  assert.equal(affectedReference.currentConsumerSha256,
+    sha256(readAt(intelligenceOwnerCommit, publicClaimsPath)));
   assert.equal(affectedReference.currentProtectedSha256, shadowEvidence.sha256);
   assert.equal(publicClaims.currentGovernedState.shadowReadiness, "INSUFFICIENT_EVIDENCE");
   assert.equal(publicClaims.currentGovernedState.recommendationInfluence, "OFF");
@@ -134,7 +149,13 @@ test("canonical Data report preserves route, queue, scoring, and zero-Google inv
 });
 
 test("successor synchronization cannot activate Intelligence or rewrite history", () => {
-  assert.equal(contract.implementationDispatch.recommendationInfluence, "OFF");
+  assert.equal(currentContract.implementationDispatch.recommendationInfluence, "OFF");
+  assert.equal(currentPublicClaims.currentGovernedState.prospectiveCollection, "OFF");
+  assert.equal(currentPublicClaims.currentGovernedState.recommendationInfluence, "OFF");
+  assert.equal(currentPublicClaims.currentGovernedState.activeCohorts, 0);
+  assert.equal(currentReport.dataset.activePoolRecords, 0);
+  assert.equal(currentReport.dataset.reserveRecords, 0);
+  assert.equal(currentReport.dataset.quarantineRecords, 398);
   assert.equal(provenance.reviewedInvariants.routeOrderingChanged, false);
   assert.equal(provenance.reviewedInvariants.routeMembershipChanged, false);
   assert.equal(provenance.reviewedInvariants.routeScoringChanged, false);

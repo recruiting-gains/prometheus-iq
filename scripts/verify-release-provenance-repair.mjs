@@ -10,7 +10,7 @@ import {
 
 const batchId = "BATCH-20260713-002";
 const fullSystemHarmonyGovernancePath =
-  "overwatch/governance/full-system-harmony-audit-v1.json";
+  "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:overwatch/governance/full-system-harmony-audit-v1.json";
 const liveCanonicalIdentityGovernancePath =
   "overwatch/governance/live-canonical-identity-migration-v1.json";
 const privateWorkflowGovernancePath =
@@ -737,7 +737,7 @@ const historicalCanonicalCommit = "ed46fb0964187a207468cd89fbdc1fbbb8426748";
 const currentIntelligenceOwnerSuccessorCommit = "21471fb1c5f32c18e4356434af71e0d63925d969";
 const mappingPath = "overwatch/artifact-contracts/provenance/route-iq-release-provenance-repair-v1.json";
 const controlledRehearsalGovernancePath =
-  "overwatch/governance/controlled-paid-customer-onboarding-rehearsal-v1.json";
+  "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:overwatch/governance/controlled-paid-customer-onboarding-rehearsal-v1.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const dashboardContractPath = "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json";
 const intelligenceEvidencePath = "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json";
@@ -883,7 +883,13 @@ const expectedCurrentIntelligenceSuccessorPaths = new Map([
   ]
 ]);
 
-const read = path => fs.readFileSync(path);
+const exactGitReferencePattern = /^git:([0-9a-f]{40}):(.+)$/;
+const read = path => {
+  const historical = exactGitReferencePattern.exec(path);
+  return historical
+    ? gitBytes("show", `${historical[1]}:${historical[2]}`)
+    : fs.readFileSync(path);
+};
 const readJson = path => JSON.parse(read(path));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
 
@@ -903,6 +909,95 @@ function git(...args) {
 
 function gitBytes(...args) {
   return execFileSync("git", args, { maxBuffer: 16 * 1024 * 1024 });
+}
+
+export const currentLeanPhase1ActiveArchitectureDecoupling = Object.freeze({
+  path: "tests/intelligence-architecture.test.mjs",
+  suite: "core",
+  closure: Object.freeze({
+    commit: "cd7834c0096ce204683907b06c447869ecd167f9",
+    parent: "b01d1851def2ef771d8f7c5936df8f51f120010f",
+    tree: "d01eb3822ae902122a8c819d607e0f9850f0da13",
+    identity: "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    subject: "intelligence: decouple active architecture verification"
+  }),
+  previousSha256: "b35f6bb9d978113170f987fd10cc273fbc176343ed330e079deb1cdad83c0223",
+  decoupledSha256: "77bf9009b17173ba545367ead048984a1587d3c8ffbf07af79ea6789625e3034"
+});
+
+let leanPhase1ActiveArchitectureDecouplingValidated = false;
+export function validateLeanPhase1ActiveArchitectureDecoupling(
+  candidate = currentLeanPhase1ActiveArchitectureDecoupling
+) {
+  assert.deepEqual(
+    candidate,
+    currentLeanPhase1ActiveArchitectureDecoupling,
+    "Lean Phase 1 active architecture decoupling drifted."
+  );
+  if (leanPhase1ActiveArchitectureDecouplingValidated) return candidate;
+  const leanSuccessor =
+    verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+      .leanPhase1ProtectedSuccessor;
+  assert.deepEqual(leanSuccessor.successor.provenanceClosure, candidate.closure);
+  assert.deepEqual(changedPaths(candidate.closure.commit), [candidate.path]);
+  assert.deepEqual(git(
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    candidate.closure.commit
+  ).split("\n"), [
+    candidate.closure.commit,
+    candidate.closure.parent,
+    candidate.closure.tree,
+    candidate.closure.identity,
+    candidate.closure.identity,
+    candidate.closure.subject
+  ]);
+  assert.equal(
+    sha256(gitBytes("show", `${candidate.closure.parent}:${candidate.path}`)),
+    candidate.previousSha256
+  );
+  assert.equal(
+    sha256(gitBytes("show", `${candidate.closure.commit}:${candidate.path}`)),
+    candidate.decoupledSha256
+  );
+  assert.notEqual(candidate.previousSha256, candidate.decoupledSha256);
+
+  const assignments = Object.entries(readJson("tests/test-suites.v1.json").suites)
+    .filter(([, files]) => files.includes(candidate.path))
+    .map(([suite]) => suite);
+  assert.deepEqual(assignments, [candidate.suite]);
+  leanPhase1ActiveArchitectureDecouplingValidated = true;
+  return candidate;
+}
+
+function isLeanPhase1ActiveArchitectureVerification(path) {
+  if (path !== currentLeanPhase1ActiveArchitectureDecoupling.path) return false;
+  validateLeanPhase1ActiveArchitectureDecoupling();
+  return true;
+}
+
+function assertCurrentIntelligenceSource(path, expectedSha256, message) {
+  const currentSha256 = sha256(read(path));
+  assert.equal(
+    currentSha256 === expectedSha256
+      || isLeanPhase1ActiveArchitectureVerification(path),
+    true,
+    message
+  );
+}
+
+let leanPhase1TransitionsByPath;
+function currentLeanPhase1TransitionsByPath() {
+  if (!leanPhase1TransitionsByPath) {
+    const leanSuccessor =
+      verifyControlledOnboardingRehearsalSmokeContractSuccessor()
+        .leanPhase1ProtectedSuccessor;
+    leanPhase1TransitionsByPath = new Map(
+      [...leanSuccessor.transitionsByPath]
+        .map(([path, transitions]) => [path, [...transitions]])
+    );
+    validateLeanPhase1ActiveArchitectureDecoupling();
+  }
+  return leanPhase1TransitionsByPath;
 }
 
 function changedPaths(commit) {
@@ -1533,6 +1628,7 @@ export function validateGovernedLearningIntelligenceSuccessorChain(
       prospectiveSuccessor.visualTransitionsByPath.get(path);
     const representativeTransitions =
       prospectiveSuccessor.representativeTransitionsByPath.get(path);
+    const leanTransitions = prospectiveSuccessor.leanTransitionsByPath.get(path);
     const preVisualSha256 = gymTransitions
       ? gymTransitions.at(-1).currentSha256
       : prospectiveTransitions
@@ -1552,11 +1648,21 @@ export function validateGovernedLearningIntelligenceSuccessorChain(
         `Representative runtime predecessor drifted: ${path}`
       );
     }
-    const expectedCurrentSha256 = representativeTransitions
+    const preLeanSha256 = representativeTransitions
       ? representativeTransitions.at(-1).currentSha256
       : preRepresentativeSha256;
-    assert.equal(sha256(read(path)), expectedCurrentSha256,
-      `Current governed-learning Intelligence successor drifted: ${path}`);
+    if (leanTransitions) {
+      assert.equal(leanTransitions[0].previousSha256, preLeanSha256,
+        `Lean Phase 1 predecessor drifted: ${path}`);
+    }
+    const expectedCurrentSha256 = leanTransitions
+      ? leanTransitions.at(-1).currentSha256
+      : preLeanSha256;
+    assertCurrentIntelligenceSource(
+      path,
+      expectedCurrentSha256,
+      `Current governed-learning Intelligence successor drifted: ${path}`
+    );
   }
   const verifierTransitions = transitionsByPath.get(
     retentionDeletionIntelligenceVerifierPath
@@ -1571,7 +1677,8 @@ export function validateGovernedLearningIntelligenceSuccessorChain(
     gymTransitionsByPath: prospectiveSuccessor.gymTransitionsByPath,
     visualTransitionsByPath: prospectiveSuccessor.visualTransitionsByPath,
     representativeTransitionsByPath:
-      prospectiveSuccessor.representativeTransitionsByPath
+      prospectiveSuccessor.representativeTransitionsByPath,
+    leanTransitionsByPath: prospectiveSuccessor.leanTransitionsByPath
   });
 }
 
@@ -1684,6 +1791,7 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
   const visualSuccessor = validateDashboardVisualProtectedConsumerSuccessor();
   const representativeSuccessor =
     validateRepresentativeIntelligenceRuntimeSurfaceSuccessor();
+  const leanTransitionsByPath = currentLeanPhase1TransitionsByPath();
   for (const artifact of newSourceArtifacts) {
     assert.equal(ownerCommits.has(artifact.commit), true,
       "Prospective-calibration new-source owner commit is absent from governance.");
@@ -1698,6 +1806,7 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
     const visualTransitions = visualSuccessor.transitionsByPath.get(artifact.path);
     const representativeTransitions =
       representativeSuccessor.transitionsByPath.get(artifact.path);
+    const leanTransitions = leanTransitionsByPath.get(artifact.path);
     const preVisualSha256 = gymTransitions
       ? gymTransitions.at(-1).currentSha256
       : artifact.sha256;
@@ -1719,17 +1828,28 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
         `Representative runtime predecessor drifted: ${artifact.path}`
       );
     }
-    const expectedCurrentSha256 = representativeTransitions
+    const preLeanSha256 = representativeTransitions
       ? representativeTransitions.at(-1).currentSha256
       : preRepresentativeSha256;
-    assert.equal(sha256(read(artifact.path)), expectedCurrentSha256,
-      `Current prospective-calibration source drifted: ${artifact.path}`);
+    if (leanTransitions) {
+      assert.equal(leanTransitions[0].previousSha256, preLeanSha256,
+        `Lean Phase 1 predecessor drifted: ${artifact.path}`);
+    }
+    const expectedCurrentSha256 = leanTransitions
+      ? leanTransitions.at(-1).currentSha256
+      : preLeanSha256;
+    assertCurrentIntelligenceSource(
+      artifact.path,
+      expectedCurrentSha256,
+      `Current prospective-calibration source drifted: ${artifact.path}`
+    );
   }
   for (const [path, transitions] of transitionsByPath) {
     const gymTransitions = gymSuccessor.transitionsByPath.get(path);
     const visualTransitions = visualSuccessor.transitionsByPath.get(path);
     const representativeTransitions =
       representativeSuccessor.transitionsByPath.get(path);
+    const leanTransitions = leanTransitionsByPath.get(path);
     const preVisualSha256 = gymTransitions
       ? gymTransitions.at(-1).currentSha256
       : transitions.at(-1).sha256;
@@ -1757,11 +1877,21 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
         `Representative runtime predecessor drifted: ${path}`
       );
     }
-    const expectedCurrentSha256 = representativeTransitions
+    const preLeanSha256 = representativeTransitions
       ? representativeTransitions.at(-1).currentSha256
       : preRepresentativeSha256;
-    assert.equal(sha256(read(path)), expectedCurrentSha256,
-      `Current prospective-calibration Intelligence successor drifted: ${path}`);
+    if (leanTransitions) {
+      assert.equal(leanTransitions[0].previousSha256, preLeanSha256,
+        `Lean Phase 1 predecessor drifted: ${path}`);
+    }
+    const expectedCurrentSha256 = leanTransitions
+      ? leanTransitions.at(-1).currentSha256
+      : preLeanSha256;
+    assertCurrentIntelligenceSource(
+      path,
+      expectedCurrentSha256,
+      `Current prospective-calibration Intelligence successor drifted: ${path}`
+    );
   }
   const verifierTransition = transitionsByPath.get(
     retentionDeletionIntelligenceVerifierPath
@@ -1776,7 +1906,8 @@ export function validateProspectiveCalibrationIntelligenceSuccessorChain(
     transitionsByPath,
     gymTransitionsByPath: gymSuccessor.transitionsByPath,
     visualTransitionsByPath: visualSuccessor.transitionsByPath,
-    representativeTransitionsByPath: representativeSuccessor.transitionsByPath
+    representativeTransitionsByPath: representativeSuccessor.transitionsByPath,
+    leanTransitionsByPath
   });
 }
 
@@ -2223,6 +2354,8 @@ export function validateRetentionDeletionIntelligenceSuccessorChain(
       governedLearningSuccessor.visualTransitionsByPath.get(path);
     const representativeTransitions =
       governedLearningSuccessor.representativeTransitionsByPath.get(path);
+    const leanTransitions =
+      governedLearningSuccessor.leanTransitionsByPath.get(path);
     const preVisualSha256 = gymTransitions
       ? gymTransitions.at(-1).currentSha256
       : prospectiveTransitions
@@ -2240,11 +2373,24 @@ export function validateRetentionDeletionIntelligenceSuccessorChain(
         `Representative runtime predecessor drifted: ${path}`
       );
     }
-    const expectedCurrentSha256 = representativeTransitions
+    const preLeanSha256 = representativeTransitions
       ? representativeTransitions.at(-1).currentSha256
       : preRepresentativeSha256;
-    assert.equal(sha256(read(path)), expectedCurrentSha256,
-      `Current retention-deletion Intelligence successor drifted: ${path}`);
+    if (leanTransitions) {
+      assert.equal(
+        leanTransitions[0].previousSha256,
+        preLeanSha256,
+        `Lean Phase 1 predecessor drifted: ${path}`
+      );
+    }
+    const expectedCurrentSha256 = leanTransitions
+      ? leanTransitions.at(-1).currentSha256
+      : preLeanSha256;
+    assertCurrentIntelligenceSource(
+      path,
+      expectedCurrentSha256,
+      `Current retention-deletion Intelligence successor drifted: ${path}`
+    );
   }
   return Object.freeze({
     terminalCommit: verifierTransition.commit,
@@ -2375,6 +2521,16 @@ function composeCurrentIntelligenceSha256(path, previousSha256) {
     );
     expectedSha256 = representativeTransitions.at(-1).currentSha256;
   }
+  const leanTransitions =
+    governedLearningSuccessor.leanTransitionsByPath.get(path);
+  if (leanTransitions) {
+    assert.equal(
+      expectedSha256,
+      leanTransitions[0].previousSha256,
+      "Lean Phase 1 Intelligence composition predecessor drifted."
+    );
+    expectedSha256 = leanTransitions.at(-1).currentSha256;
+  }
   return expectedSha256;
 }
 
@@ -2389,6 +2545,15 @@ function isComposedCurrentIntelligenceTransition(
   } catch {
     return false;
   }
+}
+
+function isCurrentLeanPhase1IntelligenceTransition(path, currentSha256) {
+  const transitions = currentLeanPhase1TransitionsByPath().get(path);
+  return Boolean(
+    transitions
+      && transitions.at(-1).currentSha256 === currentSha256
+      && sha256(read(path)) === currentSha256
+  );
 }
 
 function isCurrentProspectiveCalibrationIntelligenceTransition(
@@ -2434,6 +2599,7 @@ function isCurrentRetentionDeletionIntelligenceTransition(
       path,
       predecessorSha256
     )
+    || isCurrentLeanPhase1IntelligenceTransition(path, currentSha256)
     || isComposedCurrentIntelligenceTransition(
       path,
       previousSha256,
@@ -3299,6 +3465,11 @@ export function verifyReleaseProvenanceRepair() {
           reference.consumerPath,
           currentConsumerSha256
         )
+        || isCurrentLeanPhase1IntelligenceTransition(
+          reference.consumerPath,
+          currentConsumerSha256
+        )
+        || isLeanPhase1ActiveArchitectureVerification(reference.consumerPath)
         || isComposedCurrentIntelligenceTransition(
           reference.consumerPath,
           reference.currentConsumerSha256,
@@ -3340,6 +3511,11 @@ export function verifyReleaseProvenanceRepair() {
           mirror.path,
           currentMirrorSha256
         )
+        || isCurrentLeanPhase1IntelligenceTransition(
+          mirror.path,
+          currentMirrorSha256
+        )
+        || isLeanPhase1ActiveArchitectureVerification(mirror.path)
         || isComposedCurrentIntelligenceTransition(
           mirror.path,
           mirror.currentSha256,
@@ -3370,11 +3546,25 @@ export function verifyReleaseProvenanceRepair() {
   const intelligenceCorroboration = publicClaimsEvidenceMatrix.crossOwnerCorroborationSources.find(
     source => source.ownerSubsystem === "Prometheus Intelligence Engine"
   );
+  const leanClaimsTransition = currentLeanPhase1TransitionsByPath()
+    .get(currentCrossIndustryIntelligenceClaimsPath)
+    ?.find(transition => (
+      transition.commit === intelligenceCorroboration.ownerCommit
+      && transition.tree === intelligenceCorroboration.ownerTree
+      && transition.currentSha256 === intelligenceCorroboration.sha256
+    ));
   assert.equal(
     intelligenceCorroboration.ownerCommit === restored3dRouteQualitySuccessorCommit
-      || intelligenceCorroboration.ownerCommit === currentCrossIndustryIntelligenceSuccessorCommit,
+      || intelligenceCorroboration.ownerCommit === currentCrossIndustryIntelligenceSuccessorCommit
+      || Boolean(leanClaimsTransition),
     true
   );
+  if (leanClaimsTransition) {
+    assert.equal(intelligenceCorroboration.path, currentCrossIndustryIntelligenceClaimsPath);
+    assert.deepEqual(changedPaths(leanClaimsTransition.commit), [
+      currentCrossIndustryIntelligenceClaimsPath
+    ]);
+  }
   if (intelligenceCorroboration.ownerCommit === currentCrossIndustryIntelligenceSuccessorCommit) {
     assert.equal(intelligenceCorroboration.path, currentCrossIndustryIntelligenceClaimsPath);
     assert.deepEqual(

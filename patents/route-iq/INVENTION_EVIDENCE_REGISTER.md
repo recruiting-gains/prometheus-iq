@@ -214,7 +214,7 @@ Known repository evidence:
 - `README.md` describes a private-beta field-sales intelligence app.
 - `docs/founder-master-notes.md` references private beta planning, customer-discovery evidence, beta tester/customer/contractor considerations, and caution about revealing algorithm, scoring formula, source code, full data model, or exact recommendation logic before attorney review.
 - `docs/prometheus-multi-rep-intelligence-plan.md` references Anthony as beta tester/new representative.
-- `PROMETHEUS_MASTER_CONTEXT.md` and `docs/prometheus-company-manual.md` reference Google Places API integration for Route Intelligence and Anthony's Friday beta.
+- `git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:PROMETHEUS_MASTER_CONTEXT.md` and `git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:docs/prometheus-company-manual.md` are exact baseline evidence referencing Google Places API integration for Route Intelligence and Anthony's Friday beta.
 
 Founder confirmation needed:
 

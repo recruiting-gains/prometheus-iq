@@ -88,12 +88,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - name: Checkout current main control repository
+      - name: Checkout exact approved private release source
         # actions/checkout v4.3.1
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: PrometheusRouteIQ/prometheus-iq
-          ref: main
+          ref: ${{ inputs.approved_commit }}
           fetch-depth: 0
           persist-credentials: false
           clean: true
@@ -104,8 +104,17 @@ jobs:
         with:
           node-version: "24.4.1"
 
+      - name: Verify exact approved tooling source before installation
+        env:
+          PROMETHEUS_APPROVED_COMMIT: ${{ inputs.approved_commit }}
+          PROMETHEUS_APPROVED_TREE: ${{ inputs.approved_tree }}
+        run: node scripts/verify-github-actions-private-worker-workflow-v2.mjs verify-approved-tooling-source
+
       - name: Install exact locked deployment tooling
-        run: npm ci
+        run: npm ci --ignore-scripts
+
+      - name: Verify installed deployment tooling identity
+        run: node scripts/verify-github-actions-private-worker-workflow-v2.mjs verify-installed-tooling
 
       - name: Download only the Founder-pinned private qualification artifact
         # actions/download-artifact v4.3.0
@@ -147,13 +156,14 @@ jobs:
           PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
         run: node scripts/run-github-actions-private-worker-qualification-v2.mjs verify
 
-      - name: Require clean synchronized current control repository
+      - name: Require clean exact approved control repository
         run: |
           git diff --exit-code
           git diff --cached --exit-code
           test -z "$(git status --porcelain=v1 --untracked-files=all)"
-          test "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)"
-          test "$(git rev-parse '${{ inputs.approved_commit }}^{tree}')" = "${{ inputs.approved_tree }}"
+          test "$(git rev-parse HEAD)" = "${{ inputs.approved_commit }}"
+          test "$(git rev-parse 'HEAD^{tree}')" = "${{ inputs.approved_tree }}"
+          git merge-base --is-ancestor "${{ inputs.approved_commit }}" refs/remotes/origin/main
 
   deploy:
     name: Deploy the exact qualified private artifact once
@@ -164,12 +174,12 @@ jobs:
     environment:
       name: prometheus-private-worker-production
     steps:
-      - name: Checkout current main control repository
+      - name: Checkout exact approved private release source
         # actions/checkout v4.3.1
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: PrometheusRouteIQ/prometheus-iq
-          ref: main
+          ref: ${{ inputs.approved_commit }}
           fetch-depth: 0
           persist-credentials: false
           clean: true
@@ -180,8 +190,17 @@ jobs:
         with:
           node-version: "24.4.1"
 
+      - name: Verify exact approved tooling source before installation
+        env:
+          PROMETHEUS_APPROVED_COMMIT: ${{ inputs.approved_commit }}
+          PROMETHEUS_APPROVED_TREE: ${{ inputs.approved_tree }}
+        run: node scripts/verify-github-actions-private-worker-workflow-v2.mjs verify-approved-tooling-source
+
       - name: Install exact locked deployment tooling
-        run: npm ci
+        run: npm ci --ignore-scripts
+
+      - name: Verify installed deployment tooling identity
+        run: node scripts/verify-github-actions-private-worker-workflow-v2.mjs verify-installed-tooling
 
       - name: Download only the Founder-pinned private qualification artifact
         # actions/download-artifact v4.3.0
@@ -271,10 +290,11 @@ jobs:
           PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
         run: node scripts/run-github-actions-private-worker-qualification-v2.mjs verify
 
-      - name: Require clean synchronized current control repository after deployment
+      - name: Require clean exact approved control repository after deployment
         run: |
           git diff --exit-code
           git diff --cached --exit-code
           test -z "$(git status --porcelain=v1 --untracked-files=all)"
-          test "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)"
-          test "$(git rev-parse '${{ inputs.approved_commit }}^{tree}')" = "${{ inputs.approved_tree }}"
+          test "$(git rev-parse HEAD)" = "${{ inputs.approved_commit }}"
+          test "$(git rev-parse 'HEAD^{tree}')" = "${{ inputs.approved_tree }}"
+          git merge-base --is-ancestor "${{ inputs.approved_commit }}" refs/remotes/origin/main

@@ -1,0 +1,152 @@
+{
+  "version": "prometheus-lean-phase-1-intelligence-protected-successor-v1",
+  "status": "INDEPENDENTLY_VERIFIED_SOURCE_ONLY_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "baseline": {
+    "commit": "c7119fcee140ab8a130cdb888439277fdcbeb6b0",
+    "tree": "97f78b7e20d3f78eb0520bfccb4350cb05a697b8"
+  },
+  "implementation": {
+    "commit": "7b3ff78cc15bf65966f267580eeb996c3faf1626",
+    "parent": "e4823b1b6d700510564c67d44edff3b2fa0c5ed0",
+    "tree": "f155cff61962ebb8c9b70f39c85ed83f4ac66aa0",
+    "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "subject": "intelligence: migrate lean protected authorities"
+  },
+  "provenanceClosure": {
+    "commit": "cd7834c0096ce204683907b06c447869ecd167f9",
+    "parent": "b01d1851def2ef771d8f7c5936df8f51f120010f",
+    "tree": "d01eb3822ae902122a8c819d607e0f9850f0da13",
+    "identity": "Prometheus Intelligence Engine <intelligence@prometheus.local>",
+    "subject": "intelligence: decouple active architecture verification"
+  },
+  "protectedSourceTransitions": [
+    {
+      "path": "intelligence/README.md",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "7b3ff78cc15bf65966f267580eeb996c3faf1626",
+      "tree": "f155cff61962ebb8c9b70f39c85ed83f4ac66aa0",
+      "subject": "intelligence: migrate lean protected authorities",
+      "previousSha256": "a27dbbf7239bd8fea77f91467edcbb21cc2c8227cb0b90afaa9292f098ee0454",
+      "currentSha256": "8c791a708a87553a22b51cc0e10b8a40059a4f621b9a0795e0d39400fa254aa4"
+    },
+    {
+      "path": "intelligence/contracts/field-learning-loop-contracts.json",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "7b3ff78cc15bf65966f267580eeb996c3faf1626",
+      "tree": "f155cff61962ebb8c9b70f39c85ed83f4ac66aa0",
+      "subject": "intelligence: migrate lean protected authorities",
+      "previousSha256": "43b8a821644adecfe43f953a23a7763f844e18fad751535bf1168832d943b445",
+      "currentSha256": "db83661b2bc67cb1477c2731c5bc868d8915e7141b56958540bc42dd109df6d6"
+    },
+    {
+      "path": "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "c76747a99addf8f031c98327e1a954daf594f51d",
+      "tree": "7e93fd10a790cb032fde0d4f853bae0bc97ae29c",
+      "subject": "intelligence: reconcile public claim evidence pin",
+      "previousSha256": "47594574fada334693f5cecf4f44b594bd8b4ebbfaa56ec23738dfbb0bbd702c",
+      "currentSha256": "f62ee4b13da751e9bb9849f4c12b98007d268df5b87a5c3cd4efcf7a93bb1582"
+    },
+    {
+      "path": "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "e4823b1b6d700510564c67d44edff3b2fa0c5ed0",
+      "tree": "abd8479e7fdf780709cfce85bad801b464da8679",
+      "subject": "intelligence: complete public claim source reconciliation",
+      "previousSha256": "f62ee4b13da751e9bb9849f4c12b98007d268df5b87a5c3cd4efcf7a93bb1582",
+      "currentSha256": "a7288081d6dbdccabbd6d8428f9d1e6e5dbfd410c65db568297fad173cf027ae"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "7b3ff78cc15bf65966f267580eeb996c3faf1626",
+      "tree": "f155cff61962ebb8c9b70f39c85ed83f4ac66aa0",
+      "subject": "intelligence: migrate lean protected authorities",
+      "previousSha256": "3452082846df5b429310c6a67c5b18b437c798121720d51a505033948a429fe3",
+      "currentSha256": "c1ee8777ec0e43c6e4bbe953bf26001871868f5e4d29cce143c42368fb480663"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "5ce59ddd95328ee01518d9022b9b2d3f1f5f0f08",
+      "tree": "d91777da775f53ddb7a8ce763fe1a9de327ead3a",
+      "subject": "intelligence: close lean provenance transition",
+      "previousSha256": "c1ee8777ec0e43c6e4bbe953bf26001871868f5e4d29cce143c42368fb480663",
+      "currentSha256": "dd4b3836c6453e872dd1167043dc9d42923a3f01a8255f96cf29a3daab88f5e3"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "c1087b653ea5ca4e35430824e116abe77fe41964",
+      "tree": "6d45ee1c5d5f3c9cb0901c88a244c221436dbf8f",
+      "subject": "intelligence: finalize lean protected test graph",
+      "previousSha256": "dd4b3836c6453e872dd1167043dc9d42923a3f01a8255f96cf29a3daab88f5e3",
+      "currentSha256": "97513d10ed7e6fefd0c14663288395fd7ffc9e6d3209266566ca51fdfe4f0f26"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "02519374d4ed060c41915fe60ffc6815dfbe2835",
+      "tree": "f9f72e397aa8cb3ba10cb15b2fe6388aeb2bd863",
+      "subject": "intelligence: propagate lean retention provenance",
+      "previousSha256": "97513d10ed7e6fefd0c14663288395fd7ffc9e6d3209266566ca51fdfe4f0f26",
+      "currentSha256": "257c18ae51729658bf6b876c266115f1df92777792526bbe917e8d656fc2d6ba"
+    },
+    {
+      "path": "intelligence/provenance/verify-cross-industry-zip-founder-access-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "152833e25f1393a6dc0b3781f21aa2d0cbfc5ff7",
+      "tree": "b7458da337a4b80aca7ab3d57ad6ec3a318b16e2",
+      "subject": "intelligence: compose lean successor history",
+      "previousSha256": "257c18ae51729658bf6b876c266115f1df92777792526bbe917e8d656fc2d6ba",
+      "currentSha256": "9989db0d362a258fa541b5cad3d24b2218911dbf96fdce7490caa36f8ef94696"
+    },
+    {
+      "path": "intelligence/provenance/verify-paid-customer-revenue-readiness-protected-consumers-v1.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "7b3ff78cc15bf65966f267580eeb996c3faf1626",
+      "tree": "f155cff61962ebb8c9b70f39c85ed83f4ac66aa0",
+      "subject": "intelligence: migrate lean protected authorities",
+      "previousSha256": "78a502b562ca7eb6c21800f616418a551656728367a7e523ed7e4ef7c42cd828",
+      "currentSha256": "6972fefd0c4bb600f9c4bd4cd9b78c8d543470c87b154975e7af9f2b9c95a0c5"
+    },
+    {
+      "path": "scripts/validate-intelligence-architecture.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "7b3ff78cc15bf65966f267580eeb996c3faf1626",
+      "tree": "f155cff61962ebb8c9b70f39c85ed83f4ac66aa0",
+      "subject": "intelligence: migrate lean protected authorities",
+      "previousSha256": "961c93168077de2cb861d8ce49195fa82fc58f04d289cfcba986f7706360c49b",
+      "currentSha256": "0bf0cd82320941dd7fa51186ce46e2367887d244636a738e4817054dd33c557e"
+    },
+    {
+      "path": "tests/read-only-field-session-learning.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "5ce59ddd95328ee01518d9022b9b2d3f1f5f0f08",
+      "tree": "d91777da775f53ddb7a8ce763fe1a9de327ead3a",
+      "subject": "intelligence: close lean provenance transition",
+      "previousSha256": "c99aa835eb0abb53ad8fe999fa632b1b2a84a3b99f30cea8f708261f525eefb7",
+      "currentSha256": "7022cbeb80cae80078ca556d3cb31c235fadf7d4158a35e4f9331f49d7b1af58"
+    },
+    {
+      "path": "tests/shadow-decision-readiness.test.mjs",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "commit": "c1087b653ea5ca4e35430824e116abe77fe41964",
+      "tree": "6d45ee1c5d5f3c9cb0901c88a244c221436dbf8f",
+      "subject": "intelligence: finalize lean protected test graph",
+      "previousSha256": "f5d9ce8cab00886e2aa844c95689e2657339fb91452bfbb1e733b2661c2a49c5",
+      "currentSha256": "2a20ddfbb5af42dad06fcde2a8cf9dfc367e69261d4dcfa6ae02d68c0aefedf2"
+    }
+  ],
+  "invariants": {
+    "runtimeBehaviorChanged": false,
+    "routeScoringChanged": false,
+    "routeOrderingChanged": false,
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "productionMutationPerformed": false,
+    "deploymentRequired": false
+  }
+}

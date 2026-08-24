@@ -6,7 +6,7 @@
   "localPreflight": "MINIMUM_SAFE",
   "commitAndPushTiming": "PROMPT_AFTER_SAFE_PREFLIGHT",
   "dispatchTransport": ["GITHUB_CLI", "GITHUB_API"],
-  "exactBinding": ["WORKFLOW", "COMMIT_SHA", "BRANCH", "DISPATCH_TIMESTAMP"],
+  "exactBinding": ["WORKFLOW", "COMMIT_SHA", "TREE_SHA", "BRANCH", "DISPATCH_TIMESTAMP"],
   "ambiguousRunPolicy": "REJECT",
   "closeLaptopRequires": ["GITHUB_ACCEPTED", "NO_LOCAL_WORK_REMAINS"],
   "acceptedQualificationArchitectureReplaced": false,

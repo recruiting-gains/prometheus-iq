@@ -35,5 +35,5 @@ jobs:
       - name: Run Aegis verification
         run: npm run security:aegis:verify
 
-      - name: Run worker integration tests
-        run: npm run test:social-media
+      - name: Run active security tests
+        run: npm run test:security

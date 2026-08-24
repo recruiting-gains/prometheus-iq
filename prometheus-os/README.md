@@ -123,11 +123,7 @@ Daily brief covers:
 - founder scorecard
 - recommended next action
 
-Progress log location:
-
-```text
-PROMETHEUS OPERATING SYSTEM/09 Founder Operating System/Daily Progress Log.md
-```
+The former Daily Progress Log is dormant and has no current live repository path. Its exact recovery identity is maintained by `overwatch/retirement/phase-1-retirement-manifest.json`.
 
 Prometheus may prepare a GitHub backup checklist or draft commit message, but it must not commit, push, deploy, or modify production behavior without explicit Cruz approval.
 

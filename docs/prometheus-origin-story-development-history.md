@@ -254,7 +254,7 @@ Related files:
 - `prometheus-os/reasoning-pipeline.js`
 - `mac-companion/PrometheusCompanion.swift`
 - `scripts/verify-prometheus-companion-ui-path.mjs`
-- `prometheus-intelligence-orchestrator-routing-fix-report.md`
+- `git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:prometheus-intelligence-orchestrator-routing-fix-report.md` (exact baseline evidence)
 
 ### June 20, 2026: Cloudflare Access Protection Added
 
@@ -509,7 +509,7 @@ Impact on Prometheus: Company knowledge became organized into repeatable systems
 Related folder:
 
 - `PROMETHEUS OPERATING SYSTEM/`
-- `PROMETHEUS_OPERATING_SYSTEM_README.md`
+- `overwatch/retirement/phase-1-retirement-manifest.json` (exact Git recovery evidence)
 
 ## Top 25 Most Important Moments In Prometheus History
 

@@ -218,7 +218,7 @@ export function verifyCloudflareUnattendedRuntimeGuard() {
 
   assert.equal(
     packageJson.scripts["infrastructure:cloudflare-unattended-runtime-guard:check"],
-    "node scripts/verify-cloudflare-unattended-runtime-guard.mjs && node --test tests/cloudflare-unattended-runtime-guard.test.mjs"
+    "node scripts/verify-cloudflare-unattended-runtime-guard.mjs"
   );
   for (const required of [
     "IMPLEMENTED_SOURCE_NOT_DEPLOYED_NOT_CONFIGURED",

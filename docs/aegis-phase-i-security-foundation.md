@@ -56,7 +56,7 @@ The GitHub Actions gate runs:
 
 - `npm run security:check`
 - `npm run security:aegis:verify`
-- `npm run test:social-media`
+- `npm run test:security`
 
 Direct verification of branch protection, required reviews, secret scanning, push protection, and repository security settings still requires GitHub API or repository Settings access. The local shell has git push access, but does not have `gh` or a GitHub API token.
 
@@ -78,7 +78,7 @@ npx wrangler kv namespace list
 npx wrangler deployments list --config wrangler.jsonc
 npx wrangler deployments list --config wrangler.prometheusrouteiq-website.jsonc
 npm run security:aegis:verify
-npm run test:social-media
+npm run test:security
 npm run security:check
 npm run lint
 npm run typecheck

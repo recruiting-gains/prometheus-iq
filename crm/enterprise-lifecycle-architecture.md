@@ -8,9 +8,8 @@ This architecture is planning and CRM-owned operating structure only. It does no
 
 ## Sources Read
 
-- `PROMETHEUS_CONSTITUTION.md`
-- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
-- `COMPANY_IDENTITY.md`
+- `AGENTS.md`
+- `README.md`
 - `PRODUCT_VISION.md`
 - `sales/README.md`
 - `sales/customer-success-lifecycle.md`
@@ -248,9 +247,8 @@ Reuse:
 
 - `crm/crm-foundation.mjs` for beta CRM contact/lead/follow-up/task primitives.
 - `sales/customer-success-lifecycle.md` for Sales-owned customer success operating language.
-- `COMPANY_IDENTITY.md` for company identity.
-- `PRODUCT_VISION.md` for product promise and long-term product direction.
-- `PROMETHEUS_MASTER_ENGINEERING_STATE.md` for completed work and duplicate-prevention references.
+- `PRODUCT_VISION.md` for company identity, product promise, and long-term product direction.
+- `README.md` for completed work and duplicate-prevention references.
 
 ## Future Handoffs
 

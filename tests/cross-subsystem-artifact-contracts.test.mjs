@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 
 import {
@@ -14,7 +17,10 @@ import {
   formatEstimatedVisitDuration,
   validateDashboardWorkspaceRegistry
 } from "../dashboard/route-iq-dashboard-platform.mjs";
-import { verifyCrossSubsystemArtifactContracts } from "../scripts/verify-cross-subsystem-artifact-contracts.mjs";
+import {
+  verifyCanonicalContractPaths,
+  verifyCrossSubsystemArtifactContracts
+} from "../scripts/verify-cross-subsystem-artifact-contracts.mjs";
 
 const readJson = path => JSON.parse(fs.readFileSync(path, "utf8"));
 const clone = value => structuredClone(value);
@@ -30,6 +36,63 @@ test("canonical cross-subsystem registry verifies current cross-industry boundar
   assert.equal(result.collection, "OFF");
   assert.equal(result.activeCohorts, 0);
   assert.equal(result.recommendationInfluence, "OFF");
+});
+
+test("active contract paths accept local, explicit external, and exact Git-pinned evidence only", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "prometheus-contract-paths-"));
+  try {
+    writeFileSync(join(fixture, "present.json"), "{}\n", "utf8");
+    assert.deepEqual(verifyCanonicalContractPaths({
+      canonicalPaths: {
+        present: "present.json",
+        externalOwner: "external:meta-ai-social-content-and-push"
+      }
+    }, { repositoryRoot: fixture }), []);
+    assert.match(
+      verifyCanonicalContractPaths({ canonicalPaths: { missing: "missing.json" } }, {
+        repositoryRoot: fixture
+      })[0],
+      /repository-local path is missing/u
+    );
+    assert.match(
+      verifyCanonicalContractPaths({
+        releaseBlockingGate: { verifier: "missing-verifier.mjs" }
+      }, { repositoryRoot: fixture })[0],
+      /repository-local path is missing/u
+    );
+    assert.match(
+      verifyCanonicalContractPaths({ canonicalPaths: { historical: "git:short:missing.json" } }, {
+        repositoryRoot: fixture
+      })[0],
+      /non-exact Git evidence/u
+    );
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+  assert.deepEqual(verifyCanonicalContractPaths({
+    canonicalPaths: {
+      historical: "git:c7119fcee140ab8a130cdb888439277fdcbeb6b0:README.md"
+    }
+  }), []);
+});
+
+test("active fail-closed contracts never overlap immutable historical evidence", () => {
+  const registry = readJson("overwatch/artifact-contracts/canonical-artifact-registry.json");
+  const retirement = readJson("overwatch/retirement/phase-1-retirement-manifest.json");
+  const active = new Set();
+  const visit = value => {
+    if (!value || typeof value !== "object") return;
+    if (
+      value.failClosedIfMissing === true
+      && typeof value.path === "string"
+      && value.path.endsWith(".json")
+    ) active.add(value.path);
+    for (const child of Object.values(value)) visit(child);
+  };
+  visit(registry);
+  const historical = new Set(retirement.historicalEvidenceFiles.map(item => item.path));
+  assert.deepEqual([...active].filter(path => historical.has(path)).sort(), []);
+  assert.deepEqual(verifyCrossSubsystemArtifactContracts().activeHistoricalOverlap, []);
 });
 
 test("Fitness Founder research and synthetic outside sales share one strict configuration schema", () => {
@@ -165,4 +228,27 @@ test("Dashboard validation does not relabel one workspace as another", () => {
 test("one nondeployable negative rule prevents Smoothie Depot from returning", () => {
   const result = verifyCrossSubsystemArtifactContracts();
   assert.equal(result.ok, true, result.failures.join("\n"));
+});
+
+test("retired manual social operating paths cannot return as active canonical dependencies", () => {
+  const manifest = readJson("overwatch/retirement/phase-1-retirement-manifest.json");
+  const prefix = ["social-media", "founder-marketing-operating-system"].join("/");
+  const retired = manifest.entries
+    .map(entry => entry.originalPath)
+    .filter(path => path.startsWith(`${prefix}/`));
+  const formerlyCanonical = retired.filter(path => !path.endsWith("/README.md"));
+  const contract = readJson("overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json");
+  const serialized = JSON.stringify(contract);
+  assert.equal(retired.length, 8);
+  assert.equal(formerlyCanonical.length, 7);
+  for (const path of retired) assert.equal(serialized.includes(path), false, path);
+  assert.deepEqual(contract.externalOperatingOwnership, {
+    owner: "Meta AI",
+    identifier: "external:meta-ai-social-content-and-push",
+    ordinaryContentCreation: true,
+    ordinarySocialPush: true,
+    repositoryCampaignPlanningAuthority: false,
+    repositoryContentCalendarAuthority: false,
+    repositoryManualPushAuthority: false
+  });
 });

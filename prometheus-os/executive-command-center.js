@@ -12,15 +12,13 @@ import {
 
 const readOnlySources = Object.freeze({
   company: [
-    "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
-    "PROMETHEUS_SYSTEM_MAP.md",
-    "COMPANY_IDENTITY.md",
+    "README.md",
     "PRODUCT_VISION.md",
     "overwatch/reports/prometheus-architectural-evolution-report-v1.md"
   ],
   research: ["research/README.md", "research/architecture.md"],
   sales: ["sales/README.md", "sales/enterprise-sales-methodology.md"],
-  website: ["website/README.md", "PROMETHEUS_SYSTEM_MAP.md"],
+  website: ["website/README.md", "README.md"],
   crm: ["crm/README.md", "crm/enterprise-lifecycle-architecture.md"],
   socialMedia: [
     "social-media/contracts/social-media-contract.js",

@@ -385,7 +385,7 @@ assert.equal(packageJson.dependencies?.jose !== undefined, true);
 assert.equal(packageJson.devDependencies?.miniflare !== undefined, true);
 assert.equal(
   packageJson.scripts?.["infrastructure:route-iq-prospective-shadow:check"],
-  "node scripts/verify-route-iq-prospective-shadow-infrastructure.mjs && node --test tests/route-iq-prospective-shadow-infrastructure.test.mjs"
+  "node scripts/verify-route-iq-prospective-shadow-infrastructure.mjs"
 );
 
 assert.equal(activationTemplate.templateVersion, "route-iq-prospective-shadow-activation-template-v1");

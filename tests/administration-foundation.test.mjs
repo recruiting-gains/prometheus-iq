@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { test } from 'node:test';
 
 import {
@@ -178,7 +178,10 @@ test('Sprint 2 command center issues are mirrored into unified stabilization int
 });
 
 test('retired customer workspace artifacts are not required or active', () => {
-  assert.deepEqual(readdirSync('administration/workspaces'), []);
+  assert.equal(
+    !existsSync('administration/workspaces') || readdirSync('administration/workspaces').length === 0,
+    true
+  );
 
   assert.throws(
     () => resolveAdmittedWorkspaceConfiguration('retired_customer_workspace', {

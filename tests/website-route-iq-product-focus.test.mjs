@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { relative, resolve } from "node:path";
-import { spawnSync } from "node:child_process";
 
 import {
   ROUTE_IQ_GYM_REQUEST_ACQUISITION_SOURCE,
@@ -23,7 +22,6 @@ const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readBytes = path => readFileSync(resolve(root, path));
 const sha256 = path => createHash("sha256").update(readBytes(path)).digest("hex");
-let buildComplete = false;
 
 function validGymForm(overrides = {}) {
   return {
@@ -37,13 +35,6 @@ function validGymForm(overrides = {}) {
     websiteUrl: "",
     ...overrides
   };
-}
-
-function ensureFreshBuild() {
-  if (buildComplete) return;
-  const build = spawnSync("npm", ["run", "build"], { cwd: root, encoding: "utf8", timeout: 120_000 });
-  assert.equal(build.status, 0, `${build.stdout}\n${build.stderr}`);
-  buildComplete = true;
 }
 
 function filesUnder(directory) {
@@ -399,8 +390,7 @@ test("the investor route retains every prior section in order, 3D motion, and a 
   assert.match(source, /mailto:\$\{contactEmail\}\?subject=Request%20Investor%20Deck/);
 });
 
-test("a fresh build emits both founder assets and the lazy investor scene", () => {
-  ensureFreshBuild();
+test("the qualified build emits both founder assets and the lazy investor scene", () => {
   const generated = filesUnder("dist-public");
   assert.ok(generated.includes("index.html"));
   assert.equal(generated.includes("01-772904932_1493675372780221_5358616428807129112_n-2.jpeg"), false);

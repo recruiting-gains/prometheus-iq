@@ -102,7 +102,6 @@ export const CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDEC
     "scripts/run-cloudflare-founder-attended-prepare-recovery.mjs",
     "scripts/run-cloudflare-founder-attended-service-token.mjs",
     "scripts/run-cloudflare-founder-attended-successor-recovery.mjs",
-    "scripts/verify-cloudflare-founder-attended-service-token.mjs",
     "tests/cloudflare-founder-attended-get-only-recovery.test.mjs",
     "tests/cloudflare-founder-attended-service-token.test.mjs",
     "workers/infrastructure/cloudflare-founder-attended-get-only-recovery-v1.json",
