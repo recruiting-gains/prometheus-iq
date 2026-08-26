@@ -39,7 +39,10 @@ const PRIVATE_SESSION_REPAIR_PATHS = Object.freeze([
   AUGUST_1_SUCCESSORS_PATH,
   "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
   "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
-  "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs"
+  "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs",
+  "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
+  "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+  "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs"
 ].sort());
 const STARTING_COMMIT = "d3bda9d86a388462dd5cab0fa789081eee59b541";
 const STARTING_TREE = "bc1fb8b16fab4f795d51f838eab06e16d0a4a3d2";
@@ -920,7 +923,11 @@ export function validateAugust1ReadinessSuccessors(successors, {
     "package.json",
     "scripts/verify-dashboard-runtime-workflows.mjs",
     "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+    "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+    "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs",
+    "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
     "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+    "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
     "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
     "tests/dashboard-route-iq-customer-pwa.test.mjs",
     "tests/overwatch-public-deployment-workflow-v2.test.mjs",
@@ -1612,6 +1619,7 @@ function verifyRepositoryBaseline(root, contract, { requireClean }) {
     clean: status === "" || (!requireClean && onlyOverwatchSuccessorChanges),
     ownerArtifactsCommitted: trackedOwnerArtifacts,
     exactPrivateSessionRepair,
+    onlyOverwatchSuccessorChanges,
     uncommittedChanges: status !== ""
   };
 }
@@ -1661,10 +1669,15 @@ export function verifyOverwatchRouteIqAugust1LaunchReadiness({
   const repository = verifyGit ? verifyRepositoryBaseline(root, contract, { requireClean }) : null;
   if (repository) {
     if (repository.exactPrivateSessionRepair && repository.uncommittedChanges) {
-      assert.equal(repository.ownerArtifactsCommitted, false,
-        "The pre-commit private-session repair must remain visibly uncommitted.");
-      assert.equal(repository.clean, false,
-        "The pre-commit private-session repair must not be reported as a clean checkout.");
+      if (repository.ownerArtifactsCommitted) {
+        assert.equal(repository.onlyOverwatchSuccessorChanges, true,
+          "After owner commits, only the bounded Overwatch successor may remain uncommitted.");
+        assert.equal(repository.clean, true,
+          "A bounded Overwatch successor must preserve the historical readiness observation.");
+      } else {
+        assert.equal(repository.clean, false,
+          "The pre-commit private-session repair must not be reported as a clean checkout.");
+      }
     } else {
       assert.equal(
         repository.ownerArtifactsCommitted,

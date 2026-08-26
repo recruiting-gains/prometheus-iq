@@ -51,6 +51,7 @@ function createPackageFixture(t) {
   const fixture = mkdtempSync(resolve(tmpdir(), "route-iq-august-1-overwatch-"));
   t.after(() => rmSync(fixture, { recursive: true, force: true }));
   const { contract } = packageSource();
+  const readinessSuccessors = readJson(ROOT, AUGUST_1_SUCCESSORS_PATH);
   const visualVerifierSuccessor = readJson(
     ROOT,
     AUGUST_1_DASHBOARD_VISUAL_VERIFIER_SUCCESSOR_PATH
@@ -63,6 +64,7 @@ function createPackageFixture(t) {
     AUGUST_1_DASHBOARD_VISUAL_VERIFIER_SUCCESSOR_PATH,
     "overwatch/governance/route-iq-public-navigation-dashboard-visual-successor-v1.json",
     "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+    ...readinessSuccessors.overwatchCurrentEvidence.map(item => item.path),
     ...visualVerifierSuccessor.ownerCommits.flatMap(owner => (
       owner.evidence.map(item => item.path)
     )),

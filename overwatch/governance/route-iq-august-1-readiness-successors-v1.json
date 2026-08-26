@@ -232,6 +232,66 @@
       "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
       "previousSha256": "38a0dd8cf36b63dedbf6589d123cd34803cd545f71e46f85aff1cd6de295deec",
       "successorSha256": "ea45adc81d450ed54a3694be785cc216ec46fafdc3c856c58ae711fdff80514a"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "ea45adc81d450ed54a3694be785cc216ec46fafdc3c856c58ae711fdff80514a",
+      "successorSha256": "55b8fdad955de6c214342255f81f91fd69b8c9600cedfe88f72bc3de3ba644f0"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+      "previousSha256": "d29a521fc72eec10e26423e43e8fe930ad799f044ca5aeb37aa1daf56272eaee",
+      "successorSha256": "de2e718c88b9101f728c236ae36ca06203acfeb6e0588af69e1d7b64f4757665"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs",
+      "previousSha256": "5d12816bf01d2f6fce94306398b13be78ad4311f38ffbd0140b4435ede4451a0",
+      "successorSha256": "f8471f2aede3f06a2c0a9754fa1a52584fc2f0a5529b857b040fd0b48f69d8f8"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
+      "previousSha256": "b1fc586cb3438c9729119d5def3770e2df0a43567069a1f861a13d99b468cb87",
+      "successorSha256": "876d2025f8dd0ed87220329e55087fc6358f205b22f892f54aec390cb5b14184"
+    },
+    {
+      "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
+      "previousSha256": "3d21477ce3d9588db745524c06954d51f9a52490741f68d780a780519a4c2488",
+      "successorSha256": "71399bbb39788d014e830f8634e1bab405d6b80fdeb766c06176208816457ec6"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "55b8fdad955de6c214342255f81f91fd69b8c9600cedfe88f72bc3de3ba644f0",
+      "successorSha256": "0a13fd42723d3a12c4756715042fa5875fb9e96c8ea90a1f3e16774c1608b205"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "0a13fd42723d3a12c4756715042fa5875fb9e96c8ea90a1f3e16774c1608b205",
+      "successorSha256": "8ec14633ff31ec3e010d6c1c4e677b8cee56446ce7836e3d96187a56d6746ba8"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+      "previousSha256": "de2e718c88b9101f728c236ae36ca06203acfeb6e0588af69e1d7b64f4757665",
+      "successorSha256": "a4d97f6b4deda7effaa631d19972f4cc9ac50d83d98370d1dc2a50c26ac13c67"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs",
+      "previousSha256": "f8471f2aede3f06a2c0a9754fa1a52584fc2f0a5529b857b040fd0b48f69d8f8",
+      "successorSha256": "0f1481991e9b6567f3544661fd15194b9c9f709bbbecbd2779b90149d8c7c050"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
+      "previousSha256": "876d2025f8dd0ed87220329e55087fc6358f205b22f892f54aec390cb5b14184",
+      "successorSha256": "e796d6eb5380c578f24a06c4cf05d8b7a9224f23673ea0e239f0d7b80e0a8d02"
+    },
+    {
+      "path": "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+      "previousSha256": "f8f38f5e0a929a094aafc402e3abda88e52b37966ea077ba4d697f0024f72e42",
+      "successorSha256": "ec58645e148c0563d50baa39bff7d7e2f6e535d0d34b08462380d6ea770b0a6c"
+    },
+    {
+      "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
+      "previousSha256": "71399bbb39788d014e830f8634e1bab405d6b80fdeb766c06176208816457ec6",
+      "successorSha256": "ffda08eeb801926becaacaa4302177c00b3ebba486cdd8008a97498f53d1bd74"
     }
   ],
   "successors": [

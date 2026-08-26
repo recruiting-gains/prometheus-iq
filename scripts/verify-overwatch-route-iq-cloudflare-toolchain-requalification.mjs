@@ -114,7 +114,10 @@ const privateSessionRepairPaths = Object.freeze([
   augustReadinessSuccessorsPath,
   "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
   "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
-  "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs"
+  "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs",
+  "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
+  "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+  "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs"
 ].sort());
 
 const read = path => readFileSync(resolve(root, path), "utf8");
