@@ -1,15 +1,30 @@
 import { spawn, spawnSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, generateKeyPairSync } from "node:crypto";
 import { createServer as createSecureServer } from "node:https";
 import { accessSync, constants as fsConstants, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { delimiter, extname, join, normalize, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
+import { SignJWT, createLocalJWKSet, exportJWK } from "jose";
+
+import canonicalCommercialWorkspaceRegistry from "../data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json" with { type: "json" };
+import {
+  routeIqAugust1FounderAccessContractVersion,
+  routeIqAugust1FounderAccessMode,
+  routeIqAugust1FounderAccessRole,
+  routeIqAugust1LaunchEnvelopeVersion
+} from "../data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs";
 import {
   routeIqGovernedLearningAdvisoryPath
 } from "../dashboard/route-iq-dashboard-platform.mjs";
 import { createPaidCustomerRevenueReadinessViewModel } from "../dashboard/route-iq-paid-customer-revenue-readiness.mjs";
+import {
+  ROUTE_IQ_CUSTOMER_PWA_ENV,
+  ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH,
+  handleRouteIqCustomerPwaRequest,
+  injectRouteIqCustomerPwaSession
+} from "../workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js";
 
 const root = resolve(import.meta.dirname, "..");
 const dashboardRoot = resolve(root, "deploy/cloudflare-pages");
@@ -29,7 +44,7 @@ const prospectiveCoordinatorContractVersion = "route-iq-prospective-coordinator-
 const routeUpdateCompletionPrefix = "Route updated using your latest result.";
 const governedRouteHoursDetailPattern = /^(?:1 stop has|(?:[2-9]|[1-9]\d+) stops have) unverified hours\.$/;
 const customerPwaWorkspaceConfigurationPath = "administration/workspace-configurations/route-iq-cross-industry-workspaces-v2.json";
-const customerPwaManifestRegistryPath = "data/__harness__/northstar/manifest-registry.json";
+const customerPwaManifestRegistryPath = "data/route-iq-commercial-readiness-v1/route-iq-workspace-business-artifact-manifest-registry-v1.json";
 const customerPwaBusinessRosterPath = "data/__harness__/northstar/approved-roster.json";
 const customerPwaBusinessHoursPath = "data/__harness__/northstar/business-hours.json";
 const summitRehearsalWorkspaceConfigurationPath = "administration/workspace-configurations/route-iq-72-hour-onboarding-rehearsal-v1.json";
@@ -94,8 +109,23 @@ const customerPwaWorkspaceConfigurationRegistry = cloneJson(canonicalWorkspaceCo
 const customerPwaWorkspaceConfiguration = customerPwaWorkspaceConfigurationRegistry.workspaces.find(
   workspace => workspace.workspaceId === "northstar_outside_sales_synthetic"
 );
+const customerPwaRepresentativeRole = Object.freeze({
+  roleId: "customer_representative",
+  displayName: "Field Representative (Synthetic)",
+  capabilities: Object.freeze([...customerPwaWorkspaceConfiguration.dashboard.capabilities])
+});
+const customerPwaRepresentativeUser = Object.freeze({
+  userId: "northstar_synthetic_user_01",
+  representativeId: "northstar_synthetic_rep_01",
+  displayName: "Synthetic Representative 01",
+  identityClass: "SYNTHETIC_NONCANONICAL",
+  principalMappingStatus: "SYNTHETIC_ONLY",
+  roleId: customerPwaRepresentativeRole.roleId,
+  territoryIds: Object.freeze(["synthetic_north_territory"]),
+  active: true
+});
 const customerPwaManagerRole = Object.freeze({
-  roleId: "northstar_synthetic_manager",
+  roleId: "customer_manager",
   displayName: "Field Operations Manager (Synthetic)",
   capabilities: Object.freeze([...customerPwaWorkspaceConfiguration.dashboard.capabilities])
 });
@@ -107,12 +137,10 @@ const customerPwaManagerUser = Object.freeze({
   principalMappingStatus: "SYNTHETIC_ONLY",
   roleId: customerPwaManagerRole.roleId,
   territoryIds: Object.freeze(["synthetic_north_territory"]),
-  active: false
+  active: true
 });
-customerPwaWorkspaceConfiguration.roles.push(customerPwaManagerRole);
-customerPwaWorkspaceConfiguration.users.push(customerPwaManagerUser);
 const customerPwaOwnerRole = Object.freeze({
-  roleId: "northstar_synthetic_owner",
+  roleId: "customer_owner",
   displayName: "Customer Owner (Synthetic)",
   capabilities: Object.freeze([...customerPwaWorkspaceConfiguration.dashboard.capabilities])
 });
@@ -124,25 +152,40 @@ const customerPwaOwnerUser = Object.freeze({
   principalMappingStatus: "SYNTHETIC_ONLY",
   roleId: customerPwaOwnerRole.roleId,
   territoryIds: Object.freeze(["synthetic_north_territory"]),
-  active: false
+  active: true
 });
 const customerPwaFounderRole = Object.freeze({
-  roleId: "northstar_synthetic_founder",
+  roleId: routeIqAugust1FounderAccessRole,
   displayName: "Founder Operator (Synthetic)",
   capabilities: Object.freeze([...customerPwaWorkspaceConfiguration.dashboard.capabilities])
 });
 const customerPwaFounderUser = Object.freeze({
-  userId: "northstar_synthetic_founder_01",
-  representativeId: "northstar_synthetic_founder_rep_01",
+  userId: "user_cruz_founder",
+  representativeId: "cruz",
   displayName: "Synthetic Founder Operator 01",
-  identityClass: "SYNTHETIC_NONCANONICAL",
-  principalMappingStatus: "SYNTHETIC_ONLY",
+  identityClass: "FOUNDER_ATTENDED",
+  principalMappingStatus: "EXACT_PRINCIPAL_MAPPED",
   roleId: customerPwaFounderRole.roleId,
   territoryIds: Object.freeze(["synthetic_north_territory"]),
-  active: false
+  active: true
 });
-customerPwaWorkspaceConfiguration.roles.push(customerPwaOwnerRole, customerPwaFounderRole);
-customerPwaWorkspaceConfiguration.users.push(customerPwaOwnerUser, customerPwaFounderUser);
+customerPwaWorkspaceConfiguration.roles = [
+  customerPwaRepresentativeRole,
+  customerPwaManagerRole,
+  customerPwaOwnerRole,
+  customerPwaFounderRole
+];
+customerPwaWorkspaceConfiguration.users = [
+  customerPwaRepresentativeUser,
+  customerPwaManagerUser,
+  customerPwaOwnerUser,
+  customerPwaFounderUser
+];
+for (const workspace of customerPwaWorkspaceConfigurationRegistry.workspaces) {
+  if (workspace.workspaceId !== customerPwaWorkspaceConfiguration.workspaceId) {
+    workspace.users = workspace.users.filter(user => user.userId !== customerPwaFounderUser.userId);
+  }
+}
 const customerPwaOpportunitySource = customerPwaWorkspaceConfiguration.opportunitySources.find(
   source => source.workspaceId === "northstar_outside_sales_synthetic"
 );
@@ -259,93 +302,182 @@ const customerPwaBusinessHours = Object.freeze({
     currentStatusBusinessLocalTime: "11:00"
   }))
 });
-const customerPwaSessionFixture = Object.freeze({
-  contractVersion: "route-iq-customer-pwa-session-v2",
-  authorizationState: "server_verified",
-  workspaceId: "northstar_outside_sales_synthetic",
-  workspaceLabel: "Northstar Field Supply (Synthetic)",
-  operatingProfileId: "general_outside_sales",
-  principalRole: "representative",
-  userId: "northstar_synthetic_user_01",
-  representativeId: "northstar_synthetic_rep_01",
-  displayName: "Synthetic Representative 01",
-  roleId: "northstar_synthetic_representative",
-  capabilities: Object.freeze({
-    operateOwnRoute: true,
-    readWorkspaceOperations: false,
-    administerWorkspaceRoster: false,
-    founderIntelligence: false,
-    founderCrm: false
-  }),
-  runtimeAssets: Object.freeze({
-    workspaceConfiguration: `/${customerPwaWorkspaceConfigurationPath}`,
-    businessManifestRegistry: `/${customerPwaManifestRegistryPath}`,
-    businessRoster: `/${customerPwaBusinessRosterPath}`,
-    businessHours: `/${customerPwaBusinessHoursPath}`
-  }),
-  expiresAt: "2099-01-01T00:00:00.000Z",
-  safety: Object.freeze({
-    prospectiveCollection: "OFF",
-    activeCohorts: 0,
-    recommendationInfluence: "OFF"
-  })
-});
-const customerPwaManagerSessionFixture = Object.freeze({
-  ...customerPwaSessionFixture,
-  userId: customerPwaManagerUser.userId,
-  representativeId: customerPwaManagerUser.representativeId,
-  displayName: customerPwaManagerUser.displayName,
-  roleId: customerPwaManagerUser.roleId,
-  principalRole: "manager",
-  capabilities: Object.freeze({
-    operateOwnRoute: false,
-    readWorkspaceOperations: true,
-    administerWorkspaceRoster: false,
-    founderIntelligence: false,
-    founderCrm: false
-  })
-});
-const customerPwaOwnerSessionFixture = Object.freeze({
-  ...customerPwaSessionFixture,
-  userId: customerPwaOwnerUser.userId,
-  representativeId: customerPwaOwnerUser.representativeId,
-  displayName: customerPwaOwnerUser.displayName,
-  roleId: customerPwaOwnerUser.roleId,
-  principalRole: "customer_owner",
-  capabilities: Object.freeze({
-    operateOwnRoute: false,
-    readWorkspaceOperations: true,
-    administerWorkspaceRoster: true,
-    founderIntelligence: false,
-    founderCrm: false
-  })
-});
-const customerPwaFounderSessionFixture = Object.freeze({
-  ...customerPwaSessionFixture,
-  userId: customerPwaFounderUser.userId,
-  representativeId: customerPwaFounderUser.representativeId,
-  displayName: customerPwaFounderUser.displayName,
-  roleId: customerPwaFounderUser.roleId,
-  principalRole: "founder",
-  capabilities: Object.freeze({
-    operateOwnRoute: false,
-    readWorkspaceOperations: true,
-    administerWorkspaceRoster: false,
-    founderIntelligence: true,
-    founderCrm: false
-  })
+const customerPwaAccessIssuer = "https://route-iq-dashboard-harness.cloudflareaccess.com";
+const customerPwaAccessAudience = "route-iq-dashboard-harness-audience";
+const customerPwaAccessNow = new Date("2098-12-31T12:00:00.000Z");
+const customerPwaAccessNowSeconds = Math.floor(customerPwaAccessNow.getTime() / 1000);
+const customerPwaSubjects = Object.freeze({
+  founder: "dashboard-harness:founder",
+  customer_owner: "dashboard-harness:customer-owner",
+  manager: "dashboard-harness:manager",
+  representative: "dashboard-harness:representative"
 });
 
-function injectRouteIqCustomerPwaSession(dashboard, session) {
-  const marker = "__ROUTE_IQ_CUSTOMER_PWA_SESSION__";
-  if (dashboard.split(marker).length !== 2) {
-    throw new Error("Customer PWA session marker is missing or duplicated.");
-  }
-  const payload = JSON.stringify(session).replace(/[<>&\u2028\u2029]/gu, character => {
-    return `\\u${character.codePointAt(0).toString(16).padStart(4, "0")}`;
-  });
-  return dashboard.replace(marker, payload);
+function customerPwaPrincipalId(subject) {
+  return `riq_principal_${createHash("sha256").update(subject).digest("hex")}`;
 }
+
+function customerPwaCommercialFixture() {
+  const source = canonicalCommercialWorkspaceRegistry.workspaces.find(
+    workspace => workspace.workspaceId === "northstar_outside_sales_synthetic"
+  );
+  if (!source) throw new Error("Northstar commercial fixture is unavailable.");
+  const workspace = cloneJson(source);
+  workspace.workspaceState = "active_customer";
+  workspace.normalOperationVisible = true;
+  workspace.productionActivationAuthorized = true;
+  workspace.business.relationshipClassification = "CUSTOMER_PRODUCTION";
+  workspace.evidenceGovernance.classification = "CUSTOMER_GOVERNED_EVIDENCE";
+  workspace.roles = [
+    { roleId: "customer_owner", operationalAccess: true, founderIntelligenceAccess: false, workspaceAdministration: true },
+    { roleId: "customer_manager", operationalAccess: true, founderIntelligenceAccess: false, workspaceAdministration: false },
+    { roleId: "customer_representative", operationalAccess: true, founderIntelligenceAccess: false, workspaceAdministration: false }
+  ];
+  const customerUsers = [
+    [customerPwaOwnerUser, customerPwaSubjects.customer_owner],
+    [customerPwaManagerUser, customerPwaSubjects.manager],
+    [customerPwaRepresentativeUser, customerPwaSubjects.representative]
+  ].map(([user, subject], index) => ({
+    userId: user.userId,
+    representativeId: user.representativeId,
+    displayName: user.displayName,
+    roleId: user.roleId,
+    authenticatedPrincipalId: customerPwaPrincipalId(subject),
+    identityMappingStatus: "exact_authenticated_identity_mapped",
+    analysisPseudonym: `riq_rep_dashboard_harness_${index + 1}`,
+    active: true,
+    founderIntelligenceEligibility: false,
+    territoryIds: [...user.territoryIds]
+  }));
+  const founder = {
+    userId: customerPwaFounderUser.userId,
+    representativeId: customerPwaFounderUser.representativeId,
+    displayName: customerPwaFounderUser.displayName,
+    roleId: routeIqAugust1FounderAccessRole,
+    authenticatedPrincipalId: customerPwaPrincipalId(customerPwaSubjects.founder),
+    identityMappingStatus: "exact_authenticated_identity_mapped",
+    analysisPseudonym: "riq_rep_dashboard_harness_founder",
+    active: true,
+    founderIntelligenceEligibility: true,
+    territoryIds: [...customerPwaFounderUser.territoryIds]
+  };
+  workspace.users = [...customerUsers, founder];
+  const envelope = {
+    version: routeIqAugust1LaunchEnvelopeVersion,
+    state: "ACTIVE",
+    classification: "PRODUCTION_ACTIVATION",
+    issuedAt: "2098-12-31T11:55:00.000Z",
+    expiresAt: "2099-01-07T11:55:00.000Z",
+    limits: { maximumCompanies: 2, maximumNamedUsers: 40 },
+    safety: {
+      prelaunchHumanAcceptanceTester: "cruz",
+      externalHumanTesting: false,
+      anthonyMapped: false,
+      prospectiveCollection: "OFF",
+      activeCohorts: 0,
+      recommendationInfluence: "OFF"
+    },
+    workspaceAdmissions: [{
+      workspaceId: workspace.workspaceId,
+      operatingProfileId: workspace.operatingProfileId,
+      authorizedUserIds: customerUsers.map(user => user.userId),
+      runtimeAssets: {
+        fullPool: `/${fullPoolPath}`,
+        activePool: `/${activePoolPath}`,
+        quarantinePool: "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+        businessHours: "/data/route-iq-dashboard-harness/northstar-business-hours.json"
+      }
+    }],
+    founderAccess: {
+      contractVersion: routeIqAugust1FounderAccessContractVersion,
+      identityAuthority: "commercial_workspace_registry_exact_principal",
+      roleId: routeIqAugust1FounderAccessRole,
+      accessMode: routeIqAugust1FounderAccessMode,
+      authenticatedPrincipalId: founder.authenticatedPrincipalId,
+      authorizedWorkspaceIds: [workspace.workspaceId]
+    }
+  };
+  return { envelope, registry: { workspaces: [workspace] } };
+}
+
+async function createWorkerProducedCustomerPwaSessions() {
+  const keyPair = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  const publicJwk = await exportJWK(keyPair.publicKey);
+  Object.assign(publicJwk, {
+    alg: "RS256",
+    use: "sig",
+    kid: "route-iq-dashboard-harness-key"
+  });
+  const keyResolver = createLocalJWKSet({ keys: [publicJwk] });
+  const fixture = customerPwaCommercialFixture();
+  const runtimeBindings = {
+    workspaceConfiguration: {
+      path: `/${customerPwaWorkspaceConfigurationPath}`,
+      registry: customerPwaWorkspaceConfigurationRegistry
+    },
+    businessManifestRegistry: {
+      path: `/${customerPwaManifestRegistryPath}`,
+      registry: customerPwaBusinessManifestRegistry
+    },
+    businessHours: [{
+      workspaceId: customerPwaBusinessHours.workspaceId,
+      operatingProfileId: customerPwaBusinessHours.operatingProfileId,
+      path: `/${customerPwaBusinessHoursPath}`,
+      artifact: customerPwaBusinessHours
+    }]
+  };
+  const env = {
+    [ROUTE_IQ_CUSTOMER_PWA_ENV.enabled]: "ON",
+    [ROUTE_IQ_CUSTOMER_PWA_ENV.workerName]: "prometheus-iq",
+    [ROUTE_IQ_CUSTOMER_PWA_ENV.accessTeamDomain]: customerPwaAccessIssuer,
+    [ROUTE_IQ_CUSTOMER_PWA_ENV.accessAudience]: customerPwaAccessAudience
+  };
+  const testHooks = {
+    enabled: true,
+    currentDate: customerPwaAccessNow,
+    keyResolver,
+    envelope: fixture.envelope,
+    registry: fixture.registry,
+    runtimeBindings
+  };
+  const sessions = {};
+  for (const principalRole of ["founder", "customer_owner", "manager", "representative"]) {
+    const assertion = await new SignJWT({})
+      .setProtectedHeader({ alg: "RS256", kid: publicJwk.kid })
+      .setIssuer(customerPwaAccessIssuer)
+      .setAudience(customerPwaAccessAudience)
+      .setSubject(customerPwaSubjects[principalRole])
+      .setIssuedAt(customerPwaAccessNowSeconds - 10)
+      .setExpirationTime(customerPwaAccessNowSeconds + 300)
+      .sign(keyPair.privateKey);
+    const query = principalRole === "founder"
+      ? `?workspaceId=${encodeURIComponent(customerPwaWorkspaceConfiguration.workspaceId)}`
+      : "";
+    const request = new Request(
+      `https://prometheus-iq.example${ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH}${query}`,
+      { headers: { "Cf-Access-Jwt-Assertion": assertion } }
+    );
+    const response = await handleRouteIqCustomerPwaRequest(request, env, { testHooks });
+    const body = await response.json();
+    if (response.status !== 200
+      || body?.ok !== true
+      || body.session?.principalRole !== principalRole
+      || Object.hasOwn(body.session || {}, "semanticRole")) {
+      throw new Error(
+        `Worker-produced ${principalRole} session failed compatibility preflight `
+        + `(status ${response.status}, code ${body?.code || "invalid_success_body"}).`
+      );
+    }
+    sessions[principalRole] = Object.freeze(body.session);
+  }
+  return Object.freeze(sessions);
+}
+
+const workerProducedCustomerPwaSessions = await createWorkerProducedCustomerPwaSessions();
+const customerPwaSessionFixture = workerProducedCustomerPwaSessions.representative;
+const customerPwaManagerSessionFixture = workerProducedCustomerPwaSessions.manager;
+const customerPwaOwnerSessionFixture = workerProducedCustomerPwaSessions.customer_owner;
+const customerPwaFounderSessionFixture = workerProducedCustomerPwaSessions.founder;
 
 function summitRehearsalBrowserDocument() {
   const registryTemplate = JSON.stringify(canonicalWorkspaceConfigurationRegistry)
@@ -3919,6 +4051,28 @@ async function runHarness() {
     now: new Date(dashboardRuntimeWorkflowTestClock.now)
   });
   verifyRouteUpdateStatusContract();
+  const workerSessionRoleMatrix = [
+    [customerPwaFounderSessionFixture, routeIqAugust1FounderAccessRole, "founder", true],
+    [customerPwaOwnerSessionFixture, "customer_owner", "customer_owner", false],
+    [customerPwaManagerSessionFixture, "customer_manager", "manager", false],
+    [customerPwaSessionFixture, "customer_representative", "representative", false]
+  ];
+  assertWorkflow(
+    "Worker-produced four-role session contract",
+    workerSessionRoleMatrix.every(([session, roleId, principalRole, founderIntelligence]) =>
+      session.roleId === roleId
+        && session.principalRole === principalRole
+        && session.capabilities.founderIntelligence === founderIntelligence
+        && session.capabilities.founderCrm === false
+        && !Object.hasOwn(session, "semanticRole")
+    ),
+    "signed Access assertions traversed the real Worker authorization and session handlers",
+    JSON.stringify(workerSessionRoleMatrix.map(([session]) => ({
+      roleId: session.roleId,
+      principalRole: session.principalRole,
+      founderIntelligence: session.capabilities.founderIntelligence
+    })))
+  );
   const customerPwaTerritory = customerPwaWorkspaceConfiguration.territories.find(
     territory => territory.territoryId === "synthetic_north_territory"
   );
@@ -4238,6 +4392,7 @@ async function runHarness() {
 
     const founder = await runPageScenario(chrome, server, "/app?role=representative&rep=forged&debug=1&harness=runtime-workflows-founder", "founder");
     const founderSnap = founder.initial;
+    assertWorkflow("Worker-produced Founder session Dashboard parser", founderSnap.sessionRole === "founder", "the exact Worker body.session rendered the Founder surface", JSON.stringify({ sessionRole: founderSnap.sessionRole, roleId: customerPwaFounderSessionFixture.roleId }));
     assertWorkflow("Server-verified Founder Mode", founderSnap.sessionRole === "founder" && founderSnap.mode === "owner" && founderSnap.activeRepId === customerPwaFounderSessionFixture.representativeId && founderSnap.visibleTabs.includes("places") && founderSnap.visibleTabs.includes("stats") && founderSnap.visibleTabs.includes("find"), `Founder tabs visible: ${founderSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: founderSnap.sessionRole, mode: founderSnap.mode, visibleTabs: founderSnap.visibleTabs }));
     const founderIntelligenceState = await waitForFounderDailyIntelligence(founder.cdp, "rendered");
     await waitForFounderGovernedLearning(founder.cdp, "unavailable");
@@ -4276,6 +4431,7 @@ async function runHarness() {
     const customerOwner = await runPageScenario(chrome, customerOwnerServer, "/app?role=representative&rep=forged&harness=customer-owner", "customer-owner");
     await waitForFounderRevenueReadiness(customerOwner.cdp, "role_ineligible");
     const customerOwnerSnap = await snapshot(customerOwner.cdp);
+    assertWorkflow("Worker-produced customer-owner session Dashboard parser", customerOwnerSnap.sessionRole === "owner", "the exact Worker body.session rendered the customer-owner surface", JSON.stringify({ sessionRole: customerOwnerSnap.sessionRole, roleId: customerPwaOwnerSessionFixture.roleId }));
     assertWorkflow("Server-verified customer owner Mode", customerOwnerSnap.sessionRole === "owner" && customerOwnerSnap.mode === "owner" && customerOwnerSnap.activeRepId === customerPwaOwnerSessionFixture.representativeId && customerOwnerSnap.visibleTabs.includes("stats") && customerOwnerSnap.visibleTabs.includes("find") && !customerOwnerSnap.founderDailyIntelligenceVisible, "customer owner remained distinct from manager and Founder", JSON.stringify({ sessionRole: customerOwnerSnap.sessionRole, mode: customerOwnerSnap.mode, tabs: customerOwnerSnap.visibleTabs }));
     assertWorkflow(
       "Customer owner direct-route and storage substitution denial",
@@ -4300,6 +4456,7 @@ async function runHarness() {
 
     const managerIntelligence = await runPageScenario(chrome, managerServer, "/app?role=founder&rep=cruz&harness=manager-founder-intelligence-denied", "manager-founder-intelligence-denied");
     const managerIntelligenceSnap = managerIntelligence.initial;
+    assertWorkflow("Worker-produced manager session Dashboard parser", managerIntelligenceSnap.sessionRole === "manager", "the exact Worker body.session rendered the manager surface", JSON.stringify({ sessionRole: managerIntelligenceSnap.sessionRole, roleId: customerPwaManagerSessionFixture.roleId }));
     assertWorkflow(
       "Founder daily intelligence customer-session isolation",
       !managerIntelligenceSnap.founderDailyIntelligenceVisible
@@ -4633,6 +4790,7 @@ async function runHarness() {
 
     const rep = await runPageScenario(chrome, representativeServer, "/app?harness=runtime-workflows-representative", "rep");
     const repSnap = rep.initial;
+    assertWorkflow("Worker-produced representative session Dashboard parser", repSnap.sessionRole === "rep", "the exact Worker body.session rendered the representative surface", JSON.stringify({ sessionRole: repSnap.sessionRole, roleId: customerPwaSessionFixture.roleId }));
     assertWorkflow("Rep Mode", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.visibleTabs.includes("places") && !repSnap.visibleTabs.includes("stats") && !repSnap.visibleTabs.includes("find"), `rep tabs visible: ${repSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: repSnap.sessionRole, mode: repSnap.mode, visibleTabs: repSnap.visibleTabs }));
     assertWorkflow("Add Place desktop availability", repSnap.todayText.includes("Add Place"), "representative Add Place command visible on desktop", JSON.stringify({ todayText: repSnap.todayText.slice(0, 500) }));
     assertWorkflow("Representative radius/ring visibility", repSnap.territoryVisible && repSnap.territoryRingCount > 0 && repSnap.territoryText.includes("Assigned Territory Radius") && repSnap.territoryText.includes("Ring"), `${repSnap.territoryRingCount} territory rings visible for ${repSnap.activeRepId}`, JSON.stringify({ territoryVisible: repSnap.territoryVisible, territoryRingCount: repSnap.territoryRingCount, territoryText: repSnap.territoryText.slice(0, 400) }));
