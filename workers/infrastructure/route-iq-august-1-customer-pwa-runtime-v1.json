@@ -87,6 +87,7 @@
       "workspaceId",
       "workspaceLabel",
       "operatingProfileId",
+      "principalRole",
       "userId",
       "representativeId",
       "displayName",
@@ -120,6 +121,15 @@
     "roleAuthority": {
       "source": "exact_authenticated_principal_plus_prometheus_administration",
       "strictRoleMatchRequired": true,
+      "semanticField": "principalRole",
+      "semanticRoleByRoleId": {
+        "founder_multi_company_read_only": "founder",
+        "customer_owner": "customer_owner",
+        "customer_manager": "manager",
+        "customer_representative": "representative"
+      },
+      "semanticRoleAliasesAllowed": false,
+      "founderIntelligenceDerivation": "TRUE_ONLY_FOR_AUTHENTICATED_FOUNDER_SEMANTIC_ROLE",
       "browserRoleOverrideAllowed": false
     },
     "safetyKeys": ["prospectiveCollection", "activeCohorts", "recommendationInfluence"],
@@ -151,7 +161,7 @@
   },
   "safety": {
     "founderCrm": false,
-    "founderIntelligence": false,
+    "founderIntelligence": "AUTHENTICATED_FOUNDER_ONLY",
     "prospectiveCollection": "OFF",
     "activeCohorts": 0,
     "recommendationInfluence": "OFF",

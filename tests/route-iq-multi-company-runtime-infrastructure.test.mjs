@@ -326,7 +326,9 @@ test("canonical Administration ZIP coverage integrates with Data-authorized Foun
     );
     assert.equal(Object.hasOwn(session, "authorizedWorkspaceIds"), false);
     assert.equal(Object.hasOwn(session, "zipCoverage"), false);
-    assert.equal(session.capabilities.founderIntelligence, false);
+    assert.equal(session.principalRole, "founder");
+    assert.equal(session.capabilities.founderIntelligence, true);
+    assert.equal(Object.hasOwn(session, "semanticRole"), false);
   }
 });
 
