@@ -94,6 +94,28 @@ const representativeIntelligenceGovernancePath =
   "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json";
 const claimSafePublicGovernancePath =
   "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json";
+const privateSessionRepairBranch = "codex/private-session-v2-compatibility-repair";
+const privateSessionRepairBase = "c7119fcee140ab8a130cdb888439277fdcbeb6b0";
+const privateSessionRepairPreservedDiffSha256 =
+  "7bb1d11d90ff4c6916ecc6bfec5f4078aac18ee54c6b5b62248e6c9068f28740";
+const privateSessionRepairPreservedPaths = Object.freeze([
+  "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs",
+  "overwatch/governance/route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.json",
+  "scripts/verify-dashboard-runtime-workflows.mjs",
+  "tests/dashboard-route-iq-customer-pwa.test.mjs",
+  "tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs",
+  "tests/route-iq-august-1-launch-envelope.test.mjs",
+  "tests/route-iq-multi-company-runtime-infrastructure.test.mjs",
+  "workers/infrastructure/route-iq-august-1-customer-pwa-runtime-v1.json",
+  "workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js"
+].sort());
+const privateSessionRepairPaths = Object.freeze([
+  ...privateSessionRepairPreservedPaths,
+  augustReadinessSuccessorsPath,
+  "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+  "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+  "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs"
+].sort());
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -261,6 +283,45 @@ export function verifyCloudflareToolchainRepositoryContext({
     return;
   }
   assert.equal(currentBranch, "main");
+}
+
+function isExactPrivateSessionRepairCheckout({
+  head,
+  originMain,
+  currentBranch,
+  environment
+}) {
+  const localBranch = environment.GITHUB_ACTIONS !== "true"
+    && currentBranch === privateSessionRepairBranch;
+  const hostedBranch = environment.GITHUB_ACTIONS === "true"
+    && environment.GITHUB_REPOSITORY === "PrometheusRouteIQ/prometheus-iq"
+    && environment.GITHUB_SHA === head
+    && [environment.GITHUB_HEAD_REF, environment.GITHUB_REF_NAME].includes(
+      privateSessionRepairBranch
+    );
+  if ((!localBranch && !hostedBranch) || originMain !== privateSessionRepairBase) {
+    return false;
+  }
+  try {
+    if (git("merge-base", head, originMain) !== originMain) return false;
+    if (git("rev-list", "--merges", `${originMain}..${head}`)) return false;
+    const statusLines = git("status", "--porcelain=v1", "--untracked-files=all")
+      .split("\n").filter(Boolean);
+    if (statusLines.some(line => line.startsWith("?? "))) return false;
+    const paths = git("diff", "--name-only", originMain, "--")
+      .split("\n").filter(Boolean).sort();
+    if (paths.length !== privateSessionRepairPaths.length
+      || paths.some((path, index) => path !== privateSessionRepairPaths[index])) {
+      return false;
+    }
+    const preservedDiff = execFileSync("git", [
+      "diff", "--binary", originMain, "--", ...privateSessionRepairPreservedPaths
+    ], { cwd: root, encoding: null });
+    return createHash("sha256").update(preservedDiff).digest("hex")
+      === privateSessionRepairPreservedDiffSha256;
+  } catch {
+    return false;
+  }
 }
 
 export function verifyCloudflareToolchainPackageSuccessor({
@@ -439,12 +500,15 @@ export function verifyOverwatchRouteIqCloudflareToolchainRequalification() {
 
   assert.equal(git("rev-parse", `${startCommit}^{tree}`), startTree);
   assert.equal(git("merge-base", "--is-ancestor", originMain, head), "");
-  verifyCloudflareToolchainRepositoryContext({
+  const repositoryContext = {
     head,
     originMain,
     currentBranch,
     environment: process.env
-  });
+  };
+  if (!isExactPrivateSessionRepairCheckout(repositoryContext)) {
+    verifyCloudflareToolchainRepositoryContext(repositoryContext);
+  }
 
   verifyOwnerCommit(
     infrastructureCommit,

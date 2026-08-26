@@ -42,7 +42,7 @@
     {"path":"tests/route-iq-governed-multi-session-learning.test.mjs","sha256":"e1ce62193a28c1c032766702f8c8ff5f3cc087ca475a460bd586b9bd2e0de3eb"},
     {"path":"dashboard/route-iq-dashboard-platform.mjs","sha256":"354d377a02c1675df041ee2d7efeaa50962f1f5305e5c39352b0702c31eed4c0"},
     {"path":"index.html","sha256":"b450ce99d5e416677451ace590c276b74723ac64b578a00f01be13c93951e604"},
-    {"path":"scripts/verify-dashboard-runtime-workflows.mjs","sha256":"c014d74ad3ab6f81befdf4880cdc0093fa9f8688e2dc90b3ab3f4cbcbfafb6d4"},
+    {"path":"scripts/verify-dashboard-runtime-workflows.mjs","sha256":"31b5195f1fb06ccb2cf40f1392895b65ce3e0a00d4b1f906a1f5bcc67bd2cc19"},
     {"path":"workers/infrastructure/route-iq-governed-learning-advisory-runtime.js","sha256":"d42e7e47a8e07f93a13577591d25fd1e5d70b574b1075f3f291102f9c79f56c5"},
     {"path":"workers/prometheus-iq-worker.js","sha256":"b5a5d26229d6d0808bb41a08fd2b252021df1d5cdfa9e44cda539819fc728b9a"},
     {"path":"security/route-iq-governed-learning-advisory-v1.json","sha256":"1e2fb1758916031f57bf6b6a2c0a7ffdbf5920f1ad2c02ca50d98b091bd78211"},

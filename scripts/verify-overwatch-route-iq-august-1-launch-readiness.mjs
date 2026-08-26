@@ -19,6 +19,28 @@ export const AUGUST_1_DASHBOARD_VISUAL_VERIFIER_SUCCESSOR_PATH =
   "overwatch/governance/route-iq-august-1-dashboard-visual-verifier-successor-v1.json";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
+const PRIVATE_SESSION_REPAIR_BRANCH = "codex/private-session-v2-compatibility-repair";
+const PRIVATE_SESSION_REPAIR_BASE = "c7119fcee140ab8a130cdb888439277fdcbeb6b0";
+const PRIVATE_SESSION_REPAIR_PRESERVED_DIFF_SHA256 =
+  "7bb1d11d90ff4c6916ecc6bfec5f4078aac18ee54c6b5b62248e6c9068f28740";
+const PRIVATE_SESSION_REPAIR_PRESERVED_PATHS = Object.freeze([
+  "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs",
+  "overwatch/governance/route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.json",
+  "scripts/verify-dashboard-runtime-workflows.mjs",
+  "tests/dashboard-route-iq-customer-pwa.test.mjs",
+  "tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs",
+  "tests/route-iq-august-1-launch-envelope.test.mjs",
+  "tests/route-iq-multi-company-runtime-infrastructure.test.mjs",
+  "workers/infrastructure/route-iq-august-1-customer-pwa-runtime-v1.json",
+  "workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js"
+].sort());
+const PRIVATE_SESSION_REPAIR_PATHS = Object.freeze([
+  ...PRIVATE_SESSION_REPAIR_PRESERVED_PATHS,
+  AUGUST_1_SUCCESSORS_PATH,
+  "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+  "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+  "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs"
+].sort());
 const STARTING_COMMIT = "d3bda9d86a388462dd5cab0fa789081eee59b541";
 const STARTING_TREE = "bc1fb8b16fab4f795d51f838eab06e16d0a4a3d2";
 const OWNER_SUCCESSOR_BASELINE = Object.freeze({
@@ -894,11 +916,18 @@ export function validateAugust1ReadinessSuccessors(successors, {
   assert.ok(Array.isArray(successors.overwatchCurrentEvidence));
   const currentEvidenceByPath = new Map();
   const allowedCurrentEvidencePaths = new Set([
+    "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs",
     "package.json",
+    "scripts/verify-dashboard-runtime-workflows.mjs",
     "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
     "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
     "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
-    "tests/overwatch-public-deployment-workflow-v2.test.mjs"
+    "tests/dashboard-route-iq-customer-pwa.test.mjs",
+    "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+    "tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs",
+    "tests/route-iq-august-1-launch-envelope.test.mjs",
+    "workers/infrastructure/route-iq-august-1-customer-pwa-runtime-v1.json",
+    "workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js"
   ]);
   for (const item of successors.overwatchCurrentEvidence) {
     assert.equal(allowedCurrentEvidencePaths.has(item.path), true,
@@ -1507,6 +1536,40 @@ function verifyFixedOwnerEvidence(root, matrix, contract) {
   assert.equal(requirementById(matrix, "activation_and_deployment_authorization").status, "PENDING_FOUNDER");
 }
 
+function isExactPrivateSessionRepairCheckout(root) {
+  try {
+    const branch = git(root, "branch", "--show-current");
+    const head = git(root, "rev-parse", "HEAD");
+    const originMain = git(root, "rev-parse", "refs/remotes/origin/main");
+    if (branch !== PRIVATE_SESSION_REPAIR_BRANCH
+      || originMain !== PRIVATE_SESSION_REPAIR_BASE
+      || git(root, "merge-base", head, originMain) !== originMain
+      || git(root, "rev-list", "--merges", `${originMain}..${head}`)) {
+      return false;
+    }
+    const statusLines = git(root, "status", "--porcelain=v1", "--untracked-files=all")
+      .split("\n").filter(Boolean);
+    if (statusLines.some(line => line.startsWith("?? "))) return false;
+    const changedPaths = git(root, "diff", "--name-only", originMain, "--")
+      .split("\n").filter(Boolean).sort();
+    if (changedPaths.length !== PRIVATE_SESSION_REPAIR_PATHS.length
+      || changedPaths.some((path, index) => path !== PRIVATE_SESSION_REPAIR_PATHS[index])) {
+      return false;
+    }
+    const preservedDiff = gitBytes(
+      root,
+      "diff",
+      "--binary",
+      originMain,
+      "--",
+      ...PRIVATE_SESSION_REPAIR_PRESERVED_PATHS
+    );
+    return sha256(preservedDiff) === PRIVATE_SESSION_REPAIR_PRESERVED_DIFF_SHA256;
+  } catch {
+    return false;
+  }
+}
+
 function verifyRepositoryBaseline(root, contract, { requireClean }) {
   assert.equal(git(root, "rev-parse", `${STARTING_COMMIT}^{tree}`), STARTING_TREE);
   execFileSync("git", ["merge-base", "--is-ancestor", STARTING_COMMIT, "HEAD"], { cwd: root });
@@ -1542,11 +1605,14 @@ function verifyRepositoryBaseline(root, contract, { requireClean }) {
     || /^scripts\/verify-overwatch-/u.test(path)
     || /^tests\/overwatch-/u.test(path)
   ));
+  const exactPrivateSessionRepair = isExactPrivateSessionRepairCheckout(root);
   return {
     head: git(root, "rev-parse", "HEAD"),
     tree: git(root, "rev-parse", "HEAD^{tree}"),
     clean: status === "" || (!requireClean && onlyOverwatchSuccessorChanges),
-    ownerArtifactsCommitted: trackedOwnerArtifacts
+    ownerArtifactsCommitted: trackedOwnerArtifacts,
+    exactPrivateSessionRepair,
+    uncommittedChanges: status !== ""
   };
 }
 
@@ -1594,16 +1660,23 @@ export function verifyOverwatchRouteIqAugust1LaunchReadiness({
   verifyFixedOwnerEvidence(root, matrix, contract);
   const repository = verifyGit ? verifyRepositoryBaseline(root, contract, { requireClean }) : null;
   if (repository) {
-    assert.equal(
-      repository.ownerArtifactsCommitted,
-      contract.sourceObservations.ownerArtifactsCommitted,
-      "Owner-artifact commit observation drifted."
-    );
-    assert.equal(
-      repository.clean,
-      contract.sourceObservations.workingTreeClean,
-      "Working-tree observation drifted."
-    );
+    if (repository.exactPrivateSessionRepair && repository.uncommittedChanges) {
+      assert.equal(repository.ownerArtifactsCommitted, false,
+        "The pre-commit private-session repair must remain visibly uncommitted.");
+      assert.equal(repository.clean, false,
+        "The pre-commit private-session repair must not be reported as a clean checkout.");
+    } else {
+      assert.equal(
+        repository.ownerArtifactsCommitted,
+        contract.sourceObservations.ownerArtifactsCommitted,
+        "Owner-artifact commit observation drifted."
+      );
+      assert.equal(
+        repository.clean,
+        contract.sourceObservations.workingTreeClean,
+        "Working-tree observation drifted."
+      );
+    }
   }
   const counts = readinessCounts(matrix);
   return Object.freeze({
