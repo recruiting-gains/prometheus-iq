@@ -9,6 +9,12 @@ export const routeIqAugust1LaunchRoles = Object.freeze([
 export const routeIqAugust1FounderAccessContractVersion = "route-iq-founder-multi-company-access-v1";
 export const routeIqAugust1FounderAccessRole = "founder_multi_company_read_only";
 export const routeIqAugust1FounderAccessMode = "EXPLICIT_WORKSPACE_SELECTION_ONLY";
+export const routeIqAugust1PrincipalRoleByRoleId = Object.freeze({
+  [routeIqAugust1FounderAccessRole]: "founder",
+  customer_owner: "customer_owner",
+  customer_manager: "manager",
+  customer_representative: "representative"
+});
 
 const ID_PATTERN = /^[a-z][a-z0-9_]{2,127}$/u;
 const PRINCIPAL_PATTERN = /^riq_principal_[a-f0-9]{64}$/u;
@@ -148,6 +154,14 @@ function governedFounderUser(registry, authenticatedPrincipalId) {
     fail("route_iq_launch_founder_identity_invalid", "The Founder principal identity anchor is not authorized.");
   }
   return { user, workspace };
+}
+
+function principalRoleFor(roleId) {
+  const principalRole = routeIqAugust1PrincipalRoleByRoleId[roleId];
+  if (!principalRole) {
+    fail("route_iq_launch_role_unauthorized", "The mapped role has no authorized customer-PWA semantics.");
+  }
+  return principalRole;
 }
 
 function validateFounderAccess(value, registry, admissions, admittedPrincipalIds) {
@@ -339,6 +353,7 @@ export function authorizeRouteIqAugust1LaunchPrincipal({
       representativeId: founder.representativeId,
       displayName: founder.displayName,
       roleId: routeIqAugust1FounderAccessRole,
+      principalRole: principalRoleFor(routeIqAugust1FounderAccessRole),
       capabilities: {
         operateOwnRoute: false,
         readWorkspaceOperations: true,
@@ -376,6 +391,7 @@ export function authorizeRouteIqAugust1LaunchPrincipal({
       representativeId: user.representativeId,
       displayName: user.displayName,
       roleId: user.roleId,
+      principalRole: principalRoleFor(user.roleId),
       capabilities: {
         operateOwnRoute: true,
         readWorkspaceOperations: ["customer_owner", "customer_manager"].includes(user.roleId),

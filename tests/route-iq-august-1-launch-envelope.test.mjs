@@ -14,6 +14,7 @@ import {
   routeIqAugust1FounderAccessMode,
   routeIqAugust1FounderAccessRole,
   routeIqAugust1LaunchEnvelopeVersion,
+  routeIqAugust1PrincipalRoleByRoleId,
   validateRouteIqAugust1LaunchEnvelope
 } from "../data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs";
 
@@ -238,6 +239,7 @@ test("principal authorization and role boundaries isolate workspace and represen
   });
   assert.equal(principal.workspaceId, registry.workspaces[0].workspaceId);
   assert.equal(principal.representativeId, representative.representativeId);
+  assert.equal(principal.principalRole, "representative");
   assert.equal(principal.capabilities.founderIntelligence, false);
   assert.equal(principal.capabilities.founderCrm, false);
   assert.equal(assertRouteIqAugust1LaunchResourceAccess(principal, {
@@ -261,6 +263,33 @@ test("principal authorization and role boundaries isolate workspace and represen
     }),
     error => error.code === "route_iq_launch_cross_user_write_denied"
   );
+});
+
+test("launch roles map to one authoritative customer-PWA semantic role", () => {
+  const registry = activeCustomerRegistry({ workspaceCount: 1, usersPerWorkspace: 3 });
+  const active = envelope(registry);
+  const expected = [
+    ["customer_owner", "customer_owner"],
+    ["customer_manager", "manager"],
+    ["customer_representative", "representative"]
+  ];
+  for (const [roleId, principalRole] of expected) {
+    const user = registry.workspaces[0].users.find(candidate => candidate.roleId === roleId);
+    const principal = authorizeRouteIqAugust1LaunchPrincipal({
+      envelope: active,
+      registry,
+      authenticatedPrincipalId: user.authenticatedPrincipalId,
+      now
+    });
+    assert.equal(principal.roleId, roleId);
+    assert.equal(principal.principalRole, principalRole);
+  }
+  assert.deepEqual(routeIqAugust1PrincipalRoleByRoleId, {
+    founder_multi_company_read_only: "founder",
+    customer_owner: "customer_owner",
+    customer_manager: "manager",
+    customer_representative: "representative"
+  });
 });
 
 test("exact Founder principal selects one server-admitted workspace without merging company data", () => {
@@ -304,6 +333,7 @@ test("exact Founder principal selects one server-admitted workspace without merg
   });
   assert.equal(first.accessMode, "founder_explicit_workspace_read_only");
   assert.equal(first.roleId, routeIqAugust1FounderAccessRole);
+  assert.equal(first.principalRole, "founder");
   assert.equal(first.workspaceId, firstWorkspaceId);
   assert.equal(second.workspaceId, secondWorkspaceId);
   assert.equal(Object.hasOwn(first, "authorizedWorkspaceIds"), false);
