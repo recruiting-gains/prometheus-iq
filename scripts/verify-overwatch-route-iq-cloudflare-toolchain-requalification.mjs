@@ -112,12 +112,14 @@ const privateSessionRepairPreservedPaths = Object.freeze([
 const privateSessionRepairPaths = Object.freeze([
   ...privateSessionRepairPreservedPaths,
   augustReadinessSuccessorsPath,
+  "package.json",
   "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
   "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
   "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs",
   "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
   "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
   "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+  "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
   "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
   "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
 ].sort());

@@ -37,12 +37,14 @@ const PRIVATE_SESSION_REPAIR_PRESERVED_PATHS = Object.freeze([
 const PRIVATE_SESSION_REPAIR_PATHS = Object.freeze([
   ...PRIVATE_SESSION_REPAIR_PRESERVED_PATHS,
   AUGUST_1_SUCCESSORS_PATH,
+  "package.json",
   "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
   "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
   "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs",
   "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
   "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
   "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+  "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
   "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
   "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
 ].sort());

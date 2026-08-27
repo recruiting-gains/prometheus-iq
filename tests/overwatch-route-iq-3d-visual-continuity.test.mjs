@@ -11,6 +11,14 @@ import {
 
 const governance = () => JSON.parse(readFileSync(ROUTE_IQ_3D_GOVERNANCE_PATH, "utf8"));
 
+test("3D continuity qualification serializes deterministic build consumers", () => {
+  const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
+  assert.equal(
+    packageJson.scripts["overwatch:route-iq-3d-visual-continuity:check"],
+    "node scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs && node --test --test-concurrency=1 tests/overwatch-route-iq-3d-visual-continuity.test.mjs tests/overwatch-route-iq-yc-investor-website-focus.test.mjs tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+  );
+});
+
 test("Overwatch verifies the owned 3D successor, generated assets, CRM boundary, and rollback", () => {
   const result = verifyOverwatchRouteIq3dVisualContinuity({ build: false, requireClean: false });
   assert.equal(result.status, "ROUTE_IQ_3D_VISUAL_CONTINUITY_VERIFIED");

@@ -14,7 +14,7 @@
     "security:cloudflare-toolchain:check": "node --test tests/route-iq-npm-high-advisory-triage-batch-20260810-001-security.test.mjs",
     "overwatch:cloudflare-toolchain:check": "node scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs && node --test tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs",
     "overwatch:artifact-contracts:check": "node scripts/verify-cross-subsystem-artifact-contracts.mjs",
-    "overwatch:route-iq-3d-visual-continuity:check": "node scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs && node --test tests/overwatch-route-iq-3d-visual-continuity.test.mjs tests/overwatch-route-iq-yc-investor-website-focus.test.mjs tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs",
+    "overwatch:route-iq-3d-visual-continuity:check": "node scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs && node --test --test-concurrency=1 tests/overwatch-route-iq-3d-visual-continuity.test.mjs tests/overwatch-route-iq-yc-investor-website-focus.test.mjs tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs",
     "overwatch:shadow-readiness:check": "node scripts/verify-overwatch-shadow-decision-readiness-gate.mjs",
     "overwatch:release-provenance:check": "node scripts/verify-release-provenance-repair.mjs",
     "overwatch:route-iq-prospective-runtime:check": "node scripts/verify-overwatch-route-iq-prospective-runtime-gate.mjs && node --test tests/overwatch-route-iq-prospective-runtime-gate.test.mjs",
