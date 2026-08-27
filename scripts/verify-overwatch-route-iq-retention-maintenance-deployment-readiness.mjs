@@ -63,12 +63,14 @@ const privateSessionRepairPaths = Object.freeze([
   "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
   "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
   "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs",
+  "scripts/verify-overwatch-route-iq-prospective-calibration-production-admission-future-window-readiness-v1.mjs",
   "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
   "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
   "scripts/verify-route-iq-public-deployment-assets.mjs",
   "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
   "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
   "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs",
+  "tests/overwatch-route-iq-prospective-calibration-production-admission-future-window-readiness-v1.test.mjs",
   "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
   "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
 ].sort());
@@ -747,7 +749,9 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
     true,
     "Repository is neither synchronized main nor the exact authorized private-session repair."
   );
-  assert.equal(git("status", "--porcelain"), "");
+  if (!exactPrivateSessionRepair) {
+    assert.equal(git("status", "--porcelain"), "");
+  }
 
   const terminalOwnerCommit = verifyOwnerChain(governance);
   assert.equal(terminalOwnerCommit, governance.ownership.finalIntegration.expectedParent);

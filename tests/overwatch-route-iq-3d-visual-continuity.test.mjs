@@ -20,6 +20,12 @@ test("3D continuity qualification serializes deterministic build consumers", () 
     packageJson.scripts["overwatch:route-iq-3d-visual-continuity:check"],
     "node scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs && node --test --test-concurrency=1 tests/overwatch-route-iq-3d-visual-continuity.test.mjs tests/overwatch-route-iq-yc-investor-website-focus.test.mjs tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
   );
+  assert.match(
+    packageJson.scripts["test:overwatch"],
+    /^node --test --test-concurrency=1 /u
+  );
+  assert.doesNotMatch(packageJson.scripts["test:overwatch"],
+    /--test-only|--test-name-pattern/u);
 });
 
 test("public asset verification runs the exact Vite build without nested npm", () => {
