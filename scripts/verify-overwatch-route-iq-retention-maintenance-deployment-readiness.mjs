@@ -67,6 +67,7 @@ const privateSessionRepairPaths = Object.freeze([
   "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
   "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
   "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
+  "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs",
   "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
   "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
 ].sort());

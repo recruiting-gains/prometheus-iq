@@ -220,6 +220,7 @@ test("only the exact private-session corrective checkout satisfies the pre-merge
     "tests/dashboard-route-iq-customer-pwa.test.mjs",
     "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
     "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
+    "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs",
     "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
     "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs",
     "tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs",
