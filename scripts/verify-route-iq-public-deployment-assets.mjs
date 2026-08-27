@@ -10,6 +10,7 @@ import { hashPublicForwardRollbackArtifact } from "./lib/route-iq-public-forward
 
 const root = resolve(import.meta.dirname, "..");
 const SOURCE_DIRECTORY = "dist-public";
+const PUBLIC_BUILD_SCRIPT = "vite build";
 const FORBIDDEN_GENERATED_PATHS = Object.freeze([
   "enterprise-lead-intake.js",
   "route-iq-request-form.js",
@@ -31,8 +32,16 @@ function names(directory) {
   return regularFiles(directory).map(path => relative(directory, path).split("\\").join("/"));
 }
 
-function buildSource() {
-  const result = spawnSync("npm", ["run", "build"], {
+export function buildPublicDeploymentSource({
+  spawn = spawnSync,
+  packageJson = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")),
+  nodeExecutable = process.execPath,
+  viteCliPath = resolve(root, "node_modules", "vite", "bin", "vite.js")
+} = {}) {
+  if (packageJson?.scripts?.build !== PUBLIC_BUILD_SCRIPT) {
+    throw new Error("public_deployment_build_contract_invalid");
+  }
+  const result = spawn(nodeExecutable, [viteCliPath, "build"], {
     cwd: root,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
@@ -45,9 +54,16 @@ function buildSource() {
       NO_COLOR: "1"
     }
   });
-  if (result.status !== 0 || result.error || result.signal) {
+  if (result.error?.code === "ETIMEDOUT") {
+    throw new Error("public_deployment_build_timeout");
+  }
+  if (result.signal) {
+    throw new Error("public_deployment_build_signaled");
+  }
+  if (result.status !== 0 || result.error) {
     throw new Error("public_deployment_build_failed");
   }
+  return true;
 }
 
 function assertExactParity(sourceDirectory, deploymentDirectory) {
@@ -71,7 +87,7 @@ function size(directory, path) {
 }
 
 export function verifyRouteIqPublicDeploymentAssets({ build = true } = {}) {
-  if (build) buildSource();
+  if (build) buildPublicDeploymentSource();
   const contract = verifyPublicForwardRollbackContract(root);
   const sourceDirectory = resolve(root, SOURCE_DIRECTORY);
   const deploymentDirectory = resolve(root, contract.websiteAssetPath);
