@@ -41,8 +41,10 @@ const PRIVATE_SESSION_REPAIR_PATHS = Object.freeze([
   "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
   "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs",
   "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
+  "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
   "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
-  "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs"
+  "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
+  "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
 ].sort());
 const STARTING_COMMIT = "d3bda9d86a388462dd5cab0fa789081eee59b541";
 const STARTING_TREE = "bc1fb8b16fab4f795d51f838eab06e16d0a4a3d2";
