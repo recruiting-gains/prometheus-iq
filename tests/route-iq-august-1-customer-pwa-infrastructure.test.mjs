@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { generateKeyPairSync } from "node:crypto";
+import { createHash, generateKeyPairSync } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
@@ -10,6 +10,10 @@ import {
   validateCommercialWorkspaceRegistry
 } from "../data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry.mjs";
 import {
+  authorizeRouteIqAugust1LaunchPrincipal,
+  routeIqAugust1FounderAccessContractVersion,
+  routeIqAugust1FounderAccessMode,
+  routeIqAugust1FounderAccessRole,
   routeIqAugust1LaunchEnvelopeVersion
 } from "../data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs";
 import { routeIqFieldSessionStoreBinding } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
@@ -122,6 +126,45 @@ function activeEnvelope(registry) {
 
 const canonicalRegistry = activeCustomerRegistry();
 const canonicalEnvelope = activeEnvelope(canonicalRegistry);
+
+function exactPrincipalId(subject) {
+  return `riq_principal_${createHash("sha256").update(subject).digest("hex")}`;
+}
+
+function fourRoleFixture() {
+  const customerRegistry = activeCustomerRegistry({ workspaceCount: 1, usersPerWorkspace: 3 });
+  const envelope = activeEnvelope(customerRegistry);
+  const registry = clone(customerRegistry);
+  const founderSubject = "commercial-isolation:founder";
+  const workspace = registry.workspaces[0];
+  workspace.roles.push({
+    roleId: routeIqAugust1FounderAccessRole,
+    operationalAccess: false,
+    founderIntelligenceAccess: true,
+    workspaceAdministration: false
+  });
+  workspace.users.push({
+    userId: "founder_cruz_session_fixture",
+    representativeId: "cruz",
+    displayName: "Founder session fixture",
+    roleId: routeIqAugust1FounderAccessRole,
+    authenticatedPrincipalId: exactPrincipalId(founderSubject),
+    identityMappingStatus: "exact_authenticated_identity_mapped",
+    analysisPseudonym: "riq_rep_founder_session_fixture",
+    active: true,
+    founderIntelligenceEligibility: true,
+    territoryIds: [workspace.territories[0].territoryId]
+  });
+  envelope.founderAccess = {
+    contractVersion: routeIqAugust1FounderAccessContractVersion,
+    identityAuthority: "commercial_workspace_registry_exact_principal",
+    roleId: routeIqAugust1FounderAccessRole,
+    accessMode: routeIqAugust1FounderAccessMode,
+    authenticatedPrincipalId: exactPrincipalId(founderSubject),
+    authorizedWorkspaceIds: [workspace.workspaceId]
+  };
+  return { envelope, founderSubject, registry, workspace };
+}
 
 function trustedRuntimeBindings(registry = canonicalRegistry) {
   const workspaces = registry.workspaces.map((workspace, workspaceIndex) => {
@@ -259,6 +302,7 @@ function dataAuthorizedPrincipalForWorkspace(registry, workspaceIndex) {
     representativeId: user.representativeId,
     displayName: user.displayName,
     roleId: user.roleId,
+    principalRole: "customer_owner",
     capabilities: {
       operateOwnRoute: true,
       readWorkspaceOperations: true,
@@ -475,6 +519,7 @@ test("valid exact Access principal receives only the bounded 2-company 40-user s
   assert.equal(body.session.representativeId, canonicalRegistry.workspaces[0].users[0].representativeId);
   assert.equal(body.session.displayName, canonicalRegistry.workspaces[0].users[0].displayName);
   assert.equal(body.session.roleId, "customer_owner");
+  assert.equal(body.session.principalRole, "customer_owner");
   assert.deepEqual(body.session.runtimeAssets, expectedRuntimeAssets());
   assert.equal(Object.hasOwn(body.session.runtimeAssets, "fullPool"), false);
   assert.equal(Object.hasOwn(body.session.runtimeAssets, "activePool"), false);
@@ -540,6 +585,134 @@ test("valid exact Access principal receives only the bounded 2-company 40-user s
   );
   assert.equal(writeMethod.status, 405);
   assert.equal((await writeMethod.json()).code, ROUTE_IQ_CUSTOMER_PWA_FAILURES.methodNotAllowed);
+});
+
+test("signed Access assertions produce the exact four governed semantic sessions", async () => {
+  const fixture = fourRoleFixture();
+  const roleCases = [
+    {
+      roleId: routeIqAugust1FounderAccessRole,
+      principalRole: "founder",
+      subject: fixture.founderSubject,
+      query: `?workspaceId=${fixture.workspace.workspaceId}`,
+      capabilities: {
+        operateOwnRoute: false,
+        readWorkspaceOperations: true,
+        administerWorkspaceRoster: false,
+        founderIntelligence: true,
+        founderCrm: false
+      }
+    },
+    {
+      roleId: "customer_owner",
+      principalRole: "customer_owner",
+      subject: fixtureSubject(1, 1),
+      query: "",
+      capabilities: {
+        operateOwnRoute: true,
+        readWorkspaceOperations: true,
+        administerWorkspaceRoster: true,
+        founderIntelligence: false,
+        founderCrm: false
+      }
+    },
+    {
+      roleId: "customer_manager",
+      principalRole: "manager",
+      subject: fixtureSubject(1, 2),
+      query: "",
+      capabilities: {
+        operateOwnRoute: true,
+        readWorkspaceOperations: true,
+        administerWorkspaceRoster: false,
+        founderIntelligence: false,
+        founderCrm: false
+      }
+    },
+    {
+      roleId: "customer_representative",
+      principalRole: "representative",
+      subject: fixtureSubject(1, 3),
+      query: "",
+      capabilities: {
+        operateOwnRoute: true,
+        readWorkspaceOperations: false,
+        administerWorkspaceRoster: false,
+        founderIntelligence: false,
+        founderCrm: false
+      }
+    }
+  ];
+  const hooks = testHooks({
+    envelope: fixture.envelope,
+    registry: fixture.registry,
+    runtimeBindings: trustedRuntimeBindings(fixture.registry)
+  });
+  for (const item of roleCases) {
+    const response = await handleRouteIqCustomerPwaRequest(
+      customerRequest(
+        `${ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH}${item.query}`,
+        await accessToken({ subject: item.subject })
+      ),
+      enabledEnv(),
+      { testHooks: hooks }
+    );
+    assert.equal(response.status, 200, item.roleId);
+    const body = await response.json();
+    exactKeys(body.session, ROUTE_IQ_CUSTOMER_PWA_SESSION_KEYS);
+    assert.equal(body.session.roleId, item.roleId);
+    assert.equal(body.session.principalRole, item.principalRole);
+    assert.deepEqual(body.session.capabilities, item.capabilities);
+    assert.equal(Object.hasOwn(body.session, "semanticRole"), false);
+  }
+});
+
+test("session role drift, contradictory capabilities, and key drift fail closed", async () => {
+  const token = await accessToken();
+  const principalCases = [
+    ["wrong roleId", principal => { principal.roleId = "customer_manager"; }],
+    ["altered principalRole", principal => { principal.principalRole = "founder"; }],
+    ["contradictory capabilities", principal => { principal.capabilities.founderIntelligence = true; }],
+    ["missing principalRole", principal => { delete principal.principalRole; }]
+  ];
+  for (const [name, mutate] of principalCases) {
+    const response = await handleRouteIqCustomerPwaRequest(
+      customerRequest(ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH, token),
+      enabledEnv(),
+      { testHooks: testHooks({
+        dataAuthorizePrincipal(input) {
+          const principal = clone(authorizeRouteIqAugust1LaunchPrincipal(input));
+          mutate(principal);
+          return principal;
+        }
+      }) }
+    );
+    assert.ok([403, 503].includes(response.status), name);
+    const body = await response.json();
+    assert.ok([
+      ROUTE_IQ_CUSTOMER_PWA_FAILURES.roleUnauthorized,
+      ROUTE_IQ_CUSTOMER_PWA_FAILURES.launchInvalid
+    ].includes(body.code), name);
+  }
+
+  const validResponse = await handleRouteIqCustomerPwaRequest(
+    customerRequest(ROUTE_IQ_CUSTOMER_PWA_SESSION_PATH, token),
+    enabledEnv(),
+    { testHooks: testHooks() }
+  );
+  const validSession = clone((await validResponse.json()).session);
+  for (const [name, mutate] of [
+    ["missing session key", session => { delete session.principalRole; }],
+    ["unknown session key", session => { session.semanticRole = "representative"; }]
+  ]) {
+    const candidate = clone(validSession);
+    mutate(candidate);
+    assert.throws(
+      () => serializeRouteIqCustomerPwaSession(candidate),
+      error => error.code === ROUTE_IQ_CUSTOMER_PWA_FAILURES.launchInvalid,
+      name
+    );
+  }
 });
 
 test("Infrastructure delegates explicit Founder workspace selection to Data and emits one scoped session", async () => {

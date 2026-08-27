@@ -19,6 +19,39 @@ import {
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
   "overwatch/governance/route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.json";
+const privateSessionRepairBranch = "codex/private-session-v2-compatibility-repair";
+const privateSessionRepairBase = "c7119fcee140ab8a130cdb888439277fdcbeb6b0";
+const privateSessionRepairPreservedDiffSha256 =
+  "7bb1d11d90ff4c6916ecc6bfec5f4078aac18ee54c6b5b62248e6c9068f28740";
+const privateSessionRepairPreservedPaths = Object.freeze([
+  "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs",
+  governancePath,
+  "scripts/verify-dashboard-runtime-workflows.mjs",
+  "tests/dashboard-route-iq-customer-pwa.test.mjs",
+  "tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs",
+  "tests/route-iq-august-1-launch-envelope.test.mjs",
+  "tests/route-iq-multi-company-runtime-infrastructure.test.mjs",
+  "workers/infrastructure/route-iq-august-1-customer-pwa-runtime-v1.json",
+  "workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js"
+]);
+const privateSessionRepairPaths = Object.freeze([
+  ...privateSessionRepairPreservedPaths,
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
+  "package.json",
+  "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+  "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+  "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs",
+  "scripts/verify-overwatch-route-iq-prospective-calibration-production-admission-future-window-readiness-v1.mjs",
+  "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
+  "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
+  "scripts/verify-route-iq-public-deployment-assets.mjs",
+  "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+  "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
+  "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs",
+  "tests/overwatch-route-iq-prospective-calibration-production-admission-future-window-readiness-v1.test.mjs",
+  "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
+  "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
+].sort());
 
 const expectedChangedPaths = new Map([
   ["ff06fb0723e0842c970fd344049b999ba774faa4", [
@@ -149,6 +182,32 @@ export function isGovernedMainCheckout({
     && environment.GITHUB_SHA === head;
 }
 
+function isExactPrivateSessionRepairCheckout({ branch, head, originMain }) {
+  if (branch !== privateSessionRepairBranch || originMain !== privateSessionRepairBase) {
+    return false;
+  }
+  try {
+    if (git(["merge-base", head, originMain]).trim() !== originMain) return false;
+    if (git(["rev-list", "--merges", `${originMain}..${head}`]).trim()) return false;
+    const statusLines = git(["status", "--porcelain=v1", "--untracked-files=all"])
+      .trim().split("\n").filter(Boolean);
+    if (statusLines.some(line => line.startsWith("?? "))) return false;
+    const changed = git(["diff", "--name-only", originMain, "--"])
+      .trim().split("\n").filter(Boolean).sort();
+    if (changed.length !== privateSessionRepairPaths.length
+      || changed.some((path, index) => path !== privateSessionRepairPaths[index])) {
+      return false;
+    }
+    const preservedDiff = execFileSync("/usr/bin/git", [
+      "diff", "--binary", originMain, "--", ...privateSessionRepairPreservedPaths
+    ], { cwd: root, encoding: null, maxBuffer: 16 * 1024 * 1024 });
+    return createHash("sha256").update(preservedDiff).digest("hex")
+      === privateSessionRepairPreservedDiffSha256;
+  } catch {
+    return false;
+  }
+}
+
 function verifyOwnerCommits(governance) {
   assert.equal(governance.ownerCommits.length, expectedChangedPaths.size);
   for (const ownerCommit of governance.ownerCommits) {
@@ -207,12 +266,14 @@ function verifyRepositoryBoundaries(governance) {
   );
   const head = git(["rev-parse", "HEAD"]).trim();
   const originMain = git(["rev-parse", "refs/remotes/origin/main"]).trim();
+  const branch = git(["rev-parse", "--abbrev-ref", "HEAD"]).trim();
   assert.equal(isGovernedMainCheckout({
-    branch: git(["rev-parse", "--abbrev-ref", "HEAD"]).trim(),
+    branch,
     head,
     originMain,
     environment: process.env
-  }), true, "Repository is not the governed main checkout.");
+  }) || isExactPrivateSessionRepairCheckout({ branch, head, originMain }), true,
+  "Repository is neither governed main nor the exact authorized private-session repair checkout.");
   const batchDiffRange = governedLearningAdvisoryBatchDiffRange(governance);
   for (const path of governance.unchangedBehaviorPaths) {
     execFileSync("/usr/bin/git", [

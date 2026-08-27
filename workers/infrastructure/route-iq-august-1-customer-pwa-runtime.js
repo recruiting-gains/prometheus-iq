@@ -13,6 +13,7 @@ import {
   authorizeRouteIqAugust1LaunchPrincipal,
   routeIqAugust1LaunchMaximumCompanies,
   routeIqAugust1LaunchMaximumNamedUsers,
+  routeIqAugust1PrincipalRoleByRoleId,
   validateRouteIqAugust1LaunchEnvelope
 } from "../../data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs";
 import { AEGIS_API_HEADERS } from "./aegis-security-controls.js";
@@ -41,6 +42,7 @@ export const ROUTE_IQ_CUSTOMER_PWA_SESSION_KEYS = Object.freeze([
   "workspaceId",
   "workspaceLabel",
   "operatingProfileId",
+  "principalRole",
   "userId",
   "representativeId",
   "displayName",
@@ -114,6 +116,36 @@ const PRODUCTION_BUSINESS_HOURS_BINDINGS = Object.freeze([
     artifact: fitnessConnectionBusinessHours
   })
 ]);
+const PRINCIPAL_ROLE_CAPABILITIES = Object.freeze({
+  founder: Object.freeze({
+    operateOwnRoute: false,
+    readWorkspaceOperations: true,
+    administerWorkspaceRoster: false,
+    founderIntelligence: true,
+    founderCrm: false
+  }),
+  customer_owner: Object.freeze({
+    operateOwnRoute: true,
+    readWorkspaceOperations: true,
+    administerWorkspaceRoster: true,
+    founderIntelligence: false,
+    founderCrm: false
+  }),
+  manager: Object.freeze({
+    operateOwnRoute: true,
+    readWorkspaceOperations: true,
+    administerWorkspaceRoster: false,
+    founderIntelligence: false,
+    founderCrm: false
+  }),
+  representative: Object.freeze({
+    operateOwnRoute: true,
+    readWorkspaceOperations: false,
+    administerWorkspaceRoster: false,
+    founderIntelligence: false,
+    founderCrm: false
+  })
+});
 const JSON_ESCAPE = Object.freeze({
   "<": "\\u003c",
   ">": "\\u003e",
@@ -157,14 +189,19 @@ function exactKeys(value, expected) {
 }
 
 function validClientSessionShape(session) {
+  const principalRole = routeIqAugust1PrincipalRoleByRoleId[session?.roleId];
+  const expectedCapabilities = PRINCIPAL_ROLE_CAPABILITIES[principalRole];
   return exactKeys(session, ROUTE_IQ_CUSTOMER_PWA_SESSION_KEYS)
     && exactKeys(session.capabilities, ROUTE_IQ_CUSTOMER_PWA_SESSION_CAPABILITY_KEYS)
     && exactKeys(session.runtimeAssets, ROUTE_IQ_CUSTOMER_PWA_SESSION_RUNTIME_ASSET_KEYS)
     && exactKeys(session.safety, ROUTE_IQ_CUSTOMER_PWA_SESSION_SAFETY_KEYS)
     && session.contractVersion === ROUTE_IQ_CUSTOMER_PWA_SESSION_CONTRACT_VERSION
     && session.authorizationState === "server_verified"
-    && session.capabilities.founderIntelligence === false
-    && session.capabilities.founderCrm === false
+    && session.principalRole === principalRole
+    && Boolean(expectedCapabilities)
+    && ROUTE_IQ_CUSTOMER_PWA_SESSION_CAPABILITY_KEYS.every(
+      key => session.capabilities[key] === expectedCapabilities[key]
+    )
     && session.safety.prospectiveCollection === "OFF"
     && session.safety.activeCohorts === 0
     && session.safety.recommendationInfluence === "OFF";
@@ -660,11 +697,8 @@ export function createRouteIqCustomerPwaSession(authorization) {
     representativeId: principal.representativeId,
     displayName: principal.displayName,
     roleId: principal.roleId,
-    capabilities: {
-      ...clone(principal.capabilities),
-      founderIntelligence: false,
-      founderCrm: false
-    },
+    principalRole: principal.principalRole,
+    capabilities: clone(principal.capabilities),
     runtimeAssets: clone(runtimeAssets),
     expiresAt: new Date(Math.min(accessExpiresAtMs, launchExpiresAtMs)).toISOString(),
     safety: clone(principal.safety)

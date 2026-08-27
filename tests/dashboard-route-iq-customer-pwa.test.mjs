@@ -68,6 +68,23 @@ test("server semantic roles preserve Founder and customer owner without producti
   assert.match(runtimeWorkflowHarness, /width: 390, height: 844/gu);
 });
 
+test("browser role proof consumes exact sessions produced by the signed-assertion Worker path", () => {
+  assert.match(runtimeWorkflowHarness, /SignJWT, createLocalJWKSet, exportJWK/u);
+  assert.match(runtimeWorkflowHarness, /handleRouteIqCustomerPwaRequest/u);
+  assert.match(runtimeWorkflowHarness, /"Cf-Access-Jwt-Assertion": assertion/u);
+  assert.match(runtimeWorkflowHarness, /sessions\[principalRole\] = Object\.freeze\(body\.session\)/u);
+  assert.match(runtimeWorkflowHarness, /const workerProducedCustomerPwaSessions = await createWorkerProducedCustomerPwaSessions\(\)/u);
+  assert.match(runtimeWorkflowHarness, /Worker-produced four-role session contract/u);
+  assert.match(runtimeWorkflowHarness, /Worker-produced Founder session Dashboard parser/u);
+  assert.match(runtimeWorkflowHarness, /Worker-produced customer-owner session Dashboard parser/u);
+  assert.match(runtimeWorkflowHarness, /Worker-produced manager session Dashboard parser/u);
+  assert.match(runtimeWorkflowHarness, /Worker-produced representative session Dashboard parser/u);
+  assert.doesNotMatch(
+    runtimeWorkflowHarness,
+    /const customerPwaSessionFixture = Object\.freeze\(\{\s*contractVersion:/u
+  );
+});
+
 test("a missing customer operating profile blocks startup without falling back to Fitness", () => {
   assert.match(dashboard, /operatingProfileSource = "configuration-unavailable"/u);
   assert.match(dashboard, /runtimeDatasetSource = \{\s*label: "governed-runtime-unavailable",\s*status: "configuration-required"/u);

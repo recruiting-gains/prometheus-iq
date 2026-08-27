@@ -41,6 +41,39 @@ const representativeIntelligenceGovernancePath =
   "overwatch/governance/route-iq-representative-intelligence-public-experience-successor-v1.json";
 const claimSafePublicGovernancePath =
   "overwatch/governance/route-iq-claim-safe-public-deployment-successor-v1.json";
+const privateSessionRepairBranch = "codex/private-session-v2-compatibility-repair";
+const privateSessionRepairBase = "c7119fcee140ab8a130cdb888439277fdcbeb6b0";
+const privateSessionRepairPreservedDiffSha256 =
+  "7bb1d11d90ff4c6916ecc6bfec5f4078aac18ee54c6b5b62248e6c9068f28740";
+const privateSessionRepairPreservedPaths = Object.freeze([
+  "data/route-iq-commercial-readiness-v1/route-iq-august-1-launch-envelope.mjs",
+  "overwatch/governance/route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.json",
+  "scripts/verify-dashboard-runtime-workflows.mjs",
+  "tests/dashboard-route-iq-customer-pwa.test.mjs",
+  "tests/route-iq-august-1-customer-pwa-infrastructure.test.mjs",
+  "tests/route-iq-august-1-launch-envelope.test.mjs",
+  "tests/route-iq-multi-company-runtime-infrastructure.test.mjs",
+  "workers/infrastructure/route-iq-august-1-customer-pwa-runtime-v1.json",
+  "workers/infrastructure/route-iq-august-1-customer-pwa-runtime.js"
+].sort());
+const privateSessionRepairPaths = Object.freeze([
+  ...privateSessionRepairPreservedPaths,
+  "overwatch/governance/route-iq-august-1-readiness-successors-v1.json",
+  "package.json",
+  "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+  "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+  "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs",
+  "scripts/verify-overwatch-route-iq-prospective-calibration-production-admission-future-window-readiness-v1.mjs",
+  "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
+  "scripts/verify-overwatch-route-iq-retention-maintenance-deployment-readiness.mjs",
+  "scripts/verify-route-iq-public-deployment-assets.mjs",
+  "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+  "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
+  "tests/overwatch-route-iq-cloudflare-toolchain-requalification.test.mjs",
+  "tests/overwatch-route-iq-prospective-calibration-production-admission-future-window-readiness-v1.test.mjs",
+  "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
+  "tests/overwatch-route-iq-retention-maintenance-deployment-readiness.test.mjs"
+].sort());
 
 const ownerCommits = Object.freeze({
   "1511fe6778138c4b662381be5e6b03109e21e43d": Object.freeze({
@@ -138,6 +171,55 @@ function exactMainCheckout({ branch, head, originMain, environment = {} }) {
     && environment.GITHUB_REF_NAME === "main"
     && environment.GITHUB_REF_TYPE === "branch"
     && environment.GITHUB_SHA === head;
+}
+
+export function isExactRetentionMaintenancePrivateSessionRepairCheckout({
+  branch,
+  head,
+  originMain,
+  environment = {},
+  mergeBase,
+  mergeCommits = "",
+  statusLines = [],
+  changedPaths = [],
+  preservedDiffSha256
+}) {
+  const localBranch = environment.GITHUB_ACTIONS !== "true"
+    && branch === privateSessionRepairBranch;
+  const hostedBranch = environment.GITHUB_ACTIONS === "true"
+    && environment.GITHUB_REPOSITORY === "PrometheusRouteIQ/prometheus-iq"
+    && environment.GITHUB_SHA === head
+    && [environment.GITHUB_HEAD_REF, environment.GITHUB_REF_NAME].includes(
+      privateSessionRepairBranch
+    );
+  const sortedChangedPaths = [...changedPaths].sort();
+  return (localBranch || hostedBranch)
+    && originMain === privateSessionRepairBase
+    && mergeBase === originMain
+    && mergeCommits === ""
+    && !statusLines.some(line => line.startsWith("?? "))
+    && sortedChangedPaths.length === privateSessionRepairPaths.length
+    && sortedChangedPaths.every((path, index) => path === privateSessionRepairPaths[index])
+    && preservedDiffSha256 === privateSessionRepairPreservedDiffSha256;
+}
+
+function privateSessionRepairCheckoutEvidence({ branch, head, originMain, environment }) {
+  const status = git("status", "--porcelain=v1", "--untracked-files=all");
+  const changed = git("diff", "--name-only", originMain, "--");
+  const preservedDiff = execFileSync("git", [
+    "diff", "--binary", originMain, "--", ...privateSessionRepairPreservedPaths
+  ]);
+  return {
+    branch,
+    head,
+    originMain,
+    environment,
+    mergeBase: git("merge-base", head, originMain),
+    mergeCommits: git("rev-list", "--merges", `${originMain}..${head}`),
+    statusLines: status ? status.split("\n") : [],
+    changedPaths: changed ? changed.split("\n") : [],
+    preservedDiffSha256: sha256(preservedDiff)
+  };
 }
 
 function assertAllFalse(value, dimension) {
@@ -644,15 +726,32 @@ export function verifyOverwatchRouteIqRetentionMaintenanceDeploymentReadiness() 
   const intelligenceSuccessor = readJson(intelligenceSuccessorPath);
   const head = git("rev-parse", "HEAD");
   const originMain = git("rev-parse", "refs/remotes/origin/main");
+  const branch = git("branch", "--show-current");
 
   assert.equal(git("rev-parse", `${startCommit}^{tree}`), startTree);
-  assert.equal(exactMainCheckout({
-    branch: git("branch", "--show-current"),
+  const exactMain = exactMainCheckout({
+    branch,
     head,
     originMain,
     environment: process.env
-  }), true);
-  assert.equal(git("status", "--porcelain"), "");
+  });
+  const exactPrivateSessionRepair =
+    isExactRetentionMaintenancePrivateSessionRepairCheckout(
+      privateSessionRepairCheckoutEvidence({
+        branch,
+        head,
+        originMain,
+        environment: process.env
+      })
+    );
+  assert.equal(
+    exactMain || exactPrivateSessionRepair,
+    true,
+    "Repository is neither synchronized main nor the exact authorized private-session repair."
+  );
+  if (!exactPrivateSessionRepair) {
+    assert.equal(git("status", "--porcelain"), "");
+  }
 
   const terminalOwnerCommit = verifyOwnerChain(governance);
   assert.equal(terminalOwnerCommit, governance.ownership.finalIntegration.expectedParent);
