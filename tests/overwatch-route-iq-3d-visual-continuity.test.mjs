@@ -3,6 +3,9 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  buildPublicDeploymentSource
+} from "../scripts/verify-route-iq-public-deployment-assets.mjs";
+import {
   ROUTE_IQ_3D_GOVERNANCE_PATH,
   validateLiveCanonicalIdentityPublicRelease,
   validateRouteIq3dVisualContinuityGovernance,
@@ -17,6 +20,37 @@ test("3D continuity qualification serializes deterministic build consumers", () 
     packageJson.scripts["overwatch:route-iq-3d-visual-continuity:check"],
     "node scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs && node --test --test-concurrency=1 tests/overwatch-route-iq-3d-visual-continuity.test.mjs tests/overwatch-route-iq-yc-investor-website-focus.test.mjs tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
   );
+});
+
+test("public asset verification runs the exact Vite build without nested npm", () => {
+  let invocation;
+  assert.equal(buildPublicDeploymentSource({
+    spawn: (command, args, options) => {
+      invocation = { command, args, options };
+      return { status: 0, error: undefined, signal: null };
+    },
+    packageJson: { scripts: { build: "vite build" } },
+    nodeExecutable: "/governed/node",
+    viteCliPath: "/governed/vite.js"
+  }), true);
+  assert.equal(invocation.command, "/governed/node");
+  assert.deepEqual(invocation.args, ["/governed/vite.js", "build"]);
+  assert.equal(invocation.options.timeout, 120_000);
+  assert.equal(invocation.options.env.CI, "true");
+  assert.equal(invocation.options.env.NO_COLOR, "1");
+
+  assert.throws(() => buildPublicDeploymentSource({
+    spawn: () => ({ status: 0, error: undefined, signal: null }),
+    packageJson: { scripts: { build: "npm run build" } }
+  }), /public_deployment_build_contract_invalid/u);
+  assert.throws(() => buildPublicDeploymentSource({
+    spawn: () => ({
+      status: null,
+      error: Object.assign(new Error("redacted"), { code: "ETIMEDOUT" }),
+      signal: null
+    }),
+    packageJson: { scripts: { build: "vite build" } }
+  }), /public_deployment_build_timeout/u);
 });
 
 test("Overwatch verifies the owned 3D successor, generated assets, CRM boundary, and rollback", () => {

@@ -372,6 +372,36 @@
       "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
       "previousSha256": "35e0802de6d8e5ea1c1e8dab71a7e5c1b39793d05b858a452afc3caa5831fb2b",
       "successorSha256": "e5553fd9c7cb7afa385bf9bcfdd87ac57fdb88253f04e2fa9bd34fd0f0982920"
+    },
+    {
+      "path": "scripts/verify-route-iq-public-deployment-assets.mjs",
+      "previousSha256": "a191bcf637c37da7288aae5b3abc13f86827c4005699bb86f5ae74bbea5d74ad",
+      "successorSha256": "70c3962e161e1179a07f93d951e33c4ed73ae6552e8600178319c8eb945aa552"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      "previousSha256": "a70ef3b61fd1215f5cd64c7216ab0412737a0b2d37005386c8f58d4533fcdadd",
+      "successorSha256": "25659034c6fa5ef6c5119e080d5a1453cdcb8aa130774c49052f999f029d3a0c"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-cloudflare-toolchain-requalification.mjs",
+      "previousSha256": "65c6dbf9aa1e8460208847250dbec45ebeb9242928aca3778bbe4d5835d582e1",
+      "successorSha256": "71078b436c28efd8d9c56e79db22b354b3b44f07d582460085bbced51e6bc76d"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-governed-multi-session-learning-dashboard-advisory-bridge-v1.mjs",
+      "previousSha256": "489c6306187f1aaf0a87027d6cb784d8f0ce79b9db8987fe47ac60f379f7f7ae",
+      "successorSha256": "a7d1a30a4f2126b11df444e5feec67fb163ea84fc1f3c4835b110f330a71784a"
+    },
+    {
+      "path": "scripts/verify-overwatch-route-iq-retention-deletion-runtime.mjs",
+      "previousSha256": "6fd1791120dd91826bf5992bd5848804a4c9eafd51db34dfc977e1e47d0fa857",
+      "successorSha256": "a22637e08f4d2f36d165edca20f729568884c1afa8d5bfe6238f3cba1e802d19"
+    },
+    {
+      "path": "tests/overwatch-route-iq-retention-deletion-runtime.test.mjs",
+      "previousSha256": "e5553fd9c7cb7afa385bf9bcfdd87ac57fdb88253f04e2fa9bd34fd0f0982920",
+      "successorSha256": "6dde41cacbcb633f73df41c01b187c160773f6ed87a8f5a5193f648fd693de2b"
     }
   ],
   "successors": [
