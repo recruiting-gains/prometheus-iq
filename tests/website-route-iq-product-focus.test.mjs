@@ -321,11 +321,12 @@ test("metadata, canonical, and social images are selected by route", () => {
   assert.match(source, /meta\[name="robots"\]/);
 });
 
-test("the sitemap preserves the homepage and legal routes while adding investors and excluding thank-you", () => {
+test("the sitemap preserves the homepage and legal routes while adding investors, Open Proxy, and excluding thank-you", () => {
   const sitemap = read("public-site-static/sitemap.xml");
   assert.deepEqual([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/gu)].map(match => match[1]), [
     "https://prometheusrouteiq.com/",
     "https://prometheusrouteiq.com/investors",
+    "https://prometheusrouteiq.com/open-proxy",
     "https://prometheusrouteiq.com/privacy",
     "https://prometheusrouteiq.com/terms",
     "https://prometheusrouteiq.com/data-deletion"
@@ -403,6 +404,9 @@ test("a fresh build emits both founder assets and the lazy investor scene", () =
   ensureFreshBuild();
   const generated = filesUnder("dist-public");
   assert.ok(generated.includes("index.html"));
+  assert.ok(generated.includes("open-proxy/index.html"));
+  assert.ok(generated.includes("open-proxy/open-proxy.css"));
+  assert.ok(generated.includes("open-proxy/open-proxy.js"));
   assert.equal(generated.includes("01-772904932_1493675372780221_5358616428807129112_n-2.jpeg"), false);
   assert.equal(generated.includes("01-772904932_1493675372780221_5358616428807129112_n-2.webp"), false);
   assert.ok(generated.includes("02-prometheus_route_iq_ad.jpg"));
