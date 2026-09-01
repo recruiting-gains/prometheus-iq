@@ -4,6 +4,7 @@ const finePointer = window.matchMedia("(pointer: fine)").matches;
 
 if (canvas) {
   const context = canvas.getContext("2d");
+  if (!context) return;
   const pointer = { x: 0, y: 0 };
   const state = { width: 0, height: 0, depth: 760 };
   const spriteCache = new Map();
@@ -63,6 +64,7 @@ if (canvas) {
     sprite.width = size;
     sprite.height = size;
     const spriteContext = sprite.getContext("2d");
+    if (!spriteContext) return null;
     const center = size / 2;
     const gradient = spriteContext.createRadialGradient(center, center, 0, center, center, center);
     const palette = tint === "violet"
@@ -157,7 +159,7 @@ if (canvas) {
       const radius = point.size * point.scale * 1.5;
       const tint = point.z > 120 ? "violet" : "aqua";
       const glow = getGlowSprite(radius * 4, tint);
-      context.drawImage(glow.sprite, point.x - glow.offset, point.y - glow.offset);
+      if (glow) context.drawImage(glow.sprite, point.x - glow.offset, point.y - glow.offset);
       context.fillStyle = tint === "violet" ? "rgba(156, 125, 255, 0.88)" : "rgba(141, 245, 255, 0.96)";
       context.beginPath();
       context.arc(point.x, point.y, radius, 0, Math.PI * 2);
