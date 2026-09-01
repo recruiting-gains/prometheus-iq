@@ -159,7 +159,7 @@ if (canvas) {
       const radius = point.size * point.scale * 1.5;
       const tint = point.z > 120 ? "violet" : "aqua";
       const glow = getGlowSprite(radius * 4, tint);
-      if (glow) context.drawImage(glow.sprite, point.x - glow.offset, point.y - glow.offset);
+      if (glow && glow.sprite) context.drawImage(glow.sprite, point.x - glow.offset, point.y - glow.offset);
       context.fillStyle = tint === "violet" ? "rgba(156, 125, 255, 0.88)" : "rgba(141, 245, 255, 0.96)";
       context.beginPath();
       context.arc(point.x, point.y, radius, 0, Math.PI * 2);
