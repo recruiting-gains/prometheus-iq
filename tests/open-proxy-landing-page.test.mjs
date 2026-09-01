@@ -18,7 +18,7 @@ test("Open Proxy publishes a dedicated public route and sitemap entry", () => {
 test("Open Proxy landing page includes 3D hero structure, positioning copy, and CTA", () => {
   const html = read("public-site-static/open-proxy/index.html");
 
-  assert.match(html, /<title>Open Proxy \| 3D Landing Page by Prometheus\.IQ<\/title>/u);
+  assert.match(html, /<title>Open Proxy \| Policy-Aware Edge Proxy by Prometheus\.IQ<\/title>/u);
   assert.match(html, /Policy-aware proxying without the black box\./u);
   assert.match(html, /<canvas id="network-canvas"><\/canvas>/u);
   assert.match(html, /Prometheus\.IQ designed Open Proxy/u);
