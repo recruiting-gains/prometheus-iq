@@ -13,6 +13,8 @@ const publicPreviewRoutes = new Map([
   ["/investors/", "/landing.html"],
   ["/thank-you", "/landing.html"],
   ["/thank-you/", "/landing.html"],
+  ["/open-proxy", "/open-proxy/index.html"],
+  ["/open-proxy/", "/open-proxy/index.html"],
   ["/privacy", "/privacy/index.html"],
   ["/privacy/", "/privacy/index.html"],
   ["/terms", "/terms/index.html"],
