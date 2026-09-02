@@ -136,8 +136,15 @@ test("Integrations provenance preserves four legacy-identical paths and one exac
     "Prometheus Infrastructure <infrastructure@prometheus.local>",
   );
   assert.equal(readme.successorSource.committer, readme.successorSource.author);
-  assert.match(readme.successorSource.change, /infrastructure:intake-contract:check/u);
-  assert.match(readme.successorSource.change, /test:public/u);
+  assert.equal(
+    readme.successorSource.change,
+    "Replaced the obsolete package command with the current explicit public test suite.",
+  );
+  assert.equal(
+    readme.successorSource.obsoleteCommandName,
+    "infrastructure:intake-contract:check",
+  );
+  assert.equal(readme.successorSource.replacementCommandName, "test:public");
   assert.match(readme.successorSource.impact, /Documentation and verification routing only/u);
   assert.match(readme.successorSource.impact, /no Worker runtime or production change/u);
   assert.match(readme.successorSource.impact, /no deployment required/u);

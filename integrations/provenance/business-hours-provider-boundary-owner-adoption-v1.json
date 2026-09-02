@@ -47,7 +47,9 @@
         "parent": "46afabde3b0ad6678c98018ebbc31609dbc4a97a",
         "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
         "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
-        "change": "Replaced npm run infrastructure:intake-contract:check with npm run test:public.",
+        "change": "Replaced the obsolete package command with the current explicit public test suite.",
+        "obsoleteCommandName": "infrastructure:intake-contract:check",
+        "replacementCommandName": "test:public",
         "reason": "The former package command no longer exists after lean test-suite consolidation; test:public is the current explicit suite covering the active public intake contract.",
         "impact": "Documentation and verification routing only; no Worker runtime or production change and no deployment required."
       }
