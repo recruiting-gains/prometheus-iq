@@ -215,7 +215,7 @@ jobs:
       - name: Upload the immutable same-run private release
         id: upload
         # actions/upload-artifact v4.6.2
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: prometheus-private-qualified-${{ inputs.candidate_commit }}
           path: ${{ runner.temp }}/prometheus-private-qualified-release
@@ -424,7 +424,7 @@ jobs:
         id: upload-evidence
         if: ${{ !cancelled() }}
         # actions/upload-artifact v4.6.2
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: paid-customer-revenue-readiness-evidence-${{ inputs.candidate_commit }}
           path: ${{ runner.temp }}/paid-customer-revenue-readiness-evidence
